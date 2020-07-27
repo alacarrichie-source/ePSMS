@@ -1,0 +1,240 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<div class="well" style="margin-left:-150px;margin-right:-150px;">
+    <h2 class="text-info">Roles</h2>
+
+    <br />
+
+    @(Html.Kendo().Grid<iLgs.Models.AspNetRole>()
+            .Name("grid")
+            .Columns(col =>
+            {
+                col.Bound(c => c.Id).Width(50);
+                col.Bound(c => c.Name).Width(150);
+                col.Command(command =>
+                {
+                    command.Edit();
+                    command.Destroy();
+                }).Width(172);
+            })
+            .ToolBar(toolbar => toolbar.Create())
+            //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PayorTemplate").Window(w => w.Width(800).Height(500)))
+            .Editable(editable => editable.Mode(GridEditMode.InLine))
+            .Pageable()
+            .Sortable()
+            .Scrollable(s => s.Height(520))
+            .ClientDetailTemplateId("UserInRoles")
+            .Filterable()
+            //.HtmlAttributes(new { style = "height:400px;" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Events(events => events.Error("error_handler"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).Editable(true);
+                })
+                .Read(read => read.Action("RolesRead", "Roles"))
+                .Create(create => create.Action("RolesCreate", "Roles"))
+                .Update(update => update.Action("RolesUpdate", "Roles"))
+                .Destroy(destroy => destroy.Action("RolesDestroy", "Roles"))
+            )
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+            .Events(events => events.DataBound("onDataBound").Edit("onEditGrid"))
+
+    )
+
+
+    <script id="UserInRoles" type="text/kendo-tmpl">
+        @(Html.Kendo().Grid<iLgs.Models.AspNetUserRoles_View>()
+            .Name("grid_#=Id#")
+            .HtmlAttributes(new { style = "height:300px;" })
+            .Columns(columns =>
+            {
+                //columns.Bound(o => o.UserId).Width(100);
+                columns.Bound(o => o.UserName).Width(100);
+                columns.Bound(o => o.NameFull).Width(150);
+                columns.Command(command =>
+                {
+                    //command.Edit();
+                    command.Destroy();
+                    command.Custom("Access").Click("ShowAccess");
+                    command.Custom("Reset PW").Click("ResetPw");
+                }).Width(172);
+            })
+            .ToolBar(toolbar => toolbar.Create())
+            .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserInRoleTemplate").Window(w => w.Width(500).Title("User in Role")))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(5)
+                .Events(events => events.Error("error_handler"))
+                .Model(model =>
+                {
+                    //model.Id(p => p.UserId);
+                    //model.Id(p => p.RoleId);
+                    model.Id(p => p.CompKeyId);
+                    model.Field(p => p.CompKeyId).DefaultValue("").Editable(true);
+                })
+                .Read(read => read.Action("UserInRoleRead", "Roles", new { roleId = "#=Id#" }))
+                //.Create(create => create.Action("UserInRoleCreate", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
+                //.Update(update => update.Action("UserInRoleUpdate", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
+                //.Destroy(destroy => destroy.Action("UserInRoleDestroy", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
+                .Create(create => create.Action("UserInRoleCreate", "Roles"))
+                //.Update(update => update.Action("UserInRoleUpdate", "Roles", new { roleId = "#=Id#" }))
+                .Destroy(destroy => destroy.Action("UserInRoleDestroy", "Roles"))
+            )
+            .Scrollable()
+            .Pageable()
+            .Sortable()
+            .Filterable()
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+            .Events(events => events                    
+                    .Edit(@<text>
+                function(e) {
+                // the master row for this detail
+                var parentRow = this.wrapper.closest("tr").prev();
+                var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+                var parentModel = parentGrid.dataItem(parentRow);
+                e.model.set("RoleId", parentModel.Id);
+                }
+                </text>)
+            ).ToClientTemplate())
+    </script>
+
+</div>
+
+
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+</style>
+
+
+
+
+<script type="text/javascript">
+
+
+
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    var selectedGrid;
+    function onEditGrid(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        var rowitem = selectedGrid.dataSource.get(e.model.get("Id"));
+        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+        selectedGrid.select(row);
+
+    }
+
+    function onEditGridRoles(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        if (e.model.isNew()) {
+            var parentRow = this.wrapper.closest("tr").prev();
+            var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+            var parentModel = parentGrid.dataItem(parentRow);
+            e.model.set("RoleId", parentModel.Id);
+        }
+
+        var rowitem = selectedGrid.dataSource.get(e.model.get("Id"));
+        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+        selectedGrid.select(row);
+
+    }
+
+    function onSelectUser(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#NameFull").val(dataItem.NameFull).trigger("change");
+        $("#UserName").val(dataItem.UserName).trigger("change");
+    }
+
+    function DataComboUserId() {
+        return {
+            roleId: $("#RoleId").val(),
+            text: $("#UserId").data("kendoComboBox").text()
+        };
+    }
+
+    function onDataBound(e) {
+        var grid = $("#grid");
+        var isNotAdmin = '@ViewBag.IsNotAdmin';
+        if (isNotAdmin == 'True') {
+            $(".k-grid-add", grid).remove();
+            var trs = this.tbody.find('tr').each(function () {
+                $(this).find('.k-grid-edit,.k-grid-delete').remove();
+            });
+        }
+    }
+    function onDataBoundGridExtn(e) {
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+
+        if ('@ViewBag.IsNotAdmin' == true) {
+            var grid = $("#grid_" + parentModel.Id);
+            $(".k-grid-add", grid).remove();
+
+            var trs = this.tbody.find('tr').each(function () {
+                $(this).find('.k-grid-edit,.k-grid-delete').remove();
+            });
+        }
+    }
+
+    function ShowAccess(e) {
+        e.preventDefault();
+        var myTitle = "";
+        var width = 1000;
+        var heght = 300;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var userId = dataItem.UserId;
+        var nameFull = dataItem.NameFull;
+        var userName = dataItem.UserName;
+
+        //window.location = "_Access/?userId=" + userId + "&userEmail=" + userEmail + "&userName=" + userName;
+
+        //public ActionResult _Access(string userId, string nameFull, string userName, string sysCode, int? parentId)
+
+        window.location = '@Url.Action("_Access", "Users")?userId=' + userId + "&nameFull=" + nameFull + "&userName=" + userName;
+
+    }
+
+    function ResetPw(e) {
+        e.preventDefault();
+        var myTitle = "";
+        var width = 1000;
+        var heght = 300;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var userId = dataItem.UserId;
+        var nameFull = dataItem.NameFull;
+        var userName = dataItem.UserName;
+     
+        window.location = '@Url.Action("ResetPassword", "Manage")?userId=' + userId + "&nameFull=" + nameFull + "&userName=" + userName;
+
+    }
+
+
+</script>
+
+

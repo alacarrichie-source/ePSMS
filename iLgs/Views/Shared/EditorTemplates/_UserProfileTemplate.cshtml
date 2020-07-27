@@ -1,0 +1,204 @@
+﻿@model iLgs.Models.AspNetUsers_View
+
+<div class="modal-body">
+    @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true)
+
+        <div class="row">
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.Email)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.Email).HtmlAttributes(new { style = "readonly:true; width:100%; max-width:100%;" })
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.NameLast)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.NameLast).HtmlAttributes(new { style = "width:100%; max-width:100%;", @onchange = "onChangeNames();" })
+                @Html.ValidationMessageFor(model => model.NameLast)
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.NameFirst)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.NameFirst).HtmlAttributes(new { style = "width:100%; max-width:100%;", @onchange = "onChangeNames();" })
+                @Html.ValidationMessageFor(model => model.NameFirst)
+            </div>
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.NameMid)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.NameMid).HtmlAttributes(new { style = "width:100%; max-width:100%;" , @onchange = "onChangeNames();" })
+                @Html.ValidationMessageFor(model => model.NameMid)
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.NameFull)
+            </div>
+            <div class="col-md-6">
+                @Html.Kendo().TextBoxFor(Model => Model.NameFull).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false)
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.Birthday)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().DatePickerFor(Model => Model.Birthday).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.ValidationMessageFor(model => model.Birthday)
+            </div>
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.Sex)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.Sex).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.ValidationMessageFor(model => model.Sex)
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.AddressHouseNo)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.AddressHouseNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.ValidationMessageFor(model => model.AddressHouseNo)
+            </div>
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.AddressStreet)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.AddressStreet).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.ValidationMessageFor(model => model.AddressStreet)
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.AddressSubdivision)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.AddressSubdivision).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.ValidationMessageFor(model => model.AddressSubdivision)
+            </div>
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.AddressBarangay)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.AddressBarangay).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.ValidationMessageFor(model => model.AddressBarangay)
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.AddressCity)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.AddressCity).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.ValidationMessageFor(model => model.AddressCity)
+            </div>
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.AddressProvince)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.AddressProvince).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.ValidationMessageFor(model => model.AddressProvince)
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.AddressZipCode)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.AddressZipCode).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.ValidationMessageFor(model => model.AddressZipCode)
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.TelNo)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.TelNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.ValidationMessageFor(model => model.TelNo)
+            </div>
+            <div class="col-md-2 text-right">
+                @Html.LabelFor(Model => Model.MobileNo)
+            </div>
+            <div class="col-md-3">
+                @Html.Kendo().TextBoxFor(Model => Model.MobileNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.ValidationMessageFor(model => model.MobileNo)
+            </div>
+        </div>
+
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.LabelFor(Model => Model.Department)
+        </div>
+        <div class="col-md-3">
+            @Html.Kendo().TextBoxFor(Model => Model.Department).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+            @Html.ValidationMessageFor(model => model.Department)
+        </div>
+        <div class="col-md-2 text-right">
+            @Html.LabelFor(Model => Model.Division)
+        </div>
+        <div class="col-md-3">
+            @Html.Kendo().TextBoxFor(Model => Model.Division).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+            @Html.ValidationMessageFor(model => model.Division)
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.LabelFor(Model => Model.Section)
+        </div>
+        <div class="col-md-3">
+            @Html.Kendo().TextBoxFor(Model => Model.Section).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+            @Html.ValidationMessageFor(model => model.Section)
+        </div>
+        <div class="col-md-2 text-right">
+            @Html.LabelFor(Model => Model.UserCode)
+        </div>
+        <div class="col-md-3">
+            @Html.Kendo().TextBoxFor(Model => Model.UserCode).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+            @Html.ValidationMessageFor(model => model.UserCode)
+        </div>
+    </div>
+
+
+
+    }
+</div>
+
+<style>
+    .dropdown-header {
+        font-size: 1.2em;
+    }
+
+        .dropdown-header > span {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            text-align: left;
+            display: inline-block;
+            border-style: solid;
+            border-width: 0 0 1px 1px;
+            padding: .3em .6em;
+            width: 312px;
+        }
+
+            .dropdown-header > span:first-child {
+                width: 82px;
+                border-left-width: 0;
+            }
+</style>
+
+

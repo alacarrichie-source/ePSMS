@@ -1,0 +1,248 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+@*@using (Html.BeginForm())
+    {*@
+
+<div class="well">
+    <h2 class="text-info">Menu</h2>
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.Label("System")
+        </div>
+        <div class="col-md-5">
+            @(Html.Kendo().DropDownList()//.ComboBox()
+                .Name("sysCode")
+                .HtmlAttributes(new { style = "width:300px" })
+                //.Placeholder("Select System")
+                .DataTextField("Code")
+                .DataValueField("Code")
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetSysCodes", "SysCodes");
+                    })
+                    .ServerFiltering(true);
+                })
+            )
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.Label("Menu Level")
+        </div>
+        <div class="col-md-5">
+            @(Html.Kendo().DropDownList()//.ComboBox()
+                .Name("parentId")
+                .HtmlAttributes(new { style = "width:300px" })
+                //.Placeholder("Select Level")
+                .Filter(FilterType.Contains)
+                    //.BindTo(ViewData["MenuLevel"] as SelectList)
+                .DataTextField("Description")
+                .DataValueField("Code")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetMenulevels", "Menu").Data("DataLevel");
+                    })
+                    .ServerFiltering(true);
+                }).CascadeFrom("sysCode")                
+            )
+            <input type="submit" value="Submit" id="cmdSubmit" />
+        </div>        
+        
+    </div>
+    <br />
+    @*}*@
+
+    @(Html.Kendo().Grid<iLgs.Models.Menubase>()
+            .Name("grid")
+            .Columns(col =>
+            {
+                col.Bound(c => c.ChildId).Hidden();
+                col.Bound(c => c.Sequence).Width(50).Filterable(true);                
+                col.Bound(c => c.Description).Width(150).Filterable(true);
+                col.Bound(c => c.Action).Width(70);
+                col.Bound(c => c.Controller).Width(70);
+                col.Bound(c => c.MenuId).Width(70);
+                col.Bound(c => c.ObjectParam).Width(50);
+                //col.Bound(c => c.Result).Width(50);
+                col.Command(command =>
+                {
+                    command.Edit();
+                    command.Destroy();
+                    command.Custom("Select").Text("Select").Click("onCommand");
+                }).Width(172);
+            })
+            .ToolBar(toolbar => toolbar.Create())
+            .Editable(editable => editable.Mode(GridEditMode.InLine))
+            .Pageable()
+            .Sortable()
+            .Scrollable(s => s.Height(530))
+            //.HtmlAttributes(new { style = "height:500px;" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Events(events => events.Error("error_handler")
+                    //.Sync("sync_handler")
+                    )
+                .Model(model =>
+                {
+                    model.Id(p => p.ChildId);
+                    model.Field(p => p.ChildId).DefaultValue(-1).Editable(false);
+                })
+                .Read(read => read.Action("MenuRead", "Menu").Data("MenuData"))
+                .Create(create => create.Action("MenuCreate", "Menu").Data("MenuData"))
+                .Update(update => update.Action("MenuUpdate", "Menu"))
+                .Destroy(destroy => destroy.Action("MenuDestroy", "Menu"))
+            )
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+            .Events(e => e.Edit("onGridEdit"))
+            .AutoBind(false)
+            //.Events(events => events.Change("OnGridChange").DataBound("dataBound"))
+
+    )
+</div>
+
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+</style>
+
+
+
+
+<script type="text/javascript">
+
+    function sync_handler(e) {
+        this.read();
+    }
+
+    function OnGridChange() {
+        var grid = $("#grid").data("kendoGrid");
+
+        grid.select().each(function () {
+            var dataItem = grid.dataItem($(this));
+            //payorId = dataItem.RecId;
+        });
+
+        //$("#gridExtn").data("kendoGrid").dataSource.read({ payorId: payorId });
+
+    }
+
+    function dataBound() {
+        this.expandRow(this.tbody.find("tr.k-master-row").first());
+    }
+
+    var selectedGrid;
+    function onGridEdit(e) {
+        //alert('x');
+        //selectedGrid = this;
+        //var dataItem = selectedGrid.dataItem($(e.currentTarget).closest("tr"));
+        //alert(dataItem.ChildId);
+        //var rowitem = selectedGrid.dataSource.get(dataItem.ChildId);
+        //var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+        //selectedGrid.select(row);
+
+        ////selectedGrid.editRow(row);
+
+        e.preventDefault();
+        selectedGrid = e.sender;
+        var rowitem = selectedGrid.dataSource.get(e.model.get("ChildId"));
+        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+        selectedGrid.select(row);
+
+    }
+
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+
+    function MenuData() {
+        return {
+            sysCode: $("#sysCode").val(),
+            parentId: $("#parentId").val()
+        };
+    }
+
+    function DataLevel() {
+        return {
+            sysCode: $("#sysCode").val()
+            //,text: $("#parentId").data("kendoComboBox").input.val()
+        };
+    }
+
+    function OnGridBound(e) {
+        $("#grid").data("kendoGrid").select("tr:eq(1)");
+    }
+
+
+    $("#cmdSubmit").click(function (e) {
+        e.preventDefault();
+        $("#grid").data("kendoGrid").dataSource.read();
+    })
+
+    function onCommand(e) {
+        var tr = $(e.target).closest("tr"); // get the current table row (tr)
+        // get the data bound to the current table row
+        var data = this.dataItem(tr);
+        var childId = data.ChildId;
+
+        var cb = $('#parentId').data('kendoDropDownList');
+        cb.dataSource.read({ sysCode: $("#sysCode").val() })
+        cb.value(childId);
+        $("#grid").data("kendoGrid").dataSource.read({
+            sysCode: $("#sysCode").val(),
+            parentId: childId
+        });
+    }
+
+    function addToComboItems(sysCode, parentId) {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("index", "Menu")',
+            data: { 'sysCode': sysCode, 'parentId': parentId },
+            dataType: 'json',
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert('error');
+            },
+            success: function (result) {
+                var menuCombo = $('#parentId').data('kendoDropDownList');
+                //menuCombo.dataSource.read();
+                var selectItem = function (dataItem) {
+                    //dataItem argument is a ComboBox data item.
+                    return dataItem.Value == value;
+                }
+
+                menuCombo.select(selectItem).done($("#cmdSubmit").click());
+
+                //menuCombo.fill(function () { //binds the combobox
+                //    menuCombo.select(selectItem).done($("#cmdSubmit").click());
+
+                //})
+            }
+        });
+    }
+
+
+</script>
+
+

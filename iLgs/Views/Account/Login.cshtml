@@ -1,0 +1,112 @@
+﻿@using iLgs.Models
+@model LoginViewModel
+@{
+    ViewBag.Title = "Log in";
+}
+<div style="margin-left:-50px;margin-right:-50px;">
+    <div class="jumbotron">
+        <div class="container push-spaces">
+            <h1 class="text-primary text-right" style="color:whitesmoke;">iLGS - Taguig</h1>
+            <p class="lead text-info text-right">"Integrated Local Government System"</p>
+            @*<p>@Html.ActionLink(HttpUtility.HtmlDecode("Learn more &raquo;"), "RptOnlineLearn", "Billing", "", new { @class = "btn btn-default btn-lg" })</p>*@
+        </div>
+    </div>
+</div>
+<div class="well col-lg-3">
+    @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+    {
+        <fieldset>
+            <legend>@ViewBag.Title</legend>
+
+            <div class="form-group">
+                @Html.AntiForgeryToken()
+                @Html.Raw(HttpUtility.HtmlDecode(Html.ValidationSummary().ToHtmlString()))
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.UserName, new { @class = "control-label col-lg-4" })
+                <div class="col-lg-8">
+                    @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.Password, new { @class = "control-label col-lg-4" })
+                <div class="col-lg-8">
+                    @Html.PasswordFor(m => m.Password, new { @class = "form-control input-md" })
+                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-4">
+                </div>
+                <div class="col-lg-8">
+                    <div class="checkbox">
+                        @Html.CheckBoxFor(m => m.RememberMe)
+                        @Html.LabelFor(m => m.RememberMe)
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <div class="col-lg-10 col-lg-offset-4">
+                    @*<button class="btn btn-default" type="reset">Cancel</button>*@
+                    <button class="btn btn-primary" type="submit">Login</button>
+                </div>
+            </div>
+            <div class="form-group">
+                @*<div class="col-lg-10">
+                    @Html.ActionLink("Register as a new user", "Register")
+                </div>*@
+                <div class="col-lg-10">
+                    @Html.ActionLink("Forgot your password?", "ForgotPassword")
+                </div>
+            </div>
+        </fieldset>
+    }
+</div>
+
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+<style>
+
+
+    .well {
+        /*top: 30px;*/
+        top: 90px;
+        position: fixed;
+        margin-left: 20px;
+    }
+    .checkbox {
+        padding: 20px;
+    }
+
+    .jumbotron h1 {
+        margin-top: 0px;
+    }
+
+    .push-spaces {
+        height: 470px;
+    }
+
+    .jumbotron {
+        background: url('@Url.Content("~/Assets/city-hall.jpg")') no-repeat center center;
+        background-size: 100% 100%;
+        opacity: .7;
+
+        /*
+        min-height: 300px;
+        min-width: 100%;
+
+        height: auto;
+        width: auto;
+
+        padding-bottom: 20px;
+        */
+    }
+
+</style>

@@ -1,0 +1,242 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;    
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;        
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+
+/*
+    Added
+*/
+
+footer {
+    
+    /*position: absolute;
+    bottom: 0px;*/
+    position: fixed;
+  
+    bottom: 0;
+    text-align: left;
+    /*padding: 10px 0px;*/
+    /*background: #9db517;*/
+    
+    /*background-color: rgba(173, 57, 16, 1);*/
+    background-color: rgba(51, 51, 51, 1);
+    /*background-color: black;*/
+    
+    /*box-shadow: 0 2px 6px #333;*/
+    float: left;
+    width: 100%;
+    left: 0;
+    right: 0;
+    /*color: rgba(0, 122, 203, 1);*/
+    color:silver;
+}
+
+.panel-custom
+{
+    border-color: #212A33;
+}
+
+.panel-custom > .panel-heading
+{
+    color: #FFFFFF;
+    background-color: #27323C;
+}
+
+.panel-custom > .panel-body
+{
+    color: #000000;
+    background-color: #4A545E;
+}
+
+.well-custom
+{
+    border-color: #212A33;
+    background-color: #4A545E;
+}
+
+ .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+    width: auto;
+    overflow: hidden;
+}
+
+/*.k-edit-form-container
+{
+    width: 600px;
+}
+
+.k-popup-edit-form .k-edit-label
+{
+    width: 30%;
+}
+
+.k-popup-edit-form .k-edit-field
+{
+    width: 60%;
+}*/
+
+.k-textbox,
+.k-popup-edit-form .k-edit-field > .k-textbox,
+.k-popup-edit-form .k-edit-field > .k-widget:not(.k-tooltip)
+{
+    width: 100%;
+}
+
+.k-popup-edit-form .k-edit-field .k-formatted-value,
+.k-popup-edit-form .k-edit-field .k-input
+{
+    width: 100%;
+}
+
+li.x-divider-vertical
+{
+    height: 50px;
+    margin: 0px;
+    padding: 0px;
+    border-left-width: 1px;
+    border-left-style: solid;
+    border-left-color: #181818;
+    border-right-width: 1px;
+    border-right-style: solid;
+    border-right-color: #181818;
+}
+
+span.x-window-title
+{
+    padding-left: 3px;
+}
+
+a.x-window-title-link
+{
+    color: #9F9F9F;
+    margin-right: 10px;
+    font-size: 0.875em;
+}
+
+div.x-window-fix
+{
+    margin-bottom: -20px;
+}
+
+div.x-grid-fix
+{
+    margin-top: -20px;
+}
+
+div.x-popup-alert
+{
+    margin-top: 0px;
+    margin-left: 12px;
+    margin-right: 12px;
+    margin-bottom: 15px;
+}
+
+textarea.x-textarea-style
+{
+    width: 100%;
+    resize: none;
+}
+
+span.x-dropdown-title
+{
+    margin: 0px;
+    padding: 0px;
+    font-weight: bold;
+}
+
+span.x-dropdown-content
+{
+    margin: 0px;
+    padding: 0px;
+    font-size: 0.875em;
+    color: #B0B0B0;
+}
+
+li.k-state-selected span.x-dropdown-content
+{
+    color: #404040;
+}
+
+li.k-state-hover span.x-dropdown-content
+{
+    color: #B0B0B0;
+}
+
+div.x-tabstrip-content
+{
+    padding: 10px;
+}
+
+div.x-bootstrap-content *,
+div.x-bootstrap-content *::before,
+div.x-bootstrap-content *::after
+{
+    -moz-box-sizing: border-box !important;
+    -webkit-box-sizing: border-box !important;
+    box-sizing: border-box !important;
+}
+
+div.x-bootstrap-content .form-group
+{
+    margin-bottom: 0px;
+}
+
+div.x-kendo-content *,
+div.x-kendo-content *::before,
+div.x-kendo-content *::after
+{
+    -moz-box-sizing: content-box !important;
+    -webkit-box-sizing: content-box !important;
+    box-sizing: content-box !important;
+}
+
+div.x-kendo-content .k-widget:not(.k-tooltip)
+{
+    width: 100%;
+}
+
+p.x-value-display
+{
+    padding: 3px;
+    font-family: monospace;
+}
+
+div.x-modal-style
+{
+    color: #202020;
+}
+
+p.x-modal-message
+{
+    padding-top: 20px;
+    padding-left: 5px;
+    padding-right: 0px;
+    padding-bottom: 15px;
+}
+
+form.x-form-custom
+{
+    padding-top: 10px;
+    color: #F0F0F0;
+}
+

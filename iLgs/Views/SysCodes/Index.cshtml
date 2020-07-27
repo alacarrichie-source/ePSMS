@@ -1,0 +1,169 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="well" style="margin-left:-150px;margin-right:-150px;">
+    <h2 class="text-info">Systems</h2>
+
+    <br />
+
+    @(Html.Kendo().Grid<iLgs.Models.SysCode>()
+            .Name("grid")
+            .Columns(col =>
+            {
+                //col.Bound(c => c.SysCodeOld).Hidden(true);
+                col.Bound(c => c.SysCode1).Title("System Code").Width(50);
+                col.Bound(c => c.SysDescription).Title("Description").Width(150);
+                col.Command(command =>
+                {
+                    command.Edit();
+                    command.Destroy();
+                }).Width(172);
+            })
+            .ToolBar(toolbar => toolbar.Create())
+            .Editable(editable => editable.Mode(GridEditMode.InLine))
+            .Pageable()
+            .Sortable()
+            .Scrollable(s => s.Height(500))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Events(events => events.Error("error_handler"))
+                .Model(model =>
+                {
+                    model.Id(p => p.SysCode1);
+                    model.Field(p => p.SysCode1).DefaultValue(string.Empty).Editable(true);
+                })
+                .Read(read => read.Action("SysCodesRead", "SysCodes"))
+                .Create(create => create.Action("SysCodesCreate", "SysCodes"))
+                .Update(update => update.Action("SysCodesUpdate", "SysCodes"))
+                .Destroy(destroy => destroy.Action("SysCodesDestroy", "SysCodes"))
+            )
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+            .Events(events => events.DataBound("onDataBound").Edit("onEditGrid"))
+
+    )
+    
+</div>
+
+
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+</style>
+
+
+
+
+<script type="text/javascript">
+
+
+
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    var selectedGrid;
+    function onEditGrid(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        var rowitem = selectedGrid.dataSource.get(e.model.get("SysCode1"));
+        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");        
+
+        if (!e.model.isNew()) {
+            $("#SysCode1").attr("readonly", true);
+        }
+
+        selectedGrid.select(row);
+        
+
+    }
+
+    function onEditGridRoles(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        if (e.model.isNew()) {
+            var parentRow = this.wrapper.closest("tr").prev();
+            var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+            var parentModel = parentGrid.dataItem(parentRow);
+            e.model.set("RoleId", parentModel.Id);
+        }
+
+        var rowitem = selectedGrid.dataSource.get(e.model.get("Id"));
+        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+        selectedGrid.select(row);
+
+    }
+
+    function onSelectUser(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#NameFull").val(dataItem.NameFull).trigger("change");
+        $("#UserName").val(dataItem.UserName).trigger("change");
+    }
+
+    function DataComboUserId() {
+        return {
+            roleId: $("#RoleId").val(),
+            text: $("#UserId").data("kendoComboBox").text()
+        };
+    }
+
+    function onDataBound(e) {
+        var grid = $("#grid");
+        var isNotAdmin = '@ViewBag.IsNotAdmin';
+        if (isNotAdmin == 'True') {
+            $(".k-grid-add", grid).remove();
+            var trs = this.tbody.find('tr').each(function () {
+                $(this).find('.k-grid-edit,.k-grid-delete').remove();
+            });
+        }
+    }
+    function onDataBoundGridExtn(e) {
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+
+        if ('@ViewBag.IsNotAdmin' == true) {
+            var grid = $("#grid_" + parentModel.Id);
+            $(".k-grid-add", grid).remove();
+
+            var trs = this.tbody.find('tr').each(function () {
+                $(this).find('.k-grid-edit,.k-grid-delete').remove();
+            });
+        }
+    }
+
+    function ShowAccess(e) {
+        e.preventDefault();
+        var myTitle = "";
+        var width = 1000;
+        var heght = 300;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var userId = dataItem.Id;
+        var userEmail = dataItem.Email;
+        var userName = dataItem.UserName;
+
+        //window.location = "_Access/?userId=" + userId + "&userEmail=" + userEmail + "&userName=" + userName;
+        window.location = '@Url.Action("_Access", "Users", new { userId= "userId", userEmail = "userEmail", userName= "userName"})'
+
+    }
+
+</script>
+
+

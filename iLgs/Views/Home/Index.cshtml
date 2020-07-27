@@ -1,0 +1,105 @@
+﻿@using Kendo.Mvc.UI.Fluent
+@model IQueryable<iLgs.Models.Menubase>
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<div style="margin-left:-150px;margin-right:-150px;">
+
+    @functions{
+        public void addChildren(MenuItemBuilder builder, iLgs.Models.Menubase item, IEnumerable<iLgs.Models.Menubase> items)
+        {
+            var children = items.Where(m => m.ParentId == item.ChildId).OrderBy(o => o.Sequence);
+            if (children != null)
+            {
+                builder.Items(menuItems =>
+                    {
+                        foreach (var child in children)
+                        {
+
+                            if (!string.IsNullOrEmpty(child.Controller))
+                            {
+                                if (string.IsNullOrEmpty(child.Action))
+                                {
+                                    var menuItem = menuItems.Add().Text(String.Format("{0}", child.Description)).Action("Index", child.Controller, null);
+                                    addChildren(menuItem, child, items);
+                                }
+                                else
+                                {
+                                    var menuItem = menuItems.Add().Text(String.Format("{0}", child.Description)).Action(child.Action, child.Controller, null);
+                                    addChildren(menuItem, child, items);
+                                }
+                            }
+                            else
+                            {
+                                var menuItem = menuItems.Add().Text(String.Format("{0}", child.Description));
+                                addChildren(menuItem, child, items);
+                            }
+                        }
+                    });
+
+            }
+        }
+    }
+
+    @if (@ViewBag.ShowMenu)
+    {
+        @(Html.Kendo().Menu()
+    .Name("Menu")
+    .Items(menu =>
+    {
+        foreach (var item in Model.Where(m => m.ParentId == 0).OrderBy(o => o.Sequence))
+        {
+
+            if (!string.IsNullOrEmpty(item.Controller))
+            {
+                if (string.IsNullOrEmpty(item.Action))
+                {
+                    var builder = menu.Add().Text(String.Format("{0}", item.Description)).Action("Index", item.Controller, null);
+                    addChildren(builder, item, Model);
+                }
+                else
+                {
+                    var builder = menu.Add().Text(String.Format("{0}", item.Description)).Action(item.Action, item.Controller, null);
+                    addChildren(builder, item, Model);
+                }
+            }
+            else
+            {
+                var builder = menu.Add().Text(String.Format("{0}", item.Description));
+                addChildren(builder, item, Model);
+            }
+
+        }
+    })
+        )
+    }
+
+
+    <div class="jumbotron">
+        <div class="container push-spaces">
+            <h1 style="color:whitesmoke" class="text-primary text-right">iLGS - Taguig</h1>
+            <p class="lead text-info text-right">"Integrated Local Government System"</p>
+        </div>
+    </div>
+
+</div>
+    <style>
+
+
+    .jumbotron h1 {
+        margin-top: 0px;
+    }
+
+    .push-spaces {
+        height: 470px;
+    }
+
+    .jumbotron {
+        background: url('@Url.Content("~/Assets/city-hall.jpg")') no-repeat center center;
+        background-size: 100% 100%;
+    }
+
+
+    </style>
+

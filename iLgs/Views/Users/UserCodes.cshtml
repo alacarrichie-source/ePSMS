@@ -1,0 +1,89 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<div class="well">
+
+
+    <h2 class="text-info">User Codes</h2>
+
+    <br />
+
+    @(Html.Kendo().Grid<iLgs.Models.UserCodes_View>()
+            .Name("grid")
+            .Columns(col =>
+            {
+                col.Bound(c => c.UserCode).Width(50);
+                col.Bound(c => c.UserName).Width(150);
+                col.Bound(c => c.NameFull).Width(150);
+                col.Bound(c => c.Department).Width(100);
+                col.Bound(c => c.Division).Width(100);
+                col.Bound(c => c.Section).Width(100);
+                col.Bound(c => c.UserGroup).Width(100);
+                col.Command(command =>
+                {
+                    command.Edit();
+                    command.Destroy();
+                }).Width(172);
+            })
+            .ToolBar(toolbar => toolbar.Create())
+            .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserCodeTemplate").Window(w => w.Width(800).Height(500)))
+            //.Editable(editable => editable.Mode(GridEditMode.InLine))
+            .Pageable()
+            .Sortable()
+            .Scrollable()
+            .HtmlAttributes(new { style = "height:400px;" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Events(events => events.Error("error_handler"))
+                .Model(model =>
+                {
+                    model.Id(p => p.UserCode);
+                    model.Field(p => p.UserCode).Editable(true);
+                })
+                .Read(read => read.Action("UserCodesRead", "Users"))
+                .Create(create => create.Action("UserCodesCreate", "Users"))
+                .Update(update => update.Action("UserCodesUpdate", "Users"))
+                .Destroy(destroy => destroy.Action("UserCodesDestroy", "Users"))
+            )
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+    )
+</div>
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+</style>
+
+
+
+
+<script type="text/javascript">
+
+
+
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function onSelectUser(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#NameFull").val(dataItem.Description).trigger("change");
+    }
+
+
+</script>
+
+

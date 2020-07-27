@@ -1,0 +1,382 @@
+﻿using iLgs.Models;
+using Kendo.Mvc.UI;
+using Kendo.Mvc.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using System.Web.Http.Description;
+using System.Web;
+
+namespace iLgs.Controllers
+{
+    public class Menubases_Controller : ApiController
+    {
+        private iLGSEntities db = new iLGSEntities();
+
+        // GET: api/Menubases
+        public IQueryable<Menubase> GetMenubases()
+        {
+            return db.Menubases;
+        }
+
+        // GET: api/Menubases_/read?sysCode=RPTONLINE&parentId=0
+        [Route("api/Menubases_/read")]
+        public DataSourceResult GetGridMenu([System.Web.Http.ModelBinding.ModelBinder(typeof(WebApiDataSourceRequestModelBinder))]DataSourceRequest request, string sysCode, int? parentId)
+        {
+            parentId = parentId ?? 0;
+            var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId);
+            return menu.ToDataSourceResult(request);
+        }
+
+
+        // GET: api/Menubases/RPTONLINE/0
+        [Route("api/Menubases_/{sysCode}/{parentId}")]
+        public IQueryable<Menubase> GetMenubases(string sysCode, int parentId)
+        {
+            var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId);
+                //.Select(s => new Menubase
+                //{
+                //    SysCode = s.SysCode,
+                //    Sequence = s.Sequence,
+                //    ParentId = s.ParentId,
+                //    ChildId = s.ChildId,
+                //    Description = s.Description,
+                //    Action = s.Action,
+                //    Controller = s.Controller,
+                //    ObjectParam = s.ObjectParam,
+                //    MenuId = s.MenuId,
+                //    InsertedBy = s.InsertedBy,
+                //    InsertedDt = s.InsertedDt,
+                //    UpdatedBy = s.UpdatedBy,
+                //    UpdatedDt = s.UpdatedDt
+                //    //Result = "" //db.Menubases.Where(w => w.ParentId == s.ChildId).Any() ? "Submenu" : "Command"
+                //});
+            return menu;
+        }
+
+        // GET: api/Menubases_/access/RPTONLINE/0/userId
+        [Route("api/Menubases_/access/{sysCode}/{parentId}/{userId}")]
+        public IQueryable<MenubaseVM> GetMenubases(string sysCode, int parentId, string userId)
+        {
+            //var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId);
+            var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId)
+                .Select(s => new MenubaseVM
+                {
+                    SysCode = s.SysCode,
+                    Sequence = s.Sequence,
+                    ParentId = s.ParentId,
+                    ChildId = s.ChildId,
+                    Description = s.Description,
+                    Action = s.Action,
+                    Controller = s.Controller,
+                    ObjectParam = s.ObjectParam,
+                    MenuId = s.MenuId,
+                    InsertedBy = s.InsertedBy,
+                    InsertedDt = s.InsertedDt,
+                    UpdatedBy = s.UpdatedBy,
+                    UpdatedDt = s.UpdatedDt,
+                    IsAllowed = db.Accessfiles.Where(w => w.UserId == userId && w.ChildId == s.ChildId).Any(),
+                    Result = db.Menubases.Where(w => w.ParentId == s.ChildId).Any() ? "Submenu" : "Command"
+                });
+            return menu;
+        }
+
+        // GET: api/Menubases_/access/adminMenu/RPTONLINE/0/userId/adminId/CTO
+        [Route("api/Menubases_/access/adminMenu/{sysCode}/{parentId}/{userId}/{deptCode}")]
+        public IQueryable<MenubaseVM> GetMenubases(string sysCode, int parentId, string userId, string deptCode)
+        {
+            //db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode))
+            if (string.IsNullOrEmpty(deptCode) || deptCode == "ICNS")
+            {
+                return db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId)
+                    .Select(s => new MenubaseVM
+                    {
+                        SysCode = s.SysCode,
+                        Sequence = s.Sequence,
+                        ParentId = s.ParentId,
+                        ChildId = s.ChildId,
+                        Description = s.Description,
+                        Action = s.Action,
+                        Controller = s.Controller,
+                        ObjectParam = s.ObjectParam,
+                        MenuId = s.MenuId,
+                        InsertedBy = s.InsertedBy,
+                        InsertedDt = s.InsertedDt,
+                        UpdatedBy = s.UpdatedBy,
+                        UpdatedDt = s.UpdatedDt,
+                        IsAllowed = db.Accessfiles.Where(w => w.UserId == userId && w.ChildId == s.ChildId).Any(),
+                        Result = db.Menubases.Where(w => w.ParentId == s.ChildId).Any() ? "Submenu" : "Command"
+                    });
+            }
+            else
+            {
+                return db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode))
+                    .Select(s => new MenubaseVM
+                    {
+                        SysCode = s.SysCode,
+                        Sequence = s.Sequence,
+                        ParentId = s.ParentId,
+                        ChildId = s.ChildId,
+                        Description = s.Description,
+                        Action = s.Action,
+                        Controller = s.Controller,
+                        ObjectParam = s.ObjectParam,
+                        MenuId = s.MenuId,
+                        InsertedBy = s.InsertedBy,
+                        InsertedDt = s.InsertedDt,
+                        UpdatedBy = s.UpdatedBy,
+                        UpdatedDt = s.UpdatedDt,
+                        IsAllowed = db.Accessfiles.Where(w => w.UserId == userId && w.ChildId == s.ChildId).Any(),
+                        Result = db.Menubases.Where(w => w.ParentId == s.ChildId).Any() ? "Submenu" : "Command"
+                    });
+            }
+        }
+
+        // GET: api/Menubases_/access/adminMenu/RPTONLINE/0/userId/adminId/CTO
+        //[Route("api/Menubases_/access/adminMenu2/{sysCode}/{parentId}/{userId}/{deptCode}")]
+        //public IQueryable<MenubaseVM> GetMenubases2(string sysCode, int parentId, string userId, string deptCode)
+        //{
+        //    var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode))
+        //        .Select(s => new MenubaseVM
+        //        {
+        //            SysCode = s.SysCode,
+        //            Sequence = s.Sequence,
+        //            ParentId = s.ParentId,
+        //            ChildId = s.ChildId,
+        //            Description = s.Description,
+        //            Action = s.Action,
+        //            Controller = s.Controller,
+        //            ObjectParam = s.ObjectParam,
+        //            MenuId = s.MenuId,
+        //            InsertedBy = s.InsertedBy,
+        //            InsertedDt = s.InsertedDt,
+        //            UpdatedBy = s.UpdatedBy,
+        //            UpdatedDt = s.UpdatedDt,
+        //            IsAllowed = db.Accessfiles.Where(w => w.UserId == userId && w.ChildId == s.ChildId).Any()
+        //        });
+        //    return menu;
+        //}
+
+
+        [Route("api/Menubases_/usermenu/{userId}/{sysCode}")]
+        public IQueryable<Menubase> GetUserMenubases(string userId, string sysCode)
+        {
+            var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.Accessfiles.Where(a => a.ChildId == p.ChildId && a.UserId == userId).Any());
+            return menu;
+        }
+
+
+        [Route("api/{sysCode}/{parentId}/test")]
+        public IQueryable<Menubase> GetMenubases2(string sysCode, int parentId)
+        {
+            var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId);
+            return menu;
+        }
+
+        // GET: api/Menubases/adminMenu/RPTONLINE/CAO
+        [Route("api/Menubases_/adminMenu/{sysCode}/{deptCode}")]
+        public IQueryable<Menubase> GetMenubasesLevel2(string sysCode, string deptCode)
+        {
+            //return db.Menubases.Where(p => p.SysCode == sysCode && string.IsNullOrEmpty(p.ObjectParam) ? true : p.ObjectParam == deptCode).OrderBy(o => o.ParentId);       
+            //return db.Menubases.Where(p => p.SysCode == sysCode && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode)).OrderBy(o => o.ParentId);
+            if (string.IsNullOrEmpty(deptCode) || deptCode == "ICNS")
+            {
+                return db.Menubases.Where(p => p.SysCode == sysCode).OrderBy(o => o.ParentId);
+            }
+            else
+            {
+                return db.Menubases.Where(p => p.SysCode == sysCode && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode)).OrderBy(o => o.ParentId);
+            }
+            
+        }
+
+        //// GET: api/Menubases/adminMenu/RPTONLINE/CAO
+        //[Route("api/Menubases_/adminMenu2/{sysCode}/{deptCode}")]
+        //public IQueryable<Menubase> GetMenubasesLevel3(string sysCode, string deptCode)
+        //{
+        //    return db.Menubases.Where(p => p.SysCode == sysCode && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode)).OrderBy(o => o.ParentId);
+        //}
+
+
+        // GET: api/Menubases/RPTONLINE
+        [Route("api/Menubases_/{sysCode}")]
+        public IQueryable<Menubase> GetMenubasesLevel(string sysCode)
+        {
+            return db.Menubases.Where(p => p.SysCode == sysCode).OrderBy(o => o.ParentId);
+        }
+
+
+
+        // GET: api/Menubases_/IsAuthorize/IPAY/82814eba-0738-4edd-a11f-66c8112e20de/MENU
+        [Route("api/Menubases_/IsAuthorize/{sysCode}/{id}/{controllerName}")]
+        public bool GetMenubasesAuthorize(string sysCode, string id, string controllerName)
+        {
+            bool retVal = false;
+
+            var access = db.MenubaseAccesses.Count(p => p.SysCode == sysCode && p.UserId == id && p.Controller.ToUpper() == controllerName.ToUpper());
+            if (access > 0)
+            {
+                retVal = true;
+            }
+
+            return retVal;
+        }
+
+        // GET: api/Menubases_/accessFILE/82814eba-0738-4edd-a11f-66c8112e20de/0/RPTAS
+        [Route("api/Menubases_/accessfiles/{userId}/{childId}/{sysCode}")]
+        public IQueryable<Accessfile> GetMenubasesAccessFiles(string userId, int childId, string sysCode)
+        {
+
+            var access = db.Accessfiles.Where(w => w.UserId == userId && w.ChildId == childId && w.SysCode == sysCode);
+
+            return access;
+        }
+
+        // GET: api/Menubases_/accessFILE/82814eba-0738-4edd-a11f-66c8112e20de/BILLING/RPTAS
+        [Route("api/Menubases_/accessfile/{userId}/{menuId}/{sysCode}")]
+        public Accessfile GetMenubasesAccessFile(string userId, string menuId, string sysCode)
+        {
+            var model = db.Menubases.Where(w => w.SysCode == sysCode && w.MenuId == menuId).SingleOrDefault();
+            if (model == null)
+            {
+                return new Accessfile();
+            }
+            else
+            {
+                var childId = model.ChildId;
+                var access = db.Accessfiles.Where(w => w.UserId == userId && w.ChildId == childId).SingleOrDefault();
+
+                return access;
+            }
+
+        }
+
+
+        // GET: api/Menubases/5
+        [ResponseType(typeof(Menubase))]
+        public async Task<IHttpActionResult> GetMenubase(int id)
+        {
+            Menubase menubase = await db.Menubases.FindAsync(id);
+            if (menubase == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(menubase);
+        }
+
+
+
+        // GET: api/Menubases/5/RPTONLINE
+        [ResponseType(typeof(Menubase))]
+        public async Task<IHttpActionResult> GetMenubase(int id, string sysCode)
+        {
+            Menubase menubase = await db.Menubases.Where(p => p.ChildId == id && p.SysCode == sysCode).SingleOrDefaultAsync();
+            if (menubase == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(menubase);
+        }
+
+        // PUT: api/Menubases/5
+        [iLGSAuthorize("Menu")]
+        [ResponseType(typeof(void))]
+        [Route("api/Menubases_/update/{id}")]
+        public async Task<IHttpActionResult> PutMenubase(int id, Menubase menubase)
+        {
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != menubase.ChildId)
+            {
+                return BadRequest();
+            }
+
+
+            db.Entry(menubase).State = EntityState.Modified;
+
+            try
+            {
+                await db.SaveChangesAsync();
+
+
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!MenubaseExists(menubase.ChildId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+        // POST: api/Menubases
+        [iLGSAuthorize("Menu")]
+        [Route("api/Menubases_/create")]
+        [ResponseType(typeof(Menubase))]
+        public async Task<IHttpActionResult> PostMenubase(Menubase menubase)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            db.Menubases.Add(menubase);
+            await db.SaveChangesAsync();
+
+            //return CreatedAtRoute("DefaultApi", new { id = menubase.ChildId}, menubase); // not working error 500
+            return Created(menubase.ChildId.ToString(), menubase);
+
+        }
+
+
+        // DELETE: api/Menubases/5
+        [iLGSAuthorize("Menu")]
+        [ResponseType(typeof(Menubase))]
+        [Route("api/Menubases_/delete/{id}")]
+        public async Task<IHttpActionResult> DeleteMenubase(int id)
+        {
+            Menubase menubase = await db.Menubases.FindAsync(id);
+            if (menubase == null)
+            {
+                return NotFound();
+            }
+
+            db.Menubases.Remove(menubase);
+            await db.SaveChangesAsync();
+
+            return Ok(menubase);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private bool MenubaseExists(int id)
+        {
+            return db.Menubases.Count(e => e.ChildId == id) > 0;
+        }
+    }
+}

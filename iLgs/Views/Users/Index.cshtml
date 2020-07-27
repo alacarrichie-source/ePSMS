@@ -1,0 +1,225 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+
+<div class="well" style="margin-left:-150px;margin-right:-150px;">
+    <h2 class="text-info">Users</h2>
+
+    <br />
+    @(Html.Kendo().Button()
+    .Name("registerButton")
+    .HtmlAttributes(new { type = "button", @class = "k-primary" })
+            //.Enable(false)
+    .Content("Register New User"))
+    @(Html.Kendo().Grid<iLgs.Models.AspNetUsers_View>()
+            .Name("grid")
+            .Columns(col =>
+            {
+                col.Bound(c => c.UserName).Width(100);
+                col.Bound(c => c.Email).Width(100);
+                col.Bound(c => c.NameFull).Width(150);
+                col.Bound(c => c.Department).Width(70);
+                col.Command(command =>
+                {
+                    command.Edit();
+                    command.Destroy();
+                    //command.Custom("Access").Click("ShowAccess");
+                }).Width(172);
+            })
+            //.ToolBar(toolbar => toolbar.Create())
+            .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserProfileTemplate").Window(w => w.Width(800).Title("Profile")))
+            //.Editable(editable => editable.Mode(GridEditMode.InLine))            
+            .Pageable(p => p.Refresh(true))
+            .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+            .Scrollable(s => s.Height(520))
+            .Filterable()
+            .ClientDetailTemplateId("UserProfile")
+            //.HtmlAttributes(new { style = "height:400px;" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Events(events => events.Error("error_handler"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).Editable(false);
+                })
+                .Read(read => read.Action("UserProfilesRead", "Users"))
+                //.Create(create => create.Action("UserProfilesCreate", "Users"))
+                .Update(update => update.Action("UserProfilesUpdate", "Users"))
+                .Destroy(destroy => destroy.Action("UserProfilesDestroy", "Users"))
+            )
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+            .Events(e => e.Edit("onEditGridUser").Change("onChangeGridUser").DataBound("onDataBoundGridUser"))
+
+    )
+
+
+    <script id="UserProfile" type="text/kendo-tmpl">
+        @(Html.Kendo().TabStrip()
+            .Name("tabStrip_#=Id#")
+            .SelectedIndex(0)
+            .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+            .Items(items =>
+            {
+                items.Add().Text("User Profile").Content(
+                    "<div class='row'>" +
+                        "<div class = 'col-md-2'>" +
+                            "Image Here" +
+                        "</div>" +
+                        "<div class = 'col-md-6'>" +
+                            "<div class='row'>" +
+                                "<ul>" +
+                                    "<li><label>Address:</label>#= AddressStreet #</li>" +
+                                    "<li><label>City:</label>#= AddressCity #</li>" +
+                                    "<li><label>Province:</label>#= AddressProvince #</li>" +
+                                    "<li><label>Zip Code:</label>#= AddressZipCode #</li>" +
+                                "</ul>" +
+                            "</div>" +
+                            "<div class='row'>" +
+                                "<ul>" +
+                                    "<li><label>Land Line:</label>#= TelNo #</li>" +
+                                    "<li><label>Mobile No:</label>#= MobileNo #</li>" +
+                                "</ul>" +
+                            "</div>" +
+                        "</div>" +
+                    "</div>"
+                );
+            })
+            .ToClientTemplate())
+    </script>
+
+
+
+    @(Html.Kendo().Window().Name("windowContainer")
+        .Title("User Access")
+        .Visible(false)
+        .Modal(true)
+        .Draggable(true)
+        .Width(900)
+        .Height(500)
+            //.LoadContentFrom("_History", "Markets", new { stallId = "#=StallId#" })
+            //.LoadContentFrom("_History", "Markets")
+    )
+
+</div>
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+</style>
+
+
+
+
+<script type="text/javascript">
+    var selectedGrid;
+    var selectedItem;
+
+    function onEditGridUser(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        } else {
+            selectedItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onChangeGridUser(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedItem = selectedData.Id;
+    }
+
+    function onDataBoundGridUser(e) {
+        if (selectedItem) {
+            var dataItem = this.dataSource.get(selectedItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);            
+        }
+    }
+
+    //var selectedGrd;
+    //function onEditGrid(e) {
+    //    e.preventDefault();
+    //    selectedGrid = e.sender;
+
+    //    if (!e.model.isNew()) {
+    //        var rowitem = selectedGrid.dataSource.get(e.model.get("Id"));
+    //        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+    //        selectedGrid.select(row);
+    //    }        
+
+    //}
+
+    function onSelectUser(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#NameFull").val(dataItem.Description).trigger("change");
+    }
+
+    function ShowAccess(e) {
+        e.preventDefault();
+        var myTitle = "";
+        var width = 1000;
+        var heght = 300;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var userId = dataItem.Id;
+        var userEmail = dataItem.Email;
+        var userName = dataItem.UserName;
+
+        //window.location = "_Access/?userId=" + userId + "&userEmail=" + userEmail + "&userName=" + userName;
+        window.location = '@Url.Action("_Access", "Users", new { userId= "userId", userEmail = "userEmail", userName= "userName"})'
+
+        //var dataToSend = "01";
+        //var url = "Users/_Access/?userId=" + userId + "&userEmail=" + userEmail + "&userName=" + userName;
+        //var actionName = ActionName();
+        //var controllerName = ControllerName();
+        //url.replace("actionName", actionName);
+        //url.replace("controllerName", controllerName);
+        //window.location = url;
+
+    }
+
+    $('#registerButton').click(function () {
+        window.location = '@Url.Action("Register", "Account")';
+    });
+
+    function onChangeNames(e) {
+        var lName = $("#NameLast").val();
+        var fName = $("#NameFirst").val();
+        var mName = $("#NameMid").val();
+
+        var nameFull = lName + ((fName > '') ? ', ' + fName : '') + (mName > '' ? ' ' + mName : '');
+
+        $("#NameFull").val(nameFull).trigger("change");
+    }
+
+
+
+
+</script>
+
+

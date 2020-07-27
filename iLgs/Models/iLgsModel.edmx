@@ -1,0 +1,1177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="iLGSModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Accessfile">
+          <Key>
+            <PropertyRef Name="RecId" />
+          </Key>
+          <Property Name="RecId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="SysCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" />
+          <Property Name="ChildId" Type="int" />
+          <Property Name="AllowAdd" Type="bit" Nullable="false" />
+          <Property Name="AllowEdit" Type="bit" Nullable="false" />
+          <Property Name="AllowDelete" Type="bit" Nullable="false" />
+          <Property Name="AllowPost" Type="bit" Nullable="false" />
+          <Property Name="AllowUnpost" Type="bit" Nullable="false" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="AspNetRoles">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="256" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AspNetUserRoles">
+          <Key>
+            <PropertyRef Name="UserId" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="RoleId" Type="nvarchar" MaxLength="128" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AspNetUsers">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Email" Type="nvarchar" MaxLength="256" />
+          <Property Name="EmailConfirmed" Type="bit" Nullable="false" />
+          <Property Name="PasswordHash" Type="nvarchar(max)" />
+          <Property Name="SecurityStamp" Type="nvarchar(max)" />
+          <Property Name="PhoneNumber" Type="nvarchar(max)" />
+          <Property Name="PhoneNumberConfirmed" Type="bit" Nullable="false" />
+          <Property Name="TwoFactorEnabled" Type="bit" Nullable="false" />
+          <Property Name="LockoutEndDateUtc" Type="datetime" />
+          <Property Name="LockoutEnabled" Type="bit" Nullable="false" />
+          <Property Name="AccessFailedCount" Type="int" Nullable="false" />
+          <Property Name="UserName" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="DtRegs" Type="datetime" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ErrorLogs">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="ErrorSource" Type="nvarchar" MaxLength="50" />
+          <Property Name="ErrorCode" Type="nvarchar" MaxLength="50" />
+          <Property Name="Description" Type="nvarchar(max)" />
+          <Property Name="InsertedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="Menubase">
+          <Key>
+            <PropertyRef Name="ChildId" />
+          </Key>
+          <Property Name="SysCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="Sequence" Type="int" />
+          <Property Name="ParentId" Type="int" />
+          <Property Name="ChildId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="256" />
+          <Property Name="Action" Type="nvarchar" MaxLength="256" />
+          <Property Name="Controller" Type="nvarchar" MaxLength="256" />
+          <Property Name="ObjectParam" Type="nvarchar" MaxLength="256" />
+          <Property Name="MenuId" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="MenubaseAccess">
+          <Key>
+            <PropertyRef Name="ChildIdAccess" />
+          </Key>
+          <Property Name="AccessFileId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="SysCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="Sequence" Type="int" />
+          <Property Name="ParentId" Type="int" />
+          <Property Name="ChildId" Type="int" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="256" />
+          <Property Name="Action" Type="nvarchar" MaxLength="256" />
+          <Property Name="Controller" Type="nvarchar" MaxLength="256" />
+          <Property Name="ObjectParam" Type="nvarchar" MaxLength="256" />
+          <Property Name="MenuId" Type="nvarchar" MaxLength="50" />
+          <Property Name="ChildIdAccess" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ParentIdAccess" Type="varchar" MaxLength="50" />
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" />
+        </EntityType>
+        <EntityType Name="SysCodes">
+          <Key>
+            <PropertyRef Name="SysCode" />
+          </Key>
+          <Property Name="SysCode" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="SysDescription" Type="nvarchar" MaxLength="100" />
+          <Property Name="Insertedby" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="UserCodes">
+          <Key>
+            <PropertyRef Name="UserCode" />
+          </Key>
+          <Property Name="UserCode" Type="nchar" MaxLength="10" Nullable="false" />
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" />
+          <Property Name="Department" Type="nvarchar" MaxLength="50" />
+          <Property Name="Division" Type="nvarchar" MaxLength="50" />
+          <Property Name="Section" Type="nvarchar" MaxLength="50" />
+          <Property Name="UserGroup" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="UserInfos">
+          <Key>
+            <PropertyRef Name="RecId" />
+          </Key>
+          <Property Name="RecId" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Ownership" Type="int" />
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" />
+          <Property Name="Title" Type="nvarchar" MaxLength="10" />
+          <Property Name="NameCorporate" Type="nvarchar" MaxLength="250" />
+          <Property Name="NameFirst" Type="nvarchar" MaxLength="150" />
+          <Property Name="NameLast" Type="nvarchar" MaxLength="50" />
+          <Property Name="NameMid" Type="nvarchar" MaxLength="50" />
+          <Property Name="Country" Type="nvarchar" MaxLength="50" />
+          <Property Name="City" Type="nvarchar" MaxLength="50" />
+          <Property Name="Province" Type="nvarchar" MaxLength="50" />
+          <Property Name="Street" Type="nvarchar" MaxLength="200" />
+          <Property Name="ZipCode" Type="varchar" MaxLength="10" />
+          <Property Name="BirthDay" Type="datetime" />
+          <Property Name="UpdatedDt" Type="datetime" />
+          <Property Name="InsertedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="UserProfiles">
+          <Key>
+            <PropertyRef Name="UserId" />
+          </Key>
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="NameLast" Type="nvarchar" MaxLength="50" />
+          <Property Name="NameFirst" Type="nvarchar" MaxLength="50" />
+          <Property Name="NameMid" Type="nvarchar" MaxLength="50" />
+          <Property Name="NameFull" Type="nvarchar" MaxLength="150" />
+          <Property Name="Birthday" Type="datetime" />
+          <Property Name="Sex" Type="char" MaxLength="1" />
+          <Property Name="TelNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="MobileNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressHouseNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressStreet" Type="nvarchar" MaxLength="100" />
+          <Property Name="AddressSubdivision" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressBarangay" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressCity" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressProvince" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressZipCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="Department" Type="nvarchar" MaxLength="50" />
+          <Property Name="Division" Type="nvarchar" MaxLength="50" />
+          <Property Name="Section" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+          <Property Name="UserCode" Type="varchar" MaxLength="4" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'iLGS.dbo.AspNetUserRoles_View' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="AspNetUserRoles_View">
+          <Key>
+            
+            <PropertyRef Name="RoleId" />
+            
+            
+          </Key>
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="RoleId" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="RoleName" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="NameFull" Type="nvarchar" MaxLength="150" />
+          <Property Name="UserName" Type="nvarchar" MaxLength="256" Nullable="false" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'iLGS.dbo.AspNetUsers_View' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="AspNetUsers_View">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="UserName" />
+          </Key>
+          <Property Name="Id" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Email" Type="nvarchar" MaxLength="256" />
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" />
+          <Property Name="NameLast" Type="nvarchar" MaxLength="50" />
+          <Property Name="NameFirst" Type="nvarchar" MaxLength="50" />
+          <Property Name="NameMid" Type="nvarchar" MaxLength="50" />
+          <Property Name="NameFull" Type="nvarchar" MaxLength="150" />
+          <Property Name="Birthday" Type="datetime" />
+          <Property Name="Sex" Type="char" MaxLength="1" />
+          <Property Name="TelNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="MobileNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressHouseNo" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressStreet" Type="nvarchar" MaxLength="100" />
+          <Property Name="AddressSubdivision" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressBarangay" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressCity" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressProvince" Type="nvarchar" MaxLength="50" />
+          <Property Name="AddressZipCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+          <Property Name="UserName" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="Department" Type="nvarchar" MaxLength="50" />
+          <Property Name="Division" Type="nvarchar" MaxLength="50" />
+          <Property Name="Section" Type="nvarchar" MaxLength="50" />
+          <Property Name="UserCode" Type="varchar" MaxLength="4" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'iLGS.dbo.UserCodes_View' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="UserCodes_View">
+          <Key>
+            <PropertyRef Name="UserCode" />
+          </Key>
+          <Property Name="UserCode" Type="nchar" MaxLength="10" Nullable="false" />
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" />
+          <Property Name="Department" Type="nvarchar" MaxLength="50" />
+          <Property Name="Division" Type="nvarchar" MaxLength="50" />
+          <Property Name="Section" Type="nvarchar" MaxLength="50" />
+          <Property Name="UserGroup" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+          <Property Name="UserName" Type="nvarchar" MaxLength="256" />
+          <Property Name="NameFull" Type="nvarchar" MaxLength="150" />
+        </EntityType>
+        <Association Name="FK_Accessfile_Menubase1">
+          <End Role="Menubase" Type="Self.Menubase" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Accessfile" Type="Self.Accessfile" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Menubase">
+              <PropertyRef Name="ChildId" />
+            </Principal>
+            <Dependent Role="Accessfile">
+              <PropertyRef Name="ChildId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_dbo_AspNetUserRoles_dbo_AspNetRoles_RoleId">
+          <End Role="AspNetRoles" Type="Self.AspNetRoles" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AspNetUserRoles" Type="Self.AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetRoles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_dbo_AspNetUserRoles_dbo_AspNetUsers_UserId">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AspNetUserRoles" Type="Self.AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MENUBASE_Systems">
+          <End Role="SysCodes" Type="Self.SysCodes" Multiplicity="0..1" />
+          <End Role="Menubase" Type="Self.Menubase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SysCodes">
+              <PropertyRef Name="SysCode" />
+            </Principal>
+            <Dependent Role="Menubase">
+              <PropertyRef Name="SysCode" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MenubaseAccess_Accessfile">
+          <End Role="Accessfile" Type="Self.Accessfile" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="MenubaseAccess" Type="Self.MenubaseAccess" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Accessfile">
+              <PropertyRef Name="RecId" />
+            </Principal>
+            <Dependent Role="MenubaseAccess">
+              <PropertyRef Name="AccessFileId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserCodes_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="UserCodes" Type="Self.UserCodes" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserCodes">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserInfos_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="UserInfos" Type="Self.UserInfos" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserInfos">
+              <PropertyRef Name="RecId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserProfiles_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="UserProfiles" Type="Self.UserProfiles" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserProfiles">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="iLGSModelStoreContainer">
+          <EntitySet Name="Accessfile" EntityType="Self.Accessfile" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AspNetRoles" EntityType="Self.AspNetRoles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ErrorLogs" EntityType="Self.ErrorLogs" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Menubase" EntityType="Self.Menubase" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="MenubaseAccess" EntityType="Self.MenubaseAccess" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SysCodes" EntityType="Self.SysCodes" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="UserCodes" EntityType="Self.UserCodes" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="UserInfos" EntityType="Self.UserInfos" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="UserProfiles" EntityType="Self.UserProfiles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AspNetUserRoles_View" EntityType="Self.AspNetUserRoles_View" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [AspNetUserRoles_View].[UserId] AS [UserId], 
+    [AspNetUserRoles_View].[RoleId] AS [RoleId], 
+    [AspNetUserRoles_View].[RoleName] AS [RoleName], 
+    [AspNetUserRoles_View].[NameFull] AS [NameFull], 
+    [AspNetUserRoles_View].[UserName] AS [UserName]
+    FROM [dbo].[AspNetUserRoles_View] AS [AspNetUserRoles_View]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="AspNetUsers_View" EntityType="Self.AspNetUsers_View" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [AspNetUsers_View].[Id] AS [Id], 
+    [AspNetUsers_View].[Email] AS [Email], 
+    [AspNetUsers_View].[UserId] AS [UserId], 
+    [AspNetUsers_View].[NameLast] AS [NameLast], 
+    [AspNetUsers_View].[NameFirst] AS [NameFirst], 
+    [AspNetUsers_View].[NameMid] AS [NameMid], 
+    [AspNetUsers_View].[NameFull] AS [NameFull], 
+    [AspNetUsers_View].[Birthday] AS [Birthday], 
+    [AspNetUsers_View].[Sex] AS [Sex], 
+    [AspNetUsers_View].[TelNo] AS [TelNo], 
+    [AspNetUsers_View].[MobileNo] AS [MobileNo], 
+    [AspNetUsers_View].[AddressHouseNo] AS [AddressHouseNo], 
+    [AspNetUsers_View].[AddressStreet] AS [AddressStreet], 
+    [AspNetUsers_View].[AddressSubdivision] AS [AddressSubdivision], 
+    [AspNetUsers_View].[AddressBarangay] AS [AddressBarangay], 
+    [AspNetUsers_View].[AddressCity] AS [AddressCity], 
+    [AspNetUsers_View].[AddressProvince] AS [AddressProvince], 
+    [AspNetUsers_View].[AddressZipCode] AS [AddressZipCode], 
+    [AspNetUsers_View].[InsertedBy] AS [InsertedBy], 
+    [AspNetUsers_View].[InsertedDt] AS [InsertedDt], 
+    [AspNetUsers_View].[UpdatedBy] AS [UpdatedBy], 
+    [AspNetUsers_View].[UpdatedDt] AS [UpdatedDt], 
+    [AspNetUsers_View].[UserName] AS [UserName], 
+    [AspNetUsers_View].[Department] AS [Department], 
+    [AspNetUsers_View].[Division] AS [Division], 
+    [AspNetUsers_View].[Section] AS [Section], 
+    [AspNetUsers_View].[UserCode] AS [UserCode]
+    FROM [dbo].[AspNetUsers_View] AS [AspNetUsers_View]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="UserCodes_View" EntityType="Self.UserCodes_View" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [UserCodes_View].[UserCode] AS [UserCode], 
+    [UserCodes_View].[UserId] AS [UserId], 
+    [UserCodes_View].[Department] AS [Department], 
+    [UserCodes_View].[Division] AS [Division], 
+    [UserCodes_View].[Section] AS [Section], 
+    [UserCodes_View].[UserGroup] AS [UserGroup], 
+    [UserCodes_View].[InsertedBy] AS [InsertedBy], 
+    [UserCodes_View].[InsertedDt] AS [InsertedDt], 
+    [UserCodes_View].[UpdatedBy] AS [UpdatedBy], 
+    [UserCodes_View].[UpdatedDt] AS [UpdatedDt], 
+    [UserCodes_View].[UserName] AS [UserName], 
+    [UserCodes_View].[NameFull] AS [NameFull]
+    FROM [dbo].[UserCodes_View] AS [UserCodes_View]</DefiningQuery>
+          </EntitySet>
+          <AssociationSet Name="FK_Accessfile_Menubase1" Association="Self.FK_Accessfile_Menubase1">
+            <End Role="Menubase" EntitySet="Menubase" />
+            <End Role="Accessfile" EntitySet="Accessfile" />
+          </AssociationSet>
+          <AssociationSet Name="FK_dbo_AspNetUserRoles_dbo_AspNetRoles_RoleId" Association="Self.FK_dbo_AspNetUserRoles_dbo_AspNetRoles_RoleId">
+            <End Role="AspNetRoles" EntitySet="AspNetRoles" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_dbo_AspNetUserRoles_dbo_AspNetUsers_UserId" Association="Self.FK_dbo_AspNetUserRoles_dbo_AspNetUsers_UserId">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MENUBASE_Systems" Association="Self.FK_MENUBASE_Systems">
+            <End Role="SysCodes" EntitySet="SysCodes" />
+            <End Role="Menubase" EntitySet="Menubase" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MenubaseAccess_Accessfile" Association="Self.FK_MenubaseAccess_Accessfile">
+            <End Role="Accessfile" EntitySet="Accessfile" />
+            <End Role="MenubaseAccess" EntitySet="MenubaseAccess" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserCodes_AspNetUsers" Association="Self.FK_UserCodes_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="UserCodes" EntitySet="UserCodes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserInfos_AspNetUsers" Association="Self.FK_UserInfos_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="UserInfos" EntitySet="UserInfos" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserProfiles_AspNetUsers" Association="Self.FK_UserProfiles_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="UserProfiles" EntitySet="UserProfiles" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="iLGSModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="iLGSEntities" annotation:LazyLoadingEnabled="false">
+          <EntitySet Name="Menubases" EntityType="iLGSModel.Menubase" />
+          <EntitySet Name="SysCodes" EntityType="iLGSModel.SysCode" />
+          <AssociationSet Name="FK_MENUBASE_Systems" Association="iLGSModel.FK_MENUBASE_Systems">
+            <End Role="SysCode" EntitySet="SysCodes" />
+            <End Role="Menubase" EntitySet="Menubases" />
+          </AssociationSet>
+          <AssociationSet Name="MenubaseMenubase" Association="iLGSModel.MenubaseMenubase">
+            <End Role="Menubase" EntitySet="Menubases" />
+            <End Role="Menubase1" EntitySet="Menubases" />
+          </AssociationSet>
+          <EntitySet Name="AspNetUserRoles_View" EntityType="iLGSModel.AspNetUserRoles_View" />
+          <EntitySet Name="AspNetUserRoles" EntityType="iLGSModel.AspNetUserRole" />
+          <EntitySet Name="AspNetRoles" EntityType="iLGSModel.AspNetRole" />
+          <EntitySet Name="AspNetUsers" EntityType="iLGSModel.AspNetUser" />
+          <AssociationSet Name="AspNetUserAspNetUserRole" Association="iLGSModel.AspNetUserAspNetUserRole">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="AspNetUserRole" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="AspNetRoleAspNetUserRole" Association="iLGSModel.AspNetRoleAspNetUserRole">
+            <End Role="AspNetRole" EntitySet="AspNetRoles" />
+            <End Role="AspNetUserRole" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <EntitySet Name="UserProfiles" EntityType="iLGSModel.UserProfile" />
+          <AssociationSet Name="FK_UserProfiles_AspNetUsers" Association="iLGSModel.FK_UserProfiles_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="UserProfile" EntitySet="UserProfiles" />
+          </AssociationSet>
+          <EntitySet Name="UserCodes_View" EntityType="iLGSModel.UserCodes_View" />
+          <EntitySet Name="UserCodes" EntityType="iLGSModel.UserCode" />
+          <AssociationSet Name="FK_UserCodes_AspNetUsers" Association="iLGSModel.FK_UserCodes_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="UserCode" EntitySet="UserCodes" />
+          </AssociationSet>
+          <EntitySet Name="MenubaseAccesses" EntityType="iLGSModel.MenubaseAccess" />
+          <AssociationSet Name="MenubaseAccessMenubaseAccess" Association="iLGSModel.MenubaseAccessMenubaseAccess">
+            <End Role="MenubaseAccess" EntitySet="MenubaseAccesses" />
+            <End Role="MenubaseAccess1" EntitySet="MenubaseAccesses" />
+          </AssociationSet>
+          <EntitySet Name="UserInfos" EntityType="iLGSModel.UserInfo" />
+          <AssociationSet Name="FK_UserInfos_AspNetUsers" Association="iLGSModel.FK_UserInfos_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="UserInfo" EntitySet="UserInfos" />
+          </AssociationSet>
+          <EntitySet Name="ErrorLogs" EntityType="iLGSModel.ErrorLog" />
+          <EntitySet Name="AspNetUsers_View" EntityType="iLGSModel.AspNetUsers_View" />
+          <EntitySet Name="Accessfiles" EntityType="iLGSModel.Accessfile" />
+          <AssociationSet Name="FK_Accessfile_Menubase1" Association="iLGSModel.FK_Accessfile_Menubase1">
+            <End Role="Menubase" EntitySet="Menubases" />
+            <End Role="Accessfile" EntitySet="Accessfiles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MenubaseAccess_Accessfile" Association="iLGSModel.FK_MenubaseAccess_Accessfile">
+            <End Role="Accessfile" EntitySet="Accessfiles" />
+            <End Role="MenubaseAccess" EntitySet="MenubaseAccesses" />
+          </AssociationSet>
+          </EntityContainer>
+        <EntityType Name="Menubase">
+          <Key>
+            <PropertyRef Name="ChildId" />
+          </Key>
+          <Property Name="SysCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Sequence" Type="Int32" />
+          <Property Name="ParentId" Type="Int32" />
+          <Property Name="ChildId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Description" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="Action" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="Controller" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="ObjectParam" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="SysCode1" Relationship="iLGSModel.FK_MENUBASE_Systems" FromRole="Menubase" ToRole="SysCode" />
+          <NavigationProperty Name="SubMenu" Relationship="iLGSModel.MenubaseMenubase" FromRole="Menubase" ToRole="Menubase1" />
+          <NavigationProperty Name="MainMenu" Relationship="iLGSModel.MenubaseMenubase" FromRole="Menubase1" ToRole="Menubase" />
+          <Property Name="MenuId" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Accessfiles" Relationship="iLGSModel.FK_Accessfile_Menubase1" FromRole="Menubase" ToRole="Accessfile" />
+        </EntityType>
+        <EntityType Name="SysCode">
+          <Key>
+            <PropertyRef Name="SysCode1" />
+          </Key>
+          <Property Name="SysCode1" Type="String" Nullable="false" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="SysDescription" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Insertedby" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Menubases" Relationship="iLGSModel.FK_MENUBASE_Systems" FromRole="SysCode" ToRole="Menubase" />
+        </EntityType>
+        <Association Name="FK_MENUBASE_Systems">
+          <End Type="iLGSModel.SysCode" Role="SysCode" Multiplicity="0..1" />
+          <End Type="iLGSModel.Menubase" Role="Menubase" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SysCode">
+              <PropertyRef Name="SysCode1" />
+            </Principal>
+            <Dependent Role="Menubase">
+              <PropertyRef Name="SysCode" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="MenubaseMenubase">
+          <End Type="iLGSModel.Menubase" Role="Menubase" Multiplicity="0..1" />
+          <End Type="iLGSModel.Menubase" Role="Menubase1" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Menubase">
+              <PropertyRef Name="ChildId" />
+            </Principal>
+            <Dependent Role="Menubase1">
+              <PropertyRef Name="ParentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="AspNetUserRoles_View">
+          <Key>
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="UserId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="RoleId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="RoleName" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="NameFull" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="UserName" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="AspNetUserRole">
+          <Key>
+            <PropertyRef Name="UserId" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="UserId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="RoleId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AspNetUser" Relationship="iLGSModel.AspNetUserAspNetUserRole" FromRole="AspNetUserRole" ToRole="AspNetUser" />
+          <NavigationProperty Name="AspNetRole" Relationship="iLGSModel.AspNetRoleAspNetUserRole" FromRole="AspNetUserRole" ToRole="AspNetRole" />
+        </EntityType>
+        <EntityType Name="AspNetRole">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AspNetUserRoles" Relationship="iLGSModel.AspNetRoleAspNetUserRole" FromRole="AspNetRole" ToRole="AspNetUserRole" />
+        </EntityType>
+        <EntityType Name="AspNetUser">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Email" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="EmailConfirmed" Type="Boolean" Nullable="false" />
+          <Property Name="PasswordHash" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="SecurityStamp" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="PhoneNumber" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="PhoneNumberConfirmed" Type="Boolean" Nullable="false" />
+          <Property Name="TwoFactorEnabled" Type="Boolean" Nullable="false" />
+          <Property Name="LockoutEndDateUtc" Type="DateTime" Precision="3" />
+          <Property Name="LockoutEnabled" Type="Boolean" Nullable="false" />
+          <Property Name="AccessFailedCount" Type="Int32" Nullable="false" />
+          <Property Name="UserName" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AspNetUserRoles" Relationship="iLGSModel.AspNetUserAspNetUserRole" FromRole="AspNetUser" ToRole="AspNetUserRole" />
+          <NavigationProperty Name="UserProfile" Relationship="iLGSModel.FK_UserProfiles_AspNetUsers" FromRole="AspNetUser" ToRole="UserProfile" />
+          <NavigationProperty Name="UserCodes" Relationship="iLGSModel.FK_UserCodes_AspNetUsers" FromRole="AspNetUser" ToRole="UserCode" />
+          <Property Name="DtRegs" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="UserInfo" Relationship="iLGSModel.FK_UserInfos_AspNetUsers" FromRole="AspNetUser" ToRole="UserInfo" />
+          <Property Name="Active" Type="Boolean" Nullable="false" />
+        </EntityType>
+        <Association Name="AspNetUserAspNetUserRole">
+          <End Type="iLGSModel.AspNetUser" Role="AspNetUser" Multiplicity="1" />
+          <End Type="iLGSModel.AspNetUserRole" Role="AspNetUserRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRole">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="AspNetRoleAspNetUserRole">
+          <End Type="iLGSModel.AspNetRole" Role="AspNetRole" Multiplicity="1" />
+          <End Type="iLGSModel.AspNetUserRole" Role="AspNetUserRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetRole">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRole">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="UserProfile">
+          <Key>
+            <PropertyRef Name="UserId" />
+          </Key>
+          <Property Name="UserId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="NameLast" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameFirst" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameMid" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameFull" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="Birthday" Type="DateTime" Precision="3" />
+          <Property Name="Sex" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
+          <Property Name="TelNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="MobileNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressHouseNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressStreet" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="AddressSubdivision" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressBarangay" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressCity" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressProvince" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressZipCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AspNetUser" Relationship="iLGSModel.FK_UserProfiles_AspNetUsers" FromRole="UserProfile" ToRole="AspNetUser" />
+          <Property Name="Department" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Division" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Section" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UserCode" Type="String" MaxLength="4" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <Association Name="FK_UserProfiles_AspNetUsers">
+          <End Type="iLGSModel.AspNetUser" Role="AspNetUser" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="iLGSModel.UserProfile" Role="UserProfile" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserProfile">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="UserCodes_View">
+          <Key>
+            <PropertyRef Name="UserCode" />
+          </Key>
+          <Property Name="UserCode" Type="String" Nullable="false" MaxLength="10" FixedLength="true" Unicode="true" />
+          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Department" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Division" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Section" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UserGroup" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <Property Name="UserName" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="NameFull" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="UserCode">
+          <Key>
+            <PropertyRef Name="UserCode1" />
+          </Key>
+          <Property Name="UserCode1" Type="String" Nullable="false" MaxLength="10" FixedLength="true" Unicode="true" />
+          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Department" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Division" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Section" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UserGroup" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AspNetUser" Relationship="iLGSModel.FK_UserCodes_AspNetUsers" FromRole="UserCode" ToRole="AspNetUser" />
+        </EntityType>
+        <Association Name="FK_UserCodes_AspNetUsers">
+          <End Type="iLGSModel.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
+          <End Type="iLGSModel.UserCode" Role="UserCode" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserCode">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="MenubaseAccess">
+          <Key>
+            <PropertyRef Name="ChildIdAccess" />
+          </Key>
+          <Property Name="AccessFileId" Type="Guid" Nullable="false" />
+          <Property Name="SysCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Sequence" Type="Int32" />
+          <Property Name="ParentId" Type="Int32" />
+          <Property Name="ChildId" Type="Int32" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="Action" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="Controller" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="ObjectParam" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="MenuId" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ChildIdAccess" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ParentIdAccess" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="SubMenu" Relationship="iLGSModel.MenubaseAccessMenubaseAccess" FromRole="MenubaseAccess" ToRole="MenubaseAccess1" />
+          <NavigationProperty Name="MainMenu" Relationship="iLGSModel.MenubaseAccessMenubaseAccess" FromRole="MenubaseAccess1" ToRole="MenubaseAccess" />
+          <NavigationProperty Name="Accessfile" Relationship="iLGSModel.FK_MenubaseAccess_Accessfile" FromRole="MenubaseAccess" ToRole="Accessfile" />
+        </EntityType>
+        <Association Name="MenubaseAccessMenubaseAccess">
+          <End Type="iLGSModel.MenubaseAccess" Role="MenubaseAccess" Multiplicity="0..1" />
+          <End Type="iLGSModel.MenubaseAccess" Role="MenubaseAccess1" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MenubaseAccess">
+              <PropertyRef Name="ChildIdAccess" />
+            </Principal>
+            <Dependent Role="MenubaseAccess1">
+              <PropertyRef Name="ParentIdAccess" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="UserInfo">
+          <Key>
+            <PropertyRef Name="RecId" />
+          </Key>
+          <Property Name="RecId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Ownership" Type="Int32" />
+          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Title" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="NameCorporate" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="NameFirst" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="NameLast" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameMid" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Country" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="City" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Province" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Street" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="ZipCode" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="BirthDay" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AspNetUser" Relationship="iLGSModel.FK_UserInfos_AspNetUsers" FromRole="UserInfo" ToRole="AspNetUser" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+        </EntityType>
+        <Association Name="FK_UserInfos_AspNetUsers">
+          <End Type="iLGSModel.AspNetUser" Role="AspNetUser" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="iLGSModel.UserInfo" Role="UserInfo" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserInfo">
+              <PropertyRef Name="RecId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ErrorLog">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ErrorSource" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ErrorCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="AspNetUsers_View">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="UserName" />
+          </Key>
+          <Property Name="Id" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Email" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="NameLast" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameFirst" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameMid" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameFull" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="Birthday" Type="DateTime" Precision="3" />
+          <Property Name="Sex" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
+          <Property Name="TelNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="MobileNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressHouseNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressStreet" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="AddressSubdivision" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressBarangay" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressCity" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressProvince" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressZipCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <Property Name="UserName" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="Department" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Division" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Section" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UserCode" Type="String" MaxLength="4" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="Accessfile">
+          <Key>
+            <PropertyRef Name="RecId" />
+          </Key>
+          <Property Name="RecId" Type="Guid" Nullable="false" />
+          <Property Name="SysCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="ChildId" Type="Int32" />
+          <Property Name="AllowAdd" Type="Boolean" Nullable="false" />
+          <Property Name="AllowEdit" Type="Boolean" Nullable="false" />
+          <Property Name="AllowDelete" Type="Boolean" Nullable="false" />
+          <Property Name="AllowPost" Type="Boolean" Nullable="false" />
+          <Property Name="AllowUnpost" Type="Boolean" Nullable="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Menubase" Relationship="iLGSModel.FK_Accessfile_Menubase1" FromRole="Accessfile" ToRole="Menubase" />
+          <NavigationProperty Name="MenubaseAccesses" Relationship="iLGSModel.FK_MenubaseAccess_Accessfile" FromRole="Accessfile" ToRole="MenubaseAccess" />
+        </EntityType>
+        <Association Name="FK_Accessfile_Menubase1">
+          <End Type="iLGSModel.Menubase" Role="Menubase" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="iLGSModel.Accessfile" Role="Accessfile" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Menubase">
+              <PropertyRef Name="ChildId" />
+            </Principal>
+            <Dependent Role="Accessfile">
+              <PropertyRef Name="ChildId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MenubaseAccess_Accessfile">
+          <End Type="iLGSModel.Accessfile" Role="Accessfile" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="iLGSModel.MenubaseAccess" Role="MenubaseAccess" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Accessfile">
+              <PropertyRef Name="RecId" />
+            </Principal>
+            <Dependent Role="MenubaseAccess">
+              <PropertyRef Name="AccessFileId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="iLGSModelStoreContainer" CdmEntityContainer="iLGSEntities">
+          <EntitySetMapping Name="Menubases">
+            <EntityTypeMapping TypeName="iLGSModel.Menubase">
+              <MappingFragment StoreEntitySet="Menubase">
+                <ScalarProperty Name="MenuId" ColumnName="MenuId" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="ObjectParam" ColumnName="ObjectParam" />
+                <ScalarProperty Name="Controller" ColumnName="Controller" />
+                <ScalarProperty Name="Action" ColumnName="Action" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ChildId" ColumnName="ChildId" />
+                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+                <ScalarProperty Name="Sequence" ColumnName="Sequence" />
+                <ScalarProperty Name="SysCode" ColumnName="SysCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SysCodes">
+            <EntityTypeMapping TypeName="iLGSModel.SysCode">
+              <MappingFragment StoreEntitySet="SysCodes">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="Insertedby" ColumnName="Insertedby" />
+                <ScalarProperty Name="SysDescription" ColumnName="SysDescription" />
+                <ScalarProperty Name="SysCode1" ColumnName="SysCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AspNetUserRoles_View">
+            <EntityTypeMapping TypeName="iLGSModel.AspNetUserRoles_View">
+              <MappingFragment StoreEntitySet="AspNetUserRoles_View">
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="NameFull" ColumnName="NameFull" />
+                <ScalarProperty Name="RoleName" ColumnName="RoleName" />
+                <ScalarProperty Name="RoleId" ColumnName="RoleId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AspNetUserRoles">
+            <EntityTypeMapping TypeName="iLGSModel.AspNetUserRole">
+              <MappingFragment StoreEntitySet="AspNetUserRoles">
+                <ScalarProperty Name="RoleId" ColumnName="RoleId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AspNetRoles">
+            <EntityTypeMapping TypeName="iLGSModel.AspNetRole">
+              <MappingFragment StoreEntitySet="AspNetRoles">
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AspNetUsers">
+            <EntityTypeMapping TypeName="iLGSModel.AspNetUser">
+              <MappingFragment StoreEntitySet="AspNetUsers">
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="DtRegs" ColumnName="DtRegs" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="AccessFailedCount" ColumnName="AccessFailedCount" />
+                <ScalarProperty Name="LockoutEnabled" ColumnName="LockoutEnabled" />
+                <ScalarProperty Name="LockoutEndDateUtc" ColumnName="LockoutEndDateUtc" />
+                <ScalarProperty Name="TwoFactorEnabled" ColumnName="TwoFactorEnabled" />
+                <ScalarProperty Name="PhoneNumberConfirmed" ColumnName="PhoneNumberConfirmed" />
+                <ScalarProperty Name="PhoneNumber" ColumnName="PhoneNumber" />
+                <ScalarProperty Name="SecurityStamp" ColumnName="SecurityStamp" />
+                <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
+                <ScalarProperty Name="EmailConfirmed" ColumnName="EmailConfirmed" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserProfiles">
+            <EntityTypeMapping TypeName="iLGSModel.UserProfile">
+              <MappingFragment StoreEntitySet="UserProfiles">
+                <ScalarProperty Name="UserCode" ColumnName="UserCode" />
+                <ScalarProperty Name="Section" ColumnName="Section" />
+                <ScalarProperty Name="Division" ColumnName="Division" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="AddressZipCode" ColumnName="AddressZipCode" />
+                <ScalarProperty Name="AddressProvince" ColumnName="AddressProvince" />
+                <ScalarProperty Name="AddressCity" ColumnName="AddressCity" />
+                <ScalarProperty Name="AddressBarangay" ColumnName="AddressBarangay" />
+                <ScalarProperty Name="AddressSubdivision" ColumnName="AddressSubdivision" />
+                <ScalarProperty Name="AddressStreet" ColumnName="AddressStreet" />
+                <ScalarProperty Name="AddressHouseNo" ColumnName="AddressHouseNo" />
+                <ScalarProperty Name="MobileNo" ColumnName="MobileNo" />
+                <ScalarProperty Name="TelNo" ColumnName="TelNo" />
+                <ScalarProperty Name="Sex" ColumnName="Sex" />
+                <ScalarProperty Name="Birthday" ColumnName="Birthday" />
+                <ScalarProperty Name="NameFull" ColumnName="NameFull" />
+                <ScalarProperty Name="NameMid" ColumnName="NameMid" />
+                <ScalarProperty Name="NameFirst" ColumnName="NameFirst" />
+                <ScalarProperty Name="NameLast" ColumnName="NameLast" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserCodes_View">
+            <EntityTypeMapping TypeName="iLGSModel.UserCodes_View">
+              <MappingFragment StoreEntitySet="UserCodes_View">
+                <ScalarProperty Name="NameFull" ColumnName="NameFull" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="UserGroup" ColumnName="UserGroup" />
+                <ScalarProperty Name="Section" ColumnName="Section" />
+                <ScalarProperty Name="Division" ColumnName="Division" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="UserCode" ColumnName="UserCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserCodes">
+            <EntityTypeMapping TypeName="iLGSModel.UserCode">
+              <MappingFragment StoreEntitySet="UserCodes">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="UserGroup" ColumnName="UserGroup" />
+                <ScalarProperty Name="Section" ColumnName="Section" />
+                <ScalarProperty Name="Division" ColumnName="Division" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="UserCode1" ColumnName="UserCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MenubaseAccesses">
+            <EntityTypeMapping TypeName="iLGSModel.MenubaseAccess">
+              <MappingFragment StoreEntitySet="MenubaseAccess">
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="ParentIdAccess" ColumnName="ParentIdAccess" />
+                <ScalarProperty Name="ChildIdAccess" ColumnName="ChildIdAccess" />
+                <ScalarProperty Name="MenuId" ColumnName="MenuId" />
+                <ScalarProperty Name="ObjectParam" ColumnName="ObjectParam" />
+                <ScalarProperty Name="Controller" ColumnName="Controller" />
+                <ScalarProperty Name="Action" ColumnName="Action" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ChildId" ColumnName="ChildId" />
+                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
+                <ScalarProperty Name="Sequence" ColumnName="Sequence" />
+                <ScalarProperty Name="SysCode" ColumnName="SysCode" />
+                <ScalarProperty Name="AccessFileId" ColumnName="AccessFileId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserInfos">
+            <EntityTypeMapping TypeName="iLGSModel.UserInfo">
+              <MappingFragment StoreEntitySet="UserInfos">
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="BirthDay" ColumnName="BirthDay" />
+                <ScalarProperty Name="ZipCode" ColumnName="ZipCode" />
+                <ScalarProperty Name="Street" ColumnName="Street" />
+                <ScalarProperty Name="Province" ColumnName="Province" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="NameMid" ColumnName="NameMid" />
+                <ScalarProperty Name="NameLast" ColumnName="NameLast" />
+                <ScalarProperty Name="NameFirst" ColumnName="NameFirst" />
+                <ScalarProperty Name="NameCorporate" ColumnName="NameCorporate" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="Ownership" ColumnName="Ownership" />
+                <ScalarProperty Name="RecId" ColumnName="RecId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ErrorLogs">
+            <EntityTypeMapping TypeName="iLGSModel.ErrorLog">
+              <MappingFragment StoreEntitySet="ErrorLogs">
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ErrorCode" ColumnName="ErrorCode" />
+                <ScalarProperty Name="ErrorSource" ColumnName="ErrorSource" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AspNetUsers_View">
+            <EntityTypeMapping TypeName="iLGSModel.AspNetUsers_View">
+              <MappingFragment StoreEntitySet="AspNetUsers_View">
+                <ScalarProperty Name="UserCode" ColumnName="UserCode" />
+                <ScalarProperty Name="Section" ColumnName="Section" />
+                <ScalarProperty Name="Division" ColumnName="Division" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="AddressZipCode" ColumnName="AddressZipCode" />
+                <ScalarProperty Name="AddressProvince" ColumnName="AddressProvince" />
+                <ScalarProperty Name="AddressCity" ColumnName="AddressCity" />
+                <ScalarProperty Name="AddressBarangay" ColumnName="AddressBarangay" />
+                <ScalarProperty Name="AddressSubdivision" ColumnName="AddressSubdivision" />
+                <ScalarProperty Name="AddressStreet" ColumnName="AddressStreet" />
+                <ScalarProperty Name="AddressHouseNo" ColumnName="AddressHouseNo" />
+                <ScalarProperty Name="MobileNo" ColumnName="MobileNo" />
+                <ScalarProperty Name="TelNo" ColumnName="TelNo" />
+                <ScalarProperty Name="Sex" ColumnName="Sex" />
+                <ScalarProperty Name="Birthday" ColumnName="Birthday" />
+                <ScalarProperty Name="NameFull" ColumnName="NameFull" />
+                <ScalarProperty Name="NameMid" ColumnName="NameMid" />
+                <ScalarProperty Name="NameFirst" ColumnName="NameFirst" />
+                <ScalarProperty Name="NameLast" ColumnName="NameLast" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Accessfiles">
+            <EntityTypeMapping TypeName="iLGSModel.Accessfile">
+              <MappingFragment StoreEntitySet="Accessfile">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="AllowUnpost" ColumnName="AllowUnpost" />
+                <ScalarProperty Name="AllowPost" ColumnName="AllowPost" />
+                <ScalarProperty Name="AllowDelete" ColumnName="AllowDelete" />
+                <ScalarProperty Name="AllowEdit" ColumnName="AllowEdit" />
+                <ScalarProperty Name="AllowAdd" ColumnName="AllowAdd" />
+                <ScalarProperty Name="ChildId" ColumnName="ChildId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="SysCode" ColumnName="SysCode" />
+                <ScalarProperty Name="RecId" ColumnName="RecId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

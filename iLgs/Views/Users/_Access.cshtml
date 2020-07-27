@@ -1,0 +1,311 @@
+﻿@*@ViewData["userId"]*@
+@*@using (Html.BeginForm())
+    {*@
+<div style="margin-left:-150px;margin-right:-150px;">
+    <h2 style="color:silver">Menu Access</h2>
+
+    <br />
+
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.Label("User Id", new { style = "color:silver" })
+        </div>
+        <div class="col-md-2" style="color:silver">
+            @ViewData["userName"]
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.Label("Name", new { style = "color:silver" })
+        </div>
+        <div class="col-md-2" style="color:silver">
+            @ViewData["nameFull"]
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.Label("System", new { style = "color:silver" })
+        </div>
+        <div class="col-md-2">
+            @(Html.Kendo().ComboBox()
+                .Name("sysCode")
+                    //.HtmlAttributes(new { style = "width:300px" })
+                .Placeholder("Select System")
+                .DataTextField("Code")
+                .DataValueField("Code")
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetSysCodes", "SysCodes");
+                    })
+                    .ServerFiltering(true);
+                })
+            )
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.Label("Menu Level", new { style = "color:silver" })
+        </div>
+        <div class="col-md-2">
+            @(Html.Kendo().ComboBox()
+                .Name("parentId")
+                    //.HtmlAttributes(new { style = "width:300px" })
+                .Placeholder("Select Level")
+                .Filter(FilterType.Contains)
+                    //.BindTo(ViewData["MenuLevel"] as SelectList)
+                .DataTextField("Description")
+                .DataValueField("Code")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        //read.Action("GetMenulevels", "Menu", new { sysCode = @ViewData["sysCode"] });
+                        read.Action("GetMenulevels", "Menu").Data("DataMenuLevel");
+                    })
+                    .ServerFiltering(true);
+                })
+                .CascadeFrom("sysCode")
+            )
+        </div>
+        <div class="col-md-1">
+            <input type="submit" value="Submit" id="cmdSubmit" />
+        </div>
+    </div>
+    <br />
+    @*}*@
+
+    <div class="row">
+        <div class="col-md-7">
+            @(Html.Kendo().Grid<iLgs.Models.MenubaseVM>()
+            .Name("grid")
+            .Columns(col =>
+            {
+                col.Bound(c => c.ChildId).Hidden();
+                col.Bound(c => c.Description).Width(200).Filterable(true);
+                col.Bound(c => c.Result).Width(50).Filterable(true);
+                col.Command(command =>
+                {
+                    command.Custom("Select").Text("Select").Click("onCommand");
+                    command.Custom("Include").Click("onInclude");
+                }).Width(75);
+            })
+                    //.Pageable()
+            .NoRecords()
+            .Sortable()
+            .Scrollable(s => s.Height(450))
+                    //.HtmlAttributes(new { style = "height:300px;" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(20)
+                .Events(events => events.Error("error_handler"))
+                .Model(model =>
+                {
+                    model.Id(p => p.ChildId);
+                    model.Field(p => p.ChildId).Editable(false);
+                })
+                .Read(read => read.Action("MenuAccessRead", "Roles").Data("MenuData"))
+            )
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+            .Events(events => events.Change("onChange").DataBound("onDataBound"))
+            .AutoBind(false)                    
+            )
+        </div>
+        <div class="col-lg-5">
+
+            @(Html.Kendo().Grid<iLgs.Models.Accessfile>()
+          .Name("gridExtn")
+            .Columns(columns =>
+            {
+                columns.Bound(c => c.AllowAdd).Width(100);
+                columns.Bound(c => c.AllowEdit).Width(100);
+                columns.Bound(c => c.AllowDelete).Width(100);
+                columns.Bound(c => c.AllowPost).Width(100);
+                columns.Bound(c => c.AllowUnpost).Width(100);
+                columns.Command(commands =>
+                {
+                    commands.Edit();
+                    commands.Destroy();
+                }).Width(150);
+            })
+            .NoRecords()
+            .Editable(editable => editable.Mode(GridEditMode.InLine))
+            .HtmlAttributes(new { style = "height:100px;" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .ServerOperation(false)
+                .Events(e => e.RequestEnd("onRequestEndGridExtn"))
+                .Model(model =>
+                    {
+                        model.Id(p => p.RecId);
+                        model.Field(p => p.RecId).DefaultValue(Guid.Empty);
+                        model.Field(p => p.RecId).Editable(false);
+                    })
+                .Read(read => read.Action("AccessRead", "Users").Data("AccessFileReadData"))
+                .Update(update => update.Action("AccessUpdate", "Users"))
+                .Destroy(destroy => destroy.Action("AccessDestroy", "Users"))
+            ).AutoBind(false)
+                //.Events(e => e.Edit("onEditGrid").Change("onChangeGrid").DataBound("onDataBoundGrid"))
+            )
+
+        </div>
+    </div>
+</div>
+<style>
+    .WithAccess {
+        background: LightYellow;
+    }
+
+    .NoAccess {
+        background: Pink;
+    }
+</style>
+
+
+
+<script type="text/javascript">
+    function sync_handler(e) {
+        this.read();
+    }
+
+    function DataMenuLevel() {
+        return {
+            sysCode: $("#sysCode").val()
+        };
+    }
+
+    $("#cmdSubmit").click(function (e) {
+        e.preventDefault();
+        $("#grid").data("kendoGrid").dataSource.read();
+    })
+
+    var childId = null;
+    function onChange() {
+
+        //var grid = $("#grid").data("kendoGrid");
+
+        //grid.select().each(function () {
+        //    var dataItem = grid.dataItem($(this));
+        //    childId = dataItem.ChildId;
+        //});
+
+        var selectedData = this.dataItem(this.select());
+        childId = selectedData.ChildId;
+
+        $("#gridExtn").data("kendoGrid").dataSource.read();
+    }
+
+    function onDataBound(e) {
+
+        var grid = this;
+        //var row = e.sender.tbody.find("tr:first");
+        //grid.select(row);
+
+        //var data = grid.dataSource.data();
+
+        grid.tbody.find(">tr").each(function () {
+            var dataItem = grid.dataItem(this);
+            if (!dataItem.IsAllowed) {
+                $(this).css("font-style", "italic");
+            }
+        });
+
+        if (childId) {
+            var dataItem = this.dataSource.get(childId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+
+    }
+
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+
+    function MenuData() {
+        return {
+            sysCode: $("#sysCode").val(),
+            parentId: $("#parentId").val(),
+            userId: '@ViewData["userId"]',
+            superAdmin: '@ViewData["superAdmin"]',
+            department: '@ViewData["department"]'
+        };
+    }
+
+    //function onCommand(e) {
+    //    var tr = $(e.target).closest("tr"); // get the current table row (tr)
+    //    // get the data bound to the current table row
+    //    var data = this.dataItem(tr);
+    //    var childId = data.ChildId;
+
+    //    $("#parentId").val(childId);
+    //    $("#cmdSubmit").click();
+    //}
+
+    function onCommand(e) {
+        var tr = $(e.target).closest("tr"); // get the current table row (tr)
+        // get the data bound to the current table row
+        var data = this.dataItem(tr);
+        childId = data.ChildId;
+
+        var cb = $('#parentId').data('kendoComboBox');
+        cb.dataSource.read({ sysCode: '@ViewData["sysCode"]' })
+        cb.value(childId);
+        $("#grid").data("kendoGrid").dataSource.read();
+        setTimeout(childId = null, 300);
+    }
+
+
+    function onInclude(e) {
+        var grid = $("#grid").data("kendoGrid");
+        
+        var tr = $(e.target).closest("tr"); // get the current table row (tr)
+        var data = this.dataItem(tr);
+        childId = data.ChildId;
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("AccessCreate", "Users")',
+            data: {
+                'userId': '@ViewData["userId"]', 'childId': childId, 'sysCode': $("#sysCode").val()
+            }
+        }).done(function (result) {
+            $("#gridExtn").data("kendoGrid").dataSource.read();        
+        }).always(function () {
+            grid.dataSource.read();            
+        });
+    }
+
+    function AccessFileReadData() {
+        return {
+            userId: '@ViewData["userId"]',
+            childId: childId,
+            sysCode: $("#sysCode").val()
+        };
+    }
+
+    function onRequestEndGridExtn(e) {
+        e.preventDefault();
+        if (e.type == "destroy") {
+            $("#grid").data("kendoGrid").dataSource.read();
+        }
+    }
+
+</script>

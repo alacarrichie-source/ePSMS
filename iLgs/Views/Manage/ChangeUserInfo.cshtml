@@ -1,0 +1,542 @@
+﻿@model iLgs.Models.UserInfoViewModel
+@{
+    ViewBag.Title = "Change User Information";
+}
+
+<div class="well">
+    <h3 class="text-info">@ViewBag.Title.</h3>
+    <h2 class="alert-info">@ViewBag.Message</h2>
+
+    @using (Html.BeginForm("ChangeUserInfo", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+    {
+
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true)
+
+        <h4 class="alert-danger">NOTE: FILL-UP all the required fields (*)</h4>
+        <hr />
+        @Html.ValidationSummary("", new { @class = "text-danger" })
+        <div class="form-group">
+
+            @Html.LabelFor(m => m.Ownership, new { @class = "col-md-2 control-label required" })
+            <div class="col-md-10">
+                @Html.RadioButtonFor(m => m.Ownership, 0, new { @onchange = "ToggleInfo(this);" }) Individual
+                @Html.RadioButtonFor(m => m.Ownership, 1, new { @onchange = "ToggleInfo(this);" }) Corporation
+            </div>
+        </div>
+        <br />
+        <div id="Corporate">
+            <div class="form-group">
+                @Html.LabelFor(m => m.NameCorporate, new { @class = "col-md-2 control-label required" })
+                <div class="col-md-10">
+                    @Html.TextBoxFor(m => m.NameCorporate, new { @class = "form-control" })
+                </div>
+            </div>
+            <br />
+        </div>
+        <div class="form-group">
+            <h4 class="text-info">Owner/Administrator/Representative</h4>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.NameLast, new { @class = "col-md-2 control-label required" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.NameLast, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.NameFirst, new { @class = "col-md-2 control-label required" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.NameFirst, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.NameMid, new { @class = "col-md-2 control-label required" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.NameMid, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.BirthDay, new { @class = "col-md-2 control-label" })
+            <div class="col-md-10">
+                @Html.Kendo().DatePickerFor(m => m.BirthDay).Format("MM/dd/yyyy")
+                @*@Html.TextBoxFor(m => m.BirthDay, new { @class = "form-control" })*@
+            </div>
+        </div>
+
+
+        <br />
+        <div class="form-group">
+            <div class="col-md-10">
+                <h4 class="text-info">Address</h4>
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Country, new { @class = "col-md-2 control-label required" })
+            <div class="col-md-10">
+                @*@Html.TextBoxFor(m => m.Country, new { @class = "form-control" })*@
+
+                @(Html.Kendo().ComboBoxFor(m => m.Country).HtmlAttributes(new { @class = "form-control" })
+              .Placeholder("Select Country...")
+            //.Name("Country")
+              .BindTo(new List<string>() {
+                  "Afghanistan",
+                    "Africa",
+                    "Aland Islands",
+                    "Albania",
+                    "Algeria",
+                    "American Samoa",
+                    "Andorra",
+                    "Angola",
+                    "Anguilla",
+                    "Antarctica",
+                    "Antigua & Barbuda",
+                    "Argentina",
+                    "Armenia",
+                    "Aruba",
+                    "Asia",
+                    "Australia",
+                    "Austria",
+                    "Azerbaijan",
+                    "Bahamas, The",
+                    "Bahrain",
+                    "Bangladesh",
+                    "Barbados",
+                    "Belarus",
+                    "Belgium",
+                    "Belize",
+                    "Benin",
+                    "Bermuda",
+                    "Bhutan",
+                    "Bolivia",
+                    "Bonaire, St.Eustat, Saba",
+                    "Bosnia and Herzegovina",
+                    "Botswana",
+                    "Bouvet Island",
+                    "Brazil",
+                    "British Indian Ocean T.",
+                    "British Virgin Islands",
+                    "Brunei Darussalam",
+                    "Bulgaria",
+                    "Burkina Faso",
+                    "Burundi",
+                    "Cabo Verde",
+                    "Cambodia",
+                    "Cameroon",
+                    "Canada",
+                    "Caribbean, the",
+                    "Cayman Islands",
+                    "Central African Republic",
+                    "Central America",
+                    "Chad",
+                    "Chile",
+                    "China",
+                    "Christmas Island",
+                    "Cocos (Keeling) Islands",
+                    "Colombia",
+                    "Comoros",
+                    "Congo",
+                    "Congo, Dem. Rep. of the",
+                    "Cook Islands",
+                    "Costa Rica",
+                    "Cote D'Ivoire",
+                    "Croatia",
+                    "Cuba",
+                    "Curaçao",
+                    "Cyprus",
+                    "Czech Republic",
+                    "Denmark",
+                    "Djibouti",
+                    "Dominica",
+                    "Dominican Republic",
+                    "East Timor (Timor-Leste)",
+                    "Ecuador",
+                    "Egypt",
+                    "El Salvador",
+                    "Equatorial Guinea",
+                    "Eritrea",
+                    "Estonia",
+                    "Ethiopia",
+                    "Europe",
+                    "European Union",
+                    "Falkland Is. (Malvinas)",
+                    "Faroe Islands",
+                    "Fiji",
+                    "Finland",
+                    "France",
+                    "French Guiana",
+                    "French Polynesia",
+                    "French Southern Terr.",
+                    "Gabon",
+                    "Gambia, the",
+                    "Georgia",
+                    "Germany",
+                    "Ghana",
+                    "Gibraltar",
+                    "Greece",
+                    "Greenland",
+                    "Grenada",
+                    "Guadeloupe",
+                    "Guam",
+                    "Guatemala",
+                    "Guernsey and Alderney",
+                    "Guiana, French",
+                    "Guinea",
+                    "Guinea-Bissau",
+                    "Guinea, Equatorial",
+                    "Guyana",
+                    "Haiti",
+                    "Heard & McDonald Is.",
+                    "Holy See (Vatican)",
+                    "Honduras",
+                    "Hong Kong, (China)",
+                    "Hungary",
+                    "Iceland",
+                    "India",
+                    "Indonesia",
+                    "Iran, Islamic Republic of",
+                    "Iraq",
+                    "Ireland",
+                    "Israel",
+                    "Italy",
+                    "Ivory Coast (Cote d'Ivoire)",
+                    "Jamaica",
+                    "Japan",
+                    "Jersey",
+                    "Jordan",
+                    "Kazakhstan",
+                    "Kenya",
+                    "Kiribati",
+                    "Korea Dem. People's Rep.",
+                    "Korea, (South) Republic of",
+                    "Kosovo",
+                    "Kuwait",
+                    "Kyrgyzstan",
+                    "Lao People's Dem. Rep.",
+                    "Latvia",
+                    "Lebanon",
+                    "Lesotho",
+                    "Liberia",
+                    "Libyan Arab Jamahiriya",
+                    "Liechtenstein",
+                    "Lithuania",
+                    "Luxembourg",
+                    "Macao, (China)",
+                    "Macedonia, TFYR",
+                    "Madagascar",
+                    "Malawi",
+                    "Malaysia",
+                    "Maldives",
+                    "Mali",
+                    "Malta",
+                    "Man, Isle of",
+                    "Marshall Islands",
+                    "Martinique (FR)",
+                    "Mauritania",
+                    "Mauritius",
+                    "Mayotte (FR)",
+                    "Mexico",
+                    "Micronesia, Fed. States of",
+                    "Middle East",
+                    "Moldova, Republic of",
+                    "Monaco",
+                    "Mongolia",
+                    "Montenegro",
+                    "Montserrat",
+                    "Morocco",
+                    "Mozambique",
+                    "Myanmar (ex-Burma)",
+                    "Namibia",
+                    "Nauru",
+                    "Nepal",
+                    "Netherlands",
+                    "Netherlands Antilles",
+                    "New Caledonia",
+                    "New Zealand",
+                    "Nicaragua",
+                    "Niger",
+                    "Nigeria",
+                    "Niue",
+                    "Norfolk Island",
+                    "North America",
+                    "Northern Mariana Islands",
+                    "Norway",
+                    "Oceania",
+                    "Oman",
+                    "Pakistan",
+                    "Palau",
+                    "Palestinian Territory",
+                    "Panama",
+                    "Papua New Guinea",
+                    "Paraguay",
+                    "Peru",
+                    "Philippines",
+                    "Pitcairn Island",
+                    "Poland",
+                    "Portugal",
+                    "Puerto Rico",
+                    "Qatar",
+                    "Reunion (FR)",
+                    "Romania",
+                    "Russia (Russian Fed.)",
+                    "Rwanda",
+                    "Sahara, Western",
+                    "Saint Barthelemy (FR)",
+                    "Saint Helena (UK)",
+                    "Saint Kitts and Nevis",
+                    "Saint Lucia",
+                    "Saint Martin (FR)",
+                    "S Pierre & Miquelon(FR)",
+                    "S Vincent & Grenadines",
+                    "Samoa",
+                    "San Marino",
+                    "Sao Tome and Principe",
+                    "Saudi Arabia",
+                    "Senegal",
+                    "Serbia",
+                    "Seychelles",
+                    "Sierra Leone",
+                    "Singapore",
+                    "Slovakia",
+                    "Slovenia",
+                    "Solomon Islands",
+                    "Somalia",
+                    "South Africa",
+                    "South America",
+                    "S.George & S.Sandwich",
+                    "South Sudan",
+                    "Spain",
+                    "Sri Lanka (ex-Ceilan)",
+                    "Sudan",
+                    "Suriname",
+                    "Svalbard & Jan Mayen Is.",
+                    "Swaziland",
+                    "Sweden",
+                    "Switzerland",
+                    "Syrian Arab Republic",
+                    "Taiwan",
+                    "Tajikistan",
+                    "Tanzania, United Rep. of",
+                    "Thailand",
+                    "Timor-Leste (East Timor)",
+                    "Togo",
+                    "Tokelau",
+                    "Tonga",
+                    "Trinidad & Tobago",
+                    "Tunisia",
+                    "Turkey",
+                    "Turkmenistan",
+                    "Turks and Caicos Is.",
+                    "Tuvalu",
+                    "Uganda",
+                    "Ukraine",
+                    "United Arab Emirates",
+                    "United Kingdom",
+                    "United States",
+                    "US Minor Outlying Isl.",
+                    "Uruguay",
+                    "Uzbekistan",
+                    "Vanuatu",
+                    "Vatican (Holy See)",
+                    "Venezuela",
+                    "Viet Nam",
+                    "Virgin Islands, British",
+                    "Virgin Islands, U.S.",
+                    "Wallis and Futuna",
+                    "Western Sahara",
+                    "Yemen",
+                    "Zambia",
+                    "Zimbabwe"
+              })
+              .SelectedIndex(190)
+              .Suggest(true)
+              .Events(e =>
+              {
+                  e.Select("onSelectCountry");
+              })
+                )
+
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Province, new { @class = "col-md-2 control-label" })
+            <div class="col-md-10">
+                @(Html.Kendo().ComboBoxFor(m => m.Province).HtmlAttributes(new { @class = "form-control" })
+              .Placeholder("Select Province...")
+              .BindTo(new List<string>() {
+                  "",
+            "Abra",
+            "Agusan Del Norte",
+            "Agusan Del Sur",
+            "Aklan",
+            "Albay",
+            "Antique",
+            "Apayao",
+            "Aurora",
+            "Basilan",
+            "Bataan",
+            "Batanes",
+            "Batangas",
+            "Benguet",
+            "Biliran",
+            "Bohol",
+            "Bukidnon",
+            "Bulacan",
+            "Cagayan",
+            "Camarines Norte",
+            "Camarines Sur",
+            "Camiguin",
+            "Capiz",
+            "Catanduanes",
+            "Cavite",
+            "Cebu",
+            "Compostela Valley",
+            "Davao Del Norte",
+            "Davao Del Sur",
+            "Davao Oriental",
+            "Dinagat Islands",
+            "Eastern Samar",
+            "Guimaras",
+            "Ifugao",
+            "Ilocos Norte",
+            "Ilocos sur",
+            "Iloilo",
+            "Isabela",
+            "Kalinga",
+            "La Union",
+            "Laguna",
+            "Lanao Del Norte",
+            "Lanao Del Sur",
+            "Leyte",
+            "Maguindanao",
+            "Marinduque",
+            "Masbate",
+            "Metro Manila",
+            "Misamis Occidental",
+            "Misamis Oriental",
+            "Mt. Province",
+            "Negros Occidental",
+            "Negros Oriental",
+            "North Cotabato",
+            "Northern Samar",
+            "Nueva Ecija",
+            "Nueva Vizcaya",
+            "Occidental Mindoro",
+            "Oriental Mindoro",
+            "Palawan",
+            "Pampanga",
+            "Pangasinan",
+            "Quezon",
+            "Quirino",
+            "Rizal",
+            "Romblon",
+            "Sarangani",
+            "Shariff Kabunsuan",
+            "Siquijor",
+            "Sorsogon",
+            "South Cotabato",
+            "Southern Leyte",
+            "Sultan Kudarat",
+            "Sulu",
+            "Surigao Del Norte",
+            "Surigao Del Sur",
+            "Tarlac",
+            "Tawi-Tawi",
+            "Western Samar",
+            "Zambales",
+            "Zamboanga Del Norte",
+            "Zamboanga Del sur",
+            "Zamboanga Sibugay"
+            })
+              .SelectedIndex(48)
+              .Suggest(true)
+                )
+
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.City, new { @class = "col-md-2 control-label" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.City, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Street, new { @class = "col-md-2 control-label required" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.Street, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.ZipCode, new { @class = "col-md-2 control-label required" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.ZipCode, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Submit" class="btn btn-default" />
+            </div>
+        </div>
+
+    }
+</div>
+
+<style>
+    .required:after {
+        content: "*";
+        font-weight: bold;
+        color: red;
+    }
+</style>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        if ('@ViewBag.Ownership' == 1) {
+            $("#NameCorporate").removeAttr('disabled')
+            //$("#Corporate").show();
+            //$("label[for='NameLast']").text("Last Name");
+        } else {
+            $("#NameCorporate").attr('disabled', 'disabled');
+            //$("#Corporate").hide();
+            //$("label[for='NameLast']").text("Name");
+        }
+    });
+
+
+    function onSelectCountry(e) {
+        //var dataItem = this.dataItem(e.item.index());
+        //alert("event :: select (" + dataItem.Text + " : " + dataItem.Value + ")");
+
+        var index = e.item.index();
+
+        //190 = philippines
+        if (index == 190) {
+            $("#Province").data('kendoComboBox').select(47);
+            $("#Province").data('kendoComboBox').enable(true);
+            $("#City").removeAttr('disabled');
+            $("#City").val("Manila City");
+        } else {
+            $("#Province").data('kendoComboBox').select(0);
+            $("#Province").data('kendoComboBox').enable(false);
+            $("#City").attr('disabled', 'disabled');
+            $("#City").val("");
+        }
+    }
+
+    function ToggleInfo(el) {
+        if (el.value == 1) {
+            $("#NameCorporate").removeAttr('disabled')
+            //$("#NameFirst").removeAttr('disabled');
+            //$("#NameMid").removeAttr('disabled');
+            //$("#Individual").show();
+            //$("label[for='NameLast']").text("Last Name");
+        } else {
+            $("#NameCorporate").attr('disabled', 'disabled');
+            //$("#NameFirst").attr('disabled', 'disabled');
+            //$("#NameMid").attr('disabled', 'disabled');
+            //$("#Individual").hide();
+            //$("label[for='NameLast']").text("Name");
+        }
+    }
+
+</script>
