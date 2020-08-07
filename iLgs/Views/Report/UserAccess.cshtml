@@ -1,0 +1,158 @@
+﻿@model iLgs.Models.REPORT_UserAccess_VM
+
+
+@{
+    ViewBag.Title = "User Access Masterlist";
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    <div class="well">
+        <h2>User Access Masterlist</h2>
+        <br />
+        <div class="box-section">
+            <div class="row">
+                <div class="col-md-2 text-right">
+                    @Html.Label("System")
+                </div>
+                <div class="col-md-3">
+                    @(Html.Kendo().DropDownListFor(m => m.SysCode)
+                        .DataTextField("Code")
+                        .DataValueField("Code")
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetSysCodeList", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })
+                    )
+                </div>
+            </div>            
+            <div class="row">
+                <div class="col-md-2 text-right">
+                    @Html.Label("Department")
+                </div>
+                <div class="col-md-3">
+                    @(Html.Kendo().DropDownListFor(m => m.Department)
+                        .DataTextField("Department")
+                        .DataValueField("Department")
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetDepartmentList", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })                        
+                    )
+                </div>
+            </div>            
+
+            <div class="row">
+                <div class="col-md-2 text-right">
+                    @Html.Label("User Name")
+                </div>
+                <div class="col-md-3">
+                    @(Html.Kendo().DropDownListFor(m => m.UserName)
+                        .DataTextField("NameFull")
+                        .DataValueField("UserName")
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetUserNameList", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })
+                    )
+                </div>
+            </div>            
+        </div>
+        <div class="row">
+            <div class="col-md-2 text-right">
+                &nbsp;
+            </div>
+            <div class="col-md-5">
+                @(Html.Kendo().Button().Content("Submit").Name("btnSubmit"))
+                @(Html.Kendo().Button().Name("btnSaveSubmit").Content("Save to Excel File"))
+            </div>
+        </div>
+    </div>
+}
+
+<div id="windowcontainer"></div>
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+
+    .fieldlist li {
+        list-style: none;
+        /*padding-bottom: 1em;*/
+    }
+
+    .box-section {
+        margin: 0 auto .5em;
+        padding: 1em;
+        padding-left: 3em;
+        padding-right: 3em;
+        border: 1px solid rgba(20,53,80,0.14);
+    }
+</style>
+
+<script type="text/javascript">
+    $("#btnSubmit").click(function (e) {
+        e.preventDefault();
+        Print(0);
+    })
+
+    function Print(save) {
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            var data = $("#form").serialize();
+            var url = '@Url.Action("UserAccessRpt", "Report")?' + data + '&save=' + save;
+            $("#windowcontainer").append("<div id='windowPrint'></div>");
+            var mywindow = $("#windowPrint")
+                    .kendoWindow({
+                        actions: ["Maximize", "Minimize", "Close"],
+                        resizable: true,
+                        draggable: true,
+                        modal: true,
+                        visible: false,
+                        iframe: true,
+                        deactivate: function () {
+                            this.destroy();
+                        }
+                    }).data("kendoWindow");
+            mywindow.setOptions({
+                title: "Preview",
+                width: 1200,
+                height: 700
+            });
+            mywindow.refresh({
+                url: url
+            });
+            mywindow.center();
+            mywindow.open();
+        }
+    }
+
+    $("#btnSaveSubmit").click(function (e) {
+        e.preventDefault();
+        Print(1);
+    })
+
+
+</script>
+
+
+
+
+
+
