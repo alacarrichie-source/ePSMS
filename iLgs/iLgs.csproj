@@ -766,7 +766,7 @@
     <Content Include="Content\kendo\2017.3.913\fonts\glyphs\WebComponentsIcons.woff" />
     <Content Include="Content\kendo\2017.3.913\images\kendoui.ttf" />
     <Content Include="Content\kendo\2017.3.913\images\kendoui.woff" />
-    <None Include="Properties\PublishProfiles\iLgs - LPC %28Dataserver2%29.pubxml" />
+    <None Include="Properties\PublishProfiles\iLgs - LPC %28Dataserver3%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs tag %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig.pubxml" />
@@ -1089,6 +1089,7 @@
     <Content Include="Views\Manage\Result.cshtml" />
     <Content Include="Views\Report\UserAccess.cshtml" />
     <Content Include="Views\Report\UserRoles.cshtml" />
+    <Content Include="Views\Users\_CopyAccess.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

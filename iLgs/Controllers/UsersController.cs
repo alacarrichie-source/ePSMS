@@ -341,7 +341,7 @@ namespace iLgs.Controllers
             var model = db.UserProfiles.AsQueryable();                
             if (!string.IsNullOrEmpty(text))
             {
-                model = model.Where(p => p.NameFull.Contains(text));
+                model = model.Where(p => p.NameFull.Contains(text) || p.AspNetUser.UserName.Contains(text));
             }
             if (!isAdmin)
             {
@@ -655,6 +655,72 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
+
+        public ActionResult _CopyAccess(string userId, string userName, string sysCode)
+        {            
+            CopyAccessVM model = new CopyAccessVM()
+            {
+                SourceUserId = userId,
+                SourceUserName = userName,
+                SysCode = sysCode
+            };
+
+            return PartialView(model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> CopyAccessSave([DataSourceRequest] DataSourceRequest request, CopyAccessVM model)
+        {
+            try
+            {
+                string user = ControllerContext.HttpContext.User.Identity.Name;
+                var date = System.DateTime.Now;
+
+                db.Accessfiles.RemoveRange(db.Accessfiles.Where(w => w.SysCode == model.SysCode && w.UserId == model.TargetUserId));
+                await db.SaveChangesAsync();
+                var accessList = db.Accessfiles.Where(w => w.SysCode == model.SysCode && w.UserId == model.SourceUserId).ToList();
+                foreach (var e in accessList)
+                {
+                    var access = new Accessfile()
+                    {
+                        RecId = Guid.NewGuid(),
+                        SysCode = model.SysCode,
+                        UserId = model.TargetUserId,
+                        ChildId = e.ChildId,
+                        AllowAdd = e.AllowAdd,
+                        AllowEdit = e.AllowEdit,
+                        AllowDelete = e.AllowDelete,
+                        AllowPost = e.AllowPost,
+                        AllowUnpost = e.AllowUnpost,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+                    db.Accessfiles.Add(access);
+                }
+                await db.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+
+                var query = from state in ModelState.Values
+                            from error in state.Errors
+                            select error.ErrorMessage;
+
+                var errorList = query.ToList();
+                if (errorList.Count() > 0)
+                {
+                    return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+                }
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+
+        }
+
 
         #endregion
 

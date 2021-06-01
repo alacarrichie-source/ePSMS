@@ -71,8 +71,9 @@
                 .CascadeFrom("sysCode")
             )
         </div>
-        <div class="col-md-1">
+        <div class="col-md-5">
             <input type="submit" value="Submit" id="cmdSubmit" />
+            @(Html.Kendo().Button().Name("btnCopy").Content("Copy Access").Enable(false))
         </div>
     </div>
     <br />
@@ -154,6 +155,9 @@
         </div>
     </div>
 </div>
+
+<div id="windowcontainer"></div>
+
 <style>
     .WithAccess {
         background: LightYellow;
@@ -223,6 +227,9 @@
             this.select(row);
         }
 
+
+        var count = grid.dataSource.total();
+        $("#btnCopy").data('kendoButton').enable(count != 0);
     }
 
     function error_handler(e, status) {
@@ -276,7 +283,7 @@
 
     function onInclude(e) {
         var grid = $("#grid").data("kendoGrid");
-        
+
         var tr = $(e.target).closest("tr"); // get the current table row (tr)
         var data = this.dataItem(tr);
         childId = data.ChildId;
@@ -287,9 +294,9 @@
                 'userId': '@ViewData["userId"]', 'childId': childId, 'sysCode': $("#sysCode").val()
             }
         }).done(function (result) {
-            $("#gridExtn").data("kendoGrid").dataSource.read();        
+            $("#gridExtn").data("kendoGrid").dataSource.read();
         }).always(function () {
-            grid.dataSource.read();            
+            grid.dataSource.read();
         });
     }
 
@@ -308,4 +315,70 @@
         }
     }
 
+    $("#btnCopy").click(function (e) {
+        e.preventDefault();
+        var userId = '@ViewData["userId"]'; 
+        var userName = '@ViewData["userName"]'; 
+        var sysCode = $("#sysCode").data("kendoComboBox").value(); 
+
+
+        var myUrl = '@Url.Action("_CopyAccess", "Users")';
+        var myTitle = "Menu - Copy Access";
+        var width = 1000;
+        var height = 550;
+        $("#windowcontainer").append("<div id='windowCopy'></div>");
+        var mywindow = $("#windowCopy")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width,
+            height: height
+        });
+        mywindow.refresh({
+            url: myUrl,
+            data: {
+                userId: userId,
+                userName: userName,
+                sysCode: sysCode
+            }
+        });
+        mywindow.center();
+        mywindow.open();
+    })
+
+
+    //function CopyAccess(e) {
+    //    e.preventDefault();
+    //    alert('x');
+    //    return;
+
+    //    var myTitle = "";
+    //    var width = 1000;
+    //    var heght = 300;
+    //    var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+    //    var userId = dataItem.UserId;
+    //    var nameFull = dataItem.NameFull;
+    //    var userName = dataItem.UserName;
+    //    var userName = dataItem.SysCode;
+
+    //    var rowitem = this.dataSource.get(dataItem.Id);
+    //    var row = this.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+    //    this.select(row);
+    //}
+
+
+    function onSelectTargetUser(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#TargetNameFull").val(dataItem.NameFull).trigger("change");
+        $("#TargetUserName").val(dataItem.UserName).trigger("change");
+    }
 </script>

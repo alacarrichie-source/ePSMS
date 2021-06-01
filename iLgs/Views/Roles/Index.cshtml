@@ -47,6 +47,7 @@
 
     )
 
+    <div id="windowcontainer"></div>
 
     <script id="UserInRoles" type="text/kendo-tmpl">
         @(Html.Kendo().Grid<iLgs.Models.AspNetUserRoles_View>()
@@ -62,7 +63,7 @@
                     //command.Edit();
                     command.Destroy();
                     command.Custom("Access").Click("ShowAccess");
-                    command.Custom("Reset PW").Click("ResetPw");
+                    command.Custom("Reset PW").Click("ResetPw");                   
                 }).Width(172);
             })
             .ToolBar(toolbar => toolbar.Create())
@@ -212,10 +213,6 @@
         var nameFull = dataItem.NameFull;
         var userName = dataItem.UserName;
 
-        //window.location = "_Access/?userId=" + userId + "&userEmail=" + userEmail + "&userName=" + userName;
-
-        //public ActionResult _Access(string userId, string nameFull, string userName, string sysCode, int? parentId)
-
         window.location = '@Url.Action("_Access", "Users")?userId=' + userId + "&nameFull=" + nameFull + "&userName=" + userName;
 
     }
@@ -229,11 +226,14 @@
         var userId = dataItem.UserId;
         var nameFull = dataItem.NameFull;
         var userName = dataItem.UserName;
-     
+
         window.location = '@Url.Action("ResetPassword", "Manage")?userId=' + userId + "&nameFull=" + nameFull + "&userName=" + userName;
 
     }
 
+
+    
+    
 
 </script>
 

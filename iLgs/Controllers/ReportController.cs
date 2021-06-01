@@ -171,7 +171,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "report_user_access");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "report_user_roles");
                 Access access = await accessTask;
                 if (access == null)
                 {

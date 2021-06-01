@@ -72,7 +72,7 @@ namespace iLgs.Models
 
 
     public class Menubase_VM
-    {        
+    {
         public string SysCode { get; set; }
         public Nullable<int> Sequence { get; set; }
         public Nullable<int> ParentId { get; set; }
@@ -90,7 +90,7 @@ namespace iLgs.Models
 
         // transient
         public bool IsAllowed { get; set; }
-        
+
     }
 
     [MetadataType(typeof(MenubaseAccessMetadata))]
@@ -100,7 +100,7 @@ namespace iLgs.Models
         //{
         //    this.SubMenu = new HashSet<MenubaseAccess>();
         //}
-        
+
     }
 
     public class MenubaseAccessMetadata
@@ -128,14 +128,34 @@ namespace iLgs.Models
         //public virtual MenubaseAccess MainMenu { get; set; }
     }
 
+    public class CopyAccessVM
+    {
+        [Required]
+        [Display(Name = "User Id")]
+        public string TargetUserId { get; set; }
+        [Display(Name = "User Name")]
+        public string TargetUserName { get; set; }
+
+        [Required]
+        [Display(Name = "User Id")]
+        public string SourceUserId { get; set; }
+
+        [Display(Name = "Full Name")]
+        public string TargetNameFull { get; set; }
+
+        [Display(Name = "User Name")]
+        public string SourceUserName { get; set; }
+        [Display(Name = "Full Name")]
+        public string SourceNameFull { get; set; }
+        [Display(Name = "System")]
+        public string SysCode { get; set; }
+    }
+
+
     [MetadataType(typeof(AccessfileMetadata))]
     public partial class Accessfile
     {
-        //public Accessfile()
-        //{
-        //    this.MenubaseAccesses = new HashSet<MenubaseAccess>();
-        //}
-        
+
     }
 
     public class AccessfileMetadata
@@ -168,7 +188,7 @@ namespace iLgs.Models
         //{
         //    this.AspNetUserRoles = new HashSet<AspNetUserRole>();
         //}
-        
+
     }
 
     public class AspNetRoleMetadata
@@ -222,7 +242,7 @@ namespace iLgs.Models
     public partial class AspNetUserRole
     {
         public string CompKeyId { get; set; }
-    
+
     }
 
     public class AspNetUserRoleMetadata
@@ -241,7 +261,7 @@ namespace iLgs.Models
     public partial class AspNetUserRoles_View
     {
         public string CompKeyId { get; set; }
-    
+
     }
 
     public class AspNetUserRoles_ViewMetadata
@@ -256,7 +276,7 @@ namespace iLgs.Models
     [MetadataType(typeof(AspNetUsers_ViewMetadata))]
     public partial class AspNetUsers_View
     {
-        
+
     }
 
     public class AspNetUsers_ViewMetadata
@@ -323,7 +343,7 @@ namespace iLgs.Models
     [MetadataType(typeof(UserCodeMetadata))]
     public partial class UserCode
     {
-        
+
     }
 
     public class UserCodeMetadata
@@ -347,7 +367,7 @@ namespace iLgs.Models
     [MetadataType(typeof(UserCodes_ViewMetadata))]
     public partial class UserCodes_View
     {
-        
+
     }
 
     public class UserCodes_ViewMetadata
@@ -369,7 +389,7 @@ namespace iLgs.Models
     [MetadataType(typeof(UserInfoMetadata))]
     public partial class UserInfo
     {
-        
+
     }
 
     public class UserInfoMetadata
@@ -398,7 +418,7 @@ namespace iLgs.Models
     [MetadataType(typeof(UserProfileMetadata))]
     public partial class UserProfile
     {
-        
+
     }
 
     public class UserProfileMetadata
@@ -443,8 +463,8 @@ namespace iLgs.Models
             [Display(Name = "System Code")]
             public string SysCode1 { get; set; }
             [Display(Name = "Description")]
-            public string SysDescription { get; set; }            
+            public string SysDescription { get; set; }
         }
-     
+
     }
 }
