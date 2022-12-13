@@ -20,15 +20,15 @@ namespace iLgs.Controllers
     [iLGSAuthorize("roles")]
     public class RolesController : Controller
     {
-        private iLGSEntities db = new iLGSEntities();
+        private AppManEntities db = new AppManEntities();
         HttpClient client;
 
         //The URL of the WEB API Service
         //string url = "http://localhost:60143/api/EmployeeInfoAPI";
 
-        //string iLgsApiUrl = ConfigurationManager.AppSettings["ILGS_API_URL"];
+        //string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
 
-        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ILGS_API_URL"].ToString()).DataSource;
+        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
 
         //The HttpClient Class, this will be used for performing 
         //HTTP Operations, GET, POST, PUT, DELETE

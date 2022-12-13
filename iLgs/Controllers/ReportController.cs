@@ -15,7 +15,7 @@ namespace iLgs.Controllers
 {
     public class ReportController : Controller
     {
-        private iLGSEntities db = new iLGSEntities();
+        private AppManEntities db = new AppManEntities();
 
         public async Task<ActionResult> UserAccess()
         {

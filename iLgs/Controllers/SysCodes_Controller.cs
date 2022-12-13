@@ -14,7 +14,7 @@ namespace iLgs.Controllers
 {
     public class SysCodes_Controller : ApiController
     {
-        private iLGSEntities db = new iLGSEntities();
+        private AppManEntities db = new AppManEntities();
 
         // GET: api/syscodes_/82814eba-0738-4edd-a11f-66c8112e20de
         [Route("api/syscodes_/{userId}")]

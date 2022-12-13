@@ -14,6 +14,7 @@ namespace iLgs.Models
     
     public partial class MenubaseAccess
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public MenubaseAccess()
         {
             this.SubMenu = new HashSet<MenubaseAccess>();
@@ -33,6 +34,7 @@ namespace iLgs.Models
         public string ParentIdAccess { get; set; }
         public string UserId { get; set; }
     
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<MenubaseAccess> SubMenu { get; set; }
         public virtual MenubaseAccess MainMenu { get; set; }
         public virtual Accessfile Accessfile { get; set; }

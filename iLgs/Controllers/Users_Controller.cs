@@ -14,7 +14,7 @@ namespace iLgs.Controllers
 {
     public class Users_Controller : ApiController
     {
-        private iLGSEntities db = new iLGSEntities();
+        private AppManEntities db = new AppManEntities();
 
         // GET: api/Users_
         public IQueryable<AspNetUser> GetAspNetUsers()

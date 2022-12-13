@@ -23,7 +23,7 @@ namespace iLgs.Controllers
         // GET: /Account/UserInfo
         public ActionResult ChangeUserInfo()
         {
-            iLGSEntities db = new iLGSEntities();
+            AppManEntities db = new AppManEntities();
             string userId = User.Identity.GetUserId();
             //UserInfoViewModel entity =  db.UserInfos.Where(p => p.UserId == userId).FirstOrDefault();            
             UserInfoViewModel entity = db.Database.SqlQuery<UserInfoViewModel>("Select * From UserInfos Where UserId = {0}", userId).SingleOrDefault();
@@ -49,7 +49,7 @@ namespace iLgs.Controllers
             {
                 if (model != null && ModelState.IsValid)
                 {
-                    iLGSEntities db = new iLGSEntities();
+                    AppManEntities db = new AppManEntities();
                     DateTime date = System.DateTime.Now;
 
                     string userId = User.Identity.GetUserId();

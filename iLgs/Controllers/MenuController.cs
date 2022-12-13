@@ -23,14 +23,14 @@ namespace iLgs.Controllers
     public class MenuController : BaseController
     {
 
-        private iLGSEntities db = new iLGSEntities();
+        private AppManEntities db = new AppManEntities();
 
 
         HttpClient client;
 
         //The URL of the WEB API Service
-        //string iLgsApiUrl = ConfigurationManager.AppSettings["ILGS_API_URL"];
-        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ILGS_API_URL"].ToString()).DataSource;
+        //string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
+        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
 
         //string iLgsApiUrl = "http://localhost:3684/";
         //The HttpClient Class, this will be used for performing 

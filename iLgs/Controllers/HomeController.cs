@@ -26,8 +26,8 @@ namespace iLgs.Controllers
         HttpClient client;
 
         //The URL of the WEB API Service
-        //string iLgsApiUrl = ConfigurationManager.AppSettings["ILGS_API_URL"];
-        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ILGS_API_URL"].ToString()).DataSource;
+        //string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
+        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
 
         //The HttpClient Class, this will be used for performing 
         //HTTP Operations, GET, POST, PUT, DELETE

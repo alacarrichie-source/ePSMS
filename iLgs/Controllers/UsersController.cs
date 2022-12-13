@@ -24,16 +24,16 @@ namespace iLgs.Controllers
         private static string sysCode = "ILGS";
         private static string sysAdmin = "ilgs_admin";
 
-        private iLGSEntities db = new iLGSEntities();
+        private AppManEntities db = new AppManEntities();
 
         HttpClient client;
 
         //The URL of the WEB API Service
         //string url = "http://localhost:60143/api/EmployeeInfoAPI";
 
-        //string iLgsApiUrl = ConfigurationManager.AppSettings["ILGS_API_URL"];
+        //string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
 
-        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ILGS_API_URL"].ToString()).DataSource;
+        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
 
         //The HttpClient Class, this will be used for performing 
         //HTTP Operations, GET, POST, PUT, DELETE
@@ -674,10 +674,38 @@ namespace iLgs.Controllers
             try
             {
                 string user = ControllerContext.HttpContext.User.Identity.Name;
-                var date = System.DateTime.Now;
+                var date = System.DateTime.Now;                
 
                 db.Accessfiles.RemoveRange(db.Accessfiles.Where(w => w.SysCode == model.SysCode && w.UserId == model.TargetUserId));
                 await db.SaveChangesAsync();
+
+                db.MenubaseAccesses.RemoveRange(db.MenubaseAccesses.Where(w => w.SysCode == model.SysCode && w.UserId == model.TargetUserId));
+                await db.SaveChangesAsync();
+
+                var menubaseList = db.MenubaseAccesses.Where(w => w.SysCode == model.SysCode && w.UserId == model.SourceUserId).ToList();
+                foreach(var e in menubaseList)
+                {
+                    var childAccess = e.ChildIdAccess.Split(' ');
+                    var parentAccess = e.ParentIdAccess.Split(' ');
+                    var menu = new MenubaseAccess()
+                    {
+                        AccessFileId = e.AccessFileId,
+                        SysCode = e.SysCode,
+                        Sequence = e.Sequence,
+                        ParentId = e.ParentId,
+                        ChildId = e.ChildId,
+                        Description = e.Description,
+                        Action = e.Action,
+                        Controller = e.Controller,
+                        ObjectParam = e.ObjectParam,
+                        MenuId = e.MenuId,
+                        ChildIdAccess = model.TargetUserId + " " + childAccess[1],
+                        ParentIdAccess = model.TargetUserId + " " + parentAccess[1],
+                        UserId = model.TargetUserId
+                    };
+                    db.MenubaseAccesses.Add(menu);
+                }
+
                 var accessList = db.Accessfiles.Where(w => w.SysCode == model.SysCode && w.UserId == model.SourceUserId).ToList();
                 foreach (var e in accessList)
                 {

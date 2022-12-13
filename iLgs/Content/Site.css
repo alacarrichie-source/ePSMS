@@ -30,27 +30,21 @@ textarea {
 
 footer {
     
-    /*position: absolute;
-    bottom: 0px;*/
-    position: fixed;
+    position: relative;
   
     bottom: 0;
     text-align: left;
-    /*padding: 10px 0px;*/
-    /*background: #9db517;*/
     
-    /*background-color: rgba(173, 57, 16, 1);*/
-    background-color: rgba(51, 51, 51, 1);
-    /*background-color: black;*/
-    
-    /*box-shadow: 0 2px 6px #333;*/
+    /*background-color: rgba(51, 51, 51, 1);*/
     float: left;
     width: 100%;
     left: 0;
     right: 0;
-    /*color: rgba(0, 122, 203, 1);*/
-    color:silver;
+    /*color:silver;*/
 }
+
+
+/*
 
 .panel-custom
 {
@@ -80,20 +74,6 @@ footer {
     overflow: hidden;
 }
 
-/*.k-edit-form-container
-{
-    width: 600px;
-}
-
-.k-popup-edit-form .k-edit-label
-{
-    width: 30%;
-}
-
-.k-popup-edit-form .k-edit-field
-{
-    width: 60%;
-}*/
 
 .k-textbox,
 .k-popup-edit-form .k-edit-field > .k-textbox,
@@ -238,5 +218,5 @@ form.x-form-custom
 {
     padding-top: 10px;
     color: #F0F0F0;
-}
+}*/
 

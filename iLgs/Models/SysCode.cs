@@ -14,6 +14,7 @@ namespace iLgs.Models
     
     public partial class SysCode
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public SysCode()
         {
             this.Menubases = new HashSet<Menubase>();
@@ -26,6 +27,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Menubase> Menubases { get; set; }
     }
 }

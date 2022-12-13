@@ -1,14 +1,200 @@
 ﻿@using iLgs.Models
 @model LoginViewModel
 @{
-    ViewBag.Title = "iLGS - Log in";
+    ViewBag.Title = "AppMan - Log in";
 }
-<div style="margin-left:-50px;margin-right:-50px;">
+
+@using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+    {
+    <div class="signin">
+        <div class="back-img">
+            <div class="sign-in-text">
+                <h2 class="active">Login</h2>
+                @*<h2 class="nonactive">Sign Up</h2>*@
+            </div><!--/.sign-in-text-->
+            <div class="layer">
+            </div><!--/.layer-->
+            <p class="point">&#9650;</p>
+        </div><!--/.back-img-->
+        <div class="form-section">
+
+            <form action="#">
+                @*<!--Email-->
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="email" id="sample3">
+                    <label class="mdl-textfield__label" for="sample3">User Name</label>
+                    <span class="mdl-textfield__error">Enter a correct Email</span>
+                </div>
+                <br />
+                <br />
+                <!--Password-->
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input pattern=".{8,}" class="mdl-textfield__input" type="password" id="sample3">
+                    <label class="mdl-textfield__label" for="sample3">Password</label>
+                    <span class="mdl-textfield__error">Minimum 8 characters</span>
+                </div>
+                <br />
+                <p class="forgot-text">Forgot Password ?</p>
+                <!--CheckBox-->
+                <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkbox-1">
+                    <input type="checkbox" id="checkbox-1" class="mdl-checkbox__input" checked>
+                    <span class="keep-text mdl-checkbox__label">Keep me Logged In</span>
+                </label>*@
+
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    @Html.AntiForgeryToken()
+                    @Html.Raw(HttpUtility.HtmlDecode(Html.ValidationSummary().ToHtmlString()))
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                   @Html.LabelFor(m => m.UserName, new { @class = "control-label col-lg-4" })
+                <div class="col-lg-8">
+                    @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
+                </div>
+                </div>
+                <br />
+                <br />
+                <!--Password-->
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    @Html.LabelFor(m => m.Password, new { @class = "control-label col-lg-4" })
+                    <div class="col-lg-8">
+                        @Html.PasswordFor(m => m.Password, new { @class = "form-control input-md" })
+                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <br />
+                <p class="forgot-text">@Html.ActionLink("Forgot your password?", "ForgotPassword")</p>                
+                <!--CheckBox-->
+                <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkbox-1">
+                    @Html.CheckBoxFor(m => m.RememberMe)
+                    <span class="keep-text mdl-checkbox__label">Keep me Logged In</span>
+                </label>
+
+                @*<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    @Html.AntiForgeryToken()
+                    @Html.Raw(HttpUtility.HtmlDecode(Html.ValidationSummary().ToHtmlString()))
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    @Html.LabelFor(m => m.UserName, new { @class = "control-label col-lg-4" })
+                    <div class="col-lg-8">
+                        @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    @Html.LabelFor(m => m.Password, new { @class = "control-label col-lg-4" })
+                    <div class="col-lg-8">
+                        @Html.PasswordFor(m => m.Password, new { @class = "form-control input-md" })
+                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="row"></div>
+                <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkbox-1">
+                    @Html.CheckBoxFor(m => m.RememberMe)
+                    <span class="keep-text mdl-checkbox__label">Keep me Logged In</span>
+                </label>          
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <div class="col-lg-10">
+                        @Html.ActionLink("Forgot your password?", "ForgotPassword")
+                    </div>
+                </div>*@      
+            </form>
+        </div><!--/.form-section-->
+
+        <button class="sign-in-btn mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--raised mdl-button--colored" type="submit">
+            Log In
+        </button><!--/button-->
+    </div><!--/.signin-->
+}
+
+<style>
+    body{
+      padding: 50px;
+      font-family: 'Roboto', sans-serif;
+      background-color: #F5F5F5;
+    }
+    /*Sign In Form*/
+    .signin{
+      position: relative;
+      height: 700px;
+      width: 500px;
+      margin: auto;
+      box-shadow: 0px 30px 125px -5px #000;}
+    /*Background Img*/
+    .back-img{
+      position: relative;
+      width: 100%;
+      height: 250px;      
+      background: url('@Url.Content("~/Assets/login3.jpg")') no-repeat center center;
+    background-size: cover;
+    }
+    .layer {
+        background-color: rgba(33,150,243,0.5);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    .active{
+      padding-left: 25px;
+      color: #fff;
+    }
+    .nonactive {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .sign-in-text{
+      top: 175px;
+      position: absolute;
+      z-index: 1;
+    }
+    h2 {
+      padding-left: 15px;
+      font-size: 25px;
+      text-transform: uppercase;
+      display: inline-block;
+      font-weight: 300;
+    }
+    .point{
+      position: absolute;
+      z-index: 1;
+      color: #fff;
+      top: 235px;
+      padding-left: 50px;
+      font-size: 20px;
+    }
+
+    /*form-section*/
+    .form-section{
+      padding: 70px 90px 70px 90px;
+    }
+    .keep-text{
+      font-size: 15px;
+      color: #BDBDBD;
+    }
+    .forgot-text{
+      font-size: 12px;
+      color: #BDBDBD;
+      text-align: right;
+    }
+    /*sign-in-btn*/
+    .sign-in-btn{
+      width: 100%;
+      height: 75px;
+      position:absolute;
+      bottom:0;
+      border-radius: 0px;
+      background-color: rgba(63, 78, 191, 1);
+    }
+
+</style>
+
+
+@*<div style="margin-left:-50px;margin-right:-50px;">
     <div class="jumbotron">
         <div class="container push-spaces">
-            <h1 class="text-primary text-right" style="color:whitesmoke;">iLGS - Las Piñas City</h1>
-            <p class="lead text-info text-right">"Integrated Local Government System"</p>
-            @*<p>@Html.ActionLink(HttpUtility.HtmlDecode("Learn more &raquo;"), "RptOnlineLearn", "Billing", "", new { @class = "btn btn-default btn-lg" })</p>*@
+            <h1 class="text-primary text-right" style="color:whitesmoke;">AppMan</h1>
+            <p class="lead text-info text-right">"Application Manager"</p>           
         </div>
     </div>
 </div>
@@ -50,14 +236,10 @@
 
             <div class="form-group">
                 <div class="col-lg-10 col-lg-offset-4">
-                    @*<button class="btn btn-default" type="reset">Cancel</button>*@
                     <button class="btn btn-primary" type="submit">Login</button>
                 </div>
             </div>
             <div class="form-group">
-                @*<div class="col-lg-10">
-                    @Html.ActionLink("Register as a new user", "Register")
-                </div>*@
                 <div class="col-lg-10">
                     @Html.ActionLink("Forgot your password?", "ForgotPassword")
                 </div>
@@ -94,7 +276,7 @@
     }
 
     .jumbotron {
-        background: url('@Url.Content("~/Assets/city-hall.jpg")') no-repeat center center;
+        //background: url('@Url.Content("~/Assets/city-hall.jpg")') no-repeat center center;
         background-size: 100% 100%;
         opacity: .7;
 
@@ -109,4 +291,4 @@
         */
     }
 
-</style>
+</style>*@

@@ -9,7 +9,7 @@ namespace iLgs.Controllers
 {
     public class GettersController : Controller
     {
-        private iLGSEntities db = new iLGSEntities();
+        private AppManEntities db = new AppManEntities();
         public ActionResult GetSysCodeList(string text)
         {
 

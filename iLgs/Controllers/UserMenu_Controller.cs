@@ -14,7 +14,7 @@ namespace iLgs.Controllers
 {
     public class UserMenu_Controller : ApiController
     {
-        private iLGSEntities db = new iLGSEntities();
+        private AppManEntities db = new AppManEntities();
 
 
         // GET: api/UserMenu_

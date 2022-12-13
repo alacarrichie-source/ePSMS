@@ -17,7 +17,7 @@ namespace iLgs.Controllers
 {
     public class Menubases_Controller : ApiController
     {
-        private iLGSEntities db = new iLGSEntities();
+        private AppManEntities db = new AppManEntities();
 
         // GET: api/Menubases
         public IQueryable<Menubase> GetMenubases()

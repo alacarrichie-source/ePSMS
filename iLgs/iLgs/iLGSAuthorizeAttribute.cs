@@ -18,7 +18,7 @@ namespace iLgs.Models
 {
     public class iLGSAuthorizeAttribute : AuthorizeAttribute
     {
-        iLGSEntities context = new iLGSEntities(); 
+        AppManEntities context = new AppManEntities(); 
         private readonly string[] allowedController;
         string sysCode = "ILGS";
         string[] roles = { "ADMIN", "ILGS_ADMIN" };
@@ -26,9 +26,9 @@ namespace iLgs.Models
         HttpClient client;
 
         //The URL of the WEB API Service
-        //string iLgsApiUrl = ConfigurationManager.AppSettings["ILGS_API_URL"];
+        //string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
 
-        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ILGS_API_URL"].ToString()).DataSource;
+        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
 
         //The HttpClient Class, this will be used for performing 
         //HTTP Operations, GET, POST, PUT, DELETE

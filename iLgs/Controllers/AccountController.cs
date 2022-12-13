@@ -225,7 +225,7 @@ namespace iLgs.Controllers
                     //var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
                     //await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
 
-                    using (iLGSEntities ilgs = new iLGSEntities())
+                    using (AppManEntities ilgs = new AppManEntities())
                     {
                         ilgs.Database.ExecuteSqlCommand("Update AspNetUsers Set EmailConfirmed = 1 Where Email = {0}", model.Email);
                     }

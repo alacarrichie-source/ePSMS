@@ -10,7 +10,7 @@ namespace iLgs.Controllers
 {
     public class Roles_Controller : ApiController
     {
-        private iLGSEntities db = new iLGSEntities();
+        private AppManEntities db = new AppManEntities();
 
         // GET: api/Roles_/5/RPTONLINE/admin
         [Route("api/roles_/{id}/{role}")]
