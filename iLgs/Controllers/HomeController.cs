@@ -20,8 +20,8 @@ namespace iLgs.Controllers
     {
 
         //private iLGSEntities db = new iLGSEntities();
-        private static string sysCode = "ILGS";
-        private static string sysAdmin = "ilgs_admin";
+        private static string sysCode = "APPMAN";
+        private static string sysAdmin = "APPMAN_ADMIN";
 
         HttpClient client;
 

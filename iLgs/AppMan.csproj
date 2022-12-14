@@ -286,6 +286,7 @@
     <Compile Include="Models\MenubaseAccess.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\MenuViewModels.cs" />
     <Compile Include="Models\ReportViewModels.cs" />
     <Compile Include="Models\SysCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -317,8 +318,8 @@
     </Compile>
     <Compile Include="Services\GmailEmailService.cs" />
     <Compile Include="Startup.cs" />
-    <Compile Include="iLgs\iLGSAuthorizeAttribute.cs" />
-    <Compile Include="iLgs\JsonMvcNetSerializer.cs" />
+    <Compile Include="Utilities\iLGSAuthorizeAttribute.cs" />
+    <Compile Include="Utilities\JsonMvcNetSerializer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\city-hall.jpg" />

@@ -71,7 +71,7 @@ namespace iLgs.Controllers
         }
 
 
-        //[iLGSAuthorize("Menu")]
+        //[AppAuthorize("Menu")]
         // PUT: api/UserMenu_/5
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> PutMenubaseAccess(string id, MenubaseAccess menubaseAccess)
@@ -107,7 +107,7 @@ namespace iLgs.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        //[iLGSAuthorize("Menu")]
+        //[AppAuthorize("Menu")]
         // POST: api/UserMenu_
         [ResponseType(typeof(MenubaseAccess))]
         public async Task<IHttpActionResult> PostMenubaseAccess(MenubaseAccess menubaseAccess)
@@ -138,7 +138,7 @@ namespace iLgs.Controllers
             return CreatedAtRoute("DefaultApi", new { id = menubaseAccess.ChildIdAccess }, menubaseAccess);
         }
 
-        //[iLGSAuthorize("Menu")]
+        //[AppAuthorize("Menu")]
         // DELETE: api/UserMenu_/5
         [ResponseType(typeof(MenubaseAccess))]
         public async Task<IHttpActionResult> DeleteMenubaseAccess(string id)

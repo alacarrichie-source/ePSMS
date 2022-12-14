@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using System.Web;
+using iLgs.Utilities;
 
 namespace iLgs.Controllers
 {
@@ -209,7 +210,7 @@ namespace iLgs.Controllers
         public IQueryable<Menubase> GetMenubasesLevel(string sysCode)
         {
             return db.Menubases.Where(p => p.SysCode == sysCode).OrderBy(o => o.ParentId);
-        }
+        }        
 
 
 
@@ -287,7 +288,7 @@ namespace iLgs.Controllers
         }
 
         // PUT: api/Menubases/5
-        [iLGSAuthorize("Menu")]
+        [AppAuthorize("Menu")]
         [ResponseType(typeof(void))]
         [Route("api/Menubases_/update/{id}")]
         public async Task<IHttpActionResult> PutMenubase(int id, Menubase menubase)
@@ -328,7 +329,7 @@ namespace iLgs.Controllers
         }
 
         // POST: api/Menubases
-        [iLGSAuthorize("Menu")]
+        [AppAuthorize("Menu")]
         [Route("api/Menubases_/create")]
         [ResponseType(typeof(Menubase))]
         public async Task<IHttpActionResult> PostMenubase(Menubase menubase)
@@ -348,7 +349,7 @@ namespace iLgs.Controllers
 
 
         // DELETE: api/Menubases/5
-        [iLGSAuthorize("Menu")]
+        [AppAuthorize("Menu")]
         [ResponseType(typeof(Menubase))]
         [Route("api/Menubases_/delete/{id}")]
         public async Task<IHttpActionResult> DeleteMenubase(int id)

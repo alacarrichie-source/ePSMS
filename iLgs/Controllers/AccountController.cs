@@ -140,6 +140,9 @@ namespace iLgs.Controllers
                     //    //Html.ActionLink("HERE", "SendEmailConfirmationTokenAsync", "Account", new {userID = (await UserManager.FindByNameAsync(model.Email)).Id), subject = "Account confirmation"})
                     //    return View(model);
                     //}
+
+                    Session["MainMenu"] = await new MenuController().GetMainMenu(user.Id);                                        
+
                     return RedirectToLocal(returnUrl);
                 case SignInStatus.LockedOut:
                     return View("Lockout");

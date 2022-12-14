@@ -2,98 +2,97 @@
     ViewBag.Title = "Index";
 }
 
-<div class="well" style="margin-left:-150px;margin-right:-150px;">
-    <h2 class="text-info">Roles</h2>
+<h2 class="text-info">Roles</h2>
 
-    <br />
+<br />
 
-    @(Html.Kendo().Grid<iLgs.Models.AspNetRole>()
-            .Name("grid")
-            .Columns(col =>
-            {
-                col.Bound(c => c.Id).Width(50);
-                col.Bound(c => c.Name).Width(150);
-                col.Command(command =>
-                {
-                    command.Edit();
-                    command.Destroy();
-                }).Width(172);
-            })
-            .ToolBar(toolbar => toolbar.Create())
-            //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PayorTemplate").Window(w => w.Width(800).Height(500)))
-            .Editable(editable => editable.Mode(GridEditMode.InLine))
-            .Pageable()
-            .Sortable()
-            .Scrollable(s => s.Height(520))
-            .ClientDetailTemplateId("UserInRoles")
-            .Filterable()
-            //.HtmlAttributes(new { style = "height:400px;" })
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .PageSize(20)
-                .Events(events => events.Error("error_handler"))
-                .Model(model =>
-                {
-                    model.Id(p => p.Id);
-                    model.Field(p => p.Id).Editable(true);
-                })
-                .Read(read => read.Action("RolesRead", "Roles"))
-                .Create(create => create.Action("RolesCreate", "Roles"))
-                .Update(update => update.Action("RolesUpdate", "Roles"))
-                .Destroy(destroy => destroy.Action("RolesDestroy", "Roles"))
-            )
-            .Selectable(s => s.Mode(GridSelectionMode.Single))
-            .Events(events => events.DataBound("onDataBound").Edit("onEditGrid"))
-
+@(Html.Kendo().Grid<iLgs.Models.AspNetRole>()
+    .Name("grid")
+    .Columns(col =>
+    {
+        col.Bound(c => c.Id).Width(50);
+        col.Bound(c => c.Name).Width(150);
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+        }).Width(172);
+    })
+    .ToolBar(toolbar => toolbar.Create())
+//.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PayorTemplate").Window(w => w.Width(800).Height(500)))
+    .Editable(editable => editable.Mode(GridEditMode.InLine))
+    .Pageable()
+    .Sortable()
+    .Scrollable(s => s.Height(520))
+    .ClientDetailTemplateId("UserInRoles")
+    .Filterable()
+//.HtmlAttributes(new { style = "height:400px;" })
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Events(events => events.Error("error_handler"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).Editable(true);
+        })
+        .Read(read => read.Action("RolesRead", "Roles"))
+        .Create(create => create.Action("RolesCreate", "Roles"))
+        .Update(update => update.Action("RolesUpdate", "Roles"))
+        .Destroy(destroy => destroy.Action("RolesDestroy", "Roles"))
     )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Events(events => events.DataBound("onDataBound").Edit("onEditGrid"))
 
-    <div id="windowcontainer"></div>
+)
 
-    <script id="UserInRoles" type="text/kendo-tmpl">
-        @(Html.Kendo().Grid<iLgs.Models.AspNetUserRoles_View>()
-            .Name("grid_#=Id#")
-            .HtmlAttributes(new { style = "height:300px;" })
-            .Columns(columns =>
+<div id="windowcontainer"></div>
+
+<script id="UserInRoles" type="text/kendo-tmpl">
+    @(Html.Kendo().Grid<iLgs.Models.AspNetUserRoles_View>()
+        .Name("grid_#=Id#")
+        .HtmlAttributes(new { style = "height:300px;" })
+        .Columns(columns =>
+        {
+            //columns.Bound(o => o.UserId).Width(100);
+            columns.Bound(o => o.UserName).Width(100);
+            columns.Bound(o => o.NameFull).Width(150);
+            columns.Command(command =>
             {
-                //columns.Bound(o => o.UserId).Width(100);
-                columns.Bound(o => o.UserName).Width(100);
-                columns.Bound(o => o.NameFull).Width(150);
-                columns.Command(command =>
-                {
-                    //command.Edit();
-                    command.Destroy();
-                    command.Custom("Access").Click("ShowAccess");
-                    command.Custom("Reset PW").Click("ResetPw");                   
-                }).Width(172);
+                //command.Edit();
+                command.Destroy();
+                command.Custom("Access").Click("ShowAccess");
+                command.Custom("Reset PW").Click("ResetPw");
+            }).Width(172);
+        })
+        .ToolBar(toolbar => toolbar.Create())
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserInRoleTemplate").Window(w => w.Width(500).Title("User in Role")))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(5)
+            .Events(events => events.Error("error_handler"))
+            .Model(model =>
+            {
+                //model.Id(p => p.UserId);
+                //model.Id(p => p.RoleId);
+                model.Id(p => p.CompKeyId);
+                model.Field(p => p.CompKeyId).DefaultValue("").Editable(true);
             })
-            .ToolBar(toolbar => toolbar.Create())
-            .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserInRoleTemplate").Window(w => w.Width(500).Title("User in Role")))
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .PageSize(5)
-                .Events(events => events.Error("error_handler"))
-                .Model(model =>
-                {
-                    //model.Id(p => p.UserId);
-                    //model.Id(p => p.RoleId);
-                    model.Id(p => p.CompKeyId);
-                    model.Field(p => p.CompKeyId).DefaultValue("").Editable(true);
-                })
-                .Read(read => read.Action("UserInRoleRead", "Roles", new { roleId = "#=Id#" }))
-                //.Create(create => create.Action("UserInRoleCreate", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
-                //.Update(update => update.Action("UserInRoleUpdate", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
-                //.Destroy(destroy => destroy.Action("UserInRoleDestroy", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
-                .Create(create => create.Action("UserInRoleCreate", "Roles"))
-                //.Update(update => update.Action("UserInRoleUpdate", "Roles", new { roleId = "#=Id#" }))
-                .Destroy(destroy => destroy.Action("UserInRoleDestroy", "Roles"))
-            )
-            .Scrollable()
-            .Pageable()
-            .Sortable()
-            .Filterable()
-            .Selectable(s => s.Mode(GridSelectionMode.Single))
-            .Events(events => events                    
-                    .Edit(@<text>
+            .Read(read => read.Action("UserInRoleRead", "Roles", new { roleId = "#=Id#" }))
+            //.Create(create => create.Action("UserInRoleCreate", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
+            //.Update(update => update.Action("UserInRoleUpdate", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
+            //.Destroy(destroy => destroy.Action("UserInRoleDestroy", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
+            .Create(create => create.Action("UserInRoleCreate", "Roles"))
+            //.Update(update => update.Action("UserInRoleUpdate", "Roles", new { roleId = "#=Id#" }))
+            .Destroy(destroy => destroy.Action("UserInRoleDestroy", "Roles"))
+        )
+        .Scrollable()
+        .Pageable()
+        .Sortable()
+        .Filterable()
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Events(events => events
+                .Edit(@<text>
                 function(e) {
                 // the master row for this detail
                 var parentRow = this.wrapper.closest("tr").prev();
@@ -103,9 +102,9 @@
                 }
                 </text>)
             ).ToClientTemplate())
-    </script>
+</script>
 
-</div>
+
 
 
 
@@ -232,8 +231,8 @@
     }
 
 
-    
-    
+
+
 
 </script>
 

@@ -37,7 +37,7 @@ namespace iLgs.Controllers
                 {
                     foreach (var role in user.AspNetUserRoles)
                     {
-                        if (role.RoleId.ToUpper() == "ADMIN" || role.RoleId.ToUpper() == "ILGS_ADMIN")
+                        if (role.RoleId.ToUpper() == "ADMIN" || role.RoleId.ToUpper() == "APPMAN_ADMIN")
                         {
                             retVal = true;
                         }

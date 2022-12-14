@@ -40,7 +40,12 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Home", "Index", "Home")</li>                                        
+                    @*<li>@Html.ActionLink("Home", "Index", "Home")</li>*@                                        
+                    <li><a href='@Url.Action("Index", "Home")'>Home&nbsp;<span class="glyphicon glyphicon-home"></span></a></li>
+                    @if (Request.IsAuthenticated)
+                    {
+                        @GetMenus(Session["MainMenu"] as IQueryable<iLgs.Models.Menubase>);
+                    }
                 </ul>
                 @Html.Partial("_LoginPartial")
             </div>
@@ -60,12 +65,63 @@
 </body>
 </html>
 
+@helper GetMenus(IQueryable<iLgs.Models.Menubase> menu)
+{
+    if (menu != null)
+    {
+        foreach (var item in menu)
+        {
+            if (item.ParentId == 0) //Level one items will have 0 parent id
+            {
 
-@*<style>
-    body {
-        background-color: rgba(0, 0, 0, 1);
-        padding-top: 60px;
+                var children = menu.Where(x => x.ParentId == item.ChildId && x.Description != "-").OrderBy(o => o.Description).ToList();
+                if (children != null) //Level one item has children so append them
+                {
+                    <li class="nav dropdown">
+                        <a class="nav-link dropdown-toggle" href="#"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            @item.Description<span class="caret"></span>
+                        </a>
+                        <ul id="nav" class="dropdown-menu">
+                            @foreach (var itm in children)
+                            {
+                                var subMenu = menu.Where(x => x.ParentId == itm.ChildId && x.Description != "-").OrderBy(o => o.Description).ToList();
+                                <li>
+                                    @if (subMenu.Any())
+                                    {
+                                        <a href="@Url.Action(@itm.Action, @itm.Controller)">@itm.Description<span class="caret"></span></a>
+                                    }
+                                    else
+                                    {
+                                        @Html.ActionLink(@itm.Description, @itm.Action, @itm.Controller)
+                                    }
+
+                                    @if (string.IsNullOrEmpty(itm.Controller))
+                                    {
+                                        <ul class="submenu">
+                                            @foreach (var sm in subMenu)
+                                            {
+                                                <li>@Html.ActionLink(@sm.Description, @sm.Action, @sm.Controller)</li>
+
+                                            }
+                                        </ul>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                }
+            }
+        }
     }
+}
+
+
+<style>
+    /*body {
+        background-color: #628B61;
+        padding-top: 60px;
+    }*/
 
     #menu h2 {
         font-size: 1em;
@@ -82,23 +138,32 @@
         width: 380px;
     }
 
-        #template ol {
-            float: left;
-            margin: 0;
-            padding: 10px 10px 0 10px;
-        }
+    #template ol {
+        float: left;
+        margin: 0;
+        padding: 10px 10px 0 10px;
+    }
 
-        #template:after {
-            content: ".";
-            display: block;
-            height: 0;
-            clear: both;
-            visibility: hidden;
-        }
+    #template:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
 
-        #template .k-button {
-            float: left;
-            clear: left;
-            margin: 5px 0 5px 12px;
-        }
-</style>*@
+    #template .k-button {
+        float: left;
+        clear: left;
+        margin: 5px 0 5px 12px;
+    }
+
+    #nav ul {
+        display: none;
+    }
+
+    #nav li:hover > ul {
+        display: block;
+    }
+
+</style>

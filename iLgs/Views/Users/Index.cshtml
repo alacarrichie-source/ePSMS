@@ -3,61 +3,88 @@
 }
 
 
-<div class="well" style="margin-left:-150px;margin-right:-150px;">
-    <h2 class="text-info">Users</h2>
+<h2 class="text-info">Users</h2>
 
-    <br />
-    @(Html.Kendo().Button()
-    .Name("registerButton")
-    .HtmlAttributes(new { type = "button", @class = "k-primary" })
-            //.Enable(false)
-    .Content("Register New User"))
-    @(Html.Kendo().Grid<iLgs.Models.AspNetUsers_View>()
-            .Name("grid")
-            .Columns(col =>
-            {
-                col.Bound(c => c.UserName).Width(100);
-                col.Bound(c => c.Email).Width(100);
-                col.Bound(c => c.NameFull).Width(150);
-                col.Bound(c => c.Department).Width(70);
-                col.Command(command =>
-                {
-                    command.Edit();
-                    command.Destroy();
-                    //command.Custom("Access").Click("ShowAccess");
-                }).Width(172);
-            })
-            //.ToolBar(toolbar => toolbar.Create())
-            .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserProfileTemplate").Window(w => w.Width(800).Title("Profile")))
-            //.Editable(editable => editable.Mode(GridEditMode.InLine))            
-            .Pageable(p => p.Refresh(true))
-            .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
-            .Scrollable(s => s.Height(520))
-            .Filterable()
-            .ClientDetailTemplateId("UserProfile")
-            //.HtmlAttributes(new { style = "height:400px;" })
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .PageSize(20)
-                .Events(events => events.Error("error_handler"))
-                .Model(model =>
-                {
-                    model.Id(p => p.Id);
-                    model.Field(p => p.Id).Editable(false);
-                })
-                .Read(read => read.Action("UserProfilesRead", "Users"))
-                //.Create(create => create.Action("UserProfilesCreate", "Users"))
-                .Update(update => update.Action("UserProfilesUpdate", "Users"))
-                .Destroy(destroy => destroy.Action("UserProfilesDestroy", "Users"))
-            )
-            .Selectable(s => s.Mode(GridSelectionMode.Single))
-            .Events(e => e.Edit("onEditGridUser").Change("onChangeGridUser").DataBound("onDataBoundGridUser"))
+<br />
 
+@(Html.Kendo().Grid<iLgs.Models.AspNetUsers_View>()
+    .Name("grid")
+    .Columns(col =>
+    {
+        col.Bound(c => c.UserName).Width(70);
+        col.Bound(c => c.Email).Width(100);
+        col.Bound(c => c.NameFull).Width(150);
+        col.Bound(c => c.Department).Width(70);
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+            //command.Custom("Access").Click("ShowAccess");
+        }).Width(70);
+    })
+    .ToolBar(t =>
+    {
+        t.Template(@<text>
+            @(Html.Kendo().Button().Name("registerButton")
+                .HtmlAttributes(new { type = "button", @class = "k-primary" })                        
+                .Content("Register New User"))     
+            <span class="k-searchbox k-input k-input-md k-rounded-md k-input-solid k-grid-search">
+                <span class="k-input-icon k-icon k-i-search"></span>
+                <input autocomplete="off" class="k-input-inner" placeholder="Search..." title="Search..." type="text">
+            </span>
+            @*<div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
+                <input type="text" class="form-control" id='FieldFilter' placeholder="Search for...">                        
+            </div>*@
+        </text>);
+        //t.Search();
+    })            
+    .Search(s =>
+    {
+        s.Field(o => o.UserName, "contains");
+        s.Field(o => o.Email, "contains");
+        s.Field(o => o.NameFull, "contains");
+        s.Field(o => o.Department, "contains");
+    })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+        )       
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserProfileTemplate").Window(w => w.Width(800).Title("Profile")))
+    .Pageable(p => p.Refresh(true))
+    .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+    .Scrollable(s => s.Height(400))
+    .Resizable(r => r.Columns(true))   
+    .Filterable()
+    .ClientDetailTemplateId("UserProfile")
+    //.HtmlAttributes(new { style = "height:500px;" })
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Events(events => events.Error("error_handler"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).Editable(false);
+        })
+        .Read(read => read.Action("UserProfilesRead", "Users"))
+        //.Create(create => create.Action("UserProfilesCreate", "Users"))
+        .Update(update => update.Action("UserProfilesUpdate", "Users"))
+        .Destroy(destroy => destroy.Action("UserProfilesDestroy", "Users"))
     )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Events(e => e.Edit("onEditGridUser").Change("onChangeGridUser").DataBound("onDataBoundGridUser"))
+
+)
 
 
-    <script id="UserProfile" type="text/kendo-tmpl">
-        @(Html.Kendo().TabStrip()
+<script id="UserProfile" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
             .Name("tabStrip_#=Id#")
             .SelectedIndex(0)
             .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
@@ -88,27 +115,38 @@
                 );
             })
             .ToClientTemplate())
-    </script>
+</script>
 
 
 
-    @(Html.Kendo().Window().Name("windowContainer")
+@(Html.Kendo().Window().Name("windowContainer")
         .Title("User Access")
         .Visible(false)
         .Modal(true)
         .Draggable(true)
         .Width(900)
         .Height(500)
-            //.LoadContentFrom("_History", "Markets", new { stallId = "#=StallId#" })
-            //.LoadContentFrom("_History", "Markets")
-    )
+        //.LoadContentFrom("_History", "Markets", new { stallId = "#=StallId#" })
+        //.LoadContentFrom("_History", "Markets")
+)
 
-</div>
+
 
 <style>
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
         width: auto;
     }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .k-floating-label-container {
+        width: 100%;
+    }
+
 </style>
 
 
@@ -158,7 +196,7 @@
                     });
                 }
             });
-            alert(message);            
+            alert(message);
         }
     }
 
@@ -171,7 +209,7 @@
     //        var rowitem = selectedGrid.dataSource.get(e.model.get("Id"));
     //        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
     //        selectedGrid.select(row);
-    //    }        
+    //    }
 
     //}
 
@@ -217,8 +255,47 @@
         $("#NameFull").val(nameFull).trigger("change");
     }
 
+    $("#FieldFilter").keyup(function () {
 
+        //var value = $("#FieldFilter").val();
+        //grid = $("#grid").data("kendoGrid");
 
+        //if (value) {
+        //    grid.dataSource.filter({ field: "Description", operator: "contains", value: value });
+        //} else {
+        //    grid.dataSource.filter({});
+        //}
+        var selecteditem = $('#FieldFilter').val();
+        var kgrid = $("#grid").data("kendoGrid");
+        selecteditem = selecteditem.toUpperCase();
+        var selectedArray = selecteditem.split(" ");
+        if (selecteditem) {
+            var orfilter = { logic: "or", filters: [] };
+            var andfilter = { logic: "and", filters: [] };
+            $.each(selectedArray, function (i, v) {
+                if (v.trim() == "") {
+                }
+                else {
+                    $.each(selectedArray, function (i, v1) {
+                        if (v1.trim() == "") {
+                        }
+                        else {
+                            orfilter.filters.push({ field: "UserName", operator: "contains", value: v1 });
+                            orfilter.filters.push({ field: "Email", operator: "contains", value: v1 });
+                            orfilter.filters.push({ field: "NameFull", operator: "contains", value: v1 });
+                            orfilter.filters.push({ field: "Department", operator: "contains", value: v1 });
+                            andfilter.filters.push(orfilter);
+                            orfilter = { logic: "or", filters: [] };
+                        }
+                    });
+                }
+            });
+            kgrid.dataSource.filter(andfilter);
+        }
+        else {
+            kgrid.dataSource.filter({});
+        }
+    });
 
 </script>
 

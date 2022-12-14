@@ -14,10 +14,11 @@ using System.Data.SqlClient;
 using System.Configuration;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
+using iLgs.Utilities;
 
 namespace iLgs.Controllers
 {
-    [iLGSAuthorize("roles")]
+    [AppAuthorize("roles")]
     public class RolesController : Controller
     {
         private AppManEntities db = new AppManEntities();

@@ -14,14 +14,14 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 
-namespace iLgs.Models
+namespace iLgs.Utilities
 {
-    public class iLGSAuthorizeAttribute : AuthorizeAttribute
+    public class AppAuthorizeAttribute : AuthorizeAttribute
     {
         AppManEntities context = new AppManEntities(); 
         private readonly string[] allowedController;
-        string sysCode = "ILGS";
-        string[] roles = { "ADMIN", "ILGS_ADMIN" };
+        string sysCode = "APPMAN";
+        string[] roles = { "ADMIN", "APPMAN_ADMIN" };
 
         HttpClient client;
 
@@ -34,7 +34,7 @@ namespace iLgs.Models
         //HTTP Operations, GET, POST, PUT, DELETE
         //Set the base address and the Header Formatter
 
-        public iLGSAuthorizeAttribute(params string[] controllerName)
+        public AppAuthorizeAttribute(params string[] controllerName)
         {
             this.allowedController = controllerName;            
             
@@ -58,7 +58,7 @@ namespace iLgs.Models
             }
 
             
-            //var admin = context.AspNetUserRoles_View.Where(p => p.UserId == userId && (p.RoleId.ToUpper() == "ADMIN" || p.RoleId.ToUpper() == "ILGS_ADMIN"));
+            //var admin = context.AspNetUserRoles_View.Where(p => p.UserId == userId && (p.RoleId.ToUpper() == "ADMIN" || p.RoleId.ToUpper() == "APPMAN_ADMIN"));
             //HttpResponseMessage responseMessage = await client.GetAsync("roles_/" + id + "/" + role).ConfigureAwait(false);
             
             HttpResponseMessage responseMessage = client.GetAsync("roles_/" + id ).Result;

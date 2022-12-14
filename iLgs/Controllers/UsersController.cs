@@ -18,11 +18,11 @@ using System.Data.SqlClient;
 
 namespace iLgs.Controllers
 {
-    [iLGSAuthorize("users")]
+    [AppAuthorize("users")]
     public class UsersController : BaseController
     {
-        private static string sysCode = "ILGS";
-        private static string sysAdmin = "ilgs_admin";
+        private static string sysCode = "APPMAN";
+        private static string sysAdmin = "APPMAN_ADMIN";
 
         private AppManEntities db = new AppManEntities();
 

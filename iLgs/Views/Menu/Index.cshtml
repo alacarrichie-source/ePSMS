@@ -2,20 +2,18 @@
     ViewBag.Title = "Index";
 }
 
-@*@using (Html.BeginForm())
-    {*@
-
-<div class="well">
-    <h2 class="text-info">Menu</h2>
-    <div class="row">
-        <div class="col-md-2 text-right">
-            @Html.Label("System")
-        </div>
-        <div class="col-md-5">
-            @(Html.Kendo().DropDownList()//.ComboBox()
+<h2 class="text-info">Menu</h2>
+<div class="row">
+    <div class="col-md-12">
+        @Html.Label("Application")
+    </div>
+    <div class="col-md-12">
+        @(Html.Kendo().DropDownList()//.ComboBox()
                 .Name("sysCode")
                 .HtmlAttributes(new { style = "width:300px" })
-                //.Placeholder("Select System")
+                .Rounded(Rounded.Medium)
+                .FillMode(FillMode.Outline)
+                //.OptionLabel("Select Application...")
                 .DataTextField("Code")
                 .DataValueField("Code")
                 .Filter(FilterType.Contains)
@@ -27,21 +25,22 @@
                     })
                     .ServerFiltering(true);
                 })
-            )
-        </div>
+        )
     </div>
+</div>
 
-    <div class="row">
-        <div class="col-md-2 text-right">
-            @Html.Label("Menu Level")
-        </div>
-        <div class="col-md-5">
-            @(Html.Kendo().DropDownList()//.ComboBox()
+<div class="row">
+    <div class="col-md-12">
+        @Html.Label("Menu Level")
+    </div>
+    <div class="col-md-12">
+        @(Html.Kendo().DropDownList()//.ComboBox()
                 .Name("parentId")
                 .HtmlAttributes(new { style = "width:300px" })
-                //.Placeholder("Select Level")
                 .Filter(FilterType.Contains)
-                    //.BindTo(ViewData["MenuLevel"] as SelectList)
+                .Rounded(Rounded.Medium)
+                .FillMode(FillMode.Outline)                
+                //.OptionLabel("Select Level...")
                 .DataTextField("Description")
                 .DataValueField("Code")
                 .DataSource(source =>
@@ -51,21 +50,21 @@
                         read.Action("GetMenulevels", "Menu").Data("DataLevel");
                     })
                     .ServerFiltering(true);
-                }).CascadeFrom("sysCode")                
-            )
-            <input type="submit" value="Submit" id="cmdSubmit" />
-        </div>        
-        
+                }).CascadeFrom("sysCode")
+        )
+        @*<input type="submit" value="Submit" id="cmdSubmit" />*@
+        @(Html.Kendo().Button().Content("Submit").Name("cmdSubmit"))
     </div>
-    <br />
-    @*}*@
 
-    @(Html.Kendo().Grid<iLgs.Models.Menubase>()
+</div>
+<br />
+
+@(Html.Kendo().Grid<iLgs.Models.Menubase>()
             .Name("grid")
             .Columns(col =>
             {
                 col.Bound(c => c.ChildId).Hidden();
-                col.Bound(c => c.Sequence).Width(50).Filterable(true);                
+                col.Bound(c => c.Sequence).Width(50).Filterable(true);
                 col.Bound(c => c.Description).Width(150).Filterable(true);
                 col.Bound(c => c.Action).Width(70);
                 col.Bound(c => c.Controller).Width(70);
@@ -83,13 +82,13 @@
             .Editable(editable => editable.Mode(GridEditMode.InLine))
             .Pageable()
             .Sortable()
-            .Scrollable(s => s.Height(530))
-            //.HtmlAttributes(new { style = "height:500px;" })
+            .Scrollable(s => s.Height(350))
+        //.HtmlAttributes(new { style = "height:500px;" })
             .DataSource(dataSource => dataSource
                 .Ajax()
                 .PageSize(20)
                 .Events(events => events.Error("error_handler")
-                    //.Sync("sync_handler")
+                //.Sync("sync_handler")
                     )
                 .Model(model =>
                 {
@@ -104,10 +103,10 @@
             .Selectable(s => s.Mode(GridSelectionMode.Single))
             .Events(e => e.Edit("onGridEdit"))
             .AutoBind(false)
-            //.Events(events => events.Change("OnGridChange").DataBound("dataBound"))
+        //.Events(events => events.Change("OnGridChange").DataBound("dataBound"))
 
-    )
-</div>
+)
+
 
 
 <style>
