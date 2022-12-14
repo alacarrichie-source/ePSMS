@@ -41,5 +41,7 @@ namespace iLgs.Models
         public virtual DbSet<AspNetUsers_View> AspNetUsers_View { get; set; }
         public virtual DbSet<Accessfile> Accessfiles { get; set; }
         public virtual DbSet<AcctForm> AcctForms { get; set; }
+        public virtual DbSet<CodeMast> CodeMasts { get; set; }
+        public virtual DbSet<Codextn> Codextns { get; set; }
     }
 }

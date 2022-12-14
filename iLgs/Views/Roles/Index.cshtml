@@ -5,32 +5,49 @@
 <h2 class="text-info">Roles</h2>
 
 <br />
-
-@(Html.Kendo().Grid<iLgs.Models.AspNetRole>()
+<div class="col-md-6">
+    @(Html.Kendo().Grid<iLgs.Models.AspNetRole>()
     .Name("grid")
     .Columns(col =>
     {
-        col.Bound(c => c.Id).Width(50);
+        col.Bound(c => c.Id).Width(70);
         col.Bound(c => c.Name).Width(150);
         col.Command(command =>
         {
             command.Edit();
             command.Destroy();
-        }).Width(172);
+        }).Width(100);
     })
-    .ToolBar(toolbar => toolbar.Create())
-//.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PayorTemplate").Window(w => w.Width(800).Height(500)))
+    .ToolBar(t =>
+    {
+        t.Create().Text("Add Role");
+        t.Search();
+    })
+            //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PayorTemplate").Window(w => w.Width(800).Height(500)))
     .Editable(editable => editable.Mode(GridEditMode.InLine))
-    .Pageable()
+    .Search(s =>
+    {
+        s.Field(o => o.Id, "contains");
+        s.Field(o => o.Name, "contains");
+    })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+    )
+    .Resizable(r => r.Columns(true))
     .Sortable()
-    .Scrollable(s => s.Height(520))
-    .ClientDetailTemplateId("UserInRoles")
+    .Scrollable(s => s.Height(400))
+            //.ClientDetailTemplateId("UserInRoles")
     .Filterable()
-//.HtmlAttributes(new { style = "height:400px;" })
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)
-        .Events(events => events.Error("error_handler"))
+        .Events(events => events.Error("GridError"))
         .Model(model =>
         {
             model.Id(p => p.Id);
@@ -42,21 +59,19 @@
         .Destroy(destroy => destroy.Action("RolesDestroy", "Roles"))
     )
     .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .Events(events => events.DataBound("onDataBound").Edit("onEditGrid"))
-
-)
-
+    .Events(events => events.Change("onChangeGrid").Edit("onEditGrid").DataBound("onDataBoundGrid"))
+    )
+</div>
 <div id="windowcontainer"></div>
 
-<script id="UserInRoles" type="text/kendo-tmpl">
-    @(Html.Kendo().Grid<iLgs.Models.AspNetUserRoles_View>()
-        .Name("grid_#=Id#")
-        .HtmlAttributes(new { style = "height:300px;" })
+<div class="col-md-6">
+      @(Html.Kendo().Grid<iLgs.Models.AspNetUserRoles_View>()
+        .Name("gridUserInRole")
         .Columns(columns =>
         {
             //columns.Bound(o => o.UserId).Width(100);
-            columns.Bound(o => o.UserName).Width(100);
-            columns.Bound(o => o.NameFull).Width(150);
+            columns.Bound(o => o.UserName).Width(70);
+            columns.Bound(o => o.NameFull).Width(180);
             columns.Command(command =>
             {
                 //command.Edit();
@@ -65,77 +80,231 @@
                 command.Custom("Reset PW").Click("ResetPw");
             }).Width(172);
         })
-        .ToolBar(toolbar => toolbar.Create())
+        .ToolBar(t =>
+        {
+            t.Create().Text("Add User In Role");
+            t.Search();
+        })              
+        .Search(s =>
+        {
+            s.Field(o => o.UserName, "contains");
+            s.Field(o => o.NameFull, "contains");
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Resizable(r => r.Columns(true))
+        .Sortable()
+        .Scrollable(s => s.Height(400))
+        .Filterable()
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserInRoleTemplate").Window(w => w.Width(500).Title("User in Role")))
         .DataSource(dataSource => dataSource
             .Ajax()
-            .PageSize(5)
-            .Events(events => events.Error("error_handler"))
+            .Events(events => events.Error("GridError"))
             .Model(model =>
             {
-                //model.Id(p => p.UserId);
-                //model.Id(p => p.RoleId);
                 model.Id(p => p.CompKeyId);
                 model.Field(p => p.CompKeyId).DefaultValue("").Editable(true);
             })
-            .Read(read => read.Action("UserInRoleRead", "Roles", new { roleId = "#=Id#" }))
-            //.Create(create => create.Action("UserInRoleCreate", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
-            //.Update(update => update.Action("UserInRoleUpdate", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
-            //.Destroy(destroy => destroy.Action("UserInRoleDestroy", "Roles", new { roleId = "#=Id#" }).Type(HttpVerbs.Get))
-            .Create(create => create.Action("UserInRoleCreate", "Roles"))
-            //.Update(update => update.Action("UserInRoleUpdate", "Roles", new { roleId = "#=Id#" }))
+            .Read(read => read.Action("UserInRoleRead", "Roles").Data("UserInRoleData"))            
+            .Create(create => create.Action("UserInRoleCreate", "Roles").Data("UserInRoleData"))
             .Destroy(destroy => destroy.Action("UserInRoleDestroy", "Roles"))
         )
-        .Scrollable()
-        .Pageable()
-        .Sortable()
-        .Filterable()
-        .Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Events(events => events
-                .Edit(@<text>
-                function(e) {
-                // the master row for this detail
-                var parentRow = this.wrapper.closest("tr").prev();
-                var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-                var parentModel = parentGrid.dataItem(parentRow);
-                e.model.set("RoleId", parentModel.Id);
-                }
-                </text>)
-            ).ToClientTemplate())
-</script>
-
-
-
-
+        .Events(events => events.Change("onChangeGridUserInRole").Edit("onEditGridUserInRole").DataBound("onDataBoundGridUserInRole"))
+        .AutoBind(false)
+        )            
+</div>
 
 <style>
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
         width: auto;
     }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .k-floating-label-container {
+        width: 100%;
+    }
 </style>
 
 
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    <li>
+        #=field#
+        <ul>
+            # for (var i = 0; i < messages.length; ++i) { #
+            <li>#= messages[i] #</li>
+            # } #
+        </ul>
+    </li>
+    # } #
+</script>
 
 
 <script type="text/javascript">
 
 
-
-    function error_handler(e, status) {
-        if ((e.errors)) {
-            var message = "Errors:\n";
-            $.each(e.errors, function (key, value) {
-                if ('errors' in value) {
-                    $.each(value.errors, function () {
-                        message += this + "\n";
-                    });
+    function GridError(args) {
+        if (args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
                 }
             });
-            alert(message);
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
         }
     }
 
-    var selectedGrid;
+    var selectedGrid = null;
+    var selectedRoleId = null;
+    var selecteUserInRoleId = null;
+
+    function onChangeGrid(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedRoleId = selectedData.Id;
+        selectedUserInRoleId = null;
+        $("#gridUserInRole").data("kendoGrid").dataSource.read();
+    }
+
+
+    function onDataBoundGrid(e) {
+        if (selectedRoleId) {
+            var dataItem = this.dataSource.get(selectedRoleId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onEditGrid(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            //e.model.set("SbuccType", $("#sbuccType").val());
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedRoleId = null;
+        } else {
+            selectedRoleId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedRoleId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onGridDeleteClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+    // User In Role
+
+    function UserInRoleData() {
+        return {
+            roleId: selectedRoleId
+        };
+    }
+
+    function onChangeGridUserInRole(e) {
+        var selectedData = this.dataItem(this.select());
+        selecteUserInRoleId = selectedData.Id;
+    }
+
+
+    function onDataBoundGridUserInRole(e) {
+        if (selecteUserInRoleId) {
+            var dataItem = this.dataSource.get(selecteUserInRoleId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onEditGridUserInRole(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selecteUserInRoleId = null;
+        } else {
+            selecteUserInRoleId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selecteUserInRoleId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onSelectUser(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#NameFull").val(dataItem.NameFull).trigger("change");
+        $("#UserName").val(dataItem.UserName).trigger("change");
+    }
+
+    function ShowAccess(e) {
+        e.preventDefault();
+        var myTitle = "";
+        var width = 1000;
+        var heght = 300;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var userId = dataItem.UserId;
+        var nameFull = dataItem.NameFull;
+        var userName = dataItem.UserName;
+
+        window.location = '@Url.Action("_Access", "Users")?userId=' + userId + "&nameFull=" + nameFull + "&userName=" + userName;
+    }
+
+    function ResetPw(e) {
+        e.preventDefault();
+        var myTitle = "";
+        var width = 1000;
+        var heght = 300;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var userId = dataItem.UserId;
+        var nameFull = dataItem.NameFull;
+        var userName = dataItem.UserName;
+
+        window.location = '@Url.Action("ResetPassword", "Manage")?userId=' + userId + "&nameFull=" + nameFull + "&userName=" + userName;
+    }
+
+    @*var selectedGrid;
     function onEditGrid(e) {
         e.preventDefault();
         selectedGrid = e.sender;
@@ -163,11 +332,7 @@
 
     }
 
-    function onSelectUser(e) {
-        var dataItem = this.dataItem(e.item.index());
-        $("#NameFull").val(dataItem.NameFull).trigger("change");
-        $("#UserName").val(dataItem.UserName).trigger("change");
-    }
+    
 
     function DataComboUserId() {
         return {
@@ -202,37 +367,7 @@
         }
     }
 
-    function ShowAccess(e) {
-        e.preventDefault();
-        var myTitle = "";
-        var width = 1000;
-        var heght = 300;
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        var userId = dataItem.UserId;
-        var nameFull = dataItem.NameFull;
-        var userName = dataItem.UserName;
-
-        window.location = '@Url.Action("_Access", "Users")?userId=' + userId + "&nameFull=" + nameFull + "&userName=" + userName;
-
-    }
-
-    function ResetPw(e) {
-        e.preventDefault();
-        var myTitle = "";
-        var width = 1000;
-        var heght = 300;
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        var userId = dataItem.UserId;
-        var nameFull = dataItem.NameFull;
-        var userName = dataItem.UserName;
-
-        window.location = '@Url.Action("ResetPassword", "Manage")?userId=' + userId + "&nameFull=" + nameFull + "&userName=" + userName;
-
-    }
-
-
-
-
+    *@
 
 </script>
 

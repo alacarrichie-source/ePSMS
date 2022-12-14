@@ -69,6 +69,41 @@
           <Property Name="DtRegs" Type="datetime" Nullable="false" />
           <Property Name="Active" Type="bit" Nullable="false" />
         </EntityType>
+        <EntityType Name="CodeMast">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Code" Type="varchar" MaxLength="50" />
+          <Property Name="Description" Type="varchar" MaxLength="50" />
+          <Property Name="CodeHdg" Type="varchar" MaxLength="50" />
+          <Property Name="Desc1Hdg" Type="varchar" MaxLength="50" />
+          <Property Name="Desc2Hdg" Type="varchar" MaxLength="50" />
+          <Property Name="Desc3Hdg" Type="varchar" MaxLength="50" />
+          <Property Name="Desc4Hdg" Type="varchar" MaxLength="50" />
+          <Property Name="Desc5Hdg" Type="varchar" MaxLength="50" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="Codextn">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="MastId" Type="uniqueidentifier" />
+          <Property Name="Code" Type="varchar" MaxLength="50" />
+          <Property Name="Description" Type="varchar" MaxLength="50" />
+          <Property Name="Desc2" Type="varchar" MaxLength="50" />
+          <Property Name="Desc3" Type="varchar" MaxLength="50" />
+          <Property Name="Desc4" Type="varchar" MaxLength="50" />
+          <Property Name="Desc5" Type="varchar" MaxLength="50" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
         <EntityType Name="ErrorLogs">
           <Key>
             <PropertyRef Name="Id" />
@@ -274,6 +309,18 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_Codextn_Codextn">
+          <End Role="CodeMast" Type="Self.CodeMast" Multiplicity="0..1" />
+          <End Role="Codextn" Type="Self.Codextn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CodeMast">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Codextn">
+              <PropertyRef Name="MastId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_dbo_AspNetUserRoles_dbo_AspNetRoles_RoleId">
           <End Role="AspNetRoles" Type="Self.AspNetRoles" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -374,6 +421,8 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
           <EntitySet Name="AspNetRoles" EntityType="Self.AspNetRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="CodeMast" EntityType="Self.CodeMast" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Codextn" EntityType="Self.Codextn" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ErrorLogs" EntityType="Self.ErrorLogs" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Menubase" EntityType="Self.Menubase" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MenubaseAccess" EntityType="Self.MenubaseAccess" Schema="dbo" store:Type="Tables" />
@@ -440,6 +489,10 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
           <AssociationSet Name="FK_Accessfile_Menubase1" Association="Self.FK_Accessfile_Menubase1">
             <End Role="Menubase" EntitySet="Menubase" />
             <End Role="Accessfile" EntitySet="Accessfile" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Codextn_Codextn" Association="Self.FK_Codextn_Codextn">
+            <End Role="CodeMast" EntitySet="CodeMast" />
+            <End Role="Codextn" EntitySet="Codextn" />
           </AssociationSet>
           <AssociationSet Name="FK_dbo_AspNetUserRoles_dbo_AspNetRoles_RoleId" Association="Self.FK_dbo_AspNetUserRoles_dbo_AspNetRoles_RoleId">
             <End Role="AspNetRoles" EntitySet="AspNetRoles" />
@@ -530,6 +583,12 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
             <End Role="MenubaseAccess" EntitySet="MenubaseAccesses" />
           </AssociationSet>
           <EntitySet Name="AcctForms" EntityType="AppManModel.AcctForm" />
+          <EntitySet Name="CodeMasts" EntityType="AppManModel.CodeMast" />
+          <EntitySet Name="Codextns" EntityType="AppManModel.Codextn" />
+          <AssociationSet Name="FK_Codextn_Codextn" Association="AppManModel.FK_Codextn_Codextn">
+            <End Role="CodeMast" EntitySet="CodeMasts" />
+            <End Role="Codextn" EntitySet="Codextns" />
+          </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
           <Key>
@@ -925,6 +984,55 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
         </EntityType>
+        <EntityType Name="CodeMast">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="Code" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="CodeHdg" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc1Hdg" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc2Hdg" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc3Hdg" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc4Hdg" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc5Hdg" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Codextns" Relationship="AppManModel.FK_Codextn_Codextn" FromRole="CodeMast" ToRole="Codextn" />
+        </EntityType>
+        <EntityType Name="Codextn">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="MastId" Type="Guid" />
+          <Property Name="Code" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc2" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc3" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc4" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc5" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="CodeMast" Relationship="AppManModel.FK_Codextn_Codextn" FromRole="Codextn" ToRole="CodeMast" />
+        </EntityType>
+        <Association Name="FK_Codextn_Codextn">
+          <End Type="AppManModel.CodeMast" Role="CodeMast" Multiplicity="0..1" />
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CodeMast">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Codextn">
+              <PropertyRef Name="MastId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1187,6 +1295,43 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
                 <ScalarProperty Name="Remarks" ColumnName="Remarks" />
                 <ScalarProperty Name="FormDesc" ColumnName="FormDesc" />
                 <ScalarProperty Name="FormCode" ColumnName="FormCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CodeMasts">
+            <EntityTypeMapping TypeName="AppManModel.CodeMast">
+              <MappingFragment StoreEntitySet="CodeMast">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Desc5Hdg" ColumnName="Desc5Hdg" />
+                <ScalarProperty Name="Desc4Hdg" ColumnName="Desc4Hdg" />
+                <ScalarProperty Name="Desc3Hdg" ColumnName="Desc3Hdg" />
+                <ScalarProperty Name="Desc2Hdg" ColumnName="Desc2Hdg" />
+                <ScalarProperty Name="Desc1Hdg" ColumnName="Desc1Hdg" />
+                <ScalarProperty Name="CodeHdg" ColumnName="CodeHdg" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Codextns">
+            <EntityTypeMapping TypeName="AppManModel.Codextn">
+              <MappingFragment StoreEntitySet="Codextn">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Desc5" ColumnName="Desc5" />
+                <ScalarProperty Name="Desc4" ColumnName="Desc4" />
+                <ScalarProperty Name="Desc3" ColumnName="Desc3" />
+                <ScalarProperty Name="Desc2" ColumnName="Desc2" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="MastId" ColumnName="MastId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

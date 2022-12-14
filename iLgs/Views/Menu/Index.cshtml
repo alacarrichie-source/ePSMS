@@ -4,10 +4,10 @@
 
 <h2 class="text-info">Menu</h2>
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-8">
         @Html.Label("Application")
     </div>
-    <div class="col-md-12">
+    <div class="col-md-8">
         @(Html.Kendo().DropDownList()//.ComboBox()
                 .Name("sysCode")
                 .HtmlAttributes(new { style = "width:300px" })
@@ -30,10 +30,10 @@
 </div>
 
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-8">
         @Html.Label("Menu Level")
     </div>
-    <div class="col-md-12">
+    <div class="col-md-8">
         @(Html.Kendo().DropDownList()//.ComboBox()
                 .Name("parentId")
                 .HtmlAttributes(new { style = "width:300px" })
@@ -58,54 +58,116 @@
 
 </div>
 <br />
-
-@(Html.Kendo().Grid<iLgs.Models.Menubase>()
-            .Name("grid")
-            .Columns(col =>
+<div class="col-md-8">
+    @(Html.Kendo().Grid<iLgs.Models.Menubase>()
+        .Name("grid")
+        .Columns(col =>
+        {
+            col.Bound(c => c.ChildId).Hidden();
+            col.Bound(c => c.Sequence).Width(50).Filterable(true);
+            col.Bound(c => c.Description).Width(150).Filterable(true);
+            col.Bound(c => c.Action).Width(70);
+            col.Bound(c => c.Controller).Width(70);
+            col.Bound(c => c.MenuId).Width(70);
+            col.Bound(c => c.ObjectParam).Width(50);
+            //col.Bound(c => c.Result).Width(50);
+            col.Command(command =>
             {
-                col.Bound(c => c.ChildId).Hidden();
-                col.Bound(c => c.Sequence).Width(50).Filterable(true);
-                col.Bound(c => c.Description).Width(150).Filterable(true);
-                col.Bound(c => c.Action).Width(70);
-                col.Bound(c => c.Controller).Width(70);
-                col.Bound(c => c.MenuId).Width(70);
-                col.Bound(c => c.ObjectParam).Width(50);
-                //col.Bound(c => c.Result).Width(50);
-                col.Command(command =>
-                {
-                    command.Edit();
-                    command.Destroy();
-                    command.Custom("Select").Text("Select").Click("onCommand");
-                }).Width(172);
-            })
-            .ToolBar(toolbar => toolbar.Create())
-            .Editable(editable => editable.Mode(GridEditMode.InLine))
-            .Pageable()
-            .Sortable()
-            .Scrollable(s => s.Height(350))
+                command.Edit();
+                command.Destroy();
+                command.Custom("Select").Text("Select").Click("onCommand");
+            }).Width(172);
+        })
+        .ToolBar(toolbar => toolbar.Create())
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        .Pageable()
+        .Sortable()
+        .Scrollable(s => s.Height(350))
         //.HtmlAttributes(new { style = "height:500px;" })
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .PageSize(20)
-                .Events(events => events.Error("error_handler")
-                //.Sync("sync_handler")
-                    )
-                .Model(model =>
-                {
-                    model.Id(p => p.ChildId);
-                    model.Field(p => p.ChildId).DefaultValue(-1).Editable(false);
-                })
-                .Read(read => read.Action("MenuRead", "Menu").Data("MenuData"))
-                .Create(create => create.Action("MenuCreate", "Menu").Data("MenuData"))
-                .Update(update => update.Action("MenuUpdate", "Menu"))
-                .Destroy(destroy => destroy.Action("MenuDestroy", "Menu"))
-            )
-            .Selectable(s => s.Mode(GridSelectionMode.Single))
-            .Events(e => e.Edit("onGridEdit"))
-            .AutoBind(false)
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(20)
+            .Events(events => events.Error("error_handler")
+            //.Sync("sync_handler")
+                )
+            .Model(model =>
+            {
+                model.Id(p => p.ChildId);
+                model.Field(p => p.ChildId).DefaultValue(-1).Editable(false);
+            })
+            .Read(read => read.Action("MenuRead", "Menu").Data("MenuData"))
+            .Create(create => create.Action("MenuCreate", "Menu").Data("MenuData"))
+            .Update(update => update.Action("MenuUpdate", "Menu"))
+            .Destroy(destroy => destroy.Action("MenuDestroy", "Menu"))
+        )
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Events(e => e.Edit("onGridEdit"))
+        .AutoBind(false)
         //.Events(events => events.Change("OnGridChange").DataBound("dataBound"))
 
-)
+    )
+</div>
+@*<div class="col-md-6">
+    @(Html.Kendo().Grid<iLgs.Models.AspNetUserRoles_View>()
+        .Name("gridActions")
+        .Columns(columns =>
+        {
+            //columns.Bound(o => o.UserId).Width(100);
+            columns.Bound(o => o.UserName).Width(70);
+            columns.Bound(o => o.NameFull).Width(180);
+            columns.Command(command =>
+            {
+                //command.Edit();
+                command.Destroy();
+                command.Custom("Access").Click("ShowAccess");
+                command.Custom("Reset PW").Click("ResetPw");
+            }).Width(172);
+        })
+        .ToolBar(t =>
+        {
+            t.Create().Text("Add User In Role");
+            t.Search();
+        })
+        .Search(s =>
+        {
+            s.Field(o => o.UserName, "contains");
+            s.Field(o => o.NameFull, "contains");
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Resizable(r => r.Columns(true))
+        .Sortable()
+        .Scrollable(s => s.Height(400))
+        .Filterable()
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserInRoleTemplate").Window(w => w.Width(500).Title("User in Role")))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError"))
+            .Model(model =>
+            {
+                model.Id(p => p.CompKeyId);
+                model.Field(p => p.CompKeyId).DefaultValue("").Editable(true);
+            })
+            .Read(read => read.Action("UserInRoleRead", "Roles").Data("UserInRoleData"))
+            .Create(create => create.Action("UserInRoleCreate", "Roles").Data("UserInRoleData"))
+            //.Update(update => update.Action("UserInRoleUpdate", "Roles", new { roleId = "#=Id#" }))
+            .Destroy(destroy => destroy.Action("UserInRoleDestroy", "Roles"))
+        )
+        .Events(events => events.Change("onChangeGridUserInRole").Edit("onEditGridUserInRole").DataBound("onDataBoundGridUserInRole"))
+        .AutoBind(false)
+    )
+</div>*@
+
+
+
 
 
 

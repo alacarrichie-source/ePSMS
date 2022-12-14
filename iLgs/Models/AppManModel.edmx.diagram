@@ -30,6 +30,9 @@
         <AssociationConnector Association="AppManModel.FK_Accessfile_Menubase1" />
         <AssociationConnector Association="AppManModel.FK_MenubaseAccess_Accessfile" />
         <EntityTypeShape EntityType="AppManModel.AcctForm" Width="1.5" PointX="5.375" PointY="12.75" />
+        <EntityTypeShape EntityType="AppManModel.CodeMast" Width="1.5" PointX="10.375" PointY="13" />
+        <EntityTypeShape EntityType="AppManModel.Codextn" Width="1.5" PointX="12.625" PointY="13.125" />
+        <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

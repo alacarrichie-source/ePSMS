@@ -1,0 +1,318 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<h2 class="text-info">Codes</h2>
+
+<br />
+<div class="col-md-12">
+    @(Html.Kendo().Grid<iLgs.Models.CodeMast>()
+    .Name("grid")
+    .Columns(col =>
+    {
+        col.Bound(c => c.Code).Width(70);
+        col.Bound(c => c.Description).Width(100);
+        col.Bound(c => c.CodeHdg).Width(100);
+        col.Bound(c => c.Desc1Hdg).Width(100);
+        col.Bound(c => c.Desc2Hdg).Width(100);
+        col.Bound(c => c.Desc3Hdg).Width(100);
+        col.Bound(c => c.Desc4Hdg).Width(100);
+        col.Bound(c => c.Desc5Hdg).Width(100);
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+        }).Width(100);
+    })
+    .ToolBar(t =>
+    {
+        t.Create().Text("Add Code");
+        t.Search();
+    })
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodeMastTemplate").Window(w => w.Width(800).Title("Codes")))
+            //.Editable(editable => editable.Mode(GridEditMode.InLine))
+    .Search(s =>
+    {
+        s.Field(o => o.Code, "contains");
+        s.Field(o => o.Description, "contains");
+    })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+    )
+    .Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    .Scrollable(s => s.Height(200))
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Sortable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Events(events => events.Error("GridError"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+        })
+        .Read(read => read.Action("CodeMastRead", "Codes"))
+        .Create(create => create.Action("CodeMastCreate", "Codes"))
+        .Update(update => update.Action("CodeMastUpdate", "Codes"))
+        .Destroy(destroy => destroy.Action("CodeMastDestroy", "Codes"))
+    )
+    .Events(events => events
+        .Change("onChangeGrid")
+        .Edit("onEditGrid")
+        .DataBound("onDataBoundGrid")
+        )
+    )
+</div>
+<div id="windowcontainer"></div>
+
+<div class="col-md-12">
+    @(Html.Kendo().Grid<iLgs.Models.Codextn>()
+        .Name("gridItems")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Code).Width(70);
+            columns.Bound(o => o.Description).Width(150);
+            columns.Bound(o => o.Desc2).Width(100);
+            columns.Bound(o => o.Desc3).Width(100);
+            columns.Bound(o => o.Desc4).Width(100);
+            columns.Bound(o => o.Desc5).Width(100);
+            columns.Command(command =>
+            {
+                command.Edit();
+                command.Destroy();
+            }).Width(172);
+        })
+        .ToolBar(t =>
+        {
+            t.Create().Text("Add Code Items");
+            t.Search();
+        })
+        .Search(s =>
+        {
+            s.Field(o => o.Code, "contains");
+            s.Field(o => o.Description, "contains");
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Scrollable(s => s.Height(180))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodextnTemplate").Window(w => w.Width(500).Title("Code items")))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Read(read => read.Action("CodextnRead", "Codes").Data("ItemData"))
+            .Create(create => create.Action("CodextnCreate", "Codes").Data("ItemData"))
+            .Update(update => update.Action("CodextnUpdate", "Codes"))
+            .Destroy(destroy => destroy.Action("CodextneDestroy", "Codes"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItems")
+            .Edit("onEditGridItems")
+            .DataBound("onDataBoundGridItems")
+        )
+        .AutoBind(true)
+    )
+</div>
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .k-floating-label-container {
+        width: 100%;
+    }
+</style>
+
+
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    <li>
+        #=field#
+        <ul>
+            # for (var i = 0; i < messages.length; ++i) { #
+            <li>#= messages[i] #</li>
+            # } #
+        </ul>
+    </li>
+    # } #
+</script>
+
+
+<script type="text/javascript">
+
+
+    function GridError(args) {
+        if (args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    var selectedGrid = null;
+    var selectedId = null;
+    var selecteItemId = null;
+    var codeHdg = null;
+    var hdg1 = null;
+    var hdg2 = null;
+    var hdg3 = null;
+    var hdg4 = null;
+    var hdg5 = null;
+
+    function onChangeGrid(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedId = selectedData.Id;
+        selectedItemId = null;
+        codeHdg = selectedData.CodeHdg;
+        hdg1 = selectedData.Desc1Hdg;
+        hdg2 = selectedData.Desc2Hdg;
+        hdg3 = selectedData.Desc3Hdg;
+        hdg4 = selectedData.Desc4Hdg;
+        hdg5 = selectedData.Desc5Hdg;
+        $("#gridItems").data("kendoGrid").dataSource.read();
+    }
+
+
+    function onDataBoundGrid(e) {
+        if (selectedId) {
+            var dataItem = this.dataSource.get(selectedId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+        //if (this.dataSource.total() == 0) {
+        //   // to do: disable item add button
+        //}
+    }
+
+    function onEditGrid(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedId = null;
+        } else {
+            selectedId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            $("#Code").attr("readonly", "readonly");
+        }
+
+    }
+
+    function onGridDeleteClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+    // Grid Item
+
+    function ItemData() {
+        return {
+            mastId: selectedId
+        };
+    }
+
+    function onChangeGridItems(e) {
+        var selectedData = this.dataItem(this.select());
+        selecteItemId = selectedData.Id;
+    }
+
+    function onDataBoundGridItems(e) {
+        if (selecteItemId) {
+            var dataItem = this.dataSource.get(selecteItemId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onEditGridItems(e) {
+        e.preventDefault();
+
+        e.model.set("CodeHdg", codeHdg);
+        e.model.set("Hdg1Desc", hdg1);
+        e.model.set("Hdg2Desc", hdg2);
+        e.model.set("Hdg3Desc", hdg3);
+        e.model.set("Hdg4Desc", hdg4);
+        e.model.set("Hdg5Desc", hdg5);
+        
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selecteItemId = null;
+            e.model.set("MastId", selectedId);
+        } else {
+            selecteItemId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selecteItemId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            //$("#Code").attr("readonly", "readonly");
+        }        
+    }
+</script>
+
+

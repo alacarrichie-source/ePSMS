@@ -1,0 +1,245 @@
+﻿using iLgs.Models;
+using Kendo.Mvc.UI;
+using Kendo.Mvc.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Data.Entity;
+
+
+namespace iLgs.Controllers
+{
+    public class CodesController : Controller
+    {
+        private AppManEntities db = new AppManEntities();
+        // GET: Codes
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+        public ActionResult CodeMastRead([DataSourceRequest] DataSourceRequest request)
+        {
+            var model = db.CodeMasts.AsNoTracking();
+            return Json(model.ToDataSourceResult(request));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult CodeMastCreate([DataSourceRequest] DataSourceRequest request, CodeMast model)
+        {
+            try
+            {
+                if (model != null && ModelState.IsValid)
+                {
+                    model.Id = Guid.NewGuid();
+                    model.InsertedBy = User.Identity.Name;
+                    model.InsertedDt = DateTime.Now;
+                    model.UpdatedBy = model.InsertedBy;
+                    model.UpdatedDt = model.InsertedDt;
+
+                    db.CodeMasts.Add(model);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult CodeMastUpdate([DataSourceRequest] DataSourceRequest request, CodeMast model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    
+                    var entity = db.CodeMasts.Find(model.Id);
+                    if (entity != null)
+                    {
+                        model.UpdatedBy = User.Identity.Name;
+                        model.UpdatedDt = DateTime.Now;
+
+                        entity.Description = model.Description;
+                        entity.CodeHdg = model.CodeHdg;
+                        entity.Desc1Hdg = model.Desc1Hdg;
+                        entity.Desc2Hdg = model.Desc2Hdg;
+                        entity.Desc3Hdg = model.Desc3Hdg;
+                        entity.Desc4Hdg = model.Desc4Hdg;
+                        entity.Desc5Hdg = model.Desc5Hdg;
+                        entity.UpdatedBy = model.UpdatedBy;
+                        entity.UpdatedDt = model.UpdatedDt;
+
+                        db.CodeMasts.Attach(entity);
+                        db.Entry(entity).State = EntityState.Modified;
+                        db.SaveChanges();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult CodeMastDestroy([DataSourceRequest]DataSourceRequest request, CodeMast model)
+        {
+            try
+            {                
+                // Attach the entity
+                db.CodeMasts.Attach(model);
+                // Delete the entity
+                db.CodeMasts.Remove(model);
+                // Or use DeleteObject if using a previous versoin of Entity Framework
+                // Delete the entity in the database
+                //db.Entry(model).State = System.Data.EntityState.Deleted;
+                db.SaveChanges();                
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+
+        public ActionResult Codextn()
+        {
+            return View();
+        }
+
+        public ActionResult CodextnRead([DataSourceRequest] DataSourceRequest request, Guid? mastId)
+        {
+            var data = db.Codextns.Where(w => w.MastId == mastId)
+                .Select(s => new
+                {
+                    Id = s.Id,
+                    Code = s.Code,
+                    NastId = s.MastId,
+                    Description = s.Description,
+                    Desc2 = s.Desc2,
+                    Desc3 = s.Desc3,
+                    Desc4 = s.Desc4,
+                    Desc5 = s.Desc5,
+                    CodeHdg = s.CodeMast.CodeHdg,
+                    Desc1Hdg = s.CodeMast.Desc1Hdg,
+                    Desc2Hdg = s.CodeMast.Desc2Hdg,
+                    Desc3Hdg = s.CodeMast.Desc3Hdg,
+                    Desc4Hdg = s.CodeMast.Desc4Hdg,
+                    Desc5Hdg = s.CodeMast.Desc5Hdg
+                });
+
+            return Json(data.ToDataSourceResult(request));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult CodextnCreate([DataSourceRequest] DataSourceRequest request, Codextn model)
+        {
+            try
+            {
+                if (model != null && ModelState.IsValid)
+                {
+                    model.Id = Guid.NewGuid();
+                    model.InsertedBy = User.Identity.Name;
+                    model.InsertedDt = DateTime.Now;
+                    model.UpdatedBy = model.InsertedBy;
+                    model.UpdatedDt = model.InsertedDt;
+
+                    db.Codextns.Add(model);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult CodextnUpdate([DataSourceRequest] DataSourceRequest request, Codextn model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+
+                    var entity = db.Codextns.Find(model.Id);
+                    if (entity != null)
+                    {
+                        model.UpdatedBy = User.Identity.Name;
+                        model.UpdatedDt = DateTime.Now;
+
+                        entity.Description = model.Description;
+                        entity.Desc2 = model.Desc2;
+                        entity.Desc3 = model.Desc3;
+                        entity.Desc4 = model.Desc4;
+                        entity.Desc5 = model.Desc5;
+                        entity.UpdatedBy = model.UpdatedBy;
+                        entity.UpdatedDt = model.UpdatedDt;
+
+                        db.Codextns.Attach(entity);
+                        db.Entry(entity).State = EntityState.Modified;
+                        db.SaveChanges();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult CodextnDestroy([DataSourceRequest]DataSourceRequest request, Codextn model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    // Attach the entity
+                    db.Codextns.Attach(model);
+                    // Delete the entity
+                    db.Codextns.Remove(model);
+                    // Or use DeleteObject if using a previous versoin of Entity Framework
+                    // Delete the entity in the database
+                    //db.Entry(model).State = System.Data.EntityState.Deleted;
+                    db.SaveChanges();
+
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }        
+    }
+}

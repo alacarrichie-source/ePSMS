@@ -61,9 +61,6 @@ namespace iLgs.Controllers
             }
             else
             {
-                //return Json(db.AspNetRoles.Where(w => db.AspNetUserRoles.Where(x => x.UserId == userId
-                //    && (x.RoleId == w.Id || (x.RoleId.Contains("_admin") && x.RoleId.Substring(0, x.RoleId.IndexOf("_")) == w.Id))).Any())
-                //    .ToDataSourceResult(request));
                 return Json(db.AspNetRoles.Where(w => db.AspNetUserRoles.Where(x => x.UserId == userId && x.RoleId == w.Id && x.RoleId.Contains("_admin")).Any()
                             ||
                             db.AspNetUserRoles.Where(x => x.UserId == userId && x.RoleId == w.Id
@@ -81,11 +78,8 @@ namespace iLgs.Controllers
             {
                 if (model != null && ModelState.IsValid)
                 {
-
                     db.AspNetRoles.Add(model);
                     db.SaveChanges();
-
-
                 }
             }
             catch (Exception e)
@@ -162,13 +156,14 @@ namespace iLgs.Controllers
         [AcceptVerbs(HttpVerbs.Post)]
         //[AcceptVerbs(HttpVerbs.Get)]
         //public ActionResult UserInRoleCreate([DataSourceRequest] DataSourceRequest request, AspNetUserRoles_View model, string roleId)
-        public ActionResult UserInRoleCreate([DataSourceRequest] DataSourceRequest request, AspNetUserRoles_View model)
+        public ActionResult UserInRoleCreate([DataSourceRequest] DataSourceRequest request, AspNetUserRoles_View model, string roleId)
         {
             try
             {
                 if (model != null && ModelState.IsValid)
                 {
-                    AspNetUserRole entity = SetAspNetUserRole(model, model.RoleId);
+                    model.RoleId = roleId;
+                    AspNetUserRole entity = SetAspNetUserRole(model);
 
                     db.AspNetUserRoles.Add(entity);
                     db.SaveChanges();
@@ -187,37 +182,12 @@ namespace iLgs.Controllers
         }
 
 
-        public AspNetUserRole SetAspNetUserRole(AspNetUserRoles_View model, string roleId)
+        public AspNetUserRole SetAspNetUserRole(AspNetUserRoles_View model)
         {
             AspNetUserRole entity = new AspNetUserRole();
             entity.UserId = model.UserId;
-            entity.RoleId = roleId;
+            entity.RoleId = model.RoleId;
             return entity;
-        }
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //cceptVerbs(HttpVerbs.Get)]
-        public ActionResult UserInRoleUpdate([DataSourceRequest] DataSourceRequest request, AspNetUserRoles_View model, string roleId)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    AspNetUserRole entity = SetAspNetUserRole(model, roleId);
-
-                    db.AspNetUserRoles.Attach(entity);
-                    db.Entry(model).State = EntityState.Modified;
-                    db.SaveChanges();
-                }
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
-
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -228,7 +198,7 @@ namespace iLgs.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    AspNetUserRole entity = SetAspNetUserRole(model, model.RoleId);
+                    AspNetUserRole entity = SetAspNetUserRole(model);
 
                     // Attach the entity
                     db.AspNetUserRoles.Attach(entity);

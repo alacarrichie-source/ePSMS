@@ -20,7 +20,7 @@
             command.Edit();
             command.Destroy();
             //command.Custom("Access").Click("ShowAccess");
-        }).Width(70);
+        }).Width(100);
     })
     .ToolBar(t =>
     {
@@ -54,12 +54,11 @@
         .Refresh(true)
         .PageSizes(true)
         .ButtonCount(5)
-        )       
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserProfileTemplate").Window(w => w.Width(800).Title("Profile")))
-    .Pageable(p => p.Refresh(true))
-    .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
-    .Scrollable(s => s.Height(400))
+    )
     .Resizable(r => r.Columns(true))   
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserProfileTemplate").Window(w => w.Width(800).Title("Profile")))    
+    .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+    .Scrollable(s => s.Height(400))    
     .Filterable()
     .ClientDetailTemplateId("UserProfile")
     //.HtmlAttributes(new { style = "height:500px;" })

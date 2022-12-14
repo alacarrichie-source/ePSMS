@@ -1,0 +1,64 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
+
+namespace iLgs.Models
+{
+    [MetadataType(typeof(CodeMast.Metadata))]
+    public partial class CodeMast
+    {
+        internal sealed class Metadata
+        {
+
+            public Nullable<System.Guid> Id { get; set; }
+
+            [Required]
+            public string Code { get; set; }
+            [Required]
+            public string Description { get; set; }
+            public string InsertedBy { get; set; }
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
+            public string Desc1Hdg { get; set; }
+            public string Desc2Hdg { get; set; }
+            public string Desc3Hdg { get; set; }
+            public string Desc4Hdg { get; set; }
+
+            [Display(Name = "For Group")]
+            //[Required]
+            public string Desc5Hdg { get; set; }
+            public string CodeHdg { get; set; }
+        }
+    }
+
+    [MetadataType(typeof(Codextn.Metadata))]
+    public partial class Codextn
+    {
+        public string CodeHdg { get; set; }
+        public string Desc1Hdg { get; set; }
+        public string Desc2Hdg { get; set; }
+        public string Desc3Hdg { get; set; }
+        public string Desc4Hdg { get; set; }
+        public string Desc5Hdg { get; set; }
+        internal sealed class Metadata
+        {
+            public Nullable<System.Guid> Id { get; set; }
+            public Nullable<System.Guid> MastId { get; set; }
+            [Required]
+            public string Code { get; set; }            
+            [Required]
+            public string Description { get; set; }
+            public string Desc2 { get; set; }
+            public string Desc3 { get; set; }
+            public string Desc4 { get; set; }
+            public string Desc5 { get; set; }
+            public string InsertedBy { get; set; }
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
+        }
+    }
+}
