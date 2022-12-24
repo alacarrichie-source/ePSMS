@@ -51,7 +51,7 @@ namespace iLgs.Models
         public string Action { get; set; }
         public string Controller { get; set; }
 
-        [Display(Name = "Department")]
+        [Display(Name = "Group")]
         public string ObjectParam { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }

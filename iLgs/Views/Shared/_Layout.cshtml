@@ -39,13 +39,27 @@
                 @Html.ActionLink("AppMan", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             </div>
             <div class="navbar-collapse collapse">
+                @*<ul class="nav navbar-nav">*@     
                 <ul class="nav navbar-nav">
-                    @*<li>@Html.ActionLink("Home", "Index", "Home")</li>*@                                        
                     <li><a href='@Url.Action("Index", "Home")'>Home&nbsp;<span class="glyphicon glyphicon-home"></span></a></li>
                     @if (Request.IsAuthenticated)
                     {
                         @GetMenus(Session["MainMenu"] as IQueryable<iLgs.Models.Menubase>);
                     }
+                    @*<li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            Hello<span class="caret"></span>
+                        </a>
+                        <ul class="nav dropdown-menu">
+                            <li><a>aaa</a></li>
+                            <li><a>bbb</a></li>
+                            <li><a>ccc</a></li>
+                        </ul>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item">aaa</a>                            
+                        </div>
+                    </li>*@
                 </ul>
                 @Html.Partial("_LoginPartial")
             </div>
