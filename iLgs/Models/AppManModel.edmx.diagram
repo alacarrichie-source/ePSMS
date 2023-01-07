@@ -33,6 +33,8 @@
         <EntityTypeShape EntityType="AppManModel.CodeMast" Width="1.5" PointX="10.375" PointY="13" />
         <EntityTypeShape EntityType="AppManModel.Codextn" Width="1.5" PointX="12.625" PointY="13.125" />
         <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
+        <EntityTypeShape EntityType="AppManModel.MenuAction" Width="1.5" PointX="10.25" PointY="18" />
+        <AssociationConnector Association="AppManModel.FK_MenuActions_MenuActions" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

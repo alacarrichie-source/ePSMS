@@ -61,4 +61,12 @@ namespace iLgs.Models
             public Nullable<System.DateTime> UpdatedDt { get; set; }
         }
     }
+
+    public class MenuActionSw
+    {
+        [Display(Name = "Action")]
+        public string Code { get; set; }
+        public string Description { get; set; }
+        public bool IsAllowed { get; set; }
+    }
 }

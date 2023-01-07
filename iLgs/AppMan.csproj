@@ -198,10 +198,12 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\Api\MenuActionController.cs" />
     <Compile Include="Controllers\CodesController.cs" />
     <Compile Include="Controllers\GettersController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
+    <Compile Include="Controllers\MenuActionController.cs" />
     <Compile Include="Controllers\Menubases_Controller.cs" />
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
@@ -288,6 +290,9 @@
       <DependentUpon>AppManModel.edmx</DependentUpon>
     </Compile>
     <Compile Include="Models\ManageViewModels.cs" />
+    <Compile Include="Models\MenuAction.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Menubase.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -3127,6 +3132,7 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Views\Getters\" />
+    <Folder Include="Views\MenuAction\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Project_Readme.html" />

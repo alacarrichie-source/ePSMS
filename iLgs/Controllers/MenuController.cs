@@ -66,7 +66,6 @@ namespace iLgs.Controllers
             }
 
             return Json(model.ToDataSourceResult(request));
-
         }        
 
         public ActionResult MenuCreate([DataSourceRequest] DataSourceRequest request, Menubase model)
@@ -326,6 +325,21 @@ namespace iLgs.Controllers
             {
                 return new UserProfile();
             }
+        }
+
+        public async Task<ActionResult> MenuActionRead([DataSourceRequest] DataSourceRequest request, string sysCode, int? parentId)
+        {
+            parentId = parentId ?? 0;
+            HttpResponseMessage responseMessage = await client.GetAsync("menubases_/" + sysCode + "/" + parentId);
+            IEnumerable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var responseData = responseMessage.Content.ReadAsStringAsync().Result;
+                model = JsonConvert.DeserializeObject<List<Menubase>>(responseData);
+
+            }
+
+            return Json(model.ToDataSourceResult(request));
         }        
     }
 }

@@ -114,6 +114,18 @@
           <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="InsertedDt" Type="datetime" />
         </EntityType>
+        <EntityType Name="MenuActions">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="MenuId" Type="int" />
+          <Property Name="ActionCode" Type="varchar" MaxLength="50" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
         <EntityType Name="Menubase">
           <Key>
             <PropertyRef Name="ChildId" />
@@ -349,6 +361,18 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_MenuActions_MenuActions">
+          <End Role="Menubase" Type="Self.Menubase" Multiplicity="0..1" />
+          <End Role="MenuActions" Type="Self.MenuActions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Menubase">
+              <PropertyRef Name="ChildId" />
+            </Principal>
+            <Dependent Role="MenuActions">
+              <PropertyRef Name="MenuId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_MENUBASE_Systems">
           <End Role="SysCodes" Type="Self.SysCodes" Multiplicity="0..1" />
           <End Role="Menubase" Type="Self.Menubase" Multiplicity="*" />
@@ -424,6 +448,7 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
           <EntitySet Name="CodeMast" EntityType="Self.CodeMast" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Codextn" EntityType="Self.Codextn" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ErrorLogs" EntityType="Self.ErrorLogs" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="MenuActions" EntityType="Self.MenuActions" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Menubase" EntityType="Self.Menubase" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MenubaseAccess" EntityType="Self.MenubaseAccess" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SysCodes" EntityType="Self.SysCodes" Schema="dbo" store:Type="Tables" />
@@ -501,6 +526,10 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
           <AssociationSet Name="FK_dbo_AspNetUserRoles_dbo_AspNetUsers_UserId" Association="Self.FK_dbo_AspNetUserRoles_dbo_AspNetUsers_UserId">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MenuActions_MenuActions" Association="Self.FK_MenuActions_MenuActions">
+            <End Role="Menubase" EntitySet="Menubase" />
+            <End Role="MenuActions" EntitySet="MenuActions" />
           </AssociationSet>
           <AssociationSet Name="FK_MENUBASE_Systems" Association="Self.FK_MENUBASE_Systems">
             <End Role="SysCodes" EntitySet="SysCodes" />
@@ -589,6 +618,11 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
             <End Role="CodeMast" EntitySet="CodeMasts" />
             <End Role="Codextn" EntitySet="Codextns" />
           </AssociationSet>
+          <EntitySet Name="MenuActions" EntityType="AppManModel.MenuAction" />
+          <AssociationSet Name="FK_MenuActions_MenuActions" Association="AppManModel.FK_MenuActions_MenuActions">
+            <End Role="Menubase" EntitySet="Menubases" />
+            <End Role="MenuAction" EntitySet="MenuActions" />
+          </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
           <Key>
@@ -611,6 +645,7 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
           <NavigationProperty Name="MainMenu" Relationship="AppManModel.MenubaseMenubase" FromRole="Menubase1" ToRole="Menubase" />
           <Property Name="MenuId" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="Accessfiles" Relationship="AppManModel.FK_Accessfile_Menubase1" FromRole="Menubase" ToRole="Accessfile" />
+          <NavigationProperty Name="MenuActions" Relationship="AppManModel.FK_MenuActions_MenuActions" FromRole="Menubase" ToRole="MenuAction" />
         </EntityType>
         <EntityType Name="SysCode">
           <Key>
@@ -1033,6 +1068,31 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="MenuAction">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="MenuId" Type="Int32" />
+          <Property Name="ActionCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Menubase" Relationship="AppManModel.FK_MenuActions_MenuActions" FromRole="MenuAction" ToRole="Menubase" />
+        </EntityType>
+        <Association Name="FK_MenuActions_MenuActions">
+          <End Type="AppManModel.Menubase" Role="Menubase" Multiplicity="0..1" />
+          <End Type="AppManModel.MenuAction" Role="MenuAction" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Menubase">
+              <PropertyRef Name="ChildId" />
+            </Principal>
+            <Dependent Role="MenuAction">
+              <PropertyRef Name="MenuId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1331,6 +1391,19 @@ warning 6002: The table/view 'AppMan.dbo.UserCodes_View' does not have a primary
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="MastId" ColumnName="MastId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MenuActions">
+            <EntityTypeMapping TypeName="AppManModel.MenuAction">
+              <MappingFragment StoreEntitySet="MenuActions">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="ActionCode" ColumnName="ActionCode" />
+                <ScalarProperty Name="MenuId" ColumnName="MenuId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
