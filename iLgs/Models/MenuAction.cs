@@ -14,6 +14,12 @@ namespace iLgs.Models
     
     public partial class MenuAction
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public MenuAction()
+        {
+            this.MenuAccessActions = new HashSet<MenuAccessAction>();
+        }
+    
         public System.Guid Id { get; set; }
         public Nullable<int> MenuId { get; set; }
         public string ActionCode { get; set; }
@@ -22,6 +28,8 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<MenuAccessAction> MenuAccessActions { get; set; }
         public virtual Menubase Menubase { get; set; }
     }
 }

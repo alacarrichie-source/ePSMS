@@ -18,7 +18,7 @@ namespace iLgs.Models
         public Menubase()
         {
             this.SubMenu = new HashSet<Menubase>();
-            this.Accessfiles = new HashSet<Accessfile>();
+            this.MenuAccesses = new HashSet<MenuAccess>();
             this.MenuActions = new HashSet<MenuAction>();
         }
     
@@ -36,12 +36,11 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         public string MenuId { get; set; }
     
-        public virtual SysCode SysCode1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Menubase> SubMenu { get; set; }
         public virtual Menubase MainMenu { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Accessfile> Accessfiles { get; set; }
+        public virtual ICollection<MenuAccess> MenuAccesses { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<MenuAction> MenuActions { get; set; }
     }

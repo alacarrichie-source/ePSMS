@@ -8,6 +8,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -54,7 +55,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> UserRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = db.Database.SqlQuery<AspNetUser>("Select * from AspNetUsers");                 
+            var data = db.Database.SqlQuery<AspNetUser>("Select * from AspNetUsers");
 
             return Json(await data.ToDataSourceResultAsync(request));
         }
@@ -142,7 +143,7 @@ namespace iLgs.Controllers
 
             //var data = db.AspNetUsers.Include(i => i.UserInfo).ToList();
 
-            
+
             var data = db.Database.SqlQuery<AspNetUsers_View>("Select * From AspNetUsers_View").ToList();
             if (!isAdmin)
             {
@@ -192,7 +193,7 @@ namespace iLgs.Controllers
             DateTime date = System.DateTime.Now;
 
             UserProfile entity = new UserProfile();
-           
+
             entity.NameLast = model.NameLast;
             entity.NameFirst = model.NameFirst;
             entity.NameMid = model.NameMid;
@@ -264,8 +265,8 @@ namespace iLgs.Controllers
                         int id = db.Database.ExecuteSqlCommand("Exec UserProfile_Update {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}",
                             model.Id, model.NameLast, model.NameFirst, model.NameMid, model.NameFull, model.Birthday,
                             model.Sex, model.TelNo, model.MobileNo, model.AddressHouseNo, model.AddressStreet, model.AddressSubdivision,
-                            model.AddressBarangay, model.AddressCity, model.AddressProvince, model.AddressZipCode, model.InsertedBy, model.InsertedDt, model.UpdatedBy, 
-                            model.UpdatedDt, model.Department, model.Division, model.Section, model.UserCode);                        
+                            model.AddressBarangay, model.AddressCity, model.AddressProvince, model.AddressZipCode, model.InsertedBy, model.InsertedDt, model.UpdatedBy,
+                            model.UpdatedDt, model.Department, model.Division, model.Section, model.UserCode);
 
                     }
 
@@ -338,7 +339,7 @@ namespace iLgs.Controllers
             var isAdmin = db.AspNetUserRoles.Where(w => w.UserId == userId && w.RoleId == "admin").Any();
 
 
-            var model = db.UserProfiles.AsQueryable();                
+            var model = db.UserProfiles.AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 model = model.Where(p => p.NameFull.Contains(text) || p.AspNetUser.UserName.Contains(text));
@@ -363,7 +364,7 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { OwnerId = c.UserId, NameFull = c.NameFull }), JsonRequestBehavior.AllowGet);
 
         }
-        
+
 
         #region User Codes
         public ActionResult UserCodes()
@@ -373,7 +374,7 @@ namespace iLgs.Controllers
 
 
         public ActionResult UserCodesRead([DataSourceRequest] DataSourceRequest request)
-        {            
+        {
             return Json(db.Database.SqlQuery<UserCodes_View>("Select * From UserCodes_View").ToDataSourceResult(request));
 
         }
@@ -412,7 +413,7 @@ namespace iLgs.Controllers
                     UserCode e = SetUserCode(model, "A");
 
                     db.UserCodes.Add(e);
-                    db.SaveChanges();                                        
+                    db.SaveChanges();
 
                 }
             }
@@ -501,84 +502,56 @@ namespace iLgs.Controllers
             ViewData["department"] = department;
 
             return View();
-        }
-
-        public ActionResult AccessRead([DataSourceRequest] DataSourceRequest request, string userId, int childId, string sysCode)
-        {
-
-            //return Json(db.Database.SqlQuery<Accessfile>("Select * From Accessfile Where UserId = {0} and ChildId = {1} and SysCode = {2}", userId, childId, sysCode).ToDataSourceResult(request));
-            HttpResponseMessage responseMessage = client.GetAsync("menubases_/accessfiles/" + userId + "/" + childId + "/" + sysCode).Result;
-            IEnumerable<Accessfile> model = Enumerable.Empty<Accessfile>().AsQueryable();
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                var responseData = responseMessage.Content.ReadAsStringAsync().Result;
-                model = JsonConvert.DeserializeObject<List<Accessfile>>(responseData);
-            }
-
-            //var retVal = model.Select(c => new { AllowAdd = c.AllowAdd, AllowEdit = c.AllowEdit, AllowDelete = c.AllowDelete}).ToList();
-
-            return Json(model.ToDataSourceResult(request));
-
-        }
-
+        }        
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult AccessCreate([DataSourceRequest] DataSourceRequest request, Accessfile model, string userId, int childId, string sysCode)
+        public ActionResult MenuAccessSet([DataSourceRequest] DataSourceRequest request, MenubaseVM model, string userId, string sysCode, int childId)
         {
             try
             {
-                var rec = db.Accessfiles.Where(p => p.UserId == userId && p.ChildId == childId && p.SysCode == sysCode);
+                string user = HttpContext.User.Identity.Name;
+                DateTime? date = DateTime.Now;
+                var access = db.MenuAccesses.Where(w => w.Menubase.SysCode == sysCode && w.Menubase.ChildId == childId && w.UserId == userId).FirstOrDefault();
 
-                if (rec.Count() == 0)
+                if (access == null)
                 {
-                    if (model != null && ModelState.IsValid)
+                    access = new MenuAccess()
                     {
+                        Id = Guid.NewGuid(),
+                        MenuId = childId,
+                        UserId = userId,
+                        IsAllowed = true,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
 
-                        string user = ControllerContext.HttpContext.User.Identity.Name;
-                        model.RecId = Guid.NewGuid();
-                        model.InsertedBy = user;
-                        model.InsertedDt = System.DateTime.Now;
-                        model.UpdatedBy = user;
-                        model.UpdatedDt = model.InsertedDt;
-
-                        model.UserId = userId;
-                        model.ChildId = childId;
-                        model.SysCode = sysCode;
-
-                        db.Accessfiles.Add(model);
-                        db.SaveChanges();
-
-                        // save to menubaseAccess
-                        Menubase menu = db.Menubases.Where(p => p.ChildId == childId).SingleOrDefault();
-
-                        MenubaseAccess menuAccess = new MenubaseAccess();
-                        menuAccess.AccessFileId = model.RecId;
-                        menuAccess.SysCode = menu.SysCode;
-                        menuAccess.Sequence = menu.Sequence;
-                        menuAccess.ParentId = menu.ParentId;
-                        menuAccess.ChildId = menu.ChildId;
-                        menuAccess.Description = menu.Description;
-                        menuAccess.Action = menu.Action;
-                        menuAccess.Controller = menu.Controller;
-                        menuAccess.ObjectParam = menu.ObjectParam;
-                        menuAccess.MenuId = menu.MenuId;
-                        menuAccess.ChildIdAccess = userId + " " + menu.ChildId;
-                        menuAccess.ParentIdAccess = userId + " " + menu.ParentId;
-                        menuAccess.UserId = userId;
-                        db.MenubaseAccesses.Add(menuAccess);
-                        db.SaveChanges();
-
-                    }
+                    db.MenuAccesses.Add(access);
+                    db.SaveChanges();
+                    model.IsAllowed = true;
                 }
+                else
+                {
+                    access.IsAllowed = access.IsAllowed == true ? false : true;
+                    access.UpdatedBy = user;
+                    access.UpdatedDt = date;
+
+                    db.MenuAccesses.Attach(access);
+                    db.Entry(access).State = EntityState.Modified;
+                    db.SaveChanges();
+
+                    model.IsAllowed = (bool) access.IsAllowed;
+                }
+
+                model.AccessId = access.Id;
             }
             catch (Exception e)
             {
                 ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
                      "please contact tech support with this message: " + e.Message);
-
             }
 
-            //return Json(new[] { model }.ToDataSourceResult(request, ModelState));
             return new JsonNetResult
             {
                 Data = new[] { model }.ToDataSourceResult(request, ModelState),
@@ -587,77 +560,75 @@ namespace iLgs.Controllers
             };
         }
 
+        public ActionResult AccessActionRead([DataSourceRequest] DataSourceRequest request, Guid? accessId, string userId)
+        {
+            HttpResponseMessage responseMessage = client.GetAsync("MenuAction/MenuAccessAction/" + accessId + "/" + userId).Result;
+            IEnumerable<MenuAccessAction> model = Enumerable.Empty<MenuAccessAction>().AsQueryable();
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var responseData = responseMessage.Content.ReadAsStringAsync().Result;
+                model = JsonConvert.DeserializeObject<List<MenuAccessAction>>(responseData);
+            }
+
+            return Json(model.ToDataSourceResult(request));
+        }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult AccessUpdate([DataSourceRequest] DataSourceRequest request, Accessfile model)
+        public ActionResult AccessActionSet([DataSourceRequest] DataSourceRequest request, MenubaseVM model, string userId, Guid accessId, Guid? actionId)
         {
-
             try
             {
-                if (ModelState.IsValid)
+                string user = HttpContext.User.Identity.Name;
+                DateTime? date = DateTime.Now;
+                var rec = db.MenuAccessActions.Where(w => w.MenuAccess.Id == accessId && w.MenuAccess.UserId == userId && w.ActionId == actionId).FirstOrDefault();
+
+                if (rec == null)
+                {                    
+
+                    MenuAccessAction action = new MenuAccessAction()
+                    {
+                        Id = Guid.NewGuid(),
+                        AccessId = accessId,
+                        ActionId = actionId,
+                        InsertedBy = user,
+                        InsertedDt = date.Value,
+                        UpdatedBy = user,
+                        UpdatedDt = date.Value,
+                        IsAllowed = true
+                    };
+
+                    db.MenuAccessActions.Add(action);
+                    db.SaveChanges();                    
+                }
+                else
                 {
-
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-
+                    rec.IsAllowed = !rec.IsAllowed;
                     model.UpdatedBy = user;
-                    model.UpdatedDt = System.DateTime.Now;
+                    model.UpdatedDt = date;
 
-                    db.Accessfiles.Attach(model);
-                    db.Entry(model).State = EntityState.Modified;
-                    db.SaveChanges();
-
+                    db.MenuAccessActions.Attach(rec);
+                    db.Entry(rec).State = EntityState.Modified;
+                    db.SaveChanges();                    
                 }
             }
             catch (Exception e)
             {
                 ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
                      "please contact tech support with this message: " + e.Message);
-
             }
 
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+            return new JsonNetResult
+            {
+                Data = new[] { model }.ToDataSourceResult(request, ModelState),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            }; 
         }
 
 
-
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult AccessDestroy([DataSourceRequest]DataSourceRequest request, Accessfile model)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-
-                    // Attach the entity
-                    db.Accessfiles.Attach(model);
-                    // Delete the entity
-                    db.Accessfiles.Remove(model);
-                    // Or use DeleteObject if using a previous versoin of Entity Framework
-                    // Delete the entity in the database
-                    //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    db.SaveChanges();
-
-                    // delete menubaseAccess
-                    MenubaseAccess menuAccess = db.MenubaseAccesses.Where(p => p.AccessFileId == model.RecId).SingleOrDefault();
-                    db.MenubaseAccesses.Attach(menuAccess);
-                    db.MenubaseAccesses.Remove(menuAccess);
-                    db.SaveChanges();
-
-                }
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
-
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
+        
         public ActionResult _CopyAccess(string userId, string userName, string sysCode)
-        {            
+        {
             CopyAccessVM model = new CopyAccessVM()
             {
                 SourceUserId = userId,
@@ -674,60 +645,43 @@ namespace iLgs.Controllers
             try
             {
                 string user = ControllerContext.HttpContext.User.Identity.Name;
-                var date = System.DateTime.Now;                
+                var date = System.DateTime.Now;
 
-                db.Accessfiles.RemoveRange(db.Accessfiles.Where(w => w.SysCode == model.SysCode && w.UserId == model.TargetUserId));
+                db.MenuAccesses.RemoveRange(db.MenuAccesses.Where(w => w.Menubase.SysCode == model.SysCode && w.UserId == model.TargetUserId));
                 await db.SaveChangesAsync();
 
-                db.MenubaseAccesses.RemoveRange(db.MenubaseAccesses.Where(w => w.SysCode == model.SysCode && w.UserId == model.TargetUserId));
-                await db.SaveChangesAsync();
-
-                var menubaseList = db.MenubaseAccesses.Where(w => w.SysCode == model.SysCode && w.UserId == model.SourceUserId).ToList();
-                foreach(var e in menubaseList)
+                var menubaseList = db.MenuAccesses.Include(i => i.MenuAccessActions).Where(w => w.Menubase.SysCode == model.SysCode && w.UserId == model.SourceUserId).ToList();
+                foreach (var e in menubaseList)
                 {
-                    var childAccess = e.ChildIdAccess.Split(' ');
-                    var parentAccess = e.ParentIdAccess.Split(' ');
-                    var menu = new MenubaseAccess()
+                    var menu = new MenuAccess()
                     {
-                        AccessFileId = e.AccessFileId,
-                        SysCode = e.SysCode,
-                        Sequence = e.Sequence,
-                        ParentId = e.ParentId,
-                        ChildId = e.ChildId,
-                        Description = e.Description,
-                        Action = e.Action,
-                        Controller = e.Controller,
-                        ObjectParam = e.ObjectParam,
-                        MenuId = e.MenuId,
-                        ChildIdAccess = model.TargetUserId + " " + childAccess[1],
-                        ParentIdAccess = model.TargetUserId + " " + parentAccess[1],
-                        UserId = model.TargetUserId
-                    };
-                    db.MenubaseAccesses.Add(menu);
-                }
-
-                var accessList = db.Accessfiles.Where(w => w.SysCode == model.SysCode && w.UserId == model.SourceUserId).ToList();
-                foreach (var e in accessList)
-                {
-                    var access = new Accessfile()
-                    {
-                        RecId = Guid.NewGuid(),
-                        SysCode = model.SysCode,
+                        Id = Guid.NewGuid(),                                               
                         UserId = model.TargetUserId,
-                        ChildId = e.ChildId,
-                        AllowAdd = e.AllowAdd,
-                        AllowEdit = e.AllowEdit,
-                        AllowDelete = e.AllowDelete,
-                        AllowPost = e.AllowPost,
-                        AllowUnpost = e.AllowUnpost,
+                        MenuId = e.MenuId,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
                         UpdatedDt = date
                     };
-                    db.Accessfiles.Add(access);
-                }
-                await db.SaveChangesAsync();
+                    db.MenuAccesses.Add(menu);
+                    await db.SaveChangesAsync();
+
+                    foreach(var accessAction in e.MenuAccessActions)
+                    {
+                        var action = new MenuAccessAction()
+                        {
+                            Id = Guid.NewGuid(),
+                            AccessId = menu.Id,
+                            ActionId = accessAction.ActionId,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+                        db.MenuAccessActions.Add(action);
+                        await db.SaveChangesAsync();
+                    }
+                }                                
             }
             catch (Exception e)
             {

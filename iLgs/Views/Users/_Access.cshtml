@@ -25,7 +25,7 @@
     <br />
     <div class="row">
         <div class="col-md-2 text-right">
-            @Html.Label("System", new { style = "color:silver" })
+            @Html.Label("Application", new { style = "color:silver" })
         </div>
         <div class="col-md-2">
             @(Html.Kendo().ComboBox()
@@ -97,7 +97,7 @@
                     //.Pageable()
             .NoRecords()
             .Sortable()
-            .Scrollable(s => s.Height(450))
+            .Scrollable(s => s.Height(350))
                     //.HtmlAttributes(new { style = "height:300px;" })
             .DataSource(dataSource => dataSource
                 .Ajax()
@@ -117,39 +117,30 @@
         </div>
         <div class="col-lg-5">
 
-            @(Html.Kendo().Grid<iLgs.Models.Accessfile>()
-          .Name("gridExtn")
-            .Columns(columns =>
-            {
-                columns.Bound(c => c.AllowAdd).Width(100);
-                columns.Bound(c => c.AllowEdit).Width(100);
-                columns.Bound(c => c.AllowDelete).Width(100);
-                columns.Bound(c => c.AllowPost).Width(100);
-                columns.Bound(c => c.AllowUnpost).Width(100);
-                columns.Command(commands =>
+            @(Html.Kendo().Grid<iLgs.Models.MenuActionSw>()
+                .Name("gridExtn")
+                .Columns(columns =>
                 {
-                    commands.Edit();
-                    commands.Destroy();
-                }).Width(150);
-            })
-            .NoRecords()
-            .Editable(editable => editable.Mode(GridEditMode.InLine))
-            .HtmlAttributes(new { style = "height:100px;" })
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .ServerOperation(false)
-                .Events(e => e.RequestEnd("onRequestEndGridExtn"))
-                .Model(model =>
+                    columns.Bound(o => o.Code).Width(100);
+                    columns.Command(command =>
                     {
-                        model.Id(p => p.RecId);
-                        model.Field(p => p.RecId).DefaultValue(Guid.Empty);
-                        model.Field(p => p.RecId).Editable(false);
-                    })
-                .Read(read => read.Action("AccessRead", "Users").Data("AccessFileReadData"))
-                .Update(update => update.Action("AccessUpdate", "Users"))
-                .Destroy(destroy => destroy.Action("AccessDestroy", "Users"))
-            ).AutoBind(false)
-                //.Events(e => e.Edit("onEditGrid").Change("onChangeGrid").DataBound("onDataBoundGrid"))
+                        command.Custom("Include").Click("onIncludeAction");
+                    }).Width(75);
+                })
+                .NoRecords()
+                .Editable(editable => editable.Mode(GridEditMode.InLine))
+                .HtmlAttributes(new { style = "height:100px;" })
+                .DataSource(dataSource => dataSource
+                    .Ajax()                
+                    .Model(model =>
+                        {
+                            model.Id(p => p.Code);                        
+                        })
+                    .Read(read => read.Action("MenuAccessActionRead", "MenuAccessAction").Data("GridExtnData"))                
+                )
+                .Selectable(s => s.Mode(GridSelectionMode.Single))
+                .Events(events => events.Change("onChangeExtn").DataBound("onDataBoundExtn"))
+                .AutoBind(false)                
             )
 
         </div>
@@ -186,19 +177,12 @@
         $("#grid").data("kendoGrid").dataSource.read();
     })
 
+    var accessId = null;
     var childId = null;
     function onChange() {
-
-        //var grid = $("#grid").data("kendoGrid");
-
-        //grid.select().each(function () {
-        //    var dataItem = grid.dataItem($(this));
-        //    childId = dataItem.ChildId;
-        //});
-
         var selectedData = this.dataItem(this.select());
         childId = selectedData.ChildId;
-
+        accessId = selectedData.AccessId;
         $("#gridExtn").data("kendoGrid").dataSource.read();
     }
 
@@ -214,6 +198,11 @@
             var dataItem = grid.dataItem(this);
             if (!dataItem.IsAllowed) {
                 $(this).css("font-style", "italic");
+                $(this).css("font-weight", "normal");
+                $(this).find('.k-grid-Include').text('Include');
+            } else {
+                $(this).css("font-weight", "bold");
+                $(this).find('.k-grid-Include').text('Exclude');
             }
         });
 
@@ -289,7 +278,7 @@
         childId = data.ChildId;
         $.ajax({
             type: "POST",
-            url: '@Url.Action("AccessCreate", "Users")',
+            url: '@Url.Action("MenuAccessSet", "Users")',
             data: {
                 'userId': '@ViewData["userId"]', 'childId': childId, 'sysCode': $("#sysCode").val()
             }
@@ -300,7 +289,27 @@
         });
     }
 
-    function AccessFileReadData() {
+    function onIncludeAction(e) {
+        var grid = $("#gridExtn").data("kendoGrid");
+        var tr = $(e.target).closest("tr"); // get the current table row (tr)
+        var data = this.dataItem(tr);
+
+        actionId = data.ActionId;
+        
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("AccessActionSet", "Users")',
+            data: {
+                'userId': '@ViewData["userId"]', 'accessId': accessId, 'actionId': actionId
+            }
+        }).done(function (result) {
+            $("#gridExtn").data("kendoGrid").dataSource.read();
+        }).always(function () {
+            grid.dataSource.read();
+        });
+    }
+
+    function GridExtnData() {
         return {
             userId: '@ViewData["userId"]',
             childId: childId,
@@ -308,18 +317,11 @@
         };
     }
 
-    function onRequestEndGridExtn(e) {
-        e.preventDefault();
-        if (e.type == "destroy") {
-            $("#grid").data("kendoGrid").dataSource.read();
-        }
-    }
-
     $("#btnCopy").click(function (e) {
         e.preventDefault();
-        var userId = '@ViewData["userId"]'; 
-        var userName = '@ViewData["userName"]'; 
-        var sysCode = $("#sysCode").data("kendoComboBox").value(); 
+        var userId = '@ViewData["userId"]';
+        var userName = '@ViewData["userName"]';
+        var sysCode = $("#sysCode").data("kendoComboBox").value();
 
 
         var myUrl = '@Url.Action("_CopyAccess", "Users")';
@@ -355,6 +357,39 @@
         mywindow.open();
     })
 
+    var actionId = null;
+    function onChangeExtn() {
+        var selectedData = this.dataItem(this.select());
+        actionId = selectedData.ActionId;
+        //$("#gridExtn").data("kendoGrid").dataSource.read();
+    }
+
+    function onDataBoundExtn(e) {
+
+        var grid = this;
+        
+        grid.tbody.find(">tr").each(function () {
+            var dataItem = grid.dataItem(this);
+            if (!dataItem.IsAllowed) {
+                $(this).css("font-style", "italic");
+                $(this).css("font-weight", "normal");
+                $(this).find('.k-grid-Include').text('Include');
+            } else {
+                $(this).css("font-weight", "bold");
+                $(this).find('.k-grid-Include').text('Exclude');
+            }
+        });
+
+        if (actionId) {
+            var dataItem = this.dataSource.get(actionId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }        
+    }
 
     //function CopyAccess(e) {
     //    e.preventDefault();

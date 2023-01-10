@@ -68,5 +68,7 @@ namespace iLgs.Models
         public string Code { get; set; }
         public string Description { get; set; }
         public bool IsAllowed { get; set; }
+        public Guid? AccessId { get; set; }
+        public Guid? ActionId { get; set; }
     }
 }

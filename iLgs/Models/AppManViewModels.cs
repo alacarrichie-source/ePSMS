@@ -26,6 +26,7 @@ namespace iLgs.Models
 
         public bool IsAllowed { get; set; }
         public string Result { get; set; }
+        public Guid? AccessId { get; set; }
     }
 
     [MetadataType(typeof(MenubaseMetadata))]
@@ -64,10 +65,11 @@ namespace iLgs.Models
         //public virtual Menubase MainMenu { get; set; }
         //public virtual ICollection<Accessfile> Accessfiles { get; set; }
 
-        public SysCode SysCode1 { get; set; }
+        //public SysCode SysCode1 { get; set; }
+
         public ICollection<Menubase> SubMenu { get; set; }
         public Menubase MainMenu { get; set; }
-        public ICollection<Accessfile> Accessfiles { get; set; }
+        //public ICollection<MenuAccess> MenuAccess { get; set; }
     }
 
 
@@ -128,6 +130,13 @@ namespace iLgs.Models
         //public virtual MenubaseAccess MainMenu { get; set; }
     }
 
+
+    public class Access
+    {
+        public bool IsAdmin { get; set; }
+        public List<MenuAccessAction> Actions { get; set; }
+
+    }    
     public class CopyAccessVM
     {
         [Required]

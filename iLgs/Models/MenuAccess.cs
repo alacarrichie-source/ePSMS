@@ -12,14 +12,25 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class AcctForm
+    public partial class MenuAccess
     {
-        public string FormCode { get; set; }
-        public string FormDesc { get; set; }
-        public string Remarks { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public MenuAccess()
+        {
+            this.MenuAccessActions = new HashSet<MenuAccessAction>();
+        }
+    
+        public System.Guid Id { get; set; }
+        public Nullable<int> MenuId { get; set; }
+        public string UserId { get; set; }
+        public Nullable<bool> IsAllowed { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+    
+        public virtual Menubase Menubase { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<MenuAccessAction> MenuAccessActions { get; set; }
     }
 }

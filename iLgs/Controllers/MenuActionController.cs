@@ -70,7 +70,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime? date = DateTime.Now;
 
-                    MenuAction menuAction = new MenuAction()
+                    MenuAction action = new MenuAction()
                     {
                         Id = Guid.NewGuid(),
                         MenuId = menuId,
@@ -81,7 +81,7 @@ namespace iLgs.Controllers
                         UpdatedDt = date.Value,
                     };
 
-                    db.MenuActions.Add(menuAction);
+                    db.MenuActions.Add(action);
                     db.SaveChanges();
                     model.IsAllowed = true;
                 }
@@ -111,6 +111,6 @@ namespace iLgs.Controllers
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet,
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };        
-        }
+        }        
     }
 }

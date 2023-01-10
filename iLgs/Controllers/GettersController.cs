@@ -10,26 +10,26 @@ namespace iLgs.Controllers
     public class GettersController : Controller
     {
         private AppManEntities db = new AppManEntities();
-        public ActionResult GetSysCodeList(string text)
-        {
+        //public ActionResult GetSysCodeList(string text)
+        //{
 
 
-            var model = db.SysCodes.OrderBy(o => o.SysCode1).AsQueryable();
-            if (!string.IsNullOrEmpty(text))
-            {
-                text = text.Trim();
-                model = model.Where(p => p.SysCode1 == text || p.SysDescription.Contains(text) || p.SysCode1.Contains(text));
-            }
+        //    var model = db.SysCodes.OrderBy(o => o.SysCode1).AsQueryable();
+        //    if (!string.IsNullOrEmpty(text))
+        //    {
+        //        text = text.Trim();
+        //        model = model.Where(p => p.SysCode1 == text || p.SysDescription.Contains(text) || p.SysCode1.Contains(text));
+        //    }
 
-            var retModel = model.Select(c => new GetSysCodeVM { Code = c.SysCode1, Description = c.SysDescription }).ToList();
-            if (string.IsNullOrEmpty(text))
-            {
-                retModel.Insert(0, new GetSysCodeVM { Code = "ALL", Description = "ALL" });
-            }
+        //    var retModel = model.Select(c => new GetSysCodeVM { Code = c.SysCode1, Description = c.SysDescription }).ToList();
+        //    if (string.IsNullOrEmpty(text))
+        //    {
+        //        retModel.Insert(0, new GetSysCodeVM { Code = "ALL", Description = "ALL" });
+        //    }
 
-            return Json(retModel, JsonRequestBehavior.AllowGet);
+        //    return Json(retModel, JsonRequestBehavior.AllowGet);
 
-        }
+        //}
 
         public ActionResult GetDepartmentList(string text)
         {
@@ -41,10 +41,10 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Department.Contains(text));
             }
 
-            var retModel = model.Select(c => new GetDepartmentVM { Department  = c.Department }).ToList();
+            var retModel = model.Select(c => new GetDepartmentVM { Department = c.Department }).ToList();
             if (string.IsNullOrEmpty(text))
             {
-                retModel.Insert(0, new GetDepartmentVM { Department  = "ALL" });
+                retModel.Insert(0, new GetDepartmentVM { Department = "ALL" });
             }
 
             return Json(retModel, JsonRequestBehavior.AllowGet);
@@ -91,6 +91,18 @@ namespace iLgs.Controllers
 
         }
 
+        public JsonResult GetCodes(string mastCode, string text)
+        {
+
+            var model = db.Codextns.Where(w => w.CodeMast.Code == mastCode);
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+        }
     }
 
     public class GetSysCodeVM

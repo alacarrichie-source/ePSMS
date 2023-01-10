@@ -7,10 +7,12 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Data.Entity;
+using iLgs.Utilities;
 
 
 namespace iLgs.Controllers
 {
+    [AppAuthorize("Codes")]
     public class CodesController : Controller
     {
         private AppManEntities db = new AppManEntities();

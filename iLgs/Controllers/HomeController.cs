@@ -120,10 +120,7 @@ namespace iLgs.Controllers
                 ViewBag.IsAdmin = false;
                 IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
                 if (userId != null)
-                {
-                    //var admin = await GetUserInRole(userId, "admin");
-                    //var sysadmin = await GetUserInRole(userId, sysAdmin);
-
+                {                 
                     ViewBag.ShowMenu = true;
                     if (await GetUserInRole(userId, "admin") || await GetUserInRole(userId, sysAdmin))
                     {
@@ -152,31 +149,55 @@ namespace iLgs.Controllers
 
         }
 
+        //public async Task<Access> Access(string userId, string menuId)
+        //{
+        //    if (await GetUserInRole(userId, "admin") || await GetUserInRole(userId, sysAdmin))
+        //    {
+        //        return new Access() { AllowAdd = true, AllowEdit = true, AllowDelete = true , AllowPost = true, AllowUnpost = true, IsAdmin = true};
+        //    }
+        //    else
+        //    {
+        //        HttpResponseMessage responseMessage = client.GetAsync("menubases_/accessfile/" + userId + "/" + menuId + "/" + sysCode).Result;
+        //        if (responseMessage.IsSuccessStatusCode)
+        //        {
+        //            var responseData = responseMessage.Content.ReadAsStringAsync().Result;
+        //            Accessfile model = JsonConvert.DeserializeObject<Accessfile>(responseData);
+        //            if (model.RecId == Guid.Empty)
+        //            {
+        //                return null;
+        //            }
+        //            return new Access() { AllowAdd = model.AllowAdd, AllowEdit = model.AllowEdit, AllowDelete = model.AllowDelete, AllowPost = model.AllowPost, AllowUnpost = model.AllowUnpost, IsAdmin = false };
+        //        }
+        //        else
+        //        {
+        //            return new Access() { AllowAdd = false, AllowEdit = false, AllowDelete = false, AllowPost = false, AllowUnpost = false, IsAdmin = false };
+        //        }
+        //    }
+        //}
+
         public async Task<Access> Access(string userId, string menuId)
         {
             if (await GetUserInRole(userId, "admin") || await GetUserInRole(userId, sysAdmin))
             {
-                return new Access() { AllowAdd = true, AllowEdit = true, AllowDelete = true , AllowPost = true, AllowUnpost = true, IsAdmin = true};
+                return new Access() { IsAdmin = true };
             }
             else
             {
-                HttpResponseMessage responseMessage = client.GetAsync("menubases_/accessfile/" + userId + "/" + menuId + "/" + sysCode).Result;
+                HttpResponseMessage responseMessage = client.GetAsync("menubases_/accessRights/" + userId + "/" + menuId + "/" + sysCode).Result;
                 if (responseMessage.IsSuccessStatusCode)
                 {
                     var responseData = responseMessage.Content.ReadAsStringAsync().Result;
-                    Accessfile model = JsonConvert.DeserializeObject<Accessfile>(responseData);
-                    if (model.RecId == Guid.Empty)
-                    {
-                        return null;
-                    }
-                    return new Access() { AllowAdd = model.AllowAdd, AllowEdit = model.AllowEdit, AllowDelete = model.AllowDelete, AllowPost = model.AllowPost, AllowUnpost = model.AllowUnpost, IsAdmin = false };
+                    Access model = JsonConvert.DeserializeObject<Access>(responseData);
+                    
+                    return model;
                 }
                 else
                 {
-                    return new Access() { AllowAdd = false, AllowEdit = false, AllowDelete = false, AllowPost = false, AllowUnpost = false, IsAdmin = false };
+                    return new Access();
                 }
             }
         }
+
         public async Task<UserProfile> GetUserProfile(string id)
         {
             HttpResponseMessage responseMessage = client.GetAsync("Users_/Profile/" + id).Result;

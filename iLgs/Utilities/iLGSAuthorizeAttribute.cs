@@ -50,9 +50,9 @@ namespace iLgs.Utilities
         {
             bool authorize = false;
             bool admin = false;
-            var id = httpContext.User.Identity.GetUserId();
+            var userId = httpContext.User.Identity.GetUserId();
 
-            if (id == null)
+            if (userId == null)
             {
                 return false;
             }
@@ -61,7 +61,7 @@ namespace iLgs.Utilities
             //var admin = context.AspNetUserRoles_View.Where(p => p.UserId == userId && (p.RoleId.ToUpper() == "ADMIN" || p.RoleId.ToUpper() == "APPMAN_ADMIN"));
             //HttpResponseMessage responseMessage = await client.GetAsync("roles_/" + id + "/" + role).ConfigureAwait(false);
             
-            HttpResponseMessage responseMessage = client.GetAsync("roles_/" + id ).Result;
+            HttpResponseMessage responseMessage = client.GetAsync("roles_/" + userId ).Result;
             if (responseMessage.IsSuccessStatusCode)
             {
                 var responseData = responseMessage.Content.ReadAsStringAsync().Result;
@@ -85,12 +85,12 @@ namespace iLgs.Utilities
             {
                 foreach (var controllerName in allowedController)
                 {
-                    HttpResponseMessage responseMessage2 = client.GetAsync("usermenu_/" + id + "/" + sysCode + "/" + controllerName).Result;
+                    HttpResponseMessage responseMessage2 = client.GetAsync("usermenu_/" + userId + "/" + sysCode + "/" + controllerName).Result;
                     if (responseMessage.IsSuccessStatusCode)
                     {
                         var responseData = responseMessage2.Content.ReadAsStringAsync().Result;
-                        var menubaseAccess = JsonConvert.DeserializeObject<IEnumerable<MenubaseAccess>>(responseData);
-                        authorize = menubaseAccess.Count() > 0;
+                        var menuAccess = JsonConvert.DeserializeObject<MenuAccess>(responseData);
+                        authorize = menuAccess != null;
                         if (authorize)
                         {                            
                             break;

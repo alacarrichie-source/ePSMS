@@ -14,12 +14,21 @@ namespace iLgs.Controllers.Api
     {
         private AppManEntities db = new AppManEntities();
 
-        // GET: api/Menubases/RPTONLINE/0
+        // GET: api/MenuAction/RPTONLINE/0
         [Route("api/MenuAction/{sysCode}/{menuId}")]
         public IQueryable<MenuActionSw> GetMenuActions(string sysCode, int menuId)
         {
             //var data = db.MenuActions.Where(w => w.MenuId == menuId && w.Menubase.SysCode == sysCode).AsQueryable();
             var data = db.Database.SqlQuery<MenuActionSw>("Exec MenuAction_Read {0}, {1}", sysCode, menuId).AsQueryable();
+            return data;
+        }
+
+
+        // GET: api/MenuAccessActions/RPTONLINE/0
+        [Route("api/MenuAccessAction/{accessId}/{userId}")]
+        public IQueryable<MenuAccessAction> GetMenuAccessActions(string userId, Guid accessId)
+        {
+            var data = db.MenuAccessActions.Where(w => w.MenuAccess.Id == accessId && w.MenuAccess.UserId == userId).AsQueryable();
             return data;
         }
 

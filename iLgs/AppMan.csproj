@@ -198,11 +198,13 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\Api\MenuAccessActionController.cs" />
     <Compile Include="Controllers\Api\MenuActionController.cs" />
     <Compile Include="Controllers\CodesController.cs" />
     <Compile Include="Controllers\GettersController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
+    <Compile Include="Controllers\MenuAccessActionController.cs" />
     <Compile Include="Controllers\MenuActionController.cs" />
     <Compile Include="Controllers\Menubases_Controller.cs" />
     <Compile Include="Controllers\MenuController.cs" />
@@ -218,10 +220,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Models\Access.cs" />
-    <Compile Include="Models\AcctForm.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AppManModel.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -232,16 +230,25 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetRole.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetUser.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetUserRole.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetUserRoles_View.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetUsers_View.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\CodeMast.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\CodesViewModels.cs" />
-    <Compile Include="Models\Codextn.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ErrorLog.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AppManViewModels.cs" />
     <Compile Include="Migrations\201610120638232_AddedDtRegs.cs" />
     <Compile Include="Migrations\201610120638232_AddedDtRegs.Designer.cs">
@@ -264,23 +271,11 @@
       <DependentUpon>201610200157521_AddedActiveField.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Models\Accessfile.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AccountViewModels.cs" />
-    <Compile Include="Models\AspNetRole.cs">
+    <Compile Include="Models\Codextn.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetUser.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetUserRole.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetUserRoles_View.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetUsers_View.cs">
+    <Compile Include="Models\ErrorLog.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\IdentityModels.cs" />
@@ -290,20 +285,20 @@
       <DependentUpon>AppManModel.edmx</DependentUpon>
     </Compile>
     <Compile Include="Models\ManageViewModels.cs" />
+    <Compile Include="Models\MenuAccess.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\MenuAccessAction.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\MenuAction.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Menubase.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\MenubaseAccess.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\MenuViewModels.cs" />
     <Compile Include="Models\ReportViewModels.cs" />
-    <Compile Include="Models\SysCode.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\UserCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -3132,6 +3127,7 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Views\Getters\" />
+    <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
   </ItemGroup>
   <ItemGroup>

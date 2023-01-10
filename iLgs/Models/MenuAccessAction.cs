@@ -12,22 +12,18 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class SysCode
+    public partial class MenuAccessAction
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public SysCode()
-        {
-            this.Menubases = new HashSet<Menubase>();
-        }
-    
-        public string SysCode1 { get; set; }
-        public string SysDescription { get; set; }
-        public string Insertedby { get; set; }
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> AccessId { get; set; }
+        public Nullable<System.Guid> ActionId { get; set; }
+        public Nullable<bool> IsAllowed { get; set; }
+        public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Menubase> Menubases { get; set; }
+        public virtual MenuAccess MenuAccess { get; set; }
+        public virtual MenuAction MenuAction { get; set; }
     }
 }

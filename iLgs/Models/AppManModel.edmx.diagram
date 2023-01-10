@@ -6,8 +6,6 @@
     <edmx:Diagrams>
       <Diagram DiagramId="5e70c6830d604fe299e241ab0c429177" Name="Diagram1" ZoomLevel="72">
         <EntityTypeShape EntityType="AppManModel.Menubase" Width="1.5" PointX="8" PointY="1" />
-        <EntityTypeShape EntityType="AppManModel.SysCode" Width="1.5" PointX="5.75" PointY="2" />
-        <AssociationConnector Association="AppManModel.FK_MENUBASE_Systems" />
         <AssociationConnector Association="AppManModel.MenubaseMenubase" />
         <EntityTypeShape EntityType="AppManModel.AspNetUserRoles_View" Width="2.75" PointX="8.75" PointY="6.75" />
         <EntityTypeShape EntityType="AppManModel.AspNetUserRole" Width="1.5" PointX="6" PointY="9.25" />
@@ -20,20 +18,19 @@
         <EntityTypeShape EntityType="AppManModel.UserCodes_View" Width="1.5" PointX="0.75" PointY="0.75" />
         <EntityTypeShape EntityType="AppManModel.UserCode" Width="1.5" PointX="3" PointY="11.875" />
         <AssociationConnector Association="AppManModel.FK_UserCodes_AspNetUsers" />
-        <EntityTypeShape EntityType="AppManModel.MenubaseAccess" Width="1.75" PointX="12.5" PointY="1.125" />
-        <AssociationConnector Association="AppManModel.MenubaseAccessMenubaseAccess" />
         <EntityTypeShape EntityType="AppManModel.UserInfo" Width="1.5" PointX="3" PointY="15.75" />
         <AssociationConnector Association="AppManModel.FK_UserInfos_AspNetUsers" />
         <EntityTypeShape EntityType="AppManModel.ErrorLog" Width="1.5" PointX="11.375" PointY="9.75" />
         <EntityTypeShape EntityType="AppManModel.AspNetUsers_View" Width="1.5" PointX="8.375" PointY="9.75" />
-        <EntityTypeShape EntityType="AppManModel.Accessfile" Width="1.5" PointX="10.25" PointY="1.25" />
-        <AssociationConnector Association="AppManModel.FK_Accessfile_Menubase1" />
-        <AssociationConnector Association="AppManModel.FK_MenubaseAccess_Accessfile" />
-        <EntityTypeShape EntityType="AppManModel.AcctForm" Width="1.5" PointX="5.375" PointY="12.75" />
         <EntityTypeShape EntityType="AppManModel.CodeMast" Width="1.5" PointX="10.375" PointY="13" />
         <EntityTypeShape EntityType="AppManModel.Codextn" Width="1.5" PointX="12.625" PointY="13.125" />
         <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
-        <EntityTypeShape EntityType="AppManModel.MenuAction" Width="1.5" PointX="10.25" PointY="18" />
+        <EntityTypeShape EntityType="AppManModel.MenuAccess" Width="1.5" PointX="10.25" PointY="18.125" />
+        <EntityTypeShape EntityType="AppManModel.MenuAccessAction" Width="1.5" PointX="14.5" PointY="9.375" />
+        <EntityTypeShape EntityType="AppManModel.MenuAction" Width="1.5" PointX="10.25" PointY="2.625" />
+        <AssociationConnector Association="AppManModel.FK_MenuAccess_Menubase" />
+        <AssociationConnector Association="AppManModel.FK_MenuActionAccess_MenuAccess" />
+        <AssociationConnector Association="AppManModel.FK_MenuActionAccess_MenuActionAccess" />
         <AssociationConnector Association="AppManModel.FK_MenuActions_MenuActions" />
         </Diagram>
     </edmx:Diagrams>

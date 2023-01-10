@@ -27,7 +27,6 @@ namespace iLgs.Models
         }
     
         public virtual DbSet<Menubase> Menubases { get; set; }
-        public virtual DbSet<SysCode> SysCodes { get; set; }
         public virtual DbSet<AspNetUserRoles_View> AspNetUserRoles_View { get; set; }
         public virtual DbSet<AspNetUserRole> AspNetUserRoles { get; set; }
         public virtual DbSet<AspNetRole> AspNetRoles { get; set; }
@@ -35,14 +34,13 @@ namespace iLgs.Models
         public virtual DbSet<UserProfile> UserProfiles { get; set; }
         public virtual DbSet<UserCodes_View> UserCodes_View { get; set; }
         public virtual DbSet<UserCode> UserCodes { get; set; }
-        public virtual DbSet<MenubaseAccess> MenubaseAccesses { get; set; }
         public virtual DbSet<UserInfo> UserInfos { get; set; }
         public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
         public virtual DbSet<AspNetUsers_View> AspNetUsers_View { get; set; }
-        public virtual DbSet<Accessfile> Accessfiles { get; set; }
-        public virtual DbSet<AcctForm> AcctForms { get; set; }
         public virtual DbSet<CodeMast> CodeMasts { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
+        public virtual DbSet<MenuAccess> MenuAccesses { get; set; }
+        public virtual DbSet<MenuAccessAction> MenuAccessActions { get; set; }
         public virtual DbSet<MenuAction> MenuActions { get; set; }
     }
 }
