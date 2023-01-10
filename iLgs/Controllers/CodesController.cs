@@ -8,11 +8,12 @@ using System.Web;
 using System.Web.Mvc;
 using System.Data.Entity;
 using iLgs.Utilities;
-
+using System.Threading.Tasks;
+using Microsoft.AspNet.Identity;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("Codes")]
+    [AppAuthorize("CODES")]
     public class CodesController : Controller
     {
         private AppManEntities db = new AppManEntities();
@@ -29,10 +30,20 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult CodeMastCreate([DataSourceRequest] DataSourceRequest request, CodeMast model)
+        public async Task<ActionResult> CodeMastCreate([DataSourceRequest] DataSourceRequest request, CodeMast model)
         {
             try
             {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "ADD")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
                 if (model != null && ModelState.IsValid)
                 {
                     model.Id = Guid.NewGuid();
@@ -57,14 +68,24 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult CodeMastUpdate([DataSourceRequest] DataSourceRequest request, CodeMast model)
+        public async Task<ActionResult> CodeMastUpdate([DataSourceRequest] DataSourceRequest request, CodeMast model)
         {
             try
             {
-                if (ModelState.IsValid)
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
                 {
-                    
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "EDIT")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+                if (ModelState.IsValid)
+                {                    
                     var entity = db.CodeMasts.Find(model.Id);
+
                     if (entity != null)
                     {
                         model.UpdatedBy = User.Identity.Name;
@@ -97,18 +118,31 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult CodeMastDestroy([DataSourceRequest]DataSourceRequest request, CodeMast model)
+        public async Task<ActionResult> CodeMastDestroy([DataSourceRequest]DataSourceRequest request, CodeMast model)
         {
             try
-            {                
-                // Attach the entity
-                db.CodeMasts.Attach(model);
-                // Delete the entity
-                db.CodeMasts.Remove(model);
-                // Or use DeleteObject if using a previous versoin of Entity Framework
-                // Delete the entity in the database
-                //db.Entry(model).State = System.Data.EntityState.Deleted;
-                db.SaveChanges();                
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "DELETE")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+                if (ModelState.IsValid)
+                {
+                    // Attach the entity
+                    db.CodeMasts.Attach(model);
+                    // Delete the entity
+                    db.CodeMasts.Remove(model);
+                    // Or use DeleteObject if using a previous versoin of Entity Framework
+                    // Delete the entity in the database
+                    //db.Entry(model).State = System.Data.EntityState.Deleted;
+                    db.SaveChanges();
+                }
             }
             catch (Exception e)
             {
@@ -151,10 +185,20 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult CodextnCreate([DataSourceRequest] DataSourceRequest request, Codextn model)
+        public async Task<ActionResult> CodextnCreate([DataSourceRequest] DataSourceRequest request, Codextn model)
         {
             try
             {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "ADD")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
                 if (model != null && ModelState.IsValid)
                 {
                     model.Id = Guid.NewGuid();
@@ -179,14 +223,24 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult CodextnUpdate([DataSourceRequest] DataSourceRequest request, Codextn model)
+        public async Task<ActionResult> CodextnUpdate([DataSourceRequest] DataSourceRequest request, Codextn model)
         {
             try
             {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "EDIT")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
                 if (ModelState.IsValid)
                 {
-
                     var entity = db.Codextns.Find(model.Id);
+
                     if (entity != null)
                     {
                         model.UpdatedBy = User.Identity.Name;
@@ -217,10 +271,20 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult CodextnDestroy([DataSourceRequest]DataSourceRequest request, Codextn model)
+        public async Task<ActionResult> CodextnDestroy([DataSourceRequest]DataSourceRequest request, Codextn model)
         {
             try
             {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "DELETE")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
                 if (ModelState.IsValid)
                 {
                     // Attach the entity

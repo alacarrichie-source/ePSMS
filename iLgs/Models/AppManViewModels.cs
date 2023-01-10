@@ -121,7 +121,7 @@ namespace iLgs.Models
         public string ParentIdAccess { get; set; }
         public string UserId { get; set; }
 
-        public Accessfile Accessfile { get; set; }
+        //public Accessfile Accessfile { get; set; }
         public ICollection<MenubaseAccess> SubMenu { get; set; }
         public MenubaseAccess MainMenu { get; set; }
 
@@ -134,6 +134,7 @@ namespace iLgs.Models
     public class Access
     {
         public bool IsAdmin { get; set; }
+        public bool IsAllowed { get; set; }
         public List<MenuAccessAction> Actions { get; set; }
 
     }    
@@ -161,34 +162,34 @@ namespace iLgs.Models
     }
 
 
-    [MetadataType(typeof(AccessfileMetadata))]
-    public partial class Accessfile
-    {
+    //[MetadataType(typeof(AccessfileMetadata))]
+    //public partial class Accessfile
+    //{
 
-    }
+    //}
 
-    public class AccessfileMetadata
-    {
-        public System.Guid RecId { get; set; }
-        public string SysCode { get; set; }
-        public string UserId { get; set; }
-        public Nullable<int> ChildId { get; set; }
-        public bool AllowAdd { get; set; }
-        public bool AllowEdit { get; set; }
-        public bool AllowDelete { get; set; }
-        public bool AllowPost { get; set; }
-        public bool AllowUnpost { get; set; }
-        public string InsertedBy { get; set; }
-        public Nullable<System.DateTime> InsertedDt { get; set; }
-        public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }
+    //public class AccessfileMetadata
+    //{
+    //    public System.Guid RecId { get; set; }
+    //    public string SysCode { get; set; }
+    //    public string UserId { get; set; }
+    //    public Nullable<int> ChildId { get; set; }
+    //    public bool AllowAdd { get; set; }
+    //    public bool AllowEdit { get; set; }
+    //    public bool AllowDelete { get; set; }
+    //    public bool AllowPost { get; set; }
+    //    public bool AllowUnpost { get; set; }
+    //    public string InsertedBy { get; set; }
+    //    public Nullable<System.DateTime> InsertedDt { get; set; }
+    //    public string UpdatedBy { get; set; }
+    //    public Nullable<System.DateTime> UpdatedDt { get; set; }
 
-        //public virtual Menubase Menubase { get; set; }
-        //public virtual ICollection<MenubaseAccess> MenubaseAccesses { get; set; }
+    //    //public virtual Menubase Menubase { get; set; }
+    //    //public virtual ICollection<MenubaseAccess> MenubaseAccesses { get; set; }
 
-        public Menubase Menubase { get; set; }
-        public ICollection<MenubaseAccess> MenubaseAccesses { get; set; }
-    }
+    //    public Menubase Menubase { get; set; }
+    //    public ICollection<MenubaseAccess> MenubaseAccesses { get; set; }
+    //}
 
     [MetadataType(typeof(AspNetRoleMetadata))]
     public partial class AspNetRole
@@ -465,17 +466,17 @@ namespace iLgs.Models
         public AspNetUser AspNetUser { get; set; }
     }
 
-    [MetadataType(typeof(SysCode))]
-    public partial class SysCode
-    {
-        public string SysCodeOld { get; set; }
-        internal sealed class Metadata
-        {
-            [Display(Name = "System Code")]
-            public string SysCode1 { get; set; }
-            [Display(Name = "Description")]
-            public string SysDescription { get; set; }
-        }
+    //[MetadataType(typeof(SysCode))]
+    //public partial class SysCode
+    //{
+    //    public string SysCodeOld { get; set; }
+    //    internal sealed class Metadata
+    //    {
+    //        [Display(Name = "System Code")]
+    //        public string SysCode1 { get; set; }
+    //        [Display(Name = "Description")]
+    //        public string SysDescription { get; set; }
+    //    }
 
-    }
+    //}
 }

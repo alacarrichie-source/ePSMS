@@ -30,8 +30,8 @@ textarea {
 
 footer {
     
-    position: relative;
-  
+    position: absolute!important;
+    clear:both;
     bottom: 0;
     text-align: left;
     

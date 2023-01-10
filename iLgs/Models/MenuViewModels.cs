@@ -21,10 +21,10 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         public string MenuId { get; set; }
 
-        public virtual SysCode SysCode1 { get; set; }
+        //public virtual SysCode SysCode1 { get; set; }
         public virtual ICollection<Menubase> SubMenu { get; set; }
         public virtual Menubase MainMenu { get; set; }
-        public virtual ICollection<Accessfile> Accessfiles { get; set; }
+        //public virtual ICollection<Accessfile> Accessfiles { get; set; }
         public bool IsAllowed { get; set; }
 
     }
@@ -50,7 +50,7 @@ namespace iLgs.Models
         public string ParentIdAccess { get; set; }
         public string UserId { get; set; }
 
-        public virtual Accessfile Accessfile { get; set; }
+        //public virtual Accessfile Accessfile { get; set; }
         public virtual ICollection<MenubaseAccess> SubMenu { get; set; }
         public virtual MenubaseAccess MainMenu { get; set; }
 

@@ -179,7 +179,7 @@ namespace iLgs.Controllers
         {
             if (await GetUserInRole(userId, "admin") || await GetUserInRole(userId, sysAdmin))
             {
-                return new Access() { IsAdmin = true };
+                return new Access() { IsAdmin = true, IsAllowed = true, Actions = new List<MenuAccessAction>() };
             }
             else
             {

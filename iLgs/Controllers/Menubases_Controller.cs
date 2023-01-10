@@ -224,6 +224,7 @@ namespace iLgs.Controllers
                 .Where(w => w.Menubase.SysCode == sysCode && w.MenuId == menuId && w.UserId == userId && w.IsAllowed == true)
                 .Select(s => new Access { 
                     IsAdmin = false,
+                    IsAllowed = s.IsAllowed == true ? true : false,
                     Actions = s.MenuAccessActions.Where(w => w.IsAllowed == true).ToList()
                 })
                 .SingleOrDefault();
