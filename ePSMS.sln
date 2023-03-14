@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppMan", "iLgs\AppMan.csproj", "{856B3712-4F14-406C-B6E6-2D46520232C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ePSMS", "iLgs\ePSMS.csproj", "{856B3712-4F14-406C-B6E6-2D46520232C6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{98C09CC8-5AE1-4DAE-BA07-6ED5CB48210B}"
 	ProjectSection(SolutionItems) = preProject

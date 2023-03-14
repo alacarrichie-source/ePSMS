@@ -326,7 +326,7 @@
     </Compile>
     <Compile Include="Services\GmailEmailService.cs" />
     <Compile Include="Startup.cs" />
-    <Compile Include="Utilities\iLGSAuthorizeAttribute.cs" />
+    <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
     <Compile Include="Utilities\JsonMvcNetSerializer.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -834,7 +834,7 @@
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
-    <None Include="Properties\PublishProfiles\ilgs tag %28local%29.pubxml" />
+    <None Include="Properties\PublishProfiles\AppMan %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs manila.pubxml" />

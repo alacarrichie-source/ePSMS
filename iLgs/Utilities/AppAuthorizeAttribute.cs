@@ -18,7 +18,7 @@ namespace iLgs.Utilities
 {
     public class AppAuthorizeAttribute : AuthorizeAttribute
     {
-        AppManEntities context = new AppManEntities(); 
+        AppManEntities context = new AppManEntities();
         private readonly string[] allowedController;
         string sysCode = "APPMAN";
         string[] roles = { "ADMIN", "APPMAN_ADMIN" };
@@ -36,12 +36,12 @@ namespace iLgs.Utilities
 
         public AppAuthorizeAttribute(params string[] controllerName)
         {
-            this.allowedController = controllerName;            
-            
+            this.allowedController = controllerName;
+
             client = new HttpClient();
             client.BaseAddress = new Uri(iLgsApiUrl);
             client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));            
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
 
@@ -57,11 +57,7 @@ namespace iLgs.Utilities
                 return false;
             }
 
-            
-            //var admin = context.AspNetUserRoles_View.Where(p => p.UserId == userId && (p.RoleId.ToUpper() == "ADMIN" || p.RoleId.ToUpper() == "APPMAN_ADMIN"));
-            //HttpResponseMessage responseMessage = await client.GetAsync("roles_/" + id + "/" + role).ConfigureAwait(false);
-            
-            HttpResponseMessage responseMessage = client.GetAsync("roles_/" + userId ).Result;
+            HttpResponseMessage responseMessage = client.GetAsync("roles_/" + userId).Result;
             if (responseMessage.IsSuccessStatusCode)
             {
                 var responseData = responseMessage.Content.ReadAsStringAsync().Result;
@@ -75,7 +71,7 @@ namespace iLgs.Utilities
                         admin = true;
                         break;
                     }
-                }                
+                }
             }
 
 
@@ -92,12 +88,12 @@ namespace iLgs.Utilities
                         var menuAccess = JsonConvert.DeserializeObject<MenuAccess>(responseData);
                         authorize = menuAccess != null;
                         if (authorize)
-                        {                            
+                        {
                             break;
                         }
                     }
                 }
-                
+
             }
             return authorize;
         }
@@ -106,7 +102,5 @@ namespace iLgs.Utilities
         {
             filterContext.Result = new HttpUnauthorizedResult();
         }
-
-    }    
-    
+    }
 }

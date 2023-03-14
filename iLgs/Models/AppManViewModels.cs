@@ -135,9 +135,32 @@ namespace iLgs.Models
     {
         public bool IsAdmin { get; set; }
         public bool IsAllowed { get; set; }
-        public List<MenuAccessAction> Actions { get; set; }
+        public bool AllowAdd
+        {
+            get
+            {
+                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "ADD");
+            }
+        }
+        public bool AllowEdit
+        {
+            get
+            {
+                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "EDIT");
+            }
+        }
 
+        public bool AllowDelete
+        {
+            get
+            {
+                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "DELETE");
+            }
+        }
+
+        public List<MenuAccessAction> Actions { get; set; }
     }    
+
     public class CopyAccessVM
     {
         [Required]
