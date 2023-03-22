@@ -11,11 +11,10 @@ namespace iLgs.Controllers
     {
         private AppManEntities db = new AppManEntities();
 
-        public string NextPoNo()
+        public string NextPoNo(DateTime poDate)
         {
-            DateTime currentDate = System.DateTime.Now;
-            string yy = currentDate.Year.ToString().Trim();
-            string mm = currentDate.Month.ToString().Trim();
+            string yy = poDate.Year.ToString().Trim();
+            string mm = poDate.Month.ToString().Trim();
             yy = yy.Substring(2, 2);
             mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
             string keyName = yy + mm;

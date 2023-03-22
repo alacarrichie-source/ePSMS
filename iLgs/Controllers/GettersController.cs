@@ -121,6 +121,19 @@ namespace iLgs.Controllers
 
             return Json(retModel, JsonRequestBehavior.AllowGet);
         }
+
+        public JsonResult GetSupplier(string text)
+        {
+
+            var model = db.Suppliers.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {                
+                model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text) || p.BusinessName.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Name = c.Name, Address = c.Address, TIN = c.TIN }), JsonRequestBehavior.AllowGet);            
+        }
     }
 
     public class GetSysCodeVM

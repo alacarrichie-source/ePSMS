@@ -22,9 +22,12 @@ namespace iLgs.Models
         public string PoModeDesc { get; set; }
 
         public bool IsIssued { get; set; }
-        public DataSourceRequest request { get; set; }
+        public DataSourceRequest Request { get; set; }
 
         public System.Guid Id { get; set; }
+
+        [Display(Name = "Supplier")]
+        [Required]
         public Nullable<System.Guid> SupplierId { get; set; }
 
         [Display(Name = "P.O. No.")]
@@ -32,15 +35,18 @@ namespace iLgs.Models
 
         [Display(Name = "Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [Required]
         public Nullable<System.DateTime> PoDate { get; set; }
 
         [Display(Name = "Mode of Procurement")]
+        [Required]
         public string PoMode { get; set; }
 
         [Display(Name = "P.R. No./s")]
         public string PrNos { get; set; }
 
         [Display(Name = "Place of Delivery")]
+        [Required]
         public string DeliveryPlace { get; set; }
 
         [Display(Name = "Date of Delivery")]
@@ -48,9 +54,11 @@ namespace iLgs.Models
         public Nullable<System.DateTime> DeliveryDate { get; set; }
 
         [Display(Name = "Delivery Term")]
+        [Required]
         public string TermDelivery { get; set; }
 
         [Display(Name = "Payment Term")]
+        [Required]
         public string TermPayment { get; set; }
 
         [Display(Name = "Signed by Supplier")]
@@ -58,6 +66,7 @@ namespace iLgs.Models
 
         [Display(Name = "Date Signed")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [Required]
         public Nullable<System.DateTime> SignedBySuppDate { get; set; }
 
         [Display(Name = "Authorized Official")]
@@ -70,10 +79,12 @@ namespace iLgs.Models
         public string ResoNo { get; set; }
 
         [Display(Name = "Certified Correct")]
+        [Required]
         public string CertifiedCorrectBy { get; set; }
 
         [Display(Name = "Date Certified")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [Required]
         public Nullable<System.DateTime> CertifiedCorrectDate { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
@@ -94,9 +105,18 @@ namespace iLgs.Models
 
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
+
+        [Display(Name = "Stock/Property No.")]
+        [Required]
         public Nullable<System.Guid> PsCodeId { get; set; }
+
+        [Required]
         public Nullable<decimal> Qty { get; set; }
+
+        [Required]
         public Nullable<decimal> UnitCost { get; set; }
+
+        [Required]
         public Nullable<decimal> Amount { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }

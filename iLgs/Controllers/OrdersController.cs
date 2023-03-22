@@ -271,7 +271,7 @@ namespace iLgs.Controllers
                     if (entity == null)
                     {
                         model.Id = Guid.NewGuid();
-                        model.PoNo = new SequenceController().NextPoNo();
+                        model.PoNo = NextPoNo((DateTime)model.PoDate);
                         model.InsertedBy = user;
                         model.InsertedDt = date;
                         model.UpdatedBy = user;
@@ -342,6 +342,29 @@ namespace iLgs.Controllers
             return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
         }
 
+        public string NextPoNo(DateTime poDate)
+        {
+            string yyyy = poDate.Year.ToString().Trim();
+            string mm = poDate.Month.ToString().Trim();
+            
+            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+            
+            string keyName = yyyy + "-" + mm;
+            // yyyy-mm-9999
+            // 123456789012
+
+            var order = db.Orders.Where(w => w.PoNo.Substring(0, 7) == keyName).OrderByDescending(o => o.PoNo).FirstOrDefault();
+            if (order == null)
+            {
+                return keyName  + "-" + "0001";
+            }
+            else
+            {
+                var sequence = int.Parse(order.PoNo.Substring(8, 4) + 1).ToString();
+                return keyName + "-" + sequence.PadLeft(4, '0');
+            }
+        }
+
         public ActionResult _OrderItemRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
         {
 
@@ -355,7 +378,8 @@ namespace iLgs.Controllers
                     PsDescription =  s.PsCode.ItemName,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
-                    Amount = s.Amount
+                    Amount = s.Amount,
+                    InsertedDt = s.InsertedDt
                 });
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };

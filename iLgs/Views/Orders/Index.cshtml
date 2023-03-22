@@ -150,8 +150,16 @@
 </div>*@
 
 <style>
+    .k-tabstrip-content.k-state-active, .k-tabstrip > .k-content.k-state-active {
+        overflow-x: hidden;
+    }
+
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
-        width: auto;
+        overflow-x: hidden;
+    }
+
+    .k-prompt-container, .k-window-content {
+        overflow-x: hidden;
     }
 
     .k-grid .k-grid-search {
@@ -211,12 +219,7 @@
     var selectedGrid = null;
     var selectedId = null;
     var selecteItemId = null;
-    var codeHdg = null;
-    var hdg1 = null;
-    var hdg2 = null;
-    var hdg3 = null;
-    var hdg4 = null;
-    var hdg5 = null;
+    //var poNo = null;
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
@@ -282,7 +285,7 @@
     function Entry(mode, poNo) {
         var myTitle = (mode == "A") ? "Purchase Order - ADD" : "Purchase Order - EDIT";
         var width = "90%";
-        var height = "90%";
+        var height = "70%";
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -342,59 +345,77 @@
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
         selectedGrid.select(row);
-        selectedItem = selectedGrid.dataItem(selectedGrid.select()).Id;
-        var ttaxNo = selectedGrid.dataItem(selectedGrid.select()).TtaxNo;
-        Entry("E", ttaxNo);
+        selectedId = selectedGrid.dataItem(selectedGrid.select()).Id;
+        var poNo = selectedGrid.dataItem(selectedGrid.select()).PoNo;
+        Entry("E", poNo);
+    }
+
+    function DataSupplierId() {
+        var text = $("#SupplierId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#SupplierId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            text: text
+        };
+    }
+
+    function onSelectSupplier(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#SupplierName").val(dataItem.Name).trigger("change");
+        $("#SupplierAddress").val(dataItem.Address).trigger("change");
+        $("#SupplierTin").val(dataItem.TIN).trigger("change");
     }
 
     // Grid Item
 
-    function ItemData() {
-        return {
-            mastId: selectedId
-        };
-    }
+    //function ItemData() {
+    //    return {
+    //        mastId: selectedId
+    //    };
+    //}
 
-    function onChangeGridItems(e) {
-        var selectedData = this.dataItem(this.select());
-        selecteItemId = selectedData.Id;
-    }
+    //function onChangeGridItems(e) {
+    //    var selectedData = this.dataItem(this.select());
+    //    selecteItemId = selectedData.Id;
+    //}
 
-    function onDataBoundGridItems(e) {
-        if (selecteItemId) {
-            var dataItem = this.dataSource.get(selecteItemId);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-        }
-    }
+    //function onDataBoundGridItems(e) {
+    //    if (selecteItemId) {
+    //        var dataItem = this.dataSource.get(selecteItemId);
+    //        if (dataItem) {
+    //            this.select($('[data-uid=' + dataItem.uid + ']'));
+    //        }
+    //    } else {
+    //        var row = e.sender.tbody.find("tr:first");
+    //        this.select(row);
+    //    }
+    //}
 
-    function onEditGridItems(e) {
-        e.preventDefault();
+    //function onEditGridItems(e) {
+    //    e.preventDefault();
 
-        e.model.set("CodeHdg", codeHdg);
-        e.model.set("Hdg1Desc", hdg1);
-        e.model.set("Hdg2Desc", hdg2);
-        e.model.set("Hdg3Desc", hdg3);
-        e.model.set("Hdg4Desc", hdg4);
-        e.model.set("Hdg5Desc", hdg5);
+    //    e.model.set("CodeHdg", codeHdg);
+    //    e.model.set("Hdg1Desc", hdg1);
+    //    e.model.set("Hdg2Desc", hdg2);
+    //    e.model.set("Hdg3Desc", hdg3);
+    //    e.model.set("Hdg4Desc", hdg4);
+    //    e.model.set("Hdg5Desc", hdg5);
 
-        selectedGrid = e.sender;
-        if (e.model.isNew()) {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-            selecteItemId = null;
-            e.model.set("MastId", selectedId);
-        } else {
-            selecteItemId = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selecteItemId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            //$("#Code").attr("readonly", "readonly");
-        }
-    }
+    //    selectedGrid = e.sender;
+    //    if (e.model.isNew()) {
+    //        var row = e.sender.tbody.find("tr:first");
+    //        this.select(row);
+    //        selecteItemId = null;
+    //        e.model.set("MastId", selectedId);
+    //    } else {
+    //        selecteItemId = e.model.get("Id");
+    //        var rowitem = selectedGrid.dataSource.get(selecteItemId);
+    //        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+    //        //$("#Code").attr("readonly", "readonly");
+    //    }
+    //}
 
     // ORDER ADD ITEMS
 
@@ -422,7 +443,6 @@
                         var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
                         errors.append(renderedTemplate);
                     });
-
                 });
             }
         }
@@ -430,8 +450,25 @@
 
     function DataGridItem() {
         return {
-            orderId: selectedItem
+            orderId: selectedId
         };
+    }
+
+    function onChangeGridItems(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedItem = selectedData.Id;
+    }
+
+    function onDataBoundGridItems(e) {
+        if (selectedItem) {
+            var dataItem = this.dataSource.get(selectedItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
     }
 
     function onEditGridItems(e) {
@@ -447,14 +484,14 @@
         else {
             SaveGridItems(e, false);
         }
-    }
+    }    
 
     var gridItemMode = null;
     function SaveGridItems(e, closeWindow) {
         var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
         $.ajax({
             type: "POST",
-            url: '@Url.Action("_orderSave", "Orders")',
+            url: '@Url.Action("_OrderSave", "Orders")',
             data: $("#form").serialize(),
             beforeSend: function () {
                 window.kendo.ui.progress($("#form"), true);
@@ -495,7 +532,7 @@
                             //$("#FMV").data("kendoNumericTextBox").enable(true);
                             //$("#ZonalValue").data("kendoNumericTextBox").enable(true);
 
-                            selectedTtaxItem = e.model.get("Id");
+                            selectedItem = e.model.get("Id");
                             var rowitem = selectedGrid.dataSource.get(selectedTtaxItem);
                             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
                         }
@@ -511,36 +548,8 @@
         }).always(function () {
             window.kendo.ui.progress($("#form"), false);
         });
-    }
-
-    function onChangeGridItems(e) {
-        var selectedData = this.dataItem(this.select());
-        selectedTtaxItem = selectedData.Id;
-    }
-
-    function onDataBoundGridItems(e) {
-        if (selectedTtaxItem) {
-            var dataItem = this.dataSource.get(selectedTtaxItem);
-            if (dataItem) {
-                this.select($('[data-uid=' + dataItem.uid + ']'));
-            }
-        } else {
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-        }
-    }
-
-    function onSelectType(e) {
-        var dataItem = this.dataItem(e.item);
-        var ttype = dataItem.Code;
-        if (ttype == 'EXTRA JUDICIAL') {
-            $("#PercentWaived").data("kendoNumericTextBox").value(50);
-        } else {
-            $("#PercentWaived").data("kendoNumericTextBox").value(0);
-        }
-        $("#PercentWaived").data("kendoNumericTextBox").trigger("change");
-    }
-
+    }    
+    
 </script>
 
 
