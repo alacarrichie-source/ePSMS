@@ -1,0 +1,264 @@
+﻿
+<style>
+    .faas-photo {
+        display: inline-block;
+        width: 150px;
+        height: 150px;
+        border-radius: 1%;
+        background-size: 150px 150px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 80px;
+        box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+        margin-left: 5px;
+    }
+
+    .file-name {
+        display: inline-block;
+        width: 150px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 32px;
+        padding-left: 3px;
+    }
+</style>
+
+@(Html.Kendo().Grid<iLgs.Models.Upload>()
+    .Name("gridImages")
+    .Columns(col =>
+    {
+        col.Bound(p => p.Description).Width(30)
+                .ClientTemplate(
+                @"<div class='faas-photo'
+                   style='background-image: url(" + @Url.Content("//ws2016-cal/shared/#:data.FileName#") + ");'></div></div><div class='file-name'>#: Description #</div>")
+                    .Width(250);
+
+        col.Bound(p => p.InsertedBy).Width(50);
+        col.Bound(p => p.InsertedDt).Width(50).Format("{0:MM/dd/yyyy}");        
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+            //command.Custom("Preview").Click("onClick_Preview");            
+        }).Width(100);
+
+    })
+    .ToolBar(toolbar =>
+        {
+            toolbar.Template(@<text>
+                @(Html.Kendo().Button().Name("btnUpload").Content("Upload").Events(e => e.Click("onClickUpload")))
+            </text>);
+        })
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UploadTemplate").Window(w => w.Width(500).Title("Upload")))
+    .Pageable(pageable => pageable.Refresh(true).PageSizes(true).ButtonCount(5))
+    .Sortable(sortable => sortable
+        .AllowUnsort(true)
+        .SortMode(GridSortMode.MultipleColumn))
+    .Filterable()
+    .Scrollable(s => s.Height(400))
+    .NoRecords()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Events(events => events.Error("GridError"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        })
+            .Read(read => read.Action("UploadRead", "Uploads"))
+            .Update(update => update.Action("UploadUpdate", "Uploads"))
+            .Destroy(destroy => destroy.Action("UploadDestroy", "Uploads"))            
+    )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .AutoBind(true)
+    .Events(events => events.Edit("onEditGridImages")
+        .DataBound("onDataBoundGridImages")
+        )
+)
+
+<div id="windowcontainer"></div>
+
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    <li>
+        #=field#
+        <ul>
+            # for (var i = 0; i < messages.length; ++i) {#
+            <li>#= messages[i] #</li>
+            # } #
+        </ul>
+    </li>
+    # } #
+</script>
+
+
+<script type="text/javascript">
+    var selectedGrid;
+    var selectedGridImagesItem;
+
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function GridError(args) {
+        if (args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+
+        }
+    }
+
+    function onEditGridImages(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("FaasMastId", '@ViewData["FaasMastId"]');
+        } else {
+            selectedGridImagesItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridImagesItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridImages(e) {
+        if (selectedGridImagesItem) {
+            var dataItem = this.dataSource.get(selectedGridImagesItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+
+        @*var trs = this.tbody.find('tr').each(
+           function () {
+               var item = this.dataItem($(this));
+
+               if ('@ViewBag.isAllowed' == 'False') {
+                   $('.k-grid-Upload', $("#gridImages")).remove();
+               }
+           }
+          );*@
+    }
+    function onDeleteGridImages(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+
+    function onClickUpload(e) {
+
+        var myUrl = '@Url.Action("_Upload", "Uploads")';
+        var myTitle = "Upload Images/Documents";
+        var width = 1050;
+        var height = 650;
+
+
+        $("#windowcontainer").append("<div id='windowUpload'></div>");
+        var mywindow = $("#windowUpload")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+
+    }
+
+    @*function UploadPara(e) {
+        e.data = { FaasMastId: '@ViewData["FaasMastId"]', Description: $("#Description").val(), Fix: $("#Fix").is(':checked'), PrintInFaas: $("#PrintInFaas").is(':checked'), PrintInTaxDec: $("#PrintInTaxDec").is(':checked') }
+    }*@
+
+    function UploadPara(e) {
+        e.data = { Description: $("#Description").val() }
+    }
+
+    function onClick_Preview(e) {
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        selectedGridImagesItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("Preview", "Uploads")?id=' + selectedGridImagesItem;
+        var myTitle = "Preview";
+        var width = 1350;
+        var height = 650;
+
+
+        $("#windowcontainer").append("<div id='windowPreview'></div>");
+        var mywindow = $("#windowPreview")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function onUploadSuccess(e)
+    {
+        $('#gridImages').data('kendoGrid').dataSource.read();
+    }
+
+</script>

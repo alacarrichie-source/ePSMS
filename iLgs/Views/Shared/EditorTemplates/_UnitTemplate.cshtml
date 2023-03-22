@@ -1,0 +1,16 @@
+﻿@(Html.Kendo().ComboBox()
+    .Name("UnitMeas")
+    .DataTextField("Code")
+    .DataValueField("Code")
+    .Filter("startswith")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("GetCodes", "Getters", new { mastCode = "UNIT", text = "" });
+        })
+        .ServerFiltering(false);
+    })
+)
+
+

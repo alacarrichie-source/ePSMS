@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="5e70c6830d604fe299e241ab0c429177" Name="Diagram1" ZoomLevel="72">
+      <Diagram DiagramId="5e70c6830d604fe299e241ab0c429177" Name="Menu" ZoomLevel="72">
         <EntityTypeShape EntityType="AppManModel.Menubase" Width="1.5" PointX="8" PointY="1" />
         <AssociationConnector Association="AppManModel.MenubaseMenubase" />
         <EntityTypeShape EntityType="AppManModel.AspNetUserRoles_View" Width="2.75" PointX="8.75" PointY="6.75" />
@@ -33,6 +33,22 @@
         <AssociationConnector Association="AppManModel.FK_MenuActionAccess_MenuActionAccess" />
         <AssociationConnector Association="AppManModel.FK_MenuActions_MenuActions" />
         </Diagram>
+      <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="74" >
+        <EntityTypeShape EntityType="AppManModel.PsCode" Width="1.5" PointX="0.75" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="7.875" PointY="2" />
+        <EntityTypeShape EntityType="AppManModel.RPSMIssued" Width="1.5" PointX="10.125" PointY="1.875" />
+        <EntityTypeShape EntityType="AppManModel.RPSMIssuedItem" Width="1.5" PointX="12.375" PointY="2.25" />
+        <EntityTypeShape EntityType="AppManModel.Supplier" Width="1.5" PointX="3.375" PointY="1.625" />
+        <AssociationConnector Association="AppManModel.FK_OrderItems_PsCodes" />
+        <AssociationConnector Association="AppManModel.FK_RPSMIssued_OrderItems" />
+        <AssociationConnector Association="AppManModel.FK_RPSMIssuedItems_RPSMIssued" />
+        <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="0.75" PointY="5.75" />
+        <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="3.375" PointY="7.75" />
+        <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="5.625" PointY="1.125" />
+        <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
+        <AssociationConnector Association="AppManModel.FK_Orders_Suppliers" />
+        <AssociationConnector Association="AppManModel.FK_RPSMIssued_Orders" />
+      </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

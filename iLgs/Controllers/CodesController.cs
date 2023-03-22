@@ -43,6 +43,14 @@ namespace iLgs.Controllers
                         ModelState.AddModelError("Access Error", "Access Denied!");
                     }
                 }
+                
+                if (ModelState.IsValid)
+                {
+                    if (db.CodeMasts.Any(a => a.Code == model.Code))
+                    {
+                        ModelState.AddModelError("Code", "Already Exists!");
+                    }
+                }
 
                 if (model != null && ModelState.IsValid)
                 {
@@ -199,6 +207,14 @@ namespace iLgs.Controllers
                     }
                 }
 
+                if (ModelState.IsValid)
+                {
+                    if (db.Codextns.Any(a => a.MastId == model.MastId && a.Code == model.Code))
+                    {
+                        ModelState.AddModelError("Code", "Already Exists!");
+                    }
+                }
+
                 if (model != null && ModelState.IsValid)
                 {
                     model.Id = Guid.NewGuid();
@@ -239,6 +255,14 @@ namespace iLgs.Controllers
 
                 if (ModelState.IsValid)
                 {
+                    if (db.Codextns.Any(a => a.MastId == model.MastId && a.Code == model.Code && a.Id != model.Id))
+                    {
+                        ModelState.AddModelError("Code", "Already Exists!");
+                    }
+                }
+
+                if (ModelState.IsValid)
+                {
                     var entity = db.Codextns.Find(model.Id);
 
                     if (entity != null)
@@ -246,6 +270,7 @@ namespace iLgs.Controllers
                         model.UpdatedBy = User.Identity.Name;
                         model.UpdatedDt = DateTime.Now;
 
+                        entity.Code = model.Code;
                         entity.Description = model.Description;
                         entity.Desc2 = model.Desc2;
                         entity.Desc3 = model.Desc3;

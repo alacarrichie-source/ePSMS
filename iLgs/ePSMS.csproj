@@ -203,16 +203,21 @@
     <Compile Include="Controllers\CodesController.cs" />
     <Compile Include="Controllers\GettersController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\ItemsController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\MenuAccessActionController.cs" />
     <Compile Include="Controllers\MenuActionController.cs" />
     <Compile Include="Controllers\Menubases_Controller.cs" />
     <Compile Include="Controllers\MenuController.cs" />
+    <Compile Include="Controllers\OrdersController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\RolesController.cs" />
     <Compile Include="Controllers\Roles_Controller.cs" />
+    <Compile Include="Controllers\SequenceController.cs" />
+    <Compile Include="Controllers\SuppliersController.cs" />
     <Compile Include="Controllers\SysCodesController.cs" />
     <Compile Include="Controllers\SysCodes_Controller.cs" />
+    <Compile Include="Controllers\UploadsController.cs" />
     <Compile Include="Controllers\UserMenu_Controller.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Controllers\Users_Controller.cs" />
@@ -284,6 +289,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AppManModel.edmx</DependentUpon>
     </Compile>
+    <Compile Include="Models\ItemsViewModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\MenuAccess.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -298,7 +304,32 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\MenuViewModels.cs" />
+    <Compile Include="Models\Order.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\OrderItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\OrderViewModels.cs" />
+    <Compile Include="Models\PsCode.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\ReportViewModels.cs" />
+    <Compile Include="Models\RPSMIssued.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RPSMIssuedItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Sequence.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Supplier.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Upload.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\UserCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -3123,12 +3154,24 @@
     <Content Include="Views\Codes\Index.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_CodeMastTemplate.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_CodextnTemplate.cshtml" />
+    <Content Include="Views\Items\Index.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_PsTypeTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_UnitTemplate.cshtml" />
+    <Content Include="Views\Orders\Index.cshtml" />
+    <Content Include="Views\Orders\EditorTemplates\_OrderTemplate.cshtml" />
+    <Content Include="Views\Uploads\Index.cshtml" />
+    <Content Include="Views\Uploads\EditorTemplates\_UploadTemplate.cshtml" />
+    <Content Include="Views\Uploads\_Upload.cshtml" />
+    <Content Include="Views\Orders\_OrderAdd.cshtml" />
+    <Content Include="Views\Suppliers\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Views\Getters\" />
+    <Folder Include="Views\Items\EditorTemplates\" />
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
+    <Folder Include="Views\Sequence\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Project_Readme.html" />

@@ -103,6 +103,24 @@ namespace iLgs.Controllers
 
             return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
         }
+
+        public JsonResult GetCodeList(string mastCode, bool addAll, string text)
+        {
+
+            var model = db.Codextns.Where(w => w.CodeMast.Code == mastCode).OrderBy(o => o.Code).AsQueryable();
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
+            }
+
+            var retModel = model.Select(c => new GetCodeListVM { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }).ToList();
+            if (addAll)
+            {
+                retModel.Insert(0, new GetCodeListVM { Code = "ALL", Description = "ALL", Desc2 = "", Desc3 = "" });
+            }
+
+            return Json(retModel, JsonRequestBehavior.AllowGet);
+        }
     }
 
     public class GetSysCodeVM
@@ -113,21 +131,26 @@ namespace iLgs.Controllers
 
     public class GetDepartmentVM
     {
-        public string Department { get; set; }
-        
+        public string Department { get; set; }        
     }
 
     public class GetUserNameVM
     {
         public string UserName { get; set; }
         public string NameFull { get; set; }
-
     }
 
     public class GetUserRoleVM
     {
         public string RoleId { get; set; }
         public string RoleName { get; set; }
+    }
 
+    public class GetCodeListVM
+    {
+        public string Code { get; set; }
+        public string Description { get; set; }
+        public string Desc2 { get; set; }
+        public string Desc3 { get; set; }
     }
 }

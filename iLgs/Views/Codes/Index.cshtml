@@ -128,7 +128,7 @@
             .Read(read => read.Action("CodextnRead", "Codes").Data("ItemData"))
             .Create(create => create.Action("CodextnCreate", "Codes").Data("ItemData"))
             .Update(update => update.Action("CodextnUpdate", "Codes"))
-            .Destroy(destroy => destroy.Action("CodextneDestroy", "Codes"))
+            .Destroy(destroy => destroy.Action("CodextnDestroy", "Codes"))
         )
         .Events(events => events
             .Change("onChangeGridItems")

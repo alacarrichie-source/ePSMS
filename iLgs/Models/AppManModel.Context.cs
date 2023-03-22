@@ -42,5 +42,13 @@ namespace iLgs.Models
         public virtual DbSet<MenuAccess> MenuAccesses { get; set; }
         public virtual DbSet<MenuAccessAction> MenuAccessActions { get; set; }
         public virtual DbSet<MenuAction> MenuActions { get; set; }
+        public virtual DbSet<PsCode> PsCodes { get; set; }
+        public virtual DbSet<OrderItem> OrderItems { get; set; }
+        public virtual DbSet<RPSMIssued> RPSMIssueds { get; set; }
+        public virtual DbSet<RPSMIssuedItem> RPSMIssuedItems { get; set; }
+        public virtual DbSet<Supplier> Suppliers { get; set; }
+        public virtual DbSet<Sequence> Sequences { get; set; }
+        public virtual DbSet<Upload> Uploads { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
     }
 }

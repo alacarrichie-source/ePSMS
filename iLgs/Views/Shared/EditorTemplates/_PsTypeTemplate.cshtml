@@ -1,0 +1,15 @@
+﻿@(Html.Kendo().ComboBox()
+    .Name("PsType")
+    .DataTextField("Code")
+    .DataValueField("Code")
+    .Filter("startswith")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("GetCodes", "Getters", new { mastCode = "PS_CODES", text = "" });
+        })
+        .ServerFiltering(false);
+    })
+)
+

@@ -1,0 +1,597 @@
+﻿@model iLgs.Models.OrderVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(m => m.Id)
+    
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.PoDate, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+                @(Html.Kendo().DatePickerFor(m => m.PoDate)
+        //.Events(e => e.Change("onChangeDate"))
+                )
+                @Html.ValidationMessageFor(m => m.PoDate)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.PoMode, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+                @(Html.Kendo().DropDownListFor(m => m.PoMode)
+                .HtmlAttributes(new { style = "text-transform: uppercase;" })
+                .ValuePrimitive(true)
+                .DataTextField("Description")
+                .DataValueField("Description")
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCodeList", "Getters", new { mastCode = "PROC_MODE", addAll = false });
+                    })
+                    .ServerFiltering(true);
+                })
+                .AutoBind(true)
+                //.Events(e => { e.Select("onSelectType"); })
+                )
+
+                @Html.ValidationMessageFor(m => m.PoMode)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.PrNos, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+
+                @(Html.Kendo().TextBoxFor(m => m.PrNos).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                @Html.ValidationMessageFor(m => m.PrNos)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.SupplierName, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+
+                @(Html.Kendo().TextBoxFor(m => m.SupplierName).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                @Html.ValidationMessageFor(m => m.SupplierName)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.SupplierAddress, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+
+                @(Html.Kendo().TextBoxFor(m => m.SupplierAddress).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                @Html.ValidationMessageFor(m => m.SupplierAddress)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.SupplierTin, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+                @(Html.Kendo().TextBoxFor(m => m.SupplierTin).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                @Html.ValidationMessageFor(m => m.SupplierTin)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.DeliveryPlace, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+                @(Html.Kendo().MaskedTextBoxFor(m => m.DeliveryPlace).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                @Html.ValidationMessageFor(m => m.DeliveryPlace)
+            </div>
+        </div>        
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.DeliveryDate, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+                @(Html.Kendo().DatePickerFor(m => m.DeliveryDate))
+                @Html.ValidationMessageFor(m => m.DeliveryDate)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.TermDelivery, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+                @(Html.Kendo().TextBoxFor(m => m.TermDelivery).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                @Html.ValidationMessageFor(m => m.TermDelivery)
+            </div>
+        </div>        
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.TermPayment, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+                @(Html.Kendo().TextBoxFor(m => m.TermPayment).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                @Html.ValidationMessageFor(m => m.TermPayment)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.SignedBySuppDate, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+                @(Html.Kendo().DatePickerFor(m => m.SignedBySuppDate))
+                @Html.ValidationMessageFor(m => m.SignedBySuppDate)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.SignedByAuthName, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+                @(Html.Kendo().TextBoxFor(m => m.SignedByAuthName).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                @Html.ValidationMessageFor(m => m.SignedByAuthName)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.SignedByAuthDesignation, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-8">
+                @(Html.Kendo().TextBoxFor(m => m.SignedByAuthDesignation).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                @Html.ValidationMessageFor(m => m.SignedByAuthDesignation)
+            </div>
+        </div>
+    </div>
+
+
+    <br />
+    <div class="row">
+        <div class="col-md-6">
+            @RenderTabstrip()
+        </div>
+        @*<div class="col-md-5">            
+            <div class="row">
+                <div class="row">
+                    <div class="col-md-1">
+                        &nbsp;
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("Business Line")
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("Notary Date")
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("Valid Until")
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-1">
+                        &nbsp;
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().DropDownListFor(m => m.BusinessLine)
+        //.HtmlAttributes(new { style = "width:100%; max-width:100%", id = "Key_1" })
+                      .DataTextField("Text")
+                      .DataValueField("Value")
+        //.Events(e => e.Select("onSelectBusinessLine"))
+                      .BindTo(new List<SelectListItem>() {
+                      new SelectListItem() {
+                          Text = "DEVELOPER",
+                          Value = "DEVELOPER"
+                      },
+                      new SelectListItem() {
+                          Text = "DEALER",
+                          Value = "DEALER"
+                      },
+                      new SelectListItem() {
+                          Text = "INDIVIDUAL",
+                          Value = "INDIVIDUAL"
+                      },
+                      new SelectListItem() {
+                          Text = "OTHERS",
+                          Value = "OTHERS"
+                      }
+                  })
+        //.Value("DEVELOPER")
+                        )
+                        @Html.ValidationMessageFor(m => m.BusinessLine)
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().DatePickerFor(m => m.NotaryDate)
+        //.Events(e => e.Change("onChangeDate"))
+                        )
+                        @Html.ValidationMessageFor(m => m.NotaryDate)
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().DatePickerFor(m => m.ValidUntil))
+                        @Html.ValidationMessageFor(m => m.ValidUntil)
+                    </div>
+                </div>
+
+                <br />
+                <div class="row">
+                    <div class="col-md-1">
+                        &nbsp;
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("Contract Price")
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("Percent Waived")
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("Tax Base")
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-1">
+                        &nbsp;
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.SellengPrice).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }))
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.PercentWaived).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }))
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.MvSp).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }))
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-1">
+                        &nbsp;
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("Transfer Tax")
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("City Tax")
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("Total")
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">
+                        @Html.Label("Base")
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.TransferTax1).Events(e => e.Change("onChangeValues")).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(@ViewBag.Access.IsAdmin))
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.CityTax).Events(e => e.Change("onChangeValues")).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(@ViewBag.Access.IsAdmin))
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.TotalTax).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(false))
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">
+                        @Html.Label("Surcharge")
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.Surcharge).Events(e => e.Change("onChangeValues")).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(@ViewBag.Access.IsAdmin))
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.CitySCharge).Events(e => e.Change("onChangeValues")).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(@ViewBag.Access.IsAdmin))
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.TotalSCharge).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(false))
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">
+                        @Html.Label("Penalty")
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.Penalty).Events(e => e.Change("onChangeValues")).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(@ViewBag.Access.IsAdmin))
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.CityPenalty).Events(e => e.Change("onChangeValues")).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(@ViewBag.Access.IsAdmin))
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.TotalPenalty).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(false))
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">
+                        @Html.Label("Total")
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.Total).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(false))
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.CityTotal).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(false))
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.GrandTotal).Spinners(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right;" }).Enable(false))
+                    </div>
+                </div>
+                <br />
+
+                <div class="row">
+                    <div class="col-md-1">
+                        @Html.Label("")
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("Prepared by")
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("Checked by")
+                    </div>
+                    <div class="col-md-3">
+                        @Html.Label("Approved by")
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-1">
+                        @Html.Label("")
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().TextBoxFor(m => m.PreparedBy).Enable(false))
+                        
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().TextBoxFor(m => m.CertifiedBy).Enable(false))
+                    </div>
+                    <div class="col-md-3">
+                        @(Html.Kendo().DropDownListFor(m => m.ApprovedBy)
+                            .HtmlAttributes(new { style = "text-transform: uppercase;" })
+                            .ValuePrimitive(true)
+                            .DataTextField("Description")
+                            .DataValueField("Description")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetTtaxApprovedBy", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .AutoBind(true)
+                            .Events(e => { e.Select("onSelectApprovedBy"); })
+                        )
+
+                        @Html.ValidationMessageFor(m => m.ApprovedBy)
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-offset-10 k-edit-buttons k-state-default">
+                        <a class="k-button k-button-icontext k-primary k-grid-update" id="btnSaveSelection"><span class="k-icon k-update"></span>Ok</a>
+                        <a class="k-button k-button-icontext k-grid-cancel" id="btnCancelSelection"><span class="k-icon k-cancel"></span>Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+
+    </div>
+
+}
+
+
+@helper RenderTabstrip()
+{
+    @(Html.Kendo().TabStrip()
+    .Name("tabstrip")
+    .TabPosition(TabStripTabPosition.Top)
+    .Animation(animation =>
+    {
+        animation.Open(config =>
+        {
+            config.Fade(FadeDirection.In);
+        });
+    })
+.SelectedIndex(0)
+            .Items(items =>
+            {
+                items.Add().Text("Order Items")
+                         .Selected(true)
+                         .Content(@<text> @RenderGridItems() </text>);
+                @*items.Add().Text("Other Transferror")
+                         .Content(@<text> @RenderGridSellers() </text>);
+                items.Add().Text("Other Transferee")
+                         .Content(@<text> @RenderGridBuyers() </text>);*@
+
+    })
+    )
+}
+
+@helper RenderGridItems()
+{
+    @(Html.Kendo().Grid<iLgs.Models.OrderItemVM>()
+                .Name("gridItems")
+                .Columns(col =>
+                {
+
+                    col.Bound(c => c.Id).Hidden();
+                    col.Bound(c => c.PsNo).Width(50);
+                    col.Bound(c => c.PsUnit).Width(50);
+                    col.Bound(c => c.PsDescription).Width(50);
+                    col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    col.Bound(c => c.UnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    col.Command(command =>
+                    {
+                        command.Edit();
+                        command.Destroy();
+                    }).Width(50);
+                })
+                .ToolBar(toolbar => toolbar.Create())
+                //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_TtaxItemTemplate").Window(w => w.Width(600).Title("Transfer Tax Item")))
+                .Editable(editable => editable.Mode(GridEditMode.InLine))
+                .Resizable(r => r.Columns(true))
+                .Filterable()
+                .Pageable()
+                .Sortable()
+                .NoRecords()
+                .Scrollable(s => s.Height(200))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(10000)
+                    .Events(events => events.Error("GridItemError")
+                        //.RequestEnd("onGridItemsRequestEnd")
+                        )
+                    .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);                            
+                        })
+                        .Aggregates(a =>
+                        {
+                            a.Add(p => p.Qty).Sum();
+                            a.Add(p => p.Amount).Sum();                            
+                        })
+                        .Sort(s =>
+                        {
+                            s.Add(a => a.InsertedDt);
+                        })
+                        .Read(read => read.Action("_OrderItemRead", "Orders").Data("DataGridItem"))
+                        .Create(create => create.Action("_OrderItemCreate", "Orders"))
+                        .Update(update => update.Action("_OrderItemUpdate", "Orders"))
+                        .Destroy(destroy => destroy.Action("_OrderItemDestroy", "Orders"))
+                )
+            //.AutoBind(false)
+                .Events(e => e.Edit("onEditGridItems")
+                    .Change("onChangeGridItems")
+            //.Save("onSaveGridItems")
+            //.DataBound("onDataBoundGridItems")
+                    )
+    )
+}
+
+<script type="text/javascript">
+    var ctrlNo = $("#CertNo").val();
+    if (ctrlNo != "") {
+        $("#OwnerId").prop('disabled', true);
+    }
+
+    $("#btnSaveSelection").click(function (e) {
+        e.preventDefault();
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            //window.kendo.ui.progress($("#form"), true);
+            //var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            // Get reference to Grid object
+            var grid = $("#gridItems").data("kendoGrid");
+
+            if (grid.dataSource.total() == 0) {
+                if (!confirm("Save with empty items?")) {
+                    return;
+                }
+            }
+            SaveGridItems(e, true);
+            //disabled.attr('disabled', 'disabled');
+        }
+    });
+
+    $("#btnCancelSelection").click(function (e) {
+        e.preventDefault();
+        $("#btnCancelSelection").closest(".k-window-content").data("kendoWindow").close();
+    });
+
+
+    $("#SellerAddress").change(function (e) {
+        SaveTtax();
+    });
+
+    $("#BusinessLine").change(function (e) {
+        SaveTtax();
+    });
+
+    $("#NotaryDate").change(function (e) {
+        SaveTtax();
+    });
+
+    $("#PercentWaived").change(function (e) {
+        SaveTtax();
+    });
+
+    $("#TtaxDate").change(function (e) {
+        SaveTtax();
+    });
+
+    //$("#PercentWaived #TtaxDate").change(function (e) {
+    //    SaveTtax();
+    //});
+
+    $("#SellengPrice").change(function (e) {
+        $("#Override").val(false);
+        SaveTtax();
+    });
+
+    $("#MvSp").change(function (e) {
+        $("#Override").val(true);
+        SaveTtax();
+    });
+
+    function onChangeNoTdn() {
+        var isChecked = $('#NoTdn').is(':checked');
+        if (isChecked) {
+            $("#ARPN").data("kendoMaskedTextBox").value("NO TDN YET");
+            $("#PIN").prop("disabled", false).removeClass("k-state-disabled");
+            $("#LotNo").prop("disabled", false).removeClass("k-state-disabled");
+            $("#BlkNo").prop("disabled", false).removeClass("k-state-disabled");
+            $("#Location").prop("disabled", false).removeClass("k-state-disabled");
+            $("#Barangay").prop("disabled", false).removeClass("k-state-disabled");
+            $("#UnitNo").prop("disabled", false).removeClass("k-state-disabled");
+            $("#Building").prop("disabled", false).removeClass("k-state-disabled");
+            $("#Subdivision").prop("disabled", false).removeClass("k-state-disabled");
+            $("#Area").data("kendoNumericTextBox").enable(true);
+            $("#Kind").data("kendoMaskedTextBox").enable(true);
+            $("#ARPN").data("kendoMaskedTextBox").enable(false);
+        } else {
+            $("#ARPN").data("kendoMaskedTextBox").value("");
+            $("#PIN").prop("disabled", true).addClass("k-state-disabled");
+            $("#LotNo").prop("disabled", true).addClass("k-state-disabled");
+            $("#BlkNo").prop("disabled", true).addClass("k-state-disabled");
+            $("#Location").prop("disabled", true).addClass("k-state-disabled");
+            $("#Barangay").prop("disabled", true).addClass("k-state-disabled");
+            $("#UnitNo").prop("disabled", true).removeClass("k-state-disabled");
+            $("#Building").prop("disabled", true).removeClass("k-state-disabled");
+            $("#Subdivision").prop("disabled", true).removeClass("k-state-disabled");
+            $("#Area").data("kendoNumericTextBox").enable(false);
+            $("#Kind").data("kendoMaskedTextBox").enable(false);
+            $("#ARPN").data("kendoMaskedTextBox").enable(true);
+        }
+        $("#ARPN").data("kendoMaskedTextBox").trigger("change");
+    };
+
+</script>
+
+
+
+
+
+
+

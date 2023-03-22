@@ -26,6 +26,9 @@
 	<script src="@Url.Content("~/Scripts/kendo/2022.1.301/kendo.all.min.js")"></script>
 	<script src="@Url.Content("~/Scripts/kendo/2022.1.301/kendo.aspnetmvc.min.js")"></script>
 	<script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
+    <script>
+        $(document).ready(function () { $('.dropdown-toggle').dropdown(); });
+    </script>
 </head>
 <body>
     <nav class="navbar navbar-default navbar-fixed-top">
@@ -36,7 +39,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                @Html.ActionLink("AppMan", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                @Html.ActionLink("ePSMS", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             </div>
             <div class="navbar-collapse collapse">
                 @*<ul class="nav navbar-nav">*@     
@@ -69,7 +72,7 @@
         @RenderBody()
         @*<hr />*@
         <footer>
-            <p>&copy; @DateTime.Now.Year - City Government of Parañaque</p>
+            <p>&copy; @DateTime.Now.Year - City Government of Las Piñas</p>
         </footer>
     </div>
 

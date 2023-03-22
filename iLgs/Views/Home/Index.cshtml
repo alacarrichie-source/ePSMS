@@ -6,7 +6,7 @@
 
 <div style="margin-left:-150px;margin-right:-150px;">
 
-    @functions{
+    @*@functions{
         public void addChildren(MenuItemBuilder builder, iLgs.Models.Menubase item, IEnumerable<iLgs.Models.Menubase> items)
         {
             var children = items.Where(m => m.ParentId == item.ChildId).OrderBy(o => o.Sequence);
@@ -73,7 +73,7 @@
         }
     })
         )
-    }
+    }*@
 
 
     @*<div class="jumbotron">
@@ -84,8 +84,8 @@
     </div>*@
     
     <div class="jumbotron">
-        <h1>AppMan</h1>
-        <p class="lead">Manage your applications via AppMan, create users, menus, user roles and access.</p>
+        <h1>ePSMS</h1>
+        <p class="lead">Property and Supply Management System</p>
         @*<p><a href="http://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>*@
     </div>
     
