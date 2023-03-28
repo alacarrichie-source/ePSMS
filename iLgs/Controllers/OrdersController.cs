@@ -26,8 +26,12 @@ namespace iLgs.Controllers
         public ActionResult OrderRead([DataSourceRequest] DataSourceRequest request)
         {
             var data = db.Orders
-                .Select(s => new OrderVM { 
+                .Select(s => new OrderVM
+                {
                     Id = s.Id,
+                    PoYear = s.PoYear,
+                    PoMonth = s.PoMonth,
+                    PoSeries = s.PoSeries,
                     PoNo = s.PoNo,
                     PoDate = s.PoDate,
                     PoMode = s.PoMode,
@@ -47,7 +51,7 @@ namespace iLgs.Controllers
                     ResoNo = s.ResoNo,
                     CertifiedCorrectBy = s.CertifiedCorrectBy,
                     CertifiedCorrectDate = s.CertifiedCorrectDate
-                 })
+                })
                 .AsQueryable();
 
             var result = new JsonNetResult
@@ -56,8 +60,7 @@ namespace iLgs.Controllers
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet,
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
-
-            return result;
+            return result;            
         }
 
         //[AcceptVerbs(HttpVerbs.Post)]
@@ -115,7 +118,7 @@ namespace iLgs.Controllers
 
         //            model.UpdatedBy = user;
         //            model.UpdatedDt = date;
-                    
+
         //            db.Orders.Attach(model);
         //            db.Entry(model).State = EntityState.Modified;
         //            await db.SaveChangesAsync();
@@ -170,53 +173,72 @@ namespace iLgs.Controllers
             Access access = await accessTask;
 
             ViewBag.Access = access;
-            
+
             OrderVM model;
 
             try
             {
                 if (string.IsNullOrWhiteSpace(poNo))
                 {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    model = await db.Orders.Include(i => i.Supplier).Where(w => w.InsertedBy == user).OrderByDescending(o => o.InsertedDt).Select(s => new OrderVM
-                    {
-                        Id = s.Id,
-                        PoNo = s.PoNo,
-                        PoDate = s.PoDate,
-                        PoMode = s.PoMode,
-                        PrNos = s.PrNos,
-                        SupplierId = s.SupplierId,
-                        SupplierName = s.Supplier.Name,
-                        SupplierAddress = s.Supplier.Address,
-                        SupplierTin = s.Supplier.TIN,
-                        DeliveryPlace = s.DeliveryPlace,
-                        DeliveryDate = s.DeliveryDate,
-                        TermDelivery = s.TermDelivery,
-                        TermPayment = s.TermPayment,
-                        SignedBySuppName = s.SignedBySuppName,
-                        SignedBySuppDate = s.SignedBySuppDate,
-                        SignedByAuthName = s.SignedByAuthName,
-                        SignedByAuthDesignation = s.SignedByAuthDesignation,
-                        ResoNo = s.ResoNo,
-                        CertifiedCorrectBy = s.CertifiedCorrectBy,
-                        CertifiedCorrectDate = s.CertifiedCorrectDate
-                    }).FirstOrDefaultAsync();
+                    //string user = ControllerContext.HttpContext.User.Identity.Name;
+                    //model = await db.Orders.Include(i => i.Supplier).Where(w => w.InsertedBy == user).OrderByDescending(o => o.InsertedDt).Select(s => new OrderVM
+                    //{
+                    //    Id = s.Id,
+                    //    PoYear = s.PoYear,
+                    //    PoMonth = s.PoMonth,
+                    //    PoSeries = s.PoSeries,
+                    //    PoNo = s.PoNo,
+                    //    PoDate = s.PoDate,
+                    //    PoMode = s.PoMode,
+                    //    PrNos = s.PrNos,
+                    //    SupplierId = s.SupplierId,
+                    //    SupplierName = s.Supplier.Name,
+                    //    SupplierAddress = s.Supplier.Address,
+                    //    SupplierTin = s.Supplier.TIN,
+                    //    DeliveryPlace = s.DeliveryPlace,
+                    //    DeliveryDate = s.DeliveryDate,
+                    //    TermDelivery = s.TermDelivery,
+                    //    TermPayment = s.TermPayment,
+                    //    SignedBySuppName = s.SignedBySuppName,
+                    //    SignedBySuppDate = s.SignedBySuppDate,
+                    //    SignedByAuthName = s.SignedByAuthName,
+                    //    SignedByAuthDesignation = s.SignedByAuthDesignation,
+                    //    ResoNo = s.ResoNo,
+                    //    CertifiedCorrectBy = s.CertifiedCorrectBy,
+                    //    CertifiedCorrectDate = s.CertifiedCorrectDate
+                    //}).FirstOrDefaultAsync();
 
-                    if (model == null)
+                    //if (model == null)
+                    //{
+                    //    model = new OrderVM()
+                    //    {
+                    //        Id = Guid.NewGuid(),
+                    //        PoDate = date,
+                    //        PoYear = date.Year.ToString().Trim(),
+                    //        PoMonth = date.Month.ToString().Trim().PadLeft(2, '0'),
+                    //        PoSeries = "",                            
+                    //        PrNos = ""
+                    //    };
+                    //}
+
+                    model = new OrderVM()
                     {
-                        model = new OrderVM()
-                        {
-                            Id = Guid.NewGuid(),
-                            PoDate = date,
-                            PrNos = ""
-                        };
-                    }
+                        Id = Guid.NewGuid(),
+                        PoDate = date,
+                        PoYear = date.Year.ToString().Trim(),
+                        PoMonth = date.Month.ToString().Trim().PadLeft(2, '0'),
+                        PoSeries = "",
+                        PrNos = ""
+                    };
                 }
                 else
                 {
                     model = await db.Orders.Where(w => w.PoNo == poNo).Select(s => new OrderVM
                     {
                         Id = s.Id,
+                        PoYear = s.PoYear,
+                        PoMonth = s.PoMonth,
+                        PoSeries = s.PoSeries,
                         PoNo = s.PoNo,
                         PoDate = s.PoDate,
                         PoMode = s.PoMode,
@@ -236,7 +258,7 @@ namespace iLgs.Controllers
                         ResoNo = s.ResoNo,
                         CertifiedCorrectBy = s.CertifiedCorrectBy,
                         CertifiedCorrectDate = s.CertifiedCorrectDate
-                    }).FirstOrDefaultAsync();
+                    }).FirstOrDefaultAsync();                    
                 }
             }
             catch (Exception e)
@@ -260,16 +282,34 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("Access Error", "Access Denied!");
                 }
 
+                Order entity = await db.Orders.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+                if (entity == null) // Add
+                {
+                    if (!string.IsNullOrWhiteSpace(model.PoSeries))
+                    {
+                        if (db.Orders.Any(a => a.PoNo == model.PoNo_))
+                        {
+                            ModelState.AddModelError("PoSeries", "P.O. series already exists!");
+                        }
+                    }
+                }
+                else
+                {
+                    if (db.Orders.Any(a => a.Id != model.Id && a.PoNo == model.PoNo_))
+                    {
+                        ModelState.AddModelError("PoSeries", "P.O. series already exists!");
+                    }
+                }
+
                 if (model != null && ModelState.IsValid)
                 {
                     Guid userId = new Guid(User.Identity.GetUserId());
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
-     
-                    Order entity = await db.Orders.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
                     if (entity == null)
                     {
+
                         model.Id = Guid.NewGuid();
                         model.PoNo = NextPoNo((DateTime)model.PoDate);
                         model.InsertedBy = user;
@@ -280,6 +320,9 @@ namespace iLgs.Controllers
                         entity = new Order()
                         {
                             Id = model.Id,
+                            PoYear = model.PoYear,
+                            PoMonth = model.PoMonth,
+                            PoSeries = model.PoNo.Split('-')[2],
                             PoNo = model.PoNo,
                             PoDate = model.PoDate,
                             PoMode = model.PoMode,
@@ -305,7 +348,10 @@ namespace iLgs.Controllers
                     }
                     else
                     {
-                        entity.PoNo = model.PoNo;
+                        entity.PoYear = model.PoYear;
+                        entity.PoMonth = model.PoMonth;
+                        entity.PoSeries = model.PoSeries;
+                        entity.PoNo = model.PoNo_;
                         entity.PoDate = model.PoDate;
                         entity.PoMode = model.PoMode;
                         entity.PrNos = model.PrNos;
@@ -346,21 +392,21 @@ namespace iLgs.Controllers
         {
             string yyyy = poDate.Year.ToString().Trim();
             string mm = poDate.Month.ToString().Trim();
-            
+
             mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
-            
+
             string keyName = yyyy + "-" + mm;
             // yyyy-mm-9999
             // 123456789012
 
-            var order = db.Orders.Where(w => w.PoNo.Substring(0, 7) == keyName).OrderByDescending(o => o.PoNo).FirstOrDefault();
+            var order = db.Orders.Where(w => w.PoYear == yyyy && w.PoMonth == mm).OrderByDescending(o => o.PoNo).FirstOrDefault();
             if (order == null)
             {
-                return keyName  + "-" + "0001";
+                return keyName + "-" + "0001";
             }
             else
             {
-                var sequence = int.Parse(order.PoNo.Substring(8, 4) + 1).ToString();
+                var sequence = (int.Parse(order.PoSeries) + 1).ToString();
                 return keyName + "-" + sequence.PadLeft(4, '0');
             }
         }
@@ -369,13 +415,13 @@ namespace iLgs.Controllers
         {
 
             var data = db.OrderItems.Where(w => w.OrderId == orderId)
-                .Select(s => new 
+                .Select(s => new
                 {
-                    Id = s.Id,             
+                    Id = s.Id,
                     PsCodeId = s.PsCodeId,
-                    PsCode = s.PsCode.PsNo,
+                    PsNo = s.PsCode.PsNo,
                     PsUnit = s.PsCode.UnitMeas,
-                    PsDescription =  s.PsCode.ItemName,
+                    PsDescription = s.PsCode.ItemName,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
@@ -396,7 +442,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("GridError", "Access Denied!");
                 }
-                
+
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -413,7 +459,7 @@ namespace iLgs.Controllers
                         UnitCost = model.UnitCost,
                         Amount = model.Amount,
                         InsertedBy = user,
-                        InsertedDt = date,      
+                        InsertedDt = date,
                         UpdatedBy = user,
                         UpdatedDt = date
                     };
@@ -444,7 +490,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("GridError", "Access Denied!");
                 }
-                
+
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -457,7 +503,7 @@ namespace iLgs.Controllers
                     entity.Amount = model.Amount;
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;
-                    
+
                     db.OrderItems.Attach(entity);
                     db.Entry(entity).State = EntityState.Modified;
                     await db.SaveChangesAsync();
@@ -522,5 +568,15 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
+
+        #region EXTRAS
+        public JsonResult GetPoYyyyMm(DateTime poDate)
+        {
+            var poYear = poDate.Date.Year.ToString().Trim();
+            var poMonth = poDate.Date.Month.ToString().Trim().PadLeft(2, '0');
+            return Json(new { PoYear = poYear, PoMonth = poMonth }, JsonRequestBehavior.AllowGet);
+        }
+
+        #endregion
     }
 }

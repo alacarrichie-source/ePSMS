@@ -134,6 +134,19 @@ namespace iLgs.Controllers
 
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Name = c.Name, Address = c.Address, TIN = c.TIN }), JsonRequestBehavior.AllowGet);            
         }
+
+        public JsonResult GetPsCode(string text)
+        {
+
+            var model = db.PsCodes.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.ItemName.Contains(text) || p.ItemDescription.Contains(text) || p.PsNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.PsNo, Name = c.ItemName, Description = c.ItemDescription, Unit = c.UnitMeas, Type = c.PsType }), JsonRequestBehavior.AllowGet);
+        }
     }
 
     public class GetSysCodeVM

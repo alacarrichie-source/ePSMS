@@ -9,6 +9,17 @@ namespace iLgs.Models
 {
     public class OrderVM
     {
+        //public string PoYear { get { return PoNo.Substring(0, 4); } set { PoYear = value; } }
+        //public string PoMonth { get { return PoNo.Substring(5, 2); } set { PoMonth = value; } }
+        //[Display(Name = "Series")]
+        //public string PoSeries { get { return PoNo.Substring(8, 4); } set { PoSeries = value; } }
+
+        public string PoYear { get; set; }
+        public string PoMonth { get; set; }
+        public string PoSeries { get; set; }
+
+        public string PoNo_ { get { return PoYear + "-" + PoMonth + "-" + PoSeries; } }
+
         [Display(Name = "Supplier")]
         public string SupplierName { get; set; }
 
@@ -92,7 +103,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     }
 
-    public partial class OrderItemVM
+    public class OrderItemVM
     {
         [Display(Name = "Stock/Property No.")]
         public string PsNo { get; set; }
@@ -114,6 +125,7 @@ namespace iLgs.Models
         public Nullable<decimal> Qty { get; set; }
 
         [Required]
+        [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
 
         [Required]

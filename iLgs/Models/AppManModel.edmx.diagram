@@ -44,7 +44,7 @@
         <AssociationConnector Association="AppManModel.FK_RPSMIssuedItems_RPSMIssued" />
         <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="0.75" PointY="5.75" />
         <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="3.375" PointY="7.75" />
-        <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="5.625" PointY="1.125" />
+        <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="5.625" PointY="0.875" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
         <AssociationConnector Association="AppManModel.FK_Orders_Suppliers" />
         <AssociationConnector Association="AppManModel.FK_RPSMIssued_Orders" />

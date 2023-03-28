@@ -23,6 +23,9 @@ namespace iLgs.Models
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> SupplierId { get; set; }
+        public string PoYear { get; set; }
+        public string PoMonth { get; set; }
+        public string PoSeries { get; set; }
         public string PoNo { get; set; }
         public Nullable<System.DateTime> PoDate { get; set; }
         public string PoMode { get; set; }

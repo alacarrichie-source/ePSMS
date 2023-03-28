@@ -161,6 +161,9 @@
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="SupplierId" Type="uniqueidentifier" />
+          <Property Name="PoYear" Type="char" MaxLength="4" />
+          <Property Name="PoMonth" Type="char" MaxLength="2" />
+          <Property Name="PoSeries" Type="char" MaxLength="4" />
           <Property Name="PoNo" Type="varchar" MaxLength="12" />
           <Property Name="PoDate" Type="datetime" />
           <Property Name="PoMode" Type="varchar" MaxLength="50" />
@@ -1440,6 +1443,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </Key>
           <Property Name="Id" Type="Guid" Nullable="false" />
           <Property Name="SupplierId" Type="Guid" />
+          <Property Name="PoYear" Type="String" MaxLength="4" FixedLength="true" Unicode="false" />
+          <Property Name="PoMonth" Type="String" MaxLength="2" FixedLength="true" Unicode="false" />
+          <Property Name="PoSeries" Type="String" MaxLength="4" FixedLength="true" Unicode="false" />
           <Property Name="PoNo" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
           <Property Name="PoDate" Type="DateTime" Precision="3" />
           <Property Name="PoMode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
@@ -1917,6 +1923,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="PoMode" ColumnName="PoMode" />
                 <ScalarProperty Name="PoDate" ColumnName="PoDate" />
                 <ScalarProperty Name="PoNo" ColumnName="PoNo" />
+                <ScalarProperty Name="PoSeries" ColumnName="PoSeries" />
+                <ScalarProperty Name="PoMonth" ColumnName="PoMonth" />
+                <ScalarProperty Name="PoYear" ColumnName="PoYear" />
                 <ScalarProperty Name="SupplierId" ColumnName="SupplierId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

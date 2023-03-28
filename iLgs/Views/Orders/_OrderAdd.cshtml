@@ -1,6 +1,6 @@
 ﻿@model iLgs.Models.OrderVM
 
-@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formOrder", id = "formOrder" }))
 {
     @Html.AntiForgeryToken()
 
@@ -8,6 +8,7 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(m => m.Id)
     @Html.HiddenFor(m => m.SupplierName)
+    @Html.HiddenFor(m => m.PoNo)
 
     <div class="row">
         <div class="col-md-6">
@@ -16,9 +17,19 @@
                     @Html.LabelFor(m => m.PoDate, htmlAttributes: new { @class = "col-md-2" })
                     <div class="col-md-3">
                         @(Html.Kendo().DatePickerFor(m => m.PoDate)
-        //.Events(e => e.Change("onChangeDate"))
+                            .Events(e => e.Change("onChangePoDate"))
                         )
                         @Html.ValidationMessageFor(m => m.PoDate)
+                    </div>
+                    @Html.LabelFor(m => m.PoNo, htmlAttributes: new { @class = "col-md-2" })
+                    <div class="col-md-2">
+                        @(Html.Kendo().TextBoxFor(m => m.PoYear).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                        
+                    </div>
+                    <div class="col-md-1">
+                        @(Html.Kendo().TextBoxFor(m => m.PoMonth).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    </div>
+                    <div class="col-md-2">
+                        @(Html.Kendo().TextBoxFor(m => m.PoSeries).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     </div>
                 </div>
             </div>
@@ -310,12 +321,13 @@
                     col.Bound(c => c.PsNo).Width(50);
                     col.Bound(c => c.PsUnit).Width(50);
                     col.Bound(c => c.PsDescription).Width(50);
-                    col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                        .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                    col.Bound(c => c.UnitCost).Width(50);
-                    col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    col.Bound(c => c.UnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                        .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                     col.Command(command =>
                     {
@@ -324,20 +336,26 @@
                     }).Width(50);
                 })
                 .ToolBar(toolbar => toolbar.Create())
-                //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_OrderItemTemplate").Window(w => w.Width(600).Title("Purchase Order Item")))
-                .Editable(editable => editable.Mode(GridEditMode.InLine))
+                .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_OrderItemTemplate").Window(w => w.Width(600).Title("Purchase Order Item")))
+                //.Editable(editable => editable.Mode(GridEditMode.InLine))
                 .Resizable(r => r.Columns(true))
                 .Filterable()
-                .Pageable()
+                //.Pageable(pager => pager
+                //    //.Input(false)
+                //    //.Numeric(true)
+                //    //.Info(true)
+                //    //.PreviousNext(true)
+                //    //.Refresh(true)
+                //    //.PageSizes(true)
+                //    //.ButtonCount(5)
+                //)
                 .Sortable()
                 .NoRecords()
                 .Scrollable(s => s.Height(200))
                 .DataSource(dataSource => dataSource
                     .Ajax()
                     .PageSize(10000)
-                    .Events(events => events.Error("GridItemError")
-                    //.RequestEnd("onGridItemsRequestEnd")
-                        )
+                    .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
                     .Model(model =>
                         {
                             model.Id(p => p.Id);
@@ -375,11 +393,29 @@
     }
 </style>
 
+@*<script>
+    $("#SupplierId").kendoTextBox();
+    $("#PoDate").kendoTextBox();
+    $("#PoMode").kendoCheckBox();
+    $("#DeliveryPlace").kendoDropDownList({
+        optionLabel: "-- Select a country of origin --",
+        dataSource: ["Argentina", "Brazil", "Italy", "Japan", "Portugal"],
+    });
+    $("TermDelivery").kendoNumericTextBox();
+    TermPayment
+    SignedBySuppDate
+    CertifiedCorrectBy
+    $("#CertifiedCorrectDate")
+
+    // Target the form element by using jQuery and then call the kendoValidator() method.
+    $("#formOrder").kendoValidator();
+</script>*@
+
 <script type="text/javascript">
     
     $("#btnSaveSelection").click(function (e) {
         e.preventDefault();
-        var validator = $("#form").kendoValidator().data("kendoValidator");
+        var validator = $("#formOrder").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
             //window.kendo.ui.progress($("#form"), true);
             //var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
