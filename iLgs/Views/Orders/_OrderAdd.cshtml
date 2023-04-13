@@ -320,7 +320,8 @@
                     col.Bound(c => c.Id).Hidden();
                     col.Bound(c => c.PsNo).Width(50);
                     col.Bound(c => c.PsUnit).Width(50);
-                    col.Bound(c => c.PsDescription).Width(50);
+                    col.Bound(c => c.PsItem).Width(50);
+                    col.Bound(c => c.Description).Width(50);
                     col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                         .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });

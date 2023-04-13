@@ -12,16 +12,19 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class RPSMIssued
+    public partial class Issued
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public RPSMIssued()
+        public Issued()
         {
-            this.RPSMIssuedItems = new HashSet<RPSMIssuedItem>();
+            this.IssuedItems = new HashSet<IssuedItem>();
         }
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
+        public string SerialYear { get; set; }
+        public string SerialMonth { get; set; }
+        public string SerialSeries { get; set; }
         public string SerialNo { get; set; }
         public string Fund { get; set; }
         public Nullable<System.DateTime> Date { get; set; }
@@ -34,9 +37,8 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual OrderItem OrderItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RPSMIssuedItem> RPSMIssuedItems { get; set; }
+        public virtual ICollection<IssuedItem> IssuedItems { get; set; }
         public virtual Order Order { get; set; }
     }
 }

@@ -34,6 +34,9 @@ namespace iLgs.Models
 
             [Display(Name = "Reorder Point")]
             public Nullable<decimal> ReorderPoint { get; set; }
+
+            [Display(Name = "Days To Consume")]
+            public Nullable<int> DaysToConsume { get; set; }
             public string InsertedBy { get; set; }
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }

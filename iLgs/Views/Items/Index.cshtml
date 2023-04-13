@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Property and Supplies - ePSMS";
 }
 
 <h3>Property and Supplies</h3>
@@ -14,8 +14,9 @@
         col.Bound(c => c.PsNo).Width(70);
         col.Bound(c => c.ItemName).Width(100);
         col.Bound(c => c.ItemDescription).Width(100);
-        col.Bound(c => c.UnitMeas).Width(100).EditorTemplateName("_UnitTemplate"); 
-        col.Bound(c => c.ReorderPoint).Width(100);
+        col.Bound(c => c.UnitMeas).Width(100).EditorTemplateName("_UnitTemplate");
+        col.Bound(c => c.ReorderPoint).Width(100).EditorTemplateName("_ReorderTemplate");
+        col.Bound(c => c.DaysToConsume).Width(100).EditorTemplateName("_DaysToConsumeTemplate");
         col.Command(command =>
         {
             command.Edit();

@@ -61,6 +61,7 @@ namespace iLgs.Controllers
                     model.UpdatedDt = date;
                     model.ItemDescription = model.ItemDescription ?? "";
                     model.ReorderPoint = model.ReorderPoint ?? 0;
+                    model.DaysToConsume = model.DaysToConsume ?? 0;
                    
                     db.PsCodes.Add(model);
                     await db.SaveChangesAsync();                    
@@ -97,6 +98,7 @@ namespace iLgs.Controllers
                     model.PsType = model.PsType.ToUpper();
                     model.ItemDescription = model.ItemDescription ?? "";
                     model.ReorderPoint = model.ReorderPoint ?? 0;
+                    model.DaysToConsume = model.DaysToConsume ?? 0;
                     
                     db.PsCodes.Attach(model);
                     db.Entry(model).State = EntityState.Modified;

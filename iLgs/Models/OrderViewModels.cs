@@ -101,6 +101,14 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // TRANSIENTS
+
+        public Nullable<decimal> QtyTotal { get; set; }
+        public Nullable<decimal> QtyIssued { get; set; }
+        public Nullable<decimal> QtyRemaining { get; set; }
+        public Nullable<decimal> TotalAmount { get; set; }
+
     }
 
     public class OrderItemVM
@@ -111,8 +119,10 @@ namespace iLgs.Models
         [Display(Name = "Unit")]
         public string PsUnit { get; set; }
 
-        [Display(Name = "Description")]
-        public string PsDescription { get; set; }
+        [Display(Name = "Item")]
+        public string PsItem { get; set; }
+
+        public string Description { get; set; }
 
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
@@ -134,5 +144,10 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // TRANSIENTS
+
+        public Nullable<decimal> QtyIssued { get; set; }
+        public Nullable<decimal> QtyRemaining { get; set; }
     }
 }

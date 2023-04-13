@@ -203,6 +203,7 @@
     <Compile Include="Controllers\CodesController.cs" />
     <Compile Include="Controllers\GettersController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\IssuedsController.cs" />
     <Compile Include="Controllers\ItemsController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\MenuAccessActionController.cs" />
@@ -289,6 +290,13 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AppManModel.edmx</DependentUpon>
     </Compile>
+    <Compile Include="Models\Issued.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\IssuedItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\IssuedViewModels.cs" />
     <Compile Include="Models\ItemsViewModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\MenuAccess.cs">
@@ -315,12 +323,6 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\ReportViewModels.cs" />
-    <Compile Include="Models\RPSMIssued.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\RPSMIssuedItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\Sequence.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -3165,10 +3167,19 @@
     <Content Include="Views\Orders\_OrderAdd.cshtml" />
     <Content Include="Views\Suppliers\Index.cshtml" />
     <Content Include="Views\Orders\EditorTemplates\_OrderItemTemplate.cshtml" />
+    <Content Include="Views\Issueds\Index.cshtml" />
+    <Content Include="Views\Issueds\Order.cshtml" />
+    <Content Include="Views\Issueds\_OrderItem.cshtml" />
+    <Content Include="Views\Issueds\_IssuedOrder.cshtml" />
+    <Content Include="Views\Issueds\_IssuedOrderAdd.cshtml" />
+    <Content Include="Views\Issueds\EditorTemplates\_IssuedItemTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_ReorderTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_DaysToConsumeTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Views\Getters\" />
+    <Folder Include="Views\Issuances\" />
     <Folder Include="Views\Items\EditorTemplates\" />
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />

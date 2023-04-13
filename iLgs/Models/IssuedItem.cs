@@ -12,7 +12,7 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class RPSMIssuedItem
+    public partial class IssuedItem
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> IssuedId { get; set; }
@@ -26,6 +26,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual RPSMIssued RPSMIssued { get; set; }
+        public virtual Issued Issued { get; set; }
+        public virtual OrderItem OrderItem { get; set; }
     }
 }

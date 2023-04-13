@@ -1,0 +1,111 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.IssuedVM>()
+        .Name("gridIssuedOrder")
+        .Columns(col =>
+        {
+            col.Bound(c => c.SerialNo).Width(50);
+            col.Bound(c => c.Date).Width(50);
+            col.Bound(c => c.Fund).Width(50);
+            col.Bound(c => c.CertifiedBy).Width(50);
+            col.Bound(c => c.CertifiedDt).Width(50);
+            col.Bound(c => c.PostedBy).Width(50);
+            col.Bound(c => c.PostedDt).Width(50);
+            col.Command(command =>
+            {
+                command.Custom("Edit").IconClass("k-icon k-i-edit").Click("onGridEditClick").SendDataKeys(true);
+                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            }).Width(100);
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Template(@<text>
+                @(Html.Kendo().Button().Name("btnAdd").Icon("k-icon k-i-add").Content("Issue Order")
+                    .Events(e => e.Click("onClickBtnAdd"))
+                )
+            </text>);
+        })
+        //.Pageable(pager => pager
+        //    .Input(false)
+        //    .Numeric(true)
+        //    .Info(true)
+        //    .PreviousNext(true)
+        //    .Refresh(true)
+        //    .PageSizes(true)
+        //    .ButtonCount(5)
+        //)
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Scrollable(s => s.Height(70))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Read(read => read.Action("_IssuedOrderRead", "Issueds").Data("DataGridIssuedOrder"))
+            .Destroy(destroy => destroy.Action("_IssuedOrderDestroy", "Issueds"))
+        )
+        .Events(events => events
+            .Change("onChangeGridIssuedOrder")
+            .Edit("onEditGridIssuedOrder")
+            .DataBound("onDataBoundGridIssuedOrder")
+        )
+        .AutoBind(true)
+)
+
+<br />
+
+@(Html.Kendo().Grid<iLgs.Models.IssuedItemVM>()
+        .Name("gridIssuedOrderItems")
+        .Columns(col =>
+        {
+            col.Bound(c => c.RISNo).Width(50);
+            col.Bound(c => c.RCCode).Width(50);
+            col.Bound(c => c.StockNo).Width(50);
+            col.Bound(c => c.Item).Width(50);
+            col.Bound(c => c.Unit).Width(50);
+            col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.UnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        })       
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Scrollable(s => s.Height(120))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Aggregates(a =>
+            {
+                a.Add(p => p.Qty).Sum();
+                a.Add(p => p.Amount).Sum();
+            })
+            .Sort(s =>
+            {
+                s.Add(a => a.InsertedDt);
+            })
+            .Read(read => read.Action("_IssuedOrderItemRead", "Issueds").Data("DataGridIssuedOrderItem"))
+        )
+        //.Events(events => events
+        //    .Change("onChangeGridItems")
+        //    .Edit("onEditGridItems")
+        //    .DataBound("onDataBoundGridItems")
+        //)
+        .AutoBind(true)
+)

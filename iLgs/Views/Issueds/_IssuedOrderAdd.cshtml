@@ -1,0 +1,286 @@
+﻿@model iLgs.Models.IssuedVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formOrder", id = "formOrder" }))
+{
+    @Html.AntiForgeryToken()
+
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.OrderId)
+    @Html.HiddenFor(m => m.SerialNo)
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.Date, htmlAttributes: new { @class = "col-md-2" })
+                    <div class="col-md-3">
+                        @(Html.Kendo().DatePickerFor(m => m.Date))
+                        @Html.ValidationMessageFor(m => m.Date)
+                    </div>
+                    @Html.LabelFor(m => m.SerialNo, htmlAttributes: new { @class = "col-md-2" })
+                    <div class="col-md-2">
+                        @(Html.Kendo().TextBoxFor(m => m.SerialYear).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    </div>
+                    <div class="col-md-1">
+                        @(Html.Kendo().TextBoxFor(m => m.SerialMonth).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    </div>
+                    <div class="col-md-2">
+                        @(Html.Kendo().TextBoxFor(m => m.SerialSeries).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.Fund, htmlAttributes: new { @class = "col-md-2" })
+                    <div class="col-md-10">
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Placeholder("Select Fund")
+                    .DataTextField("Description")
+                    .DataValueField("Code")
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetCodeList", "Getters", new { mastCode = "FUND", addAll = false });
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Code").Title("Code").Width("30%");
+                        c.Add().Field("Description").Title("Description").Width("70%");
+                    })
+                    .Suggest(true)
+                        )
+                        @Html.ValidationMessageFor(m => m.Fund)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.CertifiedBy, htmlAttributes: new { @class = "col-md-2" })
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextBoxFor(m => m.CertifiedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.CertifiedBy)
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.CertifiedDt, htmlAttributes: new { @class = "col-md-2" })
+                    <div class="col-md-3">
+                        @(Html.Kendo().DatePickerFor(m => m.CertifiedDt))
+                        @Html.ValidationMessageFor(m => m.CertifiedDt)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.PostedBy, htmlAttributes: new { @class = "col-md-2" })
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextBoxFor(m => m.PostedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.PostedBy)
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.PostedDt, htmlAttributes: new { @class = "col-md-2" })
+                    <div class="col-md-3">
+                        @(Html.Kendo().DatePickerFor(m => m.PostedDt))
+                        @Html.ValidationMessageFor(m => m.PostedDt)
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <span id="span_">
+                        @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSaveSelection"))
+                        @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancelSelection"))
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            @RenderTabstrip()
+        </div>
+    </div>
+}
+
+@helper RenderTabstrip()
+{
+    @(Html.Kendo().TabStrip()
+    .Name("tabstrip")
+    .TabPosition(TabStripTabPosition.Top)
+    .Animation(animation =>
+    {
+        animation.Open(config =>
+        {
+            config.Fade(FadeDirection.In);
+        });
+    })
+    .SelectedIndex(0)
+    .Items(items =>
+    {
+        items.Add().Text("Issued Items")
+        .Selected(true)
+        .Content(@<text> @RenderGridItems() </text>);
+    })
+    )
+}
+
+@helper RenderGridItems()
+{
+    @(Html.Kendo().Grid<iLgs.Models.IssuedItemVM>()
+    .Name("gridItems")
+    .Columns(col =>
+    {
+        col.Bound(c => c.Id).Hidden();
+        col.Bound(c => c.RISNo).Width(50);
+        col.Bound(c => c.RCCode).Width(50);
+        col.Bound(c => c.StockNo).Width(50);
+        col.Bound(c => c.Item).Width(50);
+        col.Bound(c => c.Unit).Width(50);
+        col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+        .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Bound(c => c.UnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+        .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+        }).Width(50);
+    })
+    .ToolBar(toolbar => toolbar.Create().Text("Add Items"))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_IssuedItemTemplate").Window(w => w.Width(600).Title("Issued Item")))
+            //.Editable(editable => editable.Mode(GridEditMode.InLine))
+    .Resizable(r => r.Columns(true))
+    .Filterable()
+            //.Pageable(pager => pager
+            //    //.Input(false)
+            //    //.Numeric(true)
+            //    //.Info(true)
+            //    //.PreviousNext(true)
+            //    //.Refresh(true)
+            //    //.PageSizes(true)
+            //    //.ButtonCount(5)
+            //)
+    .Sortable()
+    .NoRecords()
+    .Scrollable(s => s.Height(200))
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .PageSize(10000)
+    .Events(events => events.Error("GridItemError")
+        //.RequestEnd("onGridItemsRequestEnd")
+        )
+    .Model(model =>
+    {
+        model.Id(p => p.Id);
+        model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+    })
+    .Aggregates(a =>
+    {
+        a.Add(p => p.Qty).Sum();
+        a.Add(p => p.Amount).Sum();
+    })
+    .Sort(s =>
+    {
+        s.Add(a => a.InsertedDt);
+    })
+    .Read(read => read.Action("_IssuedOrderItemRead", "Issueds").Data("DataGridIssuedOrderItem"))
+    .Create(create => create.Action("_IssuedOrderItemCreate", "Issueds"))
+    .Update(update => update.Action("_IssuedOrderItemUpdate", "Issueds"))
+    .Destroy(destroy => destroy.Action("_IssuedOrderItemDestroy", "Issueds"))
+    )
+            //.AutoBind(false)
+    .Events(e => e.Edit("onEditGridItems")
+    .Change("onChangeGridItems")
+            //.Save("onSaveGridItems")
+            //.DataBound("onDataBoundGridItems")
+    )
+    )
+}
+
+<style>
+    #span_ {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: fit-content;
+    }
+</style>
+
+@*<script>
+    $("#SupplierId").kendoTextBox();
+    $("#PoDate").kendoTextBox();
+    $("#PoMode").kendoCheckBox();
+    $("#DeliveryPlace").kendoDropDownList({
+    optionLabel: "-- Select a country of origin --",
+    dataSource: ["Argentina", "Brazil", "Italy", "Japan", "Portugal"],
+    });
+    $("TermDelivery").kendoNumericTextBox();
+    TermPayment
+    SignedBySuppDate
+    CertifiedCorrectBy
+    $("#CertifiedCorrectDate")
+
+    // Target the form element by using jQuery and then call the kendoValidator() method.
+    $("#formOrder").kendoValidator();
+    </script>*@
+
+<script type="text/javascript">
+
+    $("#btnSaveSelection").click(function (e) {
+        e.preventDefault();
+        var validator = $("#formOrder").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            //window.kendo.ui.progress($("#form"), true);
+            //var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            // Get reference to Grid object
+            var grid = $("#gridItems").data("kendoGrid");
+
+            if (grid.dataSource.total() == 0) {
+                if (!confirm("Save with empty items?")) {
+                    return;
+                }
+            }
+            SaveGridItems(e, true);
+            //disabled.attr('disabled', 'disabled');
+        }
+    });
+
+    $("#btnCancelSelection").click(function (e) {
+        e.preventDefault();
+        $("#btnCancelSelection").closest(".k-window-content").data("kendoWindow").close();
+    });
+
+
+</script>
+
+
+
+
+
+
+

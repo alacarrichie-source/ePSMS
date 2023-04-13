@@ -91,7 +91,8 @@
         {
             col.Bound(c => c.PsNo).Width(50);
             col.Bound(c => c.PsUnit).Width(50);
-            col.Bound(c => c.PsDescription).Width(50);
+            col.Bound(c => c.PsItem).Width(50);
+            col.Bound(c => c.Description).Width(50);
             col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -274,7 +275,11 @@
     function Entry(mode, poNo) {
         var myTitle = (mode == "A") ? "Purchase Order - ADD" : "Purchase Order - EDIT";
         var width = "90%";
-        var height = "70%";
+        var height = "75%";
+        var tSelectedId = selectedId;
+        if (mode == "A") {
+            selectedId = null;
+        }
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -283,6 +288,9 @@
                     modal: true,
                     visible: false,
                     close: function () {
+                        if (selectedId == null) {
+                            selectedId = tSelectedId;
+                        }
                         $("#grid").data("kendoGrid").dataSource.read();
                     },
                     deactivate: function () {
@@ -491,9 +499,8 @@
         var validator = $("#formOrder").kendoValidator().data("kendoValidator");
 
         if (!validator.validate()) {
-            alert(validator.errors().length);
-            alert(validator.errors());
-
+            //alert(validator.errors().length);
+            //alert(validator.errors());
             selectedGrid.cancelRow();
         }
         else {
@@ -520,11 +527,8 @@
                     } else {
                         if (e.model.isNew()) {
                             gridItemMode = "ADD";
-                            selectedItem = result.Model.Id;
-
-                            //$("#formItem input[name=TtaxId]").val(result.Model.Id).trigger("change");
-
-                            e.model.set("OrderId", selectedItem);
+                            selectedId = result.Model.Id;
+                            e.model.set("OrderId", selectedId);
 
                             var row = e.sender.tbody.find("tr:first");
                             if (row) {
@@ -532,24 +536,10 @@
                             }
                         } else {
                             gridItemMode = "EDIT";
-                            //$("#PIN").prop("disabled", false).removeClass("k-state-disabled");
-                            //$("#Description").prop("disabled", false).removeClass("k-state-disabled");
-                            //$("#UnitNo").prop("disabled", false).removeClass("k-state-disabled");
-                            //$("#Building").prop("disabled", false).removeClass("k-state-disabled");
-                            //$("#Subdivision").prop("disabled", false).removeClass("k-state-disabled");
-                            //$("#Location").prop("disabled", false).removeClass("k-state-disabled");
-                            //$("#Barangay").prop("disabled", false).removeClass("k-state-disabled");
-                            //$("#NoTdn").prop("disabled", true);
-                            //$("#Area").data("kendoNumericTextBox").enable(true);
-                            //$("#Kind").data("kendoMaskedTextBox").enable(true);
-                            //$("#ARPN").data("kendoMaskedTextBox").enable(false);
-                            //$("#FMV").data("kendoNumericTextBox").enable(true);
-                            //$("#ZonalValue").data("kendoNumericTextBox").enable(true);
-
                             selectedItem = e.model.get("Id");
                             var rowitem = selectedGrid.dataSource.get(selectedItem);
                             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-                        }
+                        }                        
                     }
                     disabled.attr('disabled', 'disabled')
                 } else {
@@ -577,7 +567,7 @@
     function onSelectPsCode(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#PsDescription").val(dataItem.Name).trigger("change");
+        $("#PsItem").val(dataItem.Name).trigger("change");
         $("#PsUnit").val(dataItem.Unit).trigger("change");
         $("#PsNo").val(dataItem.Code).trigger("change");
     }

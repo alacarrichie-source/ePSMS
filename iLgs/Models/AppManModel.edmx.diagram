@@ -34,21 +34,21 @@
         <AssociationConnector Association="AppManModel.FK_MenuActions_MenuActions" />
         </Diagram>
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="74" >
-        <EntityTypeShape EntityType="AppManModel.PsCode" Width="1.5" PointX="0.75" PointY="0.75" />
-        <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="7.875" PointY="2" />
-        <EntityTypeShape EntityType="AppManModel.RPSMIssued" Width="1.5" PointX="10.125" PointY="1.875" />
-        <EntityTypeShape EntityType="AppManModel.RPSMIssuedItem" Width="1.5" PointX="12.375" PointY="2.25" />
         <EntityTypeShape EntityType="AppManModel.Supplier" Width="1.5" PointX="3.375" PointY="1.625" />
-        <AssociationConnector Association="AppManModel.FK_OrderItems_PsCodes" />
-        <AssociationConnector Association="AppManModel.FK_RPSMIssued_OrderItems" />
-        <AssociationConnector Association="AppManModel.FK_RPSMIssuedItems_RPSMIssued" />
         <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="0.75" PointY="5.75" />
         <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="3.375" PointY="7.75" />
+        <EntityTypeShape EntityType="AppManModel.IssuedItem" Width="1.5" PointX="12.375" PointY="2.375" />
         <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="5.625" PointY="0.875" />
-        <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
         <AssociationConnector Association="AppManModel.FK_Orders_Suppliers" />
-        <AssociationConnector Association="AppManModel.FK_RPSMIssued_Orders" />
-      </Diagram>
+        <EntityTypeShape EntityType="AppManModel.Issued" Width="1.5" PointX="7.875" PointY="6.75" />
+        <AssociationConnector Association="AppManModel.FK_RPSMIssuedItems_RPSMIssued" />
+        <AssociationConnector Association="AppManModel.FK_Issueds_Orders" />
+        <EntityTypeShape EntityType="AppManModel.PsCode" Width="1.5" PointX="0.75" PointY="1" />
+        <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="7.875" PointY="2.125" />
+        <AssociationConnector Association="AppManModel.FK_IssuedItems_OrderItems" />
+        <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
+        <AssociationConnector Association="AppManModel.FK_OrderItems_PsCodes" />
+        </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

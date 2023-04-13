@@ -63,78 +63,9 @@ namespace iLgs.Controllers
             return result;            
         }
 
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> OrderCreate([DataSourceRequest] DataSourceRequest request, OrderVM model)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
-        //        Access access = await accessTask;
-        //        if (!access.AllowAdd)
-        //        {
-        //            ModelState.AddModelError("", "Add Access Denied!");
-        //        }
-
-        //        if (model != null && ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            model.Id = Guid.NewGuid();
-        //            model.InsertedBy = user;
-        //            model.InsertedDt = date;
-        //            model.UpdatedBy = user;
-        //            model.UpdatedDt = date;
-
-        //            db.Orders.Add(model);
-        //            await db.SaveChangesAsync();
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-        //             "please contact tech support with this message: " + e.Message);
-        //    }
-
-        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        //}
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> OrderUpdate([DataSourceRequest] DataSourceRequest request, Order model)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
-        //        Access access = await accessTask;
-        //        if (!access.AllowEdit)
-        //        {
-        //            ModelState.AddModelError("", "Update Access Denied!");
-        //        }
-
-        //        if (ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            model.UpdatedBy = user;
-        //            model.UpdatedDt = date;
-
-        //            db.Orders.Attach(model);
-        //            db.Entry(model).State = EntityState.Modified;
-        //            await db.SaveChangesAsync();
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-        //             "please contact tech support with this message: " + e.Message);
-        //    }
-
-        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        //}
-
+        
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> OrderDestroy([DataSourceRequest]DataSourceRequest request, Order model)
+        public async Task<ActionResult> OrderDestroy([DataSourceRequest]DataSourceRequest request, OrderVM model)
         {
             try
             {
@@ -146,9 +77,10 @@ namespace iLgs.Controllers
                 }
                 else
                 {
-                    db.Orders.Attach(model);
+                    var entity = await db.Orders.FindAsync(model.Id);
+                    db.Orders.Attach(entity);
                     // Delete the entity
-                    db.Orders.Remove(model);
+                    db.Orders.Remove(entity);
                     // Or use DeleteObject if using a previous version of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
@@ -179,48 +111,7 @@ namespace iLgs.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(poNo))
-                {
-                    //string user = ControllerContext.HttpContext.User.Identity.Name;
-                    //model = await db.Orders.Include(i => i.Supplier).Where(w => w.InsertedBy == user).OrderByDescending(o => o.InsertedDt).Select(s => new OrderVM
-                    //{
-                    //    Id = s.Id,
-                    //    PoYear = s.PoYear,
-                    //    PoMonth = s.PoMonth,
-                    //    PoSeries = s.PoSeries,
-                    //    PoNo = s.PoNo,
-                    //    PoDate = s.PoDate,
-                    //    PoMode = s.PoMode,
-                    //    PrNos = s.PrNos,
-                    //    SupplierId = s.SupplierId,
-                    //    SupplierName = s.Supplier.Name,
-                    //    SupplierAddress = s.Supplier.Address,
-                    //    SupplierTin = s.Supplier.TIN,
-                    //    DeliveryPlace = s.DeliveryPlace,
-                    //    DeliveryDate = s.DeliveryDate,
-                    //    TermDelivery = s.TermDelivery,
-                    //    TermPayment = s.TermPayment,
-                    //    SignedBySuppName = s.SignedBySuppName,
-                    //    SignedBySuppDate = s.SignedBySuppDate,
-                    //    SignedByAuthName = s.SignedByAuthName,
-                    //    SignedByAuthDesignation = s.SignedByAuthDesignation,
-                    //    ResoNo = s.ResoNo,
-                    //    CertifiedCorrectBy = s.CertifiedCorrectBy,
-                    //    CertifiedCorrectDate = s.CertifiedCorrectDate
-                    //}).FirstOrDefaultAsync();
-
-                    //if (model == null)
-                    //{
-                    //    model = new OrderVM()
-                    //    {
-                    //        Id = Guid.NewGuid(),
-                    //        PoDate = date,
-                    //        PoYear = date.Year.ToString().Trim(),
-                    //        PoMonth = date.Month.ToString().Trim().PadLeft(2, '0'),
-                    //        PoSeries = "",                            
-                    //        PrNos = ""
-                    //    };
-                    //}
-
+                {                    
                     model = new OrderVM()
                     {
                         Id = Guid.NewGuid(),
@@ -282,7 +173,7 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("Access Error", "Access Denied!");
                 }
 
-                Order entity = await db.Orders.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+                Order entity = await db.Orders.Include(i => i.OrderItems).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
                 if (entity == null) // Add
                 {
                     if (!string.IsNullOrWhiteSpace(model.PoSeries))
@@ -311,7 +202,14 @@ namespace iLgs.Controllers
                     {
 
                         model.Id = Guid.NewGuid();
-                        model.PoNo = NextPoNo((DateTime)model.PoDate);
+                        if (string.IsNullOrWhiteSpace(model.PoSeries))
+                        {
+                            model.PoNo = NextPoNo((DateTime)model.PoDate);
+                        }
+                        else
+                        {
+                            model.PoNo = model.PoYear + "-" + model.PoMonth + "-" + model.PoSeries;
+                        }
                         model.InsertedBy = user;
                         model.InsertedDt = date;
                         model.UpdatedBy = user;
@@ -342,7 +240,7 @@ namespace iLgs.Controllers
                             InsertedBy = model.InsertedBy,
                             InsertedDt = model.InsertedDt,
                             UpdatedBy = model.UpdatedBy,
-                            UpdatedDt = model.UpdatedDt
+                            UpdatedDt = model.UpdatedDt                            
                         };
                         db.Orders.Add(entity);
                     }
@@ -368,7 +266,7 @@ namespace iLgs.Controllers
                         entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
                         entity.CertifiedCorrectDate = model.CertifiedCorrectDate;
                         entity.UpdatedBy = model.UpdatedBy;
-                        entity.UpdatedDt = model.UpdatedDt;
+                        entity.UpdatedDt = model.UpdatedDt;                        
 
                         db.Orders.Attach(entity);
                         db.Entry(entity).State = EntityState.Modified;
@@ -421,7 +319,8 @@ namespace iLgs.Controllers
                     PsCodeId = s.PsCodeId,
                     PsNo = s.PsCode.PsNo,
                     PsUnit = s.PsCode.UnitMeas,
-                    PsDescription = s.PsCode.ItemName,
+                    PsItem = s.PsCode.ItemName,
+                    Description = s.Description,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
@@ -455,6 +354,7 @@ namespace iLgs.Controllers
                         Id = model.Id,
                         OrderId = model.OrderId,
                         PsCodeId = model.PsCodeId,
+                        Description = model.Description,
                         Qty = model.Qty,
                         UnitCost = model.UnitCost,
                         Amount = model.Amount,
@@ -498,6 +398,7 @@ namespace iLgs.Controllers
 
                     OrderItem entity = await db.OrderItems.FindAsync(model.Id);
                     entity.PsCodeId = model.PsCodeId;
+                    entity.Description = model.Description;
                     entity.Qty = model.Qty;
                     entity.UnitCost = model.UnitCost;
                     entity.Amount = model.Amount;

@@ -1,0 +1,748 @@
+﻿@{
+    ViewBag.Title = "Order Issuance - ePSMS";
+}
+
+<h3 class="text-info">Order Issuance</h3>
+<br />
+
+@(Html.Kendo().Grid<iLgs.Models.OrderVM>()
+    .Name("grid")
+    .Columns(col =>
+    {
+        col.Bound(c => c.PoNo).Width(50);
+        col.Bound(c => c.PoDate).Width(50);
+        col.Bound(c => c.SupplierName).Width(150);
+        col.Bound(c => c.SupplierAddress).Width(150);
+        col.Group(group => group
+             .Title("Quantity")
+             .Columns(info =>
+             {
+                 info.Bound(c => c.QtyTotal).Width(50).Title("Total")
+                    .Format("{0:n2}").HtmlAttributes(new { Style = "text-align:right;" })
+                    .FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#")
+                    .ClientGroupFooterTemplate("#=kendo.format('{0:n2}', sum)#");
+                 info.Bound(c => c.QtyIssued).Width(50).Title("Issued")
+                    .Format("{0:n2}").HtmlAttributes(new { Style = "text-align:right;" })
+                    .FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#")
+                    .ClientGroupFooterTemplate("#=kendo.format('{0:n2}', sum)#");
+                 info.Bound(c => c.QtyRemaining).Width(50).Title("Remaining")
+                    .Format("{0:n2}").HtmlAttributes(new { Style = "text-align:right;" })
+                    .FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#")
+                    .ClientGroupFooterTemplate("#=kendo.format('{0:n2}', sum)#");
+             }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+         );
+        col.Bound(c => c.TotalAmount).Width(70).Title("Total Amount")
+                    .Format("{0:n2}").HtmlAttributes(new { Style = "text-align:right;" })
+                    .FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#")
+                    .ClientGroupFooterTemplate("#=kendo.format('{0:n2}', sum)#");
+        
+    })
+        .ToolBar(t =>
+        {
+            t.Search();
+        })
+        .Search(s =>
+        {
+            s.Field(o => o.SupplierName, "contains");
+            s.Field(o => o.PoNo, "contains");        
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Scrollable(s => s.Height(100))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(20)
+            .Events(events => events.Error("GridError"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Aggregates(a =>
+                {
+                    a.Add(p => p.QtyTotal).Sum();
+                    a.Add(p => p.QtyIssued).Sum();
+                    a.Add(p => p.QtyRemaining).Sum();
+                    a.Add(p => p.TotalAmount).Sum();
+                })
+            .Read(read => read.Action("OrderRead", "Issueds"))        
+        )
+        .Events(events => events
+            .Change("onChangeGrid")
+            .Edit("onEditGrid")
+            .DataBound("onDataBoundGrid")
+            )
+)
+
+<br />
+
+@(Html.Kendo().TabStrip()
+     .Name("tabStrip")
+    //.Events(e => e.Select("onSelectTab"))
+    .Events(e => e.Activate("onActivateTab"))
+    .TabPosition(TabStripTabPosition.Top)
+    .Animation(animation =>
+    {
+        animation.Open(config =>
+        {
+            config.Fade(FadeDirection.In);
+        });
+    })
+    .SelectedIndex(0)
+    .Items(items =>
+    {
+        items.Add().Text("Issued")
+            .Selected(true)
+            .Content(@<text>
+                  @RenderIssuedOrder();
+            </text>
+            );
+            items.Add().Text("Order Items").LoadContentFrom("_OrderItem", "Issueds");        
+    }))
+
+@helper  RenderIssuedOrder() { 
+    @(Html.Kendo().Grid<iLgs.Models.IssuedVM>()
+            .Name("gridIssuedOrder")
+            .Columns(col =>
+            {
+                col.Bound(c => c.SerialNo).Width(50);
+                col.Bound(c => c.Date).Width(50);
+                col.Bound(c => c.Fund).Width(50);
+                col.Bound(c => c.CertifiedBy).Width(50);
+                col.Bound(c => c.CertifiedDt).Width(50);
+                col.Bound(c => c.PostedBy).Width(50);
+                col.Bound(c => c.PostedDt).Width(50);
+                col.Command(command =>
+                {
+                    command.Custom("Edit").IconClass("k-icon k-i-edit").Click("onGridEditClick").SendDataKeys(true);
+                    command.Destroy();
+                    //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+                }).Width(100);
+            })
+            .ToolBar(toolbar =>
+            {
+                toolbar.Template(@<text>
+                @(Html.Kendo().Button().Name("btnAdd").Icon("k-icon k-i-add").Content("Issue Order")
+                        .Events(e => e.Click("onClickBtnAdd"))
+                )
+                </text>);
+            })
+            .Filterable()
+            .NoRecords()
+            .Resizable(r => r.Columns(true))
+            .Scrollable(s => s.Height(70))
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+            .Sortable()
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Events(events => events.Error("GridError"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                })
+                .Read(read => read.Action("_IssuedOrderRead", "Issueds").Data("DataGridIssuedOrder"))
+                .Destroy(destroy => destroy.Action("_IssuedOrderDestroy", "Issueds"))
+            )
+            .Events(events => events
+                .Change("onChangeGridIssuedOrder")
+                .Edit("onEditGridIssuedOrder")
+                .DataBound("onDataBoundGridIssuedOrder")
+            )
+            .AutoBind(true)
+    )
+
+    <br />
+
+    @(Html.Kendo().Grid<iLgs.Models.IssuedItemVM>()
+            .Name("gridIssuedOrderItems")
+            .Columns(col =>
+            {
+                col.Bound(c => c.RISNo).Width(50);
+                col.Bound(c => c.RCCode).Width(50);
+                col.Bound(c => c.StockNo).Width(50);
+                col.Bound(c => c.Item).Width(50);
+                col.Bound(c => c.Unit).Width(50);
+                col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                col.Bound(c => c.UnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            })
+            .Filterable()
+            .NoRecords()
+            .Resizable(r => r.Columns(true))
+            .Scrollable(s => s.Height(120))
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+            .Sortable()
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Events(events => events.Error("GridError"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                })
+                .Aggregates(a =>
+                {
+                    a.Add(p => p.Qty).Sum();
+                    a.Add(p => p.Amount).Sum();
+                })
+                .Sort(s =>
+                {
+                    s.Add(a => a.InsertedDt);
+                })
+                .Read(read => read.Action("_IssuedOrderItemRead", "Issueds").Data("DataGridIssuedOrderItem"))
+            )
+            //.Events(events => events
+            //    .Change("onChangeGridItems")
+            //    .Edit("onEditGridItems")
+            //    .DataBound("onDataBoundGridItems")
+            //)
+            .AutoBind(true)
+    )
+
+}
+
+<div id="windowcontainer"></div>
+
+<style>
+    .k-tabstrip-content.k-state-active, .k-tabstrip > .k-content.k-state-active {
+        overflow-x: hidden;
+    }
+
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        overflow-x: hidden;
+    }
+
+    .k-prompt-container, .k-window-content {
+        overflow-x: hidden;
+    }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .k-floating-label-container {
+        width: 100%;
+    }
+</style>
+
+
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    <li>
+        #=field#
+        <ul>
+            # for (var i = 0; i < messages.length; ++i) { #
+            <li>#= messages[i] #</li>
+            # } #
+        </ul>
+    </li>
+    # } #
+</script>
+
+
+<script type="text/javascript">
+    function GridError(args) {
+        if (args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    var selectedGrid = null;
+    var selectedId = null;
+    var selectedIssuedId = null;
+    var selectedIssuedItemId = null;
+    
+    function onChangeGrid(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedId = selectedData.Id;
+        selectedIssuedId = null;
+        selectedIssuedItemId = null;
+
+        var ts = $("#tabStrip").data("kendoTabStrip");
+        var index = ts.select().index();
+        
+        if (index == 0) {
+            $("#gridIssuedOrder").data("kendoGrid").dataSource.read();
+            $("#gridIssuedOrderItems").data("kendoGrid").dataSource.read();            
+        } else if (index == 1) {
+            $("#gridOrderItems").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function onDataBoundGrid(e) {
+        if (selectedId) {
+            var dataItem = this.dataSource.get(selectedId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+        //if (this.dataSource.total() == 0) {
+        //   // to do: disable item add button
+        //}
+    }
+
+    function onEditGrid(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedId = null;
+        } else {
+            selectedId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            //$("#Code").attr("readonly", "readonly");
+        }
+    }
+
+    function onGridDeleteClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+    function onClickBtnAdd(e) {
+        e.preventDefault();
+        var serialNo
+        selectedIssuedId = null;
+        selectedIssuedItemId = null;
+        Entry("A", serialNo);
+    }
+
+    function Entry(mode, serialNo) {
+        var myTitle = (mode == "A") ? "Purchase Order Issuance - ADD" : "Purchase Order Issuance - EDIT";
+        var width = "90%";
+        var height = "65%";
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    close: function () {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                        $("#gridIssuedOrder").data("kendoGrid").dataSource.read();
+                        $("#gridIssuedOrderItems").data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width,
+            height: height
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_IssuedOrderAdd", "Issueds")',
+            data: {
+                orderId: selectedId,
+                serialNo: serialNo
+            }
+        });
+        mywindow.center().open();
+    }
+
+
+    @*function onGridDeleteClick(e) {
+        selectedGrid = this;
+        var dataItem = selectedGrid.dataItem($(e.currentTarget).closest("tr"));
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+        selectedGrid.select(row);
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("IsPrinted", "Report")',
+            data: { RecId: dataItem.Id },
+            success: function (result) {
+                if (result.Errors == "") {
+                    if (confirm('Do you really want to delete this record?')) {
+                        selectedGrid.dataSource.remove(dataItem);
+                        selectedGrid.dataSource.sync();
+                    }
+                } else {
+                    alert(result.Errors);
+                }
+            }
+        });
+    }*@
+
+    function onGridEditClick(e) {
+        selectedGrid = this;
+        var dataItem = selectedGrid.dataItem($(e.currentTarget).closest("tr"));
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+        selectedGrid.select(row);        
+        selectedIssuedId = selectedGrid.dataItem(selectedGrid.select()).Id;
+        selectedIssuedItemId = null;
+        var serialNo = selectedGrid.dataItem(selectedGrid.select()).SerialNo;
+        Entry("E", serialNo);
+    }
+
+    function DataSupplierId() {
+        var text = $("#SupplierId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#SupplierId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            text: text
+        };
+    }
+
+    function DateIsValid(kendoDate) {
+        var date = kendo.parseDate(kendoDate);
+        if (!date) {
+            alert("Invalid Date!");
+            return false;
+        }
+        return true;
+    }
+
+    function onSelectSupplier(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#SupplierName").val(dataItem.Name).trigger("change");
+        $("#SupplierAddress").val(dataItem.Address).trigger("change");
+        $("#SupplierTin").val(dataItem.TIN).trigger("change");
+    }
+
+    // ORDER ADD ITEMS
+
+    function GridItemError(args) {
+        if (args.errors) {
+            var selectedGrid = $("#gridItems").data("kendoGrid");
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "GridError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        //alert(this.errors);
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    // GRID ORDER ITEM
+
+    function DataGridOrderItem() {
+        return {
+            orderId: selectedId
+        };
+    }
+
+
+    //function onChangeGridItems(e) {
+    //    var selectedData = this.dataItem(this.select());
+    //    selectedItem = selectedData.Id;
+    //}
+
+    //function onDataBoundGridItems(e) {
+    //    if (selectedItem) {
+    //        var dataItem = this.dataSource.get(selectedItem);
+    //        if (dataItem) {
+    //            this.select($('[data-uid=' + dataItem.uid + ']'));
+    //        }
+    //    } else {
+    //        var row = e.sender.tbody.find("tr:first");
+    //        this.select(row);
+    //    }
+    //}
+
+
+    // ISSUED ITEM TEMPLATE
+
+    function DataOrderItemId() {
+        var text = $("#OrderItemId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#OrderItemId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            orderId: selectedId,
+            text: text
+        };
+    }
+
+    function onSelectOrderItem(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#Item").val(dataItem.Name).trigger("change");
+        $("#Unit").val(dataItem.Unit).trigger("change");
+        $("#Qty").data("kendoNumericTextBox").value(dataItem.Qty);
+        $("#UnitCost").data("kendoNumericTextBox").value(dataItem.UnitCost);
+        $("#Qty").data("kendoNumericTextBox").trigger("change");
+        $("#UnitCost").data("kendoNumericTextBox").trigger("change");
+    }
+
+    function changeAmount(e) {
+        var qty = $("#Qty").data("kendoNumericTextBox").value();
+        var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();
+        var amount = qty * unitCost;
+
+        $("#Amount").data("kendoNumericTextBox").value(amount);
+        $("#Amount").data("kendoNumericTextBox").trigger("change");
+    }
+
+    function onGridItemsRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridItems").data("kendoGrid").dataSource.read();
+            }
+        }
+    }
+
+    function reloadTab(idx) {
+        var ts = $("#tabStrip").data("kendoTabStrip");
+        if (idx == 0) {
+            ts.contentHolder(idx).load("../Issueds/_OrderItem");
+        } else if (idx == 1) {
+            ts.contentHolder(idx).load("../Issueds/_IssuedOrder");
+            //$("#gridItems").data("kendoGrid").dataSource.read();
+        }
+        //else if (idx == 2) {
+        //    ts.contentHolder(idx).load("../Ledger/_PaymentHistoryMigrated?faasMastId=" + selectedItem + "&zeroAmount=false");
+        //} else if (idx == 3) {
+        //    ts.contentHolder(idx).load("../Ledger/_HistoryPanel?faasMastId=" + selectedItem + "&posted=true");
+        //} else {
+        //    ts.contentHolder(idx).load("../Ledger/_BillStartYear?faasMastId=" + selectedItem);
+        //}
+    }
+
+
+    function onActivateTab(e) {
+
+        // only default tab is applied
+        //var tab = $("#TabStrip").data("kendoTabStrip");
+        //var index = $("#TabStrip").data("kendoTabStrip").select().index();
+        //var value = $("#TabStrip").data("kendoTabStrip").value();
+
+        var ts = this;
+        var index = ts.select().index();
+
+        if (index == 1) {
+            $("#gridIssuedOrder").data("kendoGrid").dataSource.read();
+        } else if (index == 2) {
+            $("#gridOrderItems").data("kendoGrid").dataSource.read();
+        }
+    }
+
+
+    function onSelectTab(e) {
+        var ts = this;
+        for (var idx = 0; ; ++idx) {
+            var tab = ts.contentElement(idx);
+            if (tab == null)
+                break;
+            if (tab == e.contentElement) {
+                //current tab logic - just let it go
+                tsIndex = idx;
+                reloadTab(idx);
+            }
+            else {
+                //all other tabs
+                $(tab).html("");
+            }
+        }
+    }
+
+    // ISSUED ORDER
+
+    function DataGridIssuedOrder() {
+        return {
+            orderId: selectedId
+        };
+    }
+
+    function onChangeGridIssuedOrder(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedIssuedId = selectedData.Id;
+        $("#gridIssuedOrderItems").data("kendoGrid").dataSource.read();
+    }
+
+    function onDataBoundGridIssuedOrder(e) {
+        if (selectedIssuedId) {
+            var dataItem = this.dataSource.get(selectedIssuedId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onEditGridIssuedOrder(e) {
+        e.preventDefault();
+
+        selectedGrid = e.sender;
+
+        var validator = $("#formIssuedOrder").kendoValidator().data("kendoValidator");
+
+        if (!validator.validate()) {
+            alert(validator.errors().length);
+            alert(validator.errors());
+
+            selectedGrid.cancelRow();
+        }
+        else {
+            SaveGridItems(e, false);
+        }
+    }
+
+
+    // ISSUED ORDER ITEMS
+
+    function DataGridIssuedOrderItem() {
+        return {
+            issuedId: selectedIssuedId
+        };
+    }
+    
+    function onChangeGridItems(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedItem = selectedData.Id;
+    }
+    
+    function onDataBoundGridItems(e) {
+        if (selectedItem) {
+            var dataItem = this.dataSource.get(selectedItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onEditGridItems(e) {
+        e.preventDefault();
+
+        selectedGrid = e.sender;
+
+        var validator = $("#formOrder").kendoValidator().data("kendoValidator");
+
+        if (!validator.validate()) {
+            selectedGrid.cancelRow();
+        }
+        else {
+            SaveGridItems(e, false);
+        }
+    }
+
+    function SaveGridItems(e, closeWindow) {
+        var disabled = $("#formOrder").find(':input:disabled').removeAttr('disabled');
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("_IssuedOrderSave", "Issueds")',
+            data: $("#formOrder").serialize(),
+            beforeSend: function () {
+                window.kendo.ui.progress($("#formOrder"), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($("#formOrder"), false);
+                if (result.Errors == "") {
+                    $("#formOrder input[name=Id]").val(result.Model.Id).trigger("change");
+                    if (closeWindow) {
+                        $("#btnCancelSelection").closest(".k-window-content").data("kendoWindow").close();
+                    } else {
+                        if (e.model.isNew()) {
+                            selectedIssuedItemId = result.Model.Id;
+
+                            e.model.set("IssuedId", selectedIssuedItemId);
+
+                            var row = e.sender.tbody.find("tr:first");
+                            if (row) {
+                                selectedGrid.select(row);
+                            }
+                        } else {
+                            selectedIssuedItemId = e.model.get("Id");
+                            var rowitem = selectedGrid.dataSource.get(selectedIssuedItemId);
+                            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+                        }
+                    }
+                    disabled.attr('disabled', 'disabled')
+                } else {
+                    alert(result.Errors);
+                }
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+            }
+        }).always(function () {
+            window.kendo.ui.progress($("#formOrder"), false);
+        });
+    }
+</script>
+
+
