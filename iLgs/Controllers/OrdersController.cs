@@ -35,6 +35,7 @@ namespace iLgs.Controllers
                     PoNo = s.PoNo,
                     PoDate = s.PoDate,
                     PoMode = s.PoMode,
+                    PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC_MODE").FirstOrDefault().Description,
                     PrNos = s.PrNos,
                     SupplierId = s.SupplierId,
                     SupplierName = s.Supplier.Name,
