@@ -12,28 +12,37 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class Issued
+    public partial class Request
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Issued()
+        public Request()
         {
-            this.IssuedItems = new HashSet<IssuedItem>();
+            this.Orders = new HashSet<Order>();
+            this.RequestItems = new HashSet<RequestItem>();
         }
     
         public System.Guid Id { get; set; }
-        public string SerialNo { get; set; }
         public string Fund { get; set; }
-        public Nullable<System.DateTime> Date { get; set; }
-        public string CertifiedBy { get; set; }
-        public Nullable<System.DateTime> CertifiedDate { get; set; }
-        public string PostedBy { get; set; }
-        public Nullable<System.DateTime> PostedDate { get; set; }
+        public string Department { get; set; }
+        public string Section { get; set; }
+        public string PrNo { get; set; }
+        public Nullable<System.DateTime> PrDate { get; set; }
+        public string FPP { get; set; }
+        public string Purpose { get; set; }
+        public string RequestedBy { get; set; }
+        public string RequestedDesig { get; set; }
+        public string Availability { get; set; }
+        public string AvaialbilityDesig { get; set; }
+        public string ApprovedBy { get; set; }
+        public string ApprovedDesig { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<IssuedItem> IssuedItems { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RequestItem> RequestItems { get; set; }
     }
 }

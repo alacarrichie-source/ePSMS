@@ -12,28 +12,29 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class Issued
+    public partial class PsItem
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Issued()
+        public PsItem()
         {
-            this.IssuedItems = new HashSet<IssuedItem>();
+            this.RISlipItems = new HashSet<RISlipItem>();
         }
     
         public System.Guid Id { get; set; }
-        public string SerialNo { get; set; }
-        public string Fund { get; set; }
-        public Nullable<System.DateTime> Date { get; set; }
-        public string CertifiedBy { get; set; }
-        public Nullable<System.DateTime> CertifiedDate { get; set; }
-        public string PostedBy { get; set; }
-        public Nullable<System.DateTime> PostedDate { get; set; }
+        public Nullable<System.Guid> PsId { get; set; }
+        public Nullable<System.Guid> OrderItemId { get; set; }
+        public string RefNo { get; set; }
+        public Nullable<System.DateTime> RefDate { get; set; }
+        public string RefType { get; set; }
+        public Nullable<decimal> Qty { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        public virtual OrderItem OrderItem { get; set; }
+        public virtual PsCode PsCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<IssuedItem> IssuedItems { get; set; }
+        public virtual ICollection<RISlipItem> RISlipItems { get; set; }
     }
 }

@@ -29,14 +29,14 @@ namespace iLgs.Controllers
                 .Select(s => new OrderVM
                 {
                     Id = s.Id,
-                    PoYear = s.PoYear,
-                    PoMonth = s.PoMonth,
-                    PoSeries = s.PoSeries,
+                    //PoYear = s.PoNo.Substring(0, 4),
+                    //PoMonth = s.PoNo.Substring(5, 2),
+                    //PoSeries = s.PoNo.Substring(8, 4),
                     PoNo = s.PoNo,
                     PoDate = s.PoDate,
                     PoMode = s.PoMode,
                     PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC_MODE").FirstOrDefault().Description,
-                    PrNos = s.PrNos,
+                    PrNo = s.PrNo,
                     SupplierId = s.SupplierId,
                     SupplierName = s.Supplier.Name,
                     SupplierAddress = s.Supplier.Address,
@@ -119,8 +119,8 @@ namespace iLgs.Controllers
                         PoDate = date,
                         PoYear = date.Year.ToString().Trim(),
                         PoMonth = date.Month.ToString().Trim().PadLeft(2, '0'),
-                        PoSeries = "",
-                        PrNos = ""
+                        PoNo = "",
+                        PrNo = ""
                     };
                 }
                 else
@@ -128,13 +128,13 @@ namespace iLgs.Controllers
                     model = await db.Orders.Where(w => w.PoNo == poNo).Select(s => new OrderVM
                     {
                         Id = s.Id,
-                        PoYear = s.PoYear,
-                        PoMonth = s.PoMonth,
-                        PoSeries = s.PoSeries,
+                        //PoYear = s.PoYear,
+                        //PoMonth = s.PoMonth,
+                        //PoSeries = s.PoSeries,
                         PoNo = s.PoNo,
                         PoDate = s.PoDate,
                         PoMode = s.PoMode,
-                        PrNos = s.PrNos,
+                        PrNo = s.PrNo,
                         SupplierId = s.SupplierId,
                         SupplierName = s.Supplier.Name,
                         SupplierAddress = s.Supplier.Address,
@@ -177,19 +177,19 @@ namespace iLgs.Controllers
                 Order entity = await db.Orders.Include(i => i.OrderItems).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
                 if (entity == null) // Add
                 {
-                    if (!string.IsNullOrWhiteSpace(model.PoSeries))
+                    if (!string.IsNullOrWhiteSpace(model.PoNo))
                     {
-                        if (db.Orders.Any(a => a.PoNo == model.PoNo_))
+                        if (db.Orders.Any(a => a.PoNo == model.PoNo))
                         {
-                            ModelState.AddModelError("PoSeries", "P.O. series already exists!");
+                            ModelState.AddModelError("PoNo", "P.O. number already exists!");
                         }
                     }
                 }
                 else
                 {
-                    if (db.Orders.Any(a => a.Id != model.Id && a.PoNo == model.PoNo_))
+                    if (db.Orders.Any(a => a.Id != model.Id && a.PoNo == model.PoNo))
                     {
-                        ModelState.AddModelError("PoSeries", "P.O. series already exists!");
+                        ModelState.AddModelError("PoNo", "P.O. number already exists!");
                     }
                 }
 
@@ -203,13 +203,9 @@ namespace iLgs.Controllers
                     {
 
                         model.Id = Guid.NewGuid();
-                        if (string.IsNullOrWhiteSpace(model.PoSeries))
+                        if (string.IsNullOrWhiteSpace(model.PoNo))
                         {
-                            model.PoNo = NextPoNo((DateTime)model.PoDate);
-                        }
-                        else
-                        {
-                            model.PoNo = model.PoYear + "-" + model.PoMonth + "-" + model.PoSeries;
+                            model.PoNo = NextPoNo((DateTime)model.PoDate);                        
                         }
                         model.InsertedBy = user;
                         model.InsertedDt = date;
@@ -219,13 +215,13 @@ namespace iLgs.Controllers
                         entity = new Order()
                         {
                             Id = model.Id,
-                            PoYear = model.PoYear,
-                            PoMonth = model.PoMonth,
-                            PoSeries = model.PoNo.Split('-')[2],
+                            //PoYear = model.PoYear,
+                            //PoMonth = model.PoMonth,
+                            //PoSeries = model.PoNo.Split('-')[2],
                             PoNo = model.PoNo,
                             PoDate = model.PoDate,
                             PoMode = model.PoMode,
-                            PrNos = model.PrNos,
+                            PrNo = model.PrNo,
                             SupplierId = model.SupplierId,
                             DeliveryPlace = model.DeliveryPlace,
                             DeliveryDate = model.DeliveryDate,
@@ -247,13 +243,13 @@ namespace iLgs.Controllers
                     }
                     else
                     {
-                        entity.PoYear = model.PoYear;
-                        entity.PoMonth = model.PoMonth;
-                        entity.PoSeries = model.PoSeries;
-                        entity.PoNo = model.PoNo_;
+                        //entity.PoYear = model.PoYear;
+                        //entity.PoMonth = model.PoMonth;
+                        //entity.PoSeries = model.PoSeries;
+                        //entity.PoNo = model.PoNo_;
                         entity.PoDate = model.PoDate;
                         entity.PoMode = model.PoMode;
-                        entity.PrNos = model.PrNos;
+                        entity.PrNo = model.PrNo;
                         entity.SupplierId = model.SupplierId;
                         entity.DeliveryPlace = model.DeliveryPlace;
                         entity.DeliveryDate = model.DeliveryDate;
@@ -298,14 +294,15 @@ namespace iLgs.Controllers
             // yyyy-mm-9999
             // 123456789012
 
-            var order = db.Orders.Where(w => w.PoYear == yyyy && w.PoMonth == mm).OrderByDescending(o => o.PoNo).FirstOrDefault();
+            var order = db.Orders.Where(w => w.PoDate.Value.Year == poDate.Year 
+                && w.PoDate.Value.Month == poDate.Month).OrderByDescending(o => o.PoNo).FirstOrDefault();
             if (order == null)
             {
                 return keyName + "-" + "0001";
             }
             else
             {
-                var sequence = (int.Parse(order.PoSeries) + 1).ToString();
+                var sequence = (int.Parse(order.PoNo.Split('-')[2]) + 1).ToString();
                 return keyName + "-" + sequence.PadLeft(4, '0');
             }
         }

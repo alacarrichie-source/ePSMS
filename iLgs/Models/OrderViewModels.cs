@@ -9,17 +9,7 @@ namespace iLgs.Models
 {
     public class OrderVM
     {
-        //public string PoYear { get { return PoNo.Substring(0, 4); } set { PoYear = value; } }
-        //public string PoMonth { get { return PoNo.Substring(5, 2); } set { PoMonth = value; } }
-        //[Display(Name = "Series")]
-        //public string PoSeries { get { return PoNo.Substring(8, 4); } set { PoSeries = value; } }
-
-        public string PoYear { get; set; }
-        public string PoMonth { get; set; }
-        public string PoSeries { get; set; }
-
-        public string PoNo_ { get { return PoYear + "-" + PoMonth + "-" + PoSeries; } }
-
+        
         [Display(Name = "Supplier")]
         public string SupplierName { get; set; }
 
@@ -54,7 +44,7 @@ namespace iLgs.Models
         public string PoMode { get; set; }
 
         [Display(Name = "P.R. No./s")]
-        public string PrNos { get; set; }
+        public string PrNo { get; set; }
 
         [Display(Name = "Place of Delivery")]
         [Required]
@@ -103,6 +93,10 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
         // TRANSIENTS
+
+        public string PoYear { get; set; }
+        public string PoMonth { get; set; }
+        public string PoSeries { get; set; }
 
         public Nullable<decimal> QtyTotal { get; set; }
         public Nullable<decimal> QtyIssued { get; set; }

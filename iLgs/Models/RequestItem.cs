@@ -12,17 +12,21 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class IssuedItem
+    public partial class RequestItem
     {
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> IssuedId { get; set; }
-        public Nullable<System.Guid> RISId { get; set; }
+        public Nullable<System.Guid> PrId { get; set; }
+        public Nullable<System.Guid> PsCodeId { get; set; }
+        public string Description { get; set; }
+        public Nullable<decimal> Qty { get; set; }
+        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<decimal> TotalCost { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual RISlip RISlip { get; set; }
-        public virtual Issued Issued { get; set; }
+        public virtual PsCode PsCode { get; set; }
+        public virtual Request Request { get; set; }
     }
 }

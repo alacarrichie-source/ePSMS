@@ -18,6 +18,8 @@ namespace iLgs.Models
         public PsCode()
         {
             this.OrderItems = new HashSet<OrderItem>();
+            this.PsItems = new HashSet<PsItem>();
+            this.RequestItems = new HashSet<RequestItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -28,6 +30,7 @@ namespace iLgs.Models
         public string UnitMeas { get; set; }
         public Nullable<decimal> ReorderPoint { get; set; }
         public Nullable<int> DaysToConsume { get; set; }
+        public string InfoCsv { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
@@ -35,5 +38,9 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItem> OrderItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsItem> PsItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RequestItem> RequestItems { get; set; }
     }
 }

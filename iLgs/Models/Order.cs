@@ -17,19 +17,17 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Order()
         {
-            this.Issueds = new HashSet<Issued>();
+            this.AIRs = new HashSet<AIR>();
             this.OrderItems = new HashSet<OrderItem>();
         }
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> SupplierId { get; set; }
-        public string PoYear { get; set; }
-        public string PoMonth { get; set; }
-        public string PoSeries { get; set; }
         public string PoNo { get; set; }
         public Nullable<System.DateTime> PoDate { get; set; }
         public string PoMode { get; set; }
-        public string PrNos { get; set; }
+        public Nullable<System.Guid> PrId { get; set; }
+        public string PrNo { get; set; }
         public string DeliveryPlace { get; set; }
         public Nullable<System.DateTime> DeliveryDate { get; set; }
         public string TermDelivery { get; set; }
@@ -46,10 +44,11 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual Supplier Supplier { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Issued> Issueds { get; set; }
+        public virtual ICollection<AIR> AIRs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItem> OrderItems { get; set; }
+        public virtual Request Request { get; set; }
+        public virtual Supplier Supplier { get; set; }
     }
 }

@@ -151,7 +151,7 @@ namespace iLgs.Controllers
         public JsonResult GetOrderItem(Guid orderId, string text)
         {
 
-            var model = db.OrderItems.Include("IssuedItems").Include("PsCodes").Where(w => w.OrderId == orderId).AsQueryable();
+            var model = db.OrderItems.Include("PsCodes").Where(w => w.OrderId == orderId).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -160,7 +160,8 @@ namespace iLgs.Controllers
 
             return Json(model.Select(c => new { Id = c.Id, Code = c.PsCode.PsNo, Name = c.PsCode.ItemName, Description = c.PsCode.ItemDescription
                 , Unit = c.PsCode.UnitMeas, Type = c.PsCode.PsType
-                , Qty = c.Qty - (c.IssuedItems.Sum(s => s.Qty) ?? 0), UnitCost = c.UnitCost
+                , Qty = c.Qty// - (c.IssuedItems.Sum(s => s.Qty) ?? 0)
+                , UnitCost = c.UnitCost
                 })//.Where(w => w.Qty > 0)
             , JsonRequestBehavior.AllowGet);
         }

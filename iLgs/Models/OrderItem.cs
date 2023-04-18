@@ -17,7 +17,8 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public OrderItem()
         {
-            this.IssuedItems = new HashSet<IssuedItem>();
+            this.AIRItems = new HashSet<AIRItem>();
+            this.PsItems = new HashSet<PsItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -33,8 +34,10 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<IssuedItem> IssuedItems { get; set; }
+        public virtual ICollection<AIRItem> AIRItems { get; set; }
         public virtual Order Order { get; set; }
         public virtual PsCode PsCode { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsItem> PsItems { get; set; }
     }
 }
