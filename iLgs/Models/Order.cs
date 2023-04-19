@@ -27,7 +27,6 @@ namespace iLgs.Models
         public Nullable<System.DateTime> PoDate { get; set; }
         public string PoMode { get; set; }
         public Nullable<System.Guid> PrId { get; set; }
-        public string PrNo { get; set; }
         public string DeliveryPlace { get; set; }
         public Nullable<System.DateTime> DeliveryDate { get; set; }
         public string TermDelivery { get; set; }
@@ -46,9 +45,9 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIR> AIRs { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItem> OrderItems { get; set; }
         public virtual Request Request { get; set; }
         public virtual Supplier Supplier { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<OrderItem> OrderItems { get; set; }
     }
 }

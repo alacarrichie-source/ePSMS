@@ -23,7 +23,7 @@ namespace iLgs.Models
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
-        public Nullable<System.Guid> PsCodeId { get; set; }
+        public Nullable<System.Guid> RequestItemId { get; set; }
         public string Description { get; set; }
         public Nullable<decimal> Qty { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
@@ -36,7 +36,7 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRItem> AIRItems { get; set; }
         public virtual Order Order { get; set; }
-        public virtual PsCode PsCode { get; set; }
+        public virtual RequestItem RequestItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsItem> PsItems { get; set; }
     }

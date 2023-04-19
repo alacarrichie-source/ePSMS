@@ -212,6 +212,7 @@
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\OrdersController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
+    <Compile Include="Controllers\RequestsController.cs" />
     <Compile Include="Controllers\RolesController.cs" />
     <Compile Include="Controllers\Roles_Controller.cs" />
     <Compile Include="Controllers\SequenceController.cs" />
@@ -338,6 +339,7 @@
     <Compile Include="Models\RequestItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\RequestViewModels.cs" />
     <Compile Include="Models\RISlip.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -3180,12 +3182,12 @@
     <Content Include="Views\Items\Index.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_PsTypeTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_UnitTemplate.cshtml" />
-    <Content Include="Views\Orders\Index.cshtml" />
+    <Content Include="Views\Orders\Index_killed.cshtml" />
     <Content Include="Views\Orders\EditorTemplates\_OrderTemplate.cshtml" />
     <Content Include="Views\Uploads\Index.cshtml" />
     <Content Include="Views\Uploads\EditorTemplates\_UploadTemplate.cshtml" />
     <Content Include="Views\Uploads\_Upload.cshtml" />
-    <Content Include="Views\Orders\_OrderAdd.cshtml" />
+    <Content Include="Views\Orders\_OrderAdd_Killed.cshtml" />
     <Content Include="Views\Suppliers\Index.cshtml" />
     <Content Include="Views\Orders\EditorTemplates\_OrderItemTemplate.cshtml" />
     <Content Include="Views\Issueds\Index.cshtml" />
@@ -3196,6 +3198,10 @@
     <Content Include="Views\Issueds\EditorTemplates\_IssuedItemTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_ReorderTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_DaysToConsumeTemplate.cshtml" />
+    <Content Include="Views\Requests\Index.cshtml" />
+    <Content Include="Views\Requests\EditorTemplates\_RequestTemplate.cshtml" />
+    <Content Include="Views\Requests\EditorTemplates\_RequestItemTemplate.cshtml" />
+    <Content Include="Views\Orders\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

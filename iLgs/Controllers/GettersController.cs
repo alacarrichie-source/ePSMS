@@ -148,23 +148,61 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.PsNo, Name = c.ItemName, Description = c.ItemDescription, Unit = c.UnitMeas, Type = c.PsType }), JsonRequestBehavior.AllowGet);
         }
 
-        public JsonResult GetOrderItem(Guid orderId, string text)
+        public JsonResult GetPrNos(string text)
         {
 
-            var model = db.OrderItems.Include("PsCodes").Where(w => w.OrderId == orderId).AsQueryable();
+            var model = db.Requests.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.PrNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.Department }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetPrItems(Guid prId, string text)
+        {
+
+            var model = db.RequestItems.Include("PsCodes").Where(w => w.PrId == prId).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
                 model = model.Where(p => p.Id.ToString() == text || p.PsCode.ItemName.Contains(text) || p.PsCode.ItemDescription.Contains(text) || p.PsCode.PsNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, Code = c.PsCode.PsNo, Name = c.PsCode.ItemName, Description = c.PsCode.ItemDescription
-                , Unit = c.PsCode.UnitMeas, Type = c.PsCode.PsType
-                , Qty = c.Qty// - (c.IssuedItems.Sum(s => s.Qty) ?? 0)
-                , UnitCost = c.UnitCost
-                })//.Where(w => w.Qty > 0)
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                Code = c.PsCode.PsNo,
+                Name = c.PsCode.ItemName,
+                Description = c.PsCode.ItemDescription,
+                Unit = c.PsCode.UnitMeas,
+                Type = c.PsCode.PsType,
+                Qty = c.Qty, 
+                UnitCost = c.UnitCost,
+                TotalCost = c.TotalCost
+            })
             , JsonRequestBehavior.AllowGet);
         }
+
+        //public JsonResult GetOrderItem(Guid orderId, string text)
+        //{
+
+        //    var model = db.OrderItems.Include("PsCodes").Where(w => w.OrderId == orderId).AsQueryable();
+
+        //    if (!string.IsNullOrWhiteSpace(text))
+        //    {
+        //        model = model.Where(p => p.Id.ToString() == text || p.PsCode.ItemName.Contains(text) || p.PsCode.ItemDescription.Contains(text) || p.PsCode.PsNo.Contains(text));
+        //    }
+
+        //    return Json(model.Select(c => new { Id = c.Id, Code = c.PsCode.PsNo, Name = c.PsCode.ItemName, Description = c.PsCode.ItemDescription
+        //        , Unit = c.PsCode.UnitMeas, Type = c.PsCode.PsType
+        //        , Qty = c.Qty// - (c.IssuedItems.Sum(s => s.Qty) ?? 0)
+        //        , UnitCost = c.UnitCost
+        //        })//.Where(w => w.Qty > 0)
+        //    , JsonRequestBehavior.AllowGet);
+        //}
     }
 
     public class GetSysCodeVM

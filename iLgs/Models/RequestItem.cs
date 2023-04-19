@@ -14,6 +14,12 @@ namespace iLgs.Models
     
     public partial class RequestItem
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public RequestItem()
+        {
+            this.OrderItems = new HashSet<OrderItem>();
+        }
+    
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PrId { get; set; }
         public Nullable<System.Guid> PsCodeId { get; set; }
@@ -28,5 +34,7 @@ namespace iLgs.Models
     
         public virtual PsCode PsCode { get; set; }
         public virtual Request Request { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<OrderItem> OrderItems { get; set; }
     }
 }

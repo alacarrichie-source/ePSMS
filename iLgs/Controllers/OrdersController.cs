@@ -29,14 +29,12 @@ namespace iLgs.Controllers
                 .Select(s => new OrderVM
                 {
                     Id = s.Id,
-                    //PoYear = s.PoNo.Substring(0, 4),
-                    //PoMonth = s.PoNo.Substring(5, 2),
-                    //PoSeries = s.PoNo.Substring(8, 4),
                     PoNo = s.PoNo,
+                    PrId = s.PrId,
                     PoDate = s.PoDate,
                     PoMode = s.PoMode,
                     PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC_MODE").FirstOrDefault().Description,
-                    PrNo = s.PrNo,
+                    PrNo = s.Request.PrNo,
                     SupplierId = s.SupplierId,
                     SupplierName = s.Supplier.Name,
                     SupplierAddress = s.Supplier.Address,
@@ -64,7 +62,134 @@ namespace iLgs.Controllers
             return result;            
         }
 
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> OrderCreate([DataSourceRequest] DataSourceRequest request, OrderVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("", "Add Access Denied!");
+                }
+
+                if (db.Orders.Any(a => a.PoNo == model.PoNo))
+                {
+                    ModelState.AddModelError("PoNo", "P.O. number already exists!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model.Id = Guid.NewGuid();
+                    if (string.IsNullOrWhiteSpace(model.PoNo))
+                    {
+                        model.PoNo = NextPoNo((DateTime)model.PoDate);
+                    }
+                    model.InsertedBy = user;
+                    model.InsertedDt = date;
+                    model.UpdatedBy = user;
+                    model.UpdatedDt = date;
+
+                    var entity = new Order()
+                    {
+                        Id = model.Id,
+                        SupplierId = model.SupplierId,
+                        PoNo = model.PoNo,
+                        PoDate = model.PoDate, 
+                        PoMode = model.PoMode,
+                        PrId = model.PrId,
+                        DeliveryPlace = model.DeliveryPlace,
+                        DeliveryDate = model.DeliveryDate,
+                        TermDelivery = model.TermDelivery,
+                        TermPayment = model.TermPayment,
+                        SignedByAuthDesignation = model.SignedByAuthDesignation,
+                        SignedByAuthName = model.SignedByAuthName,
+                        SignedBySuppDate = model.SignedBySuppDate,
+                        SignedBySuppName = model.SignedBySuppName,
+                        ResoNo = model.ResoNo,
+                        CertifiedCorrectBy = model.CertifiedCorrectBy,
+                        CertifiedCorrectDate = model.CertifiedCorrectDate,
+                        InsertedBy = model.InsertedBy,
+                        InsertedDt = model.InsertedDt,
+                        UpdatedBy = model.UpdatedBy,
+                        UpdatedDt = model.UpdatedDt
+                    };
+
+                    db.Orders.Add(entity);
+                    await db.SaveChangesAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
         
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> OrderUpdate([DataSourceRequest] DataSourceRequest request, OrderVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("", "Update Access Denied!");
+                }
+
+                if (db.Orders.Any(a => a.Id != model.Id && a.PoNo == model.PoNo))
+                {
+                    ModelState.AddModelError("PoNo", "P.O. number already exists!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model.UpdatedBy = user;
+                    model.UpdatedDt = date;
+
+                    var entity = await db.Orders.FindAsync(model.Id);
+
+                    entity.SupplierId = model.SupplierId;
+                    entity.PoNo = model.PoNo;
+                    entity.PoDate = model.PoDate;
+                    entity.PoMode = model.PoMode;
+                    entity.PrId = model.PrId;
+                    entity.DeliveryPlace = model.DeliveryPlace;
+                    entity.DeliveryDate = model.DeliveryDate;
+                    entity.TermDelivery = model.TermDelivery;
+                    entity.TermPayment = model.TermPayment;
+                    entity.SignedByAuthDesignation = model.SignedByAuthDesignation;
+                    entity.SignedByAuthName = model.SignedByAuthName;
+                    entity.SignedBySuppDate = model.SignedBySuppDate;
+                    entity.SignedBySuppName = model.SignedBySuppName;
+                    entity.ResoNo = model.ResoNo;
+                    entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
+                    entity.CertifiedCorrectDate = model.CertifiedCorrectDate;
+
+                    db.Orders.Attach(entity);
+                    db.Entry(entity).State = EntityState.Modified;
+                    await db.SaveChangesAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> OrderDestroy([DataSourceRequest]DataSourceRequest request, OrderVM model)
         {
@@ -98,190 +223,190 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _OrderAdd(string poNo)
-        {
-            var date = System.DateTime.Now;
+        //public async Task<ActionResult> _OrderAdd(string poNo)
+        //{
+        //    var date = System.DateTime.Now;
 
-            Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
-            Access access = await accessTask;
+        //    Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+        //    Access access = await accessTask;
 
-            ViewBag.Access = access;
+        //    ViewBag.Access = access;
 
-            OrderVM model;
+        //    OrderVM model;
 
-            try
-            {
-                if (string.IsNullOrWhiteSpace(poNo))
-                {                    
-                    model = new OrderVM()
-                    {
-                        Id = Guid.NewGuid(),
-                        PoDate = date,
-                        PoYear = date.Year.ToString().Trim(),
-                        PoMonth = date.Month.ToString().Trim().PadLeft(2, '0'),
-                        PoNo = "",
-                        PrNo = ""
-                    };
-                }
-                else
-                {
-                    model = await db.Orders.Where(w => w.PoNo == poNo).Select(s => new OrderVM
-                    {
-                        Id = s.Id,
-                        //PoYear = s.PoYear,
-                        //PoMonth = s.PoMonth,
-                        //PoSeries = s.PoSeries,
-                        PoNo = s.PoNo,
-                        PoDate = s.PoDate,
-                        PoMode = s.PoMode,
-                        PrNo = s.PrNo,
-                        SupplierId = s.SupplierId,
-                        SupplierName = s.Supplier.Name,
-                        SupplierAddress = s.Supplier.Address,
-                        SupplierTin = s.Supplier.TIN,
-                        DeliveryPlace = s.DeliveryPlace,
-                        DeliveryDate = s.DeliveryDate,
-                        TermDelivery = s.TermDelivery,
-                        TermPayment = s.TermPayment,
-                        SignedBySuppName = s.SignedBySuppName,
-                        SignedBySuppDate = s.SignedBySuppDate,
-                        SignedByAuthName = s.SignedByAuthName,
-                        SignedByAuthDesignation = s.SignedByAuthDesignation,
-                        ResoNo = s.ResoNo,
-                        CertifiedCorrectBy = s.CertifiedCorrectBy,
-                        CertifiedCorrectDate = s.CertifiedCorrectDate
-                    }).FirstOrDefaultAsync();                    
-                }
-            }
-            catch (Exception e)
-            {
-                ViewBag.Error = e.Message;
-                return View("Error");
-            }
+        //    try
+        //    {
+        //        if (string.IsNullOrWhiteSpace(poNo))
+        //        {                    
+        //            model = new OrderVM()
+        //            {
+        //                Id = Guid.NewGuid(),
+        //                PoDate = date,
+        //                PoYear = date.Year.ToString().Trim(),
+        //                PoMonth = date.Month.ToString().Trim().PadLeft(2, '0'),
+        //                PoNo = "",
+        //                PrNo = ""
+        //            };
+        //        }
+        //        else
+        //        {
+        //            model = await db.Orders.Where(w => w.PoNo == poNo).Select(s => new OrderVM
+        //            {
+        //                Id = s.Id,
+        //                //PoYear = s.PoYear,
+        //                //PoMonth = s.PoMonth,
+        //                //PoSeries = s.PoSeries,
+        //                PoNo = s.PoNo,
+        //                PoDate = s.PoDate,
+        //                PoMode = s.PoMode,
+        //                PrNo = s.PrNo,
+        //                SupplierId = s.SupplierId,
+        //                SupplierName = s.Supplier.Name,
+        //                SupplierAddress = s.Supplier.Address,
+        //                SupplierTin = s.Supplier.TIN,
+        //                DeliveryPlace = s.DeliveryPlace,
+        //                DeliveryDate = s.DeliveryDate,
+        //                TermDelivery = s.TermDelivery,
+        //                TermPayment = s.TermPayment,
+        //                SignedBySuppName = s.SignedBySuppName,
+        //                SignedBySuppDate = s.SignedBySuppDate,
+        //                SignedByAuthName = s.SignedByAuthName,
+        //                SignedByAuthDesignation = s.SignedByAuthDesignation,
+        //                ResoNo = s.ResoNo,
+        //                CertifiedCorrectBy = s.CertifiedCorrectBy,
+        //                CertifiedCorrectDate = s.CertifiedCorrectDate
+        //            }).FirstOrDefaultAsync();                    
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ViewBag.Error = e.Message;
+        //        return View("Error");
+        //    }
 
-            return PartialView(model);
-        }
+        //    return PartialView(model);
+        //}
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _OrderSave(OrderVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
-                Access access = await accessTask;
-                if (!access.AllowAdd)
-                {
-                    ModelState.AddModelError("Access Error", "Access Denied!");
-                }
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> _OrderSave(OrderVM model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+        //        Access access = await accessTask;
+        //        if (!access.AllowAdd)
+        //        {
+        //            ModelState.AddModelError("Access Error", "Access Denied!");
+        //        }
 
-                Order entity = await db.Orders.Include(i => i.OrderItems).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-                if (entity == null) // Add
-                {
-                    if (!string.IsNullOrWhiteSpace(model.PoNo))
-                    {
-                        if (db.Orders.Any(a => a.PoNo == model.PoNo))
-                        {
-                            ModelState.AddModelError("PoNo", "P.O. number already exists!");
-                        }
-                    }
-                }
-                else
-                {
-                    if (db.Orders.Any(a => a.Id != model.Id && a.PoNo == model.PoNo))
-                    {
-                        ModelState.AddModelError("PoNo", "P.O. number already exists!");
-                    }
-                }
+        //        Order entity = await db.Orders.Include(i => i.OrderItems).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+        //        if (entity == null) // Add
+        //        {
+        //            if (!string.IsNullOrWhiteSpace(model.PoNo))
+        //            {
+        //                if (db.Orders.Any(a => a.PoNo == model.PoNo))
+        //                {
+        //                    ModelState.AddModelError("PoNo", "P.O. number already exists!");
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            if (db.Orders.Any(a => a.Id != model.Id && a.PoNo == model.PoNo))
+        //            {
+        //                ModelState.AddModelError("PoNo", "P.O. number already exists!");
+        //            }
+        //        }
 
-                if (model != null && ModelState.IsValid)
-                {
-                    Guid userId = new Guid(User.Identity.GetUserId());
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+        //        if (model != null && ModelState.IsValid)
+        //        {
+        //            Guid userId = new Guid(User.Identity.GetUserId());
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
 
-                    if (entity == null)
-                    {
+        //            if (entity == null)
+        //            {
 
-                        model.Id = Guid.NewGuid();
-                        if (string.IsNullOrWhiteSpace(model.PoNo))
-                        {
-                            model.PoNo = NextPoNo((DateTime)model.PoDate);                        
-                        }
-                        model.InsertedBy = user;
-                        model.InsertedDt = date;
-                        model.UpdatedBy = user;
-                        model.UpdatedDt = date;
+        //                model.Id = Guid.NewGuid();
+        //                if (string.IsNullOrWhiteSpace(model.PoNo))
+        //                {
+        //                    model.PoNo = NextPoNo((DateTime)model.PoDate);                        
+        //                }
+        //                model.InsertedBy = user;
+        //                model.InsertedDt = date;
+        //                model.UpdatedBy = user;
+        //                model.UpdatedDt = date;
 
-                        entity = new Order()
-                        {
-                            Id = model.Id,
-                            //PoYear = model.PoYear,
-                            //PoMonth = model.PoMonth,
-                            //PoSeries = model.PoNo.Split('-')[2],
-                            PoNo = model.PoNo,
-                            PoDate = model.PoDate,
-                            PoMode = model.PoMode,
-                            PrNo = model.PrNo,
-                            SupplierId = model.SupplierId,
-                            DeliveryPlace = model.DeliveryPlace,
-                            DeliveryDate = model.DeliveryDate,
-                            TermDelivery = model.TermDelivery,
-                            TermPayment = model.TermPayment,
-                            SignedBySuppName = model.SignedBySuppName,
-                            SignedBySuppDate = model.SignedBySuppDate,
-                            SignedByAuthName = model.SignedByAuthName,
-                            SignedByAuthDesignation = model.SignedByAuthDesignation,
-                            ResoNo = model.ResoNo,
-                            CertifiedCorrectBy = model.CertifiedCorrectBy,
-                            CertifiedCorrectDate = model.CertifiedCorrectDate,
-                            InsertedBy = model.InsertedBy,
-                            InsertedDt = model.InsertedDt,
-                            UpdatedBy = model.UpdatedBy,
-                            UpdatedDt = model.UpdatedDt                            
-                        };
-                        db.Orders.Add(entity);
-                    }
-                    else
-                    {
-                        //entity.PoYear = model.PoYear;
-                        //entity.PoMonth = model.PoMonth;
-                        //entity.PoSeries = model.PoSeries;
-                        //entity.PoNo = model.PoNo_;
-                        entity.PoDate = model.PoDate;
-                        entity.PoMode = model.PoMode;
-                        entity.PrNo = model.PrNo;
-                        entity.SupplierId = model.SupplierId;
-                        entity.DeliveryPlace = model.DeliveryPlace;
-                        entity.DeliveryDate = model.DeliveryDate;
-                        entity.TermDelivery = model.TermDelivery;
-                        entity.TermPayment = model.TermPayment;
-                        entity.SignedBySuppName = model.SignedBySuppName;
-                        entity.SignedBySuppDate = model.SignedBySuppDate;
-                        entity.SignedByAuthName = model.SignedByAuthName;
-                        entity.SignedByAuthDesignation = model.SignedByAuthDesignation;
-                        entity.ResoNo = model.ResoNo;
-                        entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
-                        entity.CertifiedCorrectDate = model.CertifiedCorrectDate;
-                        entity.UpdatedBy = model.UpdatedBy;
-                        entity.UpdatedDt = model.UpdatedDt;                        
+        //                entity = new Order()
+        //                {
+        //                    Id = model.Id,
+        //                    //PoYear = model.PoYear,
+        //                    //PoMonth = model.PoMonth,
+        //                    //PoSeries = model.PoNo.Split('-')[2],
+        //                    PoNo = model.PoNo,
+        //                    PoDate = model.PoDate,
+        //                    PoMode = model.PoMode,
+        //                    PrNo = model.PrNo,
+        //                    SupplierId = model.SupplierId,
+        //                    DeliveryPlace = model.DeliveryPlace,
+        //                    DeliveryDate = model.DeliveryDate,
+        //                    TermDelivery = model.TermDelivery,
+        //                    TermPayment = model.TermPayment,
+        //                    SignedBySuppName = model.SignedBySuppName,
+        //                    SignedBySuppDate = model.SignedBySuppDate,
+        //                    SignedByAuthName = model.SignedByAuthName,
+        //                    SignedByAuthDesignation = model.SignedByAuthDesignation,
+        //                    ResoNo = model.ResoNo,
+        //                    CertifiedCorrectBy = model.CertifiedCorrectBy,
+        //                    CertifiedCorrectDate = model.CertifiedCorrectDate,
+        //                    InsertedBy = model.InsertedBy,
+        //                    InsertedDt = model.InsertedDt,
+        //                    UpdatedBy = model.UpdatedBy,
+        //                    UpdatedDt = model.UpdatedDt                            
+        //                };
+        //                db.Orders.Add(entity);
+        //            }
+        //            else
+        //            {
+        //                //entity.PoYear = model.PoYear;
+        //                //entity.PoMonth = model.PoMonth;
+        //                //entity.PoSeries = model.PoSeries;
+        //                //entity.PoNo = model.PoNo_;
+        //                entity.PoDate = model.PoDate;
+        //                entity.PoMode = model.PoMode;
+        //                entity.PrNo = model.PrNo;
+        //                entity.SupplierId = model.SupplierId;
+        //                entity.DeliveryPlace = model.DeliveryPlace;
+        //                entity.DeliveryDate = model.DeliveryDate;
+        //                entity.TermDelivery = model.TermDelivery;
+        //                entity.TermPayment = model.TermPayment;
+        //                entity.SignedBySuppName = model.SignedBySuppName;
+        //                entity.SignedBySuppDate = model.SignedBySuppDate;
+        //                entity.SignedByAuthName = model.SignedByAuthName;
+        //                entity.SignedByAuthDesignation = model.SignedByAuthDesignation;
+        //                entity.ResoNo = model.ResoNo;
+        //                entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
+        //                entity.CertifiedCorrectDate = model.CertifiedCorrectDate;
+        //                entity.UpdatedBy = model.UpdatedBy;
+        //                entity.UpdatedDt = model.UpdatedDt;                        
 
-                        db.Orders.Attach(entity);
-                        db.Entry(entity).State = EntityState.Modified;
-                    }
+        //                db.Orders.Attach(entity);
+        //                db.Entry(entity).State = EntityState.Modified;
+        //            }
 
-                    await db.SaveChangesAsync();
+        //            await db.SaveChangesAsync();
 
-                    return Json(new { Errors = "", Model = model });
-                }
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("Internal Error", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+        //            return Json(new { Errors = "", Model = model });
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("Internal Error", "Unable to save changes, Try again, and if the problem persists " +
+        //             "please contact tech support with this message: " + e.Message);
 
-            }
-            return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
-        }
+        //    }
+        //    return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
+        //}
 
         public string NextPoNo(DateTime poDate)
         {
@@ -314,10 +439,11 @@ namespace iLgs.Controllers
                 .Select(s => new
                 {
                     Id = s.Id,
-                    PsCodeId = s.PsCodeId,
-                    PsNo = s.PsCode.PsNo,
-                    PsUnit = s.PsCode.UnitMeas,
-                    PsItem = s.PsCode.ItemName,
+                    OrderId = s.OrderId,
+                    RequestItemId = s.RequestItemId,
+                    PsNo = s.RequestItem.PsCode.PsNo,
+                    PsUnit = s.RequestItem.PsCode.UnitMeas,
+                    PsItem = s.RequestItem.PsCode.ItemName,
                     Description = s.Description,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
@@ -329,7 +455,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _OrderItemCreate([DataSourceRequest] DataSourceRequest request, OrderItem model)
+        public async Task<ActionResult> _OrderItemCreate([DataSourceRequest] DataSourceRequest request, OrderItemVM model)
         {
             try
             {
@@ -337,7 +463,7 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
-                    ModelState.AddModelError("GridError", "Access Denied!");
+                    ModelState.AddModelError("", "Access Denied!");
                 }
 
                 if (model != null && ModelState.IsValid)
@@ -351,7 +477,7 @@ namespace iLgs.Controllers
                     {
                         Id = model.Id,
                         OrderId = model.OrderId,
-                        PsCodeId = model.PsCodeId,
+                        RequestItemId = model.RequestItemId,
                         Description = model.Description,
                         Qty = model.Qty,
                         UnitCost = model.UnitCost,
@@ -378,7 +504,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _OrderItemUpdate([DataSourceRequest] DataSourceRequest request, OrderItem model)
+        public async Task<ActionResult> _OrderItemUpdate([DataSourceRequest] DataSourceRequest request, OrderItemVM model)
         {
             try
             {
@@ -386,7 +512,7 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
-                    ModelState.AddModelError("GridError", "Access Denied!");
+                    ModelState.AddModelError("", "Access Denied!");
                 }
 
                 if (ModelState.IsValid)
@@ -395,7 +521,8 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
                     OrderItem entity = await db.OrderItems.FindAsync(model.Id);
-                    entity.PsCodeId = model.PsCodeId;
+
+                    entity.RequestItemId = model.RequestItemId;
                     entity.Description = model.Description;
                     entity.Qty = model.Qty;
                     entity.UnitCost = model.UnitCost;
@@ -420,7 +547,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _OrderItemDestroy([DataSourceRequest]DataSourceRequest request, OrderItem model)
+        public async Task<ActionResult> _OrderItemDestroy([DataSourceRequest]DataSourceRequest request, OrderItemVM model)
         {
             try
             {

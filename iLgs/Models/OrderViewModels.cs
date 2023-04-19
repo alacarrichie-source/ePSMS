@@ -34,6 +34,9 @@ namespace iLgs.Models
         [Display(Name = "P.O. No.")]
         public string PoNo { get; set; }
 
+        [Display(Name = "P.R. No.")]
+        public Nullable<System.Guid> PrId { get; set; }
+
         [Display(Name = "Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [Required]
@@ -43,9 +46,7 @@ namespace iLgs.Models
         [Required]
         public string PoMode { get; set; }
 
-        [Display(Name = "P.R. No./s")]
-        public string PrNo { get; set; }
-
+        
         [Display(Name = "Place of Delivery")]
         [Required]
         public string DeliveryPlace { get; set; }
@@ -94,9 +95,9 @@ namespace iLgs.Models
 
         // TRANSIENTS
 
-        public string PoYear { get; set; }
-        public string PoMonth { get; set; }
-        public string PoSeries { get; set; }
+
+        [Display(Name = "P.R. No.")]
+        public string PrNo { get; set; }
 
         public Nullable<decimal> QtyTotal { get; set; }
         public Nullable<decimal> QtyIssued { get; set; }
@@ -123,7 +124,7 @@ namespace iLgs.Models
 
         [Display(Name = "Stock/Property No.")]
         [Required]
-        public Nullable<System.Guid> PsCodeId { get; set; }
+        public Nullable<System.Guid> RequestItemId { get; set; }
 
         [Required]
         public Nullable<decimal> Qty { get; set; }

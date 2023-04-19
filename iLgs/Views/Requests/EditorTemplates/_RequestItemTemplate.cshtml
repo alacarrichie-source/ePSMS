@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.OrderItemVM
+﻿@model iLgs.Models.RequestItemVM
 
 @using (Html.BeginForm())
 {
@@ -6,17 +6,16 @@
 
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
-    @Html.HiddenFor(model => model.OrderId)
-    @Html.HiddenFor(model => model.PsNo)
+    @Html.HiddenFor(model => model.PrId)
+    @Html.HiddenFor(model => model.PsCode)
     
-
     <fieldset>
 
         <div class="row">
-            @Html.LabelFor(m => m.RequestItemId, htmlAttributes: new { @class = "col-md-12" })
+            @Html.LabelFor(m => m.PsCodeId, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
-                @(Html.Kendo().MultiColumnComboBoxFor(m => m.RequestItemId)
-                        .HtmlAttributes(new { style = "width:100%; max-width:100%;"})
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.PsCodeId)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select stock/property Code")
                         .DataTextField("Code")
                         .DataValueField("Id")
@@ -26,7 +25,7 @@
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetPrItems", "Getters").Data("DataRequestItemId");
+                                read.Action("GetPsCode", "Getters").Data("DataPsCodeId");
                             })
                             .ServerFiltering(true);
                         })
@@ -35,14 +34,13 @@
                             c.Add().Field("Code").Title("Code").Width("20%");
                             c.Add().Field("Name").Title("Item Name").Width("50%");
                             c.Add().Field("Unit").Title("Unit").Width("15%");
-                            c.Add().Field("Qty").Title("Type").Width("15%");
-                            c.Add().Field("UnitCost").Title("Type").Width("15%");
+                            c.Add().Field("Type").Title("Type").Width("15%");
 
                         })
                         .Suggest(true)
-                        .Events(e => { e.Select("onSelectRequestItemId"); })
+                        .Events(e => { e.Select("onSelectPsCode"); })
                 )
-                @Html.ValidationMessageFor(m => m.RequestItemId)
+                @Html.ValidationMessageFor(m => m.PsCodeId)
             </div>
         </div>
 
@@ -88,10 +86,10 @@
         </div>
 
         <div class="row">
-            @Html.LabelFor(model => model.Amount, htmlAttributes: new { @class = "col-md-12" })
+            @Html.LabelFor(model => model.TotalCost, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
-                @(Html.Kendo().NumericTextBoxFor(model => model.Amount).Enable(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                        
-                @Html.ValidationMessageFor(model => model.Amount)
+                @(Html.Kendo().NumericTextBoxFor(model => model.TotalCost).Enable(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.TotalCost)
             </div>
         </div>
 
