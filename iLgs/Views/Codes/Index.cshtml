@@ -1,23 +1,62 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Codes";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<h2 class="text-info">Codes</h2>
+@*<style>
+    #main-section {
+        float: none;
+        width: auto;
+        overflow: hidden;
+        height: 100%;
+        background-color: #eee;
+    }
 
-<br />
-<div class="col-md-12">
-    @(Html.Kendo().Grid<iLgs.Models.CodeMast>()
+    #main-section-header {
+        height: auto;
+        border-bottom: 1px solid #ededee;
+        -moz-box-shadow: 1px 0 4px #ededee;
+        -webkit-box-shadow: 1px 0 4px #ededee;
+        box-shadow: 1px 0 4px #ededee;
+        background-color: #fff;
+    }
+
+    #codes-main-content {
+        border: none;
+        overflow: auto;
+        height: 100%;
+        height: calc(100% - 86px);
+        color: #464648;
+        font-size: 11px;
+    }
+</style>*@
+
+
+@*<div id="main-section-header" class="row">
+    <h2 id="team-efficiency" class="col-xs-3">CODES</h2>
+    <div style="clear:both;"></div>
+</div>*@
+
+@*<style>    
+    .container {
+        max-width: 100%;
+    }
+</style>*@
+
+<div id="codes-main-content" class="main-section-content">
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<iLgs.Models.CodeMast>()
     .Name("grid")
     .Columns(col =>
     {
         col.Bound(c => c.Code).Width(70);
         col.Bound(c => c.Description).Width(100);
-        col.Bound(c => c.CodeHdg).Width(100);
-        col.Bound(c => c.Desc1Hdg).Width(100);
-        col.Bound(c => c.Desc2Hdg).Width(100);
-        col.Bound(c => c.Desc3Hdg).Width(100);
-        col.Bound(c => c.Desc4Hdg).Width(100);
-        col.Bound(c => c.Desc5Hdg).Width(100);
+        col.Bound(c => c.CodeHdg).Width(70);
+        col.Bound(c => c.Desc1Hdg).Width(70);
+        col.Bound(c => c.Desc2Hdg).Width(70);
+        col.Bound(c => c.Desc3Hdg).Width(70);
+        col.Bound(c => c.Desc4Hdg).Width(70);
+        col.Bound(c => c.Desc5Hdg).Width(70);
         col.Command(command =>
         {
             command.Edit();
@@ -30,7 +69,7 @@
         t.Search();
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodeMastTemplate").Window(w => w.Width(800).Title("Codes")))
-            //.Editable(editable => editable.Mode(GridEditMode.InLine))
+                //.Editable(editable => editable.Mode(GridEditMode.InLine))
     .Search(s =>
     {
         s.Field(o => o.Code, "contains");
@@ -70,12 +109,12 @@
         .Edit("onEditGrid")
         .DataBound("onDataBoundGrid")
         )
-    )
-</div>
-<div id="windowcontainer"></div>
+        )
+    </div>
+    <div id="windowcontainer"></div>
 
-<div class="col-md-12">
-    @(Html.Kendo().Grid<iLgs.Models.Codextn>()
+    <div class="col-md-12">
+        @(Html.Kendo().Grid<iLgs.Models.Codextn>()
         .Name("gridItems")
         .Columns(columns =>
         {
@@ -136,7 +175,8 @@
             .DataBound("onDataBoundGridItems")
         )
         .AutoBind(true)
-    )
+        )
+    </div>
 </div>
 
 <style>
@@ -299,7 +339,7 @@
         e.model.set("Hdg3Desc", hdg3);
         e.model.set("Hdg4Desc", hdg4);
         e.model.set("Hdg5Desc", hdg5);
-        
+
         selectedGrid = e.sender;
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
@@ -311,7 +351,7 @@
             var rowitem = selectedGrid.dataSource.get(selecteItemId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
             //$("#Code").attr("readonly", "readonly");
-        }        
+        }
     }
 </script>
 

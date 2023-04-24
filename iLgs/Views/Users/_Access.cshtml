@@ -1,36 +1,35 @@
-﻿@*@ViewData["userId"]*@
-@*@using (Html.BeginForm())
-    {*@
-<div style="margin-left:-150px;margin-right:-150px;">
-    <h2 style="color:silver">Menu Access</h2>
+﻿@{
+    ViewBag.Title = "User Menu Access";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
 
-    <br />
 
-    <div class="row">
-        <div class="col-md-2 text-right">
-            @Html.Label("User Id", new { style = "color:silver" })
-        </div>
-        <div class="col-md-2" style="color:silver">
-            @ViewData["userName"]
-        </div>
+
+<div class="row">
+    <div class="col-md-2 text-right">
+        @Html.Label("User Id", new { style = "color:silver" })
     </div>
-    <div class="row">
-        <div class="col-md-2 text-right">
-            @Html.Label("Name", new { style = "color:silver" })
-        </div>
-        <div class="col-md-2" style="color:silver">
-            @ViewData["nameFull"]
-        </div>
+    <div class="col-md-2" style="color:silver">
+        @ViewData["userName"]
     </div>
-    <br />
-    <div class="row">
-        <div class="col-md-2 text-right">
-            @Html.Label("Application", new { style = "color:silver" })
-        </div>
-        <div class="col-md-2">
-            @(Html.Kendo().ComboBox()
+</div>
+<div class="row">
+    <div class="col-md-2 text-right">
+        @Html.Label("Name", new { style = "color:silver" })
+    </div>
+    <div class="col-md-2" style="color:silver">
+        @ViewData["nameFull"]
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="col-md-2 text-right">
+        @Html.Label("Application", new { style = "color:silver" })
+    </div>
+    <div class="col-md-2">
+        @(Html.Kendo().ComboBox()
                 .Name("sysCode")
-                    //.HtmlAttributes(new { style = "width:300px" })
+                //.HtmlAttributes(new { style = "width:300px" })
                 .Placeholder("Select System")
                 .DataTextField("Code")
                 .DataValueField("Code")
@@ -43,20 +42,20 @@
                     })
                     .ServerFiltering(true);
                 })
-            )
-        </div>
+        )
     </div>
-    <div class="row">
-        <div class="col-md-2 text-right">
-            @Html.Label("Menu Level", new { style = "color:silver" })
-        </div>
-        <div class="col-md-2">
-            @(Html.Kendo().ComboBox()
+</div>
+<div class="row">
+    <div class="col-md-2 text-right">
+        @Html.Label("Menu Level", new { style = "color:silver" })
+    </div>
+    <div class="col-md-2">
+        @(Html.Kendo().ComboBox()
                 .Name("parentId")
-                    //.HtmlAttributes(new { style = "width:300px" })
+                //.HtmlAttributes(new { style = "width:300px" })
                 .Placeholder("Select Level")
                 .Filter(FilterType.Contains)
-                    //.BindTo(ViewData["MenuLevel"] as SelectList)
+                //.BindTo(ViewData["MenuLevel"] as SelectList)
                 .DataTextField("Description")
                 .DataValueField("Code")
                 .DataSource(source =>
@@ -69,19 +68,19 @@
                     .ServerFiltering(true);
                 })
                 .CascadeFrom("sysCode")
-            )
-        </div>
-        <div class="col-md-5">
-            <input type="submit" value="Submit" id="cmdSubmit" />
-            @(Html.Kendo().Button().Name("btnCopy").Content("Copy Access").Enable(false))
-        </div>
+        )
     </div>
-    <br />
-    @*}*@
+    <div class="col-md-5">
+        <input type="submit" value="Submit" id="cmdSubmit" />
+        @(Html.Kendo().Button().Name("btnCopy").Content("Copy Access").Enable(false))
+    </div>
+</div>
+<br />
+@*}*@
 
-    <div class="row">
-        <div class="col-md-7">
-            @(Html.Kendo().Grid<iLgs.Models.MenubaseVM>()
+<div class="row">
+    <div class="col-md-7">
+        @(Html.Kendo().Grid<iLgs.Models.MenubaseVM>()
             .Name("grid")
             .Columns(col =>
             {
@@ -94,11 +93,11 @@
                     command.Custom("Include").Click("onInclude");
                 }).Width(75);
             })
-                    //.Pageable()
+                //.Pageable()
             .NoRecords()
             .Sortable()
             .Scrollable(s => s.Height(350))
-                    //.HtmlAttributes(new { style = "height:300px;" })
+                //.HtmlAttributes(new { style = "height:300px;" })
             .DataSource(dataSource => dataSource
                 .Ajax()
                 //.PageSize(20)
@@ -112,12 +111,12 @@
             )
             .Selectable(s => s.Mode(GridSelectionMode.Single))
             .Events(events => events.Change("onChange").DataBound("onDataBound"))
-            .AutoBind(false)                    
-            )
-        </div>
-        <div class="col-lg-5">
+            .AutoBind(false)
+        )
+    </div>
+    <div class="col-lg-5">
 
-            @(Html.Kendo().Grid<iLgs.Models.MenuActionSw>()
+        @(Html.Kendo().Grid<iLgs.Models.MenuActionSw>()
                 .Name("gridExtn")
                 .Columns(columns =>
                 {
@@ -131,21 +130,21 @@
                 .Editable(editable => editable.Mode(GridEditMode.InLine))
                 .HtmlAttributes(new { style = "height:100px;" })
                 .DataSource(dataSource => dataSource
-                    .Ajax()                
+                    .Ajax()
                     .Model(model =>
                         {
-                            model.Id(p => p.Code);                        
+                            model.Id(p => p.Code);
                         })
-                    .Read(read => read.Action("MenuAccessActionRead", "MenuAccessAction").Data("GridExtnData"))                
+                    .Read(read => read.Action("MenuAccessActionRead", "MenuAccessAction").Data("GridExtnData"))
                 )
                 .Selectable(s => s.Mode(GridSelectionMode.Single))
                 .Events(events => events.Change("onChangeExtn").DataBound("onDataBoundExtn"))
-                .AutoBind(false)                
-            )
+                .AutoBind(false)
+        )
 
-        </div>
     </div>
 </div>
+
 
 <div id="windowcontainer"></div>
 
@@ -295,7 +294,7 @@
         var data = this.dataItem(tr);
 
         actionId = data.ActionId;
-        
+
         $.ajax({
             type: "POST",
             url: '@Url.Action("AccessActionSet", "Users")',
@@ -367,7 +366,7 @@
     function onDataBoundExtn(e) {
 
         var grid = this;
-        
+
         grid.tbody.find(">tr").each(function () {
             var dataItem = grid.dataItem(this);
             if (!dataItem.IsAllowed) {
@@ -388,7 +387,7 @@
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-        }        
+        }
     }
 
     //function CopyAccess(e) {

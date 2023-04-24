@@ -1,22 +1,19 @@
 ﻿@model iLgs.Models.REPORT_UserAccess_VM
 
-
 @{
     ViewBag.Title = "User Access Masterlist";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
-    <div class="well">
-        <h2>User Access Masterlist</h2>
-        <br />
-        <div class="box-section">
-            <div class="row">
-                <div class="col-md-2 text-right">
-                    @Html.Label("System")
-                </div>
-                <div class="col-md-3">
-                    @(Html.Kendo().DropDownListFor(m => m.SysCode)
+    <br />
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.Label("System")
+        </div>
+        <div class="col-md-3">
+            @(Html.Kendo().DropDownListFor(m => m.SysCode)
                         .DataTextField("Code")
                         .DataValueField("Code")
                         .Filter(FilterType.Contains)
@@ -28,15 +25,15 @@
                             })
                             .ServerFiltering(true);
                         })
-                    )
-                </div>
-            </div>            
-            <div class="row">
-                <div class="col-md-2 text-right">
-                    @Html.Label("Department")
-                </div>
-                <div class="col-md-3">
-                    @(Html.Kendo().DropDownListFor(m => m.Department)
+            )
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.Label("Department")
+        </div>
+        <div class="col-md-3">
+            @(Html.Kendo().DropDownListFor(m => m.Department)
                         .DataTextField("Department")
                         .DataValueField("Department")
                         .Filter(FilterType.Contains)
@@ -47,17 +44,17 @@
                                 read.Action("GetDepartmentList", "Getters");
                             })
                             .ServerFiltering(true);
-                        })                        
-                    )
-                </div>
-            </div>            
+                        })
+            )
+        </div>
+    </div>
 
-            <div class="row">
-                <div class="col-md-2 text-right">
-                    @Html.Label("User Name")
-                </div>
-                <div class="col-md-3">
-                    @(Html.Kendo().DropDownListFor(m => m.UserName)
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.Label("User Name")
+        </div>
+        <div class="col-md-3">
+            @(Html.Kendo().DropDownListFor(m => m.UserName)
                         .DataTextField("NameFull")
                         .DataValueField("UserName")
                         .Filter(FilterType.Contains)
@@ -69,20 +66,21 @@
                             })
                             .ServerFiltering(true);
                         })
-                    )
-                </div>
-            </div>            
-        </div>
-        <div class="row">
-            <div class="col-md-2 text-right">
-                &nbsp;
-            </div>
-            <div class="col-md-5">
-                @(Html.Kendo().Button().Content("Submit").Name("btnSubmit"))
-                @(Html.Kendo().Button().Name("btnSaveSubmit").Content("Save to Excel File"))
-            </div>
+            )
         </div>
     </div>
+    
+    <br />
+    <div class="row">
+        <div class="col-md-2 text-right">
+            &nbsp;
+        </div>
+        <div class="col-md-5">
+            @(Html.Kendo().Button().Content("Submit").Name("btnSubmit"))
+            @(Html.Kendo().Button().Name("btnSaveSubmit").Content("Save to Excel File"))
+        </div>
+    </div>
+
 }
 
 <div id="windowcontainer"></div>

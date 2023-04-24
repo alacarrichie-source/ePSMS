@@ -1,0 +1,370 @@
+﻿@using Kendo.Mvc.UI.Fluent
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var routeUrl = Url.RouteUrl(ViewContext.RouteData.Values);
+    var itemStyle = "";
+    if ((string)ViewData["Title"] == "Overview")
+    {
+        itemStyle = "display:none";
+    }
+
+    var userEmail = User.Identity.Name;
+}
+@(Html.Kendo().Drawer()
+    .Name("drawer")
+    .TemplateId("drawerTemplate")
+    .Mode("push")
+    .Mini(false)
+    .Position("left")
+    .Width(240)
+    .Navigatable(true)
+    .Events(ev => ev.ItemClick("onItemClick"))
+    .Content(@<text>
+        <div>
+            <main role="main" class="k-content">
+                @(Html.Kendo().AppBar()
+                   .Name("appbar")
+                   .ThemeColor(AppBarThemeColor.Inherit)
+                   .HtmlAttributes(new { style = "height: 48px" })
+                   .Items(items =>
+                   {
+                       items.Add().Template("<span id='menuIcon' href='\\#'><span class='k-icon k-i-menu' onclick='toggleDrawer()'></span></span>").Type(AppBarItemType.ContentItem);
+                       items.Add().Type(AppBarItemType.Spacer).Width("16px");
+                       items.Add().Template("<div class='title'>" + @ViewData["Title"] + "</div>").Type(AppBarItemType.ContentItem);
+                       items.Add().Type(AppBarItemType.Spacer);
+                       items.Add().Template("<div class='app-bar-link'><span class='k-icon k-i-notification'><span data-role='badge' class='k-badge k-badge-solid k-badge-error k-badge-md k-badge-dot k-badge-outside k-top-end'></span></span></div>").Type(AppBarItemType.ContentItem);
+                       items.Add().Type(AppBarItemType.Spacer).Width("8px");
+                       //items.Add().Template("<a href='" + @Url.Action("About", "Home") + "' class='k-link app-bar-link'>About</a>").Type(AppBarItemType.ContentItem);
+                       //items.Add().Template("<a href='" + @Url.Action("Contact", "Home") + "' class='k-link app-bar-link'>Contact</a>").Type(AppBarItemType.ContentItem);
+                   })
+                )
+                @RenderBody()
+            </main>
+        </div>
+    </text>)
+)
+<script id="drawerTemplate" type="text/html">
+    @*<div class="k-d-flex-col k-align-items-center k-justify-content-evenly" style="height:218px;">
+            <div class="k-avatar k-avatar-circle k-avatar-image k-avatar-lg" id="avatar"><img src='@Url.Content("~/Content/assets/navigation/Avatar.svg")' /></div>
+            <div id="name">@ViewData["userName"]</div>
+            <div id="email">@userEmail</div>
+            <form class="form-inline" action="@Url.Action("LogOff", "Account")" method="post">
+                <button type="submit" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-base">Logout</button>
+            </form>
+        </div>*@
+    @*<ul>
+            <li><a class="k-link" href="@Url.Action("Index", "Home")" data-role='drawer-item'><span class="k-icon k-i-grid "></span>Dashboard</a></li>
+            <li><a class="k-link" href="@Url.Action("Performance", "Home")" data-role='drawer-item'><span class="k-icon k-i-globe"></span>Performance and Sales</a></li>
+            <li><a class="k-link" href="@Url.Action("Products", "Home")" data-role='drawer-item'><span class="k-icon k-i-aggregate-fields"></span>Products</a></li>
+            <li data-role='drawer-separator'></li>
+            <li><a class="k-link" href="@Url.Action("Settings", "Home")" data-role='drawer-item'><span class="k-icon k-i-gear"></span>Settings</a></li>
+        </ul>*@
+
+    <div class="kd-sidebar-container root">
+        <div class="kd-sidebar-root-nav" aria-hidden="false">
+            @if (Request.IsAuthenticated)
+            {
+                @GetMenus(Session["MainMenu"] as IQueryable<iLgs.Models.Menubase>);
+            }
+        </div>
+    </div>
+
+    <ul>        
+        <li id="rights">
+            <p>&copy; @DateTime.Now.Year - City Government of Las Piñas. All Rights Reserved.</p>
+        </li>
+    </ul>
+
+</script>
+
+@*<ul>
+        <li role="menu" aria-orientation="vertical" class="k-state-selected"><a class="k-link k-drawer-item" href="/aspnet-mvc/admin-dashboard/" data-role="drawer-item" role="menuitem" aria-label="Dashboard"><span class="k-icon k-i-grid "></span>Dashboard</a></li>
+        <li><a class="k-link k-drawer-item" href="/aspnet-mvc/admin-dashboard/Home/Performance" data-role="drawer-item" role="menuitem" aria-label="Performance and Sales"><span class="k-icon k-i-globe"></span>Performance and Sales</a></li>
+        <li><a class="k-link k-drawer-item" href="/aspnet-mvc/admin-dashboard/Home/Products" data-role="drawer-item" role="menuitem" aria-label="Products"><span class="k-icon k-i-aggregate-fields"></span>Products</a></li>
+        <li data-role="drawer-separator" class="k-drawer-item k-drawer-separator" role="separator"></li>
+        <li><a class="k-link k-drawer-item" href="/aspnet-mvc/admin-dashboard/Home/Settings" data-role="drawer-item" role="menuitem" aria-label="Settings"><span class="k-icon k-i-gear"></span>Settings</a></li>
+    </ul>*@
+
+@helper GetMenus(IQueryable<iLgs.Models.Menubase> menu)
+{
+    if (menu != null)
+    {
+        foreach (var item in menu)
+        {
+            if (item.ParentId == 0) //Level one items will have 0 parent id
+            {
+                <ul class="root-nav-categories kd-list">
+                    <li>
+                        <h3 class="kd-title"><span class="root-nav expand"></span>@item.Description</h3>
+                        <ul class="root-nav-widgets kd-list">
+                            @{
+                var children = menu.Where(x => x.ParentId == item.ChildId && x.Description != "-").OrderBy(o => o.Description).ToList();
+                            }
+                            @if (children.Any())
+                            {
+                                foreach (var child in children)
+                                {
+                                    var grandChildren = menu.Where(w => w.ParentId == child.ChildId && w.Description != "-").OrderBy(o => o.Description).ToList();
+                                    if (grandChildren.Any())
+                                    {
+                                        foreach (var grandChild in grandChildren)
+                                        {
+                                            @*<li><a class="k-link k-drawer-item" href="/@grandChild.Controller/@grandChild.Action" data-role="drawer-item" role="menuitem" aria-label="@grandChild.Description"><span class="k-icon k-i-globe"></span>@grandChild.Description</a></li>*@
+                                            <li class="">
+                                                <a class="kd-link" href="/@grandChild.Controller/@grandChild.Action"><span class="link-text">@grandChild.Description</span></a>
+                                            </li>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @*<li><a class="k-link k-drawer-item" href="/@child.Controller/@child.Action" data-role="drawer-item" role="menuitem" aria-label="@child.Description"><span class="k-icon k-i-globe"></span>@child.Description</a></li>*@
+                                        <li class="">
+                                            <a class="kd-link" href="/@child.Controller/@child.Action"><span class="link-text">@child.Description</span></a>
+                                        </li>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                @*<li><a class="k-link k-drawer-item" href="/@item.Controller/@item.Action" data-role="drawer-item" role="menuitem" aria-label="@item.Description"><span class="k-icon k-i-globe"></span>@item.Description</a></li>*@
+                                <li class="">
+                                    <a class="kd-link" href="/@item.Controller/@item.Action"><span class="link-text">@item.Description</span></a>
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                </ul>
+            }
+        }
+    }
+}
+
+@helper  GetMenuPanel(IQueryable<iLgs.Models.Menubase> menu)
+{
+    if (menu != null)
+    {
+
+        foreach (var item in menu.Where(w => w.ParentId == 0).OrderBy(o => o.Sequence))
+        {
+
+            var children = menu.Where(x => x.ParentId == item.ChildId && x.Description != "-").OrderBy(o => o.Description);
+            if (children.Any())
+            {
+                foreach (var child in children)
+                {
+                    var grandChildren = menu.Where(w => w.ParentId == child.ChildId && w.Description != "-").OrderBy(o => o.Description).ToList();
+                    if (grandChildren.Any())
+                    {
+                        foreach (var grandChild in grandChildren)
+                        {
+                            <li><a class="k-link k-drawer-item" href="/@grandChild.Controller/@grandChild.Action" data-role="drawer-item" role="menuitem" aria-label="@grandChild.Description"><span class="k-icon k-i-globe"></span>@grandChild.Description</a></li>
+                        }
+                    }
+                    else
+                    {
+                        <li><a class="k-link k-drawer-item" href="/@child.Controller/@child.Action" data-role="drawer-item" role="menuitem" aria-label="@child.Description"><span class="k-icon k-i-globe"></span>@child.Description</a></li>
+                    }
+                }
+            }
+            else
+            {
+                <li><a class="k-link k-drawer-item" href="/@item.Controller/@item.Action" data-role="drawer-item" role="menuitem" aria-label="@item.Description"><span class="k-icon k-i-globe"></span>@item.Description</a></li>
+            }
+        }
+    }
+}
+
+
+<style>
+    #name {
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    #email {
+        font-size: 12px;
+        text-decoration-line: underline;
+    }
+
+    #menuIcon {
+        cursor: pointer;
+    }
+
+    .title {
+        font-size: 18px;
+        line-height: 20px;
+        color: #2D73F5;
+    }
+
+    .app-bar-link {
+        font-size: 14px;
+        line-height: 20px;
+        color: #424242;
+        cursor: pointer;
+    }
+
+    li[data-role='drawer-item'] > a {
+        color: #424242;
+    }
+
+    li.k-state-selected[data-role='drawer-item'] > a {
+        color: #FFFFFF;
+    }
+
+    @@media (max-width: 716px) {
+        .k-drawer-wrapper {
+            transition: none;
+        }
+    }
+
+    #rights p {
+        margin: 5px 0;
+    }
+
+    #rights {
+        position: absolute;
+        bottom: 10px;
+        left: 15px;
+        padding-right: 15px;
+        color: #848690;
+        font-size: 10px;
+    }
+    
+</style>
+
+<script>
+    $(document).ready(function () {
+        //highlight selected Drawer item on page load
+        $('a[href="@routeUrl"]').parent().addClass('k-state-selected');
+        //show Drawer as expanded on page load
+        $('.k-drawer-container').addClass('k-drawer-expanded');
+        $('.k-drawer-wrapper').css('width', '240px');
+        if ($(window).width() < 600) {
+            $("#drawer").getKendoDrawer().hide()
+            $('.k-drawer-container').removeClass('k-drawer-expanded');
+        }
+        resizeWidgets()
+        $(window).resize(function () {
+            resizeWidgets()
+        })
+    })
+
+    var isDrawerVisible = true;
+    function toggleDrawer(e) {
+        var drawerInstance = $("#drawer").data("kendoDrawer");
+
+        if (isDrawerVisible) {
+            drawerInstance.hide();
+            isDrawerVisible = false;
+        }
+        else {
+            drawerInstance.show();
+            isDrawerVisible = true;
+        }
+
+        ////resize widgets after Drawer animmation has completed
+        setTimeout(resizeWidgets,400)
+    }
+    function onItemClick(e) {
+        if (!e.item.hasClass("k-drawer-separator")) {
+            var targetPage = e.item.find("a").attr("href");
+            window.location.href = targetPage;
+        }
+    }
+    function resizeWidgets() {
+        var charts = $(".k-chart");
+        if (charts) {
+            charts.each((idx, elem) => $(elem).getKendoChart().resize(true))
+        }
+        var grid = $(".k-grid");
+        if (grid) {
+            grid.each((idx, elem) => $(elem).getKendoGrid().resize(true))
+        }
+    }
+
+
+    // sidebar
+
+    var sidebar = {
+        resize: function() {
+            var e, t = $(".kd-sidebar").eq(0), a = $(".kd-sub-nav"), i = $(document).scrollTop(), s = $("#webinar-banner:visible").outerHeight() || 0, d = $("#js-tlrk-nav").outerHeight(), n = a.outerHeight(), o = $(window).width() < 1240, r = /(msie\s|trident.*? rv:)([\w.]+)/i.test(window.navigator.userAgent);
+            t.length && (e = o ? $(".kd-demo-content .container").outerHeight() + 64 : $("html").outerHeight() - d - n - (s <= i ? 0 : s),
+            t.css("top", o ? "" : d + n + (s <= i ? 0 : s - i)),
+            t.height(e)),
+            r && s <= i ? a.addClass("kd-sub-nav-sticky") : a.removeClass("kd-sub-nav-sticky")
+        },
+        closeActiveDropDowns: function() {
+            var e = $(".kd-sidebar").eq(0)
+              , t = $(".tabstrip .dropdown-wrapper")
+              , a = $(".tabstrip .dropdown");
+            e.hasClass("expanded") && (t.removeClass("active"),
+            a.removeClass("active"))
+        },
+        toggle: function(e) {
+            e.stopPropagation();
+            e = $(".kd-sidebar").eq(0);
+            e.length && (e.height($(".kd-demo-content .container").outerHeight() + 64),
+            e.toggleClass("expanded"),
+            sidebar.closeActiveDropDowns())
+        },
+        expandActiveCategory: function() {
+            var e, t, a = $(".kd-sidebar").eq(0), i = a.find(".root-nav-widgets.active").eq(0), s = $(".root-nav-widgets.expanded");
+            if (s.length)
+                for (e = 0; e < s.length; e += 1)
+                    (t = $(s[e]))[0] !== i[0] && t.slideToggle().removeClass("expanded");
+            i && !i.hasClass("expanded") && (i.slideToggle().addClass("expanded"),
+            a.animate({
+                scrollTop: i.position().top
+            }, 500))
+        },
+        switchView: function(e) {
+            var t = $(this)
+              , a = $(".kd-sidebar-container").eq(0)
+              , i = $(".kd-sidebar-root-nav")
+              , s = $(".kd-sidebar-toggle .arrow-prev")
+              , d = $(".kd-sidebar-toggle .arrow-next")
+              , n = $(".kd-sidebar-current").data("value");
+            t.hasClass("back-nav") ? (t.removeClass("back-nav").addClass("forward-nav").children(".text").text(n).attr("title", "See " + n + " demos"),
+            i.attr("aria-hidden", !1),
+            i.find("a").removeAttr("tabindex"),
+            a.addClass("root"),
+            sidebar.expandActiveCategory(),
+            s.hide(),
+            d.css("display", "flex")) : (t.removeClass("forward-nav").addClass("back-nav").children(".text").text("All Components").attr("title", "See all components"),
+            a.removeClass("root"),
+            setTimeout(function() {
+                i.attr("aria-hidden", !0),
+                i.find("a").attr("tabindex", "-1")
+            }, 300),
+            s.css("display", "flex"),
+            d.hide()),
+            e.preventDefault()
+        },
+        expandCategories: function(e) {
+            for (var t, a = $(".root-nav-widgets.expanded"), i = $(e.target).siblings("ul"), s = 0; s < a.length; s += 1)
+                i[0] != (t = a[s]) && $(t).slideToggle().toggleClass("expanded");
+            i.stop(!0).slideToggle().toggleClass("expanded")
+        },
+        init: function() {
+            this.resize(),
+            $(".kd-side-nav-toggle").click(this.toggle),
+            $(".kd-sidebar-toggle a").click(this.switchView),
+            $(".kd-sidebar-root-nav").find("h3").on("click", this.expandCategories)
+        }
+    };
+    $(document).ready(function() {
+        sidebar.init(),
+        $(".kd-breadcrumb-nav .active").click(function(e) {
+            e.preventDefault()
+        })
+    }),
+    $(document).on("click", function(e) {
+        e.stopPropagation();
+        var t = $(".kd-sidebar");
+        t.is(":visible") && !t.is(e.target) && 0 === t.has(e.target).length && t.toggleClass("expanded")
+    }),
+    $(window).on("resize scroll", sidebar.resize);
+
+</script>

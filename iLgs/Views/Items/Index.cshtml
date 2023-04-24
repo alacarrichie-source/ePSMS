@@ -1,16 +1,13 @@
 ﻿@{
-    ViewBag.Title = "Property and Supplies - ePSMS";
+    ViewBag.Title = "Property and Supplies";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
-
-<h3>Property and Supplies</h3>
-
-<br />
 
 @(Html.Kendo().Grid<iLgs.Models.PsCode>()
     .Name("grid")
     .Columns(col =>
     {
-        col.Bound(c => c.PsType).Width(70).EditorTemplateName("_PsTypeTemplate");
+        col.Bound(c => c.PsType).Width(30).EditorTemplateName("_PsTypeTemplate");
         col.Bound(c => c.PsNo).Width(70);
         col.Bound(c => c.ItemName).Width(100);
         col.Bound(c => c.ItemDescription).Width(100);
@@ -90,6 +87,10 @@
 
     .k-floating-label-container {
         width: 100%;
+    }
+
+    .container {
+        max-width: 100%;
     }
 </style>
 

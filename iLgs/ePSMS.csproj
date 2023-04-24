@@ -197,6 +197,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\AIRsController.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\Api\MenuAccessActionController.cs" />
     <Compile Include="Controllers\Api\MenuActionController.cs" />
@@ -233,6 +234,7 @@
     <Compile Include="Models\AIRItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AIRViewModels.cs" />
     <Compile Include="Models\AppManModel.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -332,6 +334,9 @@
     <Compile Include="Models\PsItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PsStock.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\ReportViewModels.cs" />
     <Compile Include="Models\Request.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -390,10 +395,17 @@
     <Content Include="Assets\Login1.PNG" />
     <Content Include="Assets\Login2.PNG" />
     <Content Include="Assets\login3.jpg" />
+    <Content Include="Assets\signin\background.svg" />
+    <Content Include="Assets\signin\bgr-image.svg" />
+    <Content Include="Assets\signin\kendoka.svg" />
+    <Content Include="Assets\signin\kendoka_kendo.svg" />
+    <Content Include="Assets\signin\signin.svg" />
+    <Content Include="Content\base-min.css" />
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\kd-sidebar.css" />
     <Content Include="Content\kendo\2022.1.301\Black\editor.png" />
     <Content Include="Content\kendo\2022.1.301\Black\imagebrowser.png" />
     <Content Include="Content\kendo\2022.1.301\Black\indeterminate.gif" />
@@ -3202,6 +3214,13 @@
     <Content Include="Views\Requests\EditorTemplates\_RequestTemplate.cshtml" />
     <Content Include="Views\Requests\EditorTemplates\_RequestItemTemplate.cshtml" />
     <Content Include="Views\Orders\Index.cshtml" />
+    <Content Include="Views\AIRs\Index.cshtml" />
+    <Content Include="Views\AIRs\EditorTemplates\_AIRTemplate.cshtml" />
+    <Content Include="Views\AIRs\EditorTemplates\_AirItemTemplate.cshtml" />
+    <Content Include="Views\Shared\_AppLayout.cshtml" />
+    <Content Include="Views\Shared\kd-sidebar-sample.cshtml" />
+    <Content Include="Views\Account\Login_X.cshtml" />
+    <Content Include="Views\Account\Shared\_SignInLayout.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

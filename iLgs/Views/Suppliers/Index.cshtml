@@ -1,10 +1,7 @@
 ﻿@{
     ViewBag.Title = "Suppliers";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
-
-<h3>Suppliers</h3>
-
-<br />
 
 @(Html.Kendo().Grid<iLgs.Models.Supplier>()
     .Name("grid")

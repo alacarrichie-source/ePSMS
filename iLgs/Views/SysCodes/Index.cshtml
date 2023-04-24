@@ -1,10 +1,7 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "System Codes";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
-
-<h2 class="text-info">Systems</h2>
-
-<br />
 
 @(Html.Kendo().Grid<iLgs.Models.SysCode>()
             .Name("grid")

@@ -3,20 +3,18 @@
 
 @{
     ViewBag.Title = "User Role Masterlist";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
-    <div class="well">
-        <h2>User Role Masterlist</h2>
-        <br />
-        <div class="box-section">
-            <div class="row">
-                <div class="col-md-2 text-right">
-                    @Html.Label("Role")
-                </div>
-                <div class="col-md-3">
-                    @(Html.Kendo().DropDownListFor(m => m.RoleId)
+    <br />
+    <div class="row">
+        <div class="col-md-2 text-right">
+            @Html.Label("Role")
+        </div>
+        <div class="col-md-3">
+            @(Html.Kendo().DropDownListFor(m => m.RoleId)
                         .DataTextField("RoleName")
                         .DataValueField("RoleId")
                         .Filter(FilterType.Contains)
@@ -28,20 +26,21 @@
                             })
                             .ServerFiltering(true);
                         })
-                    )
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-2 text-right">
-                &nbsp;
-            </div>
-            <div class="col-md-5">
-                @(Html.Kendo().Button().Content("Submit").Name("btnSubmit"))
-                @(Html.Kendo().Button().Name("btnSaveSubmit").Content("Save to Excel File"))
-            </div>
+            )
         </div>
     </div>
+
+    <br />
+    <div class="row">
+        <div class="col-md-2 text-right">
+            &nbsp;
+        </div>
+        <div class="col-md-5">
+            @(Html.Kendo().Button().Content("Submit").Name("btnSubmit"))
+            @(Html.Kendo().Button().Name("btnSaveSubmit").Content("Save to Excel File"))
+        </div>
+    </div>
+
 }
 
 <div id="windowcontainer"></div>

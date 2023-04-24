@@ -1,9 +1,7 @@
 ﻿@{
-    ViewBag.Title = "Order Issuance - ePSMS";
+    ViewBag.Title = "Order Issuance";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
-
-<h3 class="text-info">Order Issuance</h3>
-<br />
 
 @(Html.Kendo().Grid<iLgs.Models.OrderVM>()
     .Name("grid")

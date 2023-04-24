@@ -186,6 +186,44 @@ namespace iLgs.Controllers
             , JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetPoNos(string text)
+        {
+
+            var model = db.Orders.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.Department, Supplier = c.Supplier.BusinessName }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetPoItems(Guid orderId, string text)
+        {
+
+            var model = db.OrderItems.Where(w => w.OrderId == orderId).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.RequestItem.PsCode.ItemName.Contains(text) || p.RequestItem.PsCode.ItemDescription.Contains(text) || p.RequestItem.PsCode.PsNo.Contains(text) || p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                Code = c.RequestItem.PsCode.PsNo,
+                Name = c.RequestItem.PsCode.ItemName,
+                Description = c.Description,
+                Unit = c.RequestItem.PsCode.UnitMeas,
+                Type = c.RequestItem.PsCode.PsType,
+                Qty = c.Qty,
+                UnitCost = c.UnitCost,
+                Amount = c.Amount                
+            })
+            , JsonRequestBehavior.AllowGet);
+        }
+
         //public JsonResult GetOrderItem(Guid orderId, string text)
         //{
 

@@ -1,11 +1,7 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Users";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
-
-
-<h2 class="text-info">Users</h2>
-
-<br />
 
 @(Html.Kendo().Grid<iLgs.Models.AspNetUsers_View>()
     .Name("grid")

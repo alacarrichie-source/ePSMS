@@ -2,7 +2,42 @@
 @model LoginViewModel
 @{
     ViewBag.Title = "ePSMS - Log in";
+    Layout = "";
 }
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    @Styles.Render("~/Content/css")
+
+    @Styles.Render("~/Content/kendo/css")
+
+    @Scripts.Render("~/bundles/modernizr")
+
+
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/kendo")
+
+    <link href="@Url.Content("~/Content/kendo/2022.1.301/kendo.mobile.all.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/kendo/2022.1.301/kendo.dataviz.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/kendo/2022.1.301/kendo.bootstrap-v4.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/kendo/2022.1.301/kendo.dataviz.bootstrap-v4.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/bootstrap.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+    @*<link href="@Url.Content("~/Content/base-min.css")" rel="stylesheet" type="text/css" />*@
+    <link href="@Url.Content("~/Content/kd-sidebar.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/kendo/2022.1.301/jquery.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/kendo/2022.1.301/jszip.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/kendo/2022.1.301/kendo.all.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/kendo/2022.1.301/kendo.aspnetmvc.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
+    <script>
+        $(document).ready(function () { $('.dropdown-toggle').dropdown(); });
+    </script>
+</head>
+
 
 @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
 {
@@ -107,11 +142,13 @@
     </div><!--/.signin-->
 }
 
-<style>
+<style>    
     body{
-      padding-top: 80px!important;
+      /*padding-top: 80px!important;*/
       font-family: 'Roboto', sans-serif;
       background-color: #F5F5F5;
+        padding-top: 20px;
+        padding-bottom: 20px;
     }
     /*Sign In Form*/
     .signin{

@@ -11,6 +11,7 @@ using System.Data.Entity;
 using Microsoft.AspNet.Identity;
 using iLgs.Utilities;
 using Newtonsoft.Json;
+
 namespace iLgs.Controllers
 {
     [AppAuthorize("ORDERS")]
@@ -119,6 +120,28 @@ namespace iLgs.Controllers
                         UpdatedDt = model.UpdatedDt
                     };
 
+                    // include items during add
+                    var requestItems = db.RequestItems.Where(w => w.PrId == model.PrId).ToList();
+                    foreach (var requestItem in requestItems)
+                    {
+                        OrderItem orderItem = new OrderItem()
+                        {
+                            Id = Guid.NewGuid(),
+                            OrderId = entity.Id,
+                            RequestItemId = requestItem.Id,
+                            Description = "",
+                            Qty = requestItem.Qty,
+                            UnitCost = requestItem.UnitCost,
+                            Amount = requestItem.TotalCost,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+                        
+                        entity.OrderItems.Add(orderItem);
+                    }
+
                     db.Orders.Add(entity);
                     await db.SaveChangesAsync();
                 }
@@ -175,6 +198,8 @@ namespace iLgs.Controllers
                     entity.ResoNo = model.ResoNo;
                     entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
                     entity.CertifiedCorrectDate = model.CertifiedCorrectDate;
+                    entity.UpdatedBy = model.UpdatedBy;
+                    entity.UpdatedDt = model.UpdatedDt;
 
                     db.Orders.Attach(entity);
                     db.Entry(entity).State = EntityState.Modified;

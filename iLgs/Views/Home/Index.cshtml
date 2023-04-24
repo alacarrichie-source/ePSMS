@@ -2,9 +2,10 @@
 @model IQueryable<iLgs.Models.Menubase>
 @{
     ViewBag.Title = "Home Page";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<div style="margin-left:-150px;margin-right:-150px;">
+<div>
 
     @*@functions{
         public void addChildren(MenuItemBuilder builder, iLgs.Models.Menubase item, IEnumerable<iLgs.Models.Menubase> items)

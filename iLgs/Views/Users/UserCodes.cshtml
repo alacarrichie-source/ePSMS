@@ -1,15 +1,10 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "User Codes";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<div class="well">
 
-
-    <h2 class="text-info">User Codes</h2>
-
-    <br />
-
-    @(Html.Kendo().Grid<iLgs.Models.UserCodes_View>()
+@(Html.Kendo().Grid<iLgs.Models.UserCodes_View>()
             .Name("grid")
             .Columns(col =>
             {
@@ -28,7 +23,7 @@
             })
             .ToolBar(toolbar => toolbar.Create())
             .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_UserCodeTemplate").Window(w => w.Width(800).Height(500)))
-            //.Editable(editable => editable.Mode(GridEditMode.InLine))
+        //.Editable(editable => editable.Mode(GridEditMode.InLine))
             .Pageable()
             .Sortable()
             .Scrollable()
@@ -48,8 +43,8 @@
                 .Destroy(destroy => destroy.Action("UserCodesDestroy", "Users"))
             )
             .Selectable(s => s.Mode(GridSelectionMode.Single))
-    )
-</div>
+)
+
 
 <style>
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {

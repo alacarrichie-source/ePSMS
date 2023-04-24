@@ -12,31 +12,40 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class OrderItem
+    public partial class PsStock
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public OrderItem()
+        public PsStock()
         {
-            this.AIRItems = new HashSet<AIRItem>();
             this.PsItems = new HashSet<PsItem>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> OrderId { get; set; }
-        public Nullable<System.Guid> RequestItemId { get; set; }
+        public Nullable<System.Guid> PsId { get; set; }
+        public string StockNo { get; set; }
         public string Description { get; set; }
-        public Nullable<decimal> Qty { get; set; }
-        public Nullable<decimal> UnitCost { get; set; }
-        public Nullable<decimal> Amount { get; set; }
+        public string Type { get; set; }
+        public string IdNo { get; set; }
+        public string Location { get; set; }
+        public Nullable<decimal> Area { get; set; }
+        public string TctNo { get; set; }
+        public string BrandName { get; set; }
+        public string Department { get; set; }
+        public string OtherSpecs { get; set; }
+        public string SerialNo { get; set; }
+        public string Color { get; set; }
+        public string EngineNo { get; set; }
+        public string ChassisNo { get; set; }
+        public string ParNo { get; set; }
+        public string AccountableOfficer { get; set; }
+        public Nullable<System.DateTime> CompletionDate { get; set; }
+        public Nullable<decimal> EstimatedLife { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual Order Order { get; set; }
-        public virtual RequestItem RequestItem { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AIRItem> AIRItems { get; set; }
+        public virtual PsCode PsCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsItem> PsItems { get; set; }
     }

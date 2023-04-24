@@ -14,44 +14,67 @@ using Newtonsoft.Json;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("REQUESTS")]
-    public class RequestsController : Controller
+    [AppAuthorize("AIRS")]
+    public class AIRsController : Controller
     {
         private AppManEntities db = new AppManEntities();
-        // GET: Requests
+        // GET: 
         public ActionResult Index()
         {
             return View();
         }
 
-        public ActionResult RequestRead([DataSourceRequest] DataSourceRequest request)
+        public ActionResult AIRRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = db.Requests.AsQueryable();
+            var data = db.AIRs
+                .Select(s => new AIR_VM
+                {
+                    Id = s.Id,
+                    OrderId = s.OrderId,
+                    PoNo = s.Order.PoNo,
+                    Supplier = s.Order.Supplier.BusinessName,
+                    PoDate = s.Order.PoDate,
+                    Department = s.Order.DeliveryPlace,
+                    Fund = s.Fund,
+                    AIRNo = s.AIRNo,
+                    AIRDate = s.AIRDate,
+                    InvoiceNo = s.InvoiceNo,
+                    InvoiceDate = s.InvoiceDate,
+                    AcceptedDate = s.AcceptedDate,
+                    IsComplete = s.IsComplete,
+                    IsPartial = s.IsPartial,
+                    Custodian = s.Custodian,
+                    InspectedDate = s.InspectedDate,
+                    IsInspected = s.IsInspected,
+                    Officer = s.Officer,
+                    Remarks = s.Remarks
+                })
+                .AsQueryable();
+
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet,
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
-
             return result;
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> RequestCreate([DataSourceRequest] DataSourceRequest request, RequestVM model)
+        public async Task<ActionResult> AIRCreate([DataSourceRequest] DataSourceRequest request, AIR_VM model)
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "requests");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
                     ModelState.AddModelError("", "Add Access Denied!");
                 }
 
-                if (db.Requests.Any(a => a.PrNo == model.PrNo))
+                if (db.AIRs.Any(a => a.AIRNo == model.AIRNo))
                 {
-                    ModelState.AddModelError("PrNo", "P.R. number already exists!");
+                    ModelState.AddModelError("AirNo", "AIR No. already exists!");
                 }
 
                 if (model != null && ModelState.IsValid)
@@ -60,38 +83,60 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
                     model.Id = Guid.NewGuid();
-                    if (string.IsNullOrWhiteSpace(model.PrNo))
+                    if (string.IsNullOrWhiteSpace(model.AIRNo))
                     {
-                        model.PrNo = NextPrNo((DateTime)model.PrDate);
+                        model.AIRNo = NextAirNo((DateTime)model.AIRDate);
                     }
                     model.InsertedBy = user;
                     model.InsertedDt = date;
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
 
-                    var entity = new Request()
+                    var entity = new AIR()
                     {
                         Id = model.Id,
                         Fund = model.Fund,
-                        Department = model.Department,
-                        Section = model.Section,
-                        PrNo = model.PrNo,
-                        PrDate = model.PrDate,
-                        FPP = model.FPP,
-                        Purpose = model.Purpose,
-                        RequestedBy = model.RequestedBy,
-                        RequestedDesig = model.RequestedDesig,
-                        Availability = model.Availability,
-                        AvaialbilityDesig = model.AvaialbilityDesig,
-                        ApprovedBy = model.ApprovedBy,
-                        ApprovedDesig = model.ApprovedDesig,
+                        AIRNo = model.AIRNo,
+                        AIRDate = model.AIRDate,
+                        OrderId = model.OrderId,                       
+                        InvoiceNo = model.InvoiceNo,
+                        InvoiceDate = model.InvoiceDate,
+                        AcceptedDate = model.AcceptedDate,
+                        IsComplete = model.IsComplete,
+                        IsPartial = model.IsPartial,
+                        Custodian = model.Custodian,
+                        InspectedDate = model.InspectedDate,
+                        IsInspected = model.IsInspected,
+                        Officer = model.Officer,
+                        Remarks = model.Remarks,
                         InsertedBy = model.InsertedBy,
                         InsertedDt = model.InsertedDt,
                         UpdatedBy = model.UpdatedBy,
                         UpdatedDt = model.UpdatedDt
                     };
 
-                    db.Requests.Add(entity);
+
+                    // include items during add
+                    var orderItems = db.OrderItems.Where(w => w.OrderId == model.OrderId).ToList();
+                    foreach(var orderItem in orderItems)
+                    {
+                        
+                        AIRItem airItem = new AIRItem()
+                        {
+                            Id = Guid.NewGuid(),
+                            AirId = entity.Id,
+                            OrderItemId = orderItem.Id,
+                            Qty = orderItem.Qty,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+
+                        entity.AIRItems.Add(airItem);
+                    }
+
+                    db.AIRs.Add(entity);
                     await db.SaveChangesAsync();
                 }
             }
@@ -104,45 +149,21 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public string NextPrNo(DateTime prDate)
-        {
-            string yyyy = prDate.Year.ToString().Trim();
-            string mm = prDate.Month.ToString().Trim();
-
-            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
-
-            string keyName = yyyy + "-" + mm;
-            // yyyy-mm-9999
-            // 123456789012
-
-            var data = db.Requests.Where(w => w.PrDate.Value.Year == prDate.Year
-                && w.PrDate.Value.Month == prDate.Month).OrderByDescending(o => o.PrNo).FirstOrDefault();
-            if (data == null)
-            {
-                return keyName + "-" + "0001";
-            }
-            else
-            {
-                var sequence = (int.Parse(data.PrNo.Split('-')[2]) + 1).ToString();
-                return keyName + "-" + sequence.PadLeft(4, '0');
-            }
-        }
-
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> RequestUpdate([DataSourceRequest] DataSourceRequest request, RequestVM model)
+        public async Task<ActionResult> AIRUpdate([DataSourceRequest] DataSourceRequest request, AIR_VM model)
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "requests");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
                     ModelState.AddModelError("", "Update Access Denied!");
                 }
 
-                if (db.Requests.Any(a => a.Id != model.Id && a.PrNo == model.PrNo))
+                if (db.AIRs.Any(a => a.Id != model.Id && a.AIRNo == model.AIRNo))
                 {
-                    ModelState.AddModelError("PrNo", "P.R. number already exists!");
+                    ModelState.AddModelError("AirNo", "AIR No. already exists!");
                 }
 
                 if (ModelState.IsValid)
@@ -153,25 +174,25 @@ namespace iLgs.Controllers
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
 
-                    var entity = await db.Requests.FindAsync(model.Id);
+                    var entity = await db.AIRs.FindAsync(model.Id);
 
                     entity.Fund = model.Fund;
-                    entity.Department = model.Department;
-                    entity.Section = model.Section;
-                    entity.PrNo = model.PrNo;
-                    entity.PrDate = model.PrDate;
-                    entity.FPP = model.FPP;
-                    entity.Purpose = model.Purpose;
-                    entity.RequestedBy = model.RequestedBy;
-                    entity.RequestedDesig = model.RequestedDesig;
-                    entity.Availability = model.Availability;
-                    entity.AvaialbilityDesig = model.AvaialbilityDesig;
-                    entity.ApprovedBy = model.ApprovedBy;
-                    entity.ApprovedDesig = model.ApprovedDesig;
+                    entity.AIRNo = model.AIRNo;
+                    entity.AIRDate = model.AIRDate;
+                    entity.InvoiceNo = model.InvoiceNo;
+                    entity.InvoiceDate = model.InvoiceDate;
+                    entity.AcceptedDate = model.AcceptedDate;
+                    entity.IsComplete = model.IsComplete;
+                    entity.IsPartial = model.IsPartial;
+                    entity.Custodian = model.Custodian;
+                    entity.InspectedDate = model.InspectedDate;
+                    entity.IsInspected = model.IsInspected;
+                    entity.Officer = model.Officer;
+                    entity.Remarks = model.Remarks;
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 
-                    db.Requests.Attach(entity);
+                    db.AIRs.Attach(entity);
                     db.Entry(entity).State = EntityState.Modified;
                     await db.SaveChangesAsync();
                 }
@@ -186,11 +207,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> RequestDestroy([DataSourceRequest]DataSourceRequest request, RequestVM model)
+        public async Task<ActionResult> AIRDestroy([DataSourceRequest]DataSourceRequest request, AIR_VM model)
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "requests");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -198,11 +219,10 @@ namespace iLgs.Controllers
                 }
                 else
                 {
-                    var entity = await db.Requests.FindAsync(model.Id);
-
-                    db.Requests.Attach(entity);
+                    var entity = await db.AIRs.FindAsync(model.Id);
+                    db.AIRs.Attach(entity);
                     // Delete the entity
-                    db.Requests.Remove(entity);
+                    db.AIRs.Remove(entity);
                     // Or use DeleteObject if using a previous version of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
@@ -218,22 +238,44 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
+        
+        public string NextAirNo(DateTime date)
+        {
+            string yyyy = date.Year.ToString().Trim();
+            string mm = date.Month.ToString().Trim();
 
-        public ActionResult _RequestItemRead([DataSourceRequest] DataSourceRequest request, Guid? prId)
+            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+
+            string keyName = yyyy + "-" + mm;
+            // yyyy-mm-9999
+            // 123456789012
+
+            var data = db.AIRs.Where(w => w.AIRDate.Value.Year == date.Year
+                && w.AIRDate.Value.Month == date.Month).OrderByDescending(o => o.AIRNo).FirstOrDefault();
+            if (data == null)
+            {
+                return keyName + "-" + "0001";
+            }
+            else
+            {
+                var sequence = (int.Parse(data.AIRNo.Split('-')[2]) + 1).ToString();
+                return keyName + "-" + sequence.PadLeft(4, '0');
+            }
+        }
+
+        public ActionResult _AIRItemRead([DataSourceRequest] DataSourceRequest request, Guid? airId)
         {
 
-            var data = db.RequestItems.Where(w => w.PrId == prId)
+            var data = db.AIRItems.Where(w => w.AirId == airId)
                 .Select(s => new
                 {
                     Id = s.Id,
-                    PsCodeId = s.PsCodeId,
-                    PsCode = s.PsCode.PsNo,
-                    PsUnit = s.PsCode.UnitMeas,
-                    PsItem = s.PsCode.ItemName,
-                    Description = s.Description,
+                    OrderItemId = s.OrderItemId,
+                    PsNo = s.OrderItem.RequestItem.PsCode.PsNo,
+                    PsItem = s.OrderItem.RequestItem.PsCode.ItemName,
+                    OrderDescription = s.OrderItem.RequestItem.Description,
+                    PsUnit = s.OrderItem.RequestItem.PsCode.UnitMeas,
                     Qty = s.Qty,
-                    UnitCost = s.UnitCost,
-                    TotalCost = s.TotalCost,
                     InsertedDt = s.InsertedDt
                 });
 
@@ -241,11 +283,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RequestItemCreate([DataSourceRequest] DataSourceRequest request, RequestItemVM model)
+        public async Task<ActionResult> _AIRItemCreate([DataSourceRequest] DataSourceRequest request, AIRItemVM model)
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "requests");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -259,22 +301,19 @@ namespace iLgs.Controllers
 
                     model.Id = Guid.NewGuid();
 
-                    RequestItem entity = new RequestItem()
+                    AIRItem entity = new AIRItem()
                     {
                         Id = model.Id,
-                        PrId = model.PrId,
-                        PsCodeId = model.PsCodeId,
-                        Description = model.Description,
+                        AirId = model.AirId,
+                        OrderItemId = model.OrderItemId,
                         Qty = model.Qty,
-                        UnitCost = model.UnitCost,
-                        TotalCost = model.TotalCost,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
                         UpdatedDt = date
                     };
 
-                    db.RequestItems.Add(entity);
+                    db.AIRItems.Add(entity);
                     await db.SaveChangesAsync();
 
                     // TO DO: save to stock card
@@ -290,11 +329,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RequestItemUpdate([DataSourceRequest] DataSourceRequest request, RequestItemVM model)
+        public async Task<ActionResult> _AIRItemUpdate([DataSourceRequest] DataSourceRequest request, AIRItemVM model)
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "requests");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -306,16 +345,15 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    RequestItem entity = await db.RequestItems.FindAsync(model.Id);
-                    entity.PsCodeId = model.PsCodeId;
-                    entity.Description = model.Description;
+                    AIRItem entity = await db.AIRItems.FindAsync(model.Id);
+
+                    entity.AirId = model.AirId;
+                    entity.OrderItemId = model.OrderItemId;
                     entity.Qty = model.Qty;
-                    entity.UnitCost = model.UnitCost;
-                    entity.TotalCost = model.TotalCost;
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;
 
-                    db.RequestItems.Attach(entity);
+                    db.AIRItems.Attach(entity);
                     db.Entry(entity).State = EntityState.Modified;
                     await db.SaveChangesAsync();
 
@@ -332,11 +370,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RequestItemDestroy([DataSourceRequest]DataSourceRequest request, RequestItemVM model)
+        public async Task<ActionResult> _AIRItemDestroy([DataSourceRequest]DataSourceRequest request, AIRItemVM model)
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "requests");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -347,18 +385,18 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    RequestItem entity = await db.RequestItems.FindAsync(model.Id);
+                    AIRItem entity = await db.AIRItems.FindAsync(model.Id);
 
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;
 
-                    db.RequestItems.Attach(entity);
+                    db.AIRItems.Attach(entity);
                     db.Entry(entity).State = EntityState.Modified;
                     await db.SaveChangesAsync();
 
-                    db.RequestItems.Attach(entity);
+                    db.AIRItems.Attach(entity);
                     // Delete the entity
-                    db.RequestItems.Remove(entity);
+                    db.AIRItems.Remove(entity);
                     // Or use DeleteObject if using a previous version of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
@@ -373,6 +411,8 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
                      "please contact tech support with this message: " + e.Message);
+
+
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));

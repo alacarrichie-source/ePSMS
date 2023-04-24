@@ -1,0 +1,84 @@
+﻿@model iLgs.Models.AIRItemVM
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+    
+    @Html.HiddenFor(model => model.Id)
+    
+    <fieldset>
+
+        <div class="row">
+            @Html.LabelFor(m => m.OrderItemId, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.OrderItemId)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select stock/property No.")
+                        .DataTextField("Code")
+                        .DataValueField("Id")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetPoItems", "Getters").Data("DataOrderItemId");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Code").Title("Code").Width("20%");
+                            c.Add().Field("Name").Title("Item Name").Width("50%");
+                            c.Add().Field("Unit").Title("Unit").Width("15%");
+                            c.Add().Field("Qty").Title("Type").Width("15%");
+                            c.Add().Field("UnitCost").Title("Type").Width("15%");
+
+                        })
+                        .Suggest(true)
+                        .Events(e => { e.Select("onSelectOrderItemId"); })
+                )
+                @Html.ValidationMessageFor(m => m.OrderItemId)
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(m => m.PsItem, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().TextBoxFor(m => m.PsItem).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(m => m.OrderDescription, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().TextBoxFor(m => m.OrderDescription).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(m => m.PsUnit, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().TextBoxFor(m => m.PsUnit).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    //.Events(e => e.Change("changeAmount"))
+                )
+                @Html.ValidationMessageFor(model => model.Qty)
+            </div>
+        </div>        
+
+    </fieldset>
+}
