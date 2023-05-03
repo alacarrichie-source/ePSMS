@@ -95,6 +95,8 @@ namespace iLgs.Controllers
 
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
+                    model.UnitMeas = model.UnitMeas;
+
                     model.PsType = model.PsType.ToUpper();
                     model.ItemDescription = model.ItemDescription ?? "";
                     model.ReorderPoint = model.ReorderPoint ?? 0;
@@ -130,6 +132,127 @@ namespace iLgs.Controllers
                     db.PsCodes.Attach(model);
                     // Delete the entity
                     db.PsCodes.Remove(model);
+                    // Or use DeleteObject if using a previous version of Entity Framework
+                    // Delete the entity in the database
+                    //db.Entry(model).State = System.Data.EntityState.Deleted;
+                    await db.SaveChangesAsync();
+                    //db.Configuration.ValidateOnSaveEnabled = true;                
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public ActionResult Maintenance()
+        {
+            return View();
+        }
+
+        public ActionResult StockRead([DataSourceRequest] DataSourceRequest request, Guid? psId)
+        {
+            var data = db.PsStocks.Where(w => w.PsId == psId)
+                .AsQueryable();
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> StockCreate([DataSourceRequest] DataSourceRequest request, PsStock model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("", "Add Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model.Id = Guid.NewGuid();
+                    model.InsertedBy = user;
+                    model.InsertedDt = date;
+                    model.UpdatedBy = user;
+                    model.UpdatedDt = date;                    
+
+                    db.PsStocks.Add(model);
+                    await db.SaveChangesAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> StockUpdate([DataSourceRequest] DataSourceRequest request, PsStock model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model.UpdatedBy = user;
+                    model.UpdatedDt = date;
+                    
+                    db.PsStocks.Attach(model);
+                    db.Entry(model).State = EntityState.Modified;
+                    await db.SaveChangesAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> StockDestroy([DataSourceRequest]DataSourceRequest request, PsStock model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    db.PsStocks.Attach(model);
+                    // Delete the entity
+                    db.PsStocks.Remove(model);
                     // Or use DeleteObject if using a previous version of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;

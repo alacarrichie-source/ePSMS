@@ -405,6 +405,7 @@
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\item.css" />
     <Content Include="Content\kd-sidebar.css" />
     <Content Include="Content\kendo\2022.1.301\Black\editor.png" />
     <Content Include="Content\kendo\2022.1.301\Black\imagebrowser.png" />
@@ -3193,7 +3194,7 @@
     <Content Include="Views\Codes\EditorTemplates\_CodextnTemplate.cshtml" />
     <Content Include="Views\Items\Index.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_PsTypeTemplate.cshtml" />
-    <Content Include="Views\Shared\EditorTemplates\_UnitTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_UnitMeasTemplate.cshtml" />
     <Content Include="Views\Orders\Index_killed.cshtml" />
     <Content Include="Views\Orders\EditorTemplates\_OrderTemplate.cshtml" />
     <Content Include="Views\Uploads\Index.cshtml" />
@@ -3221,12 +3222,13 @@
     <Content Include="Views\Shared\kd-sidebar-sample.cshtml" />
     <Content Include="Views\Account\Login_X.cshtml" />
     <Content Include="Views\Account\Shared\_SignInLayout.cshtml" />
+    <Content Include="Views\Items\Maintenance.cshtml" />
+    <Content Include="Views\Items\EditorTemplates\_StockTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Views\Getters\" />
     <Folder Include="Views\Issuances\" />
-    <Folder Include="Views\Items\EditorTemplates\" />
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
     <Folder Include="Views\Sequence\" />

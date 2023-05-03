@@ -1,0 +1,741 @@
+﻿@{
+    ViewBag.Title = "Item Maintenance";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+@*<link href="@Url.Content("~/Content/item.css")" rel="stylesheet" type="text/css" />*@
+
+<script type="text/x-kendo-tmpl" id="itemTemplate">
+    <div class="item">
+        <div class="item-wrapper">
+            @*<img src="@(Url.Content("~/content/items/"))#:itemID#-t.png" class="img-responsive item-list-image" />*@
+            <dl class="item-list-details">
+                <dt class="name">#:ItemName# #:ItemDescription??""#</dt>
+                <dd class="title">#:PsNo#</dd>
+            </dl>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-tmpl" id="itemBioTemplate">
+    <div>
+        <h3>ABOUT</h3>
+        @*<img src="@(Url.Content("~/content/employees/"))#:EmployeeID#.png" class="img-responsive employee-details-image" />*@
+        <dl class="item-bio-details">
+            <dt class="name">#:ItemName# #:ItemDescription??""#</dt>
+            <dd class="title">#:PsNo#</dd>
+            @*<dd class="phone"><span class="icon icon-mobile"></span>#:HomePhone#</dd>
+            <dd><a href='\\#' class='bioTooltip'> >>FULL BIO <span style='display:none;'>#:Notes#</span></a></dd>*@
+        </dl>
+    </div>
+</script>
+
+
+
+<div id="item-list" class="col col-xs-3">
+    <h3>ITEMS</h3>    
+    @(Html.Kendo().Grid<iLgs.Models.PsCode>()
+    .Name("grid")
+    .Columns(col =>
+    {
+        col.Bound(c => c.PsNo).Width(50);
+        col.Bound(c => c.ItemName).Width(150);      
+    })    
+    //.ClientRowTemplate("itemTemplate")
+    .ToolBar(t =>
+    {
+        t.Search();
+    })
+    .Search(s =>
+    {
+        s.Field(o => o.PsNo, "contains");
+        s.Field(o => o.ItemName, "contains");
+        //s.Field(o => o.ItemDescription, "contains");
+    })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+    )
+    .Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    .Scrollable(s => s.Height(450))
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Sortable()    
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Events(events => events.Error("GridError"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+        })
+        .Read(read => read.Action("ItemRead", "Items"))
+    )
+    .Events(events => events
+        .Change("onChangeGrid")
+        //.Edit("onEditGrid")
+        .DataBound("onDataBoundGrid")
+        )
+    )
+
+    @*@(Html.Kendo().ListView<iLgs.Models.PsCode>()
+        .Name("itemsList")
+        .TagName("div")
+        .Events(e => e.DataBound("onListDataBound").Change("onCriteriaChange"))
+        .ClientTemplateId("itemTemplate")
+        .DataSource(dataSource =>
+        {
+            dataSource.Read(read => read.Action("ItemRead", "Items"));
+            dataSource.PageSize(9);
+        })
+        .Selectable(s => s.Mode(ListViewSelectionMode.Single))
+    )*@
+</div>
+
+@*<div id="item-details-wrapper" class="col col-xs-10">*@
+    <div id="item-details" class="row">
+        <div id="item-about" class="col-xs-12 placeholder">            
+            <div class="row">
+                <div id="itemBio" class="col-xs-12 col-sm-4">
+                </div>
+                @*<div class="col-xs-12 col-sm-4">
+                    <h3>Quarter to date sales</h3>
+                    <span id="itemQuarterSalesLabel"></span>
+                    <div class="sparkline-container">
+                        @(Html.Kendo().Chart<QuarterToDateSalesViewModel>()
+                                .Name("itemQuarterSales")
+                                .Theme("metro")
+                                .HtmlAttributes(new { style = "height:30px;" })
+                                .AutoBind(false)
+                                .Tooltip(false)
+                                .Events(e => e.DataBound("onQuarterSalesDataBound"))
+                                .DataSource(ds => ds
+                                    .Read(read => read.Action("itemQuarterSales", "Team"))
+                                )
+                                .Series(series =>
+                                {
+                                    series.Bullet(m => m.Current, m => m.Target);
+                                })
+                                .Legend(leg => leg.Visible(false))
+                                .CategoryAxis(cat => cat.Labels(lab => lab.Visible(false)).MajorGridLines(m => m.Visible(false)).Visible(false))
+                                .ValueAxis(val => val.Numeric().Labels(lab => lab.Visible(false)).MajorGridLines(m => m.Visible(false)).MajorTicks(mT => mT.Visible(false)))
+                            )
+                    </div>
+                </div>*@
+                @*<div class="col-xs-12 col-sm-4">
+                    <h3>Monthly Average Sales</h3>
+                    <span id="itemAverageSalesLabel"></span>
+                    <div class="sparkline-container">
+                        @(Html.Kendo().Chart<MonthlySalesByitem_Result>()
+                                .Name("itemAverageSales")
+                                .Theme("metro")
+                                .HtmlAttributes(new { style = "height:30px;" })
+                                .AutoBind(false)
+                                .Events(e => e.DataBound("onAverageSalesDataBound"))
+                                .DataSource(ds => ds
+                                    .Aggregates(a => a.Add(s => s.itemSales).Average())
+                                    .Read(read => read.Action("itemAverageSales", "Team"))
+                                )
+                                .Series(series =>
+                                {
+                                    series.Line(model => model.itemSales).Width(1.5).Markers(m => m.Visible(false)).Tooltip(t => t.Template("#=kendo.toString(value, 'c2')#"));
+                                })
+                                .CategoryAxis(c => c
+                                    .Date()
+                                    .Categories(x => x.Date)
+                                    .Visible(false).MajorGridLines(m => m.Visible(false)).MajorTicks(mT => mT.Visible(false))
+                                )
+                                .Legend(leg => leg.Visible(false))
+                                .ValueAxis(val => val.Numeric().Visible(false).Labels(lab => lab.Visible(false)).MajorGridLines(m => m.Visible(false)).MajorTicks(mT => mT.Visible(false)))
+                            )
+                    </div>
+                </div>*@
+            </div>
+        </div>
+        <div id="item-stat" class="col-xs-12">
+            <h3 class="section-header">Stocks</h3>
+            @(Html.Kendo().Grid<iLgs.Models.PsStock>()
+                .Name("gridStocks")
+                .Columns(col =>
+                {
+                    col.Bound(c => c.StockNo).Width(50);
+                    col.Bound(c => c.Description).Width(150);
+                })
+                .ToolBar(t =>
+                {
+                    t.Create();
+                })
+                .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_StockTemplate").Window(w => w.Width(500).Title("Stocks")))
+                .Pageable(pager => pager
+                    .Input(false)
+                    .Numeric(true)
+                    .Info(true)
+                    .PreviousNext(true)
+                    .Refresh(true)
+                    .PageSizes(true)
+                    .ButtonCount(5)
+                )
+                .Filterable()
+                .NoRecords()
+                .Resizable(r => r.Columns(true))
+                .Scrollable(s => s.Height(330))
+                .Selectable(s => s.Mode(GridSelectionMode.Single))
+                .Sortable()
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .Events(events => events.Error("GridError"))
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                    })
+                    .Read(read => read.Action("StockRead", "Items").Data("DataGridStocks"))
+                    .Create(create => create.Action("StockCreate", "Items"))
+                )
+                .Events(events => events
+                    .Change("onChangeGridStocks")
+                    .Edit("onEditGridStocks")
+                    .DataBound("onDataBoundGridStocks")
+                )
+            )
+        </div>
+        @*<div id="itemStats" class="col-xs-12">
+            @(Html.Kendo().Chart<SalesAmounts_Result>()
+                    .Name("TeamSales")
+                    .Theme("metro")
+                    .Title(t => t.Text("REPRESENTATIVE SALES VS. TOTAL SALES").Align(ChartTextAlignment.Left).Font("11px sans-serif").Color("#35373d"))
+                    .HtmlAttributes(new { style = "height:200px;" })
+                    .AutoBind(false)
+                    .Legend(l => l.Position(ChartLegendPosition.Bottom))
+                    .DataSource(ds => ds.Read(read => read.Action("itemAndTeamSales", "Team")))
+                    .Series(series =>
+                    {
+                        series.Column(model => model.itemSales).CategoryField("Date").Name("item Sales").Aggregate(ChartSeriesAggregate.Sum);
+                        series.Column(model => model.TotalSales).CategoryField("Date").Name("Team Sales").Aggregate(ChartSeriesAggregate.Sum);
+                    })
+                    .CategoryAxis(axis => axis
+                        .Date()
+                        .BaseUnit(ChartAxisBaseUnit.Months)
+                        .MajorGridLines(lines => lines.Visible(false))
+                    )
+                    .ValueAxis(axis => axis.Numeric()
+                        .Labels(labels => labels.Format("{0:c2}").Visible(false))
+                        .MajorUnit(25000)
+                        .Line(line => line.Visible(false))
+                        .MajorGridLines(m => m.Visible(false))
+                    )
+                    .Tooltip(tooltip => tooltip
+                        .Visible(true)
+                        .Format("{0:c2}")
+                    )
+                )
+        </div>*@
+        @*<div id="itemSchedule" class="col-xs-12">
+            <h3>Representative orders - schedule</h3>
+            @(Html.Kendo().Scheduler<SaleViewModel>()
+                    .Name("itemSales")
+                    .AutoBind(false)
+                    .Date(new DateTime(1996, 7, 1))
+                    .Views(views =>
+                    {
+                        views.MonthView();
+                    })
+                    .Editable(false)
+                    .Timezone("Etc/UTC")
+                    .Resources(resource =>
+                    {
+                        resource.Add(m => m.itemID)
+                            .Title("item")
+                            .DataTextField("itemName")
+                            .DataValueField("itemID")
+                            .DataSource(dataSource =>
+                            {
+                                dataSource.Read(read => read.Action("Getitems", "Team"));
+                            });
+                    })
+                    .DataSource(d => d.Read("itemSales", "Team"))
+                )
+        </div>*@
+    </div>
+@*</div>*@
+
+@(Html.Kendo().Tooltip()
+    .For("#itemBio")
+    .Filter("a")
+    .ContentHandler("getBio")
+)
+
+@*@(Html.Kendo().Grid<iLgs.Models.PsCode>()
+        .Name("grid")
+        .Columns(col =>
+        {
+            col.Bound(c => c.PsType).Width(50).EditorTemplateName("_PsTypeTemplate");
+            col.Bound(c => c.PsNo).Width(70);
+            col.Bound(c => c.ItemName).Width(100);
+            col.Bound(c => c.ItemDescription).Width(100);
+            col.Bound(c => c.UnitMeas).Width(100).EditorTemplateName("_UnitMeasTemplate");
+            col.Bound(c => c.ReorderPoint).Width(100).EditorTemplateName("_ReorderTemplate");
+            col.Bound(c => c.DaysToConsume).Width(100).EditorTemplateName("_DaysToConsumeTemplate");
+            col.Command(command =>
+            {
+                command.Edit();
+                command.Destroy();
+            }).Width(120);
+        })
+        .ToolBar(t =>
+        {
+            t.Create().Text("Add Item");
+            t.Search();
+        })
+            //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodeMastTemplate").Window(w => w.Width(800).Title("Codes")))
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        .Search(s =>
+        {
+            s.Field(o => o.PsType, "contains");
+            s.Field(o => o.PsNo, "contains");
+            s.Field(o => o.ItemName, "contains");
+            s.Field(o => o.ItemDescription, "contains");
+            s.Field(o => o.UnitMeas, "contains");
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Scrollable(s => s.Height(475))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(20)
+            .Events(events => events.Error("GridError"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Read(read => read.Action("ItemRead", "Items"))
+            .Create(create => create.Action("ItemCreate", "Items"))
+            .Update(update => update.Action("ItemUpdate", "Items"))
+            .Destroy(destroy => destroy.Action("ItemDestroy", "Items"))
+        )
+        .Events(events => events
+            .Change("onChangeGrid")
+            .Edit("onEditGrid")
+            .DataBound("onDataBoundGrid")
+            )
+    )*@
+
+
+<div id="windowcontainer"></div>
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .k-floating-label-container {
+        width: 100%;
+    }
+
+    .container {
+        max-width: 100%;
+    }
+
+    .placeholder {
+        margin-bottom: 20px;
+    }
+
+    #item-list,
+    #item-details-wrapper {
+        padding: 0;
+    }
+
+    #item-details-wrapper {
+        height: 100%;
+        overflow-y: auto;
+        background-color: #fff;
+    }
+
+    #item-details {
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    #item-list,
+    #itemsList {
+        background-color: #eee;
+    }
+
+    #item-list h3 {
+        padding: 0.5em 0.727em;
+        font-size: 11px;
+        color: #35373d;
+        border-bottom: 1px solid #dbdbdb;
+    }
+
+    .item-wrapper {
+        border-top: 1px solid #f3f3f3;
+        border-bottom: 1px solid #dbdbdb;
+        padding: 1.25em 0;
+        margin-left: 2.5em;
+    }
+
+    /*.item.k-state-selected {
+        background-color: #6abd2d;
+    }*/
+
+    .item.k-state-selected .item-wrapper{
+        border-top: 1px solid #6abd2d;
+        border-bottom: 1px solid #6abd2d;
+    }
+
+    #itemsList {
+        border: none;
+        overflow: auto;
+        height: 100%;
+        height: calc(100% - 154px);
+    }
+
+    #item-details-wrapper {
+        border: none;
+        overflow: auto;
+        height: 100%;
+        height: calc(100% - 86px);
+    }
+
+    .name {
+    font-size: 14px;
+    color: #35373d;
+    }
+
+    .title {
+        font-size: 9px;
+        line-height: 9px;
+        color: #8a8b8f;
+        text-transform: uppercase; 
+        display: inline-block;   
+    }
+
+    .phone {
+        font-size: 10px;
+        line-height: 10px;
+        color: #35373d;
+    }
+
+    .k-state-selected .name,
+    .k-state-selected .title {
+        color: #fff;
+    }
+
+    .k-listview-content>.k-selected {
+        background-color: rgba(255,99,88,.25);
+    }
+
+    .k-listview-item {
+        padding: 0;
+        border-width: 0;
+        outline: 0;
+        border-style: solid;
+        box-sizing: border-box;
+        -ms-flex-negative: 0;
+        flex-shrink: 0;
+    }
+    /* About */
+    #map-wrapper {
+        padding: 15px;
+    }
+
+    #map {
+        height: 350px;
+        outline: 0;
+    }
+
+    #about {
+        font-size: 15px;
+        line-height: 24px;
+    }
+
+    #about > div {
+        padding: 90px 60px;
+    }
+
+    #about p {
+        padding-bottom: 1em;
+        max-width: 960px;
+    }
+
+    #about ul {
+        list-style: disc;
+        color: #428bca;
+    }
+
+    .section-title {
+        font-size: 36px;
+        color: #35373d;
+        padding-bottom: 1em;
+    }
+
+    .section-sub-title {
+        font-weight: bold;
+        padding-top: 1em;
+        padding-bottom: .5em;
+    }
+
+    .section-white {
+        background-color: #fff;
+    }
+
+    #item-about {
+        border-bottom: 1px solid #eaeaeb;
+    }
+
+    #item-about .row {
+        padding: 30px 0;      
+    }
+
+    #item-about h3,    
+    .section-header{
+        font-size: 11px;
+        color: #35373d;
+        text-transform: uppercase;
+        padding-bottom: 1.091em;
+        padding: 1px 0;
+    }
+
+
+</style>
+
+
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    <li>
+        #=field#
+        <ul>
+            # for (var i = 0; i < messages.length; ++i) { #
+            <li>#= messages[i] #</li>
+            # } #
+        </ul>
+    </li>
+    # } #
+</script>
+
+
+<script type="text/javascript">
+    function GridError(args) {
+        if (args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    function onListDataBound(e) {
+        this.select($(".item:first"));
+    }
+
+    function onCriteriaChange() {
+        var items = $("#itemsList").data("kendoListView"),
+            item = items.dataSource.getByUid(items.select().attr("data-uid")),
+            //itemQuarterSales = $("#itemQuarterSales").data("kendoChart"),
+            //itemAverageSales = $("#itemAverageSales").data("kendoChart"),
+            //teamSales = $("#TeamSales").data("kendoChart"),
+            //itemSales = $("#itemSales").data("kendoScheduler"),
+            //startDate = $("#StartDate").data("kendoDatePicker"),
+            //endDate = $("#EndDate").data("kendoDatePicker"),
+            //filter = { itemID: item.itemID, startDate: startDate.value(), endDate: endDate.value() },
+            template = kendo.template($("#itemBioTemplate").html());
+        
+        //$("#itemBio").html(template(item));
+
+        //itemSales.dataSource.filter({ field: "itemID", operator: "eq", value: item.itemID });
+
+        //teamSales.dataSource.read(filter);
+
+        //itemQuarterSales.dataSource.read(filter);
+        //itemAverageSales.dataSource.read(filter);
+    }
+
+
+
+    var selectedGrid = null;
+    var selectedId = null;
+    var selectedStockId = null;
+    var selecteItemId = null;
+    var codeHdg = null;
+    var hdg1 = null;
+    var hdg2 = null;
+    var hdg3 = null;
+    var hdg4 = null;
+    var hdg5 = null;
+
+    function onChangeGrid(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedId = selectedData.Id;
+        selectedStockId = null;
+        selectedItemId = null;
+
+        var items = $("#grid").data("kendoGrid"),
+            item = items.dataSource.getByUid(items.select().attr("data-uid")),
+            gridStocks = $("#gridStocks").data("kendoGrid"),
+            //itemAverageSales = $("#itemAverageSales").data("kendoChart"),
+            //teamSales = $("#TeamSales").data("kendoChart"),
+            //itemSales = $("#itemSales").data("kendoScheduler"),
+            //startDate = $("#StartDate").data("kendoDatePicker"),
+            //endDate = $("#EndDate").data("kendoDatePicker"),
+            //filter = { itemID: item.itemID, startDate: startDate.value(), endDate: endDate.value() },
+            template = kendo.template($("#itemBioTemplate").html());
+
+        $("#itemBio").html(template(item));
+
+        gridStocks.dataSource.read();
+    }    
+
+    function getBio(e) {
+        return e.target.find("span").text();
+    }
+
+    function onDataBoundGrid(e) {
+        if (selectedId) {
+            var dataItem = this.dataSource.get(selectedId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+        //if (this.dataSource.total() == 0) {
+        //   // to do: disable item add button
+        //}
+    }
+
+    function onEditGrid(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedId = null;
+        } else {
+            selectedId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            //$("#Code").attr("readonly", "readonly");
+        }
+
+    }
+
+    function onGridDeleteClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+
+    // GRID STOCKS
+
+    function onChangeGridStocks(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedStockId = selectedData.Id;
+        selectedItemId = null;
+
+        var items = $("#gridStocks").data("kendoGrid"),
+            item = items.dataSource.getByUid(items.select().attr("data-uid"))
+            //gridItems = $("#gridItems").data("kendoGrid")            
+
+        //gridItems.dataSource.read();
+    }
+
+    function DataGridStocks() {
+        return {
+            psId: selectedId
+        };
+    }
+
+    function onDataBoundGridStocks(e) {
+        if (selectedStockId) {
+            var dataItem = this.dataSource.get(selectedStockId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+        //if (this.dataSource.total() == 0) {
+        //   // to do: disable item add button
+        //}
+    }
+
+    function onEditGridStocks(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedItemId = null;
+            e.model.set("PsId", selectedId);
+        } else {
+            selectedItemId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));            
+        }
+    }
+
+    function onGridStocksDeleteClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+</script>
+
+
