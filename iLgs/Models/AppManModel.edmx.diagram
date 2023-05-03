@@ -41,7 +41,6 @@
         <EntityTypeShape EntityType="AppManModel.IssuedItem" Width="1.5" PointX="12.75" PointY="2.375" />
         <EntityTypeShape EntityType="AppManModel.Issued" Width="1.5" PointX="10.5" PointY="17" />
         <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="3" PointY="7.75" />
-        <EntityTypeShape EntityType="AppManModel.PsCode" Width="1.5" PointX="6" PointY="3.75" />
         <EntityTypeShape EntityType="AppManModel.RequestItem" Width="1.5" PointX="6" PointY="9" />
         <EntityTypeShape EntityType="AppManModel.Request" Width="1.5" PointX="0.75" PointY="8.375" />
         <EntityTypeShape EntityType="AppManModel.RISlipItem" Width="1.5" PointX="12.75" PointY="8.125" />
@@ -51,7 +50,6 @@
         <AssociationConnector Association="AppManModel.FK_RPSMIssuedItems_RPSMIssued" />
         <AssociationConnector Association="AppManModel.FK_Orders_Requests" />
         <AssociationConnector Association="AppManModel.FK_Orders_Suppliers" />
-        <AssociationConnector Association="AppManModel.FK_RequestItems_PsCodes" />
         <AssociationConnector Association="AppManModel.FK_RequestItems_Requests" />
         <AssociationConnector Association="AppManModel.FK_RISlipItems_RISlips" />
         <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="8.25" PointY="8.75" />
@@ -63,9 +61,11 @@
         <EntityTypeShape EntityType="AppManModel.PsItem" Width="1.5" PointX="10.5" PointY="7.875" />
         <EntityTypeShape EntityType="AppManModel.PsStock" Width="1.5" PointX="8.25" PointY="1.75" />
         <AssociationConnector Association="AppManModel.FK_PsItems_OrderItems" />
-        <AssociationConnector Association="AppManModel.FK_PsStocks_PsCodes" />
         <AssociationConnector Association="AppManModel.FK_PsItems_PsStocks" />
         <AssociationConnector Association="AppManModel.FK_RISlipItems_PsItems" />
+        <EntityTypeShape EntityType="AppManModel.PsCode" Width="1.5" PointX="5.5" PointY="2.875" />
+        <AssociationConnector Association="AppManModel.FK_PsStocks_PsCodes" />
+        <AssociationConnector Association="AppManModel.FK_RequestItems_PsCodes" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

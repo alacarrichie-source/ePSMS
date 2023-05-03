@@ -49,7 +49,6 @@ namespace iLgs.Models
         public virtual DbSet<IssuedItem> IssuedItems { get; set; }
         public virtual DbSet<Issued> Issueds { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
-        public virtual DbSet<PsCode> PsCodes { get; set; }
         public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<Request> Requests { get; set; }
         public virtual DbSet<RISlipItem> RISlipItems { get; set; }
@@ -58,5 +57,6 @@ namespace iLgs.Models
         public virtual DbSet<AIRItem> AIRItems { get; set; }
         public virtual DbSet<PsItem> PsItems { get; set; }
         public virtual DbSet<PsStock> PsStocks { get; set; }
+        public virtual DbSet<PsCode> PsCodes { get; set; }
     }
 }

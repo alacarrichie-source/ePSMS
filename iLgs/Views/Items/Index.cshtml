@@ -7,13 +7,13 @@
     .Name("grid")
     .Columns(col =>
     {
-        col.Bound(c => c.PsType).Width(50).EditorTemplateName("_PsTypeTemplate");
+        col.Bound(c => c.PsType).Width(70).EditorTemplateName("_PsTypeTemplate");
         col.Bound(c => c.PsNo).Width(70);
         col.Bound(c => c.ItemName).Width(100);
         col.Bound(c => c.ItemDescription).Width(100);
         col.Bound(c => c.UnitMeas).Width(100).EditorTemplateName("_UnitMeasTemplate");
         col.Bound(c => c.ReorderPoint).Width(100).EditorTemplateName("_ReorderTemplate");
-        col.Bound(c => c.DaysToConsume).Width(100).EditorTemplateName("_DaysToConsumeTemplate");
+        col.Bound(c => c.DaysToConsume).Width(100).EditorTemplateName("_DaysToConsumeTemplate");        
         col.Command(command =>
         {
             command.Edit();
