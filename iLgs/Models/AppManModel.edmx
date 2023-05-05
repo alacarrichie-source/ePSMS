@@ -355,7 +355,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="RISid" Type="uniqueidentifier" />
+          <Property Name="RisId" Type="uniqueidentifier" />
           <Property Name="StockItemId" Type="uniqueidentifier" />
           <Property Name="ReqQty" Type="numeric" Precision="18" Scale="2" />
           <Property Name="IssQty" Type="numeric" Precision="18" Scale="2" />
@@ -843,7 +843,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="RISlipItems">
-              <PropertyRef Name="RISid" />
+              <PropertyRef Name="RisId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1180,7 +1180,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="Orders" EntityType="AppManModel.Order" />
           <EntitySet Name="RequestItems" EntityType="AppManModel.RequestItem" />
           <EntitySet Name="Requests" EntityType="AppManModel.Request" />
-          <EntitySet Name="RISlipItems" EntityType="AppManModel.RISlipItem" />
           <AssociationSet Name="FK_AIRs_Orders" Association="AppManModel.FK_AIRs_Orders">
             <End Role="Order" EntitySet="Orders" />
             <End Role="AIR" EntitySet="AIRs" />
@@ -1224,10 +1223,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="OrderItem" EntitySet="OrderItems" />
             <End Role="PsItem" EntitySet="PsItems" />
           </AssociationSet>
-          <AssociationSet Name="FK_RISlipItems_PsItems" Association="AppManModel.FK_RISlipItems_PsItems">
-            <End Role="PsItem" EntitySet="PsItems" />
-            <End Role="RISlipItem" EntitySet="RISlipItems" />
-          </AssociationSet>
           <EntitySet Name="PsCodes" EntityType="AppManModel.PsCode" />
           <AssociationSet Name="FK_RequestItems_PsCodes" Association="AppManModel.FK_RequestItems_PsCodes">
             <End Role="PsCode" EntitySet="PsCodes" />
@@ -1250,6 +1245,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_RISlips_Orders" Association="AppManModel.FK_RISlips_Orders">
             <End Role="Order" EntitySet="Orders" />
             <End Role="RISlip" EntitySet="RISlips" />
+          </AssociationSet>
+          <EntitySet Name="RISlipItems" EntityType="AppManModel.RISlipItem" />
+          <AssociationSet Name="FK_RISlipItems_PsItems" Association="AppManModel.FK_RISlipItems_PsItems">
+            <End Role="PsItem" EntitySet="PsItems" />
+            <End Role="RISlipItem" EntitySet="RISlipItems" />
           </AssociationSet>
           <AssociationSet Name="FK_RISlipItems_RISlips" Association="AppManModel.FK_RISlipItems_RISlips">
             <End Role="RISlip" EntitySet="RISlips" />
@@ -1858,23 +1858,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="Orders" Relationship="AppManModel.FK_Orders_Requests" FromRole="Request" ToRole="Order" />
           <NavigationProperty Name="RequestItems" Relationship="AppManModel.FK_RequestItems_Requests" FromRole="Request" ToRole="RequestItem" />
         </EntityType>
-        <EntityType Name="RISlipItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="RISid" Type="Guid" />
-          <Property Name="StockItemId" Type="Guid" />
-          <Property Name="ReqQty" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="IssQty" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="IssRemarks" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="PsItem" Relationship="AppManModel.FK_RISlipItems_PsItems" FromRole="RISlipItem" ToRole="PsItem" />
-          <NavigationProperty Name="RISlip" Relationship="AppManModel.FK_RISlipItems_RISlips" FromRole="RISlipItem" ToRole="RISlip" />
-        </EntityType>
         <Association Name="FK_AIRs_Orders">
           <End Type="AppManModel.Order" Role="Order" Multiplicity="0..1" />
           <End Type="AppManModel.AIR" Role="AIR" Multiplicity="*" />
@@ -2034,8 +2017,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PsItems_OrderItems" FromRole="PsItem" ToRole="OrderItem" />
-          <NavigationProperty Name="RISlipItems" Relationship="AppManModel.FK_RISlipItems_PsItems" FromRole="PsItem" ToRole="RISlipItem" />
           <NavigationProperty Name="PsStock" Relationship="AppManModel.FK_PsItems_PsStocks" FromRole="PsItem" ToRole="PsStock" />
+          <NavigationProperty Name="RISlipItems" Relationship="AppManModel.FK_RISlipItems_PsItems" FromRole="PsItem" ToRole="RISlipItem" />
         </EntityType>
         <Association Name="FK_PsItems_OrderItems">
           <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
@@ -2046,18 +2029,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="PsItem">
               <PropertyRef Name="OrderItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RISlipItems_PsItems">
-          <End Type="AppManModel.PsItem" Role="PsItem" Multiplicity="0..1" />
-          <End Type="AppManModel.RISlipItem" Role="RISlipItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PsItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RISlipItem">
-              <PropertyRef Name="StockItemId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2205,6 +2176,35 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="RISlipItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RisId" Type="Guid" />
+          <Property Name="StockItemId" Type="Guid" />
+          <Property Name="ReqQty" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="IssQty" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="IssRemarks" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="PsItem" Relationship="AppManModel.FK_RISlipItems_PsItems" FromRole="RISlipItem" ToRole="PsItem" />
+          <NavigationProperty Name="RISlip" Relationship="AppManModel.FK_RISlipItems_RISlips" FromRole="RISlipItem" ToRole="RISlip" />
+        </EntityType>
+        <Association Name="FK_RISlipItems_PsItems">
+          <End Type="AppManModel.PsItem" Role="PsItem" Multiplicity="0..1" />
+          <End Type="AppManModel.RISlipItem" Role="RISlipItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PsItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RISlipItem">
+              <PropertyRef Name="StockItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_RISlipItems_RISlips">
           <End Type="AppManModel.RISlip" Role="RISlip" Multiplicity="0..1" />
           <End Type="AppManModel.RISlipItem" Role="RISlipItem" Multiplicity="*" />
@@ -2213,7 +2213,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="RISlipItem">
-              <PropertyRef Name="RISid" />
+              <PropertyRef Name="RisId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2668,22 +2668,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="RISlipItems">
-            <EntityTypeMapping TypeName="AppManModel.RISlipItem">
-              <MappingFragment StoreEntitySet="RISlipItems">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="IssRemarks" ColumnName="IssRemarks" />
-                <ScalarProperty Name="IssQty" ColumnName="IssQty" />
-                <ScalarProperty Name="ReqQty" ColumnName="ReqQty" />
-                <ScalarProperty Name="StockItemId" ColumnName="StockItemId" />
-                <ScalarProperty Name="RISid" ColumnName="RISid" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="OrderItems">
             <EntityTypeMapping TypeName="AppManModel.OrderItem">
               <MappingFragment StoreEntitySet="OrderItems">
@@ -2808,6 +2792,22 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="Division" ColumnName="Division" />
                 <ScalarProperty Name="Fund" ColumnName="Fund" />
                 <ScalarProperty Name="OrderId" ColumnName="OrderId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RISlipItems">
+            <EntityTypeMapping TypeName="AppManModel.RISlipItem">
+              <MappingFragment StoreEntitySet="RISlipItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="IssRemarks" ColumnName="IssRemarks" />
+                <ScalarProperty Name="IssQty" ColumnName="IssQty" />
+                <ScalarProperty Name="ReqQty" ColumnName="ReqQty" />
+                <ScalarProperty Name="StockItemId" ColumnName="StockItemId" />
+                <ScalarProperty Name="RisId" ColumnName="RisId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

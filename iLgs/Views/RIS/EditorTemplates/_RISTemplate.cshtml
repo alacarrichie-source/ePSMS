@@ -1,6 +1,6 @@
 ﻿@model iLgs.Models.RISlipVM
 
-@using (Html.BeginForm())
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
     @Html.AntiForgeryToken()
 
@@ -12,7 +12,7 @@
     </div>
 
     @Html.HiddenFor(model => model.Id)
-
+    
     <fieldset>
         <div class="row">
             <div class="col-md-6">
@@ -46,15 +46,13 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetPoNos", "Getters");
+                                    read.Action("GetRisPoNos", "Getters");
                                 })
                                 .ServerFiltering(true);
                             })
                             .Columns(c =>
                             {
                                 c.Add().Field("PoNo").Title("PO No.").Width("30%");
-                                //c.Add().Field("PoDate").Title("Date").Width("30%");
-                                //c.Add().Template("#= kendo.toString(PoDate, 'MM/dd/yyyy') #").Title("Date").Width("30%");
                                 c.Add().Template("#= kendo.toString(new Date(parseInt(PoDate.substr(6))), 'MM/dd/yyyy') #").Title("Date").Width("30%");
                                 c.Add().Field("Department").Title("Department").Width("40%");
                             })
@@ -102,7 +100,7 @@
             <div class="col-md-6">
                 @Html.LabelFor(model => model.FPP, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.FPP).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                    @(Html.Kendo().TextBoxFor(model => model.FPP).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
                     @Html.ValidationMessageFor(model => model.FPP)
                 </div>
             </div>
@@ -117,7 +115,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.RequestedBy, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.RequestedBy, "Name", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().TextBoxFor(m => m.RequestedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
@@ -125,7 +123,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.RequestedByDesignation, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.RequestedByDesignation, "Designation", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().TextBoxFor(m => m.RequestedByDesignation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
@@ -133,7 +131,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.RequestedDate, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.RequestedDate, "Date", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().DatePickerFor(m => m.RequestedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
@@ -149,7 +147,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.ApprovedBy, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.ApprovedBy, "Name", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().TextBoxFor(m => m.ApprovedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
@@ -157,7 +155,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.ApprovedByDesignation, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.ApprovedByDesignation, "Designation", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().TextBoxFor(m => m.ApprovedByDesignation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
@@ -165,7 +163,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.ApprovedDate, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.ApprovedDate, "Date", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().DatePickerFor(m => m.ApprovedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
@@ -183,7 +181,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.IssuedBy, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.IssuedBy, "Name", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().TextBoxFor(m => m.IssuedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
@@ -191,7 +189,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.IssuedByDesignation, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.IssuedByDesignation, "Designation", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().TextBoxFor(m => m.IssuedByDesignation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
@@ -199,7 +197,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.IssuedDate, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.IssuedDate, "Date", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().DatePickerFor(m => m.IssuedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
@@ -215,7 +213,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.ReceivedBy, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.ReceivedBy, "Name", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().TextBoxFor(m => m.ReceivedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
@@ -223,7 +221,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.ReceivedByDesignation, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.ReceivedByDesignation, "Designation", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().TextBoxFor(m => m.ReceivedByDesignation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
@@ -231,7 +229,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.ReceivedDate, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.LabelFor(model => model.ReceivedDate, "Date", htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
                                     @(Html.Kendo().DatePickerFor(m => m.ReceivedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>

@@ -250,8 +250,7 @@ namespace iLgs.Controllers
             // yyyy-mm-9999
             // 123456789012
 
-            var data = db.AIRs.Where(w => w.AIRDate.Value.Year == date.Year
-                && w.AIRDate.Value.Month == date.Month).OrderByDescending(o => o.AIRNo).FirstOrDefault();
+            var data = db.AIRs.Where(w => w.AIRDate.Value.Year == date.Year).OrderByDescending(o => o.AIRNo).FirstOrDefault();
             if (data == null)
             {
                 return keyName + "-" + "0001";

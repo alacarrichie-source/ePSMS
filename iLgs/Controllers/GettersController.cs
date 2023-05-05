@@ -199,6 +199,19 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.Department, Supplier = c.Supplier.BusinessName }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetRisPoNos(string text)
+        {
+
+            var model = db.Orders.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.Department, Division = c.Request.Section, Fund = c.Request.Fund, FPP = c.Request.FPP }), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetPoItems(Guid orderId, string text)
         {
 

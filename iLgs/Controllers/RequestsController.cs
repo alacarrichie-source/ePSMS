@@ -115,8 +115,7 @@ namespace iLgs.Controllers
             // yyyy-mm-9999
             // 123456789012
 
-            var data = db.Requests.Where(w => w.PrDate.Value.Year == prDate.Year
-                && w.PrDate.Value.Month == prDate.Month).OrderByDescending(o => o.PrNo).FirstOrDefault();
+            var data = db.Requests.Where(w => w.PrDate.Value.Year == prDate.Year).OrderByDescending(o => o.PrNo).FirstOrDefault();
             if (data == null)
             {
                 return keyName + "-" + "0001";

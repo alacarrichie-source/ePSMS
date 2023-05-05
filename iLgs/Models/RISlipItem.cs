@@ -15,7 +15,7 @@ namespace iLgs.Models
     public partial class RISlipItem
     {
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> RISid { get; set; }
+        public Nullable<System.Guid> RisId { get; set; }
         public Nullable<System.Guid> StockItemId { get; set; }
         public Nullable<decimal> ReqQty { get; set; }
         public Nullable<decimal> IssQty { get; set; }

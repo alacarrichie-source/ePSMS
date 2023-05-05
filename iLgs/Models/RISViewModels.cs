@@ -10,6 +10,8 @@ namespace iLgs.Models
     public class RISlipVM
     {        
         public System.Guid Id { get; set; }
+
+        [Display(Name = "PO No.")]
         public Nullable<System.Guid> OrderId { get; set; }
         public string Fund { get; set; }
         public string Division { get; set; }
@@ -76,13 +78,14 @@ namespace iLgs.Models
         public string PoNo { get; set; }
 
         [Display(Name = "PO Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> PoDate { get; set; }
     }
 
     public class RISlipItemVM
     {
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> RISid { get; set; }
+        public Nullable<System.Guid> RisId { get; set; }
         public Nullable<System.Guid> StockItemId { get; set; }
         public Nullable<decimal> ReqQty { get; set; }
         public Nullable<decimal> IssQty { get; set; }

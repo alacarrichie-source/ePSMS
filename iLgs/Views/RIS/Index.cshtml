@@ -47,7 +47,7 @@
     .Filterable()
     .NoRecords()
     .Resizable(r => r.Columns(true))
-    .Scrollable(s => s.Height(200))
+    .Scrollable(s => s.Height(150))
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
     .DataSource(dataSource => dataSource
@@ -58,9 +58,13 @@
         {
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            model.Field(p => p.Division).Editable(true);
+            model.Field(p => p.Office).Editable(true);
+            model.Field(p => p.Fund).Editable(true);
+            model.Field(p => p.FPP).Editable(true);
         })
         .Read(read => read.Action("RISRead", "RIS"))
-        .Create(create => create.Action("RISCreate", "RIS"))
+        .Create(create => create.Action("RISCreate", "RIS").Data("IncludeDisabled"))        
         .Update(update => update.Action("RISUpdate", "RIS"))
         .Destroy(destroy => destroy.Action("RISDestroy", "RIS"))
     )
@@ -108,10 +112,10 @@
         .Filterable()
         .NoRecords()
         .Resizable(r => r.Columns(true))
-        .Scrollable(s => s.Height(180))
+        .Scrollable(s => s.Height(150))
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Sortable()
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RISItemTemplate").Window(w => w.Width(500).Title("Acceptance and Inspection Item")))
+        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RISItemTemplate").Window(w => w.Width(500).Title("Acceptance and Inspection Item")))
         .DataSource(dataSource => dataSource
             .Ajax()
             .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
@@ -119,6 +123,10 @@
             {
                 model.Id(p => p.Id);
                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                model.Field(p => p.StockNo).Editable(false);
+                model.Field(p => p.Unit).Editable(false);
+                model.Field(p => p.Description).Editable(false);
+                model.Field(p => p.ReqQty).Editable(false);
             })
             .Aggregates(a =>
             {
@@ -129,10 +137,10 @@
             {
                 s.Add(a => a.InsertedDt);
             })
-            .Read(read => read.Action("_RISItemRead", "AIRs").Data("ItemData"))
-            .Create(create => create.Action("_RISItemCreate", "RIS"))
-            .Update(update => update.Action("_RISItemUpdate", "RIS"))
-            .Destroy(destroy => destroy.Action("_RISItemDestroy", "RIS"))
+            .Read(read => read.Action("_RISlipItemRead", "RIS").Data("ItemData"))
+            .Create(create => create.Action("_RISlipItemCreate", "RIS"))
+            .Update(update => update.Action("_RISlipItemUpdate", "RIS"))
+            .Destroy(destroy => destroy.Action("_RISlipItemDestroy", "RIS"))
         )
         .Events(events => events
             .Change("onChangeGridItems")
@@ -251,6 +259,11 @@
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 $("#grid").data("kendoGrid").dataSource.read();
             }
+            if (e.type == "create") {
+                var responseData = e.response;
+                var newRecord = responseData.Data[0];
+                selectedId = newRecord.Id;
+            }
         }
     }
 
@@ -258,6 +271,12 @@
     var selectedId = null;
     var selectedId_OrderId = null;
     var selecteItemId = null;
+
+    function IncludeDisabled(options)
+    {
+        options.includeDisabled = true;
+        return options;        
+    }
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
@@ -312,7 +331,7 @@
 
     function ItemData() {
         return {
-            airId: selectedId
+            risId: selectedId
         };
     }
 
@@ -340,7 +359,7 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selecteItemId = null;
-            e.model.set("AirId", selectedId);
+            e.model.set("RisId", selectedId);
         } else {
             selecteItemId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selecteItemId);
@@ -370,7 +389,6 @@
 
         $("#Qty").data("kendoNumericTextBox").value(dataItem.Qty);
         $("#Qty").data("kendoNumericTextBox").trigger("change");
-
     }
 
     function DataSupplierId() {
@@ -388,7 +406,10 @@
         var poDate = kendo.toString(new Date(parseInt(dataItem.PoDate.substr(6))), 'MM/dd/yyyy');
         $("#Supplier").val(dataItem.Supplier).trigger("change");
         $("#PoDate").val(poDate).trigger("change");
-        $("#Department").val(dataItem.Department).trigger("change");
+        $("#Division").val(dataItem.Section).trigger("change");
+        $("#Office").val(dataItem.Department).trigger("change");
+        $("#Fund").val(dataItem.Fund).trigger("change");
+        $("#FPP").val(dataItem.FPP).trigger("change");
     }
 
     function changeAmount(e) {

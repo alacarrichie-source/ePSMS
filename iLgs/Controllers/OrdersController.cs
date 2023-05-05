@@ -444,8 +444,7 @@ namespace iLgs.Controllers
             // yyyy-mm-9999
             // 123456789012
 
-            var order = db.Orders.Where(w => w.PoDate.Value.Year == poDate.Year 
-                && w.PoDate.Value.Month == poDate.Month).OrderByDescending(o => o.PoNo).FirstOrDefault();
+            var order = db.Orders.Where(w => w.PoDate.Value.Year == poDate.Year).OrderByDescending(o => o.PoNo).FirstOrDefault();
             if (order == null)
             {
                 return keyName + "-" + "0001";

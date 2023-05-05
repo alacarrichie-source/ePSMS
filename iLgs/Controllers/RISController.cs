@@ -81,10 +81,23 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("RisNo", "RIS No. already exists!");
                 }
 
+                var order = await db.Orders.Include(i => i.Request).Where(w => w.Id == model.OrderId).FirstOrDefaultAsync();
+                if (order == null)
+                {
+                    ModelState.AddModelError("PoNo", "Invalid PO No.!");
+                }
+                else
+                {
+                    model.Division = order.Request.Section;
+                    model.Office = order.Request.Department;
+                    model.Fund = order.Request.Fund;
+                    model.FPP = order.Request.FPP;
+                }
+
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+                    DateTime date = System.DateTime.Now;                    
 
                     model.Id = Guid.NewGuid();
                     if (string.IsNullOrWhiteSpace(model.RisNo))
@@ -133,7 +146,7 @@ namespace iLgs.Controllers
                         RISlipItem item = new RISlipItem()
                         {
                             Id = Guid.NewGuid(),
-                            RISid = entity.Id,
+                            RisId = entity.Id,
                             StockItemId = stockItem.Id,
                             ReqQty = stockItem.Qty,
                             IssQty = stockItem.Qty,
@@ -177,6 +190,21 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("RisNo", "RIS No. already exists!");
                 }
 
+                var order = await db.Orders.Include(i => i.Request).Where(w => w.Id == model.OrderId).FirstOrDefaultAsync();
+                if (order == null)
+                {
+                    ModelState.AddModelError("PoNo", "Invalid PO No.!");
+                }
+                else
+                {
+                    model.Division = order.Request.Section;
+                    model.Office = order.Request.Department;
+                    model.Fund = order.Request.Fund;
+                    model.FPP = order.Request.FPP;
+
+
+                }
+
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -184,8 +212,37 @@ namespace iLgs.Controllers
 
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
-
+                    
                     var entity = await db.RISlips.FindAsync(model.Id);
+
+                    // if there's changes in orderId: delete the previous then add the current
+                    if (entity.OrderId != model.OrderId)
+                    {
+                        // delete previous
+                        var slipItems = db.RISlipItems.Where(w => w.RisId == model.Id);
+                        db.RISlipItems.RemoveRange(slipItems);                        
+
+                        // add current
+                        var stockItems = db.PsItems.Where(w => w.OrderItem.OrderId == model.OrderId).ToList();
+                        foreach (var stockItem in stockItems)
+                        {
+                            RISlipItem item = new RISlipItem()
+                            {
+                                Id = Guid.NewGuid(),
+                                RisId = entity.Id,
+                                StockItemId = stockItem.Id,
+                                ReqQty = stockItem.Qty,
+                                IssQty = stockItem.Qty,
+                                IssRemarks = "",
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date
+                            };
+
+                            entity.RISlipItems.Add(item);
+                        }
+                    }
 
                     entity.OrderId = model.OrderId;
                     entity.Fund = model.Fund;
@@ -208,7 +265,7 @@ namespace iLgs.Controllers
                     entity.ReceivedDate = model.ReceivedDate;
                     entity.ReceivedByDesignation = model.ReceivedByDesignation;
                     entity.UpdatedBy = model.UpdatedBy;
-                    entity.UpdatedDt = model.UpdatedDt;
+                    entity.UpdatedDt = model.UpdatedDt;                    
 
                     db.RISlips.Attach(entity);
                     db.Entry(entity).State = EntityState.Modified;
@@ -294,15 +351,15 @@ namespace iLgs.Controllers
         public ActionResult _RISlipItemRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
         {
 
-            var data = db.RISlipItems.Where(w => w.RISid == risId)
+            var data = db.RISlipItems.Where(w => w.RisId == risId)
                 .Select(s => new RISlipItemVM
                 {
                     Id = s.Id,
-                    RISid = s.RISid,
+                    RisId = s.RisId,
                     StockItemId = s.StockItemId,
                     Unit = s.PsItem.PsStock.PsCode.UnitMeas,
                     StockNo = s.PsItem.PsStock.StockNo,
-                    Description = s.PsItem.PsStock.PsCode.ItemName.Trim() + (string.IsNullOrWhiteSpace(s.PsItem.PsStock.Description) ? "" : " " + s.PsItem.PsStock.Description),
+                    Description = s.PsItem.PsStock.PsCode.ItemName.Trim() + (s.PsItem.PsStock.Description == null ? "" : " " + s.PsItem.PsStock.Description),
                     ReqQty = s.ReqQty,
                     IssQty = s.IssQty,
                     IssRemarks = s.IssRemarks,                    
@@ -334,7 +391,7 @@ namespace iLgs.Controllers
                     RISlipItem entity = new RISlipItem()
                     {
                         Id = model.Id,
-                        RISid = model.RISid,
+                        RisId = model.RisId,
                         StockItemId = model.StockItemId,
                         ReqQty = model.ReqQty,
                         IssQty = model.IssQty,
@@ -379,7 +436,7 @@ namespace iLgs.Controllers
 
                     RISlipItem entity = await db.RISlipItems.FindAsync(model.Id);
 
-                    entity.RISid = model.RISid;
+                    entity.RisId = model.RisId;
                     entity.StockItemId = model.StockItemId;
                     entity.ReqQty = model.ReqQty;
                     entity.IssQty = model.IssQty;
