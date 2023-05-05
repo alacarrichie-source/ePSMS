@@ -517,7 +517,7 @@ body,
     padding: 0.2em;
 }
 
-.shipping-details ul
+.client-details ul
 {
     list-style:none;
     font-style:italic;
@@ -525,13 +525,13 @@ body,
     padding: 0;
 }
 
-.shipping-details ul li
+.client-details ul li
 {
     margin: 0;
     line-height: 1.7em;
 }
 
-.shipping-details label
+.client-details label
 {
     display:inline-block;
     width:90px;

@@ -7,17 +7,18 @@
     .Name("grid")
     .Columns(col =>
     {
-        col.Bound(c => c.Code).Width(70);
+        col.Bound(c => c.Code).Width(50);
         col.Bound(c => c.Name).Width(70);
         col.Bound(c => c.Address).Width(100);
         col.Bound(c => c.BusinessName).Width(100);
-        col.Bound(c => c.DTI).Width(100);
-        col.Bound(c => c.SEC).Width(100);
-        col.Bound(c => c.BIN).Width(100);        
-        col.Bound(c => c.ContactNos).Width(100);
-        col.Bound(c => c.Email).Width(100);
-        col.Bound(c => c.IsCorp).Width(100);
-        col.Bound(c => c.IsVat).Width(100);
+        col.Bound(c => c.DTI).Width(70);
+        col.Bound(c => c.SEC).Width(70);
+        col.Bound(c => c.BIN).Width(70);
+        col.Bound(c => c.TIN).Width(70);        
+        col.Bound(c => c.ContactNos).Width(70);
+        col.Bound(c => c.Email).Width(70);
+        col.Bound(c => c.IsCorp).Width(50);
+        col.Bound(c => c.IsVat).Width(50);
         col.Command(command =>
         {
             command.Edit();

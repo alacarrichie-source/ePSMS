@@ -22,7 +22,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual RISlip RISlip { get; set; }
         public virtual Issued Issued { get; set; }
+        public virtual RISlip RISlip { get; set; }
     }
 }

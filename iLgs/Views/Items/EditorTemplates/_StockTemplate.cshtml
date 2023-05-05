@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.PsStock
+﻿@model iLgs.Models.PsStockVM
 
 @using (Html.BeginForm())
 {
@@ -12,7 +12,7 @@
     <div class="row">
         @Html.LabelFor(model => model.StockNo, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.StockNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.StockNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.StockNo)
         </div>
     </div>
@@ -20,7 +20,7 @@
     <div class="row">
         @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.Description).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.Description).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.Description)
         </div>
     </div>
@@ -28,7 +28,7 @@
     <div class="row">
         @Html.LabelFor(model => model.Type, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.Type).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.Type).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.Type)
         </div>
     </div>
@@ -36,7 +36,7 @@
     <div class="row">
         @Html.LabelFor(model => model.IdNo, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.IdNo).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.IdNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.IdNo)
         </div>
     </div>
@@ -44,7 +44,7 @@
     <div class="row">
         @Html.LabelFor(model => model.Location, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.Location).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.Location).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.Location)
         </div>
     </div>
@@ -52,7 +52,7 @@
     <div class="row">
         @Html.LabelFor(model => model.Area, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.Area).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.Area).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.Area)
         </div>
     </div>
@@ -60,7 +60,7 @@
     <div class="row">
         @Html.LabelFor(model => model.TctNo, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.TctNo).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.TctNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.TctNo)
         </div>
     </div>
@@ -68,7 +68,7 @@
     <div class="row">
         @Html.LabelFor(model => model.BrandName, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.BrandName).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.BrandName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.BrandName)
         </div>
     </div>
@@ -76,7 +76,7 @@
     <div class="row">
         @Html.LabelFor(model => model.Department, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.Department).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.Department).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.Department)
         </div>
     </div>
@@ -84,7 +84,7 @@
     <div class="row">
         @Html.LabelFor(model => model.OtherSpecs, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.OtherSpecs).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.OtherSpecs).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.OtherSpecs)
         </div>
     </div>
@@ -92,7 +92,7 @@
     <div class="row">
         @Html.LabelFor(model => model.SerialNo, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.SerialNo)
         </div>
     </div>
@@ -100,7 +100,7 @@
     <div class="row">
         @Html.LabelFor(model => model.Color, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.Color).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.Color).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.Color)
         </div>
     </div>
@@ -108,7 +108,7 @@
     <div class="row">
         @Html.LabelFor(model => model.EngineNo, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.EngineNo).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.EngineNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.EngineNo)
         </div>
     </div>
@@ -116,7 +116,7 @@
     <div class="row">
         @Html.LabelFor(model => model.ChassisNo, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.ChassisNo).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.ChassisNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.ChassisNo)
         </div>
     </div>
@@ -124,7 +124,7 @@
     <div class="row">
         @Html.LabelFor(model => model.ParNo, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.ParNo).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.ParNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.ParNo)
         </div>
     </div>
@@ -132,7 +132,7 @@
     <div class="row">
         @Html.LabelFor(model => model.AccountableOfficer, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.AccountableOfficer).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.AccountableOfficer).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.AccountableOfficer)
         </div>
     </div>
@@ -140,7 +140,7 @@
     <div class="row">
         @Html.LabelFor(model => model.CompletionDate, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.CompletionDate).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().TextBoxFor(model => model.CompletionDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.CompletionDate)
         </div>
     </div>
@@ -148,8 +148,16 @@
     <div class="row">
         @Html.LabelFor(model => model.EstimatedLife, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(model => model.EstimatedLife).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+            @(Html.Kendo().NumericTextBoxFor(model => model.EstimatedLife).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.EstimatedLife)
+        </div>
+    </div>
+
+    <div class="row">
+        @Html.LabelFor(model => model.Amount, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().NumericTextBoxFor(model => model.Amount).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(model => model.Amount)
         </div>
     </div>
 
@@ -225,7 +233,7 @@
     <div class="col-md-6">
     @Html.LabelFor(model => model.PoNo, htmlAttributes: new { @class = "col-md-3" })
     <div class="col-md-9">
-    @(Html.Kendo().TextBoxFor(model => model.PoNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+    @(Html.Kendo().TextBoxFor(model => model.PoNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
     @Html.ValidationMessageFor(model => model.PoNo)
     </div>
     </div>

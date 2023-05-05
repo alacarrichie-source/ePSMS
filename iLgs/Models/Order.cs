@@ -19,6 +19,7 @@ namespace iLgs.Models
         {
             this.AIRs = new HashSet<AIR>();
             this.OrderItems = new HashSet<OrderItem>();
+            this.RISlips = new HashSet<RISlip>();
         }
     
         public System.Guid Id { get; set; }
@@ -49,5 +50,7 @@ namespace iLgs.Models
         public virtual Supplier Supplier { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItem> OrderItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RISlip> RISlips { get; set; }
     }
 }

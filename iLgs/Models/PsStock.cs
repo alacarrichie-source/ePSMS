@@ -40,13 +40,14 @@ namespace iLgs.Models
         public string AccountableOfficer { get; set; }
         public Nullable<System.DateTime> CompletionDate { get; set; }
         public Nullable<decimal> EstimatedLife { get; set; }
+        public Nullable<decimal> Amount { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        public virtual PsCode PsCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsItem> PsItems { get; set; }
-        public virtual PsCode PsCode { get; set; }
     }
 }

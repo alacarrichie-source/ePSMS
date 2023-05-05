@@ -1,20 +1,20 @@
 ﻿@{
-    ViewBag.Title = "Acceptance & Inspection";
+    ViewBag.Title = "Requisition and Issue Slip";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
 <div class="col-md-12">
-    @(Html.Kendo().Grid<iLgs.Models.AIR_VM>()
+    @(Html.Kendo().Grid<iLgs.Models.RISlipVM>()
     .Name("grid")
     .Columns(col =>
     {
-        col.Bound(c => c.AIRNo).Width(100);
-        col.Bound(c => c.AIRDate).Width(100);
+        col.Bound(c => c.RisNo).Width(100);
+        col.Bound(c => c.RisDate).Width(100);
         col.Bound(c => c.PoNo).Width(100);
         col.Bound(c => c.PoDate).Width(100);
-        col.Bound(c => c.Department).Width(100);
-        col.Bound(c => c.InvoiceNo).Width(100);
-        col.Bound(c => c.InvoiceDate).Width(100);        
+        col.Bound(c => c.Office).Width(100);
+        col.Bound(c => c.Fund).Width(100);
+        col.Bound(c => c.FPP).Width(100);        
         col.Command(command =>
         {
             command.Edit();
@@ -26,13 +26,14 @@
         t.Create().Text("Add Record");
         t.Search();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRTemplate").Window(w => w.Width(800).Title("Acceptance and Inspection")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RISTemplate").Window(w => w.Width(800).Title("Requisition and Issue")))
     .Search(s =>
     {
-        s.Field(o => o.AIRNo, "contains");
+        s.Field(o => o.RisNo, "contains");
         s.Field(o => o.PoNo, "contains");
-        s.Field(o => o.Department, "contains");
-        s.Field(o => o.InvoiceNo, "contains");        
+        s.Field(o => o.Office, "contains");
+        s.Field(o => o.Fund, "contains");
+        s.Field(o => o.FPP, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -58,10 +59,10 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
-        .Read(read => read.Action("AIRRead", "AIRs"))
-        .Create(create => create.Action("AIRCreate", "AIRs"))
-        .Update(update => update.Action("AIRUpdate", "AIRs"))
-        .Destroy(destroy => destroy.Action("AIRDestroy", "AIRs"))
+        .Read(read => read.Action("RISRead", "RIS"))
+        .Create(create => create.Action("RISCreate", "RIS"))
+        .Update(update => update.Action("RISUpdate", "RIS"))
+        .Destroy(destroy => destroy.Action("RISDestroy", "RIS"))
     )
     .Events(events => events
         .Change("onChangeGrid")
@@ -72,17 +73,19 @@
 </div>
 
 <div class="col-md-12">
-    @(Html.Kendo().Grid<iLgs.Models.AIRItemVM>()
+    @(Html.Kendo().Grid<iLgs.Models.RISlipItemVM>()
         .Name("gridItems")
         .Columns(col =>
         {
-            col.Bound(c => c.PsNo).Width(70);
-            col.Bound(c => c.PsUnit).Width(50);
-            col.Bound(c => c.PsItem).Width(150);
-            col.Bound(c => c.OrderDescription).Width(150);
-            col.Bound(c => c.Qty).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            col.Bound(c => c.StockNo).Width(70);
+            col.Bound(c => c.Unit).Width(50);
+            col.Bound(c => c.Description).Width(150);            
+            col.Bound(c => c.ReqQty).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });            
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.IssQty).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Command(command =>
             {
                 command.Edit();
@@ -108,7 +111,7 @@
         .Scrollable(s => s.Height(180))
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Sortable()
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRItemTemplate").Window(w => w.Width(500).Title("Acceptance and Inspection Item")))
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RISItemTemplate").Window(w => w.Width(500).Title("Acceptance and Inspection Item")))
         .DataSource(dataSource => dataSource
             .Ajax()
             .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
@@ -119,16 +122,17 @@
             })
             .Aggregates(a =>
             {
-                a.Add(p => p.Qty).Sum();                
+                a.Add(p => p.ReqQty).Sum();
+                a.Add(p => p.IssQty).Sum();
             })
             .Sort(s =>
             {
                 s.Add(a => a.InsertedDt);
             })
-            .Read(read => read.Action("_AIRItemRead", "AIRs").Data("ItemData"))
-            .Create(create => create.Action("_AIRItemCreate", "AIRs"))
-            .Update(update => update.Action("_AIRItemUpdate", "AIRs"))
-            .Destroy(destroy => destroy.Action("_AIRItemDestroy", "AIRs"))
+            .Read(read => read.Action("_RISItemRead", "AIRs").Data("ItemData"))
+            .Create(create => create.Action("_RISItemCreate", "RIS"))
+            .Update(update => update.Action("_RISItemUpdate", "RIS"))
+            .Destroy(destroy => destroy.Action("_RISItemDestroy", "RIS"))
         )
         .Events(events => events
             .Change("onChangeGridItems")
@@ -366,7 +370,7 @@
 
         $("#Qty").data("kendoNumericTextBox").value(dataItem.Qty);
         $("#Qty").data("kendoNumericTextBox").trigger("change");
-        
+
     }
 
     function DataSupplierId() {
@@ -386,7 +390,7 @@
         $("#PoDate").val(poDate).trigger("change");
         $("#Department").val(dataItem.Department).trigger("change");
     }
-    
+
     function changeAmount(e) {
         var qty = $("#Qty").data("kendoNumericTextBox").value();
         var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();

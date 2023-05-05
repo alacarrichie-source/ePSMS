@@ -22,6 +22,7 @@ namespace iLgs.Models
         }
     
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> OrderId { get; set; }
         public string Fund { get; set; }
         public string Division { get; set; }
         public string Office { get; set; }
@@ -37,7 +38,7 @@ namespace iLgs.Models
         public string ApprovedByDesignation { get; set; }
         public string IssuedBy { get; set; }
         public Nullable<System.DateTime> IssuedDate { get; set; }
-        public byte[] IssuedByDesignation { get; set; }
+        public string IssuedByDesignation { get; set; }
         public string ReceivedBy { get; set; }
         public Nullable<System.DateTime> ReceivedDate { get; set; }
         public string ReceivedByDesignation { get; set; }
@@ -48,6 +49,7 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IssuedItem> IssuedItems { get; set; }
+        public virtual Order Order { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RISlipItem> RISlipItems { get; set; }
     }

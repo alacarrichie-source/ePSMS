@@ -1,0 +1,100 @@
+﻿@model iLgs.Models.QueryOrderItemsVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formSelection", id = "formSelection" }))
+{
+
+    @Html.AntiForgeryToken()    
+    @Html.HiddenFor(m => m.PsStockId)
+    @Html.HiddenFor(m => m.SelectedIds)
+
+    @(Html.Kendo().Grid<iLgs.Models.QueryOrderItemsVM>()
+            .Name("gridSearch")
+            .Columns(col =>
+            {
+                col.Select().Width(30);
+                col.Bound(c => c.PoNo).Width(70);
+                col.Bound(c => c.PoDate).Width(70);
+                col.Bound(c => c.PsNo).Width(60);
+                col.Bound(c => c.ItemName).Width(100);
+                col.Bound(c => c.Qty).Width(60);
+            })
+            .ToolBar(toolbar =>
+            {
+                toolbar.Template(@<text>
+                    <span class="k-input-icon k-icon k-i-add"></span>
+                    @(Html.Kendo().Button().Name("btnAddSelected").Content("Add Selected Records").Enable(false))&nbsp;
+
+                    <span class="k-input-icon k-icon k-i-x-outline"></span>
+                    @(Html.Kendo().Button().Name("btnClear").Content("Clear Selection").Enable(false))
+
+                </text>);
+            })
+            .Resizable(r => r.Columns(true))
+            .Filterable()
+            .Pageable()
+            .Sortable()
+            .NoRecords()
+            .Scrollable(s => s.Height(320))
+            .PersistSelection()
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(100)
+                .Events(events => events.Error("GridError"))
+                .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+                    })
+                    .Read(read => read.Action("_QueryOrderItemRead", "Items", new { psId = @ViewData["psId"] }))
+            )
+            .Events(e => e.Change("onChangeGridSelection").DataBound("onDataBoundGridSelection"))
+            .AutoBind(true)
+    )
+}
+
+
+<script type="text/javascript">
+    $("#btnAddSelected").click(function (e) {
+        e.preventDefault();
+        // Get reference to Grid object
+        var grid = $("#gridSearch").data("kendoGrid");
+        // Get selected rows
+        var sel = $("input:checked", grid.tbody).closest("tr");
+        // Get data item for each
+
+        var selectedIds = grid.selectedKeyNames().join(",");
+
+        $("#SelectedIds").val(selectedIds);
+
+        var formData = $("#formSelection").serialize();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("_QueryOrderItemSelectionSave", "Items")',
+            data: formData,
+            beforeSend: function () {
+                window.kendo.ui.progress($("#formSelection"), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($("#formSelection"), false);
+                if (result.Errors != "") {
+                    alert(result.Errors);
+                }
+                $("#btnAddSelected").closest(".k-window-content").data("kendoWindow").close();
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+            }
+        });
+
+    });
+
+    $("#btnCancelSelection").click(function (e) {
+        e.preventDefault();
+        $("#btnCancelSelection").closest(".k-window-content").data("kendoWindow").close();
+    });
+</script>
+
+
+
+
+

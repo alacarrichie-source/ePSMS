@@ -197,8 +197,10 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Controllers\AIRsController.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\AIRsController.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Controllers\Api\MenuAccessActionController.cs" />
     <Compile Include="Controllers\Api\MenuActionController.cs" />
     <Compile Include="Controllers\CodesController.cs" />
@@ -212,8 +214,10 @@
     <Compile Include="Controllers\Menubases_Controller.cs" />
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\OrdersController.cs" />
+    <Compile Include="Controllers\QueryController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\RequestsController.cs" />
+    <Compile Include="Controllers\RISController.cs" />
     <Compile Include="Controllers\RolesController.cs" />
     <Compile Include="Controllers\Roles_Controller.cs" />
     <Compile Include="Controllers\SequenceController.cs" />
@@ -337,6 +341,7 @@
     <Compile Include="Models\PsStock.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\QueryViewModels.cs" />
     <Compile Include="Models\ReportViewModels.cs" />
     <Compile Include="Models\Request.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -351,9 +356,11 @@
     <Compile Include="Models\RISlipItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\RISViewModels.cs" />
     <Compile Include="Models\Sequence.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\StockViewModels.cs" />
     <Compile Include="Models\Supplier.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -3224,6 +3231,12 @@
     <Content Include="Views\Account\Shared\_SignInLayout.cshtml" />
     <Content Include="Views\Items\Maintenance.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_StockTemplate.cshtml" />
+    <Content Include="Views\Items\EditorTemplates\_RefNoTemplate.cshtml" />
+    <Content Include="Views\Items\EditorTemplates\_RefDateTemplate.cshtml" />
+    <Content Include="Views\Items\EditorTemplates\_QtyTemplate.cshtml" />
+    <Content Include="Views\Items\_QueryOrderItems.cshtml" />
+    <Content Include="Views\RIS\Index.cshtml" />
+    <Content Include="Views\RIS\EditorTemplates\_RISTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3231,6 +3244,7 @@
     <Folder Include="Views\Issuances\" />
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
+    <Folder Include="Views\Query\" />
     <Folder Include="Views\Sequence\" />
   </ItemGroup>
   <ItemGroup>
