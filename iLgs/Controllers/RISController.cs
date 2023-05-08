@@ -394,6 +394,7 @@ namespace iLgs.Controllers
                     Description = s.PsItem.PsStock.PsCode.ItemName.Trim() + (s.PsItem.PsStock.Description == null ? "" : " " + s.PsItem.PsStock.Description),
                     ReqQty = s.ReqQty,
                     IssQty = s.IssQty,
+                    UnitCost = s.PsItem.OrderItem.UnitCost,
                     IssRemarks = s.IssRemarks,                    
                     InsertedDt = s.InsertedDt
                 });

@@ -96,5 +96,9 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }        
+
+        // transient
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
     }
 }

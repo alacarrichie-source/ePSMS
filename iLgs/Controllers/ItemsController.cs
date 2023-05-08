@@ -173,7 +173,7 @@ namespace iLgs.Controllers
                     PsType = s.PsType,
                     PsNo = s.PsNo,
                     ItemName = s.ItemName,
-                    UnitMeas = s.UnitMeas,
+                    UnitMeas = s.UnitMeas,                   
                     AdditionalInfo = db.Codextns.Where(w => w.CodeMast.Code == "PS_CODES" && w.Code == s.PsType).FirstOrDefault().Desc3
                 }).AsQueryable();
             var result = new JsonNetResult
@@ -390,7 +390,17 @@ namespace iLgs.Controllers
         public ActionResult StockItemRead([DataSourceRequest] DataSourceRequest request, Guid? stockId)
         {
             var data = db.PsItems.Where(w => w.PsStockId == stockId)
-                .AsQueryable();
+                .Select(s => new PsItemVM { 
+                    Id = s.Id,
+                    RefNo = s.RefNo,
+                    RefDate = s.RefDate,
+                    RefType = s.RefType,
+                    Qty = s.Qty,
+                    QtyIss = s.QtyIss,
+                    QtyBal = s.QtyBal,
+                    Days = s.Days,
+                    UnitCost = s.OrderItem.UnitCost
+                }).AsQueryable();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -484,6 +494,7 @@ namespace iLgs.Controllers
                     entity.Qty = model.Qty;
                     entity.QtyIss = qtyIss;
                     entity.QtyBal = qtyBal;
+                    entity.Days = model.Days;
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 

@@ -96,6 +96,10 @@
                 .Width(70);
             columns.Bound(f => f.RefDate).EditorTemplateName("_RefDateTemplate")
                 .Width(70);
+            //columns.Bound(f => f.UnitCost)
+            //    .Width(70)
+            //    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            //    .HeaderHtmlAttributes(new { style = "text-align:right;" });            
             columns.Group(group => group.Title("Quantity")
                 .Columns(info =>
              {
@@ -147,6 +151,7 @@
                 model.Field(p => p.RefDate).Editable(false);
                 model.Field(p => p.QtyIss).Editable(false);
                 model.Field(p => p.QtyBal).Editable(false);
+                //model.Field(p => p.UnitCost).Editable(false);
             })
             .Aggregates(a =>
             {

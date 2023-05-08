@@ -100,5 +100,9 @@ namespace iLgs.Models
         public string StockNo { get; set; }
         public string Unit { get; set; }
         public string Description { get; set; }
+
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+
     }
 }

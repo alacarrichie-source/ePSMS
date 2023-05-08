@@ -83,12 +83,24 @@
         {
             col.Bound(c => c.StockNo).Width(70);
             col.Bound(c => c.Unit).Width(50);
-            col.Bound(c => c.Description).Width(150);            
-            col.Bound(c => c.ReqQty).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.IssQty).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            col.Bound(c => c.Description).Width(150);
+            col.Group(group => group.Title("Quantity")
+                .Columns(info =>
+                {
+                    col.Bound(c => c.ReqQty)
+                        .Width(70).Title("Request")
+                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                        .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    col.Bound(c => c.IssQty)
+                        .Width(70).Title("Issued")
+                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                        .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                }).HeaderHtmlAttributes(new { Style = "text-align:center;" })            
+            );
+            col.Bound(c => c.UnitCost).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Command(command =>
             {
@@ -127,6 +139,7 @@
                 model.Field(p => p.Unit).Editable(false);
                 model.Field(p => p.Description).Editable(false);
                 model.Field(p => p.ReqQty).Editable(false);
+                model.Field(p => p.UnitCost).Editable(false);
             })
             .Aggregates(a =>
             {
