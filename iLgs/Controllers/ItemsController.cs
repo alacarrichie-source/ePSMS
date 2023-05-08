@@ -472,14 +472,18 @@ namespace iLgs.Controllers
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
 
-                    var entity = db.PsItems.Find(model.Id);
+                    var entity = await db.PsItems.FindAsync(model.Id);
+                    var qtyIss = db.RISlipItems.Where(w => w.StockItemId == entity.Id).Sum(s => s.IssQty) ?? 0;
+                    var qtyBal = model.Qty - qtyIss;
 
                     entity.PsStockId = model.PsStockId;
                     entity.OrderItemId = model.OrderItemId;
                     entity.RefNo = model.RefNo;
                     entity.RefDate = model.RefDate;
                     entity.RefType = model.RefType;
-                    entity.Qty = model.Qty;                        
+                    entity.Qty = model.Qty;
+                    entity.QtyIss = qtyIss;
+                    entity.QtyBal = qtyBal;
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 
@@ -590,7 +594,7 @@ namespace iLgs.Controllers
                             PoNo = s.Order.PoNo,
                             Qty = s.Qty
                         }).FirstOrDefaultAsync();
-                    
+
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
@@ -603,6 +607,8 @@ namespace iLgs.Controllers
                         RefDate = data.PoDate,
                         RefType = "",
                         Qty = data.Qty,
+                        QtyIss = 0,
+                        QtyBal = data.Qty,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,

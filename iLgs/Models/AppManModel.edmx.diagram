@@ -54,20 +54,19 @@
         <EntityTypeShape EntityType="AppManModel.AIRItem" Width="1.5" PointX="10.5" PointY="14.375" />
         <AssociationConnector Association="AppManModel.FK_AIRItems_AIRs" />
         <AssociationConnector Association="AppManModel.FK_AIRItems_OrderItems" />
-        <EntityTypeShape EntityType="AppManModel.PsItem" Width="1.5" PointX="10.5" PointY="9.75" />
-        <AssociationConnector Association="AppManModel.FK_PsItems_OrderItems" />
         <EntityTypeShape EntityType="AppManModel.PsCode" Width="1.5" PointX="3.75" PointY="4.75" />
         <AssociationConnector Association="AppManModel.FK_RequestItems_PsCodes" />
         <EntityTypeShape EntityType="AppManModel.PsStock" Width="1.5" PointX="8.25" PointY="3.5" />
         <AssociationConnector Association="AppManModel.FK_PsStocks_PsCodes" />
-        <AssociationConnector Association="AppManModel.FK_PsItems_PsStocks" />
         <EntityTypeShape EntityType="AppManModel.RISlipItem" Width="1.5" PointX="12.75" PointY="10" />
+        <EntityTypeShape EntityType="AppManModel.PsItem" Width="1.5" PointX="10.5" PointY="6.875" />
+        <AssociationConnector Association="AppManModel.FK_PsItems_OrderItems" />
+        <AssociationConnector Association="AppManModel.FK_PsItems_PsStocks" />
         <AssociationConnector Association="AppManModel.FK_RISlipItems_PsItems" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="Issuance" ZoomLevel="75" >
         <EntityTypeShape EntityType="AppManModel.IssuedItem" Width="1.5" PointX="5.25" PointY="5.25" />
         <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="0.75" PointY="3.625" />
-        <EntityTypeShape EntityType="AppManModel.PsItem" Width="1.5" PointX="6" PointY="0.75" />
         <EntityTypeShape EntityType="AppManModel.Issued" Width="1.5" PointX="3" PointY="10.875" />
         <AssociationConnector Association="AppManModel.FK_RPSMIssuedItems_RPSMIssued" />
         <EntityTypeShape EntityType="AppManModel.RISlip" Width="1.5" PointX="3" PointY="3.375" />

@@ -80,7 +80,18 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> RefDate { get; set; }
         public string RefType { get; set; }
+
+        [Display(Name = "Receipt Qty")]
         public Nullable<decimal> Qty { get; set; }
+
+        [Display(Name = "Issued Qty")]
+        public Nullable<decimal> QtyIss { get; set; }
+
+        [Display(Name = "Balance")]
+        public Nullable<decimal> QtyBal { get; set; }
+
+        [Display(Name = "No. of Days to Consume")]
+        public Nullable<int> Days { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

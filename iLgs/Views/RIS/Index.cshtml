@@ -96,10 +96,10 @@
                 command.Destroy();
             }).Width(172);
         })
-        .ToolBar(t =>
-        {
-            t.Create().Text("Add Item");
-        })
+        //.ToolBar(t =>
+        //{
+        //    t.Create().Text("Add Item");
+        //})
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -138,7 +138,7 @@
                 s.Add(a => a.InsertedDt);
             })
             .Read(read => read.Action("_RISlipItemRead", "RIS").Data("ItemData"))
-            .Create(create => create.Action("_RISlipItemCreate", "RIS"))
+            //.Create(create => create.Action("_RISlipItemCreate", "RIS"))
             .Update(update => update.Action("_RISlipItemUpdate", "RIS"))
             .Destroy(destroy => destroy.Action("_RISlipItemDestroy", "RIS"))
         )

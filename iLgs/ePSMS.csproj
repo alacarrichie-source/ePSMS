@@ -3237,6 +3237,7 @@
     <Content Include="Views\Items\_QueryOrderItems.cshtml" />
     <Content Include="Views\RIS\Index.cshtml" />
     <Content Include="Views\RIS\EditorTemplates\_RISTemplate.cshtml" />
+    <Content Include="Views\Items\EditorTemplates\_DaysTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

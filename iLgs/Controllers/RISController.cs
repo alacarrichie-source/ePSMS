@@ -162,6 +162,12 @@ namespace iLgs.Controllers
 
                     db.RISlips.Add(entity);
                     await db.SaveChangesAsync();
+
+                    // update stockItems
+                    foreach (var stockItem in stockItems)
+                    {
+                        await UpdateStockItems(stockItem.Id, user);
+                    }
                 }
             }
             catch (Exception e)
@@ -214,17 +220,32 @@ namespace iLgs.Controllers
                     model.UpdatedDt = date;
                     
                     var entity = await db.RISlips.FindAsync(model.Id);
+                    var oldOrderId = entity.OrderId;
 
                     // if there's changes in orderId: delete the previous then add the current
-                    if (entity.OrderId != model.OrderId)
+                    if (oldOrderId != model.OrderId)
                     {
-                        // delete previous
+                        // store to list before deleting
+                        // must be notracking, else info is not available after savechanges of removerange
+                        var slipItemList = db.RISlipItems.Where(w => w.RisId == model.Id).AsNoTracking().ToList(); 
+
+                        //delete previous
                         var slipItems = db.RISlipItems.Where(w => w.RisId == model.Id);
-                        db.RISlipItems.RemoveRange(slipItems);                        
+                        db.RISlipItems.RemoveRange(slipItems);
+                        await db.SaveChangesAsync();
+
+                        // update stock card of deleted list                        
+                        foreach (var slipItem in slipItemList)
+                        {
+                            await UpdateStockItems(slipItem.StockItemId, user);
+                            /*
+                             * Update is not allowed if slipItem is not list because it is used in transaction of foreach
+                             */
+                        }
 
                         // add current
-                        var stockItems = db.PsItems.Where(w => w.OrderItem.OrderId == model.OrderId).ToList();
-                        foreach (var stockItem in stockItems)
+                        var stockItemList = db.PsItems.Where(w => w.OrderItem.OrderId == model.OrderId).ToList();
+                        foreach (var stockItem in stockItemList)
                         {
                             RISlipItem item = new RISlipItem()
                             {
@@ -270,6 +291,17 @@ namespace iLgs.Controllers
                     db.RISlips.Attach(entity);
                     db.Entry(entity).State = EntityState.Modified;
                     await db.SaveChangesAsync();
+
+                    // if there's changes in orderId: uupdate new stockId
+                    if (oldOrderId != model.OrderId)
+                    {
+                        var slipItemList = entity.RISlipItems.ToList();
+                        foreach (var slipItem in slipItemList)
+                        {
+                            // update stock card
+                            await UpdateStockItems(slipItem.StockItemId, user);
+                        }
+                    }
                 }
             }
             catch (Exception e)
@@ -405,7 +437,9 @@ namespace iLgs.Controllers
                     db.RISlipItems.Add(entity);
                     await db.SaveChangesAsync();
 
-                    // TO DO: save to stock card
+                    // update to stock card
+                    // update stock card
+                    await UpdateStockItems(model.StockItemId, user);
                 }
             }
             catch (Exception e)
@@ -448,7 +482,8 @@ namespace iLgs.Controllers
                     db.Entry(entity).State = EntityState.Modified;
                     await db.SaveChangesAsync();
 
-                    // TO DO: update stock card
+                    // update stock card
+                    await UpdateStockItems(model.StockItemId, user);
                 }
             }
             catch (Exception e)
@@ -477,7 +512,6 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
                     RISlipItem entity = await db.RISlipItems.FindAsync(model.Id);
-
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;
 
@@ -494,7 +528,9 @@ namespace iLgs.Controllers
                     await db.SaveChangesAsync();
                     //db.Configuration.ValidateOnSaveEnabled = true;   
 
-                    // TO DO: update stocks
+                    // update stocks
+                    // update stock card
+                    await UpdateStockItems(model.StockItemId, user);
                 }
 
             }
@@ -507,6 +543,25 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task UpdateStockItems(Guid? stockItemId, string user)
+        {
+            var psItem = await db.PsItems.FindAsync(stockItemId);
+            if (psItem != null)
+            {
+                var date = DateTime.Now;
+                var qtyIss = db.RISlipItems.Where(w => w.StockItemId == stockItemId).Sum(s => s.IssQty).GetValueOrDefault(0);                
+                psItem.QtyIss = qtyIss;
+                psItem.QtyBal = psItem.Qty - qtyIss;
+                psItem.UpdatedBy = user;
+                psItem.UpdatedDt = date;
+
+                db.PsItems.Attach(psItem);
+                db.Entry(psItem).State = EntityState.Modified;
+                await db.SaveChangesAsync();
+            }
+
         }
     }
 }

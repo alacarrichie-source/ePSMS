@@ -53,10 +53,10 @@ namespace iLgs.Models
         public virtual DbSet<Request> Requests { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
         public virtual DbSet<AIRItem> AIRItems { get; set; }
-        public virtual DbSet<PsItem> PsItems { get; set; }
         public virtual DbSet<PsCode> PsCodes { get; set; }
         public virtual DbSet<PsStock> PsStocks { get; set; }
         public virtual DbSet<RISlip> RISlips { get; set; }
         public virtual DbSet<RISlipItem> RISlipItems { get; set; }
+        public virtual DbSet<PsItem> PsItems { get; set; }
     }
 }
