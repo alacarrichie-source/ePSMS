@@ -12,35 +12,30 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PsItem
+    public partial class RSMI
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public PsItem()
+        public RSMI()
         {
+            this.RSMIItems = new HashSet<RSMIItem>();
             this.RSMIRecaps = new HashSet<RSMIRecap>();
-            this.RISlipItems = new HashSet<RISlipItem>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> PsStockId { get; set; }
-        public Nullable<System.Guid> OrderItemId { get; set; }
-        public string RefNo { get; set; }
-        public Nullable<System.DateTime> RefDate { get; set; }
-        public string RefType { get; set; }
-        public Nullable<decimal> Qty { get; set; }
-        public Nullable<decimal> QtyIss { get; set; }
-        public Nullable<decimal> QtyBal { get; set; }
-        public Nullable<int> Days { get; set; }
+        public Nullable<System.DateTime> Date { get; set; }
+        public string SerialNo { get; set; }
+        public string Fund { get; set; }
+        public string Custodian { get; set; }
+        public string PostedBy { get; set; }
+        public Nullable<System.DateTime> PostedDt { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual OrderItem OrderItem { get; set; }
-        public virtual PsStock PsStock { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RSMIItem> RSMIItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RSMIRecap> RSMIRecaps { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RISlipItem> RISlipItems { get; set; }
     }
 }

@@ -3,7 +3,43 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<div class="col-md-12">
+<div id="master-details-main-content" class="main-section-content">
+    @*<style>
+        .k-grid-content {
+            height: 100%;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        .main-section-content {
+            height: calc(100% - (100px + 50px)); /* replace with the height of your header and footer elements */
+            overflow: auto;
+        }
+    </style>*@
+    <script>
+        //resizeGrid();
+
+        $(window).on("resize", function () {
+            //var containerWidth = $(".sparkline-container").parent().width();
+            //var sparkLineWidth = (80 * containerWidth) / 100;
+            //$(".k-sparkline").data("kendoSparkline").setOptions({ chartArea: { width: sparkLineWidth } });            
+            resizeGrid();
+        });
+
+        function resizeGrid() {
+            var gridElement = $("#grid"),
+                dataArea = gridElement.find(".k-grid-content"),
+                gridHeight = gridElement.innerHeight(),
+                otherElements = gridElement.children().not(".k-grid-content"),
+                otherElementsHeight = 0;
+            otherElements.each(function () {
+                otherElementsHeight += $(this).outerHeight();
+            });
+            dataArea.height(gridHeight - otherElementsHeight);            
+        }
+    </script>
     @(Html.Kendo().Grid<iLgs.Models.RISlipVM>()
     .Name("grid")
     .Columns(col =>
@@ -14,7 +50,7 @@
         col.Bound(c => c.PoDate).Width(100);
         col.Bound(c => c.Office).Width(100);
         col.Bound(c => c.Fund).Width(100);
-        col.Bound(c => c.FPP).Width(100);        
+        col.Bound(c => c.FPP).Width(100);
         col.Command(command =>
         {
             command.Edit();
@@ -47,9 +83,12 @@
     .Filterable()
     .NoRecords()
     .Resizable(r => r.Columns(true))
-    .Scrollable(s => s.Height(150))
+    .Scrollable(s => s.Height(430))
+    //.HtmlAttributes(new { style = "height: 100%;" })
+    //.Scrollable()
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
+    .ClientDetailTemplateId("Details")
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)
@@ -64,7 +103,7 @@
             model.Field(p => p.FPP).Editable(true);
         })
         .Read(read => read.Action("RISRead", "RIS"))
-        .Create(create => create.Action("RISCreate", "RIS").Data("IncludeDisabled"))        
+        .Create(create => create.Action("RISCreate", "RIS").Data("IncludeDisabled"))
         .Update(update => update.Action("RISUpdate", "RIS"))
         .Destroy(destroy => destroy.Action("RISDestroy", "RIS"))
     )
@@ -76,9 +115,37 @@
     )
 </div>
 
-<div class="col-md-12">
+
+
+<script id="Details" type="text/x-kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+        .Name("tabstrip_#=Id#")
+        .TabPosition(TabStripTabPosition.Top)
+        .Animation(animation =>
+        {
+            animation.Open(config =>
+            {
+                config.Fade(FadeDirection.In);
+            });
+        })
+        .SelectedIndex(0)
+        .Items(items =>
+        {
+            items.Add()
+                .Text("ITEMS")
+                .Selected(true)
+                .Content(@<text>
+                    @RenderItems()
+                </text>);
+        })
+        .ToClientTemplate()
+    )
+</script>
+
+@helper RenderItems()
+{
     @(Html.Kendo().Grid<iLgs.Models.RISlipItemVM>()
-        .Name("gridItems")
+        .Name("gridItems_#=Id#")
         .Columns(col =>
         {
             col.Bound(c => c.StockNo).Width(70);
@@ -90,28 +157,28 @@
                     col.Bound(c => c.ReqQty)
                         .Width(70).Title("Request")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                     col.Bound(c => c.IssQty)
                         .Width(70).Title("Issued")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                }).HeaderHtmlAttributes(new { Style = "text-align:center;" })            
+                }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
             );
             col.Bound(c => c.UnitCost).Width(70)
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.Amount).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Command(command =>
             {
                 command.Edit();
                 command.Destroy();
             }).Width(172);
-        })
-        //.ToolBar(t =>
-        //{
-        //    t.Create().Text("Add Item");
-        //})
+        })            
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -124,10 +191,10 @@
         .Filterable()
         .NoRecords()
         .Resizable(r => r.Columns(true))
-        .Scrollable(s => s.Height(150))
+        //.Scrollable(s => s.Height(150))
+        .Scrollable()
         .Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Sortable()
-        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RISItemTemplate").Window(w => w.Width(500).Title("Acceptance and Inspection Item")))
+        .Sortable()          
         .DataSource(dataSource => dataSource
             .Ajax()
             .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
@@ -140,18 +207,19 @@
                 model.Field(p => p.Description).Editable(false);
                 model.Field(p => p.ReqQty).Editable(false);
                 model.Field(p => p.UnitCost).Editable(false);
+                model.Field(p => p.Amount).Editable(false);
             })
             .Aggregates(a =>
             {
                 a.Add(p => p.ReqQty).Sum();
                 a.Add(p => p.IssQty).Sum();
+                a.Add(p => p.Amount).Sum();
             })
             .Sort(s =>
             {
                 s.Add(a => a.InsertedDt);
             })
             .Read(read => read.Action("_RISlipItemRead", "RIS").Data("ItemData"))
-            //.Create(create => create.Action("_RISlipItemCreate", "RIS"))
             .Update(update => update.Action("_RISlipItemUpdate", "RIS"))
             .Destroy(destroy => destroy.Action("_RISlipItemDestroy", "RIS"))
         )
@@ -161,8 +229,9 @@
             .DataBound("onDataBoundGridItems")
         )
         .AutoBind(true)
+        .ToClientTemplate()
     )
-</div>
+}
 
 <div id="windowcontainer"></div>
 
@@ -296,7 +365,7 @@
         selectedId = selectedData.Id;
         selectedId_OrderId = selectedData.OrderId;
         selectedItemId = null;
-        $("#gridItems").data("kendoGrid").dataSource.read();
+        //$("#gridItems").data("kendoGrid").dataSource.read();
     }
 
 
@@ -309,10 +378,16 @@
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-        }
-        //if (this.dataSource.total() == 0) {
-        //   // to do: disable item add button
-        //}
+
+            var firstRow = this.tbody.find("tr.k-master-row").first();
+            this.expandRow(firstRow);
+
+            // Attach a handler to the "detailExpand" event
+            this.bind("detailExpand", function (e) {
+                // Select the expanded master row
+                this.select(e.masterRow);
+            });
+        }        
     }
 
     function onEditGrid(e) {
@@ -438,7 +513,7 @@
         e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                $("#gridItems").data("kendoGrid").dataSource.read();
+                $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
             }
         }
     }

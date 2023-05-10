@@ -1,36 +1,22 @@
-﻿body {
-    padding-top: 50px;
-    padding-bottom: 20px;        
-}
-
-
-/*body {
-    font-family: Roboto;
-    font-style: normal;
-    font-weight: normal;
-    font-size: 16px;
-    line-height: 24px;
-}*/
-
-html {
+﻿html, body {
     height: 100%;
+    font-family: 'Open Sans',arial,sans-serif;
 }
 
+body {
+    padding-top: 50px!important;
+    padding-bottom: 20px;                
+    line-height: 1;
+    font-size: 12px;
+}
 
 /* Set padding to keep content from hitting the edges */
 .body-content {
     padding-left: 10px;
-    padding-right: 10px;     
-    width: 100%!important;       
+    padding-right: 10px;        
+    width: 100%!important;
     font-size: x-small;
 }
-
-/*.container {
-    padding-right: 15px;
-    padding-left: 15px;
-    margin-right: auto;
-    margin-left: auto;
-}*/
 
 /* Override the default bootstrap behavior where horizontal description lists 
    will truncate terms that are too long to fit in the left column 
@@ -52,23 +38,26 @@ textarea {
 */
 
 footer {
+    background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%,#fff 54.73%)!important;
+    background-color: transparent!important;
+    position: absolute;
     
-    position: absolute!important;
-    clear:both;
+    /*position:fixed!important;*/
+    /*position: relative!important;*/
+    /*clear:both;*/    
     bottom: 0;
-    text-align: left;
+    text-align: left!important;
     
     /*background-color: rgba(51, 51, 51, 1);*/
-    background-color: inherit!important;
+    /*background-color: inherit!important;*/
+    /*background-color: rgba(51, 51, 51, 1)!important;*/
     float: left;
     width: 100%;
     left: 0;
     right: 0;
-    color:inherit!important;
+    /*color:inherit!important;*/
+    /*flex-direction: row;*/
 }
-
-
-
 
 .panel-custom
 {
@@ -242,5 +231,15 @@ form.x-form-custom
 {
     padding-top: 10px;
     color: #F0F0F0;
+}
+
+/* Auto-HeightContainer */
+.div-auto-height {
+    border: none;
+    overflow: auto;
+    height: 100%;
+    height: calc(100% - 86px);
+    color: #464648;
+    font-size: 11px;
 }
 

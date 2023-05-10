@@ -26,6 +26,7 @@
     <link href="@Url.Content("~/Content/kendo/2022.1.301/kendo.dataviz.bootstrap-v4.min.css")" rel="stylesheet" type="text/css" />
     <link href="@Url.Content("~/Content/bootstrap.min.css")" rel="stylesheet" type="text/css" />
     <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/grid.css")" rel="stylesheet" type="text/css" />
     @*<link href="@Url.Content("~/Content/base-min.css")" rel="stylesheet" type="text/css" />*@
     <link href="@Url.Content("~/Content/kd-sidebar.css")" rel="stylesheet" type="text/css" />
     <script src="@Url.Content("~/Scripts/kendo/2022.1.301/jquery.min.js")"></script>
@@ -141,22 +142,7 @@
         </button><!--/button-->
     </div><!--/.signin-->
 }
-
-<style>    
-    body{
-      /*padding-top: 80px!important;*/
-      font-family: 'Roboto', sans-serif;
-      background-color: #F5F5F5;
-        padding-top: 20px;
-        padding-bottom: 20px;
-    }
-    /*Sign In Form*/
-    .signin{
-      position: relative;
-      height: 650px;
-      width: 500px;
-      margin: auto;
-      box-shadow: 0px 30px 125px -5px #000;}
+<style>
     /*Background Img*/
     .back-img{
       position: relative;
@@ -165,6 +151,25 @@
       background: url('@Url.Content("~/Assets/city-hall.jpg")') no-repeat center center;
     background-size: cover;
     }
+</style>
+
+<style>    
+    body{
+      /*padding-top: 80px!important;*/
+      /*font-family: 'Roboto', sans-serif;*/
+      background-color: #F5F5F5;
+        padding-top: 10px!important;
+        padding-bottom: 10px!important;
+    }
+    /*Sign In Form*/
+    
+    .signin{
+      position: relative;
+      height: 580px;
+      width: 500px;
+      margin: auto;
+      box-shadow: 0px 30px 125px -5px #000;}    
+
     .layer {
         background-color: rgba(33,150,243,0.5);
         position: absolute;

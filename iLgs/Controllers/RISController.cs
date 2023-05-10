@@ -140,7 +140,7 @@ namespace iLgs.Controllers
 
 
                     // include items with stocks during add
-                    var stockItems = db.PsItems.Where(w => w.OrderItem.OrderId == model.OrderId).ToList();
+                    var stockItems = db.PsItems.Include(i => i.OrderItem).Where(w => w.OrderItem.OrderId == model.OrderId).ToList();
                     foreach (var stockItem in stockItems)
                     {
                         RISlipItem item = new RISlipItem()
@@ -150,6 +150,8 @@ namespace iLgs.Controllers
                             StockItemId = stockItem.Id,
                             ReqQty = stockItem.Qty,
                             IssQty = stockItem.Qty,
+                            UnitCost = stockItem.OrderItem.UnitCost,
+                            Amount = stockItem.Qty * stockItem.OrderItem.UnitCost,
                             IssRemarks = "",                            
                             InsertedBy = user,
                             InsertedDt = date,
@@ -207,8 +209,6 @@ namespace iLgs.Controllers
                     model.Office = order.Request.Department;
                     model.Fund = order.Request.Fund;
                     model.FPP = order.Request.FPP;
-
-
                 }
 
                 if (ModelState.IsValid)
@@ -244,7 +244,7 @@ namespace iLgs.Controllers
                         }
 
                         // add current
-                        var stockItemList = db.PsItems.Where(w => w.OrderItem.OrderId == model.OrderId).ToList();
+                        var stockItemList = db.PsItems.Include(i => i.OrderItem).Where(w => w.OrderItem.OrderId == model.OrderId).ToList();
                         foreach (var stockItem in stockItemList)
                         {
                             RISlipItem item = new RISlipItem()
@@ -254,6 +254,8 @@ namespace iLgs.Controllers
                                 StockItemId = stockItem.Id,
                                 ReqQty = stockItem.Qty,
                                 IssQty = stockItem.Qty,
+                                UnitCost = stockItem.OrderItem.UnitCost,
+                                Amount = stockItem.Qty * stockItem.OrderItem.UnitCost,
                                 IssRemarks = "",
                                 InsertedBy = user,
                                 InsertedDt = date,
@@ -393,8 +395,9 @@ namespace iLgs.Controllers
                     StockNo = s.PsItem.PsStock.StockNo,
                     Description = s.PsItem.PsStock.PsCode.ItemName.Trim() + (s.PsItem.PsStock.Description == null ? "" : " " + s.PsItem.PsStock.Description),
                     ReqQty = s.ReqQty,
-                    IssQty = s.IssQty,
-                    UnitCost = s.PsItem.OrderItem.UnitCost,
+                    IssQty = s.IssQty,                    
+                    UnitCost = s.UnitCost,
+                    Amount = s.Amount,
                     IssRemarks = s.IssRemarks,                    
                     InsertedDt = s.InsertedDt
                 });
@@ -475,6 +478,8 @@ namespace iLgs.Controllers
                     entity.StockItemId = model.StockItemId;
                     entity.ReqQty = model.ReqQty;
                     entity.IssQty = model.IssQty;
+                    entity.UnitCost = model.UnitCost;
+                    entity.Amount = model.IssQty * model.UnitCost;
                     entity.IssRemarks = model.IssRemarks;
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;

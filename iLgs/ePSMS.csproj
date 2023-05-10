@@ -220,6 +220,7 @@
     <Compile Include="Controllers\RISController.cs" />
     <Compile Include="Controllers\RolesController.cs" />
     <Compile Include="Controllers\Roles_Controller.cs" />
+    <Compile Include="Controllers\RSMIController.cs" />
     <Compile Include="Controllers\SequenceController.cs" />
     <Compile Include="Controllers\SuppliersController.cs" />
     <Compile Include="Controllers\SysCodesController.cs" />
@@ -357,6 +358,16 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RISViewModels.cs" />
+    <Compile Include="Models\RSMI.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RSMIItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RSMIRecap.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RsmiViewModels.cs" />
     <Compile Include="Models\Sequence.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -408,12 +419,16 @@
     <Content Include="Assets\signin\kendoka_kendo.svg" />
     <Content Include="Assets\signin\signin.svg" />
     <Content Include="Content\base-min.css" />
+    <Content Include="Content\bootstrap-min-311.css" />
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\Fonts\icomoon.svg" />
+    <Content Include="Content\grid.css" />
     <Content Include="Content\item.css" />
     <Content Include="Content\kd-sidebar.css" />
+    <Content Include="Content\kendo-min.css" />
     <Content Include="Content\kendo\2022.1.301\Black\editor.png" />
     <Content Include="Content\kendo\2022.1.301\Black\imagebrowser.png" />
     <Content Include="Content\kendo\2022.1.301\Black\indeterminate.gif" />
@@ -909,6 +924,13 @@
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
+    <Content Include="Content\Fonts\icomoon.eot" />
+    <Content Include="Content\Fonts\icomoon.ttf" />
+    <Content Include="Content\Fonts\icomoon.woff" />
+    <Content Include="Content\bootstrap-theme.css.map" />
+    <Content Include="Content\bootstrap-theme.min.css.map" />
+    <Content Include="Content\bootstrap.css.map" />
+    <Content Include="Content\bootstrap.min.css.map" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
     <None Include="Properties\PublishProfiles\AppMan %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
@@ -3238,6 +3260,8 @@
     <Content Include="Views\RIS\Index.cshtml" />
     <Content Include="Views\RIS\EditorTemplates\_RISTemplate.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_DaysTemplate.cshtml" />
+    <Content Include="Views\RSMI\Index.cshtml" />
+    <Content Include="Views\RSMI\_RSMIAdd.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3301,7 +3325,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>15481</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:15481/</IISUrl>
+          <IISUrl>http://localhost:15482/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
@@ -3309,7 +3333,7 @@
           <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

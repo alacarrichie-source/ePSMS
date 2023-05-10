@@ -89,6 +89,12 @@ namespace iLgs.Models
         public Nullable<System.Guid> StockItemId { get; set; }
         public Nullable<decimal> ReqQty { get; set; }
         public Nullable<decimal> IssQty { get; set; }
+
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+
+        public Nullable<decimal> Amount { get; set; }
+
         public string IssRemarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
@@ -99,10 +105,7 @@ namespace iLgs.Models
 
         public string StockNo { get; set; }
         public string Unit { get; set; }
-        public string Description { get; set; }
-
-        [Display(Name = "Unit Cost")]
-        public Nullable<decimal> UnitCost { get; set; }
+        public string Description { get; set; }        
 
     }
 }
