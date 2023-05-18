@@ -25,6 +25,9 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderId { get; set; }
         public Nullable<System.Guid> RequestItemId { get; set; }
         public string Description { get; set; }
+        public string BrandName { get; set; }
+        public string OtherSpecs { get; set; }
+        public Nullable<decimal> EstimatedLife { get; set; }
         public Nullable<decimal> Qty { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> Amount { get; set; }
@@ -33,10 +36,10 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual Order Order { get; set; }
-        public virtual RequestItem RequestItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRItem> AIRItems { get; set; }
+        public virtual Order Order { get; set; }
+        public virtual RequestItem RequestItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsItem> PsItems { get; set; }
     }

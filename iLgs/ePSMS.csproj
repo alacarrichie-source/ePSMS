@@ -229,6 +229,15 @@
     <Compile Include="Controllers\UserMenu_Controller.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Controllers\Users_Controller.cs" />
+    <Compile Include="Exceptions\CreateAndLogExceptions.cs" />
+    <Compile Include="Exceptions\DependencyException.cs" />
+    <Compile Include="Exceptions\FailedServiceException.cs" />
+    <Compile Include="Exceptions\IException.cs" />
+    <Compile Include="Exceptions\RecordAlreadyExistsException.cs" />
+    <Compile Include="Exceptions\RecordLockedException.cs" />
+    <Compile Include="Exceptions\RecordNotFoundException.cs" />
+    <Compile Include="Exceptions\ServiceException.cs" />
+    <Compile Include="Exceptions\ValidationException.cs" />
     <Compile Include="Extensions\HtmlHelperExtension.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -391,6 +400,12 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reports\Rsmi.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Rsmi.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Reports\UserAccess.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -404,6 +419,11 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Services\GmailEmailService.cs" />
+    <Compile Include="Services\Interfaces\IRequestService.cs" />
+    <Compile Include="Services\Interfaces\IOrderService.cs" />
+    <Compile Include="Services\Items\ItemService.cs" />
+    <Compile Include="Services\Orders\OrderService.cs" />
+    <Compile Include="Services\RequestService.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
     <Compile Include="Utilities\JsonMvcNetSerializer.cs" />
@@ -787,6 +807,7 @@
     <Content Include="Content\kendo\2022.1.301\Uniform\sprite_kpi_2x.png" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="fonts\icomoon.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
     <EntityDeploy Include="Models\AppManModel.edmx">
@@ -931,6 +952,9 @@
     <Content Include="Content\bootstrap-theme.min.css.map" />
     <Content Include="Content\bootstrap.css.map" />
     <Content Include="Content\bootstrap.min.css.map" />
+    <Content Include="fonts\icomoon.eot" />
+    <Content Include="fonts\icomoon.ttf" />
+    <Content Include="fonts\icomoon.woff" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
     <None Include="Properties\PublishProfiles\AppMan %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
@@ -3262,6 +3286,7 @@
     <Content Include="Views\Items\EditorTemplates\_DaysTemplate.cshtml" />
     <Content Include="Views\RSMI\Index.cshtml" />
     <Content Include="Views\RSMI\_RSMIAdd.cshtml" />
+    <Content Include="Views\RSMI\_PrintRsmi.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3302,6 +3327,10 @@
     <Content Include="Reports\UserRoles.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>UserRoles.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\Rsmi.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>Rsmi.cs</LastGenOutput>
     </Content>
   </ItemGroup>
   <ItemGroup>

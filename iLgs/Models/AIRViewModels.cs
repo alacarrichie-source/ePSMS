@@ -24,10 +24,12 @@ namespace iLgs.Models
         public Nullable<System.DateTime> AIRDate { get; set; }
 
         [Display(Name = "Invoice No.")]
+        [Required]
         public string InvoiceNo { get; set; }
 
         [Display(Name = "Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [Required]
         public Nullable<System.DateTime> InvoiceDate { get; set; }
 
         [Display(Name = "Date Received")]

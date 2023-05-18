@@ -3,23 +3,23 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<div class="col-md-12">
-    @(Html.Kendo().Grid<iLgs.Models.RequestVM>()
+
+@(Html.Kendo().Grid<iLgs.Models.RequestVM>()
     .Name("grid")
     .Columns(col =>
     {
         col.Bound(c => c.PrNo).Width(70);
-        col.Bound(c => c.PrDate).Width(100);
-        col.Bound(c => c.Fund).Width(100);
+        col.Bound(c => c.PrDate).Width(70);
+        col.Bound(c => c.Fund).Width(70);
         col.Bound(c => c.Department).Width(100);
-        col.Bound(c => c.FPP).Width(100);
+        col.Bound(c => c.FPP).Width(70);
         col.Bound(c => c.RequestedBy).Width(100);
         col.Bound(c => c.Availability).Width(100);
         col.Bound(c => c.ApprovedBy).Width(100);
         col.Command(command =>
         {
             command.Edit();
-            command.Destroy();
+            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
         }).Width(120);
     })
     .ToolBar(t =>
@@ -27,7 +27,7 @@
         t.Create().Text("Add Request");
         t.Search();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RequestTemplate").Window(w => w.Width(800).Title("Purchase Request")))        
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RequestTemplate").Window(w => w.Width(800).Title("Purchase Request")))
     .Search(s =>
     {
         s.Field(o => o.PrNo, "contains");
@@ -50,13 +50,14 @@
     .Filterable()
     .NoRecords()
     .Resizable(r => r.Columns(true))
-    .Scrollable(s => s.Height(200))
+    .Scrollable(s => s.Height(430))
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
+    .ClientDetailTemplateId("Details")
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)
-        .Events(events => events.Error("GridError"))
+        .Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
         .Model(model =>
         {
             model.Id(p => p.Id);
@@ -72,21 +73,28 @@
         .Edit("onEditGrid")
         .DataBound("onDataBoundGrid")
         )
-    )
-</div>
+)
 
-<div class="col-md-12">
+<script id="Details" type="text/x-kendo-tmpl">
     @(Html.Kendo().Grid<iLgs.Models.RequestItemVM>()
-        .Name("gridItems")
+        .Name("gridItems_#=Id#")
         .Columns(columns =>
         {
             columns.Bound(o => o.PsCode).Width(70);
             columns.Bound(o => o.PsUnit).Width(70);
             columns.Bound(o => o.PsItem).Width(70);
             columns.Bound(o => o.Description).Width(150);
-            columns.Bound(o => o.Qty).Width(70);
-            columns.Bound(o => o.UnitCost).Width(70);
-            columns.Bound(o => o.TotalCost).Width(70);            
+            columns.Bound(o => o.Qty).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(o => o.UnitCost).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(o => o.TotalCost).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
             columns.Command(command =>
             {
                 command.Edit();
@@ -95,8 +103,8 @@
         })
         .ToolBar(t =>
         {
-            t.Create().Text("Add Request Item");            
-        })        
+            t.Create().Text("Add Request Item");
+        })
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -109,7 +117,7 @@
         .Filterable()
         .NoRecords()
         .Resizable(r => r.Columns(true))
-        .Scrollable(s => s.Height(180))
+        //.Scrollable(s => s.Height(180))
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Sortable()
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RequestItemTemplate").Window(w => w.Width(500).Title("Request Item")))
@@ -121,8 +129,13 @@
                 model.Id(p => p.Id);
                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
             })
-            .Read(read => read.Action("_RequestItemRead", "Requests").Data("ItemData"))
-            .Create(create => create.Action("_RequestItemCreate", "Requests").Data("ItemData"))
+            .Aggregates(a =>
+            {
+                a.Add(p => p.Qty).Sum();
+                a.Add(p => p.TotalCost).Sum();
+            })
+            .Read(read => read.Action("_RequestItemRead", "Requests", new { prId = "#=Id#" }))
+            .Create(create => create.Action("_RequestItemCreate", "Requests", new { prId = "#=Id#" }))
             .Update(update => update.Action("_RequestItemUpdate", "Requests"))
             .Destroy(destroy => destroy.Action("_RequestItemDestroy", "Requests"))
         )
@@ -132,8 +145,9 @@
             .DataBound("onDataBoundGridItems")
         )
         .AutoBind(true)
+        .ToClientTemplate()
     )
-</div>
+</script>
 
 <div id="windowcontainer"></div>
 
@@ -201,12 +215,12 @@
     var selectedGrid = null;
     var selectedId = null;
     var selecteItemId = null;
-    
+
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         selectedId = selectedData.Id;
         selectedItemId = null;
-        $("#gridItems").data("kendoGrid").dataSource.read();
+        //$("#gridItems").data("kendoGrid").dataSource.read();
     }
 
 
@@ -219,10 +233,16 @@
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-        }
-        //if (this.dataSource.total() == 0) {
-        //   // to do: disable item add button
-        //}
+
+            var firstRow = this.tbody.find("tr.k-master-row").first();
+            this.expandRow(firstRow);
+
+            // Attach a handler to the "detailExpand" event
+            this.bind("detailExpand", function (e) {
+                // Select the expanded master row
+                this.select(e.masterRow);
+            });
+        }        
     }
 
     function onEditGrid(e) {
@@ -251,14 +271,22 @@
         setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
     }
 
-    // Grid Item
-
-    function ItemData() {
-        return {
-            prId: selectedId
-        };
+    function onRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                selectedGrid.dataSource.read();
+            }
+            if (e.type == "create") {
+                var responseData = e.response;
+                var newRecord = responseData.Data[0];
+                selectedId = newRecord.Id;
+            }
+        }
     }
 
+    // Grid Item
+    
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
         selecteItemId = selectedData.Id;
@@ -323,7 +351,7 @@
         e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                $("#gridItems").data("kendoGrid").dataSource.read();
+                $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
             }
         }
     }

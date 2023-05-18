@@ -53,8 +53,6 @@
                             .Columns(c =>
                             {
                                 c.Add().Field("PoNo").Title("PO No.").Width("30%");
-                                //c.Add().Field("PoDate").Title("Date").Width("30%");
-                                //c.Add().Template("#= kendo.toString(PoDate, 'MM/dd/yyyy') #").Title("Date").Width("30%");
                                 c.Add().Template("#= kendo.toString(new Date(parseInt(PoDate.substr(6))), 'MM/dd/yyyy') #").Title("Date").Width("30%");  
                                 c.Add().Field("Department").Title("Department").Width("40%");
                             })
@@ -67,7 +65,7 @@
             <div class="col-md-6">
                 @Html.LabelFor(model => model.PoDate, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(model => model.PoDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().DatePickerFor(model => model.PoDate).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.PoDate)
                 </div>
             </div>

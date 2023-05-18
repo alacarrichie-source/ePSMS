@@ -40,7 +40,9 @@
                        //items.Add().Template("<a href='" + @Url.Action("Contact", "Home") + "' class='k-link app-bar-link'>Contact</a>").Type(AppBarItemType.ContentItem);
                    })
                 )
-                @RenderBody()
+                <div style="height: 100%!important;">
+                    @RenderBody()
+                </div>
             </main>
         </div>
     </text>)
@@ -175,7 +177,6 @@
         }
     }
 }
-
 
 <style>
     /*#name {

@@ -56,10 +56,24 @@
         <div class="row">
             @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
-                @(Html.Kendo().TextBoxFor(m => m.Description).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             </div>
         </div>
 
+        <div class="row">
+            @Html.LabelFor(m => m.BrandName, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().TextBoxFor(m => m.BrandName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(m => m.OtherSpecs, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().TextBoxFor(m => m.OtherSpecs).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            </div>
+        </div>
+        
         <div class="row">
             @Html.LabelFor(m => m.PsUnit, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">

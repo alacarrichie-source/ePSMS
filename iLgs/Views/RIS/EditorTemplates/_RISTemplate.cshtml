@@ -11,8 +11,8 @@
         </div>
     </div>
 
-    @Html.HiddenFor(model => model.Id)
-    
+    @Html.HiddenFor(model => model.Id)    
+
     <fieldset>
         <div class="row">
             <div class="col-md-6">
@@ -65,7 +65,7 @@
             <div class="col-md-6">
                 @Html.LabelFor(model => model.PoDate, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(model => model.PoDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().DatePickerFor(model => model.PoDate).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.PoDate)
                 </div>
             </div>

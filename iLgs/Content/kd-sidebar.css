@@ -67,7 +67,7 @@
 }
 
 .kd-sidebar-container.root .kd-sidebar-root-nav {
-    height: auto
+    height: 100%!important;
 }
 
 .kd-sidebar-container:not(.root) .kd-sidebar-root-nav {

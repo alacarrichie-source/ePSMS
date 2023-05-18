@@ -119,5 +119,26 @@ namespace iLgs.Models
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }                
     }
-    
+
+    public class RsmiPrintVM : IValidatableObject
+    {
+
+        [Display(Name = "Period From")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> DateFrom { get; set; }
+
+        [Display(Name = "Period To")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> DateTo { get; set; }
+
+        public bool SavePrints { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (DateTo < DateFrom)
+            {
+                yield return new ValidationResult(string.Format("Period to {0} must be greater than or equal to Period From {1}", DateTo.Value.ToShortDateString(), DateFrom.Value.ToShortDateString()), new[] { "Period" });
+            }
+        }
+    }
 }

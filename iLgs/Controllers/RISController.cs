@@ -88,10 +88,17 @@ namespace iLgs.Controllers
                 }
                 else
                 {
-                    model.Division = order.Request.Section;
-                    model.Office = order.Request.Department;
-                    model.Fund = order.Request.Fund;
-                    model.FPP = order.Request.FPP;
+                    if (order.PoDate > model.RisDate)
+                    {
+                        ModelState.AddModelError("RisDate", "RIS date must be greather than or equal to P.O. date!");
+                    }
+                    else
+                    {
+                        model.Division = order.Request.Section;
+                        model.Office = order.Request.Department;
+                        model.Fund = order.Request.Fund;
+                        model.FPP = order.Request.FPP;
+                    }
                 }
 
                 if (model != null && ModelState.IsValid)
@@ -205,10 +212,17 @@ namespace iLgs.Controllers
                 }
                 else
                 {
-                    model.Division = order.Request.Section;
-                    model.Office = order.Request.Department;
-                    model.Fund = order.Request.Fund;
-                    model.FPP = order.Request.FPP;
+                    if (order.PoDate > model.RisDate)
+                    {
+                        ModelState.AddModelError("RisDate", "RIS date must be greather than or equal to P.O. date!");
+                    }
+                    else
+                    {
+                        model.Division = order.Request.Section;
+                        model.Office = order.Request.Department;
+                        model.Fund = order.Request.Fund;
+                        model.FPP = order.Request.FPP;
+                    }
                 }
 
                 if (ModelState.IsValid)

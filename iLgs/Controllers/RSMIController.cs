@@ -11,6 +11,10 @@ using System.Data.Entity;
 using Microsoft.AspNet.Identity;
 using iLgs.Utilities;
 using Newtonsoft.Json;
+using CrystalDecisions.Shared;
+using CrystalDecisions.CrystalReports.Engine;
+using System.Data.SqlClient;
+using System.IO;
 
 namespace iLgs.Controllers
 {
@@ -188,63 +192,78 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var risDates = db.RISlips.Where(w => w.RisDate >= model.DateFrom && w.RisDate <= model.DateTo)
-                                    .AsNoTracking()
-                                    .GroupBy(g => new { g.RisDate, g.Fund })
-                                    .Select(s => new { Date = s.Key.RisDate, Fund = s.Key.Fund });
+                    //var risDates = db.RISlips.Where(w => w.RisDate >= model.DateFrom && w.RisDate <= model.DateTo)
+                    //                .AsNoTracking()
+                    //                .GroupBy(g => new { g.RisDate, g.Fund })
+                    //                .Select(s => new { Date = s.Key.RisDate, Fund = s.Key.Fund });
 
-                    foreach(var risDate in risDates)
+                    var funds = await db.Codextns.Where(w => w.CodeMast.Code == "FUND")
+                        .Select(s => new
+                        {
+                            Code = s.Code
+                        }).ToListAsync();
+
+                    var risDates = db.Orders.Where(a => a.PoDate >= model.DateFrom && a.PoDate <= model.DateTo
+                        && a.RISlips.Any())
+                        .AsNoTracking()
+                        .GroupBy(g => new { g.PoDate })
+                        .Select(s => new { Date = s.Key.PoDate });
+
+                    foreach (var fund in funds)
                     {
-                        var serialNo = NextSerialNo(risDate.Date);
-                        var entity = new RSMI()
+                        foreach (var risDate in risDates)
                         {
-                            Id = Guid.NewGuid(),
-                            Date = risDate.Date,
-                            Fund = risDate.Fund,
-                            SerialNo = serialNo,                            
-                            Custodian = model.Custodian,
-                            PostedBy = model.PostedBy,
-                            PostedDt = model.PostedDt,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-
-                        var riSlips = db.RISlips.Where(w => w.RisDate == risDate.Date && w.Fund == risDate.Fund)
-                            .AsNoTracking()
-                            .Select(s => new { Id = s.Id, RISlipItems = s.RISlipItems });
-                        foreach(var riSlip in riSlips)
-                        {
-                            var rsmiItem = new RSMIItem()
+                            var serialNo = NextSerialNo(risDate.Date);
+                            var entity = new RSMI()
                             {
                                 Id = Guid.NewGuid(),
-                                RsmiId = entity.Id,
-                                RisId = riSlip.Id,
+                                Date = risDate.Date,
+                                Fund = fund.Code,
+                                SerialNo = serialNo,
+                                Custodian = model.Custodian,
+                                PostedBy = model.PostedBy,
+                                PostedDt = model.PostedDt,
                                 InsertedBy = user,
-                                InsertedDt = date
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date
                             };
-                            entity.RSMIItems.Add(rsmiItem);
 
-                            foreach(var riSlipItem in riSlip.RISlipItems)
+                            var riSlips = db.RISlips.Where(w => w.Order.PoDate == risDate.Date && w.Fund == fund.Code)
+                                .AsNoTracking()
+                                .Select(s => new { Id = s.Id, RISlipItems = s.RISlipItems });
+                            foreach (var riSlip in riSlips)
                             {
-                                var rsmiRecap = new RSMIRecap()
+                                var rsmiItem = new RSMIItem()
                                 {
                                     Id = Guid.NewGuid(),
                                     RsmiId = entity.Id,
-                                    PsItemId = riSlipItem.PsItem.Id,
-                                    StockNo = riSlipItem.PsItem.PsStock.StockNo,
-                                    Qty = riSlipItem.IssQty,
-                                    UnitCost = riSlipItem.UnitCost,
-                                    TotalCost = riSlipItem.Amount,
-                                    AccountCode = ""
+                                    RisId = riSlip.Id,
+                                    InsertedBy = user,
+                                    InsertedDt = date
                                 };
-                                entity.RSMIRecaps.Add(rsmiRecap);
-                            }
-                        }
+                                entity.RSMIItems.Add(rsmiItem);
 
-                        db.RSMIs.Add(entity);
-                    }                    
+                                foreach (var riSlipItem in riSlip.RISlipItems)
+                                {
+                                    var rsmiRecap = new RSMIRecap()
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        RsmiId = entity.Id,
+                                        PsItemId = riSlipItem.PsItem.Id,
+                                        StockNo = riSlipItem.PsItem.PsStock.StockNo,
+                                        Qty = riSlipItem.IssQty,
+                                        UnitCost = riSlipItem.UnitCost,
+                                        TotalCost = riSlipItem.Amount,
+                                        AccountCode = ""
+                                    };
+                                    entity.RSMIRecaps.Add(rsmiRecap);
+                                }
+                            }
+
+                            db.RSMIs.Add(entity);
+                        }
+                    }
                 }
             }
             catch (Exception e)
@@ -352,6 +371,7 @@ namespace iLgs.Controllers
                     UnitCost = s.UnitCost,
                     Amount = s.Amount
                 }).AsQueryable();
+
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -361,6 +381,102 @@ namespace iLgs.Controllers
 
             return result;
         }
+
+        #region PRINTING
+        public ActionResult _PrintRsmi()
+        {
+            var date = DateTime.Now;
+            var model = new RsmiPrintVM()
+            {
+                DateFrom = date,
+                DateTo = date
+            };
+
+            return PartialView(model);
+        }
+
+        public async Task<ActionResult> RsmiRpt(RsmiPrintVM model)
+        {
+            Sections crSections;
+            ReportDocument crReportDocument, crSubreportDocument;
+            SubreportObject crSubreportObject;
+            ReportObjects crReportObjects;
+            ConnectionInfo crConnectionInfo;
+            CrystalDecisions.CrystalReports.Engine.Database crDatabase;
+            Tables crTables;
+            TableLogOnInfo crTableLogOnInfo;
+            crReportDocument = new ReportDocument();
+            crReportDocument.FileName = Server.MapPath(Url.Content("~/Reports/Rsmi.rpt"));
+
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            string conString = db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
+
+            string un = decoder.UserID;
+            string pw = decoder.Password;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            crDatabase = crReportDocument.Database;
+            crTables = crDatabase.Tables;
+            crConnectionInfo = new ConnectionInfo();
+            crConnectionInfo.ServerName = svr;
+            crConnectionInfo.DatabaseName = db_;
+            crConnectionInfo.UserID = un;
+            crConnectionInfo.Password = pw;
+
+            foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+            {
+                crTableLogOnInfo = aTable.LogOnInfo;
+                crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+                aTable.ApplyLogOnInfo(crTableLogOnInfo);
+            }
+            // THIS STUFF HERE IS FOR REPORTS HAVING SUBREPORTS 
+            // set the sections object to the current report's section 
+            crSections = crReportDocument.ReportDefinition.Sections;
+            // loop through all the sections to find all the report objects 
+            foreach (CrystalDecisions.CrystalReports.Engine.Section crSection in crSections)
+            {
+                crReportObjects = crSection.ReportObjects;
+                //loop through all the report objects in there to find all subreports 
+                foreach (ReportObject crReportObject in crReportObjects)
+                {
+                    if (crReportObject.Kind == ReportObjectKind.SubreportObject)
+                    {
+                        crSubreportObject = (SubreportObject)crReportObject;
+                        //open the subreport object and logon as for the general report 
+                        crSubreportDocument = crSubreportObject.OpenSubreport(crSubreportObject.SubreportName);
+                        crDatabase = crSubreportDocument.Database;
+                        crTables = crDatabase.Tables;
+                        foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+                        {
+                            crTableLogOnInfo = aTable.LogOnInfo;
+                            crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+                            aTable.ApplyLogOnInfo(crTableLogOnInfo);
+                        }
+                    }
+                }
+            }
+
+            crReportDocument.SetParameterValue("@dBdate", model.DateFrom);
+            crReportDocument.SetParameterValue("@dEdate", model.DateTo);            
+            
+            if (model.SavePrints)
+            {
+                Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
+                crReportDocument.Close();
+                crReportDocument.Dispose();
+                return File(stream, "application/xlsx");
+            }
+            else
+            {
+                Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+                crReportDocument.Close();
+                crReportDocument.Dispose();
+                return File(stream, "application/pdf");                
+            }
+        }
+        #endregion
 
         public string NextSerialNo(DateTime? date)
         {

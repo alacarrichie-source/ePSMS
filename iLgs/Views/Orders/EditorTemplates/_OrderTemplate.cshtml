@@ -7,8 +7,33 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PrNo)
+    @Html.HiddenFor(model => model.PrDate)
 
-    <fieldset>
+    <fieldset>        
+        <div class="row">            
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.PoNo, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.PoNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.PoNo)
+                </div>
+            </div>        
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.PoDate, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().DatePickerFor(model => model.PoDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.PoDate)
+                </div>
+            </div>
+            @*<div class="col-md-6">
+                @Html.LabelFor(model => model.Section, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.Section).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                    @Html.ValidationMessageFor(model => model.Section)
+                </div>
+            </div>*@
+        </div>
+
         <div class="row">
             <div class="col-md-6">
                 @Html.LabelFor(model => model.PrId, htmlAttributes: new { @class = "col-md-12" })
@@ -31,7 +56,7 @@
                             .Columns(c =>
                             {
                                 c.Add().Field("PrNo").Title("P.R. No.").Width("30%");
-                                c.Add().Field("PrDate").Title("Date").Width("30%");
+                                c.Add().Template("#= kendo.toString(new Date(parseInt(PrDate.substr(6))), 'MM/dd/yyyy') #").Title("Date").Width("30%");
                                 c.Add().Field("Department").Title("Department").Width("40%");
                             })
                             .Events(e => { e.Select("onSelectPrId"); })
@@ -39,24 +64,7 @@
                     )
                     @Html.ValidationMessageFor(model => model.PrId)
                 </div>
-            </div>            
-            <div class="col-md-6">
-                @Html.LabelFor(model => model.PoDate, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(model => model.PoDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.PoDate)
-                </div>
             </div>
-        </div>
-
-        <div class="row">            
-            <div class="col-md-6">
-                @Html.LabelFor(model => model.PoNo, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.PoNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
-                    @Html.ValidationMessageFor(model => model.PoNo)
-                </div>
-            </div>        
             <div class="col-md-6">
                 @Html.LabelFor(model => model.PoMode, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -84,13 +92,6 @@
                     @Html.ValidationMessageFor(m => m.PoMode)
                 </div>
             </div>
-            @*<div class="col-md-6">
-                @Html.LabelFor(model => model.Section, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.Section).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
-                    @Html.ValidationMessageFor(model => model.Section)
-                </div>
-            </div>*@
         </div>
 
         <div class="row">

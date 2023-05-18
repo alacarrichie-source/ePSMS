@@ -1,0 +1,108 @@
+﻿@model iLgs.Models.RsmiPrintVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.HiddenFor(m => m.SavePrints)
+    <br />
+    <div class="row">
+        <div class="text-right col-md-3">
+            @Html.Label("Period From")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().DatePickerFor(m => m.DateFrom))
+            @Html.ValidationMessageFor(m => m.DateFrom)
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="text-right col-md-3">
+            @Html.Label("Period To")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().DatePickerFor(m => m.DateTo))
+            @Html.ValidationMessageFor(m => m.DateTo)
+        </div>
+    </div>
+            
+    <hr />
+    
+    <div class="row">
+        <div id="span_submit">
+            @(Html.Kendo().Button().Content("Submit").Name("btnPrintSubmit"))
+            @(Html.Kendo().Button().Name("btnSaveSubmit").Content("Save to Excel File"))
+        </div>
+    </div>
+}
+
+<div id="windowcontainer"></div>
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+    #span_submit {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: 16em;
+    }
+</style>
+
+<script type="text/javascript">
+
+    //$("#divRange").addClass("hidden");
+
+    $("#btnPrintSubmit").click(function (e) {
+        $("#SavePrints").val(false).trigger('change');
+        e.preventDefault();
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            Print();
+        }
+    })
+
+    $("#btnSaveSubmit").click(function (e) {
+        $("#SavePrints").val(true).trigger('change');
+        e.preventDefault();
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            Print();
+        }
+    })
+
+    function Print()
+    {
+        var data = $("#form").serialize();        
+        var url = '@Url.Action("RsmiRpt", "RSMI")' + '?' + data;
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url            
+        });
+        mywindow.center();
+        mywindow.open();
+    }
+
+</script>
+
+
+
+
+

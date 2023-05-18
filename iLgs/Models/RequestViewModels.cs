@@ -62,6 +62,7 @@ namespace iLgs.Models
         [Display(Name = "Item No.")]
         public Nullable<System.Guid> PsCodeId { get; set; }
 
+        [MaxLength(2000)]
         public string Description { get; set; }
 
         [Required]

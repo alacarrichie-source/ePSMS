@@ -79,7 +79,7 @@ namespace iLgs.Models
 
         [Display(Name = "PO Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> PoDate { get; set; }
+        public Nullable<System.DateTime> PoDate { get; set; }        
     }
 
     public class RISlipItemVM

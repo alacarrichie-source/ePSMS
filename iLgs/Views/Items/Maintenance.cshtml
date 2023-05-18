@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Item Maintenance";
+    ViewBag.Title = "Property & Supply Maintenance";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
@@ -128,7 +128,7 @@
             columns.Command(commands =>
             {
                 commands.Edit();
-                commands.Destroy();
+                commands.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
             }).Width(100);
         })
         //.Events(e =>
@@ -238,7 +238,7 @@
 </div>
 
 <div id="item-details" class="row">
-    <div id="item-about" class="col-xs-12 placeholder">
+    <div id="item-about" class="col-xs-12">
         <div class="row">
             <div id="itemBio" class="col-xs-12 col-sm-4">
             </div>            
@@ -259,7 +259,7 @@
                     col.Command(command =>
                     {
                         command.Edit();
-                        command.Destroy();
+                        command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
                     }).Width(100);
                 })
                 .ToolBar(t =>
@@ -362,12 +362,12 @@
         background-color: #eee;
     }
 
-        #item-list h3 {
-            padding: 0.5em 0.727em;
-            font-size: 11px;
-            color: #35373d;
-            border-bottom: 1px solid #dbdbdb;
-        }
+    #item-list h3 {
+        padding: 0.5em 0.727em;
+        font-size: 11px;
+        color: #35373d;
+        border-bottom: 1px solid #dbdbdb;
+    }
 
     .item-wrapper {
         border-top: 1px solid #f3f3f3;
@@ -407,7 +407,7 @@
     .title {
         font-size: 9px;
         line-height: 9px;
-        color: #8a8b8f;
+        /*color: #8a8b8f;*/
         text-transform: uppercase;
         display: inline-block;
     }
@@ -489,14 +489,14 @@
         padding: 30px 0;
     }*/
 
-        #item-about h3,
-        .section-header {
-            font-size: 11px;
-            color: #35373d;
-            text-transform: uppercase;
-            padding-bottom: 1.091em;
-            padding: 1px 0;
-        }
+    #item-about h3,
+    .section-header {
+        font-size: 11px;
+        color: #35373d;
+        text-transform: uppercase;
+        padding-bottom: 1.091em;
+        padding: 1px 0;
+    }
 
     .client-details ul {
         list-style: none;
@@ -656,11 +656,16 @@
     function onGridDeleteClick(e) {
         e.preventDefault();
         selectedGrid = this;
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+        //var tr = $(e.currentTarget).closest("tr");
+        //var dataItem = selectedGrid.dataItem(tr);
+        //var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        //selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        //setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+        const tr = $(e.currentTarget).closest("tr");
+        const dataItem = this.dataItem(tr);
+        const rowitem = this.dataSource.get(dataItem.Id);
+        this.select($('[data-uid=' + rowitem.uid + ']'));
+        this.removeRow(tr); 
     }
 
 

@@ -9,7 +9,7 @@ namespace iLgs.Models
 {
     public class OrderVM
     {
-        
+
         [Display(Name = "Supplier")]
         public string SupplierName { get; set; }
 
@@ -46,7 +46,7 @@ namespace iLgs.Models
         [Required]
         public string PoMode { get; set; }
 
-        
+
         [Display(Name = "Place of Delivery")]
         [Required]
         public string DeliveryPlace { get; set; }
@@ -98,6 +98,7 @@ namespace iLgs.Models
 
         [Display(Name = "P.R. No.")]
         public string PrNo { get; set; }
+        public DateTime? PrDate { get; set; }
 
         public Nullable<decimal> QtyTotal { get; set; }
         public Nullable<decimal> QtyIssued { get; set; }
@@ -117,7 +118,17 @@ namespace iLgs.Models
         [Display(Name = "Item")]
         public string PsItem { get; set; }
 
+        [MaxLength(2000)]
         public string Description { get; set; }
+
+        [Display(Name = "Brand")]
+        public string BrandName { get; set; }
+
+        [Display(Name = "Other Specs")]
+        public string OtherSpecs { get; set; }
+
+        [Display(Name = "Estimated Life")]
+        public Nullable<decimal> EstimatedLife { get; set; }
 
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
@@ -144,5 +155,13 @@ namespace iLgs.Models
 
         public Nullable<decimal> QtyIssued { get; set; }
         public Nullable<decimal> QtyRemaining { get; set; }
+    }
+
+    public class OrderItemGroupVM
+    {
+        public Guid? PsCodeId { get; set; }
+        public string BrandName { get; set; }
+        public string Description { get; set; }
+        public string OtherSpecs { get; set; }
     }
 }

@@ -35,7 +35,7 @@ body,
 /* font */
 @font-face {
 	font-family: 'icomoon';
-    src:url('Fonts/icomoon.eot?c8m22a');
+	src:url('Fonts/icomoon.eot?c8m22a');
 	src:url('Fonts/icomoon.eot?#iefixc8m22a') format('embedded-opentype'),
 		url('Fonts/icomoon.woff?c8m22a') format('woff'),
 		url('Fonts/icomoon.ttf?c8m22a') format('truetype'),
@@ -410,17 +410,17 @@ body,
     font-size: 11px;
 }
 
-#topMasterContainer {
+#topProductsContainer {
    
     padding: 15px;
 }
 
-#topMasterContainer h3{
+#topProductsContainer h3{
     padding-left: 15px;
 }
 
-/* Master & Details*/
-#master-details-main-content {
+/* Products & Orders*/
+#products-orders-main-content {
     border: none;
     overflow: auto;
     height: 100%;
@@ -429,70 +429,70 @@ body,
     font-size: 11px;
 }
 
-#master-details-main-content .k-tooltip {
+#products-orders-main-content .k-tooltip {
     width: 140px;
 }
 
-#master-details-main-content .k-tooltip th{
+#products-orders-main-content .k-tooltip th{
     text-align: left;
 }
 
-#master-details-main-content .k-tooltip td{
+#products-orders-main-content .k-tooltip td{
     border: 0;
 }
 
-.master-details{
+.product-details{
     display: inline-block;
     height: 100%;
 }
 
-.master-name-cat,
-.master-details-wrapper {
+.product-name-cat,
+.product-details-wrapper {
     display: inline-block;
     vertical-align: middle;
 }
 
-.master-details-wrapper {
+.product-details-wrapper {
     color: #0d1016;
     width: 100%;
 
 }
 
-.master-details-image {
+.product-details-image {
     border-radius: 55px;
     border: 1px solid #eaeaeb;
     margin-right: 1.667em;
 }
 
-.master-name {
+.product-name {
     font-size: 14px;
 }
 
-.master-category {
+.product-category {
     font-size: 9px;
     color: #8a8b8f;
     text-transform: uppercase;
 }
 
-.master-details {
+.product-details {
     padding: 0;
     text-transform: uppercase;
     display: inline-block;
 }
 
-.master-details .k-sparkline {
+.product-details .k-sparkline {
     width: 80%;
     height: 50px;
 }
 
-.master-details span {
+.product-details span {
     font-size: 36px;
     display: inline-block;
     vertical-align: middle;
     line-height: normal;     
 }
 
-.master-details-wrapper h5 {
+.product-details-wrapper h5 {
     font-size: 11px; 
     vertical-align: middle;
     top: 20%;
@@ -805,13 +805,13 @@ body,
 }
 
 @media screen and (max-width: 1160px){
-    .master-details span {
+    .product-details span {
         font-size: 24px;
     }
-    .master-details-wrapper h5 {
+    .product-details-wrapper h5 {
         top: 0;
     }
-    .master-name-cat {
+    .product-name-cat {
         display: none;
     }
 }
@@ -830,7 +830,7 @@ body,
 /* End custom */
 
 /* Empty charts overlays */
-#topMasterContainer,
+#topProductsContainer,
 .sparkline-container {
   position: relative;
 }

@@ -76,6 +76,25 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("AirNo", "AIR No. already exists!");
                 }
+                else
+                {
+                    var order = await db.Orders.FindAsync(model.OrderId);
+                    if (order == null)
+                    {
+                        ModelState.AddModelError("PoNo", "Invalid PO No.!");
+                    }
+                    else
+                    {
+                        if (order.PoDate > model.AIRDate)
+                        {
+                            ModelState.AddModelError("AIR Date", "AIR date must be greather than or equal to P.O. date!");
+                        }
+                        if (order.PoDate > model.InvoiceDate)
+                        {
+                            ModelState.AddModelError("Invoice Date", "Invoice Date date must be greather than or equal to P.O. date!");
+                        }
+                    }
+                }
 
                 if (model != null && ModelState.IsValid)
                 {
@@ -164,6 +183,26 @@ namespace iLgs.Controllers
                 if (db.AIRs.Any(a => a.Id != model.Id && a.AIRNo == model.AIRNo))
                 {
                     ModelState.AddModelError("AirNo", "AIR No. already exists!");
+                }
+                else
+                {
+                    var order = await db.Orders.FindAsync(model.OrderId);
+                    if (order == null)
+                    {
+                        ModelState.AddModelError("PoNo", "Invalid PO No.!");
+                    }
+                    else
+                    {
+                        if (order.PoDate > model.AIRDate)
+                        {
+                            ModelState.AddModelError("AIR Date", "AIR date must be greather than or equal to P.O. date!");
+                        }
+
+                        if (order.PoDate > model.InvoiceDate)
+                        {
+                            ModelState.AddModelError("Invoice Date", "Invoice Date date must be greather than or equal to P.O. date!");
+                        }
+                    }
                 }
 
                 if (ModelState.IsValid)

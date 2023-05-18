@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <div class="row">
+    @*<div class="row">
         @Html.LabelFor(model => model.Type, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
             @(Html.Kendo().TextBoxFor(model => model.Type).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -63,7 +63,7 @@
             @(Html.Kendo().TextBoxFor(model => model.TctNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.TctNo)
         </div>
-    </div>
+    </div>*@
 
     <div class="row">
         @Html.LabelFor(model => model.BrandName, htmlAttributes: new { @class = "col-md-3" })
@@ -73,13 +73,13 @@
         </div>
     </div>
 
-    <div class="row">
+    @*<div class="row">
         @Html.LabelFor(model => model.Department, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
             @(Html.Kendo().TextBoxFor(model => model.Department).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(model => model.Department)
         </div>
-    </div>
+    </div>*@
 
     <div class="row">
         @Html.LabelFor(model => model.OtherSpecs, htmlAttributes: new { @class = "col-md-3" })

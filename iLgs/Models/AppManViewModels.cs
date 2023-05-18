@@ -158,6 +158,29 @@ namespace iLgs.Models
             }
         }
 
+        public bool AllowPost
+        {
+            get
+            {
+                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "POST");
+            }
+        }
+        public bool AllowUnpost
+        {
+            get
+            {
+                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "UNPOST");
+            }
+        }
+
+        public bool AllowPrint
+        {
+            get
+            {
+                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "PRINT");
+            }
+        }
+
         public List<MenuAccessAction> Actions { get; set; }
     }    
 
