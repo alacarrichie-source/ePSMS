@@ -15,7 +15,7 @@
 @(Html.Kendo().Drawer()
     .Name("drawer")
     .TemplateId("drawerTemplate")
-    .Mode("push")
+    .Mode("overlay")
     .Mini(false)
     .Position("left")
     .Width(240)
@@ -48,14 +48,15 @@
     </text>)
 )
 <script id="drawerTemplate" type="text/html">
-    @*<div class="k-d-flex-col k-align-items-center k-justify-content-evenly" style="height:218px;">
-            <div class="k-avatar k-avatar-circle k-avatar-image k-avatar-lg" id="avatar"><img src='@Url.Content("~/Content/assets/navigation/Avatar.svg")' /></div>
-            <div id="name">@ViewData["userName"]</div>
+    <div class="k-d-flex-col k-align-items-center k-justify-content-evenly" style="height:218px;">
+            <div class="k-avatar k-avatar-circle k-avatar-image" id="avatar"><img src='@Url.Content("~/Assets/product-logo.png")' /></div>            
+            <div id="name">ePSMS</div>
+            @*<div id="name">@ViewData["userName"]</div>
             <div id="email">@userEmail</div>
             <form class="form-inline" action="@Url.Action("LogOff", "Account")" method="post">
                 <button type="submit" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-base">Logout</button>
-            </form>
-        </div>*@
+            </form>*@
+        </div>
     @*<ul>
             <li><a class="k-link" href="@Url.Action("Index", "Home")" data-role='drawer-item'><span class="k-icon k-i-grid "></span>Dashboard</a></li>
             <li><a class="k-link" href="@Url.Action("Performance", "Home")" data-role='drawer-item'><span class="k-icon k-i-globe"></span>Performance and Sales</a></li>
@@ -321,6 +322,11 @@
         justify-content: space-evenly;
     }
     
+    #avatar 
+    {
+        width: 50%;
+        height: 50%;
+    }
 </style>
 
 <script>

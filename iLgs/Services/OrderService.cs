@@ -17,7 +17,7 @@ namespace iLgs.Services
     {
         private readonly AppManEntities db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private IItemService itemService; 
+        private IItemService itemService;
 
         public OrderService(AppManEntities db)
         {
@@ -75,70 +75,69 @@ namespace iLgs.Services
 
         public async Task<OrderVM> Create(OrderVM model, string user, DateTime date)
         {
-            return TryCatch(() => {
+            model.Id = Guid.NewGuid();
+            if (string.IsNullOrWhiteSpace(model.PoNo))
+            {
+                model.PoNo = NextPoNo((DateTime)model.PoDate);
+            }
+            model.InsertedBy = user;
+            model.InsertedDt = date;
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
 
-                model.Id = Guid.NewGuid();
-                if (string.IsNullOrWhiteSpace(model.PoNo))
-                {
-                    model.PoNo = NextPoNo((DateTime)model.PoDate);
-                }
-                model.InsertedBy = user;
-                model.InsertedDt = date;
-                model.UpdatedBy = user;
-                model.UpdatedDt = date;
+            var entity = new iLgs.Models.Order()
+            {
+                Id = model.Id,
+                SupplierId = model.SupplierId,
+                PoNo = model.PoNo,
+                PoDate = model.PoDate,
+                PoMode = model.PoMode,
+                PrId = model.PrId,
+                DeliveryPlace = model.DeliveryPlace,
+                DeliveryDate = model.DeliveryDate,
+                TermDelivery = model.TermDelivery,
+                TermPayment = model.TermPayment,
+                SignedByAuthDesignation = model.SignedByAuthDesignation,
+                SignedByAuthName = model.SignedByAuthName,
+                SignedBySuppDate = model.SignedBySuppDate,
+                SignedBySuppName = model.SignedBySuppName,
+                ResoNo = model.ResoNo,
+                CertifiedCorrectBy = model.CertifiedCorrectBy,
+                CertifiedCorrectDate = model.CertifiedCorrectDate,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
 
-                var entity = new iLgs.Models.Order()
+            // include items during add
+            var requestItems = db.RequestItems.Where(w => w.PrId == model.PrId).ToList();
+            foreach (var requestItem in requestItems)
+            {
+                OrderItem orderItem = new OrderItem()
                 {
-                    Id = model.Id,
-                    SupplierId = model.SupplierId,
-                    PoNo = model.PoNo,
-                    PoDate = model.PoDate,
-                    PoMode = model.PoMode,
-                    PrId = model.PrId,
-                    DeliveryPlace = model.DeliveryPlace,
-                    DeliveryDate = model.DeliveryDate,
-                    TermDelivery = model.TermDelivery,
-                    TermPayment = model.TermPayment,
-                    SignedByAuthDesignation = model.SignedByAuthDesignation,
-                    SignedByAuthName = model.SignedByAuthName,
-                    SignedBySuppDate = model.SignedBySuppDate,
-                    SignedBySuppName = model.SignedBySuppName,
-                    ResoNo = model.ResoNo,
-                    CertifiedCorrectBy = model.CertifiedCorrectBy,
-                    CertifiedCorrectDate = model.CertifiedCorrectDate,
-                    InsertedBy = model.InsertedBy,
-                    InsertedDt = model.InsertedDt,
-                    UpdatedBy = model.UpdatedBy,
-                    UpdatedDt = model.UpdatedDt
+                    Id = Guid.NewGuid(),
+                    OrderId = entity.Id,
+                    RequestItemId = requestItem.Id,
+                    Description = requestItem.Description,
+                    BrandName = requestItem.BrandName,
+                    OtherSpecs = requestItem.OtherSpecs,
+                    Qty = requestItem.Qty,
+                    UnitCost = requestItem.UnitCost,
+                    Amount = requestItem.TotalCost,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
                 };
 
-                // include items during add
-                var requestItems = db.RequestItems.Where(w => w.PrId == model.PrId).ToList();
-                foreach (var requestItem in requestItems)
-                {
-                    OrderItem orderItem = new OrderItem()
-                    {
-                        Id = Guid.NewGuid(),
-                        OrderId = entity.Id,
-                        RequestItemId = requestItem.Id,
-                        Description = requestItem.Description,
-                        Qty = requestItem.Qty,
-                        UnitCost = requestItem.UnitCost,
-                        Amount = requestItem.TotalCost,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
+                entity.OrderItems.Add(orderItem);
+            }
 
-                    entity.OrderItems.Add(orderItem);
-                }
+            db.Orders.Add(entity);
+            await db.SaveChangesAsync();
 
-                db.Orders.Add(entity);
-                db.SaveChanges();
-
-                return model;
-            });            
+            return model;
         }
 
         public async Task<OrderVM> Update(OrderVM model, string user, DateTime date)
@@ -224,7 +223,7 @@ namespace iLgs.Services
 
             var orderItemGroups = await db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}", orderId).ToListAsync();
 
-            
+
             // create stock for each group
             foreach (var oig in orderItemGroups)
             {
@@ -273,12 +272,12 @@ namespace iLgs.Services
                         };
                         psStock.PsItems.Add(psItem);
                     }
-                    
+
                     db.PsStocks.Add(psStock);
-                    await db.SaveChangesAsync();                    
+                    await db.SaveChangesAsync();
                 }
             }
-             
+
         }
 
         private string NextPoNo(DateTime poDate)

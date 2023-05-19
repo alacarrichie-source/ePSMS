@@ -438,9 +438,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\city-hall.jpg" />
+    <Content Include="Assets\product-logo.png" />
     <Content Include="Assets\Login1.PNG" />
     <Content Include="Assets\Login2.PNG" />
     <Content Include="Assets\login3.jpg" />
+    <Content Include="Assets\product-icon.png" />
     <Content Include="Assets\signin\background.svg" />
     <Content Include="Assets\signin\bgr-image.svg" />
     <Content Include="Assets\signin\kendoka.svg" />
@@ -3370,7 +3372,7 @@
           <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

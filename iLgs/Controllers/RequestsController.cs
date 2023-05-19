@@ -230,6 +230,8 @@ namespace iLgs.Controllers
                     PsUnit = s.PsCode.UnitMeas,
                     PsItem = s.PsCode.ItemName,
                     Description = s.Description,
+                    BrandName = s.BrandName,
+                    OtherSpecs = s.OtherSpecs,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     TotalCost = s.TotalCost,
@@ -264,6 +266,8 @@ namespace iLgs.Controllers
                         PrId = model.PrId,
                         PsCodeId = model.PsCodeId,
                         Description = model.Description,
+                        BrandName = model.BrandName,
+                        OtherSpecs = model.OtherSpecs,
                         Qty = model.Qty,
                         UnitCost = model.UnitCost,
                         TotalCost = model.TotalCost,
@@ -308,6 +312,8 @@ namespace iLgs.Controllers
                     RequestItem entity = await db.RequestItems.FindAsync(model.Id);
                     entity.PsCodeId = model.PsCodeId;
                     entity.Description = model.Description;
+                    entity.BrandName = model.BrandName;
+                    entity.OtherSpecs = model.OtherSpecs;
                     entity.Qty = model.Qty;
                     entity.UnitCost = model.UnitCost;
                     entity.TotalCost = model.TotalCost;
