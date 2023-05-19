@@ -24,6 +24,8 @@ namespace iLgs.Models
         public Nullable<System.Guid> PrId { get; set; }
         public Nullable<System.Guid> PsCodeId { get; set; }
         public string Description { get; set; }
+        public string BrandName { get; set; }
+        public string OtherSpecs { get; set; }
         public Nullable<decimal> Qty { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> TotalCost { get; set; }
@@ -32,9 +34,9 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual PsCode PsCode { get; set; }
-        public virtual Request Request { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItem> OrderItems { get; set; }
+        public virtual PsCode PsCode { get; set; }
+        public virtual Request Request { get; set; }
     }
 }

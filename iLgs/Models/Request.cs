@@ -35,6 +35,8 @@ namespace iLgs.Models
         public string AvaialbilityDesig { get; set; }
         public string ApprovedBy { get; set; }
         public string ApprovedDesig { get; set; }
+        public string SubmittedBy { get; set; }
+        public Nullable<System.DateTime> SubmittedDt { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

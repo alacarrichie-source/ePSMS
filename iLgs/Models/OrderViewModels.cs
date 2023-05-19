@@ -93,10 +93,16 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
+        [Display(Name = "Posted by")]
+        public string PostedBy { get; set; }
+
+        [Display(Name = "Posted Date")]
+        public Nullable<System.DateTime> PostedDt { get; set; }
+
         // TRANSIENTS
 
 
-        [Display(Name = "P.R. No.")]
+        [Display(Name = "PR. No.")]
         public string PrNo { get; set; }
         public DateTime? PrDate { get; set; }
 

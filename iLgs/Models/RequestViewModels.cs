@@ -47,6 +47,11 @@ namespace iLgs.Models
         [Display(Name = "Designation")]
         public string ApprovedDesig { get; set; }
 
+        [Display(Name = "Submitted By")]
+        public string SubmittedBy { get; set; }
+
+        [Display(Name = "Submitted Date")]
+        public Nullable<System.DateTime> SubmittedDt { get; set; }
 
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
@@ -64,6 +69,12 @@ namespace iLgs.Models
 
         [MaxLength(2000)]
         public string Description { get; set; }
+
+        [Display(Name = "Brand")]
+        public string BrandName { get; set; }
+
+        [Display(Name = "Other Specs")]
+        public string OtherSpecs { get; set; }
 
         [Required]
         public Nullable<decimal> Qty { get; set; }

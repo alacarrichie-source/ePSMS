@@ -19,7 +19,7 @@
     .Mini(false)
     .Position("left")
     .Width(240)
-    .Navigatable(true)
+    .Navigatable(true)    
     .Events(ev => ev.ItemClick("onItemClick"))
     .Content(@<text>
         <div>
@@ -327,17 +327,24 @@
     $(document).ready(function () {
         //highlight selected Drawer item on page load
         $('a[href="@routeUrl"]').parent().addClass('k-state-selected');
-        //show Drawer as expanded on page load
+
+        $("#drawer").getKendoDrawer().hide()
         $('.k-drawer-container').addClass('k-drawer-expanded');
-        $('.k-drawer-wrapper').css('width', '240px');
-        if ($(window).width() < 600) {
-            $("#drawer").getKendoDrawer().hide()
-            $('.k-drawer-container').removeClass('k-drawer-expanded');
-        }
+
+        //show Drawer as expanded on page load
+        //$('.k-drawer-container').addClass('k-drawer-expanded');
+        //$('.k-drawer-wrapper').css('width', '240px');
+        //if ($(window).width() < 600) {
+        //    $("#drawer").getKendoDrawer().hide()
+        //    $('.k-drawer-container').removeClass('k-drawer-expanded');
+        //}
         resizeWidgets()
         $(window).resize(function () {
             resizeWidgets()
         })
+
+        //var drawer = $("#drawer").data("kendoDrawer");
+        //drawer.element.removeClass("k-drawer-expanded");        
     })
 
     var isDrawerVisible = true;
@@ -367,6 +374,7 @@
         if (charts) {
             charts.each((idx, elem) => $(elem).getKendoChart().resize(true))
         }
+
         var grid = $(".k-grid");
         if (grid) {
             grid.each((idx, elem) => $(elem).getKendoGrid().resize(true))

@@ -18,8 +18,8 @@ namespace iLgs.Models
         public Order()
         {
             this.AIRs = new HashSet<AIR>();
-            this.RISlips = new HashSet<RISlip>();
             this.OrderItems = new HashSet<OrderItem>();
+            this.RISlips = new HashSet<RISlip>();
         }
     
         public System.Guid Id { get; set; }
@@ -39,6 +39,8 @@ namespace iLgs.Models
         public string ResoNo { get; set; }
         public string CertifiedCorrectBy { get; set; }
         public Nullable<System.DateTime> CertifiedCorrectDate { get; set; }
+        public string PostedBy { get; set; }
+        public Nullable<System.DateTime> PostedDt { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
@@ -46,11 +48,11 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIR> AIRs { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<OrderItem> OrderItems { get; set; }
         public virtual Supplier Supplier { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RISlip> RISlips { get; set; }
         public virtual Request Request { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItem> OrderItems { get; set; }
     }
 }
