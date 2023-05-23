@@ -8,7 +8,13 @@
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PrId)
     @Html.HiddenFor(model => model.PsCode)
-    
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
     <fieldset>
 
         <div class="row">

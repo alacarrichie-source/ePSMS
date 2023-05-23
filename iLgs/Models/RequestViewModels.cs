@@ -47,16 +47,18 @@ namespace iLgs.Models
         [Display(Name = "Designation")]
         public string ApprovedDesig { get; set; }
 
-        [Display(Name = "Submitted By")]
+        [Display(Name = "Posted By")]
         public string SubmittedBy { get; set; }
 
-        [Display(Name = "Submitted Date")]
+        [Display(Name = "Posted Date")]
         public Nullable<System.DateTime> SubmittedDt { get; set; }
 
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }       
+
+        public bool IsWithPO { get; set; }
     }
 
     public class RequestItemVM

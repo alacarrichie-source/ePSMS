@@ -2,10 +2,8 @@
 using Kendo.Mvc.UI;
 using Kendo.Mvc.Extensions;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using System.Data.Entity;
 using Microsoft.AspNet.Identity;
@@ -13,7 +11,6 @@ using iLgs.Utilities;
 using Newtonsoft.Json;
 using iLgs.Services.Interfaces;
 using iLgs.Services;
-using iLgs.Services.Items;
 
 namespace iLgs.Controllers
 {
@@ -21,10 +18,9 @@ namespace iLgs.Controllers
     public class OrdersController : Controller
     {
         private static AppManEntities db = new AppManEntities();
-        private IOrderService orderService = new OrderService(db);
-        private IRequestService requestService = new RequestService(db);
-        
-        
+        private static IOrderService orderService = new OrderService(db);
+        private static IRequestService requestService = new RequestService(db);
+
         // GET: Codes
         public ActionResult Index()
         {
@@ -32,7 +28,7 @@ namespace iLgs.Controllers
         }
 
         public ActionResult OrderRead([DataSourceRequest] DataSourceRequest request)
-        {            
+        {
             var data = orderService.GetAll();
 
             var result = new JsonNetResult
@@ -41,7 +37,7 @@ namespace iLgs.Controllers
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet,
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
-            return result;            
+            return result;
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -53,7 +49,7 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
-                    ModelState.AddModelError("", "Add Access Denied!");
+                    ModelState.AddModelError("Access", "Add Access Denied!");
                 }
 
                 if (orderService.GetByPoNo(model.PoNo) != null)
@@ -81,7 +77,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await orderService.Create(model, user, date);                    
+                    model = await orderService.Create(model, user, date);
                 }
             }
             catch (Exception e)
@@ -91,8 +87,8 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }        
-        
+        }
+
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> OrderUpdate([DataSourceRequest] DataSourceRequest request, OrderVM model)
         {
@@ -102,26 +98,27 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
-                    ModelState.AddModelError("", "Update Access Denied!");
+                    ModelState.AddModelError("Access", "Update Access Denied!");
                 }
 
                 if (orderService.GetAnyPoNo(model.Id, model.PoNo))
                 {
-                    ModelState.AddModelError("PoNo", "P.O. number already exists!");
+                    ModelState.AddModelError("PO No.", "P.O. number already exists!");
                 }
                 else
                 {
                     var pr = await requestService.GetById(model.PrId);
                     if (pr == null)
                     {
-                        ModelState.AddModelError("PrNo", "Invalid P.R. Number!");
+                        ModelState.AddModelError("PR No.", "Invalid P.R. Number!");
                     }
-                    else
+                    else if (await orderService.IsPosted(model.Id))
                     {
-                        if (pr.PrDate > model.PoDate)
-                        {
-                            ModelState.AddModelError("PoDate", "P.O. date must be greather than or equal to P.R. date!");
-                        }
+                        ModelState.AddModelError("PO NO.", "PO Number already Posted, cannot update!");
+                    }
+                    else if (pr.PrDate > model.PoDate)
+                    {
+                        ModelState.AddModelError("PO Date", "P.O. date must be greather than or equal to P.R. date!");
                     }
                 }
 
@@ -135,7 +132,7 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                ModelState.AddModelError("Error", "Unable to save changes, Try again, and if the problem persists " +
                      "please contact tech support with this message: " + e.Message);
             }
 
@@ -153,6 +150,10 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
+                else if (await orderService.IsPosted(model.Id))
+                {
+                    ModelState.AddModelError("DeleteError", "PO Number already Posted, cannot delete!");
+                }
                 else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -169,7 +170,7 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
-                
+
         public ActionResult _OrderItemRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
         {
 
@@ -203,7 +204,11 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
-                    ModelState.AddModelError("", "Access Denied!");
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                else if (await orderService.IsPosted((Guid)model.OrderId))
+                {
+                    ModelState.AddModelError("PO No.", "PO Number already Posted, cannot update!");
                 }
 
                 if (model != null && ModelState.IsValid)
@@ -252,7 +257,11 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
-                    ModelState.AddModelError("", "Access Denied!");
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                else if (await orderService.IsPosted((Guid)model.OrderId))
+                {
+                    ModelState.AddModelError("PO No.", "PO Number already Posted, cannot update!");
                 }
 
                 if (ModelState.IsValid)
@@ -297,8 +306,13 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
-                    ModelState.AddModelError("GridError", "Delete Access Denied!");
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
+                else if (await orderService.IsPosted((Guid)model.OrderId))
+                {
+                    ModelState.AddModelError("DeleteError", "PO Number already Posted, cannot delete!");
+                }
+
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -348,27 +362,24 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
-                    ModelState.AddModelError("", "Access Denied!");
+                    ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else
+                else if (orderService.GetById(orderId) == null)
                 {
-                    if (orderService.GetById(orderId) == null)
-                    {
-                        ModelState.AddModelError("", "Invalid Order Id");
-                    }
+                    ModelState.AddModelError("Order", "Invalid Order Id");
                 }
+                else if (await orderService.IsPosted(orderId))
+                {
+                    ModelState.AddModelError("PO No.", "PO Number already Posted, cannot post again!");
+                }
+
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await orderService.Post(orderId, user, date);                    
-                }                                
-            }
-            catch (NullReferenceException e)
-            {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message.ToString());
+                    await orderService.Post(orderId, user, date);
+                }
             }
             catch (Exception e)
             {
@@ -387,7 +398,54 @@ namespace iLgs.Controllers
             }
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        }        
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> UnpostOrders(Guid orderId)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                else if (orderService.GetById(orderId) == null)
+                {
+                    ModelState.AddModelError("Order", "Invalid Order Id");
+                }
+                else if (!(await orderService.IsPosted(orderId)))
+                {
+                    ModelState.AddModelError("PO No.", "PO Number not yet posted, cannot unpost!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await orderService.Unpost(orderId, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
 
         public JsonResult GetPoYyyyMm(DateTime poDate)
         {

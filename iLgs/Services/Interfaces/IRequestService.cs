@@ -9,8 +9,12 @@ namespace iLgs.Services.Interfaces
 {
     public interface IRequestService
     {        
-        IQueryable<Request> GetAll();
+        IQueryable<RequestVM> GetAll();
         Task<Request> GetById(Guid? prId);
         Request GetByPrNo(string prNo);
+        Task Post(Guid requestId, string user, DateTime date);
+        Task Unpost(Guid requestId, string user, DateTime date);
+        Task<bool> IsPosted(Guid requestId);
+        Task<bool> IsWithPO(Guid requestId);
     }
 }

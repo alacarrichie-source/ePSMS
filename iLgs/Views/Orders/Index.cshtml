@@ -15,16 +15,19 @@
         col.Bound(c => c.SupplierName).Width(100);
         col.Bound(c => c.SupplierAddress).Width(100);
         col.Bound(c => c.SupplierTin).Width(70);
+        col.Bound(c => c.PostedBy).Width(70);
         col.Command(command =>
         {
             command.Edit();
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-            command.Custom("Post").IconClass("k-icon k-i-lock").Click("onGridPostClick").SendDataKeys(true);
+            //command.Custom("Post").IconClass("k-icon k-i-lock").Click("onGridPostClick").SendDataKeys(true);
         }).Width(150);
     })
     .ToolBar(t =>
     {
         t.Create().Text("Add Request");
+        t.Custom().Text("Post PO").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Unpost PO").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_OrderTemplate").Window(w => w.Width(800).Title("Purchase Order")))
@@ -225,7 +228,8 @@
         e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                $("#grid").data("kendoGrid").dataSource.read();
+                //$("#grid").data("kendoGrid").dataSource.read();
+                selectedGrid.dataSource.read();
             }
             if (e.type == "create") {
                 var responseData = e.response;
@@ -239,15 +243,41 @@
     var selectedId = null;
     var selectedId_PrId = null;
     var selecteItemId = null;
+    var postedBy = null;
+    var selectedPoNo = null;
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
+        var grid = $("#grid");
+
         selectedId = selectedData.Id;
         selectedId_PrId = selectedData.PrId;
         selectedItemId = null;
-        //$("#gridItems").data("kendoGrid").dataSource.read();
-    }
+        postedBy = selectedData.PostedBy;
+        selectedPoNo = selectedData.PoNo;
 
+        //if (postedBy) {
+        //    //$(".k-grid-btnPostPO", grid).text("Post PO");
+        //    //$(".k-grid-btnPostPO", grid).addClass("k-state-disabled");
+        //    $(".k-grid-btnPostPO", grid).hide();
+        //} else {
+        //    //$(".k-grid-btnPostPO", grid).text("Post PO No. " + selectedPoNo);
+        //    //$(".k-grid-btnPostPO", grid).removeClass("k-state-disabled")
+        //    $(".k-grid-btnPostPO", grid).show();
+        //}
+
+        if (postedBy) {
+            if (selectedData.IsLocked) {
+                $(".k-grid-btnUnpostPO", grid).hide();
+            } else {
+                $(".k-grid-btnUnpostPO", grid).show();
+            }
+            $(".k-grid-btnPostPO", grid).hide();
+        } else {
+            $(".k-grid-btnUnpostPO", grid).hide();
+            $(".k-grid-btnPostPO", grid).show();
+        }
+    }
 
     function onDataBoundGrid(e) {
         if (selectedId) {
@@ -268,6 +298,11 @@
                 this.select(e.masterRow);
             });
         }
+        
+        if (this.dataSource.data().length == 0) {
+            $(".k-grid-btnPostPO", grid).hide();
+            $(".k-grid-btnUnpostPO", grid).hide();
+        }
     }
 
     function onEditGrid(e) {
@@ -287,53 +322,12 @@
 
     function onGridDeleteClick(e) {
         e.preventDefault();
-        selectedGrid = this;        
+        selectedGrid = this;
         const tr = $(e.currentTarget).closest("tr");
         const dataItem = this.dataItem(tr);
         const rowitem = this.dataSource.get(dataItem.Id);
         this.select($('[data-uid=' + rowitem.uid + ']'));
         this.removeRow(tr);
-    }
-
-    function onGridPostClick(e) {
-        e.preventDefault();
-        selectedGrid = this;
-        const tr = $(e.currentTarget).closest("tr");
-        const dataItem = this.dataItem(tr);
-        
-        //// Get the data source of the grid
-        //var dataSource = $("#grid").data("kendoGrid").dataSource;
-        //// Get the current DataSourceRequest
-        //var dataSourceRequest = dataSource.transport.parameterMap({});
-        //alert(dataSourceRequest);
-
-        // Display the DataSourceRequest
-        //alert(JSON.stringify(dataSourceRequest));
-
-        var popupNotification = $("#popupNotification").data("kendoNotification");
-
-        $.ajax({
-            type: "POST",
-            url: '@Url.Action("PostOrders", "Orders")',
-            data: { orderId: dataItem.Id },
-            beforeSend: function () {
-                window.kendo.ui.progress($(document.body), true);
-            },
-            success: function (result) {
-                window.kendo.ui.progress($(document.body), false);
-                if (result.Errors == "") {
-                    popupNotification.show("Orders Posted...", "info");                    
-                } else {
-                    alert(result.Errors);
-                    return false;
-                }
-            },
-            error: function (req, status, errorObj) {
-                disabled.attr('disabled', 'disabled');
-                alert(req.responseText);
-                return false;
-            }
-        });
     }
 
     function onGridItemDeleteClick(e) {
@@ -345,7 +339,6 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         this.removeRow($(e.currentTarget).closest("tr"));
     }
-
 
     // Grid Item
 
@@ -364,6 +357,20 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
         }
+
+        //var parentRow = this.wrapper.closest("tr").prev();
+        //var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        //var grid = this.wrapper.closest("[data-role=grid]");
+
+        //if (parentModel.PostedBy) {
+        //    $(".k-grid-add", grid).hide();
+        //}
+        //var trs = this.tbody.find('tr').each(function () {
+        //    if (parentModel.PostedBy) {
+        //        $(this).find('.k-grid-Edit,.k-grid-Delete,.k-grid-edit,.k-grid-delete').hide();
+        //    }
+        //});
     }
 
     function onEditGridItems(e) {
@@ -451,6 +458,72 @@
             }
         }
     }
+
+    $(".k-grid-btnPostPO").click(function (e) {
+        e.preventDefault();
+        if (postedBy) {
+            alert("Order already posted by " + postedBy);
+        }
+        else {
+            var msg = "Post PO Number " + selectedPoNo + "?";
+
+            if (confirm(msg)) {
+                var popupNotification = $("#popupNotification").data("kendoNotification");
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("PostOrders", "Orders")',
+                    data: { orderId: selectedId },
+                    async: true,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($(document.body), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($(document.body), false);
+                        if (result.Errors == "") {
+                            popupNotification.show("Orders Posted...", "info");
+                            $("#grid").data("kendoGrid").dataSource.read();
+                        } else {
+                            alert(result.Errors);
+                            return false;
+                        }
+                    },
+                    error: function (req, status, errorObj) {
+                        disabled.attr('disabled', 'disabled');
+                        alert(req.responseText);
+                        return false;
+                    }
+                });
+            }
+        }
+    });
+
+    $(".k-grid-btnUnpostPO").click(function (e) {
+        e.preventDefault();
+        var msg = "Unpost PO Number " + selectedPoNo + "?";
+
+        if (confirm(msg)) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("UnpostOrders", "Orders")',
+                data: { orderId: selectedId },
+                async: true,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    if (result.Errors == "") {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    } else {
+                        alert(result.Errors);
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+        }
+    });
 </script>
 
 

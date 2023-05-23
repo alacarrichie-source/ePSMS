@@ -12,11 +12,13 @@ namespace iLgs.Services.Interfaces
         IQueryable<OrderVM> GetAll();
         Task<Models.Order> GetById(Guid orderId);
         Models.Order GetByPoNo(string poNo);
-        bool GetAnyPoNo(Guid id, string poNo);
+        bool GetAnyPoNo(Guid id, string poNo);        
+        Task<bool> IsPosted(Guid orderId);
 
         Task<OrderVM> Create(OrderVM model, string user, DateTime date);
         Task<OrderVM> Update(OrderVM model, string user, DateTime date);
         Task<OrderVM> Delete(OrderVM model, string user, DateTime date);
         Task Post(Guid orderId, string user, DateTime date);
+        Task Unpost(Guid orderId, string user, DateTime date);
     }
 }

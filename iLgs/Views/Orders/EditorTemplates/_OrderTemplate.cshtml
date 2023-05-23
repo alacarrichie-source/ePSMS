@@ -9,6 +9,12 @@
     @Html.HiddenFor(model => model.PrNo)
     @Html.HiddenFor(model => model.PrDate)
 
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
     <fieldset>        
         <div class="row">            
             <div class="col-md-6">

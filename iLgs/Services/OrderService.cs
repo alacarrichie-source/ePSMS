@@ -52,7 +52,10 @@ namespace iLgs.Services
                     SignedByAuthDesignation = s.SignedByAuthDesignation,
                     ResoNo = s.ResoNo,
                     CertifiedCorrectBy = s.CertifiedCorrectBy,
-                    CertifiedCorrectDate = s.CertifiedCorrectDate
+                    CertifiedCorrectDate = s.CertifiedCorrectDate,
+                    PostedBy = s.PostedBy,
+                    PostedDt = s.PostedDt,
+                    IsLocked = false
                 })
                 .AsQueryable();
             return data;
@@ -197,33 +200,7 @@ namespace iLgs.Services
 
         public async Task Post(Guid orderId, string user, DateTime date)
         {
-            //var order = await db.Orders.Include(i => i.OrderItems)
-            //    .AsNoTracking().Where(w => w.Id == orderId).FirstOrDefaultAsync();
-
-            // group all OrderItems where not in PsItems
-            // does not work if grouped items contains null value
-            // throws object reference error
-            //var orderItemGroups = order.OrderItems
-            //    .Where(w => !w.PsItems.Any(a => a.OrderItemId == w.Id))
-            //    .GroupBy(g => new
-            //    {
-            //        PsCodeId = g.RequestItem.PsCodeId,
-            //        BrandName = g.BrandName ?? string.Empty,
-            //        Description = g.Description ?? string.Empty,
-            //        OtherSpecs = g.OtherSpecs ?? string.Empty
-            //    })
-            //    .Select(s => new 
-            //    {
-            //        PsCodeId = s.Key.PsCodeId,
-            //        BrandName = s.Key.BrandName ?? string.Empty,
-            //        Description = s.Key.Description ?? string.Empty,
-            //        OtherSpecs = s.Key.OtherSpecs ?? string.Empty,
-            //        Count = s.Count()
-            //    }).ToList();
-
             var orderItemGroups = await db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}", orderId).ToListAsync();
-
-
             // create stock for each group
             foreach (var oig in orderItemGroups)
             {
@@ -245,7 +222,7 @@ namespace iLgs.Services
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
-                        UpdatedDt = date
+                        UpdatedDt = date                       
                     };
 
                     // Post the OrderItems under the stocks having the same PsCodeId
@@ -278,6 +255,26 @@ namespace iLgs.Services
                 }
             }
 
+            var entity = await db.Orders.FindAsync(orderId);
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+
+            db.Orders.Attach(entity);
+            db.Entry(entity).State = EntityState.Modified;
+            await db.SaveChangesAsync();
+        }
+
+        public async Task Unpost(Guid orderId, string user, DateTime date)
+        {
+            var entity = await db.Orders.FindAsync(orderId);
+            entity.PostedBy = null;
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            db.Orders.Attach(entity);
+            db.Entry(entity).State = EntityState.Modified;
+            await db.SaveChangesAsync();
         }
 
         private string NextPoNo(DateTime poDate)
@@ -369,6 +366,12 @@ namespace iLgs.Services
                 throw exceptions.CreateAndLogServiceException(failedServiceException);
             }
         }
+
+        public async Task<bool> IsPosted(Guid orderId)
+        {
+            var entity = await db.Orders.FindAsync(orderId);
+            return !string.IsNullOrWhiteSpace(entity.PostedBy);
+        }       
         #endregion
     }
 }

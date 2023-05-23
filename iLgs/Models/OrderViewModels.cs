@@ -110,6 +110,7 @@ namespace iLgs.Models
         public Nullable<decimal> QtyIssued { get; set; }
         public Nullable<decimal> QtyRemaining { get; set; }
         public Nullable<decimal> TotalAmount { get; set; }
+        public bool IsLocked { get; set; }
 
     }
 
