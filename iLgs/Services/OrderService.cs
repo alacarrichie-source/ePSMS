@@ -61,22 +61,22 @@ namespace iLgs.Services
             return data;
         }
 
-        public async Task<Models.Order> GetById(Guid orderId)
+        public async Task<Models.Order> GetByIdAsync(Guid orderId)
         {
             return await db.Orders.FindAsync(orderId);
         }
 
-        public bool GetAnyPoNo(Guid id, string poNo)
+        public async Task<bool> GetAnyPoNoAsync(Guid id, string poNo)
         {
-            return db.Orders.Any(a => a.Id != id && a.PoNo == poNo);
+            return await db.Orders.AnyAsync(a => a.Id != id && a.PoNo == poNo);
         }
 
-        public Models.Order GetByPoNo(string poNo)
+        public async Task<Models.Order> GetByPoNoAsync(string poNo)
         {
-            return db.Orders.Where(w => w.PoNo == poNo).FirstOrDefault();
+            return  await db.Orders.Where(w => w.PoNo == poNo).FirstOrDefaultAsync();
         }
 
-        public async Task<OrderVM> Create(OrderVM model, string user, DateTime date)
+        public async Task<OrderVM> CreateAsync(OrderVM model, string user, DateTime date)
         {
             model.Id = Guid.NewGuid();
             if (string.IsNullOrWhiteSpace(model.PoNo))
@@ -143,7 +143,7 @@ namespace iLgs.Services
             return model;
         }
 
-        public async Task<OrderVM> Update(OrderVM model, string user, DateTime date)
+        public async Task<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date)
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -176,7 +176,7 @@ namespace iLgs.Services
             return model;
         }
 
-        public async Task<OrderVM> Delete(OrderVM model, string user, DateTime date)
+        public async Task<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date)
         {
 
             model.UpdatedBy = user;
@@ -198,7 +198,7 @@ namespace iLgs.Services
             return model;
         }
 
-        public async Task Post(Guid orderId, string user, DateTime date)
+        public async Task PostAsync(Guid orderId, string user, DateTime date)
         {
             var orderItemGroups = await db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}", orderId).ToListAsync();
             // create stock for each group
@@ -264,7 +264,7 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
         }
 
-        public async Task Unpost(Guid orderId, string user, DateTime date)
+        public async Task UnpostAsync(Guid orderId, string user, DateTime date)
         {
             var entity = await db.Orders.FindAsync(orderId);
             entity.PostedBy = null;
@@ -367,7 +367,7 @@ namespace iLgs.Services
             }
         }
 
-        public async Task<bool> IsPosted(Guid orderId)
+        public async Task<bool> IsPostedAsync(Guid orderId)
         {
             var entity = await db.Orders.FindAsync(orderId);
             return !string.IsNullOrWhiteSpace(entity.PostedBy);

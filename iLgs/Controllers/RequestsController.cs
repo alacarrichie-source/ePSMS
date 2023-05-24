@@ -11,15 +11,25 @@ using iLgs.Utilities;
 using Newtonsoft.Json;
 using iLgs.Services.Interfaces;
 using iLgs.Services;
+using CrystalDecisions.CrystalReports.Engine;
+using CrystalDecisions.Shared;
+using System.Data.SqlClient;
+using System.IO;
 
 namespace iLgs.Controllers
 {
     [AppAuthorize("REQUESTS")]
     public class RequestsController : Controller
-    {
-        private static AppManEntities db = new AppManEntities();
-        private static IOrderService orderService = new OrderService(db);
-        private static IRequestService requestService = new RequestService(db);
+    {    
+        AppManEntities db = new AppManEntities();
+        IOrderService orderService;
+        IRequestService requestService;
+
+        public RequestsController()
+        {
+            this.orderService = new OrderService(db);
+            this.requestService = new RequestService(db);
+        }
 
         // GET: Requests
         public ActionResult Index()
@@ -141,7 +151,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Update Access Denied!");
                 }
-                else if (await requestService.IsPosted(model.Id))
+                else if (await requestService.IsPostedAsync(model.Id))
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot update!");
                 }
@@ -201,7 +211,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await requestService.IsPosted(model.Id))
+                else if (await requestService.IsPostedAsync(model.Id))
                 {
                     ModelState.AddModelError("DeleteError", "PR Number already Posted, cannot delete!");
                 }
@@ -263,7 +273,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await requestService.IsPosted((Guid)model.PrId))
+                else if (await requestService.IsPostedAsync((Guid)model.PrId))
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot update!");
                 }
@@ -318,7 +328,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await requestService.IsPosted((Guid)model.PrId))
+                else if (await requestService.IsPostedAsync((Guid)model.PrId))
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot update!");
                 }
@@ -366,7 +376,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await requestService.IsPosted((Guid)model.PrId))
+                else if (await requestService.IsPostedAsync((Guid)model.PrId))
                 {
                     ModelState.AddModelError("DeleteError", "PR Number already Posted, cannot update!");
                 }
@@ -418,11 +428,11 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (requestService.GetById(requestId) == null)
+                else if (await requestService.GetByIdAsync(requestId) == null)
                 {
                     ModelState.AddModelError("Request", "Invalid Request Id");
                 }
-                else if (await requestService.IsPosted(requestId))
+                else if (await requestService.IsPostedAsync(requestId))
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot post again!");
                 }
@@ -432,7 +442,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await requestService.Post(requestId, user, date);
+                    await requestService.PostAsync(requestId, user, date);
                 }
             }
             catch (Exception e)
@@ -465,11 +475,11 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (requestService.GetById(requestId) == null)
+                else if (await requestService.GetByIdAsync(requestId) == null)
                 {
                     ModelState.AddModelError("Request", "Invalid Request Id");
                 }
-                else if (!(await requestService.IsPosted(requestId)))
+                else if (!(await requestService.IsPostedAsync(requestId)))
                 {
                     ModelState.AddModelError("PR No.", "PR Number not yet posted, cannot unpost!");
                 }
@@ -479,7 +489,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await requestService.Unpost(requestId, user, date);
+                    await requestService.UnpostAsync(requestId, user, date);
                 }
             }
             catch (Exception e)
@@ -500,5 +510,40 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
+
+        #region PRINTOUTS
+        public ActionResult PurchaseRequestRpt(string prNo)
+        {
+            string stringname = db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
+            
+            string un = decoder.UserID;
+            string pw = decoder.Password;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            ReportClass rpt = new ReportClass();
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/Pr_.rpt"));
+            rpt.Load();
+            rpt.Refresh();
+
+            rpt.SetDatabaseLogon(un, pw, svr, db_);
+            foreach (Table table in rpt.Database.Tables)
+            {
+                var logonInfo = table.LogOnInfo;
+                logonInfo.ConnectionInfo.ServerName = svr;
+                logonInfo.ConnectionInfo.DatabaseName = db_;
+                logonInfo.ConnectionInfo.UserID = un;
+                logonInfo.ConnectionInfo.Password = pw;
+                table.ApplyLogOnInfo(logonInfo);
+            }
+            
+            rpt.SetParameterValue("@cPrNo", prNo);
+            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+            rpt.Close();
+            rpt.Dispose();
+            return File(stream, "application/pdf");
+        }
+        #endregion
     }
 }

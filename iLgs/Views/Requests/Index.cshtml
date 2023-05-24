@@ -26,8 +26,9 @@
     .ToolBar(t =>
     {
         t.Create().Text("Add Request");
-        t.Custom().Text("Post PR").IconClass("k-icon k-i-lock").Name("btnSubmitPR").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Unpost PR").IconClass("k-icon k-i-unlock").Name("btnUnpostPR").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintPR").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnSubmitPR").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPR").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RequestTemplate").Window(w => w.Width(800).Title("Purchase Request")))
@@ -263,6 +264,7 @@
         }
 
         if (this.dataSource.data().length == 0) {
+            $(".k-grid-btnPrintPR", grid).hide();
             $(".k-grid-btnSubmitPR", grid).hide();
             $(".k-grid-btnUnpostPR", grid).hide();
         }
@@ -473,6 +475,34 @@
         }
     });
 
+    $(".k-grid-btnPrintPR").click(function (e) {
+        e.preventDefault();
+        var url = '@Url.Action("PurchaseRequestRpt", "Requests")?prNo=' + selectedPrNo;
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    });
 </script>
 
 

@@ -10,15 +10,15 @@ namespace iLgs.Services.Interfaces
     public interface IOrderService
     {
         IQueryable<OrderVM> GetAll();
-        Task<Models.Order> GetById(Guid orderId);
-        Models.Order GetByPoNo(string poNo);
-        bool GetAnyPoNo(Guid id, string poNo);        
-        Task<bool> IsPosted(Guid orderId);
+        Task<Models.Order> GetByIdAsync(Guid orderId);
+        Task<Models.Order> GetByPoNoAsync(string poNo);
+        Task<bool> GetAnyPoNoAsync(Guid id, string poNo);        
+        Task<bool> IsPostedAsync(Guid orderId);
 
-        Task<OrderVM> Create(OrderVM model, string user, DateTime date);
-        Task<OrderVM> Update(OrderVM model, string user, DateTime date);
-        Task<OrderVM> Delete(OrderVM model, string user, DateTime date);
-        Task Post(Guid orderId, string user, DateTime date);
-        Task Unpost(Guid orderId, string user, DateTime date);
+        Task<OrderVM> CreateAsync(OrderVM model, string user, DateTime date);
+        Task<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date);
+        Task<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date);
+        Task PostAsync(Guid orderId, string user, DateTime date);
+        Task UnpostAsync(Guid orderId, string user, DateTime date);
     }
 }

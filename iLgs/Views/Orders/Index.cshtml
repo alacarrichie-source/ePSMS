@@ -25,9 +25,10 @@
     })
     .ToolBar(t =>
     {
-        t.Create().Text("Add Request");
-        t.Custom().Text("Post PO").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Unpost PO").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Create().Text("Add Order");
+        t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_OrderTemplate").Window(w => w.Width(800).Title("Purchase Order")))
@@ -298,8 +299,9 @@
                 this.select(e.masterRow);
             });
         }
-        
+
         if (this.dataSource.data().length == 0) {
+            $(".k-grid-btnPrintPO", grid).hide();
             $(".k-grid-btnPostPO", grid).hide();
             $(".k-grid-btnUnpostPO", grid).hide();
         }
@@ -523,6 +525,35 @@
                 }
             });
         }
+    });
+
+    $(".k-grid-btnPrintPO").click(function (e) {
+        e.preventDefault();
+        var url = '@Url.Action("PurchaseOrderRpt", "Orders")?poNo=' + selectedPoNo;
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
     });
 </script>
 

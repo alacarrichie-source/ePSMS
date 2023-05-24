@@ -10,11 +10,11 @@ namespace iLgs.Services.Interfaces
     public interface IRequestService
     {        
         IQueryable<RequestVM> GetAll();
-        Task<Request> GetById(Guid? prId);
-        Request GetByPrNo(string prNo);
-        Task Post(Guid requestId, string user, DateTime date);
-        Task Unpost(Guid requestId, string user, DateTime date);
-        Task<bool> IsPosted(Guid requestId);
-        Task<bool> IsWithPO(Guid requestId);
+        Task<Request> GetByIdAsync(Guid? prId);
+        Task<Request> GetByPrNoAsync(string prNo);
+        Task PostAsync(Guid requestId, string user, DateTime date);
+        Task UnpostAsync(Guid requestId, string user, DateTime date);
+        Task<bool> IsPostedAsync(Guid requestId);
+        Task<bool> IsWithPOAsync(Guid requestId);
     }
 }

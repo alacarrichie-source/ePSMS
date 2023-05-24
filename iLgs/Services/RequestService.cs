@@ -41,28 +41,28 @@ namespace iLgs.Services
                 .AsQueryable();
         }
 
-        public async Task<Request> GetById(Guid? prId)
+        public async Task<Request> GetByIdAsync(Guid? prId)
         {
             return await db.Requests.FindAsync(prId);            
         }
 
-        public Request GetByPrNo(string prNo)
+        public async Task<Request> GetByPrNoAsync(string prNo)
         {
-            return db.Requests.Where(w => w.PrNo == prNo).FirstOrDefault();
+            return await db.Requests.Where(w => w.PrNo == prNo).FirstOrDefaultAsync();
         }
 
-        public async Task<bool> IsPosted(Guid requestId)
+        public async Task<bool> IsPostedAsync(Guid requestId)
         {
             var entity = await db.Requests.FindAsync(requestId);
             return !string.IsNullOrWhiteSpace(entity.SubmittedBy);
         }
 
-        public async Task<bool> IsWithPO(Guid requestId)
+        public async Task<bool> IsWithPOAsync(Guid requestId)
         {
             return await db.Orders.AnyAsync(a => a.PrId == requestId);            
         }
 
-        public async Task Post(Guid requestId, string user, DateTime date)
+        public async Task PostAsync(Guid requestId, string user, DateTime date)
         {
             var entity = await db.Requests.FindAsync(requestId);
             entity.SubmittedBy = user;
@@ -75,7 +75,7 @@ namespace iLgs.Services
             await db.SaveChangesAsync();            
         }
 
-        public async Task Unpost(Guid requestId, string user, DateTime date)
+        public async Task UnpostAsync(Guid requestId, string user, DateTime date)
         {
             var entity = await db.Requests.FindAsync(requestId);
             entity.SubmittedBy = null;

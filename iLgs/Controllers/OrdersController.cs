@@ -11,15 +11,25 @@ using iLgs.Utilities;
 using Newtonsoft.Json;
 using iLgs.Services.Interfaces;
 using iLgs.Services;
+using CrystalDecisions.Shared;
+using CrystalDecisions.CrystalReports.Engine;
+using System.Data.SqlClient;
+using System.IO;
 
 namespace iLgs.Controllers
 {
     [AppAuthorize("ORDERS")]
     public class OrdersController : Controller
     {
-        private static AppManEntities db = new AppManEntities();
-        private static IOrderService orderService = new OrderService(db);
-        private static IRequestService requestService = new RequestService(db);
+        AppManEntities db = new AppManEntities();
+        IOrderService orderService;
+        IRequestService requestService;
+
+        public OrdersController()
+        {
+            this.orderService = new OrderService(db);
+            this.requestService = new RequestService(db);
+        }
 
         // GET: Codes
         public ActionResult Index()
@@ -52,13 +62,13 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("Access", "Add Access Denied!");
                 }
 
-                if (orderService.GetByPoNo(model.PoNo) != null)
+                if (await orderService.GetByPoNoAsync(model.PoNo) != null)
                 {
                     ModelState.AddModelError("PoNo", "P.O. number already exists!");
                 }
                 else
                 {
-                    var pr = await requestService.GetById(model.PrId);
+                    var pr = await requestService.GetByIdAsync(model.PrId);
                     if (pr == null)
                     {
                         ModelState.AddModelError("PrNo", "Invalid P.R. Number!");
@@ -77,7 +87,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await orderService.Create(model, user, date);
+                    model = await orderService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -101,18 +111,18 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("Access", "Update Access Denied!");
                 }
 
-                if (orderService.GetAnyPoNo(model.Id, model.PoNo))
+                if (await orderService.GetAnyPoNoAsync(model.Id, model.PoNo))
                 {
                     ModelState.AddModelError("PO No.", "P.O. number already exists!");
                 }
                 else
                 {
-                    var pr = await requestService.GetById(model.PrId);
+                    var pr = await requestService.GetByIdAsync(model.PrId);
                     if (pr == null)
                     {
                         ModelState.AddModelError("PR No.", "Invalid P.R. Number!");
                     }
-                    else if (await orderService.IsPosted(model.Id))
+                    else if (await orderService.IsPostedAsync(model.Id))
                     {
                         ModelState.AddModelError("PO NO.", "PO Number already Posted, cannot update!");
                     }
@@ -127,7 +137,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await orderService.Update(model, user, date);
+                    model = await orderService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -150,7 +160,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await orderService.IsPosted(model.Id))
+                else if (await orderService.IsPostedAsync(model.Id))
                 {
                     ModelState.AddModelError("DeleteError", "PO Number already Posted, cannot delete!");
                 }
@@ -159,7 +169,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await orderService.Delete(model, user, date);
+                    model = await orderService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -206,7 +216,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await orderService.IsPosted((Guid)model.OrderId))
+                else if (await orderService.IsPostedAsync((Guid)model.OrderId))
                 {
                     ModelState.AddModelError("PO No.", "PO Number already Posted, cannot update!");
                 }
@@ -259,7 +269,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await orderService.IsPosted((Guid)model.OrderId))
+                else if (await orderService.IsPostedAsync((Guid)model.OrderId))
                 {
                     ModelState.AddModelError("PO No.", "PO Number already Posted, cannot update!");
                 }
@@ -308,7 +318,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await orderService.IsPosted((Guid)model.OrderId))
+                else if (await orderService.IsPostedAsync((Guid)model.OrderId))
                 {
                     ModelState.AddModelError("DeleteError", "PO Number already Posted, cannot delete!");
                 }
@@ -364,11 +374,11 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (orderService.GetById(orderId) == null)
+                else if (await orderService.GetByIdAsync(orderId) == null)
                 {
                     ModelState.AddModelError("Order", "Invalid Order Id");
                 }
-                else if (await orderService.IsPosted(orderId))
+                else if (await orderService.IsPostedAsync(orderId))
                 {
                     ModelState.AddModelError("PO No.", "PO Number already Posted, cannot post again!");
                 }
@@ -378,7 +388,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await orderService.Post(orderId, user, date);
+                    await orderService.PostAsync(orderId, user, date);
                 }
             }
             catch (Exception e)
@@ -411,11 +421,11 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (orderService.GetById(orderId) == null)
+                else if (await orderService.GetByIdAsync(orderId) == null)
                 {
                     ModelState.AddModelError("Order", "Invalid Order Id");
                 }
-                else if (!(await orderService.IsPosted(orderId)))
+                else if (!(await orderService.IsPostedAsync(orderId)))
                 {
                     ModelState.AddModelError("PO No.", "PO Number not yet posted, cannot unpost!");
                 }
@@ -425,7 +435,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await orderService.Unpost(orderId, user, date);
+                    await orderService.UnpostAsync(orderId, user, date);
                 }
             }
             catch (Exception e)
@@ -454,6 +464,41 @@ namespace iLgs.Controllers
             return Json(new { PoYear = poYear, PoMonth = poMonth }, JsonRequestBehavior.AllowGet);
         }
 
+        #endregion
+
+        #region PRINTOUTS
+        public ActionResult PurchaseOrderRpt(string poNo)
+        {
+            string stringname = db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
+
+            string un = decoder.UserID;
+            string pw = decoder.Password;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            ReportClass rpt = new ReportClass();
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/Po_.rpt"));
+            rpt.Load();
+            rpt.Refresh();
+
+            rpt.SetDatabaseLogon(un, pw, svr, db_);
+            foreach (Table table in rpt.Database.Tables)
+            {
+                var logonInfo = table.LogOnInfo;
+                logonInfo.ConnectionInfo.ServerName = svr;
+                logonInfo.ConnectionInfo.DatabaseName = db_;
+                logonInfo.ConnectionInfo.UserID = un;
+                logonInfo.ConnectionInfo.Password = pw;
+                table.ApplyLogOnInfo(logonInfo);
+            }
+
+            rpt.SetParameterValue("@cPoNo", poNo);
+            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+            rpt.Close();
+            rpt.Dispose();
+            return File(stream, "application/pdf");
+        }
         #endregion
     }
 }

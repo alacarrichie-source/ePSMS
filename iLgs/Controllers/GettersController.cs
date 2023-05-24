@@ -151,7 +151,7 @@ namespace iLgs.Controllers
         public JsonResult GetPrNos(string text)
         {
 
-            var model = db.Requests.AsQueryable();
+            var model = db.Requests.Where(w => w.SubmittedBy != null).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
