@@ -23,6 +23,47 @@ namespace iLgs.Controllers
             return View();
         }
 
+        public async Task<ActionResult> Department()
+        {
+            var code = "Departments";
+            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Department & Sections";
+            return View("Codextn", codeMast);
+        }
+
+        public async Task<ActionResult> RequestedBy()
+        {
+            var code = "REQUEST-BY";
+            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Requested by";
+            return View("Codextn", codeMast);
+        }
+
+        public async Task<ActionResult> ApprovedBy()
+        {
+            var code = "APPROVED-BY";
+            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Approved by";
+            return View("Codextn", codeMast);
+        }
+
+        public async Task<ActionResult> CashAvailability()
+        {
+            var code = "CASH-AVAILABLE";
+            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Cash Availability";
+            return View("Codextn", codeMast);
+        }
+
+        public ActionResult Codextn()
+        {
+            return View();
+        }
+
         public ActionResult CodeMastRead([DataSourceRequest] DataSourceRequest request)
         {
             var model = db.CodeMasts.AsNoTracking();
@@ -163,10 +204,10 @@ namespace iLgs.Controllers
         }
 
 
-        public ActionResult Codextn()
-        {
-            return View();
-        }
+        //public ActionResult Codextn()
+        //{
+        //    return View();
+        //}
 
         public ActionResult CodextnRead([DataSourceRequest] DataSourceRequest request, Guid? mastId)
         {

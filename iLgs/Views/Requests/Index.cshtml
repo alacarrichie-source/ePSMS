@@ -369,6 +369,56 @@
         };
     }
 
+    function DataSection() {
+        var text = $("#Section").data("kendoMultiColumnComboBox").text();
+        return {
+            department: $("#Department").val(),
+            text: text
+        };
+    }
+
+    function DataRequestedBy() {
+        var text = $("#RequestedBy").data("kendoMultiColumnComboBox").text();
+        return {
+            department: $("#Department").val(),
+            text: text
+        };
+    }
+
+    function onSelectRequestedBy(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#RequestedDesig").val(dataItem.Desc2).trigger("change");        
+
+        var model = $("#grid").data().kendoGrid.editable.options.model;
+        model.set('RequestedDesig', $('#RequestedDesig').val());        
+    }
+
+    function onSelectAvailability(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#AvaialbilityDesig").val(dataItem.Desc2).trigger("change");
+
+        var model = $("#grid").data().kendoGrid.editable.options.model;
+        model.set('AvaialbilityDesig', $('#AvaialbilityDesig').val());
+    }
+
+    function DataApprovedBy() {
+        var text = $("#ApprovedBy").data("kendoMultiColumnComboBox").text();
+        return {
+            department: $("#Department").val(),
+            text: text
+        };
+    }
+
+    function onSelectApprovedBy(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#ApprovedDesig").val(dataItem.Desc2).trigger("change");
+
+        var model = $("#grid").data().kendoGrid.editable.options.model;
+        model.set('ApprovedDesig', $('#ApprovedDesig').val());        
+    }
+
     function onSelectPsCode(e) {
         var dataItem = this.dataItem(e.item.index());
 

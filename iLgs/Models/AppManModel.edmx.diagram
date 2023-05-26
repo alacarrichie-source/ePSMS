@@ -23,8 +23,6 @@
         <EntityTypeShape EntityType="AppManModel.ErrorLog" Width="1.5" PointX="11.375" PointY="9.75" />
         <EntityTypeShape EntityType="AppManModel.AspNetUsers_View" Width="1.5" PointX="8.375" PointY="9.75" />
         <EntityTypeShape EntityType="AppManModel.CodeMast" Width="1.5" PointX="10.375" PointY="13" />
-        <EntityTypeShape EntityType="AppManModel.Codextn" Width="1.5" PointX="12.625" PointY="13.125" />
-        <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
         <EntityTypeShape EntityType="AppManModel.MenuAccess" Width="1.5" PointX="10.25" PointY="18.125" />
         <EntityTypeShape EntityType="AppManModel.MenuAccessAction" Width="1.5" PointX="14.5" PointY="9.375" />
         <EntityTypeShape EntityType="AppManModel.MenuAction" Width="1.5" PointX="10.25" PointY="2.625" />
@@ -32,6 +30,8 @@
         <AssociationConnector Association="AppManModel.FK_MenuActionAccess_MenuAccess" />
         <AssociationConnector Association="AppManModel.FK_MenuActionAccess_MenuActionAccess" />
         <AssociationConnector Association="AppManModel.FK_MenuActions_MenuActions" />
+        <EntityTypeShape EntityType="AppManModel.Codextn" Width="1.5" PointX="12.625" PointY="13.125" />
+        <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
         </Diagram>
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="74" >
         <EntityTypeShape EntityType="AppManModel.Supplier" Width="1.5" PointX="0.75" PointY="4.25" />
@@ -66,16 +66,16 @@
         <EntityTypeShape EntityType="AppManModel.IssuedItem" Width="1.5" PointX="5.25" PointY="7.125" />
         <EntityTypeShape EntityType="AppManModel.Issued" Width="1.5" PointX="3" PointY="0.75" />
         <AssociationConnector Association="AppManModel.FK_RPSMIssuedItems_RPSMIssued" />
-        <EntityTypeShape EntityType="AppManModel.RISlip" Width="1.5" PointX="3" PointY="5.25" />
-        <AssociationConnector Association="AppManModel.FK_IssuedItems_RISlips" />
         <EntityTypeShape EntityType="AppManModel.RSMI" Width="1.5" PointX="6" PointY="2.75" />
         <EntityTypeShape EntityType="AppManModel.RSMIItem" Width="1.5" PointX="8.25" PointY="7.375" />
         <EntityTypeShape EntityType="AppManModel.RSMIRecap" Width="1.5" PointX="8.25" PointY="10.625" />
-        <AssociationConnector Association="AppManModel.FK_RSMIItems_RISlips" />
         <AssociationConnector Association="AppManModel.FK_RSMIItems_RSMI" />
         <AssociationConnector Association="AppManModel.FK_RSMIRecap_RSMI" />
         <EntityTypeShape EntityType="AppManModel.RISlipItem" Width="1.5" PointX="5.25" PointY="10.75" />
+        <EntityTypeShape EntityType="AppManModel.RISlip" Width="1.5" PointX="3" PointY="7.5" />
+        <AssociationConnector Association="AppManModel.FK_IssuedItems_RISlips" />
         <AssociationConnector Association="AppManModel.FK_RISlipItems_RISlips" />
+        <AssociationConnector Association="AppManModel.FK_RSMIItems_RISlips" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

@@ -11,6 +11,8 @@ using Microsoft.Owin.Security;
 using iLgs.Models;
 using System.Data.Entity;
 using iLgs;
+using Kendo.Mvc.UI;
+using System.Collections.Generic;
 
 namespace iLgs.Controllers
 {
@@ -143,6 +145,13 @@ namespace iLgs.Controllers
 
                     Session["MainMenu"] = await new MenuController().GetMainMenu(user.Id);                                        
 
+                    //var allMenu = await new MenuController().GetMainMenu(user.Id);
+                    //var menuTreeList = new List<TreeViewItemModel>();
+                    //var menus = allMenu.Where(w => w.ParentId == 0);
+
+                    //menuTreeList = GetMenuTree(allMenu, menus);
+                    //Session["MainMenu"] = menuTreeList;
+
                     return RedirectToLocal(returnUrl);
                 case SignInStatus.LockedOut:
                     return View("Lockout");
@@ -153,6 +162,45 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("", "Invalid login attempt.");
                     return View(model);
             }
+        }
+
+        public List<TreeViewItemModel> GetMenuTree(IQueryable<Menubase> allMenus, IQueryable<Menubase> menus)
+        {
+            var menuTree = new List<TreeViewItemModel>();
+
+            foreach (var menu in menus)
+            {
+                var children = allMenus.Where(w => w.ParentId == menu.ChildId);
+                var hasChildren = children.Any();
+                var items = new List<TreeViewItemModel>();
+                //Dictionary<string, string> attribute;
+
+                if (hasChildren)
+                {
+                    items = GetMenuTree(allMenus, children);
+                    //attribute = new Dictionary<string, string>() { { "class", "root-nav expand" } };
+                }
+                //else
+                //{
+                //    attribute = new Dictionary<string, string>() { { "class", "k-drawer-item" } };
+                //}
+
+
+                var node = new TreeViewItemModel()
+                {
+                    Id = menu.ChildId.ToString(),
+                    Expanded = false,
+                    Text = menu.Description,
+                    HasChildren = hasChildren,
+                    Url = hasChildren ? null : "/" + menu.Controller.Trim() + "/" + menu.Action.Trim(),
+                    Items = items
+                    //HtmlAttributes = attribute
+                };
+
+                menuTree.Add(node);
+            }
+
+            return menuTree;
         }
 
         //

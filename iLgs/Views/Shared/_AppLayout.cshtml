@@ -74,6 +74,14 @@
         </div>
     </div>
 
+    @*<div class="main-menu">
+        <br />
+        @if (Request.IsAuthenticated)
+            {
+            @GetMenuTree((IEnumerable<TreeViewItemModel>)Session["MainMenu"]);
+            }        
+    </div>*@
+
     <ul>        
         <li id="rights">
             <p>&copy; @DateTime.Now.Year - City Government of Las Piñas. All Rights Reserved.</p>
@@ -90,7 +98,80 @@
         <li><a class="k-link k-drawer-item" href="/aspnet-mvc/admin-dashboard/Home/Settings" data-role="drawer-item" role="menuitem" aria-label="Settings"><span class="k-icon k-i-gear"></span>Settings</a></li>
     </ul>*@
 
+@helper  GetMenuTree(IEnumerable<TreeViewItemModel> menu)
+{
+    if (menu != null)
+    {
+            @(Html.Kendo().TreeView()
+                //.Events(e => e.Collapse("onItemSelect"))
+                .Name("page-tree")
+                .ExpandAll(false)
+                //.LoadOnDemand(true)
+                .BindTo(menu)
+            )
+    }
+}
+
 @helper GetMenus(IQueryable<iLgs.Models.Menubase> menu)
+{
+if (menu != null)
+{
+    foreach (var item in menu)
+    {
+        if (item.ParentId == 0) //Level one items will have 0 parent id
+        {
+                <ul class="root-nav-categories kd-list">
+                    <li>
+                        <h3 class="kd-title"><span class="root-nav expand"></span>@item.Description</h3>
+                        <ul class="root-nav-widgets kd-list">
+                            @{
+                                var children = menu.Where(x => x.ParentId == item.ChildId && x.Description != "-").OrderBy(o => o.Description).ToList();
+                            }
+                            @if (children.Any())
+                            {
+                                foreach (var child in children)
+                                {
+                                    var grandChildren = menu.Where(w => w.ParentId == child.ChildId && w.Description != "-").OrderBy(o => o.Description).ToList();
+                                    if (grandChildren.Any())
+                                    {
+                                        <li class="">
+                                            <ul>
+                                                <div class="title2"><span class="root-nav expand"></span>@child.Description:</div>
+                                                @foreach (var grandChild in grandChildren)
+                                                {
+                                                    <li class="title3">
+                                                        <a style="text-decoration: none;" class="k-drawer-item" href="/@grandChild.Controller/@grandChild.Action"><span class="link-text">@grandChild.Description</span></a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="">
+                                            <a style="text-decoration: none;" class="k-drawer-item" href="/@child.Controller/@child.Action"><span class="link-text">@child.Description</span></a>
+                                        </li>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <li class="title2b">
+                                    <a style="text-decoration: none;" class="k-drawer-item" href="/@item.Controller/@item.Action"><span class="link-text">@item.Description</span></a>
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                </ul>
+            }
+        }
+    }
+}
+
+
+
+
+@*@helper GetMenus(IQueryable<iLgs.Models.Menubase> menu)
 {
     if (menu != null)
     {
@@ -114,7 +195,6 @@
                                     {
                                         foreach (var grandChild in grandChildren)
                                         {
-                                            @*<li><a class="k-link k-drawer-item" href="/@grandChild.Controller/@grandChild.Action" data-role="drawer-item" role="menuitem" aria-label="@grandChild.Description"><span class="k-icon k-i-globe"></span>@grandChild.Description</a></li>*@
                                             <li class="">
                                                 <a class="kd-link" href="/@grandChild.Controller/@grandChild.Action"><span class="link-text">@grandChild.Description</span></a>
                                             </li>
@@ -122,7 +202,6 @@
                                     }
                                     else
                                     {
-                                        @*<li><a class="k-link k-drawer-item" href="/@child.Controller/@child.Action" data-role="drawer-item" role="menuitem" aria-label="@child.Description"><span class="k-icon k-i-globe"></span>@child.Description</a></li>*@
                                         <li class="">
                                             <a class="kd-link" href="/@child.Controller/@child.Action"><span class="link-text">@child.Description</span></a>
                                         </li>
@@ -131,7 +210,6 @@
                             }
                             else
                             {
-                                @*<li><a class="k-link k-drawer-item" href="/@item.Controller/@item.Action" data-role="drawer-item" role="menuitem" aria-label="@item.Description"><span class="k-icon k-i-globe"></span>@item.Description</a></li>*@
                                 <li class="">
                                     <a class="kd-link" href="/@item.Controller/@item.Action"><span class="link-text">@item.Description</span></a>
                                 </li>
@@ -142,7 +220,7 @@
             }
         }
     }
-}
+}*@
 
 @helper  GetMenuPanel(IQueryable<iLgs.Models.Menubase> menu)
 {
@@ -369,6 +447,26 @@
         ////resize widgets after Drawer animmation has completed
         setTimeout(resizeWidgets,400)
     }
+
+    function onItemSelect(e) {
+        alert('x');
+        //if (!e.item.hasClass("k-drawer-separator")) {
+        //    alert('x');
+        //    var treeview = $("#page-tree").data("kendoTreeView");
+        //    // Store the IDs of the expanded nodes in local storage
+        //    var expandedNodeIds = treeview.element.find(".k-item").filter(".k-state-expanded").map(function () {
+        //        return $(this).attr("data-id");
+        //    }).get();
+
+        //    alert(expandedNodeIds);
+
+        //    localStorage.setItem("treeview.expandedNodeIds", JSON.stringify(expandedNodeIds));
+
+        //    var targetPage = e.item.find("a").attr("href");
+        //    window.location.href = targetPage;
+        //}        
+    }
+
     function onItemClick(e) {
         if (!e.item.hasClass("k-drawer-separator")) {
             var targetPage = e.item.find("a").attr("href");

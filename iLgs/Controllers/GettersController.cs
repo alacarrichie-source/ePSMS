@@ -254,6 +254,58 @@ namespace iLgs.Controllers
         //        })//.Where(w => w.Qty > 0)
         //    , JsonRequestBehavior.AllowGet);
         //}
+
+        public JsonResult GetDepartments(string text)
+        {
+
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc2 == "");
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetSections(string department, string text)
+        {
+            var dept = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault();
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc2 == dept.Code);
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetRequestedBy(string department, string text)
+        {
+            var dept = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault();
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Desc3 == dept.Code);
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetApprovedBy(string department, string text)
+        {
+            var dept = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault();
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "APPROVED-BY" && w.Desc3 == dept.Code);
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+        }
     }
 
     public class GetSysCodeVM

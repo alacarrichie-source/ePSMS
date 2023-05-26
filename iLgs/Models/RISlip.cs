@@ -18,8 +18,8 @@ namespace iLgs.Models
         public RISlip()
         {
             this.IssuedItems = new HashSet<IssuedItem>();
-            this.RSMIItems = new HashSet<RSMIItem>();
             this.RISlipItems = new HashSet<RISlipItem>();
+            this.RSMIItems = new HashSet<RSMIItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -50,10 +50,10 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IssuedItem> IssuedItems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RSMIItem> RSMIItems { get; set; }
+        public virtual Order Order { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RISlipItem> RISlipItems { get; set; }
-        public virtual Order Order { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RSMIItem> RSMIItems { get; set; }
     }
 }
