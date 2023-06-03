@@ -61,6 +61,12 @@
         <EntityTypeShape EntityType="AppManModel.Request" Width="1.5" PointX="0.75" PointY="13.875" />
         <AssociationConnector Association="AppManModel.FK_Orders_Requests" />
         <AssociationConnector Association="AppManModel.FK_RequestItems_Requests" />
+        <EntityTypeShape EntityType="AppManModel.OrderItemExtn" Width="1.5" PointX="10.5" PointY="18.125" />
+        <EntityTypeShape EntityType="AppManModel.RequestItemExtn" Width="1.5" PointX="8.25" PointY="19.75" />
+        <AssociationConnector Association="AppManModel.FK_OrderItemExtns_OrderItems" />
+        <AssociationConnector Association="AppManModel.FK_RequestItemExtns_RequestItems" />
+        <EntityTypeShape EntityType="AppManModel.PsStockExtn" Width="1.5" PointX="10.5" PointY="3.375" />
+        <AssociationConnector Association="AppManModel.FK_PsStockExtns_PsStocks" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="Issuance" ZoomLevel="75" >
         <EntityTypeShape EntityType="AppManModel.IssuedItem" Width="1.5" PointX="5.25" PointY="7.125" />

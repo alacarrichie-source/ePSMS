@@ -19,7 +19,7 @@
         col.Bound(c => c.SubmittedBy).Width(100);
         col.Command(command =>
         {
-            command.Edit();
+            command.Custom("Edit"); 
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
         }).Width(120);
     })
@@ -101,14 +101,18 @@
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             columns.Command(command =>
             {
-                command.Edit();
-                //command.Destroy();
+                command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRequestItem");
                 command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
             }).Width(172);
         })
-        .ToolBar(t =>
+        .ToolBar(toolbar =>
         {
-            t.Create().Text("Add Request Item");
+          toolbar.Custom().Text("Add Request Item").IconClass("k-icon k-i-add").Name("btnAddRequestItem").HtmlAttributes(new { href = "" });
+        @*toolbar.Template(@<text>
+            @(Html.Kendo().Button().Name("btnAddRequestItem").Content("New Record")
+                .Events(e => e.Click("onClickBtnAddRequestItem"))
+            )
+        </text>);*@
         })
         .Pageable(pager => pager
             .Input(false)
@@ -125,7 +129,6 @@
         //.Scrollable(s => s.Height(180))
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Sortable()
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RequestItemTemplate").Window(w => w.Width(500).Title("Request Item")))
         .DataSource(dataSource => dataSource
             .Ajax()
             .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
@@ -158,17 +161,18 @@
 
 <style>
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
-        width: auto;
-    }
-
-    .k-grid .k-grid-search {
-        display: flex;
-        margin-left: auto;
-        margin-right: 0;
+        width: auto;        
     }
 
     .k-floating-label-container {
         width: 100%;
+    }
+
+    #span_ {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: fit-content;
     }
 </style>
 
@@ -231,11 +235,12 @@
         submittedBy = selectedData.SubmittedBy;
         selectedPrNo = selectedData.PrNo;
         if (submittedBy) {
-            if (selectedData.IsWithPO) {
-                $(".k-grid-btnUnpostPR", grid).hide();
-            } else {
-                $(".k-grid-btnUnpostPR", grid).show();
-            }
+            //if (selectedData.IsWithPO) {
+            //    $(".k-grid-btnUnpostPR", grid).hide();
+            //} else {
+            //    $(".k-grid-btnUnpostPR", grid).show();
+            //}
+            $(".k-grid-btnUnpostPR", grid).show();
             $(".k-grid-btnSubmitPR", grid).hide();
         } else {
             $(".k-grid-btnUnpostPR", grid).hide();
@@ -388,10 +393,10 @@
     function onSelectRequestedBy(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#RequestedDesig").val(dataItem.Desc2).trigger("change");        
+        $("#RequestedDesig").val(dataItem.Desc2).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
-        model.set('RequestedDesig', $('#RequestedDesig').val());        
+        model.set('RequestedDesig', $('#RequestedDesig').val());
     }
 
     function onSelectAvailability(e) {
@@ -416,7 +421,7 @@
         $("#ApprovedDesig").val(dataItem.Desc2).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
-        model.set('ApprovedDesig', $('#ApprovedDesig').val());        
+        model.set('ApprovedDesig', $('#ApprovedDesig').val());
     }
 
     function onSelectPsCode(e) {
@@ -425,6 +430,183 @@
         $("#PsItem").val(dataItem.Name).trigger("change");
         $("#PsUnit").val(dataItem.Unit).trigger("change");
         $("#PsCode").val(dataItem.Code).trigger("change");
+
+        RefreshRequestItemExtnGrid();
+    }
+
+    function onDataBoundPsCode(e) {
+        RefreshRequestItemExtnGrid();
+    }    
+
+    function RefreshRequestItemExtnGrid()
+    {
+        $("#gridItemExtn").data("kendoGrid").dataSource.read();
+    }
+
+    function onSyncGridItemExtn(e) {
+        alert('sync');
+    }
+
+    function onSaveChangesGridItemExtn(e) {
+        var grid = e.sender;
+        var itemValues = grid.dataSource.data().map(function (item) {
+            return item.ItemValue;
+        });
+
+        var description = itemValues.join(" ");
+        alert(description);
+    }
+
+    function onSaveGridItemExtn(e) {
+        var grid = e.sender;
+        var model = $("#gridItemExtn").data().kendoGrid.editable.options.model;
+
+        for (var key in e.values) {
+            if (e.values.hasOwnProperty(key)) {
+                //alert(key + ": " + e.values[key]);
+                //console.log(key + ": " + e.values[key]);
+                model.set('ItemValue', e.values[key]);
+            }
+        }  
+
+        // Create an array to store the row values
+        var rowValues = [];
+        var gridData = e.sender.dataSource.data();
+        for (var i = 0; i < gridData.length; i++) {
+            var rowData = gridData[i];
+        
+            for (var key in e.values) {
+                if (e.values.hasOwnProperty(key)) {
+                    //alert(key + ": " + rowData[key]);
+                    if (rowData[key])
+                    {
+                        rowValues.push(rowData[key]);
+                    }
+                }
+            }            
+        }
+
+        var description = rowValues.join(" ");
+        $("#Description").val(description).trigger('change');
+        
+
+        //// Iterate over each data item (row) and extract the values
+        //for (var i = 0; i < dataItems.length; i++) {
+        //    var row = dataItems[i];
+        //    alert(row.ItemValue);
+        //    if (row.ItemValue) {
+        //        rowValues.push(row.ItemValue);
+        //    }            
+        //}
+
+
+        //var gridData = e.sender.dataSource.data();
+        //for (var i = 0; i < gridData.length; i++) {
+        //    var rowData = gridData[i];
+
+        //    //console.log("Row " + (i + 1) + ":");
+
+        //    for (var key in rowData) {
+        //        if (rowData.hasOwnProperty(key)) {
+        //            //console.log(key + ": " + rowData[key]);
+        //            alert(key + ": " + rowData[key]);
+        //        }
+        //    }
+        //}
+
+        //var gridData = $("#gridItemExtn").data("kendoGrid").dataSource.data();               
+        
+        ////var gridData = e.sender.dataSource.view();
+
+        //for (var i = 0; i < gridData.length; i++) {
+        //    var model = e.sender.dataSource.getByUid(gridData[i].uid);
+        //    var rowData = model.toJSON();
+
+        //    //console.log("Row " + (i + 1) + ":");
+
+        //    for (var key in rowData) {
+        //        if (rowData.hasOwnProperty(key)) {
+        //            //console.log(key + ": " + rowData[key]);
+        //            alert(key + ": " + rowData[key]);
+        //        }
+        //    }
+
+        //    ////var rowData = gridData[i];
+        //    //var rowData = gridData[i].toJSON(); // Retrieve updated values
+
+        //    ////console.log("Row " + (i + 1) + ":");
+
+        //    //for (var key in rowData) {
+        //    //    if (rowData.hasOwnProperty(key)) {
+        //    //        //console.log(key + ": " + rowData[key]);
+
+        //    //        alert(key + ": " + rowData[key]);
+        //    //    }
+        //    //}
+        //}
+
+
+        //for (var i = 0; i < gridData.length; i++) {
+        //    var rowData = gridData[i];
+
+        //    //console.log("Row " + (i + 1) + ":");
+
+        //    for (var key in e.values) {
+        //        if (e.values.hasOwnProperty(key)) {
+        //            //console.log(key + ": " + rowData[key]);
+        //            alert(key + ": " + rowData[key]);
+        //        }
+        //    }
+
+        //    //for (var key in rowData) {
+        //    //    if (rowData.hasOwnProperty(key)) {
+        //    //        //console.log(key + ": " + rowData[key]);
+        //    //        alert(key + ": " + rowData[key]);
+        //    //    }
+        //    //}
+        //}
+
+    
+        //var itemValues = grid.dataSource.data().map(function (item) {
+        //    return item.ItemValue;
+        //});
+
+        //var description = itemValues.join(" ");
+
+        //// Get all data items (rows) in the Grid
+        //var dataItems = grid.dataItems();
+
+        //// Create an array to store the row values
+        //var rowValues = [];
+
+        //// Iterate over each data item (row) and extract the values
+        //for (var i = 0; i < dataItems.length; i++) {
+        //    var row = dataItems[i];
+        //    alert(row.ItemValue);
+        //    if (row.ItemValue) {
+        //        rowValues.push(row.ItemValue);
+        //    }            
+        //}
+        
+        //$("#Description").val(description).trigger('change');
+        
+        //var raNoticeId = [];
+        //$.each(sel, function (idx, row) {
+        //    var item = grid.dataItem(row);
+        //    raNoticeId.push(item.Id);
+        //});
+        //if (raNoticeId == "") {
+        //    alert("No properties were selected, cannot proceed!");
+        //    return;
+        //}
+    }
+
+    function DataRequestItemExtnGrid()
+    {
+        return {
+            requestItemId: $("#Id").val(),
+            psCodeId: $("#PsCodeId").data("kendoMultiColumnComboBox").value()
+        };
     }
 
     function changeAmount(e) {
@@ -553,6 +735,58 @@
         mywindow.center();
         mywindow.open();
     });
+
+    $(".k-grid-btnAddRequestItem").click(function (e) {
+        e.preventDefault();
+        alert('x');
+        RequestItem("A", null);
+    });
+
+    function onClickBtnAddRequestItem(e) {
+        e.preventDefault();
+        alert('x');
+        RequestItem("A", null);
+    }
+    
+    function onClickBtnEditRequestItem(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        RequestItem("E", dataItem.Id);
+    }
+
+    function RequestItem(mode, recId) {
+        var myTitle = (mode == "A") ? "Request Item - ADD" : "Request Item - EDIT";
+        var width = 800;
+        var height = 550;
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    close: function () {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width,
+            height: height
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_RequestItemAddEdit", "Requests")',
+            data: {
+                requestItemId: recId
+            }
+        });
+        mywindow.center();
+        mywindow.open();
+
+    }
 </script>
 
 

@@ -59,6 +59,15 @@ namespace iLgs.Controllers
             return View("Codextn", codeMast);
         }
 
+        public async Task<ActionResult> PsFields()
+        {
+            var code = "PS-FIELDS";
+            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Property & Supply Fields";
+            return View("Codextn", codeMast);
+        }
+
         public ActionResult Codextn()
         {
             return View();

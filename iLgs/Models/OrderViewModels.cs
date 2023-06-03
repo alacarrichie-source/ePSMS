@@ -162,6 +162,7 @@ namespace iLgs.Models
 
         public Nullable<decimal> QtyIssued { get; set; }
         public Nullable<decimal> QtyRemaining { get; set; }
+        public string GridOrderItemExtns { get; set; }
     }
 
     public class OrderItemGroupVM
@@ -170,5 +171,25 @@ namespace iLgs.Models
         public string BrandName { get; set; }
         public string Description { get; set; }
         public string OtherSpecs { get; set; }
+    }
+
+    public class OrderItemExtnVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> OrderItemId { get; set; }
+
+        [Display(Name = "Code")]
+        public string ItemCode { get; set; }
+
+        [Display(Name = "Field")]
+        public string ItemKey { get; set; }
+
+        [Display(Name = "Value")]
+        public string ItemValue { get; set; }
+
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
     }
 }

@@ -555,6 +555,45 @@
         mywindow.center();
         mywindow.open();
     });
+
+    // ------------ GRID ITEM EXTN ------------    
+    function onSaveGridItemExtn(e) {
+        var grid = e.sender;
+        var model = $("#gridItemExtn").data().kendoGrid.editable.options.model;
+
+        for (var key in e.values) {
+            if (e.values.hasOwnProperty(key)) {
+                model.set('ItemValue', e.values[key]);
+            }
+        }
+
+        // Create an array to store the row values
+        var rowValues = [];
+        var gridData = e.sender.dataSource.data();
+        for (var i = 0; i < gridData.length; i++) {
+            var rowData = gridData[i];
+
+            for (var key in e.values) {
+                if (e.values.hasOwnProperty(key)) {
+                    if (rowData[key]) {
+                        rowValues.push(rowData[key]);
+                    }
+                }
+            }
+        }
+
+        var description = rowValues.join(" ");
+        $("#Description").val(description).trigger('change');        
+    }
+
+    function DataOrderItemExtnGrid() {
+        return {
+            orderItemId: $("#Id").val(),
+            psCodeId: $("#PsCodeId").data("kendoMultiColumnComboBox").value() // with problem
+        };
+    }
+    // ------------ END GRID ITEMEXTN
+
 </script>
 
 

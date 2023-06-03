@@ -18,6 +18,7 @@ namespace iLgs.Models
         public RequestItem()
         {
             this.OrderItems = new HashSet<OrderItem>();
+            this.RequestItemExtns = new HashSet<RequestItemExtn>();
         }
     
         public System.Guid Id { get; set; }
@@ -38,5 +39,7 @@ namespace iLgs.Models
         public virtual ICollection<OrderItem> OrderItems { get; set; }
         public virtual PsCode PsCode { get; set; }
         public virtual Request Request { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RequestItemExtn> RequestItemExtns { get; set; }
     }
 }

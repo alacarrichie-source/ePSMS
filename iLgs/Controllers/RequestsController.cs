@@ -15,6 +15,7 @@ using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
 using System.Data.SqlClient;
 using System.IO;
+using System.Collections.Generic;
 
 namespace iLgs.Controllers
 {
@@ -24,11 +25,15 @@ namespace iLgs.Controllers
         AppManEntities db = new AppManEntities();
         IOrderService orderService;
         IRequestService requestService;
+        IRequestItemService requestItemService;
+        IRequestItemExtnService requestItemExtnService;
 
         public RequestsController()
         {
             this.orderService = new OrderService(db);
             this.requestService = new RequestService(db);
+            this.requestItemService = new RequestItemService(db);
+            this.requestItemExtnService = new RequestItemExtnService(db);
         }
 
         // GET: Requests
@@ -238,38 +243,21 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public ActionResult _RequestItemRead([DataSourceRequest] DataSourceRequest request, Guid? prId)
+        public async Task<ActionResult> _RequestItemAddEdit(Guid? requestItemId)
         {
-
-            var data = db.RequestItems.Where(w => w.PrId == prId)
-                .Select(s => new
-                {
-                    Id = s.Id,
-                    PrId = s.PrId,
-                    PsCodeId = s.PsCodeId,
-                    PsCode = s.PsCode.PsNo,
-                    PsUnit = s.PsCode.UnitMeas,
-                    PsItem = s.PsCode.ItemName,
-                    Description = s.Description,
-                    BrandName = s.BrandName,
-                    OtherSpecs = s.OtherSpecs,
-                    Qty = s.Qty,
-                    UnitCost = s.UnitCost,
-                    TotalCost = s.TotalCost,
-                    InsertedDt = s.InsertedDt
-                });
-
-            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+            var data = await requestItemService.GetByIdAsync(requestItemId);
+            ViewData["reqeustItemId"] = requestItemId;
+            return PartialView(data);
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RequestItemCreate([DataSourceRequest] DataSourceRequest request, RequestItemVM model)
+        public async Task<ActionResult> _RequestItemSave(RequestItemVM model)
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "requests");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "request");
                 Access access = await accessTask;
-                if (!access.AllowAdd)
+                if (!access.AllowPost)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
@@ -283,29 +271,18 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model.Id = Guid.NewGuid();
+                    var entity = await requestItemService.GetByIdAsync(model.Id);
 
-                    RequestItem entity = new RequestItem()
+                    if (entity == null)
                     {
-                        Id = model.Id,
-                        PrId = model.PrId,
-                        PsCodeId = model.PsCodeId,
-                        Description = model.Description,
-                        BrandName = model.BrandName,
-                        OtherSpecs = model.OtherSpecs,
-                        Qty = model.Qty,
-                        UnitCost = model.UnitCost,
-                        TotalCost = model.TotalCost,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
-
-                    db.RequestItems.Add(entity);
-                    await db.SaveChangesAsync();
-
-                    // TO DO: save to stock card
+                        model = await requestItemService.CreateAsync(model, user, date);
+                    }
+                    else
+                    {
+                        model = await requestItemService.UpdateAsync(model, user, date);
+                    }
+                    var requestItemExtns = (List<RequestItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRequestItemExtns, typeof(List<RequestItemExtnVM>));
+                    await requestItemExtnService.SaveAsync(model.Id, requestItemExtns, user, date);
                 }
             }
             catch (Exception e)
@@ -314,57 +291,27 @@ namespace iLgs.Controllers
                      "please contact tech support with this message: " + e.Message);
             }
 
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RequestItemUpdate([DataSourceRequest] DataSourceRequest request, RequestItemVM model)
+        public ActionResult _RequestItemRead([DataSourceRequest] DataSourceRequest request, Guid? prId)
         {
-            try
-            {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "requests");
-                Access access = await accessTask;
-                if (!access.AllowEdit)
-                {
-                    ModelState.AddModelError("Access", "Access Denied!");
-                }
-                else if (await requestService.IsPostedAsync((Guid)model.PrId))
-                {
-                    ModelState.AddModelError("PR No.", "PR Number already Posted, cannot update!");
-                }
-
-                if (ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    RequestItem entity = await db.RequestItems.FindAsync(model.Id);
-                    entity.PsCodeId = model.PsCodeId;
-                    entity.Description = model.Description;
-                    entity.BrandName = model.BrandName;
-                    entity.OtherSpecs = model.OtherSpecs;
-                    entity.Qty = model.Qty;
-                    entity.UnitCost = model.UnitCost;
-                    entity.TotalCost = model.TotalCost;
-                    entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
-
-                    db.RequestItems.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    // TO DO: update stock card
-                }
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+            var data = requestItemService.GetByPrId(prId);
+            
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
+                
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> _RequestItemDestroy([DataSourceRequest]DataSourceRequest request, RequestItemVM model)
         {
@@ -386,25 +333,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    RequestItem entity = await db.RequestItems.FindAsync(model.Id);
-
-                    entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
-
-                    db.RequestItems.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    db.RequestItems.Attach(entity);
-                    // Delete the entity
-                    db.RequestItems.Remove(entity);
-                    // Or use DeleteObject if using a previous version of Entity Framework
-                    // Delete the entity in the database
-                    //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    await db.SaveChangesAsync();
-                    //db.Configuration.ValidateOnSaveEnabled = true;   
-
-                    // TO DO: update stocks
+                    model = await requestItemService.DeleteAsync(model, user, date);                    
                 }
 
             }
@@ -510,6 +439,23 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
+
+        #region REQUEST ITEM EXTNS
+
+        public ActionResult _RequestItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? requestItemId, Guid? psCodeId)
+        {
+            var data = requestItemExtnService.GetBatchInfo(requestItemId, psCodeId);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+        
+        #endregion
 
         #region PRINTOUTS
         public ActionResult PurchaseRequestRpt(string prNo)

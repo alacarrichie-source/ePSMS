@@ -349,6 +349,9 @@
     <Compile Include="Models\OrderItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\OrderItemExtn.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\OrderViewModels.cs" />
     <Compile Include="Models\PsCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -359,12 +362,18 @@
     <Compile Include="Models\PsStock.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PsStockExtn.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\QueryViewModels.cs" />
     <Compile Include="Models\ReportViewModels.cs" />
     <Compile Include="Models\Request.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RequestItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RequestItemExtn.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RequestViewModels.cs" />
@@ -439,10 +448,17 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Services\GmailEmailService.cs" />
+    <Compile Include="Services\Interfaces\IOrderItemService.cs" />
+    <Compile Include="Services\Interfaces\IRequestItemService.cs" />
     <Compile Include="Services\Interfaces\IRequestService.cs" />
     <Compile Include="Services\Interfaces\IOrderService.cs" />
+    <Compile Include="Services\Interfaces\IOrderItemExtnService.cs" />
     <Compile Include="Services\ItemService.cs" />
+    <Compile Include="Services\OrderItemExtnService.cs" />
+    <Compile Include="Services\OrderItemService.cs" />
     <Compile Include="Services\OrderService.cs" />
+    <Compile Include="Services\RequestItemExtnService.cs" />
+    <Compile Include="Services\RequestItemService.cs" />
     <Compile Include="Services\RequestService.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
@@ -3311,6 +3327,8 @@
     <Content Include="Views\RSMI\_PrintRsmi.cshtml" />
     <Content Include="Views\Codes\Codextn.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_CodextnGenTemplate.cshtml" />
+    <Content Include="Views\Requests\_RequestItemAddEdit.cshtml" />
+    <Content Include="Views\Orders\_OrderitemAddEdit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

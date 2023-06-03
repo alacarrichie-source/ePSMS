@@ -1,0 +1,217 @@
+﻿@model iLgs.Models.RequestItemVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.PrId)
+    @Html.HiddenFor(model => model.PsCode)
+    @Html.HiddenFor(model => model.GridRequestItemExtns)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.PsCodeId, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.PsCodeId)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select stock/property Code")
+                        .DataTextField("Code")
+                        .DataValueField("Id")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetPsCode", "Getters").Data("DataPsCodeId");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Code").Title("Code").Width("20%");
+                            c.Add().Field("Name").Title("Item Name").Width("50%");
+                            c.Add().Field("Unit").Title("Unit").Width("15%");
+                            c.Add().Field("Type").Title("Type").Width("15%");
+
+                        })
+                        .Suggest(true)
+                        .Events(e => { e.Select("onSelectPsCode").DataBound("onDataBoundPsCode"); })
+                    )
+                    @Html.ValidationMessageFor(m => m.PsCodeId)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.PsItem, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.PsItem).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                </div>
+            </div>
+        </div>
+
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                @(Html.Kendo().Grid<iLgs.Models.RequestItemExtnVM>()
+                    .Name("gridItemExtn")
+                    .Columns(col =>
+                    {
+                        col.Bound(c => c.ItemCode).Width(50);
+                        col.Bound(c => c.ItemKey).Width(100);
+                        col.Bound(c => c.ItemValue).Width(200);
+                    })
+                    //.ToolBar(toolbar =>
+                    //{
+                    //    toolbar.Save();
+                    //})
+                    .Editable(editable => editable.Mode(GridEditMode.InCell))
+                    .Sortable()
+                    .NoRecords()
+                    .Navigatable()
+                    .Scrollable(s => s.Height(130))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .Sort(s => s.Add(a => a.ItemCode))
+                        .ServerOperation(true)
+                        //.Events(events => events.Sync("onSyncGridItemExtn"))
+                        .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+                            model.Field(p => p.ItemCode).Editable(false);
+                            model.Field(p => p.ItemKey).Editable(false);
+                        })
+                        .Read(read => read.Action("_RequestItemExtnBatchRead", "Requests").Data("DataRequestItemExtnGrid"))
+                    )
+                    .Selectable(s => s.Mode(GridSelectionMode.Single))
+                    .Events(e => e.Save("onSaveGridItemExtn"))
+                    .AutoBind(false)
+                )
+            </div>
+        </div>
+
+        <br />
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(m => m.PsUnit, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.PsUnit).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                </div>
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Events(e => e.Change("changeAmount"))
+                    )
+                    @Html.ValidationMessageFor(model => model.Qty)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.UnitCost, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().NumericTextBoxFor(model => model.UnitCost).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Events(e => e.Change("changeAmount"))
+                    )
+                    @Html.ValidationMessageFor(model => model.UnitCost)
+                </div>
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.TotalCost, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().NumericTextBoxFor(model => model.TotalCost).Enable(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.TotalCost)
+                </div>
+            </div>
+        </div>
+
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                <span id="span_">
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave"))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+                </span>
+            </div>
+        </div>
+
+    </fieldset>
+}
+
+
+<script type="text/javascript">
+    $("#btnSave").click(function (e) {
+        e.preventDefault();
+        var grid = $("#gridItemExtn").data("kendoGrid");
+
+        // Get all data items (rows) in the Grid
+        var dataItems = grid.dataItems();
+
+        // Create an array to store the row values
+        var rowValues = [];
+
+        // Iterate over each data item (row) and extract the values
+        for (var i = 0; i < dataItems.length; i++) {
+            var row = dataItems[i];
+            rowValues.push(row);
+        }
+
+        $("#GridRequestItemExtns").val(JSON.stringify(rowValues)).trigger("change");
+
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_RequestItemSave", "Requests")',
+                data: $("#form").serialize(),
+                beforeSend: function () {
+                    window.kendo.ui.progress($("#form"), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($("#form"), false);
+                    if (result.Errors == "") {
+                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                    }
+                    else {
+                        alert(result.Errors);
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+            disabled.attr('disabled', 'disabled');
+        }
+    });
+
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+</script>

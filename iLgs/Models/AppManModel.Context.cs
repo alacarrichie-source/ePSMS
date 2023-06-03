@@ -61,5 +61,8 @@ namespace iLgs.Models
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<Request> Requests { get; set; }
         public virtual DbSet<RISlip> RISlips { get; set; }
+        public virtual DbSet<OrderItemExtn> OrderItemExtns { get; set; }
+        public virtual DbSet<RequestItemExtn> RequestItemExtns { get; set; }
+        public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
     }
 }

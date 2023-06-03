@@ -44,7 +44,7 @@
 
                         })
                         .Suggest(true)
-                        .Events(e => { e.Select("onSelectPsCode"); })
+                        .Events(e => { e.Select("onSelectPsCode").DataBound("onDataBoundPsCode"); })
                 )
                 @Html.ValidationMessageFor(m => m.PsCodeId)
             </div>
@@ -64,7 +64,45 @@
             </div>
         </div>
 
-        <div class="row">
+        @*<div class="row">
+            <div class="col-md-12">
+                @(Html.Kendo().Grid<iLgs.Models.RequestItemExtnVM> ()
+                .Name("gridItemExtn")
+                .Columns(col =>
+                {
+                    col.Bound(c => c.ItemKey).Width(100);
+                    col.Bound(c => c.ItemValue).Width(250);
+                })
+                //.ToolBar(toolbar =>
+                //{
+                //    toolbar.Save();
+                //})
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .Sortable()
+                .NoRecords()
+                .Navigatable()
+                .Scrollable(s => s.Height(100))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(true)
+                    .Sort(s => s.Add(a => a.ItemKey))
+                    .ServerOperation(true)
+                        //.Events(events => events.Error("error_handler"))
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+                        model.Field(p => p.ItemKey).Editable(false);
+                    })
+                    .Read(read => read.Action("_RequestItemExtnBatchRead", "Request").Data("DataRequestItemExtnGrid"))                    
+                )
+                .Selectable(s => s.Mode(GridSelectionMode.Single))
+                .AutoBind(false)
+                )
+            </div>
+        </div>*@
+
+        @*<div class="row">
             @Html.LabelFor(m => m.BrandName, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().TextBoxFor(m => m.BrandName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -76,7 +114,7 @@
             <div class="col-md-12">
                 @(Html.Kendo().TextBoxFor(m => m.OtherSpecs).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             </div>
-        </div>
+        </div>*@
 
         <div class="row">
             @Html.LabelFor(m => m.PsUnit, htmlAttributes: new { @class = "col-md-12" })

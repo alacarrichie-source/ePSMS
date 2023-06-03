@@ -103,5 +103,27 @@ namespace iLgs.Models
 
         [Display(Name = "Item")]
         public string PsItem { get; set; }
+
+        public string GridRequestItemExtns { get; set; }
+    }
+
+    public class RequestItemExtnVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> RequestItemId { get; set; }
+
+        [Display(Name = "Code")]
+        public string ItemCode { get; set; }
+
+        [Display(Name = "Field")]
+        public string ItemKey { get; set; }
+
+        [Display(Name = "Value")]
+        public string ItemValue { get; set; }
+
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }        
     }
 }

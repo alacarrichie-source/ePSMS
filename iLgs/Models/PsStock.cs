@@ -18,6 +18,7 @@ namespace iLgs.Models
         public PsStock()
         {
             this.PsItems = new HashSet<PsItem>();
+            this.PsStockExtns = new HashSet<PsStockExtn>();
         }
     
         public System.Guid Id { get; set; }
@@ -49,5 +50,7 @@ namespace iLgs.Models
         public virtual PsCode PsCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsItem> PsItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsStockExtn> PsStockExtns { get; set; }
     }
 }

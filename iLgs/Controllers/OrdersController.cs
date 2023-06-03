@@ -15,6 +15,7 @@ using CrystalDecisions.Shared;
 using CrystalDecisions.CrystalReports.Engine;
 using System.Data.SqlClient;
 using System.IO;
+using System.Collections.Generic;
 
 namespace iLgs.Controllers
 {
@@ -23,11 +24,15 @@ namespace iLgs.Controllers
     {
         AppManEntities db = new AppManEntities();
         IOrderService orderService;
+        IOrderItemService orderItemService;
+        IOrderItemExtnService orderItemExtnService;
         IRequestService requestService;
 
         public OrdersController()
         {
             this.orderService = new OrderService(db);
+            this.orderItemService = new OrderItemService(db);
+            this.orderItemExtnService = new OrderItemExtnService(db);
             this.requestService = new RequestService(db);
         }
 
@@ -181,26 +186,71 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
+        public async Task<ActionResult> _OrderItemAddEdit(Guid? orderItemId)
+        {
+            var data = await orderItemService.GetByIdAsync(orderItemId);
+            ViewData["orderItemId"] = orderItemId;
+            return PartialView(data);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _OrderItemSave(OrderItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "order");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                else if (await orderService.IsPostedAsync((Guid)model.OrderId))
+                {
+                    ModelState.AddModelError("PO No.", "PO Number already Posted, cannot update!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    var entity = await orderItemService.GetByIdAsync(model.Id);
+
+                    if (entity == null)
+                    {
+                        model = await orderItemService.CreateAsync(model, user, date);
+                    }
+                    else
+                    {
+                        model = await orderItemService.UpdateAsync(model, user, date);
+                    }
+                    var orderItemExtns = (List<OrderItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridOrderItemExtns, typeof(List<OrderItemExtnVM>));
+                    await orderItemExtnService.SaveAsync(model.Id, orderItemExtns, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+
         public ActionResult _OrderItemRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
         {
-
-            var data = db.OrderItems.Where(w => w.OrderId == orderId)
-                .Select(s => new
-                {
-                    Id = s.Id,
-                    OrderId = s.OrderId,
-                    RequestItemId = s.RequestItemId,
-                    PsNo = s.RequestItem.PsCode.PsNo,
-                    PsUnit = s.RequestItem.PsCode.UnitMeas,
-                    PsItem = s.RequestItem.PsCode.ItemName,
-                    Description = s.Description,
-                    BrandName = s.BrandName,
-                    OtherSpecs = s.OtherSpecs,
-                    Qty = s.Qty,
-                    UnitCost = s.UnitCost,
-                    Amount = s.Amount,
-                    InsertedDt = s.InsertedDt
-                });
+            var data = orderItemService.GetByPoId(orderId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -226,27 +276,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model.Id = Guid.NewGuid();
-
-                    OrderItem entity = new OrderItem()
-                    {
-                        Id = model.Id,
-                        OrderId = model.OrderId,
-                        RequestItemId = model.RequestItemId,
-                        Description = model.Description,
-                        Qty = model.Qty,
-                        UnitCost = model.UnitCost,
-                        Amount = model.Amount,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
-
-                    db.OrderItems.Add(entity);
-                    await db.SaveChangesAsync();
-
-                    // TO DO: save to stock card
+                    model = await orderItemService.CreateAsync(model, user, date);                    
                 }
             }
             catch (Exception e)
@@ -279,21 +309,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    OrderItem entity = await db.OrderItems.FindAsync(model.Id);
-
-                    entity.RequestItemId = model.RequestItemId;
-                    entity.Description = model.Description;
-                    entity.BrandName = model.BrandName;
-                    entity.OtherSpecs = model.OtherSpecs;
-                    entity.Qty = model.Qty;
-                    entity.UnitCost = model.UnitCost;
-                    entity.Amount = model.Amount;
-                    entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
-
-                    db.OrderItems.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
+                    model = await orderItemService.UpdateAsync(model, user, date);
 
                     // TO DO: update stock card
                 }
@@ -328,24 +344,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    OrderItem entity = await db.OrderItems.FindAsync(model.Id);
-
-                    entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
-
-                    db.OrderItems.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    db.OrderItems.Attach(entity);
-                    // Delete the entity
-                    db.OrderItems.Remove(entity);
-                    // Or use DeleteObject if using a previous version of Entity Framework
-                    // Delete the entity in the database
-                    //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    await db.SaveChangesAsync();
-                    //db.Configuration.ValidateOnSaveEnabled = true;   
-
+                    model = await orderItemService.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
 
@@ -463,6 +462,20 @@ namespace iLgs.Controllers
             var poMonth = poDate.Date.Month.ToString().Trim().PadLeft(2, '0');
             return Json(new { PoYear = poYear, PoMonth = poMonth }, JsonRequestBehavior.AllowGet);
         }
+
+        public ActionResult _OrderItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? orderItemId, Guid? psCodeId)
+        {
+            var data = orderItemExtnService.GetBatchInfo(orderItemId, psCodeId);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
 
         #endregion
 

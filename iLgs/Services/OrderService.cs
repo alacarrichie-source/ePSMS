@@ -114,7 +114,7 @@ namespace iLgs.Services
             };
 
             // include items during add
-            var requestItems = db.RequestItems.Where(w => w.PrId == model.PrId).ToList();
+            var requestItems = db.RequestItems.Include(i => i.RequestItemExtns).Where(w => w.PrId == model.PrId).ToList();
             foreach (var requestItem in requestItems)
             {
                 OrderItem orderItem = new OrderItem()
@@ -132,7 +132,23 @@ namespace iLgs.Services
                     InsertedDt = date,
                     UpdatedBy = user,
                     UpdatedDt = date
-                };
+                };                
+
+                foreach(var requestItemExtn in requestItem.RequestItemExtns)
+                {
+                    OrderItemExtn orderItemExtn = new OrderItemExtn()
+                    {
+                        Id = Guid.NewGuid(),
+                        OrderItemId = orderItem.Id,
+                        ItemKey = requestItemExtn.ItemKey,
+                        ItemValue = requestItemExtn.ItemValue,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+                    orderItem.OrderItemExtns.Add(orderItemExtn);
+                }
 
                 entity.OrderItems.Add(orderItem);
             }
