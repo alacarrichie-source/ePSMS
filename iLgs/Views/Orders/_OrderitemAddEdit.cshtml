@@ -7,6 +7,7 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.OrderId)
+    @Html.HiddenFor(model => model.PsCodeId)
     @Html.HiddenFor(model => model.PsNo)
     @Html.HiddenFor(model => model.GridOrderItemExtns)
 
@@ -45,7 +46,7 @@
 
                         })
                         .Suggest(true)
-                        .Events(e => { e.Select("onSelectRequestItemId"); })
+                        .Events(e => { e.Select("onSelectRequestItemId").DataBound("onDataBoundRequestItemId"); })
                 )
                 @Html.ValidationMessageFor(m => m.RequestItemId)
             </div>
@@ -132,10 +133,10 @@
                 </div>
             </div>
             <div class="col-md-6">
-                @Html.LabelFor(model => model.TotalCost, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(model => model.Amount, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(model => model.TotalCost).Enable(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.TotalCost)
+                    @(Html.Kendo().NumericTextBoxFor(model => model.Amount).Enable(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.Amount)
                 </div>
             </div>
         </div>

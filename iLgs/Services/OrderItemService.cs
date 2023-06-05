@@ -68,9 +68,27 @@ namespace iLgs.Services
             return model;
         }
 
-        public Task<OrderItemVM> GetByIdAsync(Guid? id)
+        public async Task<OrderItemVM> GetByIdAsync(Guid? id)
         {
-            throw new NotImplementedException();
+            var data = await db.OrderItems.Where(w => w.Id == id)
+                .Select(s => new OrderItemVM
+                {
+                    Id = s.Id,
+                    OrderId = s.OrderId,
+                    RequestItemId = s.RequestItemId,
+                    PsCodeId = s.RequestItem.PsCodeId,
+                    PsNo = s.RequestItem.PsCode.PsNo,
+                    PsUnit = s.RequestItem.PsCode.UnitMeas,
+                    PsItem = s.RequestItem.PsCode.ItemName,
+                    Description = s.Description,
+                    BrandName = s.BrandName,
+                    OtherSpecs = s.OtherSpecs,
+                    Qty = s.Qty,
+                    UnitCost = s.UnitCost,
+                    Amount = s.Amount,
+                    InsertedDt = s.InsertedDt
+                }).FirstOrDefaultAsync();
+            return data;
         }
 
         public IQueryable<OrderItemVM> GetByPoId(Guid? poId)

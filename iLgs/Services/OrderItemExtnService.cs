@@ -92,11 +92,6 @@ namespace iLgs.Services
         public Task UpdateBatchAsync(List<OrderItemExtnVM> orderExtnList, string user, DateTime date)
         {
             throw new NotImplementedException();
-        }
-
-        Task IOrderItemExtnService.SaveAsync(Guid orderItemId, List<OrderItemExtnVM> orderItemExtnList, string user, DateTime date)
-        {
-            throw new NotImplementedException();
-        }
+        }        
     }
 }

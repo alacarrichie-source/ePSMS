@@ -174,6 +174,7 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new
             {
                 Id = c.Id,
+                PsCodeId = c.PsCodeId,
                 Code = c.PsCode.PsNo,
                 Name = c.PsCode.ItemName,
                 Description = c.PsCode.ItemDescription,

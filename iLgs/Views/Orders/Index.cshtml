@@ -97,7 +97,8 @@
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Command(command =>
             {
-                command.Edit();
+                //command.Edit();
+                command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditOrderItem");
                 command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
             }).Width(172);
         })
@@ -120,7 +121,7 @@
         //.Scrollable(s => s.Height(180))
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Sortable()
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_OrderItemTemplate").Window(w => w.Width(500).Title("Order Item")))
+        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_OrderItemTemplate").Window(w => w.Width(500).Title("Order Item")))
         .DataSource(dataSource => dataSource
             .Ajax()
             .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
@@ -173,6 +174,13 @@
 
     .k-floating-label-container {
         width: 100%;
+    }
+
+    #span_ {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: fit-content;
     }
 </style>
 
@@ -344,6 +352,47 @@
 
     // Grid Item
 
+    function onClickBtnEditOrderItem(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        OrderItem("E", dataItem.Id);
+    }
+
+    function OrderItem(mode, recId) {
+        var myTitle = (mode == "A") ? "Order Item - ADD" : "Order Item - EDIT";
+        var width = 800;
+        var height = 550;
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    close: function () {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width,
+            height: height
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_OrderItemAddEdit", "Orders")',
+            data: {
+                orderItemId: recId
+            }
+        });
+        mywindow.center();
+        mywindow.open();
+
+    }
+
+
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
         selecteItemId = selectedData.Id;
@@ -407,6 +456,7 @@
 
         $("#PsItem").val(dataItem.Name).trigger("change");
         $("#PsUnit").val(dataItem.Unit).trigger("change");
+        $("#PsCodeId").val(dataItem.PsCodeId).trigger("change");
         $("#PsCode").val(dataItem.Code).trigger("change");
         $("#Description").val(dataItem.Description).trigger("change");
 
@@ -415,6 +465,16 @@
 
         $("#Qty").data("kendoNumericTextBox").trigger("change");
         $("#UnitCost").data("kendoNumericTextBox").trigger("change");
+
+        RefreshGridItemExtn();
+    }
+
+    function onDataBoundRequestItemId(e) {
+        RefreshGridItemExtn();
+    }
+
+    function RefreshGridItemExtn() {
+        $("#gridItemExtn").data("kendoGrid").dataSource.read();
     }
 
     function DataSupplierId() {
@@ -556,7 +616,7 @@
         mywindow.open();
     });
 
-    // ------------ GRID ITEM EXTN ------------    
+    // ------------ GRID ITEM EXTN ------------
     function onSaveGridItemExtn(e) {
         var grid = e.sender;
         var model = $("#gridItemExtn").data().kendoGrid.editable.options.model;
@@ -583,16 +643,18 @@
         }
 
         var description = rowValues.join(" ");
-        $("#Description").val(description).trigger('change');        
+        $("#Description").val(description).trigger('change');
     }
 
     function DataOrderItemExtnGrid() {
         return {
             orderItemId: $("#Id").val(),
-            psCodeId: $("#PsCodeId").data("kendoMultiColumnComboBox").value() // with problem
+            psCodeId: $("#PsCodeId").val()
         };
     }
     // ------------ END GRID ITEMEXTN
+
+
 
 </script>
 

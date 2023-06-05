@@ -159,7 +159,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
         // TRANSIENTS
-
+        public Nullable<System.Guid> PsCodeId { get; set; }
         public Nullable<decimal> QtyIssued { get; set; }
         public Nullable<decimal> QtyRemaining { get; set; }
         public string GridOrderItemExtns { get; set; }
@@ -168,9 +168,7 @@ namespace iLgs.Models
     public class OrderItemGroupVM
     {
         public Guid? PsCodeId { get; set; }
-        public string BrandName { get; set; }
-        public string Description { get; set; }
-        public string OtherSpecs { get; set; }
+        public string Description { get; set; }        
     }
 
     public class OrderItemExtnVM

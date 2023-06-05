@@ -19,7 +19,7 @@
         col.Bound(c => c.SubmittedBy).Width(100);
         col.Command(command =>
         {
-            command.Custom("Edit"); 
+            command.Custom("Edit");
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
         }).Width(120);
     })
@@ -163,6 +163,12 @@
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
         width: auto;        
     }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }    
 
     .k-floating-label-container {
         width: 100%;
@@ -431,14 +437,14 @@
         $("#PsUnit").val(dataItem.Unit).trigger("change");
         $("#PsCode").val(dataItem.Code).trigger("change");
 
-        RefreshRequestItemExtnGrid();
+        RefreshGridItemExtn();
     }
 
     function onDataBoundPsCode(e) {
-        RefreshRequestItemExtnGrid();
+        RefreshGridItemExtn();
     }    
 
-    function RefreshRequestItemExtnGrid()
+    function RefreshGridItemExtn()
     {
         $("#gridItemExtn").data("kendoGrid").dataSource.read();
     }

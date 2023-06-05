@@ -73,7 +73,7 @@ namespace iLgs.Services
 
         public async Task<Models.Order> GetByPoNoAsync(string poNo)
         {
-            return  await db.Orders.Where(w => w.PoNo == poNo).FirstOrDefaultAsync();
+            return await db.Orders.Where(w => w.PoNo == poNo).FirstOrDefaultAsync();
         }
 
         public async Task<OrderVM> CreateAsync(OrderVM model, string user, DateTime date)
@@ -132,9 +132,9 @@ namespace iLgs.Services
                     InsertedDt = date,
                     UpdatedBy = user,
                     UpdatedDt = date
-                };                
+                };
 
-                foreach(var requestItemExtn in requestItem.RequestItemExtns)
+                foreach (var requestItemExtn in requestItem.RequestItemExtns)
                 {
                     OrderItemExtn orderItemExtn = new OrderItemExtn()
                     {
@@ -221,52 +221,75 @@ namespace iLgs.Services
             foreach (var oig in orderItemGroups)
             {
                 // find group in stocks
-                if (!db.PsStocks.Where(w => w.PsId == oig.PsCodeId
-                    && w.BrandName == oig.BrandName
-                    && w.Description == oig.Description && w.OtherSpecs == oig.OtherSpecs).Any())
+                PsStock psStock = await db.PsStocks.Where(w => w.PsId == oig.PsCodeId && w.Description == oig.Description).FirstOrDefaultAsync();
+                if (psStock == null)
                 {
                     var stockNo = db.PsCodes.Find(oig.PsCodeId).PsNo;
                     var nextStockNo = this.itemService.NextStockNo(stockNo);
-                    var psStock = new PsStock
+                    psStock = new PsStock
                     {
                         Id = Guid.NewGuid(),
                         PsId = oig.PsCodeId,
                         StockNo = nextStockNo,
                         Description = oig.Description,
-                        BrandName = oig.BrandName,
-                        OtherSpecs = oig.OtherSpecs,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
-                        UpdatedDt = date                       
+                        UpdatedDt = date
                     };
 
-                    // Post the OrderItems under the stocks having the same PsCodeId
-                    //var orderItemList = order.OrderItems.Where(w => db.RequestItems.Any(a => a.PsCodeId == oig.PsCodeId)).ToList();
-                    var orderItemList = await db.OrderItems.Include(i => i.RequestItem.PsCode)
-                        .Where(w => w.OrderId == orderId && w.RequestItem.PsCodeId == oig.PsCodeId).ToListAsync();
-                    foreach (var orderItem in orderItemList)
+                    db.PsStocks.Add(psStock);
+                    await db.SaveChangesAsync();
+                }
+
+                // Post the OrderItems under the stocks having the same PsCodeId
+                //var orderItemList = order.OrderItems.Where(w => db.RequestItems.Any(a => a.PsCodeId == oig.PsCodeId)).ToList();
+                var orderItemList = await db.OrderItems
+                    .Include(i => i.RequestItem.PsCode)
+                    .Include(i => i.OrderItemExtns)
+                    .Where(w => w.OrderId == orderId && w.RequestItem.PsCodeId == oig.PsCodeId).ToListAsync();
+                foreach (var orderItem in orderItemList)
+                {
+                    var psItem = new PsItem()
                     {
-                        var psItem = new PsItem()
+                        Id = Guid.NewGuid(),
+                        PsStockId = psStock.Id,
+                        OrderItemId = orderItem.Id,
+                        RefNo = orderItem.Order.PoNo,
+                        RefDate = orderItem.Order.PoDate,
+                        RefType = "PO",
+                        Qty = orderItem.Qty,
+                        QtyIss = 0,
+                        QtyBal = orderItem.Qty,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+                    db.PsItems.Add(psItem);                    
+                }
+                await db.SaveChangesAsync();
+
+                // search PsStockExtns for Field Descripsiotn
+                if (!db.PsStockExtns.Any(a => a.PsStockId == psStock.Id))
+                {
+                    // get first orderItemExtn from orderItemList
+                    var orderItemExtns = orderItemList.FirstOrDefault().OrderItemExtns;
+                    foreach (var orderItemExtn in orderItemExtns)
+                    {
+                        var psStockExtn = new PsStockExtn()
                         {
                             Id = Guid.NewGuid(),
                             PsStockId = psStock.Id,
-                            OrderItemId = orderItem.Id,
-                            RefNo = orderItem.Order.PoNo,
-                            RefDate = orderItem.Order.PoDate,
-                            RefType = "PO",
-                            Qty = orderItem.Qty,
-                            QtyIss = 0,
-                            QtyBal = orderItem.Qty,
+                            ItemKey = orderItemExtn.ItemKey,
+                            ItemValue = orderItemExtn.ItemValue,
                             InsertedBy = user,
                             InsertedDt = date,
                             UpdatedBy = user,
                             UpdatedDt = date
                         };
-                        psStock.PsItems.Add(psItem);
+                        db.PsStockExtns.Add(psStockExtn);
                     }
-
-                    db.PsStocks.Add(psStock);
                     await db.SaveChangesAsync();
                 }
             }
@@ -282,7 +305,51 @@ namespace iLgs.Services
 
         public async Task UnpostAsync(Guid orderId, string user, DateTime date)
         {
+            /*
+             * Delete the following records onUnpost:
+             * PsItem             
+             * PsStocks, PsStockExtns --> if no PsItem
+             */
             var entity = await db.Orders.FindAsync(orderId);
+            var orderItems = db.OrderItems.Include(i => i.RequestItem.PsCode).Where(w => w.OrderId == entity.Id).ToList();
+
+            foreach (var orderItem in orderItems)
+            {
+                var psItems = db.PsItems.Where(w => w.OrderItemId == orderItem.Id).ToList();
+                if (psItems.Count() > 0)
+                {
+                    var psStockId = psItems.FirstOrDefault().PsStockId;
+                    foreach (var psItem in psItems) // delete each orderitem in stock psItems
+                    {
+                        psItem.UpdatedBy = user;
+                        psItem.UpdatedDt = date;
+
+                        db.PsItems.Attach(psItem);
+                        db.Entry(psItem).State = EntityState.Modified;
+
+                        db.PsItems.Remove(psItem);
+                        db.Entry(psItem).State = EntityState.Deleted;
+                        await db.SaveChangesAsync();
+                    }
+
+                    if (!db.PsItems.Any(a => a.PsStockId == psStockId)) // no other order item is using this item
+                    {
+                        var psStockEntity = await db.PsStocks.FindAsync(psStockId);
+                        psStockEntity.UpdatedBy = user;
+                        psStockEntity.UpdatedDt = date;
+
+                        db.PsStocks.Attach(psStockEntity);
+                        db.Entry(psStockEntity).State = EntityState.Modified;
+                        await db.SaveChangesAsync();
+
+                        // delete stock during unpost if not used by other order item
+                        db.PsStocks.Remove(psStockEntity);
+                        db.Entry(psStockEntity).State = EntityState.Deleted;
+                        await db.SaveChangesAsync();
+                    }
+                }
+            }
+
             entity.PostedBy = null;
             entity.PostedDt = null;
             entity.UpdatedBy = user;
@@ -387,7 +454,7 @@ namespace iLgs.Services
         {
             var entity = await db.Orders.FindAsync(orderId);
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
-        }       
+        }
         #endregion
     }
 }
