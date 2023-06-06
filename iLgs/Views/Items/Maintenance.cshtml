@@ -51,28 +51,9 @@
                     @RenderStockDetails()
                 </text>);
             items.Add()
-                .Text("STOCK DETAILS")
+                .Text("STOCK FIELDS")
                 .Content(@<text>
-                    <div class='client-details'>
-                        <ul>
-                            <li><label>Stock No:</label>#= StockNo ?? "" #</li>
-                            <li><label>Description:</label>#= Description ?? "" #</li>
-                            <li><label>Type:</label>#= Type ?? "" #</li>
-                            <li><label>Id No:</label>#= IdNo ?? "" #</li>
-                            <li><label>TCT No:</label>#= TctNo ?? "" #</li>
-                            <li><label>Brand Name:</label>#= BrandName ?? "" #</li>
-                            <li><label>Department:</label>#= Department ?? "" #</li>
-                            <li><label>Other Specs:</label>#= OtherSpecs ?? "" #</li>
-                            <li><label>Serial No:</label>#= SerialNo ?? "" #</li>
-                            <li><label>Color:</label>#= Color ?? "" #</li>
-                            <li><label>Engine No:</label>#= EngineNo ?? "" #</li>
-                            <li><label>Chassis No:</label>#= ChassisNo ?? "" #</li>
-                            <li><label>PAR No:</label>#= ParNo ?? "" #</li>
-                            <li><label>Accountable Officer:</label>#= AccountableOfficer ?? "" #</li>
-                            <li><label>Completion Date:</label>#= CompletionDate ?? "" #</li>
-                            <li><label>Estimated Life:</label>#= EstimatedLife ?? "" #</li>
-                        </ul>
-                    </div>
+                    @RenderStockExtn()
                 </text>);
         })
        .ToClientTemplate()
@@ -169,6 +150,35 @@
     )
 }
 
+@helper RenderStockExtn()
+{
+    @(Html.Kendo().Grid<iLgs.Models.PsStockExtnVM>()
+        .Name("gridStockExtn_#=Id#")
+        .Columns(columns =>
+        {
+            columns.Bound(f => f.ItemCode).Width(50);
+            columns.Bound(f => f.ItemKey).Width(70);
+            columns.Bound(f => f.ItemValue).Width(200);                    
+        })
+        .Selectable()
+        .Navigatable()
+        .NoRecords()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);        
+            })
+            .Sort(s => s.Add(a => a.ItemCode))
+            .Events(events => events.Error("GridError"))
+            .Read("StockExtnRead", "Items", new { stockId = "#=Id#" })            
+        )
+        //.Events(e => e.Edit("onEditGridStockItems").Change("onChangeGridStockItems").DataBound("onDataBoundGridStockItems"))
+        .ToClientTemplate()
+    )
+}
+
 
 <div id="item-list" class="col col-xs-3">
     <h3>ITEMS</h3>
@@ -251,11 +261,7 @@
                 .Columns(col =>
                 {
                     col.Bound(c => c.StockNo).Width(50);
-                    col.Bound(c => c.Description).Width(50);
-                    col.Bound(c => c.Type).Width(50);                    
-                    col.Bound(c => c.BrandName).Width(50);
-                    col.Bound(c => c.Color).Width(50);
-                    col.Bound(c => c.Amount).Width(50);
+                    col.Bound(c => c.Description).Width(200);                    
                     col.Command(command =>
                     {
                         command.Edit();

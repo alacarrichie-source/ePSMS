@@ -101,4 +101,19 @@ namespace iLgs.Models
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
     }
+
+    public class PsStockExtnVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> PsStockId { get; set; }
+        public string ItemKey { get; set; }
+        public string ItemValue { get; set; }
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        [Display(Name = "Code")]
+        public string ItemCode { get; set; }
+    }
 }

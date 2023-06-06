@@ -14,7 +14,8 @@ namespace iLgs.Services.Interfaces
         Task<Request> GetByPrNoAsync(string prNo);
         Task PostAsync(Guid requestId, string user, DateTime date);
         Task UnpostAsync(Guid requestId, string user, DateTime date);
-        Task<bool> IsPostedAsync(Guid requestId);
-        Task<bool> IsWithPOAsync(Guid requestId);
+        Task<bool> IsPostedAsync(Guid? requestId);
+        Task<bool> IsWithPOAsync(Guid? requestId);
+        Task<bool> IsPoPostedAsync(Guid? requestId);
     }
 }

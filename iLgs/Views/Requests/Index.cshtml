@@ -19,7 +19,7 @@
         col.Bound(c => c.SubmittedBy).Width(100);
         col.Command(command =>
         {
-            command.Custom("Edit");
+            command.Edit();
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
         }).Width(120);
     })
@@ -79,82 +79,25 @@
         )
 )
 
-<script id="Details" type="text/x-kendo-tmpl">
-    @(Html.Kendo().Grid<iLgs.Models.RequestItemVM>()
-        .Name("gridItems_#=Id#")
-        .Columns(columns =>
-        {
-            columns.Bound(o => o.PsCode).Width(70);
-            columns.Bound(o => o.PsUnit).Width(70);
-            columns.Bound(o => o.PsItem).Width(70);
-            columns.Bound(o => o.Description).Width(150);
-            columns.Bound(o => o.Qty).Width(70)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Bound(o => o.UnitCost).Width(70)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Bound(o => o.TotalCost).Width(70)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Command(command =>
+<script id="Details" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+            .Name("tabStrip_#=Id#")
+            .HtmlAttributes(new { @class = "no-text-tabstrip" })
+            .TabPosition(TabStripTabPosition.Top)
+            .Animation(animation =>
             {
-                command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRequestItem");
-                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-            }).Width(172);
-        })
-        .ToolBar(toolbar =>
-        {
-          toolbar.Custom().Text("Add Request Item").IconClass("k-icon k-i-add").Name("btnAddRequestItem").HtmlAttributes(new { href = "" });
-        @*toolbar.Template(@<text>
-            @(Html.Kendo().Button().Name("btnAddRequestItem").Content("New Record")
-                .Events(e => e.Click("onClickBtnAddRequestItem"))
-            )
-        </text>);*@
-        })
-        .Pageable(pager => pager
-            .Input(false)
-            .Numeric(true)
-            .Info(true)
-            .PreviousNext(true)
-            .Refresh(true)
-            .PageSizes(true)
-            .ButtonCount(5)
-        )
-        .Filterable()
-        .NoRecords()
-        .Resizable(r => r.Columns(true))
-        //.Scrollable(s => s.Height(180))
-        .Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Sortable()
-        .DataSource(dataSource => dataSource
-            .Ajax()
-            .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
-            .Model(model =>
-            {
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                animation.Open(config =>
+                {
+                    config.Fade(FadeDirection.In);
+                });
             })
-            .Aggregates(a =>
+            .SelectedIndex(0)
+            .Items(items =>
             {
-                a.Add(p => p.Qty).Sum();
-                a.Add(p => p.TotalCost).Sum();
-            })
-            .Read(read => read.Action("_RequestItemRead", "Requests", new { prId = "#=Id#" }))
-            .Create(create => create.Action("_RequestItemCreate", "Requests", new { prId = "#=Id#" }))
-            .Update(update => update.Action("_RequestItemUpdate", "Requests"))
-            .Destroy(destroy => destroy.Action("_RequestItemDestroy", "Requests"))
-        )
-        .Events(events => events
-            .Change("onChangeGridItems")
-            .Edit("onEditGridItems")
-            .DataBound("onDataBoundGridItems")
-        )
-        .AutoBind(true)
-        .ToClientTemplate()
-    )
+                items.Add()//.Text("Request Items")
+                    .Selected(true)
+                    .LoadContentFrom("_RequestItem", "Requests", new { requestId = "#=Id#" });
+            }).ToClientTemplate())
 </script>
 
 <div id="windowcontainer"></div>
@@ -179,6 +122,12 @@
         margin-left: auto;
         margin-right: 0;
         width: fit-content;
+    }
+
+    .no-text-tabstrip .k-item .k-link {
+        padding: 0; /* Remove padding */
+        text-indent: -9999px; /* Move the text outside the visible area */
+        overflow: hidden; /* Hide any overflow */
     }
 </style>
 
@@ -417,7 +366,6 @@
     function DataApprovedBy() {
         var text = $("#ApprovedBy").data("kendoMultiColumnComboBox").text();
         return {
-            department: $("#Department").val(),
             text: text
         };
     }
@@ -433,10 +381,10 @@
     function onSelectPsCode(e) {
         var dataItem = this.dataItem(e.item.index());
 
+        $("#PsCodeId").val(dataItem.Id).trigger("change");
         $("#PsItem").val(dataItem.Name).trigger("change");
         $("#PsUnit").val(dataItem.Unit).trigger("change");
         $("#PsCode").val(dataItem.Code).trigger("change");
-
         RefreshGridItemExtn();
     }
 
@@ -448,11 +396,7 @@
     {
         $("#gridItemExtn").data("kendoGrid").dataSource.read();
     }
-
-    function onSyncGridItemExtn(e) {
-        alert('sync');
-    }
-
+    
     function onSaveChangesGridItemExtn(e) {
         var grid = e.sender;
         var itemValues = grid.dataSource.data().map(function (item) {
@@ -469,8 +413,6 @@
 
         for (var key in e.values) {
             if (e.values.hasOwnProperty(key)) {
-                //alert(key + ": " + e.values[key]);
-                //console.log(key + ": " + e.values[key]);
                 model.set('ItemValue', e.values[key]);
             }
         }  
@@ -483,7 +425,6 @@
         
             for (var key in e.values) {
                 if (e.values.hasOwnProperty(key)) {
-                    //alert(key + ": " + rowData[key]);
                     if (rowData[key])
                     {
                         rowValues.push(rowData[key]);
@@ -493,125 +434,14 @@
         }
 
         var description = rowValues.join(" ");
-        $("#Description").val(description).trigger('change');
-        
-
-        //// Iterate over each data item (row) and extract the values
-        //for (var i = 0; i < dataItems.length; i++) {
-        //    var row = dataItems[i];
-        //    alert(row.ItemValue);
-        //    if (row.ItemValue) {
-        //        rowValues.push(row.ItemValue);
-        //    }            
-        //}
-
-
-        //var gridData = e.sender.dataSource.data();
-        //for (var i = 0; i < gridData.length; i++) {
-        //    var rowData = gridData[i];
-
-        //    //console.log("Row " + (i + 1) + ":");
-
-        //    for (var key in rowData) {
-        //        if (rowData.hasOwnProperty(key)) {
-        //            //console.log(key + ": " + rowData[key]);
-        //            alert(key + ": " + rowData[key]);
-        //        }
-        //    }
-        //}
-
-        //var gridData = $("#gridItemExtn").data("kendoGrid").dataSource.data();               
-        
-        ////var gridData = e.sender.dataSource.view();
-
-        //for (var i = 0; i < gridData.length; i++) {
-        //    var model = e.sender.dataSource.getByUid(gridData[i].uid);
-        //    var rowData = model.toJSON();
-
-        //    //console.log("Row " + (i + 1) + ":");
-
-        //    for (var key in rowData) {
-        //        if (rowData.hasOwnProperty(key)) {
-        //            //console.log(key + ": " + rowData[key]);
-        //            alert(key + ": " + rowData[key]);
-        //        }
-        //    }
-
-        //    ////var rowData = gridData[i];
-        //    //var rowData = gridData[i].toJSON(); // Retrieve updated values
-
-        //    ////console.log("Row " + (i + 1) + ":");
-
-        //    //for (var key in rowData) {
-        //    //    if (rowData.hasOwnProperty(key)) {
-        //    //        //console.log(key + ": " + rowData[key]);
-
-        //    //        alert(key + ": " + rowData[key]);
-        //    //    }
-        //    //}
-        //}
-
-
-        //for (var i = 0; i < gridData.length; i++) {
-        //    var rowData = gridData[i];
-
-        //    //console.log("Row " + (i + 1) + ":");
-
-        //    for (var key in e.values) {
-        //        if (e.values.hasOwnProperty(key)) {
-        //            //console.log(key + ": " + rowData[key]);
-        //            alert(key + ": " + rowData[key]);
-        //        }
-        //    }
-
-        //    //for (var key in rowData) {
-        //    //    if (rowData.hasOwnProperty(key)) {
-        //    //        //console.log(key + ": " + rowData[key]);
-        //    //        alert(key + ": " + rowData[key]);
-        //    //    }
-        //    //}
-        //}
-
-    
-        //var itemValues = grid.dataSource.data().map(function (item) {
-        //    return item.ItemValue;
-        //});
-
-        //var description = itemValues.join(" ");
-
-        //// Get all data items (rows) in the Grid
-        //var dataItems = grid.dataItems();
-
-        //// Create an array to store the row values
-        //var rowValues = [];
-
-        //// Iterate over each data item (row) and extract the values
-        //for (var i = 0; i < dataItems.length; i++) {
-        //    var row = dataItems[i];
-        //    alert(row.ItemValue);
-        //    if (row.ItemValue) {
-        //        rowValues.push(row.ItemValue);
-        //    }            
-        //}
-        
-        //$("#Description").val(description).trigger('change');
-        
-        //var raNoticeId = [];
-        //$.each(sel, function (idx, row) {
-        //    var item = grid.dataItem(row);
-        //    raNoticeId.push(item.Id);
-        //});
-        //if (raNoticeId == "") {
-        //    alert("No properties were selected, cannot proceed!");
-        //    return;
-        //}
+        $("#Description").val(description).trigger('change');        
     }
 
     function DataRequestItemExtnGrid()
     {
         return {
             requestItemId: $("#Id").val(),
-            psCodeId: $("#PsCodeId").data("kendoMultiColumnComboBox").value()
+            psCodeId: $("#PsCodeId").val()
         };
     }
 
@@ -742,15 +572,16 @@
         mywindow.open();
     });
 
-    $(".k-grid-btnAddRequestItem").click(function (e) {
-        e.preventDefault();
-        alert('x');
-        RequestItem("A", null);
-    });
+    //$(document).ready(function () {
+    //    // Bind click event for "Add Request Item" button
+    //    $(document).on("click", ".k-grid-btnAddRequestItem", function () {
+    //        onClickBtnAddRequestItem();
+    //    });
+    //});
 
+    
     function onClickBtnAddRequestItem(e) {
         e.preventDefault();
-        alert('x');
         RequestItem("A", null);
     }
     
@@ -772,7 +603,7 @@
                     modal: true,
                     visible: false,
                     close: function () {
-                        $("#grid").data("kendoGrid").dataSource.read();
+                        $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
                     },
                     deactivate: function () {
                         this.destroy();
@@ -786,6 +617,7 @@
         mywindow.refresh({
             url: '@Url.Action("_RequestItemAddEdit", "Requests")',
             data: {
+                prId: selectedId,
                 requestItemId: recId
             }
         });

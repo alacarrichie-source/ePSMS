@@ -78,7 +78,7 @@ namespace iLgs.Services
                         Id = Guid.NewGuid(),
                         RequestItemId = requestItemExtn.RequestItemId,
                         ItemKey = requestItemExtn.ItemKey,
-                        ItemValue = requestItemExtn.ItemValue,
+                        ItemValue = requestItemExtn.ItemValue ?? "",
                         InsertedBy = user, 
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -88,7 +88,7 @@ namespace iLgs.Services
                     db.RequestItemExtns.Add(entity);                    
                 } else
                 {
-                    entity.ItemValue = requestItemExtn.ItemValue;
+                    entity.ItemValue = requestItemExtn.ItemValue ?? "";
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;
 

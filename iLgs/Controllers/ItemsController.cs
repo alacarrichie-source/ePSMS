@@ -387,6 +387,26 @@ namespace iLgs.Controllers
             }
         }
 
+        public ActionResult StockExtnRead([DataSourceRequest] DataSourceRequest request, Guid? stockId)
+        {
+            var data = db.PsStockExtns.Where(w => w.PsStockId == stockId)
+                .Select(s => new PsStockExtnVM
+                {
+                    Id = s.Id,
+                    ItemCode = db.Codextns.FirstOrDefault(a => a.CodeMast.Code == "PS-FIELDS" && a.Description == s.ItemKey && a.Code.Contains(s.PsStock.StockNo.Substring(0, 2))).Code,
+                    ItemKey = s.ItemKey,
+                    ItemValue = s.ItemValue
+                }).AsQueryable();
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
         public ActionResult StockItemRead([DataSourceRequest] DataSourceRequest request, Guid? stockId)
         {
             var data = db.PsItems.Where(w => w.PsStockId == stockId)

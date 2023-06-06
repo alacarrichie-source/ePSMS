@@ -51,41 +51,59 @@ namespace iLgs.Services
             return await db.Requests.Where(w => w.PrNo == prNo).FirstOrDefaultAsync();
         }
 
-        public async Task<bool> IsPostedAsync(Guid requestId)
+        public async Task<bool> IsPostedAsync(Guid? requestId)
         {
             var entity = await db.Requests.FindAsync(requestId);
-            return !string.IsNullOrWhiteSpace(entity.SubmittedBy);
+            if (entity == null)
+            {
+                return false;
+            }
+            else
+            {
+                return !string.IsNullOrWhiteSpace(entity.SubmittedBy);
+            }
         }
 
-        public async Task<bool> IsWithPOAsync(Guid requestId)
+        public async Task<bool> IsWithPOAsync(Guid? requestId)
         {
             return await db.Orders.AnyAsync(a => a.PrId == requestId);            
+        }
+
+        public async Task<bool> IsPoPostedAsync(Guid? requestId)
+        {
+            return await db.Orders.AnyAsync(a => a.PrId == requestId && !string.IsNullOrWhiteSpace(a.PostedBy));
         }
 
         public async Task PostAsync(Guid requestId, string user, DateTime date)
         {
             var entity = await db.Requests.FindAsync(requestId);
-            entity.SubmittedBy = user;
-            entity.SubmittedDt = date;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+            if (entity != null)
+            {
+                entity.SubmittedBy = user;
+                entity.SubmittedDt = date;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            db.Requests.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();            
+                db.Requests.Attach(entity);
+                db.Entry(entity).State = EntityState.Modified;
+                await db.SaveChangesAsync();
+            }
         }
 
         public async Task UnpostAsync(Guid requestId, string user, DateTime date)
         {
             var entity = await db.Requests.FindAsync(requestId);
-            entity.SubmittedBy = null;
-            entity.SubmittedDt = null;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
+            if (entity != null)
+            {
+                entity.SubmittedBy = null;
+                entity.SubmittedDt = null;
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
 
-            db.Requests.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+                db.Requests.Attach(entity);
+                db.Entry(entity).State = EntityState.Modified;
+                await db.SaveChangesAsync();
+            }
         }
     }
 }

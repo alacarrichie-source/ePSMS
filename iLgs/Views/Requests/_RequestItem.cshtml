@@ -1,0 +1,70 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.RequestItemVM>()
+        .Name("gridItems_" + @ViewData["requestId"])
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.PsCode).Width(70);
+            columns.Bound(o => o.PsUnit).Width(70);
+            columns.Bound(o => o.PsItem).Width(70);
+            columns.Bound(o => o.Description).Width(150);
+            columns.Bound(o => o.Qty).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(o => o.UnitCost).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(o => o.TotalCost).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Command(command =>
+            {
+                command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRequestItem");
+                //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+                command.Destroy();
+            }).Width(172);
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Template(@<text>                
+                @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["requestId"]).Content("Add Request Item").Events(e => e.Click("onClickBtnAddRequestItem")))                    
+            </text>);            
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        //.Scrollable(s => s.Height(180))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Aggregates(a =>
+            {
+                a.Add(p => p.Qty).Sum();
+                a.Add(p => p.TotalCost).Sum();
+            })
+            .Read(read => read.Action("_RequestItemRead", "Requests", new { prId = @ViewData["requestId"] }))
+            .Destroy(destroy => destroy.Action("_RequestItemDestroy", "Requests"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItems")
+            .Edit("onEditGridItems")
+            .DataBound("onDataBoundGridItems")
+        )
+        .AutoBind(true)        
+)

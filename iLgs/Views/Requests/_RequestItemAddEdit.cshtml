@@ -65,7 +65,7 @@
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
         </div>
@@ -81,10 +81,6 @@
                         col.Bound(c => c.ItemKey).Width(100);
                         col.Bound(c => c.ItemValue).Width(200);
                     })
-                    //.ToolBar(toolbar =>
-                    //{
-                    //    toolbar.Save();
-                    //})
                     .Editable(editable => editable.Mode(GridEditMode.InCell))
                     .Sortable()
                     .NoRecords()

@@ -295,10 +295,9 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
         }
 
-        public JsonResult GetApprovedBy(string department, string text)
+        public JsonResult GetApprovedBy(string text)
         {
-            var dept = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault();
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "APPROVED-BY" && w.Desc3 == dept.Code);
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "APPROVED-BY");
 
             if (!string.IsNullOrEmpty(text))
             {

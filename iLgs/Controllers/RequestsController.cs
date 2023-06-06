@@ -243,10 +243,24 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _RequestItemAddEdit(Guid? requestItemId)
+        public ActionResult _RequestItem(Guid requestId)
+        {
+            ViewData["requestId"] = requestId;
+            return PartialView();
+        }
+
+        public async Task<ActionResult> _RequestItemAddEdit(Guid prId, Guid? requestItemId)
         {
             var data = await requestItemService.GetByIdAsync(requestItemId);
-            ViewData["reqeustItemId"] = requestItemId;
+            if (data == null)
+            {
+                data = new RequestItemVM()
+                {
+                    Id = Guid.NewGuid(),
+                    PrId = prId
+                };
+            }
+            ViewData["requestItemId"] = requestItemId;
             return PartialView(data);
         }
 
@@ -261,7 +275,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await requestService.IsPostedAsync((Guid)model.PrId))
+                else if (await requestService.IsPostedAsync(model.PrId))
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot update!");
                 }
@@ -411,6 +425,10 @@ namespace iLgs.Controllers
                 else if (!(await requestService.IsPostedAsync(requestId)))
                 {
                     ModelState.AddModelError("PR No.", "PR Number not yet posted, cannot unpost!");
+                }
+                else if (await requestService.IsPoPostedAsync(requestId))
+                {
+                    ModelState.AddModelError("PO No.", "PO Number for this request is already posted, cannot unpost!");
                 }
 
                 if (ModelState.IsValid)

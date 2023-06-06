@@ -152,14 +152,24 @@
         </div>
 
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 @Html.LabelFor(model => model.DeliveryPlace, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.DeliveryPlace).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.DeliveryPlace)
+                    @(Html.Kendo().TextBoxFor(model => model.DeliveryPlace).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.DeliveryPlace)
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.DeliveryDate, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().DatePickerFor(model => model.DeliveryDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.DeliveryDate)
+                </div>
+            </div>            
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
                 @Html.LabelFor(model => model.TermDelivery, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.TermDelivery)
@@ -186,7 +196,7 @@
                     @Html.ValidationMessageFor(m => m.TermDelivery)
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                 @Html.LabelFor(model => model.TermPayment, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.TermPayment)

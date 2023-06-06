@@ -20,7 +20,7 @@ namespace iLgs.Services
 
         public async Task<RequestItemVM> CreateAsync(RequestItemVM model, string user, DateTime date)
         {
-            model.Id = Guid.NewGuid();
+            //model.Id = Guid.NewGuid(); // Id created in controller
             model.InsertedBy = user;
             model.InsertedDt = date;
             model.UpdatedBy = user;
