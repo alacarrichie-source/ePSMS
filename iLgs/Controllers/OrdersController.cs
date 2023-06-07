@@ -186,9 +186,22 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _OrderItemAddEdit(Guid? orderItemId)
+        public ActionResult _OrderItem(Guid orderId)
+        {
+            ViewData["orderId"] = orderId;
+            return PartialView();
+        }
+        public async Task<ActionResult> _OrderItemAddEdit(Guid orderId, Guid? orderItemId)
         {
             var data = await orderItemService.GetByIdAsync(orderItemId);
+            if (data == null)
+            {
+                data = new OrderItemVM()
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = orderId
+                };
+            }            
             ViewData["orderItemId"] = orderItemId;
             return PartialView(data);
         }
@@ -347,14 +360,11 @@ namespace iLgs.Controllers
                     model = await orderItemService.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
-
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
-
-
+                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message.ToString());
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));

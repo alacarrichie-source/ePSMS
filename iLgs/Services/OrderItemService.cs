@@ -62,7 +62,7 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             db.OrderItems.Remove(entity);
-            db.Entry(model).State = EntityState.Deleted;
+            db.Entry(entity).State = EntityState.Deleted;
             await db.SaveChangesAsync();
 
             return model;

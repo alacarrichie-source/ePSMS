@@ -247,7 +247,7 @@ namespace iLgs.Services
                 var orderItemList = await db.OrderItems
                     .Include(i => i.RequestItem.PsCode)
                     .Include(i => i.OrderItemExtns)
-                    .Where(w => w.OrderId == orderId && w.RequestItem.PsCodeId == oig.PsCodeId).ToListAsync();
+                    .Where(w => w.OrderId == orderId && w.RequestItem.PsCodeId == oig.PsCodeId && w.Description == oig.Description).ToListAsync();
                 foreach (var orderItem in orderItemList)
                 {
                     var psItem = new PsItem()

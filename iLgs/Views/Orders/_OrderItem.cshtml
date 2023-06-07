@@ -1,0 +1,69 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.OrderItemVM>()
+        .Name("gridItems_" + @ViewData["orderId"])
+        .Columns(col =>
+        {
+            col.Bound(c => c.PsNo).Width(70);
+            col.Bound(c => c.PsUnit).Width(50);
+            col.Bound(c => c.PsItem).Width(150);
+            col.Bound(c => c.Description).Width(150);
+            col.Bound(c => c.Qty).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.Amount).Width(100).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Command(command =>
+            {
+                command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditOrderItem");
+                command.Destroy();
+            }).Width(172);
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Template(@<text>
+                @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["orderId"]).Content("Add Order Item").Events(e => e.Click("onClickBtnAddOrderItem")))
+            </text>);
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Aggregates(a =>
+            {
+                a.Add(p => p.Qty).Sum();
+                a.Add(p => p.Amount).Sum();
+            })
+            .Sort(s =>
+            {
+                s.Add(a => a.InsertedDt);
+            })
+            .Read(read => read.Action("_OrderItemRead", "Orders", new { orderId = @ViewData["orderId"] }))
+            .Destroy(destroy => destroy.Action("_OrderItemDestroy", "Orders"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItems")
+            .Edit("onEditGridItems")
+            .DataBound("onDataBoundGridItems")
+        )
+        .AutoBind(true)
+)

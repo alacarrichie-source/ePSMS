@@ -3328,8 +3328,9 @@
     <Content Include="Views\Codes\Codextn.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_CodextnGenTemplate.cshtml" />
     <Content Include="Views\Requests\_RequestItemAddEdit.cshtml" />
-    <Content Include="Views\Orders\_OrderitemAddEdit.cshtml" />
+    <Content Include="Views\Orders\_OrderItemAddEdit.cshtml" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
+    <Content Include="Views\Orders\_OrderItem.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
