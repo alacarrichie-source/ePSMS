@@ -7,8 +7,8 @@
             columns.Bound(o => o.PsItem).Width(70);
             columns.Bound(o => o.Description).Width(150);
             columns.Bound(o => o.Qty).Width(70)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             columns.Bound(o => o.UnitCost).Width(70)
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
@@ -20,8 +20,8 @@
             columns.Command(command =>
             {
                 command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRequestItem");
-                //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-                command.Destroy();
+                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItem").SendDataKeys(true);
+                //command.Destroy();
             }).Width(172);
         })
         .ToolBar(toolbar =>
@@ -64,7 +64,7 @@
         .Events(events => events
             .Change("onChangeGridItems")
             .Edit("onEditGridItems")
-            .DataBound("onDataBoundGridItems")
+            .DataBound("onDataBoundGridItems")           
         )
         .AutoBind(true)        
 )

@@ -11,6 +11,12 @@ using System.Data.Entity;
 using Microsoft.AspNet.Identity;
 using iLgs.Utilities;
 using Newtonsoft.Json;
+using System.Data.SqlClient;
+using CrystalDecisions.CrystalReports.Engine;
+using System.IO;
+using iLgs.Services.Interfaces;
+using iLgs.Services;
+using System.Configuration;
 
 namespace iLgs.Controllers
 {
@@ -18,6 +24,15 @@ namespace iLgs.Controllers
     public class ItemsController : Controller
     {
         private AppManEntities db = new AppManEntities();
+        private ICodextnService codextnService;
+        private IDirectoryService directoryService;        
+
+        public ItemsController()
+        {
+            this.codextnService = new CodextnService(db);
+            this.directoryService = new DirectoryService();            
+        }
+
         // GET: Codes
         public ActionResult Index()
         {
@@ -162,6 +177,7 @@ namespace iLgs.Controllers
 
         public ActionResult Maintenance()
         {
+            ViewData["imageDirectory"] = directoryService.GetItemImageDirectory();
             return View();
         }
 
@@ -670,6 +686,57 @@ namespace iLgs.Controllers
             }
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        #region PRINTOUTS
+        public ActionResult StockCardRpt(string stockNo)
+        {
+            string stringname = db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
+
+            string un = decoder.UserID;
+            string pw = decoder.Password;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            ReportClass rpt = new ReportClass();
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/StockCard.rpt"));
+            rpt.Load();
+            rpt.Refresh();
+
+            rpt.SetDatabaseLogon(un, pw, svr, db_);
+            foreach (Table table in rpt.Database.Tables)
+            {
+                var logonInfo = table.LogOnInfo;
+                logonInfo.ConnectionInfo.ServerName = svr;
+                logonInfo.ConnectionInfo.DatabaseName = db_;
+                logonInfo.ConnectionInfo.UserID = un;
+                logonInfo.ConnectionInfo.Password = pw;
+                table.ApplyLogOnInfo(logonInfo);
+            }
+
+            var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            
+            rpt.SetParameterValue("@cStockNo", stockNo);
+            rpt.SetParameterValue("LGU", lgu);
+
+            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+            rpt.Close();
+            rpt.Dispose();
+            return File(stream, "application/pdf");
+        }
+        #endregion
+
+        public async Task<FileResult> GetProductImage(Guid imageId)
+        {
+            var upload = await db.Uploads.Where(w => w.ImageId == imageId).FirstOrDefaultAsync();
+            if (upload != null)
+            {                
+                string networkImagePath = directoryService.GetItemImageDirectory() + upload.FileName;
+                byte[] imageBytes = System.IO.File.ReadAllBytes(networkImagePath);
+                return File(imageBytes, "image/jpeg");
+            }
+            return null;
         }
     }
 }

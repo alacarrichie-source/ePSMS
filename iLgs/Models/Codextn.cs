@@ -15,7 +15,7 @@ namespace iLgs.Models
     public partial class Codextn
     {
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> MastId { get; set; }
+        public System.Guid MastId { get; set; }
         public string Code { get; set; }
         public string Description { get; set; }
         public string Desc2 { get; set; }

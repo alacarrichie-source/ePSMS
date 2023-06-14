@@ -70,8 +70,8 @@ namespace iLgs.Services
         }
 
         public async Task<bool> IsPoPostedAsync(Guid? requestId)
-        {
-            return await db.Orders.AnyAsync(a => a.PrId == requestId && !string.IsNullOrWhiteSpace(a.PostedBy));
+        {            
+            return await db.Orders.AnyAsync(a => a.PrId == requestId && !(a.PostedBy == "" || a.PostedBy == null) );
         }
 
         public async Task PostAsync(Guid requestId, string user, DateTime date)

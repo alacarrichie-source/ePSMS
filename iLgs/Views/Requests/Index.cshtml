@@ -6,6 +6,7 @@
 
 @(Html.Kendo().Grid<iLgs.Models.RequestVM>()
     .Name("grid")
+    .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
         col.Bound(c => c.PrNo).Width(70);
@@ -53,8 +54,9 @@
     )
     .Filterable()
     .NoRecords()
-    .Resizable(r => r.Columns(true))
-    .Scrollable(s => s.Height(430))
+    .Resizable(r => r.Columns(true))    
+    //.Scrollable(s => s.Height(430))
+    .Scrollable()
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
     .ClientDetailTemplateId("Details")
@@ -129,6 +131,11 @@
         text-indent: -9999px; /* Move the text outside the visible area */
         overflow: hidden; /* Hide any overflow */
     }
+
+    /*#grid .k-grid-content {
+        overflow-y: auto;
+        height: calc(100vh - 200px)!important;        
+    }*/    
 </style>
 
 
@@ -147,6 +154,18 @@
 
 
 <script type="text/javascript">
+    //$(window).on("resize", function () {
+    //    var gridElement = $("#grid"),
+    //        dataArea = gridElement.find(".k-grid-content"),
+    //        gridHeight = gridElement.innerHeight(),
+    //        otherElements = gridElement.children().not(".k-grid-content"),
+    //        otherElementsHeight = 0;
+    //        otherElements.each(function () {
+    //            otherElementsHeight += $(this).outerHeight();
+    //        });
+    //    dataArea.height(gridHeight - otherElementsHeight);
+    //});
+
     function GridError(args) {
         if (args.errors) {
             var validationError = true;
@@ -222,8 +241,9 @@
                 this.select(e.masterRow);
             });
         }
-
+        
         if (this.dataSource.data().length == 0) {
+            var grid = $("#grid");
             $(".k-grid-btnPrintPR", grid).hide();
             $(".k-grid-btnSubmitPR", grid).hide();
             $(".k-grid-btnUnpostPR", grid).hide();
@@ -251,9 +271,7 @@
         var dataItem = selectedGrid.dataItem(tr);
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        selectedGrid.removeRow(tr);
-
-        //setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+        selectedGrid.removeRow(tr);        
     }
 
     function onRequestEnd(e) {
@@ -319,6 +337,48 @@
         }
     }
 
+    function onClickDeleteGridItem(e) {
+        e.preventDefault();
+
+        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
+        selectedGrid = grid;
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+
+        if (confirm("Are you sure you want to delete this record?")) {
+            grid.dataSource.remove(dataItem);
+            grid.dataSource.sync();
+        }
+
+
+        //e.preventDefault();
+        ////selectedGrid = this;        
+        //selectedGrid = $("gridItems_" + selectedId).data("kendoGrid");
+        //var deleteButton = $(e.target).closest(".k-grid-delete"); // Adjust the selector based on your delete button class or identifier
+        ////alert(deleteButton);
+        //var tr = deleteButton.closest("tr");
+        ////alert(tr);
+        ////var dataItem = selectedGrid.dataItem(tr);
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //alert(dataItem);
+
+        ////var rowItem = selectedGrid.dataSource.getByUid(tr.data("uid"));
+
+        //var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        //alert(rowitem);
+
+        //selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        //selectedGrid.removeRow(tr); // Delete the row
+
+        
+
+
+        //var tr = $(e.currentTarget).closest("tr");
+        //var dataItem = selectedGrid.dataItem(tr);
+        //var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        //selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        //selectedGrid.removeRow(tr);
+    }
+    
     function DataPsCodeId() {
         var text = $("#PsCodeId").data("kendoMultiColumnComboBox").text();
         if (text == null || text == "") {

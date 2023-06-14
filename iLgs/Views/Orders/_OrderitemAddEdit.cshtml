@@ -114,7 +114,7 @@
             <div class="col-md-6">
                 @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(2).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                     .Events(e => e.Change("changeAmount"))
                     )
                     @Html.ValidationMessageFor(model => model.Qty)

@@ -34,8 +34,7 @@ namespace iLgs.Models
         }
     }
 
-    [MetadataType(typeof(Codextn.Metadata))]
-    public partial class Codextn
+    public class CodextnVM
     {
         public string CodeHdg { get; set; }
         public string Desc1Hdg { get; set; }
@@ -43,23 +42,20 @@ namespace iLgs.Models
         public string Desc3Hdg { get; set; }
         public string Desc4Hdg { get; set; }
         public string Desc5Hdg { get; set; }
-        internal sealed class Metadata
-        {
-            public Nullable<System.Guid> Id { get; set; }
-            public Nullable<System.Guid> MastId { get; set; }
-            [Required]
-            public string Code { get; set; }            
-            [Required]
-            public string Description { get; set; }
-            public string Desc2 { get; set; }
-            public string Desc3 { get; set; }
-            public string Desc4 { get; set; }
-            public string Desc5 { get; set; }
-            public string InsertedBy { get; set; }
-            public Nullable<System.DateTime> InsertedDt { get; set; }
-            public string UpdatedBy { get; set; }
-            public Nullable<System.DateTime> UpdatedDt { get; set; }
-        }
+        public Guid Id { get; set; }
+        public Guid MastId { get; set; }
+        [Required]
+        public string Code { get; set; }            
+        [Required]
+        public string Description { get; set; }
+        public string Desc2 { get; set; }
+        public string Desc3 { get; set; }
+        public string Desc4 { get; set; }
+        public string Desc5 { get; set; }
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }        
     }
 
     public class MenuActionSw

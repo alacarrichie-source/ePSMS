@@ -10,6 +10,8 @@ using System.Data.Entity;
 using iLgs.Utilities;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
+using iLgs.Services.Interfaces;
+using iLgs.Services;
 
 namespace iLgs.Controllers
 {
@@ -17,6 +19,12 @@ namespace iLgs.Controllers
     public class CodesController : Controller
     {
         private AppManEntities db = new AppManEntities();
+        private ICodextnService codextnService;
+
+        public CodesController()
+        {
+            this.codextnService = new CodextnService(db);
+        }
         // GET: Codes
         public ActionResult Index()
         {
@@ -211,39 +219,16 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
-
-
-        //public ActionResult Codextn()
-        //{
-        //    return View();
-        //}
-
-        public ActionResult CodextnRead([DataSourceRequest] DataSourceRequest request, Guid? mastId)
+      
+        public ActionResult CodextnRead([DataSourceRequest] DataSourceRequest request, Guid mastId)
         {
-            var data = db.Codextns.Where(w => w.MastId == mastId)
-                .Select(s => new
-                {
-                    Id = s.Id,
-                    Code = s.Code,
-                    NastId = s.MastId,
-                    Description = s.Description,
-                    Desc2 = s.Desc2,
-                    Desc3 = s.Desc3,
-                    Desc4 = s.Desc4,
-                    Desc5 = s.Desc5,
-                    CodeHdg = s.CodeMast.CodeHdg,
-                    Desc1Hdg = s.CodeMast.Desc1Hdg,
-                    Desc2Hdg = s.CodeMast.Desc2Hdg,
-                    Desc3Hdg = s.CodeMast.Desc3Hdg,
-                    Desc4Hdg = s.CodeMast.Desc4Hdg,
-                    Desc5Hdg = s.CodeMast.Desc5Hdg
-                });
-
+            var data = codextnService.GetByMastId(mastId);
+                
             return Json(data.ToDataSourceResult(request));
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> CodextnCreate([DataSourceRequest] DataSourceRequest request, Codextn model)
+        public async Task<ActionResult> CodextnCreate([DataSourceRequest] DataSourceRequest request, CodextnVM model)
         {
             try
             {
@@ -267,14 +252,10 @@ namespace iLgs.Controllers
 
                 if (model != null && ModelState.IsValid)
                 {
-                    model.Id = Guid.NewGuid();
-                    model.InsertedBy = User.Identity.Name;
-                    model.InsertedDt = DateTime.Now;
-                    model.UpdatedBy = model.InsertedBy;
-                    model.UpdatedDt = model.InsertedDt;
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
 
-                    db.Codextns.Add(model);
-                    db.SaveChanges();
+                    model = await codextnService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -289,7 +270,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> CodextnUpdate([DataSourceRequest] DataSourceRequest request, Codextn model)
+        public async Task<ActionResult> CodextnUpdate([DataSourceRequest] DataSourceRequest request, CodextnVM model)
         {
             try
             {
@@ -313,44 +294,28 @@ namespace iLgs.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    var entity = db.Codextns.Find(model.Id);
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
 
-                    if (entity != null)
-                    {
-                        model.UpdatedBy = User.Identity.Name;
-                        model.UpdatedDt = DateTime.Now;
-
-                        entity.Code = model.Code;
-                        entity.Description = model.Description;
-                        entity.Desc2 = model.Desc2;
-                        entity.Desc3 = model.Desc3;
-                        entity.Desc4 = model.Desc4;
-                        entity.Desc5 = model.Desc5;
-                        entity.UpdatedBy = model.UpdatedBy;
-                        entity.UpdatedDt = model.UpdatedDt;
-
-                        db.Codextns.Attach(entity);
-                        db.Entry(entity).State = EntityState.Modified;
-                        db.SaveChanges();
-                    }
+                    model = await codextnService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
             {
                 ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
                      "please contact tech support with this message: " + e.Message);
-
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> CodextnDestroy([DataSourceRequest]DataSourceRequest request, Codextn model)
+        public async Task<ActionResult> CodextnDestroy([DataSourceRequest]DataSourceRequest request, CodextnVM model)
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                string user = ControllerContext.HttpContext.User.Identity.Name;                
+                Task<Access> accessTask = new HomeController().Access(user, "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -362,22 +327,15 @@ namespace iLgs.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    // Attach the entity
-                    db.Codextns.Attach(model);
-                    // Delete the entity
-                    db.Codextns.Remove(model);
-                    // Or use DeleteObject if using a previous versoin of Entity Framework
-                    // Delete the entity in the database
-                    //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    db.SaveChanges();
+                    DateTime date = System.DateTime.Now;
 
+                    model = await codextnService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
             {
                 ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
                      "please contact tech support with this message: " + e.Message);
-
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));

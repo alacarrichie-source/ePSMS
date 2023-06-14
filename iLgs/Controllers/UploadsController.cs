@@ -13,12 +13,19 @@ using iLgs.Utilities;
 using Newtonsoft.Json;
 using System.IO;
 using System.Configuration;
+using iLgs.Services.Interfaces;
+using iLgs.Services;
 
 namespace iLgs.Controllers
 {
     public class UploadsController : Controller
     {
         private AppManEntities db = new AppManEntities();
+        private IDirectoryService directoryService;
+        public UploadsController()
+        {
+            this.directoryService = new DirectoryService();
+        }
         // GET: Uploads
         public ActionResult Index()
         {
@@ -54,7 +61,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                
+
                 if (ModelState.IsValid)
                 {
                     var entity = db.Uploads.Find(model.Id);
@@ -168,7 +175,6 @@ namespace iLgs.Controllers
                         else
                         {
                             var recId = Guid.NewGuid();
-                            //var fileName = Path.GetFileName(file.FileName);
                             var fileName = recId.ToString() + '.' + fileExt;
                             //var physicalPath = Path.Combine(Server.MapPath(directory), fileName);
                             var physicalPath = Path.Combine(directory, fileName);
@@ -182,7 +188,7 @@ namespace iLgs.Controllers
                                 FileName = fileName,
                                 ServerIpAddress = hostaddress,
                                 VirtualDirectory = directory,
-                                Description = model.Description,                                
+                                Description = model.Description,
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,
@@ -231,6 +237,111 @@ namespace iLgs.Controllers
                 //return new FileStreamResult( new FileStream(physicalPath, FileMode.Open), "image/jpg");
                 return File(physicalPath, "image/jpg");
             }
+        }
+
+        public FileResult GetProductImage(string productId)
+        {
+            string networkImagePath = directoryService.GetItemImageDirectory() + productId + ".jpg";
+            byte[] imageBytes = System.IO.File.ReadAllBytes(networkImagePath);
+            return File(imageBytes, "image/jpeg");
+        }
+
+        public ActionResult _UploadSingle(Guid imageId, string fileName)
+        {
+            var model = new Models.Upload()
+            {
+                ImageId = imageId,
+                FileName = fileName
+            };
+            ViewData["fileSize"] = 10;
+            return PartialView(model);
+        }
+
+        public async Task<ActionResult> UploadSingle(IEnumerable<HttpPostedFileBase> files, iLgs.Models.Upload model)
+        {
+            try
+            {
+
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "uploads");
+                Access access = await accessTask;
+
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("Access", "Access Denied...");
+                }
+                else
+                {
+
+                    string imageDir = directoryService.GetItemImageDirectory();
+
+                    var supportedTypes = new[] { "jpg", "jpeg", "png" };
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    var date = DateTime.Now;
+
+                    foreach (var file in files)
+                    {
+                        var fileSize_MB = 10;
+                        if (file.ContentLength > (10240) * 100 * fileSize_MB)
+                        {
+                            ModelState.AddModelError("photo", string.Format("the size of the file should not exceed {0} MB", fileSize_MB));
+                        }
+                        var fileExt = System.IO.Path.GetExtension(file.FileName).Substring(1).ToLower();
+                        if (!supportedTypes.Contains(fileExt))
+                        {
+                            ModelState.AddModelError("photo", "Invalid type.");
+                            return Content("Invalid type..");
+                        }
+                        else
+                        {
+                            var recId = Guid.NewGuid();
+                            var fileName = model.FileName + '.' + fileExt;
+                            var physicalPath = Path.Combine(imageDir, fileName);
+                            var hostaddress = Request.UserHostAddress;
+                            
+                            file.SaveAs(physicalPath);
+
+                            var entity = await db.Uploads.Where(w => w.ImageId == model.ImageId).FirstOrDefaultAsync();
+                            if (entity == null)
+                            {
+                                entity = new iLgs.Models.Upload()
+                                {
+                                    Id = recId,
+                                    ImageId = model.ImageId,
+                                    FileName = fileName,
+                                    ServerIpAddress = hostaddress,
+                                    VirtualDirectory = imageDir,
+                                    Description = model.Description,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                db.Uploads.Add(entity);
+                            }
+                            else
+                            {
+                                entity.FileName = fileName;
+                                entity.ServerIpAddress = hostaddress;
+                                entity.VirtualDirectory = imageDir;
+                                entity.Description = model.Description;
+                                entity.UpdatedBy = user;
+                                entity.UpdatedDt = date;
+                                db.Uploads.Attach(entity);
+                                db.Entry(entity).State = EntityState.Modified;
+                            }
+                            await db.SaveChangesAsync();
+                        }
+                    }
+                    return Content("");
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save/delete changes, Try again, and if the problem persists " +
+                "please contact tech support with this message:" + e.Message);
+            }
+            //return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+            return Content("Error Uploading files..");
         }
     }
 }

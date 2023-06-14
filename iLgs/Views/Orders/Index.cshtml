@@ -6,6 +6,7 @@
 
 @(Html.Kendo().Grid<iLgs.Models.OrderVM>()
     .Name("grid")
+    .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
         col.Bound(c => c.PoNo).Width(70);
@@ -53,7 +54,7 @@
     .Filterable()
     .NoRecords()
     .Resizable(r => r.Columns(true))
-    .Scrollable(s => s.Height(430))
+    .Scrollable()
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
     .ClientDetailTemplateId("Details")
@@ -132,7 +133,7 @@
         padding: 0; /* Remove padding */
         text-indent: -9999px; /* Move the text outside the visible area */
         overflow: hidden; /* Hide any overflow */
-    }
+    }    
 </style>
 
 

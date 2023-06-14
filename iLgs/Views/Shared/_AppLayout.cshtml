@@ -14,6 +14,7 @@
 }
 @(Html.Kendo().Drawer()
     .Name("drawer")
+    .HtmlAttributes(new { style = "height: 100%;" })
     .TemplateId("drawerTemplate")
     .Mode("push")
     .Mini(false)
@@ -23,7 +24,7 @@
     .Events(ev => ev.ItemClick("onItemClick"))
     .Content(@<text>
         <div>
-            <main role="main" class="k-content">
+            <main role="main" class="k-content" style="height: 100%!important">
                 @(Html.Kendo().AppBar()
                    .Name("appbar")
                    .ThemeColor(AppBarThemeColor.Inherit)
@@ -43,6 +44,7 @@
                 <div style="height: 100%!important;">
                     @RenderBody()
                 </div>
+                @*<p>&copy; @DateTime.Now.Year - City Government of Las Piñas. All Rights Reserved.</p>*@                
             </main>
         </div>
     </text>)
@@ -258,60 +260,6 @@ if (menu != null)
 }
 
 <style>
-    /*#name {
-        font-weight: bold;
-        font-size: 14px;
-    }
-
-    #email {
-        font-size: 12px;
-        text-decoration-line: underline;
-    }
-
-    #menuIcon {
-        cursor: pointer;
-    }
-
-    .title {
-        font-size: 18px;
-        line-height: 20px;
-        color: #2D73F5;
-    }
-
-    .app-bar-link {
-        font-size: 14px;
-        line-height: 20px;
-        color: #424242;
-        cursor: pointer;
-    }
-
-    li[data-role='drawer-item'] > a {
-        color: #424242;
-    }
-
-    li.k-state-selected[data-role='drawer-item'] > a {
-        color: #FFFFFF;
-    }
-
-    @@media (max-width: 716px) {
-        .k-drawer-wrapper {
-            transition: none;
-        }
-    }
-
-    #rights p {
-        margin: 5px 0;
-    }
-
-    #rights {
-        position: absolute;
-        bottom: 10px;
-        left: 15px;
-        padding-right: 15px;
-        color: #848690;
-        font-size: 10px;
-    }*/
-       
     #name {
         font-weight: bold;
         font-size: 14px;
@@ -399,11 +347,15 @@ if (menu != null)
         /*display:flex;*/
         justify-content: space-evenly;
     }
-    
-    #avatar 
-    {
+
+    #avatar {
         width: 50%;
         height: 50%;
+    }
+    
+    .max-grid .k-grid-content {
+        overflow-y: auto;
+        height: calc(100vh - 180px)!important;        
     }
 </style>
 

@@ -19,8 +19,16 @@
 
 <script type="text/x-kendo-tmpl" id="itemBioTemplate">
     <div>
-        <h3>ABOUT</h3>
-        @*<img src="@(Url.Content("~/content/employees/"))#:EmployeeID#.png" class="img-responsive employee-details-image" />*@
+        @*<h3>ABOUT</h3>*@
+        @*<img src="@(Url.Content("~/content/employees/"))#:PsNo#.jpg" class="img-responsive employee-details-image" />*@
+        @*@Server.MapPath("~/Images/ePSMS/Items")
+            @Url.Content(Server.MapPath("~/Images/ePSMS/Items") + "#:PsNo#.jpg")
+            <img src="@Url.Content(Server.MapPath("~/Images/ePSMS/Items") + "#:PsNo#.jpg"))">
+            <img src="file://ws2016/Images/ePSMS/Items/#:PsNo#.jpg">*@
+        
+        @*<img id="itemImage" src="/Items/GetProductImage/?ProductId=#:PsNo#" class="img-responsive item-details-image clickable-image" onclick="onClickItemImage()"/>*@        
+        <img id="itemImage" src="/Items/GetProductImage/?imageId=#:Id#" class="img-responsive item-details-image clickable-image" onclick="onClickItemImage()" />
+        
         <dl class="item-bio-details">            
             <dd class="title">#:ItemName# #:ItemDescription??""#</dd>
             <dt class="name">#:PsNo#</dt>
@@ -68,7 +76,7 @@
         {
             //t.Create().Text("Add Items");
             t.Template(@<text>                
-                @(Html.Kendo().Button().Icon("k-icon k-i-checkbox-checked").Name("btnSelectionAdd").Content("Add from orders").Events(e => e.Click("onClickBtnSelection")).ToClientTemplate())                                
+                @(Html.Kendo().Button().Icon("k-icon k-i-checkbox-checked").Name("btnSelectionAdd").Content("Add from orders").Events(e => e.Click("onClickBtnSelection")).ToClientTemplate())                                                
             </text>);
         })
         .Columns(columns =>
@@ -86,18 +94,18 @@
              {
                  info.Bound(f => f.Qty).EditorTemplateName("_QtyTemplate")
                    .Width(70).Title("Receipt")
-                   .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                   .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                   .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                   .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
                  info.Bound(f => f.QtyIss)
                      .Width(70).Title("Issue")
-                     .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                     .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                     .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                     .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                      .HeaderHtmlAttributes(new { style = "text-align:right;" });
                  info.Bound(f => f.QtyBal)
                      .Width(70).Title("Balance")
-                     .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                     .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                     .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                     .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                      .HeaderHtmlAttributes(new { style = "text-align:right;" });   
              }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
          );
@@ -184,6 +192,7 @@
     <h3>ITEMS</h3>
     @(Html.Kendo().Grid<iLgs.Models.PsCodeVM>()
     .Name("grid")
+    //.HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
         col.Bound(c => c.PsNo).Width(50);
@@ -212,7 +221,7 @@
     .Filterable()
     .NoRecords()
     .Resizable(r => r.Columns(true))
-    .Scrollable(s => s.Height(380))
+    .Scrollable()
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
     .DataSource(dataSource => dataSource
@@ -271,6 +280,7 @@
                 .ToolBar(t =>
                 {
                     t.Create();
+                    t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintStock").HtmlAttributes(new { @class = "k-button", href = "" });
                 })
                 .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_StockTemplate").Window(w => w.Width(500).Title("Stocks")))
                 .Pageable(pager => pager
@@ -285,7 +295,7 @@
                 .Filterable()
                 .NoRecords()
                 .Resizable(r => r.Columns(true))
-                .Scrollable(s => s.Height(280))
+                .Scrollable()
                 .Selectable(s => s.Mode(GridSelectionMode.Single))
                 .Sortable()
                 .ClientDetailTemplateId("StocksDetailTemplate")
@@ -524,6 +534,87 @@
         font-style: normal;
         font-weight: bold;
     }
+
+    /*.container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .content {
+        flex: 1;        
+    }*/
+
+    #grid .k-grid-content {
+        overflow-y: auto;
+        height: calc(100vh - 230px) !important;
+    }
+
+    #gridStocks .k-grid-content {
+        overflow-y: auto;
+        height: calc(100vh - 295px) !important;
+    }
+
+    .item-photo {
+        display: inline-block;
+        width: 150px;
+        height: 150px;
+        border-radius: 1%;
+        background-size: 150px 150px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 80px;
+        box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+        margin-left: 5px;
+    }
+
+    .item-list-image,
+    .item-details-image,
+    .item-list-details,
+    .item-bio-details {
+        display: inline-block;
+    }
+
+    .item-list-image {
+        border-radius: 30px;
+        margin-right: 5px;
+    }
+
+    .item-details-image {
+        border-radius: 45px;
+        border: 2px solid #737374;
+        margin-right: 20px;
+    }
+
+    .item-list-details,
+    .item-bio-details {
+        vertical-align: middle;
+    }
+
+    .item-bio-details dt {
+        font-size: 18px;
+        line-height: 18px;
+        margin: 4px auto;
+    }
+
+    .item-bio-details dd {
+        margin: 4px auto;
+    }
+
+    .item-details-image {
+        width: 70px; 
+        height: 70px; 
+    }
+
+    .clickable-image {
+        cursor: pointer; /* Change the cursor to a pointer */
+        opacity: 0.8; /* Reduce the opacity to indicate interactivity */
+        transition: opacity 0.3s ease; /* Add a smooth transition effect */
+    }
+
+    .clickable-image:hover {
+        opacity: 1; /* Increase the opacity when hovering */
+    }
 </style>
 
 
@@ -601,10 +692,13 @@
     var selectedId = null;
     var selectedStockId = null;
     var selecteItemId = null;
+    var selectedStockNo = null;
+    var selectedPsNo = null;
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         selectedId = selectedData.Id;
+        selectedPsNo = selectedData.PsNo;
         selectedStockId = null;
         selectedItemId = null;
 
@@ -671,12 +765,41 @@
         const dataItem = this.dataItem(tr);
         const rowitem = this.dataSource.get(dataItem.Id);
         this.select($('[data-uid=' + rowitem.uid + ']'));
-        this.removeRow(tr); 
+        this.removeRow(tr);
     }
 
 
     // GRID STOCKS
-    
+
+    $(".k-grid-btnPrintStock").click(function (e) {
+        e.preventDefault();
+        var url = '@Url.Action("StockCardRpt", "Items")?stockNo=' + selectedStockNo;
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    });
+
     function onSaveGridStocks(e)
     {
         e.preventDefault();
@@ -684,7 +807,7 @@
         if (e.model.isNew()) {
             alert('sf');
             // Get the ID of the new record
-            selectedStockId = e.response.Id;             
+            selectedStockId = e.response.Id;
         }
     }
 
@@ -697,21 +820,21 @@
             alert(e.response.Id);
             selectedStockId = e.model.Id;
             alert(selectedStockId);
-            
+
         }
     }
 
     function onRequestEndGridStocks(e) {
-        e.preventDefault();        
+        e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                selectedGrid.dataSource.read();                
+                selectedGrid.dataSource.read();
             }
             if (e.type == "create")
-            {                
+            {
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
-                selectedStockId = newRecord.Id;                
+                selectedStockId = newRecord.Id;
             }
         }
     }
@@ -719,12 +842,13 @@
     function onChangeGridStocks(e) {
         var selectedData = this.dataItem(this.select());
         selectedStockId = selectedData.Id;
+        selectedStockNo = selectedData.StockNo
         selectedItemId = null;
 
         var items = $("#gridStocks").data("kendoGrid"),
             item = items.dataSource.getByUid(items.select().attr("data-uid"))
         //gridItems = $("#gridItems").data("kendoGrid")
-        //gridItems.dataSource.read();        
+        //gridItems.dataSource.read();
     }
 
     function DataGridStocks() {
@@ -751,7 +875,12 @@
                 // Select the expanded master row
                 this.select(e.masterRow);
             });
-        }        
+        }
+
+        if (this.dataSource.data().length == 0) {
+            var grid = $("#grid");
+            $(".k-grid-btnPrintStock", grid).hide();
+        }
 
         //if (this.dataSource.total() == 0) {
         //   // to do: disable item add button
@@ -807,20 +936,20 @@
 
     function onEditGridStockItems(e) {
         e.preventDefault();
-        selectedGrid = e.sender;        
+        selectedGrid = e.sender;
         // the master row for this detail
         var parentRow = this.wrapper.closest("tr").prev();
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
         var parentModel = parentGrid.dataItem(parentRow);
-        e.model.set("PsStockId", parentModel.Id);        
+        e.model.set("PsStockId", parentModel.Id);
     }
 
     function onChangeGridStockItems(e) {
         var selectedData = this.dataItem(this.select());
-        selectedItemId = selectedData.Id;        
+        selectedItemId = selectedData.Id;
     }
 
-    function onDataBoundGridStockItems(e) {        
+    function onDataBoundGridStockItems(e) {
         if (selectedItemId) {
             var dataItem = this.dataSource.get(selectedItemId);
             if (dataItem) {
@@ -829,13 +958,13 @@
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-        }        
+        }
     }
 
     // Order Selection
     function onClickBtnSelection(e)
     {
-        window.kendo.ui.progress($(document.body), true);        
+        window.kendo.ui.progress($(document.body), true);
         var myUrl = '@Url.Action("_QueryOrderItems", "Items")';
         var myTitle = "Purchase Order Items";
         var width = "80%";
@@ -843,21 +972,21 @@
 
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Close"],
-                    resizable: true,
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    activate: function () {
-                        window.kendo.ui.progress($(document.body), false);
-                    },
-                    deactivate: function () {
-                        this.destroy();
-                        onLoad = 1;
-                        $("#gridStockDetails_" + selectedStockId).data("kendoGrid").dataSource.read();                        
-                    }
-                }).data("kendoWindow");
+            .kendoWindow({
+                actions: ["Close"],
+                resizable: true,
+                draggable: true,
+                modal: true,
+                visible: false,
+                activate: function () {
+                    window.kendo.ui.progress($(document.body), false);
+                },
+                deactivate: function () {
+                    this.destroy();
+                    onLoad = 1;
+                    $("#gridStockDetails_" + selectedStockId).data("kendoGrid").dataSource.read();
+                }
+            }).data("kendoWindow");
         mywindow.setOptions({
             title: myTitle,
             width: width,
@@ -872,7 +1001,7 @@
         });
         mywindow.center().open();
     }
-    
+
     function onChangeGridSelection(e) {
         var selectedRows = this.select();
         var totalSelectedRow = this.selectedKeyNames().length;
@@ -899,7 +1028,56 @@
     }
 
     // End Order Selection
+        
+    function onClickItemImage() {
+        var myUrl = '@Url.Action("_UploadSingle", "Uploads")?imageId=' + selectedId + '&fileName=' + selectedPsNo;
+        var myTitle = "Upload Image";
+        var width = 700;
+        var height = 500;
 
+        $("#windowcontainer").append("<div id='windowUpload'></div>");
+        var mywindow = $("#windowUpload")
+            .kendoWindow({
+                actions: ["Minimize", "Maximize", "Close"],
+                resizable: true,
+                draggable: true,
+                modal: true,
+                visible: false,
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function UploadPara(e) {
+        e.data = { Description: $("#Description").val(), ImageId: $("#ImageId").val(), FileName: $("#FileName").val() }
+        //var data = $("#formUpload").serialize();
+        //alert(data);
+        //e.data = data;
+    }
+
+    function onUploadSuccess(e) {
+        $('#grid').data('kendoGrid').dataSource.read();
+    }
+
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
 </script>
 
 

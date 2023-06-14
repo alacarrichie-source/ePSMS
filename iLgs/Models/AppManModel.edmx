@@ -99,7 +99,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="MastId" Type="uniqueidentifier" />
+          <Property Name="MastId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="Code" Type="varchar" MaxLength="50" />
           <Property Name="Description" Type="varchar" MaxLength="100" />
           <Property Name="Desc2" Type="varchar" MaxLength="50" />
@@ -524,6 +524,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="ImageId" Type="uniqueidentifier" />
           <Property Name="FileName" Type="nvarchar" MaxLength="50" />
           <Property Name="Description" Type="nvarchar" MaxLength="50" />
           <Property Name="ServerIpAddress" Type="varchar" MaxLength="50" />
@@ -704,7 +705,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_Codextn_Codextn">
-          <End Role="CodeMast" Type="Self.CodeMast" Multiplicity="0..1" />
+          <End Role="CodeMast" Type="Self.CodeMast" Multiplicity="1" />
           <End Role="Codextn" Type="Self.Codextn" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="CodeMast">
@@ -884,7 +885,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_PsItems_PsStocks">
-          <End Role="PsStocks" Type="Self.PsStocks" Multiplicity="0..1" />
+          <End Role="PsStocks" Type="Self.PsStocks" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Role="PsItems" Type="Self.PsItems" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="PsStocks">
@@ -1390,7 +1393,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </AssociationSet>
           <EntitySet Name="Suppliers" EntityType="AppManModel.Supplier" />
           <EntitySet Name="Sequences" EntityType="AppManModel.Sequence" />
-          <EntitySet Name="Uploads" EntityType="AppManModel.Upload" />
           <EntitySet Name="AIRs" EntityType="AppManModel.AIR" />
           <EntitySet Name="IssuedItems" EntityType="AppManModel.IssuedItem" />
           <EntitySet Name="Issueds" EntityType="AppManModel.Issued" />
@@ -1465,11 +1467,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="PsCode" EntitySet="PsCodes" />
             <End Role="RequestItem" EntitySet="RequestItems" />
           </AssociationSet>
-          <EntitySet Name="Codextns" EntityType="AppManModel.Codextn" />
-          <AssociationSet Name="FK_Codextn_Codextn" Association="AppManModel.FK_Codextn_Codextn">
-            <End Role="CodeMast" EntitySet="CodeMasts" />
-            <End Role="Codextn" EntitySet="Codextns" />
-          </AssociationSet>
           <EntitySet Name="Requests" EntityType="AppManModel.Request" />
           <AssociationSet Name="FK_Orders_Requests" Association="AppManModel.FK_Orders_Requests">
             <End Role="Request" EntitySet="Requests" />
@@ -1511,6 +1508,12 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="PsStock" EntitySet="PsStocks" />
             <End Role="PsStockExtn" EntitySet="PsStockExtns" />
           </AssociationSet>
+          <EntitySet Name="Codextns" EntityType="AppManModel.Codextn" />
+          <AssociationSet Name="FK_Codextn_Codextn" Association="AppManModel.FK_Codextn_Codextn">
+            <End Role="CodeMast" EntitySet="CodeMasts" />
+            <End Role="Codextn" EntitySet="Codextns" />
+          </AssociationSet>
+          <EntitySet Name="Uploads" EntityType="AppManModel.Upload" />
           </EntityContainer>
         <EntityType Name="Menubase">
           <Key>
@@ -1936,20 +1939,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </Key>
           <Property Name="KeyName" Type="String" Nullable="false" MaxLength="20" FixedLength="true" Unicode="false" />
           <Property Name="KeyValue" Type="String" MaxLength="20" FixedLength="true" Unicode="false" />
-        </EntityType>
-        <EntityType Name="Upload">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="FileName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="Description" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="ServerIpAddress" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="VirtualDirectory" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
         </EntityType>
         <EntityType Name="AIR">
           <Key>
@@ -2428,36 +2417,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="Codextn">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="MastId" Type="Guid" />
-          <Property Name="Code" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Description" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="Desc2" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Desc3" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Desc4" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Desc5" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="CodeMast" Relationship="AppManModel.FK_Codextn_Codextn" FromRole="Codextn" ToRole="CodeMast" />
-        </EntityType>
-        <Association Name="FK_Codextn_Codextn">
-          <End Type="AppManModel.CodeMast" Role="CodeMast" Multiplicity="0..1" />
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="CodeMast">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Codextn">
-              <PropertyRef Name="MastId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="Request">
           <Key>
             <PropertyRef Name="Id" />
@@ -2675,6 +2634,51 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="Codextn">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="MastId" Type="Guid" Nullable="false" />
+          <Property Name="Code" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Desc2" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc3" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc4" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Desc5" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="CodeMast" Relationship="AppManModel.FK_Codextn_Codextn" FromRole="Codextn" ToRole="CodeMast" />
+        </EntityType>
+        <Association Name="FK_Codextn_Codextn">
+          <End Type="AppManModel.CodeMast" Role="CodeMast" Multiplicity="1" />
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CodeMast">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Codextn">
+              <PropertyRef Name="MastId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Upload">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ImageId" Type="Guid" />
+          <Property Name="FileName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ServerIpAddress" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="VirtualDirectory" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+        </EntityType>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -2969,21 +2973,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="Uploads">
-            <EntityTypeMapping TypeName="AppManModel.Upload">
-              <MappingFragment StoreEntitySet="Uploads">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="VirtualDirectory" ColumnName="VirtualDirectory" />
-                <ScalarProperty Name="ServerIpAddress" ColumnName="ServerIpAddress" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="FileName" ColumnName="FileName" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="AIRs">
             <EntityTypeMapping TypeName="AppManModel.AIR">
               <MappingFragment StoreEntitySet="AIRs">
@@ -3253,24 +3242,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="Codextns">
-            <EntityTypeMapping TypeName="AppManModel.Codextn">
-              <MappingFragment StoreEntitySet="Codextn">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Desc5" ColumnName="Desc5" />
-                <ScalarProperty Name="Desc4" ColumnName="Desc4" />
-                <ScalarProperty Name="Desc3" ColumnName="Desc3" />
-                <ScalarProperty Name="Desc2" ColumnName="Desc2" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="Code" ColumnName="Code" />
-                <ScalarProperty Name="MastId" ColumnName="MastId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Requests">
             <EntityTypeMapping TypeName="AppManModel.Request">
               <MappingFragment StoreEntitySet="Requests">
@@ -3366,6 +3337,40 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="ItemValue" ColumnName="ItemValue" />
                 <ScalarProperty Name="ItemKey" ColumnName="ItemKey" />
                 <ScalarProperty Name="PsStockId" ColumnName="PsStockId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Codextns">
+            <EntityTypeMapping TypeName="AppManModel.Codextn">
+              <MappingFragment StoreEntitySet="Codextn">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Desc5" ColumnName="Desc5" />
+                <ScalarProperty Name="Desc4" ColumnName="Desc4" />
+                <ScalarProperty Name="Desc3" ColumnName="Desc3" />
+                <ScalarProperty Name="Desc2" ColumnName="Desc2" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="MastId" ColumnName="MastId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Uploads">
+            <EntityTypeMapping TypeName="AppManModel.Upload">
+              <MappingFragment StoreEntitySet="Uploads">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="VirtualDirectory" ColumnName="VirtualDirectory" />
+                <ScalarProperty Name="ServerIpAddress" ColumnName="ServerIpAddress" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="ImageId" ColumnName="ImageId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

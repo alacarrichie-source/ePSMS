@@ -15,6 +15,7 @@ namespace iLgs.Models
     public partial class Upload
     {
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> ImageId { get; set; }
         public string FileName { get; set; }
         public string Description { get; set; }
         public string ServerIpAddress { get; set; }
