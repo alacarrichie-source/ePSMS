@@ -605,12 +605,12 @@ namespace iLgs.Controllers
         public async Task<ActionResult> _QueryOrderItemRead([DataSourceRequest] DataSourceRequest request, Guid psId)
         {
 
-            var data = db.OrderItems.Where(w => w.RequestItem.PsCode.Id == psId && !w.PsItems.Any(a => a.OrderItemId == w.Id))
+            var data = db.OrderItems.Where(w => w.RequestItem.RisItem.PsCode.Id == psId && !w.PsItems.Any(a => a.OrderItemId == w.Id))
                 .Select(s => new QueryOrderItemsVM
                 {
                     Id = s.Id,
-                    PsNo = s.RequestItem.PsCode.PsNo,
-                    ItemName = s.RequestItem.PsCode.ItemName,
+                    PsNo = s.RequestItem.RisItem.PsCode.PsNo,
+                    ItemName = s.RequestItem.RisItem.PsCode.ItemName,
                     PoDate = s.Order.PoDate,
                     PoNo = s.Order.PoNo,
                     Qty = s.Qty

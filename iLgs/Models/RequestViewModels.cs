@@ -11,29 +11,17 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
 
-        [Required]
-        public string Fund { get; set; }
-
-        [Required]
-        public string Department { get; set; }
-        public string Section { get; set; }
+        [Display(Name = "RIS No.")]
+        public Nullable<System.Guid> RisId { get; set; }        
         
-        [Display(Name = "P.R. No.")]
+        [Display(Name = "PR No.")]
         public string PrNo { get; set; }
 
         [Required]
-        [Display(Name = "P.R. Date")]
+        [Display(Name = "PR Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> PrDate { get; set; }
-        public string FPP { get; set; }
-        public string Purpose { get; set; }
-
-        [Required]
-        [Display(Name = "Requested By")]
-        public string RequestedBy { get; set; }
-
-        [Display(Name = "Designation")]
-        public string RequestedDesig { get; set; }
+        public Nullable<System.DateTime> PrDate { get; set; }        
+        
 
         [Display(Name = "Cash Availability")]
         public string Availability { get; set; }
@@ -59,6 +47,23 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }       
 
         public bool IsWithPO { get; set; }
+
+        // TRANSIENTS 
+        // From RIS
+
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> RisDate { get; set; }
+        public string Fund { get; set; }
+        public string Department { get; set; }
+        public string Section { get; set; }
+        public string FPP { get; set; }
+        public string Purpose { get; set; }
+
+        [Display(Name = "Requested By")] // --> ApprovedBy From RIS
+        public string RequestedBy { get; set; }
+
+        [Display(Name = "Designation")]
+        public string RequestedDesig { get; set; }
     }
 
     public class RequestItemVM
@@ -81,11 +86,11 @@ namespace iLgs.Models
         [Required]
         public Nullable<decimal> Qty { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Total Cost")]
         public Nullable<decimal> TotalCost { get; set; }
         public string InsertedBy { get; set; }
@@ -120,6 +125,8 @@ namespace iLgs.Models
 
         [Display(Name = "Value")]
         public string ItemValue { get; set; }
+
+        public int? Sequence { get; set; }
 
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }

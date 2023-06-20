@@ -3,7 +3,7 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-    @(Html.Kendo().Grid<iLgs.Models.AIR_VM>()
+@(Html.Kendo().Grid<iLgs.Models.AIR_VM>()
     .Name("grid")
     .Columns(col =>
     {
@@ -13,7 +13,7 @@
         col.Bound(c => c.PoDate).Width(100);
         col.Bound(c => c.Department).Width(100);
         col.Bound(c => c.InvoiceNo).Width(100);
-        col.Bound(c => c.InvoiceDate).Width(100);        
+        col.Bound(c => c.InvoiceDate).Width(100);
         col.Command(command =>
         {
             command.Edit();
@@ -23,6 +23,9 @@
     .ToolBar(t =>
     {
         t.Create().Text("Add Record");
+        t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrint_").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost_").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost_").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRTemplate").Window(w => w.Width(800).Title("Acceptance and Inspection")))
@@ -31,7 +34,7 @@
         s.Field(o => o.AIRNo, "contains");
         s.Field(o => o.PoNo, "contains");
         s.Field(o => o.Department, "contains");
-        s.Field(o => o.InvoiceNo, "contains");        
+        s.Field(o => o.InvoiceNo, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -68,7 +71,7 @@
         .Edit("onEditGrid")
         .DataBound("onDataBoundGrid")
         )
-    )
+)
 
 <script id="Details" type="text/x-kendo-tmpl">
     @(Html.Kendo().Grid<iLgs.Models.AIRItemVM>()
@@ -139,37 +142,37 @@
     )
 </script>
 
-    <div id="windowcontainer"></div>
+<div id="windowcontainer"></div>
 
-    <style>
-            .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
-                width: auto;
-            }
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
 
-            .k-grid .k-grid-search {
-                display: flex;
-                margin-left: auto;
-                margin-right: 0;
-            }
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
 
-            .k-floating-label-container {
-                width: 100%;
-            }
+    .k-floating-label-container {
+        width: 100%;
+    }
 
-            .card-body {
-                flex: 1 1 auto;
-                padding: 1rem 1rem;
-                min-height: 100px;
-            }
+    .card-body {
+        flex: 1 1 auto;
+        padding: 1rem 1rem;
+        min-height: 100px;
+    }
 
-            .card-header {
-                padding: 0.5rem 1rem;
-                margin-bottom: 0;
-                background-color: rgba(0,0,0,.03);
-                border-bottom: 1px solid rgba(0,0,0,.125);
-            }
+    .card-header {
+        padding: 0.5rem 1rem;
+        margin-bottom: 0;
+        background-color: rgba(0,0,0,.03);
+        border-bottom: 1px solid rgba(0,0,0,.125);
+    }
 
-            /*.k-black body,
+    /*.k-black body,
         .k-black .card,
         .k-black .card-header,
         .k-black .buttons-wrap {
@@ -178,40 +181,40 @@
             color: #fff;
         }*/
 
-            .card {
-                position: relative;
-                display: flex;
-                flex-direction: column;
-                min-width: 0;
-                word-wrap: break-word;
-                background-color: #fff;
-                background-clip: border-box;
-                border: 1px solid rgba(0,0,0,.125);
-                border-radius: 0.25rem;
-            }
+    .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        word-wrap: break-word;
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid rgba(0,0,0,.125);
+        border-radius: 0.25rem;
+    }
 
-            .clearfix::after {
-                display: block;
-                clear: both;
-                content: "";
-            }
-    </style>
+    .clearfix::after {
+        display: block;
+        clear: both;
+        content: "";
+    }
+</style>
 
-    <script type="text/x-kendo-template" id="validationMessageTemplate">
-        # if (messages.length) { #
-        <li>
-            #=field#
-            <ul>
-                # for (var i = 0; i < messages.length; ++i) { #
-                <li>#= messages[i] #</li>
-                # } #
-            </ul>
-        </li>
-        # } #
-    </script>
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    <li>
+        #=field#
+        <ul>
+            # for (var i = 0; i < messages.length; ++i) { #
+            <li>#= messages[i] #</li>
+            # } #
+        </ul>
+    </li>
+    # } #
+</script>
 
 
-    <script type="text/javascript">
+<script type="text/javascript">
 
 
         function GridError(args) {
@@ -259,13 +262,25 @@
         var selectedId = null;
         var selectedId_OrderId = null;
         var selecteItemId = null;
+        var postedBy = null;
+        var selectedAirNo = null;
 
         function onChangeGrid(e) {
             var selectedData = this.dataItem(this.select());
             selectedId = selectedData.Id;
             selectedId_OrderId = selectedData.OrderId;
             selectedItemId = null;
-            //$("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
+
+            postedBy = selectedData.PostedBy;
+            selectedAirNo = selectedData.AIRNo;
+            
+            if (postedBy) {
+                $(".k-grid-btnUnpost_", grid).hide();                
+                $(".k-grid-btnPost_", grid).hide();
+            } else {
+                $(".k-grid-btnUnpost_", grid).hide();
+                $(".k-grid-btnPost_", grid).show();
+            }
         }
 
 
@@ -287,7 +302,13 @@
                     // Select the expanded master row
                     this.select(e.masterRow);
                 });
-            }            
+            }
+
+            if (this.dataSource.data().length == 0) {
+                $(".k-grid-btnPrint_", grid).hide();
+                $(".k-grid-btnPost_", grid).hide();
+                $(".k-grid-btnUnpost_", grid).hide();
+            }
         }
 
         function onEditGrid(e) {
@@ -316,7 +337,7 @@
         }
 
         // Grid Item
-        
+
         function onChangeGridItems(e) {
             var selectedData = this.dataItem(this.select());
             selecteItemId = selectedData.Id;
@@ -409,6 +430,103 @@
                 }
             }
         }
-    </script>
+
+    // GRID ITEMS
+
+    $(".k-grid-btnPost_").click(function (e) {
+        e.preventDefault();
+        if (postedBy) {
+            alert("AIR already posted by " + postedBy);
+        }
+        else {
+            var msg = "Post AIR Number " + selectedAirNo + "?";
+
+            if (confirm(msg)) {
+                var popupNotification = $("#popupNotification").data("kendoNotification");
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("PostAIRs", "AIRs")',
+                    data: { airId: selectedId },
+                    async: true,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($(document.body), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($(document.body), false);
+                        if (result.Errors == "") {
+                            popupNotification.show("Orders Posted...", "info");
+                            $("#grid").data("kendoGrid").dataSource.read();
+                        } else {
+                            alert(result.Errors);
+                            return false;
+                        }
+                    },
+                    error: function (req, status, errorObj) {
+                        disabled.attr('disabled', 'disabled');
+                        alert(req.responseText);
+                        return false;
+                    }
+                });
+            }
+        }
+    });
+
+    $(".k-grid-btnUnpost_").click(function (e) {
+        e.preventDefault();
+        var msg = "Unpost AIR Number " + selectedAirNo + "?";
+
+        if (confirm(msg)) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("UnpostAIRs", "AIRs")',
+                data: { airId: selectedId },
+                async: true,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    if (result.Errors == "") {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    } else {
+                        alert(result.Errors);
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+        }
+    });
+
+    $(".k-grid-btnPrint_").click(function (e) {
+        e.preventDefault();
+        var url = '@Url.Action("AIRRpt", "AIRs")?airNo=' + selectedAirNo;
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    });
+</script>
 
 

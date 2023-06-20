@@ -158,7 +158,23 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Id.ToString() == text || p.PrNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.Department }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.RISs.Office }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetRisNos(string text)
+        {
+
+            var model = db.RISses.Where(w => w.PostedBy != null).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.RisNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, RisNo = c.RisNo, RisDate = c.RisDate, Department = c.Office, Section = c.Division,
+                Fund = c.Fund, Purpose = c.Purpose, FPP = c.FPP,
+                ApprovedBy = c.ApprovedBy,
+                ApprovedByDesignation = c.ApprovedByDesignation}), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetPrItems(Guid prId, string text)
@@ -168,18 +184,20 @@ namespace iLgs.Controllers
 
             if (!string.IsNullOrWhiteSpace(text))
             {
-                model = model.Where(p => p.Id.ToString() == text || p.PsCode.ItemName.Contains(text) || p.PsCode.ItemDescription.Contains(text) || p.PsCode.PsNo.Contains(text));
+                model = model.Where(p => p.Id.ToString() == text || p.RisItem.PsCode.ItemName.Contains(text) 
+                    || p.RisItem.PsCode.ItemDescription.Contains(text) || p.RisItem.PsCode.PsNo.Contains(text)
+                    || p.Description.Contains(text));
             }
 
             return Json(model.Select(c => new
             {
                 Id = c.Id,
                 PsCodeId = c.PsCodeId,
-                Code = c.PsCode.PsNo,
-                Name = c.PsCode.ItemName,
-                Description = c.PsCode.ItemDescription,
-                Unit = c.PsCode.UnitMeas,
-                Type = c.PsCode.PsType,
+                Code = c.RisItem.PsCode.PsNo,
+                Name = c.RisItem.PsCode.ItemName,
+                Description = c.Description,
+                Unit = c.RisItem.PsCode.UnitMeas,
+                Type = c.RisItem.PsCode.PsType,
                 Qty = c.Qty, 
                 UnitCost = c.UnitCost,
                 TotalCost = c.TotalCost
@@ -197,7 +215,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.Department, Supplier = c.Supplier.BusinessName }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.RISs.Office, Supplier = c.Supplier.BusinessName }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetRisPoNos(string text)
@@ -220,17 +238,19 @@ namespace iLgs.Controllers
 
             if (!string.IsNullOrWhiteSpace(text))
             {
-                model = model.Where(p => p.Id.ToString() == text || p.RequestItem.PsCode.ItemName.Contains(text) || p.RequestItem.PsCode.ItemDescription.Contains(text) || p.RequestItem.PsCode.PsNo.Contains(text) || p.Description.Contains(text));
+                model = model.Where(p => p.Id.ToString() == text || p.RequestItem.RisItem.PsCode.ItemName.Contains(text) 
+                    || p.RequestItem.RisItem.PsCode.ItemDescription.Contains(text) || p.RequestItem.RisItem.PsCode.PsNo.Contains(text) 
+                    || p.Description.Contains(text));
             }
 
             return Json(model.Select(c => new
             {
                 Id = c.Id,
-                Code = c.RequestItem.PsCode.PsNo,
-                Name = c.RequestItem.PsCode.ItemName,
+                Code = c.RequestItem.RisItem.PsCode.PsNo,
+                Name = c.RequestItem.RisItem.PsCode.ItemName,
                 Description = c.Description,
-                Unit = c.RequestItem.PsCode.UnitMeas,
-                Type = c.RequestItem.PsCode.PsType,
+                Unit = c.RequestItem.RisItem.PsCode.UnitMeas,
+                Type = c.RequestItem.RisItem.PsCode.PsType,
                 Qty = c.Qty,
                 UnitCost = c.UnitCost,
                 Amount = c.Amount                
@@ -283,6 +303,19 @@ namespace iLgs.Controllers
         }
 
         public JsonResult GetRequestedBy(string department, string text)
+        {
+            var dept = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault();
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Desc3 == dept.Code);
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetReceivedBy(string department, string text)
         {
             var dept = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault();
             var model = db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Desc3 == dept.Code);

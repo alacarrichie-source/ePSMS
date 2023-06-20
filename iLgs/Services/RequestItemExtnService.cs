@@ -79,6 +79,7 @@ namespace iLgs.Services
                         RequestItemId = requestItemExtn.RequestItemId,
                         ItemKey = requestItemExtn.ItemKey,
                         ItemValue = requestItemExtn.ItemValue ?? "",
+                        Sequence = requestItemExtn.Sequence,
                         InsertedBy = user, 
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -113,6 +114,7 @@ namespace iLgs.Services
                 RequestItemId = model.RequestItemId,
                 ItemKey = model.ItemKey,
                 ItemValue = model.ItemValue,
+                Sequence = model.Sequence,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -156,6 +158,7 @@ namespace iLgs.Services
             entity.RequestItemId = model.RequestItemId;
             entity.ItemKey = model.ItemKey;
             entity.ItemValue = model.ItemValue;
+            entity.Sequence = model.Sequence;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

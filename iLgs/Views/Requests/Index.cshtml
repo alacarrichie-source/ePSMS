@@ -473,24 +473,32 @@
 
         for (var key in e.values) {
             if (e.values.hasOwnProperty(key)) {
-                model.set('ItemValue', e.values[key]);
+                if (key == "ItemValue") {
+                    model.set('ItemValue', e.values[key]);
+                } else {
+                    model.set('Sequence', e.values[key]);
+                }
             }
-        }  
+        }
 
         // Create an array to store the row values
         var rowValues = [];
         var gridData = e.sender.dataSource.data();
+        var sortDescriptor = e.sender.dataSource.sort(); // Retrieve the current sort descriptor
+
+        // Sort the data manually using the sort descriptor
+        gridData.sort(function (a, b) {
+            // Sort the data items first by 'ItemKey', then by 'Sequence'
+            if (a.Sequence === b.Sequence) {
+                return a.ItemCode.localeCompare(b.ItemCode);
+            }
+            return a.Sequence - b.Sequence;
+        });
+
+
         for (var i = 0; i < gridData.length; i++) {
             var rowData = gridData[i];
-        
-            for (var key in e.values) {
-                if (e.values.hasOwnProperty(key)) {
-                    if (rowData[key])
-                    {
-                        rowValues.push(rowData[key]);
-                    }
-                }
-            }            
+            rowValues.push(rowData.ItemValue);
         }
 
         var description = rowValues.join(" ");
@@ -684,6 +692,30 @@
         mywindow.center();
         mywindow.open();
 
+    }
+
+    function onSelectRisId(e) {
+        var dataItem = this.dataItem(e.item.index());
+        var risDate = kendo.toString(new Date(parseInt(dataItem.RisDate.substr(6))), 'MM/dd/yyyy');
+
+        $("#RisDate").val(risDate).trigger("change");
+        $("#Fund").val(dataItem.Fund).trigger("change");
+        $("#FPP").val(dataItem.FPP).trigger("change");
+        $("#Department").val(dataItem.Department).trigger("change");
+        $("#Section").val(dataItem.Section).trigger("change");
+        $("#Purpose").val(dataItem.Purpose).trigger("change");
+        $("#RequestedBy").val(dataItem.ApprovedBy).trigger("change");
+        $("#RequestedDesig").val(dataItem.ApprovedByDesignation).trigger("change");
+
+        var model = $("#grid").data().kendoGrid.editable.options.model;
+        model.set("RisDate", risDate);
+        model.set("Fund", dataItem.Fund);
+        model.set("FPP", dataItem.FPP);
+        model.set("Department", dataItem.Department);
+        model.set("Section", dataItem.Section);
+        model.set("Purpose", dataItem.Purpose);
+        model.set("RequestedBy", dataItem.ApprovedBy);
+        model.set("RequestedDesig", dataItem.ApprovedByDesignation);
     }
 </script>
 

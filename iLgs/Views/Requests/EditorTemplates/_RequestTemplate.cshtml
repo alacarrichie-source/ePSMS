@@ -1,24 +1,71 @@
 ﻿@model iLgs.Models.RequestVM
 
-    @using (Html.BeginForm())
-    {
-        @Html.AntiForgeryToken()
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
 
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        @Html.HiddenFor(model => model.Id)
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
 
-        <div id="ErrorContent" class="hidden x-bootstrap-content">
-            <div class="alert alert-danger x-popup-alert">
-                <ul class="errors"></ul>
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.PrNo, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.PrNo).Placeholder("(AUTO)").Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.PrNo)
+                </div>
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.PrDate, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().DatePickerFor(model => model.PrDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.PrDate)
+                </div>
             </div>
         </div>
 
-        <fieldset>
-            <div class="row">
-                <div class="col-md-6">
-                    @Html.LabelFor(model => model.Fund, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund)
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.RisId, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.RisId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select RIS No.")
+                            .DataTextField("RisNo")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetRisNos", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("RisNo").Title("RIS No.").Width("30%");
+                                c.Add().Template("#= kendo.toString(new Date(parseInt(RisDate.substr(6))), 'MM/dd/yyyy') #").Title("Date").Width("30%");
+                                c.Add().Field("Department").Title("Department").Width("40%");
+                            })
+                            .Events(e => { e.Select("onSelectRisId"); })
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.RisId)
+                </div>
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.Fund, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund).Enable(false)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Fund")
                             .DataTextField("Description")
@@ -38,34 +85,17 @@
                                 c.Add().Field("Description").Title("Description").Width("70%");
                             })
                             .Suggest(true)
-                        )
-                        @Html.ValidationMessageFor(model => model.Fund)
-                    </div>
+                    )
+                    @Html.ValidationMessageFor(model => model.Fund)
                 </div>
-            </div>
+            </div>            
+        </div>        
 
-            <div class="row">                
-                <div class="col-md-6">
-                    @Html.LabelFor(model => model.PrNo, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().TextBoxFor(model => model.PrNo).Placeholder("(AUTO)").Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(model => model.PrNo)
-                    </div>
-                </div>                
-                <div class="col-md-6">
-                    @Html.LabelFor(model => model.PrDate, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().DatePickerFor(model => model.PrDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(model => model.PrDate)
-                    </div>
-                </div>                
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    @Html.LabelFor(model => model.Department, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.Department)
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.Department, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Department).Enable(false)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Department")
                             .DataTextField("Description")
@@ -85,14 +115,14 @@
                                 c.Add().Field("Description").Title("Description").Width("70%");
                             })
                             .Suggest(true)
-                        )
-                        @Html.ValidationMessageFor(model => model.Department)
-                    </div>
+                    )
+                    @Html.ValidationMessageFor(model => model.Department)
                 </div>
-                <div class="col-md-6">
-                    @Html.LabelFor(model => model.Section, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">                        
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.Section)
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.Section, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Section).Enable(false)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Section")
                             .DataTextField("Description")
@@ -111,29 +141,40 @@
                                 c.Add().Field("Code").Title("Code").Width("30%");
                                 c.Add().Field("Description").Title("Description").Width("70%");
                             })
-                            .Suggest(true)
-                            .CascadeFrom("Department")
-                        )
-                        @Html.ValidationMessageFor(model => model.Section)
-                    </div>
-                </div>                
+                            .Suggest(true)                            
+                    )
+                    @Html.ValidationMessageFor(model => model.Section)
+                </div>
             </div>
+        </div>
 
-            <div class="row">
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.Purpose, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @Html.LabelFor(model => model.Purpose, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().TextBoxFor(model => model.Purpose).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(model => model.Purpose)
-                    </div>
-                </div>                                
+                    @(Html.Kendo().TextBoxFor(model => model.Purpose).Enable(false)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.Purpose)
+                </div>
             </div>
+        </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    @Html.LabelFor(model => model.RequestedBy, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.RequestedBy)
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.FPP, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.FPP).Enable(false)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.FPP)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.RequestedBy, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.RequestedBy).Enable(false)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Requested by")
                             .DataTextField("Description")
@@ -153,26 +194,25 @@
                                 c.Add().Field("Desc2").Title("Designation").Width("40%");
                             })
                             .Events(e => { e.Select("onSelectRequestedBy"); })
-                            .Suggest(true)
-                            .CascadeFrom("Department")
-                        )
-                        @Html.ValidationMessageFor(model => model.RequestedBy)
-                    </div>
+                            .Suggest(true)                            
+                    )
+                    @Html.ValidationMessageFor(model => model.RequestedBy)
                 </div>
-                <div class="col-md-6">
-                    @Html.LabelFor(model => model.RequestedDesig, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().TextBoxFor(model => model.RequestedDesig).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                        
-                        @Html.ValidationMessageFor(model => model.RequestedDesig)
-                    </div>
-                </div>                
             </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.RequestedDesig, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.RequestedDesig).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.RequestedDesig)
+                </div>
+            </div>
+        </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    @Html.LabelFor(model => model.Availability, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.Availability)
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.Availability, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Availability)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Name")
                             .DataTextField("Description")
@@ -192,25 +232,25 @@
                                 c.Add().Field("Desc2").Title("Designation").Width("40%");
                             })
                             .Events(e => { e.Select("onSelectAvailability"); })
-                            .Suggest(true)                            
-                        )
-                        @Html.ValidationMessageFor(model => model.Availability)
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    @Html.LabelFor(model => model.AvaialbilityDesig, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().TextBoxFor(model => model.AvaialbilityDesig).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(model => model.AvaialbilityDesig)
-                    </div>
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.Availability)
                 </div>
             </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.AvaialbilityDesig, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.AvaialbilityDesig).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.AvaialbilityDesig)
+                </div>
+            </div>
+        </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    @Html.LabelFor(model => model.ApprovedBy, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.ApprovedBy)
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.ApprovedBy, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.ApprovedBy)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Approved by")
                             .DataTextField("Description")
@@ -232,20 +272,20 @@
                             .Events(e => { e.Select("onSelectApprovedBy"); })
                             .Suggest(true)
                             .CascadeFrom("Department")
-                        )
-                        @Html.ValidationMessageFor(model => model.ApprovedBy)
-                    </div>
+                    )
+                    @Html.ValidationMessageFor(model => model.ApprovedBy)
                 </div>
-                <div class="col-md-6">
-                    @Html.LabelFor(model => model.ApprovedDesig, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().TextBoxFor(model => model.ApprovedDesig).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(model => model.ApprovedDesig)
-                    </div>
-                </div>                
             </div>
-        </fieldset>
-    }
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.ApprovedDesig, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.ApprovedDesig).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.ApprovedDesig)
+                </div>
+            </div>
+        </div>
+    </fieldset>
+}
 
 
 

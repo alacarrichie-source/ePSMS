@@ -31,10 +31,10 @@ namespace iLgs.Models
         [Required]
         public Nullable<System.Guid> SupplierId { get; set; }
 
-        [Display(Name = "P.O. No.")]
+        [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 
-        [Display(Name = "P.R. No.")]
+        [Display(Name = "PR No.")]
         public Nullable<System.Guid> PrId { get; set; }
 
         [Display(Name = "Date")]
@@ -102,7 +102,7 @@ namespace iLgs.Models
         // TRANSIENTS
 
 
-        [Display(Name = "PR. No.")]
+        [Display(Name = "PR No.")]
         public string PrNo { get; set; }
         public DateTime? PrDate { get; set; }
 
@@ -184,6 +184,8 @@ namespace iLgs.Models
 
         [Display(Name = "Value")]
         public string ItemValue { get; set; }
+
+        public int? Sequence { get; set; }
 
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }

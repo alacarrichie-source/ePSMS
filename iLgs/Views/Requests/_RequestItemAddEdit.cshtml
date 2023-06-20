@@ -80,6 +80,7 @@
                         col.Bound(c => c.ItemCode).Width(50);
                         col.Bound(c => c.ItemKey).Width(100);
                         col.Bound(c => c.ItemValue).Width(200);
+                        col.Bound(c => c.Sequence).Width(200);
                     })
                     .Editable(editable => editable.Mode(GridEditMode.InCell))
                     .Sortable()
@@ -89,7 +90,7 @@
                     .DataSource(dataSource => dataSource
                         .Ajax()
                         .Batch(true)
-                        .Sort(s => s.Add(a => a.ItemCode))
+                        .Sort(s => s.Add(a => a.ItemKey))
                         .ServerOperation(true)
                         //.Events(events => events.Sync("onSyncGridItemExtn"))
                         .Model(model =>

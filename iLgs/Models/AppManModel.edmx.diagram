@@ -34,39 +34,46 @@
         <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
         </Diagram>
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="74" >
-        <EntityTypeShape EntityType="AppManModel.Supplier" Width="1.5" PointX="0.75" PointY="4.25" />
+        <EntityTypeShape EntityType="AppManModel.Supplier" Width="1.5" PointX="6" PointY="4.125" />
         <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="0.75" PointY="0.75" />
-        <EntityTypeShape EntityType="AppManModel.AIR" Width="1.5" PointX="5.25" PointY="16.125" />
-        <EntityTypeShape EntityType="AppManModel.IssuedItem" Width="1.5" PointX="7.5" PointY="23.75" />
-        <EntityTypeShape EntityType="AppManModel.Issued" Width="1.5" PointX="5.25" PointY="29.375" />
+        <EntityTypeShape EntityType="AppManModel.IssuedItem" Width="1.5" PointX="11" PointY="1.375" />
+        <EntityTypeShape EntityType="AppManModel.Issued" Width="1.5" PointX="8.75" PointY="1" />
         <AssociationConnector Association="AppManModel.FK_RPSMIssuedItems_RPSMIssued" />
-        <EntityTypeShape EntityType="AppManModel.AIRItem" Width="1.5" PointX="10.5" PointY="14.375" />
-        <AssociationConnector Association="AppManModel.FK_AIRItems_AIRs" />
-        <EntityTypeShape EntityType="AppManModel.PsCode" Width="1.5" PointX="3.75" PointY="4.75" />
-        <EntityTypeShape EntityType="AppManModel.PsStock" Width="1.5" PointX="8.25" PointY="3.5" />
-        <AssociationConnector Association="AppManModel.FK_PsStocks_PsCodes" />
-        <EntityTypeShape EntityType="AppManModel.PsItem" Width="1.5" PointX="10.5" PointY="6.875" />
+        <EntityTypeShape EntityType="AppManModel.AIRItem" Width="1.5" PointX="12.75" PointY="9.875" />
+        <EntityTypeShape EntityType="AppManModel.PsStock" Width="1.5" PointX="13.5" PointY="20.25" />
+        <EntityTypeShape EntityType="AppManModel.PsItem" Width="1.5" PointX="15.75" PointY="14.125" />
         <AssociationConnector Association="AppManModel.FK_PsItems_PsStocks" />
-        <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="8.25" PointY="14.125" />
-        <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="3" PointY="15.5" />
-        <EntityTypeShape EntityType="AppManModel.RequestItem" Width="1.5" PointX="6" PointY="11" />
+        <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="8.25" PointY="8.25" />
+        <AssociationConnector Association="AppManModel.FK_Orders_Suppliers" />
+        <EntityTypeShape EntityType="AppManModel.PsStockExtn" Width="1.5" PointX="15.75" PointY="24" />
+        <AssociationConnector Association="AppManModel.FK_PsStockExtns_PsStocks" />
+        <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="12.75" PointY="5.75" />
+        <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="13.5" PointY="14.25" />
+        <EntityTypeShape EntityType="AppManModel.RequestItem" Width="1.5" PointX="5.25" PointY="9.5" />
+        <EntityTypeShape EntityType="AppManModel.Request" Width="1.5" PointX="3" PointY="8.625" />
         <AssociationConnector Association="AppManModel.FK_AIRItems_OrderItems" />
-        <AssociationConnector Association="AppManModel.FK_AIRs_Orders" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_RequestItems" />
         <AssociationConnector Association="AppManModel.FK_PsItems_OrderItems" />
-        <AssociationConnector Association="AppManModel.FK_Orders_Suppliers" />
-        <AssociationConnector Association="AppManModel.FK_RequestItems_PsCodes" />
-        <EntityTypeShape EntityType="AppManModel.Request" Width="1.5" PointX="0.75" PointY="13.875" />
         <AssociationConnector Association="AppManModel.FK_Orders_Requests" />
         <AssociationConnector Association="AppManModel.FK_RequestItems_Requests" />
-        <EntityTypeShape EntityType="AppManModel.OrderItemExtn" Width="1.5" PointX="10.5" PointY="18.125" />
-        <EntityTypeShape EntityType="AppManModel.RequestItemExtn" Width="1.5" PointX="8.25" PointY="19.75" />
+        <EntityTypeShape EntityType="AppManModel.RISs" Width="1.5" PointX="0.75" PointY="10.625" />
+        <AssociationConnector Association="AppManModel.FK_Requests_RIS" />
+        <EntityTypeShape EntityType="AppManModel.RisItem" Width="1.5" PointX="3" PointY="16" />
+        <AssociationConnector Association="AppManModel.FK_RequestItems_RisItems" />
+        <AssociationConnector Association="AppManModel.FK_RisItems_RIS" />
+        <EntityTypeShape EntityType="AppManModel.PsCode" Width="1.5" PointX="0.75" PointY="19.5" />
+        <AssociationConnector Association="AppManModel.FK_PsStocks_PsCodes" />
+        <AssociationConnector Association="AppManModel.FK_RisItems_PsCodes" />
+        <EntityTypeShape EntityType="AppManModel.RisItemExtn" Width="1.5" PointX="5.25" PointY="16.5" />
+        <AssociationConnector Association="AppManModel.FK_RisItemExtns_RisItems" />
+        <EntityTypeShape EntityType="AppManModel.OrderItemExtn" Width="1.5" PointX="15.75" PointY="19.875" />
+        <EntityTypeShape EntityType="AppManModel.RequestItemExtn" Width="1.5" PointX="7.5" PointY="16.125" />
         <AssociationConnector Association="AppManModel.FK_OrderItemExtns_OrderItems" />
         <AssociationConnector Association="AppManModel.FK_RequestItemExtns_RequestItems" />
-        <EntityTypeShape EntityType="AppManModel.PsStockExtn" Width="1.5" PointX="10.5" PointY="3.375" />
-        <AssociationConnector Association="AppManModel.FK_PsStockExtns_PsStocks" />
-        <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="3.375" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.AIR" Width="1.5" PointX="10.5" PointY="8.75" />
+        <AssociationConnector Association="AppManModel.FK_AIRItems_AIRs" />
+        <AssociationConnector Association="AppManModel.FK_AIRs_Orders" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="Issuance" ZoomLevel="75" >
         <EntityTypeShape EntityType="AppManModel.IssuedItem" Width="1.5" PointX="5.25" PointY="7.125" />

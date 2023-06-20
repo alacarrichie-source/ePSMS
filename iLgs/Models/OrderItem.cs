@@ -26,8 +26,6 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderId { get; set; }
         public Nullable<System.Guid> RequestItemId { get; set; }
         public string Description { get; set; }
-        public string BrandName { get; set; }
-        public string OtherSpecs { get; set; }
         public Nullable<decimal> EstimatedLife { get; set; }
         public Nullable<decimal> Qty { get; set; }
         public Nullable<decimal> UnitCost { get; set; }

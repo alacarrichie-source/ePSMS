@@ -59,7 +59,10 @@ namespace iLgs.Models
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }        
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        public string PostedBy { get; set; }
+        public Nullable<System.DateTime> PostedDt { get; set; }
 
         // Transients
 

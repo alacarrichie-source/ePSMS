@@ -12,10 +12,10 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class RequestItemExtn
+    public partial class RisItemExtn
     {
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> RequestItemId { get; set; }
+        public Nullable<System.Guid> RisItemId { get; set; }
         public string ItemKey { get; set; }
         public string ItemValue { get; set; }
         public Nullable<int> Sequence { get; set; }
@@ -24,6 +24,6 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual RequestItem RequestItem { get; set; }
+        public virtual RisItem RisItem { get; set; }
     }
 }

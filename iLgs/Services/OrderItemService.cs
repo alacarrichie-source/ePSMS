@@ -77,12 +77,10 @@ namespace iLgs.Services
                     OrderId = s.OrderId,
                     RequestItemId = s.RequestItemId,
                     PsCodeId = s.RequestItem.PsCodeId,
-                    PsNo = s.RequestItem.PsCode.PsNo,
-                    PsUnit = s.RequestItem.PsCode.UnitMeas,
-                    PsItem = s.RequestItem.PsCode.ItemName,
+                    PsNo = s.RequestItem.RisItem.PsCode.PsNo,
+                    PsUnit = s.RequestItem.RisItem.PsCode.UnitMeas,
+                    PsItem = s.RequestItem.RisItem.PsCode.ItemName,
                     Description = s.Description,
-                    BrandName = s.BrandName,
-                    OtherSpecs = s.OtherSpecs,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
@@ -99,12 +97,10 @@ namespace iLgs.Services
                     Id = s.Id,
                     OrderId = s.OrderId,
                     RequestItemId = s.RequestItemId,
-                    PsNo = s.RequestItem.PsCode.PsNo,
-                    PsUnit = s.RequestItem.PsCode.UnitMeas,
-                    PsItem = s.RequestItem.PsCode.ItemName,
+                    PsNo = s.RequestItem.RisItem.PsCode.PsNo,
+                    PsUnit = s.RequestItem.RisItem.PsCode.UnitMeas,
+                    PsItem = s.RequestItem.RisItem.PsCode.ItemName,
                     Description = s.Description,
-                    BrandName = s.BrandName,
-                    OtherSpecs = s.OtherSpecs,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
@@ -122,8 +118,6 @@ namespace iLgs.Services
 
             entity.RequestItemId = model.RequestItemId;
             entity.Description = model.Description;
-            entity.BrandName = model.BrandName;
-            entity.OtherSpecs = model.OtherSpecs;
             entity.Qty = model.Qty;
             entity.UnitCost = model.UnitCost;
             entity.Amount = model.Amount;

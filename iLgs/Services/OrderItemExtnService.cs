@@ -67,7 +67,8 @@ namespace iLgs.Services
                         Id = Guid.NewGuid(),
                         OrderItemId = orderItemExtn.OrderItemId,
                         ItemKey = orderItemExtn.ItemKey,
-                        ItemValue = orderItemExtn.ItemValue,
+                        ItemValue = orderItemExtn.ItemValue ?? "",
+                        Sequence = orderItemExtn.Sequence,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -78,7 +79,8 @@ namespace iLgs.Services
                 }
                 else
                 {
-                    entity.ItemValue = orderItemExtn.ItemValue;
+                    entity.ItemValue = orderItemExtn.ItemValue ?? "";
+                    entity.Sequence = orderItemExtn.Sequence;
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;
 

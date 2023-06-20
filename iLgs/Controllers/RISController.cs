@@ -1,16 +1,21 @@
-﻿using iLgs.Models;
-using Kendo.Mvc.UI;
+﻿using CrystalDecisions.CrystalReports.Engine;
+using CrystalDecisions.Shared;
+using iLgs.Models;
+using iLgs.Services;
+using iLgs.Services.Interfaces;
+using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using System.Data.Entity;
-using Microsoft.AspNet.Identity;
-using iLgs.Utilities;
-using Newtonsoft.Json;
 
 namespace iLgs.Controllers
 {
@@ -18,7 +23,20 @@ namespace iLgs.Controllers
     public class RISController : Controller
     {
         private AppManEntities db = new AppManEntities();
-        // GET: 
+        private IRisService risService;
+        private IRisItemService risItemService;
+        private IRisItemExtnService risItemExtnService;
+        private ICodextnService codextnService;
+
+        public RISController()
+        {
+            this.risService = new RisService(db);
+            this.risItemService = new RisItemService(db);
+            this.risItemExtnService = new RisItemExtnService(db);
+            this.codextnService = new CodextnService(db);
+        }
+
+        // GET: RIS
         public ActionResult Index()
         {
             return View();
@@ -26,34 +44,7 @@ namespace iLgs.Controllers
 
         public ActionResult RISRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = db.RISlips
-                .Select(s => new RISlipVM
-                {
-                    Id = s.Id,
-                    OrderId = s.OrderId,
-                    PoNo = s.Order.PoNo,
-                    PoDate = s.Order.PoDate,
-                    Fund = s.Fund,
-                    Division = s.Division,
-                    Office = s.Office,
-                    FPP = s.FPP,
-                    RisNo = s.RisNo,
-                    RisDate = s.RisDate,
-                    Purpose = s.Purpose,
-                    RequestedBy = s.RequestedBy,
-                    RequestedDate = s.RequestedDate,
-                    RequestedByDesignation = s.RequestedByDesignation,
-                    ApprovedBy = s.ApprovedBy,
-                    ApprovedDate = s.ApprovedDate,
-                    ApprovedByDesignation = s.ApprovedByDesignation,
-                    IssuedBy = s.IssuedBy,
-                    IssuedDate = s.IssuedDate,
-                    IssuedByDesignation = s.IssuedByDesignation,
-                    ReceivedBy = s.ReceivedBy,
-                    ReceivedDate = s.ReceivedDate,
-                    ReceivedByDesignation = s.ReceivedByDesignation                    
-                })
-                .AsQueryable();
+            var data = risService.GetAll();
 
             var result = new JsonNetResult
             {
@@ -65,7 +56,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> RISCreate([DataSourceRequest] DataSourceRequest request, RISlipVM model)
+        public async Task<ActionResult> RISCreate([DataSourceRequest] DataSourceRequest request, RIS_VM model)
         {
             try
             {
@@ -76,107 +67,17 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("", "Add Access Denied!");
                 }
 
-                if (db.RISlips.Any(a => a.RisNo == model.RisNo))
+                if (await risService.GetByRisNoAsync(model.RisNo) != null)
                 {
-                    ModelState.AddModelError("RisNo", "RIS No. already exists!");
+                    ModelState.AddModelError("RIS No.", "RIS No. already exists!");
                 }
-
-                var order = await db.Orders.Include(i => i.Request).Where(w => w.Id == model.OrderId).FirstOrDefaultAsync();
-                if (order == null)
-                {
-                    ModelState.AddModelError("PoNo", "Invalid PO No.!");
-                }
-                else
-                {
-                    if (order.PoDate > model.RisDate)
-                    {
-                        ModelState.AddModelError("RisDate", "RIS date must be greather than or equal to P.O. date!");
-                    }
-                    else
-                    {
-                        model.Division = order.Request.Section;
-                        model.Office = order.Request.Department;
-                        model.Fund = order.Request.Fund;
-                        model.FPP = order.Request.FPP;
-                    }
-                }
-
+                
                 if (model != null && ModelState.IsValid)
-                {
+                {                    
                     string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;                    
+                    DateTime date = System.DateTime.Now;
 
-                    model.Id = Guid.NewGuid();
-                    if (string.IsNullOrWhiteSpace(model.RisNo))
-                    {
-                        model.RisNo = NextRisNo((DateTime)model.RisDate);
-                    }
-                    model.InsertedBy = user;
-                    model.InsertedDt = date;
-                    model.UpdatedBy = user;
-                    model.UpdatedDt = date;
-
-                    var entity = new RISlip()
-                    {
-                        Id = model.Id,
-                        OrderId = model.OrderId,
-                        Fund = model.Fund,
-                        Division = model.Division,
-                        Office = model.Office,
-                        FPP = model.FPP,
-                        RisNo = model.RisNo,
-                        RisDate = model.RisDate,
-                        Purpose = model.Purpose,
-                        RequestedBy = model.RequestedBy,
-                        RequestedDate = model.RequestedDate,
-                        RequestedByDesignation = model.RequestedByDesignation,
-                        ApprovedBy = model.ApprovedBy,
-                        ApprovedDate = model.ApprovedDate,
-                        ApprovedByDesignation = model.ApprovedByDesignation,
-                        IssuedBy = model.IssuedBy,
-                        IssuedDate = model.IssuedDate,
-                        IssuedByDesignation = model.IssuedByDesignation,
-                        ReceivedBy = model.ReceivedBy,
-                        ReceivedDate = model.ReceivedDate,
-                        ReceivedByDesignation = model.ReceivedByDesignation,
-                        InsertedBy = model.InsertedBy,
-                        InsertedDt = model.InsertedDt,
-                        UpdatedBy = model.UpdatedBy,
-                        UpdatedDt = model.UpdatedDt
-                    };
-
-
-                    // include items with stocks during add
-                    var stockItems = db.PsItems.Include(i => i.OrderItem).Where(w => w.OrderItem.OrderId == model.OrderId).ToList();
-                    foreach (var stockItem in stockItems)
-                    {
-                        RISlipItem item = new RISlipItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            RisId = entity.Id,
-                            StockItemId = stockItem.Id,
-                            ReqQty = stockItem.Qty,
-                            IssQty = stockItem.Qty,
-                            UnitCost = stockItem.OrderItem.UnitCost,
-                            Amount = stockItem.Qty * stockItem.OrderItem.UnitCost,
-                            IssRemarks = "",                            
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-
-                        entity.RISlipItems.Add(item);
-                    }
-
-                    db.RISlips.Add(entity);
-                    await db.SaveChangesAsync();
-
-                    // update stockItems
-                    foreach (var stockItem in stockItems)
-                    {
-                        await UpdateStockItems(stockItem.Id, user);
-                    }
+                    model = await risService.CreateAsync(model, user, date);                    
                 }
             }
             catch (Exception e)
@@ -189,7 +90,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> RISUpdate([DataSourceRequest] DataSourceRequest request, RISlipVM model)
+        public async Task<ActionResult> RISUpdate([DataSourceRequest] DataSourceRequest request, RIS_VM model)
         {
             try
             {
@@ -199,30 +100,17 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("", "Update Access Denied!");
                 }
-
-                if (db.RISlips.Any(a => a.Id != model.Id && a.RisNo == model.RisNo))
+                else if (await risService.IsPostedAsync(model.Id))
                 {
-                    ModelState.AddModelError("RisNo", "RIS No. already exists!");
+                    ModelState.AddModelError("RIS No.", "RIS Number already Posted, cannot update!");
                 }
-
-                var order = await db.Orders.Include(i => i.Request).Where(w => w.Id == model.OrderId).FirstOrDefaultAsync();
-                if (order == null)
+                else if (await risService.IsPrPostedAsync(model.Id))
                 {
-                    ModelState.AddModelError("PoNo", "Invalid PO No.!");
+                    ModelState.AddModelError("RIS No.", "This RIS No has a posted PR, cannot update!");
                 }
-                else
+                else if (await risService.GetAnyRisNoAsync(model.Id, model.RisNo))
                 {
-                    if (order.PoDate > model.RisDate)
-                    {
-                        ModelState.AddModelError("RisDate", "RIS date must be greather than or equal to P.O. date!");
-                    }
-                    else
-                    {
-                        model.Division = order.Request.Section;
-                        model.Office = order.Request.Department;
-                        model.Fund = order.Request.Fund;
-                        model.FPP = order.Request.FPP;
-                    }
+                    ModelState.AddModelError("RIS No.", "RIS No. already exists!");
                 }
 
                 if (ModelState.IsValid)
@@ -230,94 +118,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model.UpdatedBy = user;
-                    model.UpdatedDt = date;
-                    
-                    var entity = await db.RISlips.FindAsync(model.Id);
-                    var oldOrderId = entity.OrderId;
-
-                    // if there's changes in orderId: delete the previous then add the current
-                    if (oldOrderId != model.OrderId)
-                    {
-                        // store to list before deleting
-                        // must be notracking, else info is not available after savechanges of removerange
-                        var slipItemList = db.RISlipItems.Where(w => w.RisId == model.Id).AsNoTracking().ToList(); 
-
-                        //delete previous
-                        var slipItems = db.RISlipItems.Where(w => w.RisId == model.Id);
-                        db.RISlipItems.RemoveRange(slipItems);
-                        await db.SaveChangesAsync();
-
-                        // update stock card of deleted list                        
-                        foreach (var slipItem in slipItemList)
-                        {
-                            await UpdateStockItems(slipItem.StockItemId, user);
-                            /*
-                             * Update is not allowed if slipItem is not list because it is used in transaction of foreach
-                             */
-                        }
-
-                        // add current
-                        var stockItemList = db.PsItems.Include(i => i.OrderItem).Where(w => w.OrderItem.OrderId == model.OrderId).ToList();
-                        foreach (var stockItem in stockItemList)
-                        {
-                            RISlipItem item = new RISlipItem()
-                            {
-                                Id = Guid.NewGuid(),
-                                RisId = entity.Id,
-                                StockItemId = stockItem.Id,
-                                ReqQty = stockItem.Qty,
-                                IssQty = stockItem.Qty,
-                                UnitCost = stockItem.OrderItem.UnitCost,
-                                Amount = stockItem.Qty * stockItem.OrderItem.UnitCost,
-                                IssRemarks = "",
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                            };
-
-                            entity.RISlipItems.Add(item);
-                        }
-                    }
-
-                    entity.OrderId = model.OrderId;
-                    entity.Fund = model.Fund;
-                    entity.Division = model.Division;
-                    entity.Office = model.Office;
-                    entity.FPP = model.FPP;
-                    entity.RisNo = model.RisNo;
-                    entity.RisDate = model.RisDate;
-                    entity.Purpose = model.Purpose;
-                    entity.RequestedBy = model.RequestedBy;
-                    entity.RequestedDate = model.RequestedDate;
-                    entity.RequestedByDesignation = model.RequestedByDesignation;
-                    entity.ApprovedBy = model.ApprovedBy;
-                    entity.ApprovedDate = model.ApprovedDate;
-                    entity.ApprovedByDesignation = model.ApprovedByDesignation;
-                    entity.IssuedBy = model.IssuedBy;
-                    entity.IssuedDate = model.IssuedDate;
-                    entity.IssuedByDesignation = model.IssuedByDesignation;
-                    entity.ReceivedBy = model.ReceivedBy;
-                    entity.ReceivedDate = model.ReceivedDate;
-                    entity.ReceivedByDesignation = model.ReceivedByDesignation;
-                    entity.UpdatedBy = model.UpdatedBy;
-                    entity.UpdatedDt = model.UpdatedDt;                    
-
-                    db.RISlips.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    // if there's changes in orderId: uupdate new stockId
-                    if (oldOrderId != model.OrderId)
-                    {
-                        var slipItemList = entity.RISlipItems.ToList();
-                        foreach (var slipItem in slipItemList)
-                        {
-                            // update stock card
-                            await UpdateStockItems(slipItem.StockItemId, user);
-                        }
-                    }
+                    model = await risService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -330,7 +131,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> RISDestroy([DataSourceRequest]DataSourceRequest request, RISlipVM model)
+        public async Task<ActionResult> RISDestroy([DataSourceRequest]DataSourceRequest request, RIS_VM model)
         {
             try
             {
@@ -340,28 +141,20 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
+                else if (await risService.IsPostedAsync(model.Id))
+                {
+                    ModelState.AddModelError("RIS No.", "RIS Number already Posted, cannot delete!");
+                }
+                else if (await risService.IsPrPostedAsync(model.Id))
+                {
+                    ModelState.AddModelError("RIS No.", "This RIS No has a posted PR, cannot delete!");
+                }
                 else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = await db.RISlips.FindAsync(model.Id);
-                    
-                    entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
-
-                    db.RISlips.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    db.RISlips.Attach(entity);
-                    // Delete the entity
-                    db.RISlips.Remove(entity);
-                    // Or use DeleteObject if using a previous version of Entity Framework
-                    // Delete the entity in the database
-                    //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    await db.SaveChangesAsync();
-                    //db.Configuration.ValidateOnSaveEnabled = true;                
+                    model = await risService.DeleteAsync(model, user, date);                    
                 }
             }
             catch (Exception e)
@@ -372,63 +165,144 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
-        
-        public string NextRisNo(DateTime date)
-        {
-            string yyyy = date.Year.ToString().Trim();
-            string mm = date.Month.ToString().Trim();
-
-            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
-
-            string keyName = yyyy + "-" + mm;
-            // yyyy-mm-9999
-            // 123456789012
-
-            var data = db.RISlips.Where(w => w.RisDate.Value.Year == date.Year).OrderByDescending(o => o.RisNo).FirstOrDefault();
-            if (data == null)
-            {
-                return keyName + "-" + "0001";
-            }
-            else
-            {
-                var sequence = (int.Parse(data.RisNo.Split('-')[2]) + 1).ToString();
-                return keyName + "-" + sequence.PadLeft(4, '0');
-            }
-        }
-
-        public ActionResult _RISlipItemRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
-        {
-
-            var data = db.RISlipItems.Where(w => w.RisId == risId)
-                .Select(s => new RISlipItemVM
-                {
-                    Id = s.Id,
-                    RisId = s.RisId,
-                    StockItemId = s.StockItemId,
-                    Unit = s.PsItem.PsStock.PsCode.UnitMeas,
-                    StockNo = s.PsItem.PsStock.StockNo,
-                    Description = s.PsItem.PsStock.PsCode.ItemName.Trim() + (s.PsItem.PsStock.Description == null ? "" : " " + s.PsItem.PsStock.Description),
-                    ReqQty = s.ReqQty,
-                    IssQty = s.IssQty,                    
-                    UnitCost = s.UnitCost,
-                    Amount = s.Amount,
-                    IssRemarks = s.IssRemarks,                    
-                    InsertedDt = s.InsertedDt
-                });
-
-            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
-        }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RISlipItemCreate([DataSourceRequest] DataSourceRequest request, RISlipItemVM model)
+        public async Task<ActionResult> PostRIS(Guid risId)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                else if (await risService.GetByIdAsync(risId) == null)
+                {
+                    ModelState.AddModelError("RIS", "Invalid RIS Id");
+                }
+                else if (await risService.IsPostedAsync(risId))
+                {
+                    ModelState.AddModelError("RIS No.", "RIS Number already Posted, cannot post again!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await risService.PostAsync(risId, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> UnpostRIS(Guid risId)
         {
             try
             {
                 Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
                 Access access = await accessTask;
-                if (!access.AllowAdd)
+                if (!access.AllowPost)
                 {
-                    ModelState.AddModelError("", "Access Denied!");
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                else if (await risService.GetByIdAsync(risId) == null)
+                {
+                    ModelState.AddModelError("RIS", "Invalid RIS Id");
+                }
+                else if (await risService.IsPrPostedAsync(risId))
+                {
+                    ModelState.AddModelError("RIS No.", "This RIS No has a posted PR, cannot unpost!");
+                }
+                else if (!(await risService.IsPostedAsync(risId)))
+                {
+                    ModelState.AddModelError("RIS No.", "RIS Number not yet posted, cannot unpost!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await risService.UnpostAsync(risId, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        #region ITEMS
+        public ActionResult _RISItem(Guid risId)
+        {
+            ViewData["risId"] = risId;
+            return PartialView();
+        }
+        public async Task<ActionResult> _RISItemAddEdit(Guid risId, Guid? risItemId)
+        {
+            var data = await risItemService.GetByIdAsync(risItemId);
+            if (data == null)
+            {
+                data = new RisItemVM()
+                {
+                    Id = Guid.NewGuid(),
+                    RisId = risId
+                };
+            }
+            ViewData["risItemId"] = risItemId;
+            return PartialView(data);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _RISItemSave(RisItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                else if (await risService.IsPrPostedAsync(model.Id))
+                {
+                    ModelState.AddModelError("RIS No.", "This RIS No has a posted PR, cannot update!");
+                }
+                else if (await risService.IsPostedAsync((Guid)model.RisId))
+                {
+                    ModelState.AddModelError("RIS No.", "RIS Number already Posted, cannot update!");
                 }
 
                 if (model != null && ModelState.IsValid)
@@ -436,28 +310,18 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model.Id = Guid.NewGuid();
+                    var entity = await risItemService.GetByIdAsync(model.Id);
 
-                    RISlipItem entity = new RISlipItem()
+                    if (entity == null)
                     {
-                        Id = model.Id,
-                        RisId = model.RisId,
-                        StockItemId = model.StockItemId,
-                        ReqQty = model.ReqQty,
-                        IssQty = model.IssQty,
-                        IssRemarks = model.IssRemarks,                        
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
-
-                    db.RISlipItems.Add(entity);
-                    await db.SaveChangesAsync();
-
-                    // update to stock card
-                    // update stock card
-                    await UpdateStockItems(model.StockItemId, user);
+                        model = await risItemService.CreateAsync(model, user, date);
+                    }
+                    else
+                    {
+                        model = await risItemService.UpdateAsync(model, user, date);
+                    }
+                    var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
+                    await risItemExtnService.SaveAsync(model.Id, risItemExtns, user, date);
                 }
             }
             catch (Exception e)
@@ -466,57 +330,29 @@ namespace iLgs.Controllers
                      "please contact tech support with this message: " + e.Message);
             }
 
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RISlipItemUpdate([DataSourceRequest] DataSourceRequest request, RISlipItem model)
+
+        public ActionResult _RISItemRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
         {
-            try
-            {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
-                Access access = await accessTask;
-                if (!access.AllowEdit)
-                {
-                    ModelState.AddModelError("", "Access Denied!");
-                }
+            var data = risItemService.GetByRisId(risId);
 
-                if (ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    RISlipItem entity = await db.RISlipItems.FindAsync(model.Id);
-
-                    entity.RisId = model.RisId;
-                    entity.StockItemId = model.StockItemId;
-                    entity.ReqQty = model.ReqQty;
-                    entity.IssQty = model.IssQty;
-                    entity.UnitCost = model.UnitCost;
-                    entity.Amount = model.IssQty * model.UnitCost;
-                    entity.IssRemarks = model.IssRemarks;
-                    entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
-
-                    db.RISlipItems.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    // update stock card
-                    await UpdateStockItems(model.StockItemId, user);
-                }
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RISlipItemDestroy([DataSourceRequest]DataSourceRequest request, RISlipItemVM model)
+        public async Task<ActionResult> _RISItemDestroy([DataSourceRequest]DataSourceRequest request, RisItemVM model)
         {
             try
             {
@@ -524,33 +360,23 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
-                    ModelState.AddModelError("GridError", "Delete Access Denied!");
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
+                else if (await risService.IsPrPostedAsync(model.Id))
+                {
+                    ModelState.AddModelError("RIS No.", "This RIS No has a posted PR, cannot update!");
+                }
+                else if (await risService.IsPostedAsync((Guid)model.RisId))
+                {
+                    ModelState.AddModelError("DeleteError", "RIS Number already Posted, cannot update!");
+                }
+
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    RISlipItem entity = await db.RISlipItems.FindAsync(model.Id);
-                    entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
-
-                    db.RISlipItems.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    db.RISlipItems.Attach(entity);
-                    // Delete the entity
-                    db.RISlipItems.Remove(entity);
-                    // Or use DeleteObject if using a previous version of Entity Framework
-                    // Delete the entity in the database
-                    //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    await db.SaveChangesAsync();
-                    //db.Configuration.ValidateOnSaveEnabled = true;   
-
-                    // update stocks
-                    // update stock card
-                    await UpdateStockItems(model.StockItemId, user);
+                    model = await risItemService.DeleteAsync(model, user, date);
                 }
 
             }
@@ -558,30 +384,114 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
                      "please contact tech support with this message: " + e.Message);
-
-
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
+        #endregion        
 
-        public async Task UpdateStockItems(Guid? stockItemId, string user)
+        public ActionResult _RISItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId, Guid? psCodeId)
         {
-            var psItem = await db.PsItems.FindAsync(stockItemId);
-            if (psItem != null)
+            var data = risItemExtnService.GetBatchInfo(risItemId, psCodeId);
+            var result = new JsonNetResult
             {
-                var date = DateTime.Now;
-                var qtyIss = db.RISlipItems.Where(w => w.StockItemId == stockItemId).Sum(s => s.IssQty).GetValueOrDefault(0);                
-                psItem.QtyIss = qtyIss;
-                psItem.QtyBal = psItem.Qty - qtyIss;
-                psItem.UpdatedBy = user;
-                psItem.UpdatedDt = date;
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
 
-                db.PsItems.Attach(psItem);
-                db.Entry(psItem).State = EntityState.Modified;
-                await db.SaveChangesAsync();
+            return result;
+        }
+
+        public async Task<ActionResult> RISRpt(string risNo)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "report_ris");
+                Access access = await accessTask;
+                if (access == null)
+                {
+                    throw new Exception("Access Denied!");
+                }
+
+            }
+            catch (Exception e)
+            {
+                ViewBag.Error = e.Message;
+                return View("Error");
             }
 
+            Sections crSections;
+            ReportDocument rpt, crSubreportDocument;
+            SubreportObject crSubreportObject;
+            ReportObjects crReportObjects;
+            ConnectionInfo crConnectionInfo;
+            CrystalDecisions.CrystalReports.Engine.Database crDatabase;
+            Tables crTables;
+            TableLogOnInfo crTableLogOnInfo;
+            rpt = new ReportDocument();
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/Ris.rpt"));
+            rpt.Refresh();
+
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            string conString = db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
+
+            string un = decoder.UserID;
+            string pw = decoder.Password;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            crDatabase = rpt.Database;
+            crTables = crDatabase.Tables;
+            crConnectionInfo = new ConnectionInfo();
+            crConnectionInfo.ServerName = svr;
+            crConnectionInfo.DatabaseName = db_;
+            crConnectionInfo.UserID = un;
+            crConnectionInfo.Password = pw;
+
+            foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+            {
+                crTableLogOnInfo = aTable.LogOnInfo;
+                crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+                aTable.ApplyLogOnInfo(crTableLogOnInfo);
+            }
+            // THIS STUFF HERE IS FOR REPORTS HAVING SUBREPORTS 
+            // set the sections object to the current report's section 
+            crSections = rpt.ReportDefinition.Sections;
+            // loop through all the sections to find all the report objects 
+            foreach (CrystalDecisions.CrystalReports.Engine.Section crSection in crSections)
+            {
+                crReportObjects = crSection.ReportObjects;
+                //loop through all the report objects in there to find all subreports 
+                foreach (ReportObject crReportObject in crReportObjects)
+                {
+                    if (crReportObject.Kind == ReportObjectKind.SubreportObject)
+                    {
+                        crSubreportObject = (SubreportObject)crReportObject;
+                        //open the subreport object and logon as for the general report 
+                        crSubreportDocument = crSubreportObject.OpenSubreport(crSubreportObject.SubreportName);
+                        crDatabase = crSubreportDocument.Database;
+                        crTables = crDatabase.Tables;
+                        foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+                        {
+                            crTableLogOnInfo = aTable.LogOnInfo;
+                            crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+                            aTable.ApplyLogOnInfo(crTableLogOnInfo);
+                        }
+                    }
+                }
+            }
+
+            var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+
+            rpt.SetParameterValue("@cRisNo", risNo);
+            rpt.SetParameterValue("LGU", lgu);
+            
+            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+            rpt.Close();
+            rpt.Dispose();
+            return File(stream, "application/pdf");            
         }
     }
 }

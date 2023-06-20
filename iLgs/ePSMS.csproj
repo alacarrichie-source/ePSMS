@@ -226,6 +226,7 @@
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\RequestsController.cs" />
     <Compile Include="Controllers\RISController.cs" />
+    <Compile Include="Controllers\RIS_Controller.cs" />
     <Compile Include="Controllers\RolesController.cs" />
     <Compile Include="Controllers\Roles_Controller.cs" />
     <Compile Include="Controllers\RSMIController.cs" />
@@ -377,10 +378,19 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RequestViewModels.cs" />
+    <Compile Include="Models\RisItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RisItemExtn.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\RISlip.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RISlipItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RISs.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RISViewModels.cs" />
@@ -417,6 +427,12 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reports\Air.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Air.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Reports\Po_1.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -427,6 +443,12 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Pr_.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\Ris.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Ris.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Reports\Rsmi.cs">
@@ -463,6 +485,9 @@
     <Compile Include="Services\Interfaces\IRequestService.cs" />
     <Compile Include="Services\Interfaces\IOrderService.cs" />
     <Compile Include="Services\Interfaces\IOrderItemExtnService.cs" />
+    <Compile Include="Services\Interfaces\IRisItemExtnService.cs" />
+    <Compile Include="Services\Interfaces\IRisItemService.cs" />
+    <Compile Include="Services\Interfaces\IRisService.cs" />
     <Compile Include="Services\ItemService.cs" />
     <Compile Include="Services\OrderItemExtnService.cs" />
     <Compile Include="Services\OrderItemService.cs" />
@@ -470,6 +495,9 @@
     <Compile Include="Services\RequestItemExtnService.cs" />
     <Compile Include="Services\RequestItemService.cs" />
     <Compile Include="Services\RequestService.cs" />
+    <Compile Include="Services\RisItemExtnService.cs" />
+    <Compile Include="Services\RisItemService.cs" />
+    <Compile Include="Services\RisService.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
     <Compile Include="Utilities\JsonMvcNetSerializer.cs" />
@@ -3329,8 +3357,8 @@
     <Content Include="Views\Items\EditorTemplates\_RefDateTemplate.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_QtyTemplate.cshtml" />
     <Content Include="Views\Items\_QueryOrderItems.cshtml" />
-    <Content Include="Views\RIS\Index.cshtml" />
-    <Content Include="Views\RIS\EditorTemplates\_RISTemplate.cshtml" />
+    <Content Include="Views\RIS_\Index.cshtml" />
+    <Content Include="Views\RIS_\EditorTemplates\_RISTemplate.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_DaysTemplate.cshtml" />
     <Content Include="Views\RSMI\Index.cshtml" />
     <Content Include="Views\RSMI\_RSMIAdd.cshtml" />
@@ -3342,6 +3370,11 @@
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
     <Content Include="Views\Uploads\_UploadSingle.cshtml" />
+    <Content Include="Views\RIS\Index.cshtml" />
+    <Content Include="Views\RIS\EditorTemplates\_RISTemplate.cshtml" />
+    <Content Include="Views\RIS\_RISItem.cshtml" />
+    <Content Include="Views\RIS\_RISItemAddEdit.cshtml" />
+    <Content Include="Views\Requests\_RequestFromRisTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3387,17 +3420,25 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Rsmi.cs</LastGenOutput>
     </Content>
-    <EmbeddedResource Include="Reports\Po_.rpt">
+    <Content Include="Reports\Po_.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Po_1.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Reports\Pr_.rpt">
+    </Content>
+    <Content Include="Reports\Pr_.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Pr_1.cs</LastGenOutput>
-    </EmbeddedResource>
+    </Content>
     <Content Include="Reports\StockCard.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>StockCard.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\Ris.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>Ris.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\Air.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>Air.cs</LastGenOutput>
     </Content>
   </ItemGroup>
   <ItemGroup>
@@ -3429,7 +3470,7 @@
           <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

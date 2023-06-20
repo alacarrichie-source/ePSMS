@@ -123,8 +123,6 @@ namespace iLgs.Services
                     OrderId = entity.Id,
                     RequestItemId = requestItem.Id,
                     Description = requestItem.Description,
-                    BrandName = requestItem.BrandName,
-                    OtherSpecs = requestItem.OtherSpecs,
                     Qty = requestItem.Qty,
                     UnitCost = requestItem.UnitCost,
                     Amount = requestItem.TotalCost,
@@ -142,6 +140,7 @@ namespace iLgs.Services
                         OrderItemId = orderItem.Id,
                         ItemKey = requestItemExtn.ItemKey,
                         ItemValue = requestItemExtn.ItemValue,
+                        Sequence = requestItemExtn.Sequence,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -245,7 +244,7 @@ namespace iLgs.Services
                 // Post the OrderItems under the stocks having the same PsCodeId
                 //var orderItemList = order.OrderItems.Where(w => db.RequestItems.Any(a => a.PsCodeId == oig.PsCodeId)).ToList();
                 var orderItemList = await db.OrderItems
-                    .Include(i => i.RequestItem.PsCode)
+                    .Include(i => i.RequestItem.RisItem.PsCode)
                     .Include(i => i.OrderItemExtns)
                     .Where(w => w.OrderId == orderId && w.RequestItem.PsCodeId == oig.PsCodeId && w.Description == oig.Description).ToListAsync();
                 foreach (var orderItem in orderItemList)
@@ -282,7 +281,7 @@ namespace iLgs.Services
                             Id = Guid.NewGuid(),
                             PsStockId = psStock.Id,
                             ItemKey = orderItemExtn.ItemKey,
-                            ItemValue = orderItemExtn.ItemValue,
+                            ItemValue = orderItemExtn.ItemValue,                            
                             InsertedBy = user,
                             InsertedDt = date,
                             UpdatedBy = user,
@@ -311,7 +310,7 @@ namespace iLgs.Services
              * PsStocks, PsStockExtns --> if no PsItem
              */
             var entity = await db.Orders.FindAsync(orderId);
-            var orderItems = db.OrderItems.Include(i => i.RequestItem.PsCode).Where(w => w.OrderId == entity.Id).ToList();
+            var orderItems = db.OrderItems.Include(i => i.RequestItem.RisItem.PsCode).Where(w => w.OrderId == entity.Id).ToList();
 
             foreach (var orderItem in orderItems)
             {

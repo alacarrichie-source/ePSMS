@@ -11,6 +11,12 @@ using System.Data.Entity;
 using Microsoft.AspNet.Identity;
 using iLgs.Utilities;
 using Newtonsoft.Json;
+using CrystalDecisions.CrystalReports.Engine;
+using CrystalDecisions.Shared;
+using System.Data.SqlClient;
+using iLgs.Services.Interfaces;
+using iLgs.Services;
+using System.IO;
 
 namespace iLgs.Controllers
 {
@@ -18,6 +24,13 @@ namespace iLgs.Controllers
     public class AIRsController : Controller
     {
         private AppManEntities db = new AppManEntities();
+        private ICodextnService codextnService;
+
+        public AIRsController()
+        {
+            this.codextnService = new CodextnService(db);
+        }
+
         // GET: 
         public ActionResult Index()
         {
@@ -309,10 +322,10 @@ namespace iLgs.Controllers
                 {
                     Id = s.Id,
                     OrderItemId = s.OrderItemId,
-                    PsNo = s.OrderItem.RequestItem.PsCode.PsNo,
-                    PsItem = s.OrderItem.RequestItem.PsCode.ItemName,
+                    PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
+                    PsItem = s.OrderItem.RequestItem.RisItem.PsCode.ItemName,
                     OrderDescription = s.OrderItem.RequestItem.Description,
-                    PsUnit = s.OrderItem.RequestItem.PsCode.UnitMeas,
+                    PsUnit = s.OrderItem.RequestItem.RisItem.PsCode.UnitMeas,
                     Qty = s.Qty,
                     InsertedDt = s.InsertedDt
                 });
@@ -454,6 +467,97 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> AIRRpt(string airNo)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "report_air");
+                Access access = await accessTask;
+                if (access == null)
+                {
+                    throw new Exception("Access Denied!");
+                }
+
+            }
+            catch (Exception e)
+            {
+                ViewBag.Error = e.Message;
+                return View("Error");
+            }
+
+            Sections crSections;
+            ReportDocument rpt, crSubreportDocument;
+            SubreportObject crSubreportObject;
+            ReportObjects crReportObjects;
+            ConnectionInfo crConnectionInfo;
+            CrystalDecisions.CrystalReports.Engine.Database crDatabase;
+            Tables crTables;
+            TableLogOnInfo crTableLogOnInfo;
+            rpt = new ReportDocument();
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/Air.rpt"));
+            rpt.Refresh();
+
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            string conString = db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
+
+            string un = decoder.UserID;
+            string pw = decoder.Password;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            crDatabase = rpt.Database;
+            crTables = crDatabase.Tables;
+            crConnectionInfo = new ConnectionInfo();
+            crConnectionInfo.ServerName = svr;
+            crConnectionInfo.DatabaseName = db_;
+            crConnectionInfo.UserID = un;
+            crConnectionInfo.Password = pw;
+
+            foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+            {
+                crTableLogOnInfo = aTable.LogOnInfo;
+                crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+                aTable.ApplyLogOnInfo(crTableLogOnInfo);
+            }
+            // THIS STUFF HERE IS FOR REPORTS HAVING SUBREPORTS 
+            // set the sections object to the current report's section 
+            crSections = rpt.ReportDefinition.Sections;
+            // loop through all the sections to find all the report objects 
+            foreach (CrystalDecisions.CrystalReports.Engine.Section crSection in crSections)
+            {
+                crReportObjects = crSection.ReportObjects;
+                //loop through all the report objects in there to find all subreports 
+                foreach (ReportObject crReportObject in crReportObjects)
+                {
+                    if (crReportObject.Kind == ReportObjectKind.SubreportObject)
+                    {
+                        crSubreportObject = (SubreportObject)crReportObject;
+                        //open the subreport object and logon as for the general report 
+                        crSubreportDocument = crSubreportObject.OpenSubreport(crSubreportObject.SubreportName);
+                        crDatabase = crSubreportDocument.Database;
+                        crTables = crDatabase.Tables;
+                        foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+                        {
+                            crTableLogOnInfo = aTable.LogOnInfo;
+                            crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+                            aTable.ApplyLogOnInfo(crTableLogOnInfo);
+                        }
+                    }
+                }
+            }
+
+            var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+
+            rpt.SetParameterValue("@cAirNo", airNo);
+            rpt.SetParameterValue("LGU", lgu);
+
+            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+            rpt.Close();
+            rpt.Dispose();
+            return File(stream, "application/pdf");
         }
     }
 }

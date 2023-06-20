@@ -578,23 +578,32 @@
 
         for (var key in e.values) {
             if (e.values.hasOwnProperty(key)) {
-                model.set('ItemValue', e.values[key]);
+                if (key == "ItemValue") {
+                    model.set('ItemValue', e.values[key]);
+                } else {
+                    model.set('Sequence', e.values[key]);
+                }
             }
         }
 
         // Create an array to store the row values
         var rowValues = [];
         var gridData = e.sender.dataSource.data();
+        var sortDescriptor = e.sender.dataSource.sort(); // Retrieve the current sort descriptor
+
+        // Sort the data manually using the sort descriptor
+        gridData.sort(function (a, b) {
+            // Sort the data items first by 'ItemKey', then by 'Sequence'
+            if (a.Sequence === b.Sequence) {
+                return a.ItemCode.localeCompare(b.ItemCode);
+            }
+            return a.Sequence - b.Sequence;
+        });
+
+
         for (var i = 0; i < gridData.length; i++) {
             var rowData = gridData[i];
-
-            for (var key in e.values) {
-                if (e.values.hasOwnProperty(key)) {
-                    if (rowData[key]) {
-                        rowValues.push(rowData[key]);
-                    }
-                }
-            }
+            rowValues.push(rowData.ItemValue);
         }
 
         var description = rowValues.join(" ");

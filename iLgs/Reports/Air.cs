@@ -16,14 +16,14 @@ namespace iLgs.Reports {
     using CrystalDecisions.CrystalReports.Engine;
     
     
-    public class Pr_ : ReportClass {
+    public class Air : ReportClass {
         
-        public Pr_() {
+        public Air() {
         }
         
         public override string ResourceName {
             get {
-                return "Pr_.rpt";
+                return "Air.rpt";
             }
             set {
                 // Do nothing
@@ -41,7 +41,7 @@ namespace iLgs.Reports {
         
         public override string FullResourceName {
             get {
-                return "iLgs.Reports.Pr_.rpt";
+                return "iLgs.Reports.Air.rpt";
             }
             set {
                 // Do nothing
@@ -66,7 +66,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.CrystalReports.Engine.Section GroupHeaderSection1 {
+        public CrystalDecisions.CrystalReports.Engine.Section PageHeaderSection1 {
             get {
                 return this.ReportDefinition.Sections[2];
             }
@@ -82,7 +82,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.CrystalReports.Engine.Section GroupFooterSection1 {
+        public CrystalDecisions.CrystalReports.Engine.Section Section4 {
             get {
                 return this.ReportDefinition.Sections[4];
             }
@@ -90,7 +90,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.CrystalReports.Engine.Section GroupFooterSection2 {
+        public CrystalDecisions.CrystalReports.Engine.Section Section5 {
             get {
                 return this.ReportDefinition.Sections[5];
             }
@@ -98,23 +98,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.CrystalReports.Engine.Section Section4 {
-            get {
-                return this.ReportDefinition.Sections[6];
-            }
-        }
-        
-        [Browsable(false)]
-        [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.CrystalReports.Engine.Section Section5 {
-            get {
-                return this.ReportDefinition.Sections[7];
-            }
-        }
-        
-        [Browsable(false)]
-        [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_cPrNo {
+        public CrystalDecisions.Shared.IParameterField Parameter_cAirNo {
             get {
                 return this.DataDefinition.ParameterFields[0];
             }
@@ -130,9 +114,9 @@ namespace iLgs.Reports {
     }
     
     [System.Drawing.ToolboxBitmapAttribute(typeof(CrystalDecisions.Shared.ExportOptions), "report.bmp")]
-    public class CachedPr_ : Component, ICachedReport {
+    public class CachedAir : Component, ICachedReport {
         
-        public CachedPr_() {
+        public CachedAir() {
         }
         
         [Browsable(false)]
@@ -169,7 +153,7 @@ namespace iLgs.Reports {
         }
         
         public virtual CrystalDecisions.CrystalReports.Engine.ReportDocument CreateReport() {
-            Pr_ rpt = new Pr_();
+            Air rpt = new Air();
             rpt.Site = this.Site;
             return rpt;
         }

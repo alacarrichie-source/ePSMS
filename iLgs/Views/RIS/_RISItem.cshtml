@@ -1,0 +1,69 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.RisItemVM>()
+        .Name("gridItems_" + @ViewData["risId"])
+        .Columns(col =>
+        {
+            col.Bound(c => c.PsCode).Width(70);
+            col.Bound(c => c.PsUnit).Width(50);
+            col.Bound(c => c.PsItem).Width(150);
+            col.Bound(c => c.Description).Width(150);
+            col.Bound(c => c.QtyRequest).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.QtyIssue).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.Remarks).Width(70);
+            col.Command(command =>
+            {
+                command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRisItem");
+                command.Destroy();
+            }).Width(172);
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Template(@<text>
+            @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["risId"]).Content("Add Item").Events(e => e.Click("onClickBtnAddRisItem")))
+            </text>);
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Aggregates(a =>
+            {
+                a.Add(p => p.QtyRequest).Sum();
+                a.Add(p => p.QtyIssue).Sum();
+            })
+            .Sort(s =>
+            {
+                s.Add(a => a.InsertedDt);
+            })
+            .Read(read => read.Action("_RISItemRead", "RIS", new { risId = @ViewData["risId"] }))
+            .Destroy(destroy => destroy.Action("_RISItemDestroy", "RIS"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItems")
+            .Edit("onEditGridItems")
+            .DataBound("onDataBoundGridItems")
+        )
+        .AutoBind(true)
+)
+

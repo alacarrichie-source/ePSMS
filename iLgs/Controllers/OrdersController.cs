@@ -22,11 +22,12 @@ namespace iLgs.Controllers
     [AppAuthorize("ORDERS")]
     public class OrdersController : Controller
     {
-        AppManEntities db = new AppManEntities();
-        IOrderService orderService;
-        IOrderItemService orderItemService;
-        IOrderItemExtnService orderItemExtnService;
-        IRequestService requestService;
+        private AppManEntities db = new AppManEntities();
+        private IOrderService orderService;
+        private IOrderItemService orderItemService;
+        private IOrderItemExtnService orderItemExtnService;
+        private IRequestService requestService;
+        private ICodextnService codextnService;
 
         public OrdersController()
         {
@@ -34,6 +35,7 @@ namespace iLgs.Controllers
             this.orderItemService = new OrderItemService(db);
             this.orderItemExtnService = new OrderItemExtnService(db);
             this.requestService = new RequestService(db);
+            this.codextnService = new CodextnService(db);
         }
 
         // GET: Codes
@@ -516,7 +518,11 @@ namespace iLgs.Controllers
                 table.ApplyLogOnInfo(logonInfo);
             }
 
+            var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+
+            rpt.SetParameterValue("LGU", lgu);
             rpt.SetParameterValue("@cPoNo", poNo);
+
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             rpt.Close();
             rpt.Dispose();

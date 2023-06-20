@@ -21,12 +21,13 @@ namespace iLgs.Controllers
 {
     [AppAuthorize("REQUESTS")]
     public class RequestsController : Controller
-    {    
-        AppManEntities db = new AppManEntities();
-        IOrderService orderService;
-        IRequestService requestService;
-        IRequestItemService requestItemService;
-        IRequestItemExtnService requestItemExtnService;
+    {
+        private AppManEntities db = new AppManEntities();
+        private IOrderService orderService;
+        private IRequestService requestService;
+        private IRequestItemService requestItemService;
+        private IRequestItemExtnService requestItemExtnService;
+        private ICodextnService codextnService;
 
         public RequestsController()
         {
@@ -34,6 +35,7 @@ namespace iLgs.Controllers
             this.requestService = new RequestService(db);
             this.requestItemService = new RequestItemService(db);
             this.requestItemExtnService = new RequestItemExtnService(db);
+            this.codextnService = new CodextnService(db);
         }
 
         // GET: Requests
@@ -67,9 +69,9 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("", "Add Access Denied!");
                 }
 
-                if (db.Requests.Any(a => a.PrNo == model.PrNo))
+                if (await requestService.GetByPrNoAsync(model.PrNo) != null)
                 {
-                    ModelState.AddModelError("PrNo", "P.R. number already exists!");
+                    ModelState.AddModelError("PR No.", "PR number already exists!");
                 }
 
                 if (model != null && ModelState.IsValid)
@@ -77,40 +79,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model.Id = Guid.NewGuid();
-                    if (string.IsNullOrWhiteSpace(model.PrNo))
-                    {
-                        model.PrNo = NextPrNo((DateTime)model.PrDate);
-                    }
-                    model.InsertedBy = user;
-                    model.InsertedDt = date;
-                    model.UpdatedBy = user;
-                    model.UpdatedDt = date;
-
-                    var entity = new Request()
-                    {
-                        Id = model.Id,
-                        Fund = model.Fund,
-                        Department = model.Department,
-                        Section = model.Section,
-                        PrNo = model.PrNo,
-                        PrDate = model.PrDate,
-                        FPP = model.FPP,
-                        Purpose = model.Purpose,
-                        RequestedBy = model.RequestedBy,
-                        RequestedDesig = model.RequestedDesig,
-                        Availability = model.Availability,
-                        AvaialbilityDesig = model.AvaialbilityDesig,
-                        ApprovedBy = model.ApprovedBy,
-                        ApprovedDesig = model.ApprovedDesig,
-                        InsertedBy = model.InsertedBy,
-                        InsertedDt = model.InsertedDt,
-                        UpdatedBy = model.UpdatedBy,
-                        UpdatedDt = model.UpdatedDt
-                    };
-
-                    db.Requests.Add(entity);
-                    await db.SaveChangesAsync();
+                    model = await requestService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -120,30 +89,7 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
-        public string NextPrNo(DateTime prDate)
-        {
-            string yyyy = prDate.Year.ToString().Trim();
-            string mm = prDate.Month.ToString().Trim();
-
-            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
-
-            string keyName = yyyy + "-" + mm;
-            // yyyy-mm-9999
-            // 123456789012
-
-            var data = db.Requests.Where(w => w.PrDate.Value.Year == prDate.Year).OrderByDescending(o => o.PrNo).FirstOrDefault();
-            if (data == null)
-            {
-                return keyName + "-" + "0001";
-            }
-            else
-            {
-                var sequence = (int.Parse(data.PrNo.Split('-')[2]) + 1).ToString();
-                return keyName + "-" + sequence.PadLeft(4, '0');
-            }
-        }
+        }        
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> RequestUpdate([DataSourceRequest] DataSourceRequest request, RequestVM model)
@@ -160,7 +106,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot update!");
                 }
-                else if (db.Requests.Any(a => a.Id != model.Id && a.PrNo == model.PrNo))
+                else if (await requestService.GetAnyPrNoAsync(model.Id, model.PrNo))
                 {
                     ModelState.AddModelError("PR No.", "PR number already exists!");
                 }
@@ -170,30 +116,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model.UpdatedBy = user;
-                    model.UpdatedDt = date;
-
-                    var entity = await db.Requests.FindAsync(model.Id);
-
-                    entity.Fund = model.Fund;
-                    entity.Department = model.Department;
-                    entity.Section = model.Section;
-                    entity.PrNo = model.PrNo;
-                    entity.PrDate = model.PrDate;
-                    entity.FPP = model.FPP;
-                    entity.Purpose = model.Purpose;
-                    entity.RequestedBy = model.RequestedBy;
-                    entity.RequestedDesig = model.RequestedDesig;
-                    entity.Availability = model.Availability;
-                    entity.AvaialbilityDesig = model.AvaialbilityDesig;
-                    entity.ApprovedBy = model.ApprovedBy;
-                    entity.ApprovedDesig = model.ApprovedDesig;
-                    entity.UpdatedBy = model.UpdatedBy;
-                    entity.UpdatedDt = model.UpdatedDt;
-
-                    db.Requests.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
+                    model = await requestService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -222,16 +145,10 @@ namespace iLgs.Controllers
                 }
                 else
                 {
-                    var entity = await db.Requests.FindAsync(model.Id);
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
 
-                    db.Requests.Attach(entity);
-                    // Delete the entity
-                    db.Requests.Remove(entity);
-                    // Or use DeleteObject if using a previous version of Entity Framework
-                    // Delete the entity in the database
-                    //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    await db.SaveChangesAsync();
-                    //db.Configuration.ValidateOnSaveEnabled = true;                
+                    model = await requestService.DeleteAsync(model, user, date);                    
                 }
             }
             catch (Exception e)
@@ -501,7 +418,10 @@ namespace iLgs.Controllers
                 logonInfo.ConnectionInfo.Password = pw;
                 table.ApplyLogOnInfo(logonInfo);
             }
-            
+
+            var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+
+            rpt.SetParameterValue("LGU", lgu);
             rpt.SetParameterValue("@cPrNo", prNo);
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             rpt.Close();
