@@ -475,9 +475,13 @@
       <DependentUpon>UserRoles.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Services\AirItemService.cs" />
+    <Compile Include="Services\AirService.cs" />
     <Compile Include="Services\CodextnService.cs" />
     <Compile Include="Services\DirectoryService.cs" />
     <Compile Include="Services\GmailEmailService.cs" />
+    <Compile Include="Services\Interfaces\IAirItemService.cs" />
+    <Compile Include="Services\Interfaces\IAirService.cs" />
     <Compile Include="Services\Interfaces\ICodextnService.cs" />
     <Compile Include="Services\Interfaces\IDirectoryService.cs" />
     <Compile Include="Services\Interfaces\IOrderItemService.cs" />
@@ -3470,7 +3474,7 @@
           <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

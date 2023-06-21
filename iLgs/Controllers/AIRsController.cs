@@ -24,11 +24,17 @@ namespace iLgs.Controllers
     public class AIRsController : Controller
     {
         private AppManEntities db = new AppManEntities();
+        private IAirService airService;
+        private IAirItemService airItemService;
         private ICodextnService codextnService;
+        private IOrderService orderService;
 
         public AIRsController()
         {
+            this.airService = new AirService(db);
+            this.airItemService = new AirItemService(db);
             this.codextnService = new CodextnService(db);
+            this.orderService = new OrderService(db);
         }
 
         // GET: 
@@ -85,16 +91,16 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("", "Add Access Denied!");
                 }
 
-                if (db.AIRs.Any(a => a.AIRNo == model.AIRNo))
+                if (await airService.GetByAirNoAsync(model.AIRNo) != null)
                 {
-                    ModelState.AddModelError("AirNo", "AIR No. already exists!");
+                    ModelState.AddModelError("AIR No.", "AIR No. already exists!");
                 }
                 else
                 {
-                    var order = await db.Orders.FindAsync(model.OrderId);
+                    var order = await orderService.GetByIdAsync((Guid)model.OrderId);
                     if (order == null)
                     {
-                        ModelState.AddModelError("PoNo", "Invalid PO No.!");
+                        ModelState.AddModelError("PO No.", "Invalid PO No.!");
                     }
                     else
                     {
@@ -114,62 +120,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model.Id = Guid.NewGuid();
-                    if (string.IsNullOrWhiteSpace(model.AIRNo))
-                    {
-                        model.AIRNo = NextAirNo((DateTime)model.AIRDate);
-                    }
-                    model.InsertedBy = user;
-                    model.InsertedDt = date;
-                    model.UpdatedBy = user;
-                    model.UpdatedDt = date;
-
-                    var entity = new AIR()
-                    {
-                        Id = model.Id,
-                        Fund = model.Fund,
-                        AIRNo = model.AIRNo,
-                        AIRDate = model.AIRDate,
-                        OrderId = model.OrderId,                       
-                        InvoiceNo = model.InvoiceNo,
-                        InvoiceDate = model.InvoiceDate,
-                        AcceptedDate = model.AcceptedDate,
-                        IsComplete = model.IsComplete,
-                        IsPartial = model.IsPartial,
-                        Custodian = model.Custodian,
-                        InspectedDate = model.InspectedDate,
-                        IsInspected = model.IsInspected,
-                        Officer = model.Officer,
-                        Remarks = model.Remarks,
-                        InsertedBy = model.InsertedBy,
-                        InsertedDt = model.InsertedDt,
-                        UpdatedBy = model.UpdatedBy,
-                        UpdatedDt = model.UpdatedDt
-                    };
-
-
-                    // include items during add
-                    var orderItems = db.OrderItems.Where(w => w.OrderId == model.OrderId).ToList();
-                    foreach(var orderItem in orderItems)
-                    {
-                        
-                        AIRItem airItem = new AIRItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            AirId = entity.Id,
-                            OrderItemId = orderItem.Id,
-                            Qty = orderItem.Qty,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-
-                        entity.AIRItems.Add(airItem);
-                    }
-
-                    db.AIRs.Add(entity);
-                    await db.SaveChangesAsync();
+                    model = await airService.CreateAsync(model, user, date);                    
                 }
             }
             catch (Exception e)
@@ -193,16 +144,16 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("", "Update Access Denied!");
                 }
 
-                if (db.AIRs.Any(a => a.Id != model.Id && a.AIRNo == model.AIRNo))
+                if (await airService.GetAnyAirNoAsync(model.Id, model.AIRNo))
                 {
-                    ModelState.AddModelError("AirNo", "AIR No. already exists!");
+                    ModelState.AddModelError("AIR No", "AIR No. already exists!");
                 }
                 else
                 {
-                    var order = await db.Orders.FindAsync(model.OrderId);
+                    var order = await orderService.GetByIdAsync((Guid)model.OrderId);
                     if (order == null)
                     {
-                        ModelState.AddModelError("PoNo", "Invalid PO No.!");
+                        ModelState.AddModelError("PO No", "Invalid PO No.!");
                     }
                     else
                     {
@@ -223,30 +174,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model.UpdatedBy = user;
-                    model.UpdatedDt = date;
-
-                    var entity = await db.AIRs.FindAsync(model.Id);
-
-                    entity.Fund = model.Fund;
-                    entity.AIRNo = model.AIRNo;
-                    entity.AIRDate = model.AIRDate;
-                    entity.InvoiceNo = model.InvoiceNo;
-                    entity.InvoiceDate = model.InvoiceDate;
-                    entity.AcceptedDate = model.AcceptedDate;
-                    entity.IsComplete = model.IsComplete;
-                    entity.IsPartial = model.IsPartial;
-                    entity.Custodian = model.Custodian;
-                    entity.InspectedDate = model.InspectedDate;
-                    entity.IsInspected = model.IsInspected;
-                    entity.Officer = model.Officer;
-                    entity.Remarks = model.Remarks;
-                    entity.UpdatedBy = model.UpdatedBy;
-                    entity.UpdatedDt = model.UpdatedDt;
-
-                    db.AIRs.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
+                    model = await airService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -271,15 +199,9 @@ namespace iLgs.Controllers
                 }
                 else
                 {
-                    var entity = await db.AIRs.FindAsync(model.Id);
-                    db.AIRs.Attach(entity);
-                    // Delete the entity
-                    db.AIRs.Remove(entity);
-                    // Or use DeleteObject if using a previous version of Entity Framework
-                    // Delete the entity in the database
-                    //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    await db.SaveChangesAsync();
-                    //db.Configuration.ValidateOnSaveEnabled = true;                
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+                    model = await airService.DeleteAsync(model, user, date);                    
                 }
             }
             catch (Exception e)
@@ -289,47 +211,11 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-        
-        public string NextAirNo(DateTime date)
-        {
-            string yyyy = date.Year.ToString().Trim();
-            string mm = date.Month.ToString().Trim();
-
-            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
-
-            string keyName = yyyy + "-" + mm;
-            // yyyy-mm-9999
-            // 123456789012
-
-            var data = db.AIRs.Where(w => w.AIRDate.Value.Year == date.Year).OrderByDescending(o => o.AIRNo).FirstOrDefault();
-            if (data == null)
-            {
-                return keyName + "-" + "0001";
-            }
-            else
-            {
-                var sequence = (int.Parse(data.AIRNo.Split('-')[2]) + 1).ToString();
-                return keyName + "-" + sequence.PadLeft(4, '0');
-            }
-        }
+        }                
 
         public ActionResult _AIRItemRead([DataSourceRequest] DataSourceRequest request, Guid? airId)
         {
-
-            var data = db.AIRItems.Where(w => w.AirId == airId)
-                .Select(s => new
-                {
-                    Id = s.Id,
-                    OrderItemId = s.OrderItemId,
-                    PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
-                    PsItem = s.OrderItem.RequestItem.RisItem.PsCode.ItemName,
-                    OrderDescription = s.OrderItem.RequestItem.Description,
-                    PsUnit = s.OrderItem.RequestItem.RisItem.PsCode.UnitMeas,
-                    Qty = s.Qty,
-                    InsertedDt = s.InsertedDt
-                });
-
+            var data = airItemService.GetByAirId(airId);            
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
@@ -350,22 +236,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model.Id = Guid.NewGuid();
-
-                    AIRItem entity = new AIRItem()
-                    {
-                        Id = model.Id,
-                        AirId = model.AirId,
-                        OrderItemId = model.OrderItemId,
-                        Qty = model.Qty,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
-
-                    db.AIRItems.Add(entity);
-                    await db.SaveChangesAsync();
+                    model = await airItemService.CreateAsync(model, user, date);
 
                     // TO DO: save to stock card
                 }
@@ -396,17 +267,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    AIRItem entity = await db.AIRItems.FindAsync(model.Id);
-
-                    entity.AirId = model.AirId;
-                    entity.OrderItemId = model.OrderItemId;
-                    entity.Qty = model.Qty;
-                    entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
-
-                    db.AIRItems.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
+                    model = await airItemService.UpdateAsync(model, user, date);
 
                     // TO DO: update stock card
                 }
@@ -436,24 +297,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    AIRItem entity = await db.AIRItems.FindAsync(model.Id);
-
-                    entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
-
-                    db.AIRItems.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
-
-                    db.AIRItems.Attach(entity);
-                    // Delete the entity
-                    db.AIRItems.Remove(entity);
-                    // Or use DeleteObject if using a previous version of Entity Framework
-                    // Delete the entity in the database
-                    //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    await db.SaveChangesAsync();
-                    //db.Configuration.ValidateOnSaveEnabled = true;   
-
+                    model = await airItemService.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
 

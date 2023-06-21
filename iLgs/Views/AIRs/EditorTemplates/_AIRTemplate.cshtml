@@ -145,15 +145,36 @@
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="row">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.Custodian, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
-                                    @(Html.Kendo().TextBoxFor(m => m.Custodian).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Custodian)
+                                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                                        .Placeholder("Select Custodian")
+                                        .DataTextField("Description")
+                                        .DataValueField("Description")
+                                        .Filter(FilterType.Contains)
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetCustodians", "Getters");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Columns(c =>
+                                        {
+                                            c.Add().Field("Description").Title("Name").Width("60%");
+                                            c.Add().Field("Desc2").Title("Designation").Width("40%");
+                                        })
+                                        .Suggest(true)                                        
+                                    )
+                                    @Html.ValidationMessageFor(model => model.Custodian)
                                 </div>
                             </div>
                         </div>
-                    </div>
                 </section>
             </div>
 
@@ -181,10 +202,32 @@
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.Officer, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
-                                    @(Html.Kendo().TextBoxFor(m => m.Officer).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Officer)
+                                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                                        .Placeholder("Select Officer")
+                                        .DataTextField("Description")
+                                        .DataValueField("Description")
+                                        .Filter(FilterType.Contains)
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetOfficers", "Getters");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Columns(c =>
+                                        {
+                                            c.Add().Field("Description").Title("Name").Width("60%");
+                                            c.Add().Field("Desc2").Title("Designation").Width("40%");
+                                        })
+                                        .Suggest(true)
+                                    )
+                                    @Html.ValidationMessageFor(model => model.Officer)
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </section>
             </div>

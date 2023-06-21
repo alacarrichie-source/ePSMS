@@ -339,6 +339,29 @@ namespace iLgs.Controllers
 
             return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
         }
+        public JsonResult GetCustodians(string text)
+        {
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "CUSTODIANS");
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetOfficers(string text)
+        {
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "OFFICERS");
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+        }
     }
 
     public class GetSysCodeVM

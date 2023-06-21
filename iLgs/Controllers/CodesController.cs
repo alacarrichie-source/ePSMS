@@ -76,6 +76,24 @@ namespace iLgs.Controllers
             return View("Codextn", codeMast);
         }
 
+        public async Task<ActionResult> Custodians()
+        {
+            var code = "CUSTODIANS";
+            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Supply/Property Custodians";
+            return View("Codextn", codeMast);
+        }
+
+        public async Task<ActionResult> Officers()
+        {
+            var code = "OFFICERS";
+            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Inspection Officer/Inspection Committee";
+            return View("Codextn", codeMast);
+        }
+
         public ActionResult Codextn()
         {
             return View();
