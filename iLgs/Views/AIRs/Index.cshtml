@@ -7,13 +7,14 @@
     .Name("grid")
     .Columns(col =>
     {
-        col.Bound(c => c.AIRNo).Width(100);
-        col.Bound(c => c.AIRDate).Width(100);
-        col.Bound(c => c.PoNo).Width(100);
-        col.Bound(c => c.PoDate).Width(100);
-        col.Bound(c => c.Department).Width(100);
-        col.Bound(c => c.InvoiceNo).Width(100);
-        col.Bound(c => c.InvoiceDate).Width(100);
+        col.Bound(c => c.AIRNo).Width(70);
+        col.Bound(c => c.AIRDate).Width(70);
+        col.Bound(c => c.PoNo).Width(70);
+        col.Bound(c => c.PoDate).Width(70);
+        col.Bound(c => c.Department).Width(150);
+        col.Bound(c => c.InvoiceNo).Width(70);
+        col.Bound(c => c.InvoiceDate).Width(70);
+        col.Bound(c => c.PostedBy).Width(70);
         col.Command(command =>
         {
             command.Edit();
@@ -322,7 +323,9 @@
                 selectedId = e.model.get("Id");
                 var rowitem = selectedGrid.dataSource.get(selectedId);
                 selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-                //$("#Code").attr("readonly", "readonly");
+
+                // refresh PO Nos
+                $("#OrderId").data("kendoMultiColumnComboBox").dataSource.read(DataOrderId());            
             }
         }
 
@@ -370,6 +373,17 @@
                 //$("#Code").attr("readonly", "readonly");
             }
         }
+
+        function DataOrderId() {
+            var text = $("#OrderId").data("kendoMultiColumnComboBox").text();
+            if (text == null || text == "") {
+                text = $("#OrderId").data("kendoMultiColumnComboBox").value();
+            }
+            return {
+                airId: $("#Id").val(),
+                text: text
+            };
+        }    
 
         function DataOrderItemId() {
             var text = $("#OrderItemId").data("kendoMultiColumnComboBox").text();

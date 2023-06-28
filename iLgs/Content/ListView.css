@@ -1,0 +1,481 @@
+﻿@import "variables";
+@import "../node_modules/@progress/kendo-theme-bootstrap/scss/variables";
+@import "../node_modules/bootstrap/scss/functions";
+@import "../node_modules/bootstrap/scss/variables";
+@import "../node_modules/bootstrap/scss/mixins";
+
+
+// Wrapper
+#wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+
+// Search
+@import "header";
+@import "search";
+
+
+// Widgets
+.k-listview {
+    border-width: 0;
+    background-color: transparent;
+}
+
+.tx-tabstrip-destinations {
+    margin-top: -3.5rem;
+    font-size: 1.125rem;
+
+    > .k-tabstrip-items {
+        border-width: 0;
+    }
+
+    > .k-tabstrip-items > .k-item {
+        margin: 0;
+        border-width: 0;
+        background: none;
+
+        .k-link {
+            padding: 1rem 1.25rem;
+        }
+    }
+
+    > .k-tabstrip-items > .k-state-active {
+        color: $accent;
+
+        &::after {
+            content: "";
+            display: block;
+            height: 2px;
+            background: $accent;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+    }
+}
+
+
+.tx-calendar-container {
+    margin: -8rem (-$grid-gutter-width) -3rem;
+    height: 22rem;
+    padding: 1rem ($grid-gutter-width) 0;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.tx-calendar-destinations {
+    width: 100%;
+    border-width: 0;
+    border-bottom: 1px solid #e2e3e3;
+
+    .k-header {
+        background: none;
+        border-width: 0;
+    }
+
+    table.k-content {
+        flex: 1 1 auto;
+        height: 18rem;
+
+        thead th {
+            border-top: 1px solid #e2e3e3;
+            border-bottom: 1px solid #e2e3e3;
+            font-size: 0.75rem;
+            text-align: center;
+        }
+    }
+
+    .k-calendar-view {
+        width: auto;
+        padding: 0;
+        height: calc( 19em + 2.07142857em);
+
+        &::after {
+            display: none;
+        }
+
+        .k-content .k-link {
+            line-height: 2;
+            height: auto;
+            width: 100%;
+            padding: 0.25rem;
+        }
+    }
+}
+
+@include
+
+media-breakpoint-down(md) {
+
+    #tx-calendar-container {
+        margin: 0;
+        padding: $spacer ($spacer * 2);
+        height: 100vh;
+        max-height: none;
+        color: $popup-text;
+        background-color: $popup-bg;
+        display: none !important;
+        flex-direction: column;
+        align-items: stretch;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        z-index: 2;
+
+        &.k-rpanel-expanded {
+            display: flex !important;
+        }
+
+        .tx-calendar-close {
+            margin-right: (-$spacer);
+            align-self: flex-end;
+            order: 0;
+        }
+
+        .tx-calendar-destinations {
+            margin-top: 3rem;
+        }
+    }
+}
+
+
+// cards
+.k-card-deck .k-card {
+    flex: 1 0 0%;
+}
+
+.k-card {
+    transition: box-shadow ease-in-out .2s;
+}
+
+.k-card:hover {
+    box-shadow: 0 0 30px 5px rgba(0, 0, 0, .12);
+}
+
+
+.k-tabstrip > .k-content {
+    padding: 40px 0;
+    border: 0;
+    overflow: visible;
+}
+
+.testimonial {
+    opacity: .6;
+    font-style: italic;
+}
+
+.k-card-columns .k-listview-content {
+    column-gap: $card-deck-gap;
+    grid-template-columns: repeat(3, 1fr);
+
+    .k-card {
+        margin-bottom: $card-deck-gap;
+        display: inline-flex;
+        width: 100%;
+    }
+
+    .k-ie & {
+        display: flex;
+        flex-wrap: wrap;
+
+        .k-card {
+            margin: 0 ($card-deck-gap / 2) $card-deck-gap;
+            width: 300px;
+            display: inline-block;
+        }
+    }
+}
+
+.k-card-grid .k-listview-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-gap: $card-deck-gap;
+
+    .k-ie & {
+        display: flex;
+
+        .k-card {
+            margin: 0 $card-deck-gap / 2;
+        }
+    }
+}
+
+.tx-bottom-dash {
+    position: relative;
+
+
+    &::after {
+        content: "";
+        display: block;
+        width: 60px;
+        height: 2px;
+        background: $accent;
+        position: absolute;
+        bottom: -1rem;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+.tx-bottom-dash-start::after {
+    transform: none;
+    left: 0;
+}
+
+
+.tx-send-button {
+    padding: $spacer;
+    min-width: 190px;
+}
+
+.navbar-nav-svg {
+    margin-right: .5rem;
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: text-top;
+}
+
+.tx-tabstrip-svg {
+    margin-right: .5rem;
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: text-top;
+}
+
+
+.tx-scrollview-container {
+    padding: 0;
+    position: relative;
+
+    .tx-scrollview {
+        height: 600px;
+        border-width: 0;
+    }
+
+    .tx-scrollview-image-container {
+        height: 600px;
+        background-position: 50%;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+
+    .km-virtual-page {
+        height: 600px;
+    }
+
+    .km-pages {
+        display: none;
+    }
+
+    .k-scrollview-next,
+    .k-scrollview-prev {
+
+        span {
+            color: #ffffff;
+        }
+    }
+}
+
+
+@include
+
+media-breakpoint-down(md) {
+
+    .k-card-columns .k-listview-content {
+        column-gap: ($spacer / 2);
+    }
+
+    .k-card-columns .k-card {
+        margin-bottom: ($spacer / 2);
+    }
+
+    .k-card-grid .k-listview-content {
+        grid-gap: ($spacer / 2);
+    }
+}
+
+
+@include
+
+media-breakpoint-down(sm) {
+    .k-card-grid .k-listview-content {
+        grid-template-columns: 1fr;
+        grid-gap: 1rem;
+    }
+
+    .k-card-columns .k-listview-content {
+        column-count: 2;
+    }
+
+    .k-card-columns .k-card {
+        margin-bottom: 1rem;
+    }
+
+    .k-card-image {
+        width: 100%;
+    }
+
+    .tx-calendar-container {
+        margin-top: -1.5rem;
+        margin-bottom: -3rem;
+        height: auto;
+    }
+
+    .tx-calendar-destinations table.k-content {
+        height: auto;
+    }
+
+    .tx-calendar-destinations .k-content .k-link {
+        line-height: normal;
+    }
+
+    .tx-send-button {
+        width: 100%;
+    }
+
+    .tx-scrollview-container .k-scrollview-prev,
+    .tx-scrollview-container .k-scrollview-next {
+        display: none;
+    }
+
+    .tx-scrollview-container .km-pages {
+        display: flex;
+        position: absolute;
+    }
+}
+
+
+@include
+
+media-breakpoint-down(xs) {
+    .k-card-columns .k-listview-content {
+        column-count: auto;
+        grid-template-columns: 1fr;
+        grid-gap: 1rem;
+    }
+
+    .k-card-columns .k-card {
+        margin: 0;
+    }
+
+    .tx-calendar-container {
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+        height: auto;
+    }
+
+    .tx-calendar-destinations .k-content .k-link {
+        line-height: 3;
+    }
+
+    .tx-tabstrip-destinations .k-tabstrip-items {
+        font-size: 2rem;
+        display: flex;
+        flex-direction: row;
+    }
+
+    .tx-tabstrip-destinations .k-tabstrip-items > .k-item {
+        flex: 1 1 0;
+    }
+
+    .tx-tabstrip-destinations .k-tabstrip-items > .k-item .k-link {
+        padding-top: .75rem;
+        padding-bottom: .75rem;
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+
+.font-weight-medium {
+    font-weight: 500 !important;
+}
+
+
+
+.tx-attraction-card {
+
+    .k-card-title .k-toggle {
+        float: right;
+        font-size: 1.5rem;
+        line-height: 1;
+        cursor: pointer;
+        transition: transform .2s ease-in-out;
+
+        .k-icon {
+            font-size: inherit;
+            vertical-align: top;
+        }
+    }
+
+    .k-card-text {
+        display: none;
+    }
+
+    .k-rotated {
+        transform: rotate(180deg);
+    }
+}
+
+.tx-destination-summary {
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+    position: relative;
+    z-index: 2;
+}
+
+.tx-destination-details {
+    margin-bottom: -3em;
+    position: relative;
+    z-index: 3;
+}
+
+.tx-calendar-shown {
+    overflow: hidden;
+
+    #header {
+        background-color: transparent;
+        pointer-events: none;
+    }
+
+    #tx-menu-open,
+    #tx-top-menu-container {
+        visibility: hidden;
+    }
+
+    .tx-destination-summary {
+        z-index: 4;
+    }
+
+    .tx-destination-details {
+    }
+}
+
+
+
+
+.tx-svg-icon {
+    font-size: 1rem;
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.tx-svg-icon-lg {
+    font-size: 2rem;
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: top;
+}

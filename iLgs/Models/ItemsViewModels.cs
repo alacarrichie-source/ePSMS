@@ -8,8 +8,8 @@ namespace iLgs.Models
 {
     public class PsCodeVM
     {
-        [Display(Name = "Additional Info")]
-        public string AdditionalInfo { get; set; }
+        //[Display(Name = "Additional Info")]
+        //public string AdditionalInfo { get; set; }
         public System.Guid Id { get; set; }
 
         [Display(Name = "Item No.")]
@@ -40,5 +40,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        public string ImageUrl { get; set; }
     }
 }

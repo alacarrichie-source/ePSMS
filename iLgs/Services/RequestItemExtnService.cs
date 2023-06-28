@@ -11,6 +11,7 @@ namespace iLgs.Services
     public interface IRequestItemExtnService
     {
         IQueryable<RequestItemExtnVM> GetAll();
+        Task<RequestItemExtn> GetByIdAsync(Guid? id);
         IQueryable<RequestItemExtnVM> GetBatchInfo(Guid? requestItemId, Guid? psCodeId);
         Task UpdateBatchAsync(List<RequestItemExtnVM> itemExtnList, string user, DateTime date);
         Task SaveAsync(Guid requestItemId, List<RequestItemExtnVM> requestItemExtnList, string user, DateTime date);
@@ -38,6 +39,12 @@ namespace iLgs.Services
                     ItemKey = s.ItemKey,
                     ItemValue = s.ItemValue
                 }).AsQueryable();
+            return data;
+        }
+
+        public async Task<RequestItemExtn> GetByIdAsync(Guid? id)
+        {
+            var data = await db.RequestItemExtns.FindAsync(id);
             return data;
         }
 

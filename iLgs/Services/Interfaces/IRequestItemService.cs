@@ -10,7 +10,8 @@ namespace iLgs.Services.Interfaces
     public interface IRequestItemService
     {
         IQueryable<RequestItemVM> GetByPrId(Guid? prId);
-        Task<RequestItemVM> GetByIdAsync(Guid? id);
+        Task<RequestItemVM> GetVmByIdAsync(Guid? id);
+        Task<RequestItem> GetByIdAsync(Guid? id);
 
         Task<RequestItemVM> CreateAsync(RequestItemVM model, string user, DateTime date);
         Task<RequestItemVM> UpdateAsync(RequestItemVM model, string user, DateTime date);

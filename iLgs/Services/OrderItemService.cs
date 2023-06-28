@@ -18,6 +18,47 @@ namespace iLgs.Services
             this.db = db;
         }
 
+        public async Task<OrderItemVM> GetByIdAsync(Guid? id)
+        {
+            var data = await db.OrderItems.Where(w => w.Id == id)
+                .Select(s => new OrderItemVM
+                {
+                    Id = s.Id,
+                    OrderId = s.OrderId,
+                    RequestItemId = s.RequestItemId,
+                    PsCodeId = s.RequestItem.PsCodeId,
+                    PsNo = s.RequestItem.RisItem.PsCode.PsNo,
+                    PsUnit = s.RequestItem.RisItem.PsCode.UnitMeas,
+                    PsItem = s.RequestItem.RisItem.PsCode.ItemName,
+                    Description = s.Description,
+                    Qty = s.Qty,
+                    UnitCost = s.UnitCost,
+                    Amount = s.Amount,
+                    InsertedDt = s.InsertedDt
+                }).FirstOrDefaultAsync();
+            return data;
+        }
+
+        public IQueryable<OrderItemVM> GetByPoId(Guid? poId)
+        {
+            var data = db.OrderItems.Where(w => w.OrderId == poId)
+                .Select(s => new OrderItemVM
+                {
+                    Id = s.Id,
+                    OrderId = s.OrderId,
+                    RequestItemId = s.RequestItemId,
+                    PsNo = s.RequestItem.RisItem.PsCode.PsNo,
+                    PsUnit = s.RequestItem.RisItem.PsCode.UnitMeas,
+                    PsItem = s.RequestItem.RisItem.PsCode.ItemName,
+                    Description = s.Description,
+                    Qty = s.Qty,
+                    UnitCost = s.UnitCost,
+                    Amount = s.Amount,
+                    InsertedDt = s.InsertedDt
+                });
+            return data;
+        }
+
         public async Task<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date)
         {
             model.Id = Guid.NewGuid();
@@ -66,48 +107,7 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
-
-        public async Task<OrderItemVM> GetByIdAsync(Guid? id)
-        {
-            var data = await db.OrderItems.Where(w => w.Id == id)
-                .Select(s => new OrderItemVM
-                {
-                    Id = s.Id,
-                    OrderId = s.OrderId,
-                    RequestItemId = s.RequestItemId,
-                    PsCodeId = s.RequestItem.PsCodeId,
-                    PsNo = s.RequestItem.RisItem.PsCode.PsNo,
-                    PsUnit = s.RequestItem.RisItem.PsCode.UnitMeas,
-                    PsItem = s.RequestItem.RisItem.PsCode.ItemName,
-                    Description = s.Description,
-                    Qty = s.Qty,
-                    UnitCost = s.UnitCost,
-                    Amount = s.Amount,
-                    InsertedDt = s.InsertedDt
-                }).FirstOrDefaultAsync();
-            return data;
-        }
-
-        public IQueryable<OrderItemVM> GetByPoId(Guid? poId)
-        {
-            var data = db.OrderItems.Where(w => w.OrderId == poId)
-                .Select(s => new OrderItemVM
-                {
-                    Id = s.Id,
-                    OrderId = s.OrderId,
-                    RequestItemId = s.RequestItemId,
-                    PsNo = s.RequestItem.RisItem.PsCode.PsNo,
-                    PsUnit = s.RequestItem.RisItem.PsCode.UnitMeas,
-                    PsItem = s.RequestItem.RisItem.PsCode.ItemName,
-                    Description = s.Description,
-                    Qty = s.Qty,
-                    UnitCost = s.UnitCost,
-                    Amount = s.Amount,
-                    InsertedDt = s.InsertedDt
-                });
-            return data;
-        }
+        }        
 
         public async Task<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date)
         {

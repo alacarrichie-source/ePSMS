@@ -201,9 +201,14 @@ namespace iLgs.Controllers
                 data = new OrderItemVM()
                 {
                     Id = Guid.NewGuid(),
-                    OrderId = orderId
+                    OrderId = orderId,
+                    Mode = "A"
                 };
             }            
+            else
+            {
+                data.Mode = "E";
+            }
             ViewData["orderItemId"] = orderItemId;
             return PartialView(data);
         }
@@ -475,9 +480,12 @@ namespace iLgs.Controllers
             return Json(new { PoYear = poYear, PoMonth = poMonth }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult _OrderItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? orderItemId, Guid? psCodeId)
+        public ActionResult _OrderItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, string mode, Guid? requestItemId, Guid? orderItemId, Guid? psCodeId)
         {
-            var data = orderItemExtnService.GetBatchInfo(orderItemId, psCodeId);
+            /*
+             * Need orderId: if mode == 'A' orderItemId is still null or invalid value 
+             */
+            var data = orderItemExtnService.GetBatchInfo(mode, requestItemId, orderItemId, psCodeId);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

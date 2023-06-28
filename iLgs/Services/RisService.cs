@@ -83,6 +83,11 @@ namespace iLgs.Services
             return false;            
         }
 
+        public async Task<bool> IsWithPrAsync(Guid risId)
+        {
+            return await db.Requests.AnyAsync(a => a.RisId == risId);
+        }
+
         public async Task PostAsync(Guid risId, string user, DateTime date)
         {
             var entity = await db.RISses.FindAsync(risId);
@@ -239,6 +244,6 @@ namespace iLgs.Services
                 var sequence = (int.Parse(data.RisNo.Split('-')[2]) + 1).ToString();
                 return keyName + "-" + sequence.PadLeft(4, '0');
             }
-        }
+        }        
     }
 }

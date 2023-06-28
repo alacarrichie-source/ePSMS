@@ -66,6 +66,7 @@ namespace iLgs.Models
 
         // Transients
 
+        [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 
         public string Supplier { get; set; }        

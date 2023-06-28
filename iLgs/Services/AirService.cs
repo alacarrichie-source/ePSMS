@@ -128,15 +128,15 @@ namespace iLgs.Services
                 AIRNo = model.AIRNo,
                 AIRDate = model.AIRDate,
                 OrderId = model.OrderId,
-                InvoiceNo = model.InvoiceNo,
+                InvoiceNo = model.InvoiceNo ?? "",
                 InvoiceDate = model.InvoiceDate,
                 AcceptedDate = model.AcceptedDate,
                 IsComplete = model.IsComplete,
                 IsPartial = model.IsPartial,
-                Custodian = model.Custodian,
+                Custodian = model.Custodian ?? "",
                 InspectedDate = model.InspectedDate,
                 IsInspected = model.IsInspected,
-                Officer = model.Officer,
+                Officer = model.Officer ?? "",
                 Remarks = model.Remarks ?? "",
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
@@ -198,19 +198,53 @@ namespace iLgs.Services
 
             var entity = await db.AIRs.FindAsync(model.Id);
 
+            // if there's a change of Order item
+            if (entity.OrderId != model.OrderId)
+            {
+                var airItems = db.AIRItems.Where(w => w.AirId == model.Id);
+                await airItems.ForEachAsync(f => {
+                    f.UpdatedBy = model.UpdatedBy;
+                    f.UpdatedDt = model.UpdatedDt;
+                });
+                await db.SaveChangesAsync();
+
+                db.AIRItems.RemoveRange(airItems);
+                await db.SaveChangesAsync();
+
+                // include items during add
+                var orderItems = db.OrderItems.Where(w => w.OrderId == model.OrderId).ToList();
+                foreach (var orderItem in orderItems)
+                {
+                    AIRItem airItem = new AIRItem()
+                    {
+                        Id = Guid.NewGuid(),
+                        AirId = entity.Id,
+                        OrderItemId = orderItem.Id,
+                        Qty = orderItem.Qty,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+
+                    entity.AIRItems.Add(airItem);
+                }
+            }
+
             entity.Fund = model.Fund;
             entity.AIRNo = model.AIRNo;
             entity.AIRDate = model.AIRDate;
-            entity.InvoiceNo = model.InvoiceNo;
+            entity.OrderId = model.OrderId;
+            entity.InvoiceNo = model.InvoiceNo ?? "";
             entity.InvoiceDate = model.InvoiceDate;
             entity.AcceptedDate = model.AcceptedDate;
             entity.IsComplete = model.IsComplete;
             entity.IsPartial = model.IsPartial;
-            entity.Custodian = model.Custodian;
+            entity.Custodian = model.Custodian ?? "";
             entity.InspectedDate = model.InspectedDate;
             entity.IsInspected = model.IsInspected;
-            entity.Officer = model.Officer;
-            entity.Remarks = model.Remarks;
+            entity.Officer = model.Officer ?? "";
+            entity.Remarks = model.Remarks ?? "";
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

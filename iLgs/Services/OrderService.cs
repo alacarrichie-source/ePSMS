@@ -113,8 +113,9 @@ namespace iLgs.Services
                 UpdatedDt = model.UpdatedDt
             };
 
-            // include items during add
-            var requestItems = db.RequestItems.Include(i => i.RequestItemExtns).Where(w => w.PrId == model.PrId).ToList();
+            // include items during add, PR Items not yet in Order Items
+            var requestItems = db.RequestItems.Include(i => i.RequestItemExtns)
+                .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToList();
             foreach (var requestItem in requestItems)
             {
                 OrderItem orderItem = new OrderItem()
@@ -164,6 +165,60 @@ namespace iLgs.Services
             model.UpdatedDt = date;
 
             var entity = await db.Orders.FindAsync(model.Id);
+
+            // if there's a change of request item
+            if (entity.PrId != model.PrId)
+            {
+                var orderItems = db.OrderItems.Where(w => w.OrderId == model.Id);
+                await orderItems.ForEachAsync(f => {
+                    f.UpdatedBy = model.UpdatedBy;
+                    f.UpdatedDt = model.UpdatedDt;
+                });
+                await db.SaveChangesAsync();
+
+                db.OrderItems.RemoveRange(orderItems);
+                await db.SaveChangesAsync();
+
+                // include items during add, PR Items not yet in Order Items
+                var prItemList = db.RequestItems.Include(i => i.RequestItemExtns)
+                    .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToList();
+                foreach (var prItem in prItemList)
+                {
+                    OrderItem orderItem = new OrderItem()
+                    {
+                        Id = Guid.NewGuid(),
+                        OrderId = entity.Id,
+                        RequestItemId = prItem.Id,
+                        Description = prItem.Description,
+                        Qty = prItem.Qty,
+                        UnitCost = prItem.UnitCost,
+                        Amount = prItem.TotalCost,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+
+                    foreach (var prItemExtn in prItem.RequestItemExtns)
+                    {
+                        OrderItemExtn orderItemExtn = new OrderItemExtn()
+                        {
+                            Id = Guid.NewGuid(),
+                            OrderItemId = orderItem.Id,
+                            ItemKey = prItemExtn.ItemKey,
+                            ItemValue = prItemExtn.ItemValue,
+                            Sequence = prItemExtn.Sequence,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+                        orderItem.OrderItemExtns.Add(orderItemExtn);
+                    }
+
+                    entity.OrderItems.Add(orderItem);
+                }
+            }
 
             entity.SupplierId = model.SupplierId;
             entity.PoNo = model.PoNo;

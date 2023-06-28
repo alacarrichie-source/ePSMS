@@ -14,15 +14,16 @@ namespace iLgs.Services
         private readonly AppManEntities db = new AppManEntities();
         public RequestService(AppManEntities db)
         {
-            this.db = db;
+            this.db = db;        
         }
         public IQueryable<RequestVM> GetAll()
         {
             return db.Requests
-                .Select(s => new RequestVM {
-                    Id = s.Id,                    
+                .Select(s => new RequestVM
+                {
+                    Id = s.Id,
                     PrNo = s.PrNo,
-                    PrDate = s.PrDate,                    
+                    PrDate = s.PrDate,
                     Availability = s.Availability,
                     AvaialbilityDesig = s.AvaialbilityDesig,
                     ApprovedBy = s.ApprovedBy,
@@ -31,6 +32,7 @@ namespace iLgs.Services
                     SubmittedDt = s.SubmittedDt,
                     IsWithPO = s.Orders.Any(),
                     // Transients from RIS
+                    RisNo = s.RISs.RisNo,
                     Fund = s.RISs.Fund,
                     Department = s.RISs.Office,
                     Section = s.RISs.Division,
@@ -39,19 +41,24 @@ namespace iLgs.Services
                     RequestedBy = s.RISs.RequestedBy,
                     RequestedDesig = s.RISs.ReceivedByDesignation,
                     RisDate = s.RISs.RisDate,
-                    RisId = s.RisId
+                    RisId = s.RisId                    
                 })
                 .AsQueryable();
         }
 
         public async Task<Request> GetByIdAsync(Guid? prId)
         {
-            return await db.Requests.FindAsync(prId);            
+            return await db.Requests.FindAsync(prId);
         }
 
-        public async Task<bool> GetAnyPrNoAsync(Guid id, string prNo)
+        public async Task<bool> IsAnyPrNoAsync(Guid id, string prNo)
         {
             return await db.Requests.AnyAsync(a => a.Id != id && a.PrNo == prNo);
+        }
+
+        public async Task<bool> IsAnyRisNoAsync(Guid id, string risNo)
+        {
+            return await db.Requests.AnyAsync(a => a.Id != id && a.RISs.RisNo == risNo);
         }
 
         public async Task<Request> GetByPrNoAsync(string prNo)
@@ -74,12 +81,17 @@ namespace iLgs.Services
 
         public async Task<bool> IsWithPOAsync(Guid? requestId)
         {
-            return await db.Orders.AnyAsync(a => a.PrId == requestId);            
+            return await db.Orders.AnyAsync(a => a.PrId == requestId);
         }
 
         public async Task<bool> IsPoPostedAsync(Guid? requestId)
-        {            
-            return await db.Orders.AnyAsync(a => a.PrId == requestId && !(a.PostedBy == "" || a.PostedBy == null) );
+        {
+            return await db.Orders.AnyAsync(a => a.PrId == requestId && !(a.PostedBy == "" || a.PostedBy == null));
+        }
+
+        public async Task<bool> IsWithInvalidUnitCostAsync(Guid? requestId)
+        {
+            return await db.RequestItems.AnyAsync(a => a.PrId == requestId && (a.UnitCost == null || a.UnitCost == 0));
         }
 
         public async Task<RequestVM> CreateAsync(RequestVM model, string user, DateTime date)
@@ -129,7 +141,7 @@ namespace iLgs.Services
                 {
                     Id = Guid.NewGuid(),
                     RisItemId = risItem.Id,
-                    PrId = entity.Id,                                        
+                    PrId = entity.Id,
                     PsCodeId = risItem.PsCodeId,
                     Description = risItem.Description,
                     Qty = risItem.QtyRequest,
@@ -172,26 +184,70 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await db.Requests.FindAsync(model.Id);
+            var entity = await db.Requests.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
-            entity.Availability = model.Availability;
-            entity.AvaialbilityDesig = model.AvaialbilityDesig;
-            entity.ApprovedBy = model.ApprovedBy;
-            entity.ApprovedDesig = model.ApprovedDesig;
+            // if there's a change of requisition item
+            if (entity.RisId != model.RisId)
+            {
+                var requestItems = db.RequestItems.Where(w => w.PrId == model.Id);
+                await requestItems.ForEachAsync(f => {
+                    f.UpdatedBy = model.UpdatedBy;
+                    f.UpdatedDt = model.UpdatedDt;
+                });
+                await db.SaveChangesAsync();
+
+                db.RequestItems.RemoveRange(requestItems);
+                await db.SaveChangesAsync();
+                
+                // include items during add
+                var risItems = db.RisItems.Include(i => i.RisItemExtns).Where(w => w.RisId == model.RisId).ToList();
+                foreach (var risItem in risItems)
+                {
+                    RequestItem requestItem = new RequestItem()
+                    {
+                        Id = Guid.NewGuid(),
+                        RisItemId = risItem.Id,
+                        PrId = entity.Id,
+                        PsCodeId = risItem.PsCodeId,
+                        Description = risItem.Description,
+                        Qty = risItem.QtyRequest,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+
+                    foreach (var risItemExtn in risItem.RisItemExtns)
+                    {
+                        RequestItemExtn requestItemExtn = new RequestItemExtn()
+                        {
+                            Id = Guid.NewGuid(),
+                            RequestItemId = requestItem.Id,
+                            ItemKey = risItemExtn.ItemKey,
+                            ItemValue = risItemExtn.ItemValue,
+                            Sequence = risItemExtn.Sequence,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+                        requestItem.RequestItemExtns.Add(requestItemExtn);
+                    }
+
+                    entity.RequestItems.Add(requestItem);
+                }
+            }
+
+            entity.RisId = model.RisId;
+            entity.PrNo = model.PrNo;
+            entity.PrDate = model.PrDate;
+            entity.Availability = model.Availability ?? "";
+            entity.AvaialbilityDesig = model.AvaialbilityDesig ?? "";
+            entity.ApprovedBy = model.ApprovedBy ?? "";
+            entity.ApprovedDesig = model.ApprovedDesig ?? "";
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
-
-            // Transients From RIS removed
-            //entity.Fund = model.Fund;
-            //entity.Department = model.Department;
-            //entity.Section = model.Section;
-            //entity.PrNo = model.PrNo;
-            //entity.PrDate = model.PrDate;
-            //entity.FPP = model.FPP;
-            //entity.Purpose = model.Purpose;
-            //entity.RequestedBy = model.RequestedBy;
-            //entity.RequestedDesig = model.RequestedDesig;
-
+            
             db.Requests.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
@@ -221,7 +277,7 @@ namespace iLgs.Services
             return model;
         }
 
-    
+
         public async Task PostAsync(Guid requestId, string user, DateTime date)
         {
             var entity = await db.Requests.FindAsync(requestId);

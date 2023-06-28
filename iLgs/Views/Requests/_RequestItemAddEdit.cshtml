@@ -21,7 +21,7 @@
             <div class="col-md-12">
                 @Html.LabelFor(m => m.PsCodeId, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.PsCodeId)
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.PsCodeId).Enable(false)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select stock/property Code")
                         .DataTextField("Code")
@@ -82,7 +82,7 @@
                         col.Bound(c => c.ItemValue).Width(200);
                         col.Bound(c => c.Sequence).Width(200);
                     })
-                    .Editable(editable => editable.Mode(GridEditMode.InCell))
+                    //.Editable(editable => editable.Mode(GridEditMode.InCell))
                     .Sortable()
                     .NoRecords()
                     .Navigatable()
@@ -120,7 +120,7 @@
             <div class="col-md-6">
                 @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(0).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(0).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false)
                     .Events(e => e.Change("changeAmount"))
                     )
                     @Html.ValidationMessageFor(model => model.Qty)

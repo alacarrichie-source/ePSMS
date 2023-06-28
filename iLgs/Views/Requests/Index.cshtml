@@ -12,8 +12,9 @@
         col.Bound(c => c.PrNo).Width(70);
         col.Bound(c => c.PrDate).Width(70);
         col.Bound(c => c.Fund).Width(70);
+        col.Bound(c => c.RisNo).Width(70);
         col.Bound(c => c.Department).Width(100);
-        col.Bound(c => c.FPP).Width(70);
+        //col.Bound(c => c.FPP).Width(70);
         col.Bound(c => c.RequestedBy).Width(100);
         col.Bound(c => c.Availability).Width(100);
         col.Bound(c => c.ApprovedBy).Width(100);
@@ -154,6 +155,20 @@
 
 
 <script type="text/javascript">
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
     //$(window).on("resize", function () {
     //    var gridElement = $("#grid"),
     //        dataArea = gridElement.find(".k-grid-content"),
@@ -261,6 +276,9 @@
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+            // refresh RIS Nos
+            $("#RisId").data("kendoMultiColumnComboBox").dataSource.read(DataRisId());            
         }
     }
 
@@ -336,6 +354,17 @@
             //$("#Code").attr("readonly", "readonly");
         }
     }
+
+    function DataRisId() {
+        var text = $("#RisId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#RisId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            prId: $("#Id").val(),
+            text: text
+        };
+    }    
 
     function onClickDeleteGridItem(e) {
         e.preventDefault();
@@ -650,11 +679,31 @@
     
     function onClickBtnAddRequestItem(e) {
         e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        parentGrid.select(parentRow);
+
         RequestItem("A", null);
     }
     
     function onClickBtnEditRequestItem(e) {
         e.preventDefault();
+        
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        // the current row for this detail
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         RequestItem("E", dataItem.Id);
     }
@@ -694,10 +743,22 @@
 
     }
 
+    function DataRisId() {
+        var text = $("#RisId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#RisId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            prId: $("#Id").val(),
+            text: text
+        };
+    }
+
     function onSelectRisId(e) {
         var dataItem = this.dataItem(e.item.index());
         var risDate = kendo.toString(new Date(parseInt(dataItem.RisDate.substr(6))), 'MM/dd/yyyy');
 
+        $("#RisNo").val(dataItem.RisNo).trigger("change");
         $("#RisDate").val(risDate).trigger("change");
         $("#Fund").val(dataItem.Fund).trigger("change");
         $("#FPP").val(dataItem.FPP).trigger("change");
@@ -709,6 +770,7 @@
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set("RisDate", risDate);
+        model.set("RisNo", dataItem.RisNo);
         model.set("Fund", dataItem.Fund);
         model.set("FPP", dataItem.FPP);
         model.set("Department", dataItem.Department);

@@ -12,10 +12,12 @@ namespace iLgs.Services.Interfaces
         IQueryable<RequestVM> GetAll();
         Task<Request> GetByIdAsync(Guid? prId);
         Task<Request> GetByPrNoAsync(string prNo);
-        Task<bool> GetAnyPrNoAsync(Guid id, string prNo);
+        Task<bool> IsAnyPrNoAsync(Guid id, string prNo);
+        Task<bool> IsAnyRisNoAsync(Guid id, string risNo);
         Task<bool> IsPostedAsync(Guid? requestId);
         Task<bool> IsWithPOAsync(Guid? requestId);
         Task<bool> IsPoPostedAsync(Guid? requestId);
+        Task<bool> IsWithInvalidUnitCostAsync(Guid? requestId);
 
         Task<RequestVM> CreateAsync(RequestVM model, string user, DateTime date);
         Task<RequestVM> UpdateAsync(RequestVM model, string user, DateTime date);

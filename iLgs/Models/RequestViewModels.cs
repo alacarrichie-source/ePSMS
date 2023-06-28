@@ -64,6 +64,9 @@ namespace iLgs.Models
 
         [Display(Name = "Designation")]
         public string RequestedDesig { get; set; }
+
+        [Display(Name = "RIS No.")]
+        public string RisNo { get; set; }
     }
 
     public class RequestItemVM

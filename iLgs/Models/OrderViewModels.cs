@@ -68,7 +68,7 @@ namespace iLgs.Models
 
         [Display(Name = "Date Signed")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [Required]
+        //[Required]
         public Nullable<System.DateTime> SignedBySuppDate { get; set; }
 
         [Display(Name = "Authorized Official")]
@@ -81,12 +81,12 @@ namespace iLgs.Models
         public string ResoNo { get; set; }
 
         [Display(Name = "Certified Correct")]
-        [Required]
+        //[Required]
         public string CertifiedCorrectBy { get; set; }
 
         [Display(Name = "Date Certified")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [Required]
+        //[Required]
         public Nullable<System.DateTime> CertifiedCorrectDate { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
@@ -110,7 +110,7 @@ namespace iLgs.Models
         public Nullable<decimal> QtyIssued { get; set; }
         public Nullable<decimal> QtyRemaining { get; set; }
         public Nullable<decimal> TotalAmount { get; set; }
-        public bool IsLocked { get; set; }
+        public bool IsLocked { get; set; }        
 
     }
 
@@ -163,6 +163,7 @@ namespace iLgs.Models
         public Nullable<decimal> QtyIssued { get; set; }
         public Nullable<decimal> QtyRemaining { get; set; }
         public string GridOrderItemExtns { get; set; }
+        public string Mode { get; set; }
     }
 
     public class OrderItemGroupVM

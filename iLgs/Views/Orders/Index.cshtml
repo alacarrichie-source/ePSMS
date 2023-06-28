@@ -206,7 +206,7 @@
     var selecteItemId = null;
     var postedBy = null;
     var selectedPoNo = null;
-
+    
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         var grid = $("#grid");
@@ -226,7 +226,6 @@
         //    //$(".k-grid-btnPostPO", grid).removeClass("k-state-disabled")
         //    $(".k-grid-btnPostPO", grid).show();
         //}
-
         if (postedBy) {
             if (selectedData.IsLocked) {
                 $(".k-grid-btnUnpostPO", grid).hide();
@@ -273,13 +272,16 @@
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-            selectedId = null;
+            selectedId = null;            
         } else {
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));                        
             //$("#Code").attr("readonly", "readonly");
-        }
+
+            // Refresh PR Nos
+            $("#PrId").data("kendoMultiColumnComboBox").dataSource.read(DataPrId());
+        }        
     }
 
     function onGridDeleteClick(e) {
@@ -305,11 +307,31 @@
     // Grid Item
     function onClickBtnAddOrderItem(e) {
         e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        parentGrid.select(parentRow);
+
         OrderItem("A", null);
     }
 
     function onClickBtnEditOrderItem(e) {
         e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        // the current row for this detail
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         OrderItem("E", dataItem.Id);
     }
@@ -381,19 +403,31 @@
 
     function onEditGridItems(e) {
         e.preventDefault();
-        selectedGrid = e.sender;
+        selectedGrid = e.sender;        
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selecteItemId = null;
-            e.model.set("OrderId", selectedId);
+            e.model.set("OrderId", selectedId);         
         } else {
             selecteItemId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selecteItemId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));            
             //$("#Code").attr("readonly", "readonly");
-        }
+            
+        }                
     }
+
+    function DataPrId() {
+        var text = $("#PrId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#PrId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            orderId: $("#Id").val(),
+            text: text
+        };
+    }    
 
     function DataRequestItemId() {
         var text = $("#RequestItemId").data("kendoMultiColumnComboBox").text();
@@ -401,6 +435,7 @@
             text = $("#RequestItemId").data("kendoMultiColumnComboBox").value();
         }
         return {
+            mode: $("#Mode").val(),
             prId: selectedId_PrId,
             text: text
         };
@@ -415,9 +450,11 @@
         $("#PsCode").val(dataItem.Code).trigger("change");
         $("#Description").val(dataItem.Description).trigger("change");
 
+        $("#RequestItemId").data("kendoMultiColumnComboBox").value(dataItem.Id);        
         $("#Qty").data("kendoNumericTextBox").value(dataItem.Qty);
         $("#UnitCost").data("kendoNumericTextBox").value(dataItem.UnitCost);
 
+        $("#RequestItemId").data("kendoMultiColumnComboBox").trigger("change");
         $("#Qty").data("kendoNumericTextBox").trigger("change");
         $("#UnitCost").data("kendoNumericTextBox").trigger("change");
 
@@ -612,6 +649,8 @@
 
     function DataOrderItemExtnGrid() {
         return {
+            mode: $("#Mode").val(),
+            requestItemId: $("#RequestItemId").data("kendoMultiColumnComboBox").value(),
             orderItemId: $("#Id").val(),
             psCodeId: $("#PsCodeId").val()
         };

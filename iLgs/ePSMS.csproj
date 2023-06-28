@@ -485,6 +485,7 @@
     <Compile Include="Services\Interfaces\ICodextnService.cs" />
     <Compile Include="Services\Interfaces\IDirectoryService.cs" />
     <Compile Include="Services\Interfaces\IOrderItemService.cs" />
+    <Compile Include="Services\Interfaces\IPsCodeService.cs" />
     <Compile Include="Services\Interfaces\IRequestItemService.cs" />
     <Compile Include="Services\Interfaces\IRequestService.cs" />
     <Compile Include="Services\Interfaces\IOrderService.cs" />
@@ -496,6 +497,7 @@
     <Compile Include="Services\OrderItemExtnService.cs" />
     <Compile Include="Services\OrderItemService.cs" />
     <Compile Include="Services\OrderService.cs" />
+    <Compile Include="Services\PsCodeService.cs" />
     <Compile Include="Services\RequestItemExtnService.cs" />
     <Compile Include="Services\RequestItemService.cs" />
     <Compile Include="Services\RequestService.cs" />
@@ -1035,6 +1037,7 @@
     <Content Include="fonts\icomoon.eot" />
     <Content Include="fonts\icomoon.ttf" />
     <Content Include="fonts\icomoon.woff" />
+    <Content Include="Content\ListView.css" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
     <None Include="Properties\PublishProfiles\AppMan %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
@@ -3379,6 +3382,8 @@
     <Content Include="Views\RIS\_RISItem.cshtml" />
     <Content Include="Views\RIS\_RISItemAddEdit.cshtml" />
     <Content Include="Views\Requests\_RequestFromRisTemplate.cshtml" />
+    <Content Include="Views\RIS\Requisition.cshtml" />
+    <Content Include="Views\RIS\Cart.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

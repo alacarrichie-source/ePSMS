@@ -161,6 +161,28 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.RISs.Office }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetPrNoWithRemainingItems(Guid? orderId, string text)
+        {
+            orderId = orderId ?? Guid.Empty;
+            var model = db.Requests.Where(w => w.SubmittedBy != null).AsQueryable();
+            if (orderId == Guid.Empty)
+            {
+                model = model.Where(w => w.RequestItems.Any(a => !a.OrderItems.Any()));
+            }
+            else
+            {
+                model = model.Where(w => w.Orders.Any(a => a.Id == orderId) || (!w.Orders.Any(a => a.Id != orderId && w.RequestItems.Any(a2 => !a2.OrderItems.Any()))));
+                //model = model.Where(w => w.Requests.Any(a => a.Id == prId) || !w.Requests.Any(a => a.Id != prId));
+            }
+            
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.PrNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.RISs.Office }), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetRisNos(string text)
         {
 
@@ -175,6 +197,38 @@ namespace iLgs.Controllers
                 Fund = c.Fund, Purpose = c.Purpose, FPP = c.FPP,
                 ApprovedBy = c.ApprovedBy,
                 ApprovedByDesignation = c.ApprovedByDesignation}), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetRisNosWithNoPr(Guid? prId, string text)
+        {
+            prId = prId ?? Guid.Empty;
+            var model = db.RISses.Where(w => w.PostedBy != null).AsQueryable();
+            if (prId == Guid.Empty)
+            {
+                model = model.Where(w => !w.Requests.Any());
+            }
+            else
+            {
+                model = model.Where(w => w.Requests.Any(a => a.Id == prId) || !w.Requests.Any(a => a.Id != prId));
+            }
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.RisNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new {
+                Id = c.Id,
+                RisNo = c.RisNo,
+                RisDate = c.RisDate,
+                Department = c.Office,
+                Section = c.Division,
+                Fund = c.Fund,
+                Purpose = c.Purpose,
+                FPP = c.FPP,
+                ApprovedBy = c.ApprovedBy,
+                ApprovedByDesignation = c.ApprovedByDesignation
+            }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetPrItems(Guid prId, string text)
@@ -205,10 +259,60 @@ namespace iLgs.Controllers
             , JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetPrItemsWithNoPo(string mode, Guid prId, string text)
+        {
+            var model = db.RequestItems.Include("PsCodes").Where(w => w.PrId == prId);
+            if (mode == "A")
+            {
+                model = model.Where(w => !w.OrderItems.Any());
+            }
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.RisItem.PsCode.ItemName.Contains(text)
+                    || p.RisItem.PsCode.ItemDescription.Contains(text) || p.RisItem.PsCode.PsNo.Contains(text)
+                    || p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                PsCodeId = c.PsCodeId,
+                Code = c.RisItem.PsCode.PsNo,
+                Name = c.RisItem.PsCode.ItemName,
+                Description = c.Description,
+                Unit = c.RisItem.PsCode.UnitMeas,
+                Type = c.RisItem.PsCode.PsType,
+                Qty = c.Qty,
+                UnitCost = c.UnitCost,
+                TotalCost = c.TotalCost
+            })
+            , JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetPoNos(string text)
         {
-
             var model = db.Orders.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.RISs.Office, Supplier = c.Supplier.BusinessName }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetPoNosWithoutPr(Guid? airId, string text)
+        {
+            airId = airId ?? Guid.Empty;
+            var model = db.Orders.Where(w => w.PostedBy != null).AsQueryable();
+            if (airId == Guid.Empty)
+            {
+                model = model.Where(w => !w.AIRs.Any());
+            }
+            else
+            {
+                model = model.Where(w => w.AIRs.Any(a => a.Id == airId) || !w.AIRs.Any(a => a.Id != airId));
+            }
 
             if (!string.IsNullOrWhiteSpace(text))
             {

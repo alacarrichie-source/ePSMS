@@ -18,6 +18,53 @@ namespace iLgs.Services
             this.db = db;
         }
 
+        public IQueryable<RequestItemVM> GetByPrId(Guid? prId)
+        {
+            var data = db.RequestItems.Where(w => w.PrId == prId)
+                .Select(s => new RequestItemVM
+                {
+                    Id = s.Id,
+                    PrId = s.PrId,
+                    PsCodeId = s.PsCodeId,
+                    PsCode = s.RisItem.PsCode.PsNo,
+                    PsUnit = s.RisItem.PsCode.UnitMeas,
+                    PsItem = s.RisItem.PsCode.ItemName,
+                    Description = s.Description,
+                    Qty = s.Qty,
+                    UnitCost = s.UnitCost,
+                    TotalCost = s.TotalCost,
+                    InsertedDt = s.InsertedDt
+                });
+            return data;
+        }
+
+        public async Task<RequestItemVM> GetVmByIdAsync(Guid? id)
+        {
+            var data = await db.RequestItems.Where(w => w.Id == id)
+                .Select(s => new RequestItemVM
+                {
+                    Id = s.Id,
+                    PrId = s.PrId,
+                    PsCodeId = s.PsCodeId,
+                    PsCode = s.RisItem.PsCode.PsNo,
+                    PsUnit = s.RisItem.PsCode.UnitMeas,
+                    PsItem = s.RisItem.PsCode.ItemName,
+                    Description = s.Description,
+                    Qty = s.Qty,
+                    UnitCost = s.UnitCost,
+                    TotalCost = s.TotalCost,
+                    InsertedDt = s.InsertedDt,
+                    GridRequestItemExtns = ""
+                }).FirstOrDefaultAsync();
+            return data;
+        }
+
+        public async Task<RequestItem> GetByIdAsync(Guid? id)
+        {
+            var data = await db.RequestItems.FindAsync(id);                
+            return data;
+        }        
+
         public async Task<RequestItemVM> CreateAsync(RequestItemVM model, string user, DateTime date)
         {
             //model.Id = Guid.NewGuid(); // Id created in controller
@@ -65,48 +112,7 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
-
-        public async Task<RequestItemVM> GetByIdAsync(Guid? id)
-        {
-            var data = await db.RequestItems.Where(w => w.Id == id)
-                .Select(s => new RequestItemVM
-                {
-                    Id = s.Id,
-                    PrId = s.PrId,
-                    PsCodeId = s.PsCodeId,
-                    PsCode = s.RisItem.PsCode.PsNo,
-                    PsUnit = s.RisItem.PsCode.UnitMeas,
-                    PsItem = s.RisItem.PsCode.ItemName,
-                    Description = s.Description,
-                    Qty = s.Qty,
-                    UnitCost = s.UnitCost,
-                    TotalCost = s.TotalCost,
-                    InsertedDt = s.InsertedDt,
-                    GridRequestItemExtns = ""
-                }).FirstOrDefaultAsync();
-            return data;
-        }
-
-        public IQueryable<RequestItemVM> GetByPrId(Guid? prId)
-        {
-            var data = db.RequestItems.Where(w => w.PrId == prId)
-                .Select(s => new RequestItemVM
-                {
-                    Id = s.Id,
-                    PrId = s.PrId,
-                    PsCodeId = s.PsCodeId,
-                    PsCode = s.RisItem.PsCode.PsNo,
-                    PsUnit = s.RisItem.PsCode.UnitMeas,
-                    PsItem = s.RisItem.PsCode.ItemName,
-                    Description = s.Description,
-                    Qty = s.Qty,
-                    UnitCost = s.UnitCost,
-                    TotalCost = s.TotalCost,
-                    InsertedDt = s.InsertedDt
-                });
-            return data;
-        }
+        }        
 
         public async Task<RequestItemVM> UpdateAsync(RequestItemVM model, string user, DateTime date)
         {

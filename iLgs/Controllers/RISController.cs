@@ -27,6 +27,7 @@ namespace iLgs.Controllers
         private IRisItemService risItemService;
         private IRisItemExtnService risItemExtnService;
         private ICodextnService codextnService;
+        private IPsCodeService psCodeService;
 
         public RISController()
         {
@@ -34,6 +35,7 @@ namespace iLgs.Controllers
             this.risItemService = new RisItemService(db);
             this.risItemExtnService = new RisItemExtnService(db);
             this.codextnService = new CodextnService(db);
+            this.psCodeService = new PsCodeService(db);
         }
 
         // GET: RIS
@@ -272,7 +274,7 @@ namespace iLgs.Controllers
         }
         public async Task<ActionResult> _RISItemAddEdit(Guid risId, Guid? risItemId)
         {
-            var data = await risItemService.GetByIdAsync(risItemId);
+            var data = await risItemService.GetVmByIdAsync(risItemId);
             if (data == null)
             {
                 data = new RisItemVM()
@@ -362,13 +364,13 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await risService.IsPrPostedAsync(model.Id))
+                else if (await risService.IsWithPrAsync(model.Id))
                 {
-                    ModelState.AddModelError("RIS No.", "This RIS No has a posted PR, cannot update!");
+                    ModelState.AddModelError("DeleteError", "This RIS No has a PR, cannot delete!");
                 }
                 else if (await risService.IsPostedAsync((Guid)model.RisId))
                 {
-                    ModelState.AddModelError("DeleteError", "RIS Number already Posted, cannot update!");
+                    ModelState.AddModelError("DeleteError", "RIS Number already Posted, cannot delete!");
                 }
 
                 if (ModelState.IsValid)
@@ -382,7 +384,7 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
                      "please contact tech support with this message: " + e.Message);
             }
 
@@ -492,6 +494,30 @@ namespace iLgs.Controllers
             rpt.Close();
             rpt.Dispose();
             return File(stream, "application/pdf");            
+        }
+
+        public ActionResult Requisition()
+        {
+            return View();
+        }
+
+        public ActionResult RequisitionRead([DataSourceRequest] DataSourceRequest request)
+        {
+            var data = psCodeService.GetMaintenanceView();
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
+        public ActionResult Cart(List<PsCodeVM> cartItems)
+        {
+            //var cartItems = JsonConvert.DeserializeObject<List<PsCodeVM>>(localStorage.getItem("cartItems")) ?? new List<OrderItem>();
+            return View(cartItems);
         }
     }
 }

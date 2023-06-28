@@ -20,16 +20,16 @@
             columns.Command(command =>
             {
                 command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRequestItem");
-                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItem").SendDataKeys(true);
+                //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItem").SendDataKeys(true);
                 //command.Destroy();
             }).Width(172);
         })
-        .ToolBar(toolbar =>
+        @*.ToolBar(toolbar =>
         {
             toolbar.Template(@<text>                
                 @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["requestId"]).Content("Add Request Item").Events(e => e.Click("onClickBtnAddRequestItem")))                    
             </text>);            
-        })
+        })*@
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -59,12 +59,12 @@
                 a.Add(p => p.TotalCost).Sum();
             })
             .Read(read => read.Action("_RequestItemRead", "Requests", new { prId = @ViewData["requestId"] }))
-            .Destroy(destroy => destroy.Action("_RequestItemDestroy", "Requests"))
+            //.Destroy(destroy => destroy.Action("_RequestItemDestroy", "Requests"))
         )
         .Events(events => events
             .Change("onChangeGridItems")
             .Edit("onEditGridItems")
-            .DataBound("onDataBoundGridItems")           
+            .DataBound("onDataBoundGridItems")                       
         )
         .AutoBind(true)        
 )

@@ -15,6 +15,8 @@ namespace iLgs.Services.Interfaces
         Task<bool> GetAnyRisNoAsync(Guid risId, string risNo);
         Task<bool> IsPostedAsync(Guid risId);
         Task<bool> IsPrPostedAsync(Guid risId);
+        Task<bool> IsWithPrAsync(Guid risId);        
+
 
         Task<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date);
         Task<RIS_VM> UpdateAsync(RIS_VM model, string user, DateTime date);

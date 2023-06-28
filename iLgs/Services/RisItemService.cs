@@ -68,7 +68,7 @@ namespace iLgs.Services
             return model;
         }
 
-        public async Task<RisItemVM> GetByIdAsync(Guid? id)
+        public async Task<RisItemVM> GetVmByIdAsync(Guid? id)
         {
             var data = await db.RisItems.Where(w => w.Id == id)
                 .Select(s => new RisItemVM
@@ -85,6 +85,12 @@ namespace iLgs.Services
                     Remarks = s.Remarks,
                     InsertedDt = s.InsertedDt
                 }).FirstOrDefaultAsync();
+            return data;
+        }
+
+        public async Task<RisItem> GetByIdAsync(Guid? id)
+        {
+            var data = await db.RisItems.FindAsync(id);
             return data;
         }
 
@@ -127,6 +133,11 @@ namespace iLgs.Services
             db.RisItems.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
+
+            // cascade updates
+            // PR, Description, Qty
+            // PO, Description, Qty
+            // AIR, Qty            
 
             return model;
         }        

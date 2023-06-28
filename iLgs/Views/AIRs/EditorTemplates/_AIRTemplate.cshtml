@@ -46,7 +46,7 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetPoNos", "Getters");
+                                    read.Action("GetPoNosWithoutPr", "Getters").Data("DataOrderId");
                                 })
                                 .ServerFiltering(true);
                             })

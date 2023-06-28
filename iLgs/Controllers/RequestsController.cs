@@ -73,6 +73,10 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("PR No.", "PR number already exists!");
                 }
+                else if (await requestService.IsAnyRisNoAsync(model.Id, model.RisNo))
+                {
+                    ModelState.AddModelError("RIS No.", "RIS number already used by other PR!");
+                }
 
                 if (model != null && ModelState.IsValid)
                 {
@@ -106,9 +110,17 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot update!");
                 }
-                else if (await requestService.GetAnyPrNoAsync(model.Id, model.PrNo))
+                else if (await requestService.IsAnyPrNoAsync(model.Id, model.PrNo))
                 {
                     ModelState.AddModelError("PR No.", "PR number already exists!");
+                }
+                else if (await requestService.IsWithPOAsync(model.Id))
+                {
+                    var entity = await requestService.GetByIdAsync(model.Id);
+                    if (entity.RisId != model.Id)
+                    {
+                        ModelState.AddModelError("PO No.", "PO number already exists for this PR, cannot change RIS No.");
+                    }
                 }
 
                 if (ModelState.IsValid)
@@ -168,7 +180,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _RequestItemAddEdit(Guid prId, Guid? requestItemId)
         {
-            var data = await requestItemService.GetByIdAsync(requestItemId);
+            var data = await requestItemService.GetVmByIdAsync(requestItemId);
             if (data == null)
             {
                 data = new RequestItemVM()
@@ -295,6 +307,10 @@ namespace iLgs.Controllers
                 else if (await requestService.IsPostedAsync(requestId))
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot post again!");
+                }
+                else if (await requestService.IsWithInvalidUnitCostAsync(requestId))
+                {
+                    ModelState.AddModelError("Unit Cost", "All PR Items must have unit cost!");
                 }
 
                 if (ModelState.IsValid)
