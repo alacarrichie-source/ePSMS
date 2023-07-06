@@ -63,7 +63,13 @@ namespace iLgs.Services
             }
             return orderItemExtns;
         }
-        
+
+        public IQueryable<OrderItemExtnVM> GetBatchInfo(Guid? orderItemId, Guid? psCodeId)
+        {            
+            var orderItemExtns = db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItemId, psCodeId).AsQueryable();
+            return orderItemExtns;
+        }
+
         public async Task SaveAsync(Guid orderItemId, List<OrderItemExtnVM> orderItemExtnList, string user, DateTime date)
         {
             // log updates

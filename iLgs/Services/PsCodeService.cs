@@ -10,13 +10,13 @@ namespace iLgs.Services
     public class PsCodeService : IPsCodeService
     {
         private readonly AppManEntities db = new AppManEntities();
-        private IDirectoryService directoryService;
-        private string imageDirectory;
+        //private IDirectoryService directoryService;
+        //private string imageDirectory;
         public PsCodeService(AppManEntities db)
         {
             this.db = db;
-            this.directoryService = new DirectoryService();
-            this.imageDirectory = directoryService.GetItemImageDirectory();
+            //this.directoryService = new DirectoryService();
+            //this.imageDirectory = directoryService.GetItemImageDirectory();
         }
 
         public IQueryable<PsCode> GetAll()
@@ -34,8 +34,9 @@ namespace iLgs.Services
                     PsNo = s.PsNo,
                     ItemName = s.ItemName,
                     UnitMeas = s.UnitMeas,
-                    ImageUrl = this.imageDirectory + (db.Uploads.Any(a => a.ImageId == s.Id) ?
-                        db.Uploads.FirstOrDefault(f => f.ImageId == s.Id).FileName : "")
+                    FileName = db.Uploads.Any(a => a.ImageId == s.Id) ? db.Uploads.FirstOrDefault(f => f.ImageId == s.Id).FileName : ""
+                    //ImageUrl = this.imageDirectory + (db.Uploads.Any(a => a.ImageId == s.Id) ?
+                    //    db.Uploads.FirstOrDefault(f => f.ImageId == s.Id).FileName : "")
                 });
             return data;
         }
@@ -112,12 +113,12 @@ namespace iLgs.Services
             return model;
         }        
 
-        public string GetImageUrl(Guid imageId)
-        {
-            string imageUrl = this.imageDirectory + 
-                (db.Uploads.Any(a => a.ImageId == imageId) ? 
-                    db.Uploads.FirstOrDefault(f => f.ImageId == imageId).FileName : "");
-            return imageUrl;
-        }
+        //public string GetImageUrl(Guid imageId)
+        //{
+        //    string imageUrl = this.imageDirectory + 
+        //        (db.Uploads.Any(a => a.ImageId == imageId) ? 
+        //            db.Uploads.FirstOrDefault(f => f.ImageId == imageId).FileName : "");
+        //    return imageUrl;
+        //}
     }
 }

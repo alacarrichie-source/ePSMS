@@ -354,6 +354,13 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\OrderViewModels.cs" />
+    <Compile Include="Models\PAR.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PARItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PARViewModels.cs" />
     <Compile Include="Models\PsCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -485,6 +492,7 @@
     <Compile Include="Services\Interfaces\ICodextnService.cs" />
     <Compile Include="Services\Interfaces\IDirectoryService.cs" />
     <Compile Include="Services\Interfaces\IOrderItemService.cs" />
+    <Compile Include="Services\Interfaces\IParService.cs" />
     <Compile Include="Services\Interfaces\IPsCodeService.cs" />
     <Compile Include="Services\Interfaces\IRequestItemService.cs" />
     <Compile Include="Services\Interfaces\IRequestService.cs" />
@@ -497,6 +505,7 @@
     <Compile Include="Services\OrderItemExtnService.cs" />
     <Compile Include="Services\OrderItemService.cs" />
     <Compile Include="Services\OrderService.cs" />
+    <Compile Include="Services\ParService.cs" />
     <Compile Include="Services\PsCodeService.cs" />
     <Compile Include="Services\RequestItemExtnService.cs" />
     <Compile Include="Services\RequestItemService.cs" />
@@ -887,6 +896,11 @@
     <Content Include="Content\kendo\2022.1.301\Uniform\sprite_2x.png" />
     <Content Include="Content\kendo\2022.1.301\Uniform\sprite_kpi.png" />
     <Content Include="Content\kendo\2022.1.301\Uniform\sprite_kpi_2x.png" />
+    <Content Include="Content\Sidebar\dist\hc-offcanvas-nav.carbon.css" />
+    <Content Include="Content\Sidebar\dist\hc-offcanvas-nav.css" />
+    <Content Include="Content\Sidebar\dist\hc-offcanvas-nav.js" />
+    <Content Include="Content\Sidebar\src\js\hc-offcanvas-nav.helpers.js" />
+    <Content Include="Content\Sidebar\src\js\hc-offcanvas-nav.js" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="fonts\icomoon.svg" />
@@ -1038,12 +1052,19 @@
     <Content Include="fonts\icomoon.ttf" />
     <Content Include="fonts\icomoon.woff" />
     <Content Include="Content\ListView.css" />
+    <Content Include="Content\Sidebar\src\scss\hc-offcanvas-nav.carbon.scss" />
+    <Content Include="Content\Sidebar\src\scss\hc-offcanvas-nav.scss" />
+    <Content Include="Content\Sidebar\src\scss\_core.scss" />
+    <Content Include="Content\Sidebar\src\scss\_mixins.scss" />
+    <Content Include="Content\Sidebar\src\scss\_theme-carbon.scss" />
+    <Content Include="Content\Sidebar\src\scss\_theme-default.scss" />
+    <Content Include="Content\Sidebar\src\scss\_toggle.scss" />
+    <None Include="Properties\PublishProfiles\ePsms %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
-    <None Include="Properties\PublishProfiles\AppMan %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs manila.pubxml" />
-    <None Include="Properties\PublishProfiles\ilgs - LPC %28Mainserver2018%29.pubxml" />
+    <None Include="Properties\PublishProfiles\Web02.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -3384,6 +3405,8 @@
     <Content Include="Views\Requests\_RequestFromRisTemplate.cshtml" />
     <Content Include="Views\RIS\Requisition.cshtml" />
     <Content Include="Views\RIS\Cart.cshtml" />
+    <Content Include="Views\AIRs\_AIRItemAddEdit.cshtml" />
+    <Content Include="Views\AIRs\_AIRItem.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3467,16 +3490,7 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>True</UseIIS>
-          <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>15481</DevelopmentServerPort>
-          <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:15482/</IISUrl>
-          <NTLMAuthentication>False</NTLMAuthentication>
-          <UseCustomServer>False</UseCustomServer>
-          <CustomServerUrl>
-          </CustomServerUrl>
-          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+          <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
       <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />

@@ -107,10 +107,10 @@
 <div id="windowcontainer"></div>
 
 <style>
-    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+    .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
         width: auto;
     }
-
+    
     .k-grid .k-grid-search {
         display: flex;
         margin-left: auto;
@@ -538,6 +538,20 @@
 
         var description = rowValues.join(" ");
         $("#Description").val(description).trigger('change');
+    }
+
+    function onDataBoundGridItemExtn(e) {
+        var grid = e.sender;
+        // Iterate over each row in the grid
+        grid.tbody.find("tr").each(function () {
+            var dataItem = grid.dataItem(this);
+
+            // Add condition based on your requirements to disable the row
+            if (dataItem.IsEnabled == false) {
+                // Disable the row
+                $(this).addClass("k-state-disabled");
+            }
+        });
     }
 
     function onSaveGridItemExtnOrig(e) {

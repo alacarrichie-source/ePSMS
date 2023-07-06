@@ -134,6 +134,8 @@ namespace iLgs.Models
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }        
+        public Nullable<System.DateTime> UpdatedDt { get; set; }      
+        
+        public bool IsEnabled { get; set; }
     }
 }

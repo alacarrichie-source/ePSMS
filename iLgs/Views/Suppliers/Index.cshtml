@@ -5,6 +5,7 @@
 
 @(Html.Kendo().Grid<iLgs.Models.Supplier>()
     .Name("grid")
+    .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
         col.Bound(c => c.Code).Width(50);

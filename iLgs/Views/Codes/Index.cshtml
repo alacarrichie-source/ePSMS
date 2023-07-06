@@ -339,13 +339,15 @@
         e.model.set("Hdg3Desc", hdg3);
         e.model.set("Hdg4Desc", hdg4);
         e.model.set("Hdg5Desc", hdg5);
-
+        
         selectedGrid = e.sender;
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selecteItemId = null;
+
             e.model.set("MastId", selectedId);
+            $("#MastId").val(selectedId).trigger("change");
         } else {
             selecteItemId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selecteItemId);

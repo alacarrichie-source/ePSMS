@@ -28,6 +28,7 @@ namespace iLgs.Controllers
         private IAirItemService airItemService;
         private ICodextnService codextnService;
         private IOrderService orderService;
+        private IOrderItemExtnService orderItemExtnService;
 
         public AIRsController()
         {
@@ -35,6 +36,7 @@ namespace iLgs.Controllers
             this.airItemService = new AirItemService(db);
             this.codextnService = new CodextnService(db);
             this.orderService = new OrderService(db);
+            this.orderItemExtnService = new OrderItemExtnService(db);
         }
 
         // GET: 
@@ -45,31 +47,7 @@ namespace iLgs.Controllers
 
         public ActionResult AIRRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = db.AIRs
-                .Select(s => new AIR_VM
-                {
-                    Id = s.Id,
-                    OrderId = s.OrderId,
-                    PoNo = s.Order.PoNo,
-                    Supplier = s.Order.Supplier.BusinessName,
-                    PoDate = s.Order.PoDate,
-                    Department = s.Order.DeliveryPlace,
-                    Fund = s.Fund,
-                    AIRNo = s.AIRNo,
-                    AIRDate = s.AIRDate,
-                    InvoiceNo = s.InvoiceNo,
-                    InvoiceDate = s.InvoiceDate,
-                    AcceptedDate = s.AcceptedDate,
-                    IsComplete = s.IsComplete,
-                    IsPartial = s.IsPartial,
-                    Custodian = s.Custodian,
-                    InspectedDate = s.InspectedDate,
-                    IsInspected = s.IsInspected,
-                    Officer = s.Officer,
-                    Remarks = s.Remarks
-                })
-                .AsQueryable();
-
+            var data = airService.GetAll();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -211,7 +189,76 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }                
+        }
+
+        public ActionResult _AIRItem(Guid airId)
+        {
+            ViewData["airId"] = airId;
+            return PartialView();
+        }
+
+        public async Task<ActionResult> _AIRItemAddEdit(Guid airId, Guid? airItemId)
+        {
+            var data = await airItemService.GetByIdAsync(airItemId);
+            if (data == null)
+            {
+                data = new AIRItemVM()
+                {
+                    Id = Guid.NewGuid(),
+                    AirId = airId,
+                    Mode = "A"
+                };
+            }
+            else
+            {
+                data.Mode = "E";
+            }
+            ViewData["airItemId"] = airItemId;
+            return PartialView(data);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _AIRItemSave(AIRItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                else if (await airService.IsPostedAsync((Guid)model.AirId))
+                {
+                    ModelState.AddModelError("AIR No.", "AIR Number already Posted, cannot update!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await airItemService.UpdateAsync(model, user, date);                    
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
 
         public ActionResult _AIRItemRead([DataSourceRequest] DataSourceRequest request, Guid? airId)
         {
@@ -402,6 +449,113 @@ namespace iLgs.Controllers
             rpt.Close();
             rpt.Dispose();
             return File(stream, "application/pdf");
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PostAIRs(Guid airId)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                else if (await airService.GetByIdAsync(airId) == null)
+                {
+                    ModelState.AddModelError("AIR", "Invalid AIR Id");
+                }
+                else if (await airService.IsPostedAsync(airId))
+                {
+                    ModelState.AddModelError("AIR No.", "AIR Number already Posted, cannot post again!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await airService.PostAsync(airId, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> UnpostAIRs(Guid airId)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                else if (await airService.GetByIdAsync(airId) == null)
+                {
+                    ModelState.AddModelError("AIR", "Invalid AIR Id");
+                }
+                else if (!(await airService.IsPostedAsync(airId)))
+                {
+                    ModelState.AddModelError("AIR No.", "AIR Number not yet posted, cannot unpost!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await airService.UnpostAsync(airId, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult _OrderItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? orderItemId, Guid? psCodeId)
+        {
+            var data = orderItemExtnService.GetBatchInfo(orderItemId, psCodeId);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
         }
     }
 }

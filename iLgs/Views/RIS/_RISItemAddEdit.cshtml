@@ -102,7 +102,7 @@
                         .Read(read => read.Action("_RISItemExtnBatchRead", "RIS").Data("DataRisItemExtnGrid"))
                     )
                     .Selectable(s => s.Mode(GridSelectionMode.Single))
-                    .Events(e => e.Save("onSaveGridItemExtn"))
+                    .Events(e => e.Save("onSaveGridItemExtn").DataBound("onDataBoundGridItemExtn"))
                     .AutoBind(false)
                 )
             </div>

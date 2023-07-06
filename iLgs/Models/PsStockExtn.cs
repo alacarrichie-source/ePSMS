@@ -18,6 +18,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> PsStockId { get; set; }
         public string ItemKey { get; set; }
         public string ItemValue { get; set; }
+        public Nullable<int> Sequence { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

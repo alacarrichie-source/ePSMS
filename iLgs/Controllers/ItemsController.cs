@@ -32,7 +32,7 @@ namespace iLgs.Controllers
         {
             this.psCodeService = new PsCodeService(db);
             this.codextnService = new CodextnService(db);
-            this.directoryService = new DirectoryService();            
+            this.directoryService = new DirectoryService(db);            
         }
 
         // GET: Codes
@@ -143,8 +143,13 @@ namespace iLgs.Controllers
 
         public ActionResult Maintenance()
         {
-            ViewData["imageDirectory"] = directoryService.GetItemImageDirectory();
+            //ViewData["imageDirectory"] = directoryService.GetItemImageDirectory();
             return View();
+        }
+
+        public string GetImageDir()
+        {            
+            return directoryService.GetItemImageDirectory();
         }
 
         public ActionResult ItemMainRead([DataSourceRequest] DataSourceRequest request)
@@ -659,8 +664,7 @@ namespace iLgs.Controllers
 
             ReportClass rpt = new ReportClass();
             rpt.FileName = Server.MapPath(Url.Content("~/Reports/StockCard.rpt"));
-            rpt.Load();
-            rpt.Refresh();
+            rpt.Load();            
 
             rpt.SetDatabaseLogon(un, pw, svr, db_);
             foreach (Table table in rpt.Database.Tables)
@@ -674,9 +678,12 @@ namespace iLgs.Controllers
             }
 
             var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            var imagePath = codextnService.GetByMastCode("DIRS").Where(w => w.Code == "IMAGE-ITEMS").FirstOrDefault().Description;
             
             rpt.SetParameterValue("@cStockNo", stockNo);
+            rpt.SetParameterValue("ImagePath", imagePath);
             rpt.SetParameterValue("LGU", lgu);
+            rpt.Refresh();
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             rpt.Close();
@@ -685,17 +692,17 @@ namespace iLgs.Controllers
         }
         #endregion
 
-        public async Task<FileResult> GetProductImage(Guid imageId)
+        public FileResult GetProductImage(Guid imageId)
         {
-            var upload = await db.Uploads.Where(w => w.ImageId == imageId).FirstOrDefaultAsync();
+            var upload = db.Uploads.Where(w => w.ImageId == imageId).FirstOrDefault();
             if (upload != null)
-            {                
+            {
                 string networkImagePath = directoryService.GetItemImageDirectory() + upload.FileName;
                 byte[] imageBytes = System.IO.File.ReadAllBytes(networkImagePath);
                 return File(imageBytes, "image/jpeg");
             }
             return null;
         }
-        
+
     }
 }

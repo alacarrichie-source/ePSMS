@@ -74,6 +74,7 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     OrderItemId = s.OrderItemId,
+                    PsCodeId = s.OrderItem.RequestItem.RisItem.PsCodeId,
                     PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
                     PsItem = s.OrderItem.RequestItem.RisItem.PsCode.ItemName,
                     OrderDescription = s.OrderItem.RequestItem.Description,

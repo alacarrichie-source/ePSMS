@@ -69,7 +69,7 @@ namespace iLgs.Services
         }
 
         public IQueryable<CodextnVM> GetByMastCode(string mastCode)
-        {
+        {            
             var data = db.Codextns.Where(w => w.CodeMast.Code == mastCode)
                 .Select(s => new CodextnVM
                 {
@@ -92,7 +92,7 @@ namespace iLgs.Services
         }
 
         public IQueryable<CodextnVM> GetByMastId(Guid mastId)
-        {
+        {            
             var data = db.Codextns.Where(w => w.MastId == mastId)
                 .Select(s => new CodextnVM
                 {

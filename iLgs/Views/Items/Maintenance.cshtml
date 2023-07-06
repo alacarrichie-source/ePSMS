@@ -27,7 +27,9 @@
             <img src="file://ws2016/Images/ePSMS/Items/#:PsNo#.jpg">*@
         
         @*<img id="itemImage" src="/Items/GetProductImage/?ProductId=#:PsNo#" class="img-responsive item-details-image clickable-image" onclick="onClickItemImage()"/>*@        
-        <img id="itemImage" src="/Items/GetProductImage/?imageId=#:Id#" class="img-responsive item-details-image clickable-image" onclick="onClickItemImage()" />
+        <img id="itemImage" src="@Url.Content("~/Items/GetProductImage/?imageId=#:Id#")" class="img-responsive item-details-image clickable-image" onclick="onClickItemImage()" />
+        @*<img id="itemImage" src="@Url.Content("~/Images/")#:FileName#" class="img-responsive item-details-image clickable-image" onclick="onClickItemImage()" />*@
+        @*<img id="itemImage" src="file://ws2016/Images/ePSMS/Items/#:FileName#" class="img-responsive item-details-image clickable-image" onclick="onClickItemImage()" />*@
         
         <dl class="item-bio-details">            
             <dd class="title">#:ItemName# #:ItemDescription??""#</dd>

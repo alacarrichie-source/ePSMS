@@ -20,7 +20,7 @@
     .Mini(false)
     .Position("left")
     .Width(240)
-    .Navigatable(true)    
+    .Navigatable(true)
     .Events(ev => ev.ItemClick("onItemClick"))
     .Content(@<text>
         <div>
@@ -44,21 +44,21 @@
                 <div style="height: 100%!important;">
                     @RenderBody()
                 </div>
-                @*<p>&copy; @DateTime.Now.Year - City Government of Las Piñas. All Rights Reserved.</p>*@                
+                @*<p>&copy; @DateTime.Now.Year - City Government of Las Piñas. All Rights Reserved.</p>*@
             </main>
         </div>
     </text>)
 )
 <script id="drawerTemplate" type="text/html">
     @*<div class="k-d-flex-col k-align-items-center k-justify-content-evenly" style="height:218px;">
-            <div class="k-avatar k-avatar-circle k-avatar-image" id="avatar"><img src='@Url.Content("~/Assets/product-logo.png")' /></div>            
-            <div id="name">ePSMS</div>*@
-            @*<div id="name">@ViewData["userName"]</div>
-            <div id="email">@userEmail</div>
-            <form class="form-inline" action="@Url.Action("LogOff", "Account")" method="post">
-                <button type="submit" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-base">Logout</button>
-            </form>*@
-        @*</div>*@
+        <div class="k-avatar k-avatar-circle k-avatar-image" id="avatar"><img src='@Url.Content("~/Assets/product-logo.png")' /></div>
+        <div id="name">ePSMS</div>*@
+    @*<div id="name">@ViewData["userName"]</div>
+        <div id="email">@userEmail</div>
+        <form class="form-inline" action="@Url.Action("LogOff", "Account")" method="post">
+            <button type="submit" class="k-button k-button-md k-button-rectangle k-rounded-md k-button-solid k-button-solid-base">Logout</button>
+        </form>*@
+    @*</div>*@
     @*<ul>
             <li><a class="k-link" href="@Url.Action("Index", "Home")" data-role='drawer-item'><span class="k-icon k-i-grid "></span>Dashboard</a></li>
             <li><a class="k-link" href="@Url.Action("Performance", "Home")" data-role='drawer-item'><span class="k-icon k-i-globe"></span>Performance and Sales</a></li>
@@ -66,25 +66,27 @@
             <li data-role='drawer-separator'></li>
             <li><a class="k-link" href="@Url.Action("Settings", "Home")" data-role='drawer-item'><span class="k-icon k-i-gear"></span>Settings</a></li>
         </ul>*@
-
+    @*<p>@Session["WebHost"]</p>*@
     <div class="kd-sidebar-container root">
         <div class="kd-sidebar-root-nav" aria-hidden="false">
             @if (Request.IsAuthenticated)
             {
-                @GetMenus(Session["MainMenu"] as IQueryable<iLgs.Models.Menubase>);
+                @GetMenus(Session["MainMenu"] as IQueryable<iLgs.Models.Menubase>, Session["WebsiteName"] as string);
+                @*@RenderMenuItems((IEnumerable<TreeViewItemModel>)Session["MainMenu"]);*@
+                @*@RenderNav();*@
             }
         </div>
     </div>
 
     @*<div class="main-menu">
-        <br />
-        @if (Request.IsAuthenticated)
-            {
-            @GetMenuTree((IEnumerable<TreeViewItemModel>)Session["MainMenu"]);
-            }        
-    </div>*@
+            <br />
+            @if (Request.IsAuthenticated)
+                {
+                @GetMenuTree((IEnumerable<TreeViewItemModel>)Session["MainMenu"]);
+                }
+        </div>*@
 
-    <ul>        
+    <ul>
         <li id="rights">
             <p>&copy; @DateTime.Now.Year - City Government of Las Piñas. All Rights Reserved.</p>
         </li>
@@ -102,19 +104,152 @@
 
 @helper  GetMenuTree(IEnumerable<TreeViewItemModel> menu)
 {
-    if (menu != null)
-    {
-            @(Html.Kendo().TreeView()
+if (menu != null)
+{
+        @(Html.Kendo().TreeView()
                 //.Events(e => e.Collapse("onItemSelect"))
                 .Name("page-tree")
                 .ExpandAll(false)
                 //.LoadOnDemand(true)
                 .BindTo(menu)
-            )
-    }
+        )
+}
 }
 
-@helper GetMenus(IQueryable<iLgs.Models.Menubase> menu)
+@*Define a recursive helper function to render menu items*@
+@helper   RenderMenuItems(IEnumerable<TreeViewItemModel> items)
+{
+if (items != null)
+{
+        <ul>
+            @foreach (var item in items)
+            {
+                <li>
+                    <a href="@item.Url">@item.Text</a>
+                    @if (item.HasChildren)
+                    {
+                        // Recursively call the helper function for sub-items
+                        RenderMenuItems(item.Items);
+                    }
+                    else
+                    {
+                        <hr />
+                    }
+                </li>
+            }
+        </ul>
+}
+}
+
+
+@helper  RenderNav()
+{
+    <nav id="main-nav">
+
+        <ul class="first-nav root-nav-categories kd-list">
+            <li class="cryptocurrency">
+                <a href="#">Cryptocurrency</a>
+                <ul>
+                    <li><a href="#">Bitcoin</a></li>
+                    <li><a href="#">Ethereum</a></li>
+                    <li><a href="#">NEO</a></li>
+                    <li><a href="#">ZCash</a></li>
+                    <li><a href="#">Dogecoin</a></li>
+                </ul>
+            </li>
+        </ul>
+
+        <ul class="second-nav root-nav-categories kd-list">
+            <li class="devices">
+                <a>Devices</a>
+                <ul>
+                    <li class="mobile">
+                        <a href="#">Mobile Phones</a>
+                        <ul>
+                            <li><a href="#">Super Smart Phone</a></li>
+                            <li><a href="#">Thin Magic Mobile</a></li>
+                            <li><a href="#">Performance Crusher</a></li>
+                            <li><a href="#">Futuristic Experience</a></li>
+                        </ul>
+                    </li>
+                    <li class="television">
+                        <a href="#">Televisions</a>
+                        <ul>
+                            <li><a href="#">Flat Superscreen</a></li>
+                            <li><a href="#">Gigantic LED</a></li>
+                            <li><a href="#">Power Eater</a></li>
+                            <li><a href="#"><a href="https://www.jqueryscript.net/tags.php?/3D/">3D</a> Experience</a></li>
+                            <li><a href="#">Classic Comfort</a></li>
+                        </ul>
+                    </li>
+                    <li class="camera">
+                        <a href="#">Cameras</a>
+                        <ul>
+                            <li><a href="#">Smart Shot</a></li>
+                            <li><a href="#">Power Shooter</a></li>
+                            <li><a href="#">Easy Photo Maker</a></li>
+                            <li><a href="#">Super Pixel</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li class="magazines">
+                <a href="#">Magazines</a>
+                <ul>
+                    <li><a href="#">National Geographic</a></li>
+                    <li><a href="#">Scientific American</a></li>
+                    <li><a href="#">The Spectator</a></li>
+                    <li><a href="#">The Rambler</a></li>
+                    <li><a href="#">Physics World</a></li>
+                    <li><a href="#">The New Scientist</a></li>
+                </ul>
+            </li>
+            <li class="store">
+                <a href="#">Store</a>
+                <ul>
+                    <li>
+                        <a href="#">Clothes</a>
+                        <ul>
+                            <li>
+                                <a href="#">Women's Clothing</a>
+                                <ul>
+                                    <li><a href="#">Tops</a></li>
+                                    <li><a href="#">Dresses</a></li>
+                                    <li><a href="#">Trousers</a></li>
+                                    <li><a href="#">Shoes</a></li>
+                                    <li><a href="#">Sale</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="#">Men's Clothing</a>
+                                <ul>
+                                    <li><a href="#">Shirts</a></li>
+                                    <li><a href="#">Trousers</a></li>
+                                    <li><a href="#">Shoes</a></li>
+                                    <li><a href="#">Sale</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">Jewelry</a>
+                    </li>
+                    <li>
+                        <a href="#">Music</a>
+                    </li>
+                    <li>
+                        <a href="#">Grocery</a>
+                    </li>
+                </ul>
+            </li>
+            <li class="collections"><a href="#">Collections</a></li>
+            <li class="credits"><a href="#">Credits</a></li>
+        </ul>
+
+    </nav>
+}
+
+@helper GetMenus(IQueryable<iLgs.Models.Menubase> menu, string websiteName)
 {
 if (menu != null)
 {
@@ -142,7 +277,14 @@ if (menu != null)
                                                 @foreach (var grandChild in grandChildren)
                                                 {
                                                     <li class="title3">
-                                                        <a style="text-decoration: none;" class="k-drawer-item" href="/@grandChild.Controller/@grandChild.Action"><span class="link-text">@grandChild.Description</span></a>
+                                                        @if (websiteName == string.Empty)
+                                                        {
+                                                            <a style="text-decoration: none;" class="k-drawer-item" href="/@grandChild.Controller/@grandChild.Action"><span class="link-text">@grandChild.Description</span></a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <a style="text-decoration: none;" class="k-drawer-item" href="/@websiteName/@grandChild.Controller/@grandChild.Action"><span class="link-text">@grandChild.Description</span></a>
+                                                        }
                                                     </li>
                                                 }
                                             </ul>
@@ -151,7 +293,14 @@ if (menu != null)
                                     else
                                     {
                                         <li class="">
-                                            <a style="text-decoration: none;" class="k-drawer-item" href="/@child.Controller/@child.Action"><span class="link-text">@child.Description</span></a>
+                                            @if (websiteName == string.Empty)
+                                            {
+                                                <a style="text-decoration: none;" class="k-drawer-item" href="/@child.Controller/@child.Action"><span class="link-text">@child.Description</span></a>
+                                            }
+                                            else
+                                            {
+                                                <a style="text-decoration: none;" class="k-drawer-item" href="/@websiteName/@child.Controller/@child.Action"><span class="link-text">@child.Description</span></a>
+                                            }
                                         </li>
                                     }
                                 }
@@ -159,70 +308,77 @@ if (menu != null)
                             else
                             {
                                 <li class="title2b">
-                                    <a style="text-decoration: none;" class="k-drawer-item" href="/@item.Controller/@item.Action"><span class="link-text">@item.Description</span></a>
+                                    @if (websiteName == string.Empty)
+                                    {
+                                        <a style="text-decoration: none;" class="k-drawer-item" href="/@item.Controller/@item.Action"><span class="link-text">@item.Description</span></a>
+                                    }
+                                    else
+                                    {
+                                        <a style="text-decoration: none;" class="k-drawer-item" href="/@websiteName/@item.Controller/@item.Action"><span class="link-text">@item.Description</span></a>
+                                    }
                                 </li>
                             }
                         </ul>
                     </li>
                 </ul>
-            }
-        }
-    }
+                                        }
+                                    }
+                                }
 }
 
 
 
 
 @*@helper GetMenus(IQueryable<iLgs.Models.Menubase> menu)
-{
-    if (menu != null)
     {
-        foreach (var item in menu)
+        if (menu != null)
         {
-            if (item.ParentId == 0) //Level one items will have 0 parent id
+            foreach (var item in menu)
             {
-                <ul class="root-nav-categories kd-list">
-                    <li>
-                        <h3 class="kd-title"><span class="root-nav expand"></span>@item.Description</h3>
-                        <ul class="root-nav-widgets kd-list">
-                            @{
-                var children = menu.Where(x => x.ParentId == item.ChildId && x.Description != "-").OrderBy(o => o.Description).ToList();
-                            }
-                            @if (children.Any())
-                            {
-                                foreach (var child in children)
+                if (item.ParentId == 0) //Level one items will have 0 parent id
+                {
+                    <ul class="root-nav-categories kd-list">
+                        <li>
+                            <h3 class="kd-title"><span class="root-nav expand"></span>@item.Description</h3>
+                            <ul class="root-nav-widgets kd-list">
+                                @{
+                    var children = menu.Where(x => x.ParentId == item.ChildId && x.Description != "-").OrderBy(o => o.Description).ToList();
+                                }
+                                @if (children.Any())
                                 {
-                                    var grandChildren = menu.Where(w => w.ParentId == child.ChildId && w.Description != "-").OrderBy(o => o.Description).ToList();
-                                    if (grandChildren.Any())
+                                    foreach (var child in children)
                                     {
-                                        foreach (var grandChild in grandChildren)
+                                        var grandChildren = menu.Where(w => w.ParentId == child.ChildId && w.Description != "-").OrderBy(o => o.Description).ToList();
+                                        if (grandChildren.Any())
+                                        {
+                                            foreach (var grandChild in grandChildren)
+                                            {
+                                                <li class="">
+                                                    <a class="kd-link" href="/@grandChild.Controller/@grandChild.Action"><span class="link-text">@grandChild.Description</span></a>
+                                                </li>
+                                            }
+                                        }
+                                        else
                                         {
                                             <li class="">
-                                                <a class="kd-link" href="/@grandChild.Controller/@grandChild.Action"><span class="link-text">@grandChild.Description</span></a>
+                                                <a class="kd-link" href="/@child.Controller/@child.Action"><span class="link-text">@child.Description</span></a>
                                             </li>
                                         }
                                     }
-                                    else
-                                    {
-                                        <li class="">
-                                            <a class="kd-link" href="/@child.Controller/@child.Action"><span class="link-text">@child.Description</span></a>
-                                        </li>
-                                    }
                                 }
-                            }
-                            else
-                            {
-                                <li class="">
-                                    <a class="kd-link" href="/@item.Controller/@item.Action"><span class="link-text">@item.Description</span></a>
-                                </li>
-                            }
-                        </ul>
-                    </li>
-                </ul>
+                                else
+                                {
+                                    <li class="">
+                                        <a class="kd-link" href="/@item.Controller/@item.Action"><span class="link-text">@item.Description</span></a>
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+                    </ul>
+                }
             }
         }
-    }
-}*@
+    }*@
 
 @helper  GetMenuPanel(IQueryable<iLgs.Models.Menubase> menu)
 {
@@ -254,9 +410,9 @@ if (menu != null)
             else
             {
                 <li><a class="k-link k-drawer-item" href="/@item.Controller/@item.Action" data-role="drawer-item" role="menuitem" aria-label="@item.Description"><span class="k-icon k-i-globe"></span>@item.Description</a></li>
-            }
         }
     }
+}
 }
 
 <style>
@@ -277,7 +433,6 @@ if (menu != null)
     .title {
         font-size: 14px;
         line-height: 20px;
-        /*color: #2D73F5;*/
     }
 
     .app-bar-link {
@@ -306,7 +461,6 @@ if (menu != null)
     }
 
     #rights {
-        /*background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%,#fff 54.73%);*/
         position: absolute;
         bottom: 10px;
         left: 15px;
@@ -315,10 +469,6 @@ if (menu != null)
         font-size: 10px;
     }
 
-    /*.k-drawer-content {
-        padding-left: 1em;
-    }*/
-
     .link-text {
         color: inherit;
     }
@@ -326,7 +476,6 @@ if (menu != null)
     .title2 {
         font-size: 10px;
         line-height: 20px;
-        /*color: #2D73F5;*/
         padding: 0 32px;
         text-transform: uppercase;
     }
@@ -344,7 +493,6 @@ if (menu != null)
     }
 
     .menu-section {
-        /*display:flex;*/
         justify-content: space-evenly;
     }
 
@@ -352,36 +500,58 @@ if (menu != null)
         width: 50%;
         height: 50%;
     }
-    
+
     .max-grid .k-grid-content {
         overflow-y: auto;
-        height: calc(100vh - 180px)!important;        
+        height: calc(100vh - 180px) !important;
     }
 </style>
 
 <script>
-    $(document).ready(function () {
+
+    @*
+      // Auto hide drawer
+      $(document).ready(function () {
         //highlight selected Drawer item on page load
         $('a[href="@routeUrl"]').parent().addClass('k-state-selected');
 
         $("#drawer").getKendoDrawer().hide()
         $('.k-drawer-container').addClass('k-drawer-expanded');
-
-        //show Drawer as expanded on page load
-        //$('.k-drawer-container').addClass('k-drawer-expanded');
-        //$('.k-drawer-wrapper').css('width', '240px');
-        //if ($(window).width() < 600) {
-        //    $("#drawer").getKendoDrawer().hide()
-        //    $('.k-drawer-container').removeClass('k-drawer-expanded');
-        //}
         resizeWidgets()
         $(window).resize(function () {
             resizeWidgets()
         })
 
         //var drawer = $("#drawer").data("kendoDrawer");
-        //drawer.element.removeClass("k-drawer-expanded");        
+        //drawer.element.removeClass("k-drawer-expanded");
+    })*@
+
+    $(document).ready(function () {
+        //highlight selected Drawer item on page load
+        $('a[href="@routeUrl"]').parent().addClass('k-state-selected');
+        //show Drawer as expanded on page load
+        $('.k-drawer-container').addClass('k-drawer-expanded');
+        $('.k-drawer-wrapper').css('width', '240px');
+        if ($(window).width() < 600) {
+            $("#drawer").getKendoDrawer().hide()
+            $('.k-drawer-container').removeClass('k-drawer-expanded');
+        }
+
+        resizeWidgets()
+        $(window).resize(function () {
+            resizeWidgets()
+        })
     })
+
+    // as a jQuery plugin
+    //$('#main-nav').hcOffcanvasNav({
+    //    insertClose: true,
+    //    insertBack: true,
+    //    labelClose: 'Close',
+    //    labelBack: 'Back',
+    //    levelTitleAsBack: true,
+    //    pushContent: true // default false
+    //});
 
     var isDrawerVisible = true;
     function toggleDrawer(e) {
@@ -416,7 +586,7 @@ if (menu != null)
 
         //    var targetPage = e.item.find("a").attr("href");
         //    window.location.href = targetPage;
-        //}        
+        //}
     }
 
     function onItemClick(e) {

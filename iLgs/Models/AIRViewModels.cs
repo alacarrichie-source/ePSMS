@@ -105,6 +105,10 @@ namespace iLgs.Models
         public string OrderDescription { get; set; }
 
         [Display(Name = "Unit")]
-        public string PsUnit { get; set; }        
+        public string PsUnit { get; set; }
+
+        public string GridOrderItemExtns { get; set; }
+        public string Mode { get; set; }
+        public Guid? PsCodeId { get; set; }
     }
 }

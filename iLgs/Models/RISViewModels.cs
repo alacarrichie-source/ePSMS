@@ -221,5 +221,6 @@ namespace iLgs.Models
 
         // Transients
         public string ItemCode { get; set; }
+        public bool IsEnabled { get; set; }
     }
 }

@@ -20,6 +20,7 @@ namespace iLgs.Models
             this.RISlips = new HashSet<RISlip>();
             this.OrderItems = new HashSet<OrderItem>();
             this.AIRs = new HashSet<AIR>();
+            this.PARs = new HashSet<PAR>();
         }
     
         public System.Guid Id { get; set; }
@@ -54,5 +55,7 @@ namespace iLgs.Models
         public virtual Request Request { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIR> AIRs { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PAR> PARs { get; set; }
     }
 }

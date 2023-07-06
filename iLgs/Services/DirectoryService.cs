@@ -3,20 +3,27 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using iLgs.Models;
 using System.Threading.Tasks;
-using System.Configuration;
+using System.Data.Entity;
 
 namespace iLgs.Services
 {
     public class DirectoryService : IDirectoryService
-    {         
-        public DirectoryService()
+    {
+        private readonly AppManEntities db = new AppManEntities();
+        public DirectoryService(AppManEntities db)
         {
-
+            this.db = db;
         }
         public string GetItemImageDirectory()
         {
-            return ConfigurationManager.AppSettings["ImageFolder"].ToString() + "Items/";
+            var dir = db.Codextns.Where(w => w.CodeMast.Code == "DIRS" && w.Code == "IMAGE-ITEMS").FirstOrDefault();
+            if (dir != null)
+            {
+                return dir.Description.Trim();
+            }
+            return string.Empty;
         }
     }
 }

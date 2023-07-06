@@ -218,7 +218,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "order");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {

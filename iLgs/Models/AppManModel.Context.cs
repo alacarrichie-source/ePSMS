@@ -54,7 +54,6 @@ namespace iLgs.Models
         public virtual DbSet<RISlipItem> RISlipItems { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<RISlip> RISlips { get; set; }
-        public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
@@ -67,5 +66,8 @@ namespace iLgs.Models
         public virtual DbSet<OrderItemExtn> OrderItemExtns { get; set; }
         public virtual DbSet<RequestItemExtn> RequestItemExtns { get; set; }
         public virtual DbSet<AIR> AIRs { get; set; }
+        public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
+        public virtual DbSet<PARItem> PARItems { get; set; }
+        public virtual DbSet<PAR> PARs { get; set; }
     }
 }

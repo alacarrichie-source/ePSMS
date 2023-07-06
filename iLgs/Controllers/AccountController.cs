@@ -143,14 +143,42 @@ namespace iLgs.Controllers
                     //    return View(model);
                     //}
 
-                    Session["MainMenu"] = await new MenuController().GetMainMenu(user.Id);                                        
+                    //bool isLocalhost = false;
+
+                    //string host = HttpContext.Request.Url.Host;
+                    //if (host == "localhost" || host == "127.0.0.1" || host == "::1")
+                    //{
+                    //    isLocalhost = true;
+                    //}
+
+                    //if (isLocalhost)
+                    //{
+                    //    Session["WebsiteName"] = string.Empty;
+                    //}
+                    //else
+                    //{
+                    //    string url = HttpContext.Request.Url.ToString();
+                    //    Uri uri = new Uri(url);
+                    //    string path = uri.AbsolutePath;
+                    //    string websiteName = path.Trim('/');
+                    //    Session["WebHost"] = url + ":" + path + ":" + websiteName;
+                    //    Session["WebsiteName"] = websiteName;
+                    //}
+
+                    string url = HttpContext.Request.Url.ToString();
+                    Uri uri = new Uri(url);
+                    string path = uri.AbsolutePath;
+                    string websiteName = path.Trim('/');
+                    Session["WebHost"] = url + ":" + path + ":" + websiteName;                    
+                    Session["WebsiteName"] = websiteName;                    
+                    Session["MainMenu"] = await new MenuController().GetMainMenu(user.Id);
 
                     //var allMenu = await new MenuController().GetMainMenu(user.Id);
                     //var menuTreeList = new List<TreeViewItemModel>();
                     //var menus = allMenu.Where(w => w.ParentId == 0);
 
                     //menuTreeList = GetMenuTree(allMenu, menus);
-                    //Session["MainMenu"] = menuTreeList;
+                    //Session["MainMenuTree"] = menuTreeList;
 
                     return RedirectToLocal(returnUrl);
                 case SignInStatus.LockedOut:

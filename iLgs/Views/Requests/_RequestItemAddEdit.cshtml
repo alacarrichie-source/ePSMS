@@ -103,7 +103,7 @@
                         .Read(read => read.Action("_RequestItemExtnBatchRead", "Requests").Data("DataRequestItemExtnGrid"))
                     )
                     .Selectable(s => s.Mode(GridSelectionMode.Single))
-                    .Events(e => e.Save("onSaveGridItemExtn"))
+                    .Events(e => e.Save("onSaveGridItemExtn").DataBound("onDataBoundGridItemExtn"))
                     .AutoBind(false)
                 )
             </div>
@@ -159,7 +159,6 @@
 
     </fieldset>
 }
-
 
 <script type="text/javascript">
     $("#btnSave").click(function (e) {

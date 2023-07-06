@@ -24,7 +24,7 @@ namespace iLgs.Controllers
         private IDirectoryService directoryService;
         public UploadsController()
         {
-            this.directoryService = new DirectoryService();
+            this.directoryService = new DirectoryService(db);
         }
         // GET: Uploads
         public ActionResult Index()

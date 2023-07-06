@@ -42,5 +42,6 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
         public string ImageUrl { get; set; }
+        public string FileName { get; set; }
     }
 }
