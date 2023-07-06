@@ -664,9 +664,11 @@ namespace iLgs.Controllers
 
             ReportClass rpt = new ReportClass();
             rpt.FileName = Server.MapPath(Url.Content("~/Reports/StockCard.rpt"));
-            rpt.Load();            
-
             rpt.SetDatabaseLogon(un, pw, svr, db_);
+
+            rpt.Load();
+            rpt.Refresh();
+            
             foreach (Table table in rpt.Database.Tables)
             {
                 var logonInfo = table.LogOnInfo;
@@ -682,8 +684,7 @@ namespace iLgs.Controllers
             
             rpt.SetParameterValue("@cStockNo", stockNo);
             rpt.SetParameterValue("ImagePath", imagePath);
-            rpt.SetParameterValue("LGU", lgu);
-            rpt.Refresh();
+            rpt.SetParameterValue("LGU", lgu);            
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             rpt.Close();
