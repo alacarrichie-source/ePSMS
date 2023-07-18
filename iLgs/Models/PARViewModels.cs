@@ -45,6 +45,12 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
+        [Display(Name = "Posted By")]
+        public string PostedBy { get; set; }
+
+        [Display(Name = "Posted Date")]
+        public Nullable<System.DateTime> PostedDt { get; set; }
+
         // Transients
 
         [Display(Name = "PO No.")]
@@ -76,7 +82,9 @@ namespace iLgs.Models
 
         [Display(Name = "Date Acquired")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime DateAcquired { get; set; }
+        public DateTime? DateAcquired { get; set; }
+
+        public string Description { get; set; }
 
     }
 }

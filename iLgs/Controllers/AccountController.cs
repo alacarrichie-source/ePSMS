@@ -165,20 +165,22 @@ namespace iLgs.Controllers
                     //    Session["WebsiteName"] = websiteName;
                     //}
 
+                    var allMenu = await new MenuController().GetMainMenu(user.Id);
+
                     string url = HttpContext.Request.Url.ToString();
                     Uri uri = new Uri(url);
                     string path = uri.AbsolutePath;
                     string websiteName = path.Trim('/');
                     Session["WebHost"] = url + ":" + path + ":" + websiteName;                    
-                    Session["WebsiteName"] = websiteName;                    
-                    Session["MainMenu"] = await new MenuController().GetMainMenu(user.Id);
+                    Session["WebsiteName"] = websiteName;
+                    Session["MainMenu"] = allMenu;
 
-                    //var allMenu = await new MenuController().GetMainMenu(user.Id);
-                    //var menuTreeList = new List<TreeViewItemModel>();
-                    //var menus = allMenu.Where(w => w.ParentId == 0);
 
-                    //menuTreeList = GetMenuTree(allMenu, menus);
-                    //Session["MainMenuTree"] = menuTreeList;
+                    var menuTreeList = new List<TreeViewItemModel>();
+                    var menus = allMenu.Where(w => w.ParentId == 0);
+
+                    menuTreeList = GetMenuTree(allMenu, menus);
+                    Session["MainMenuTree"] = menuTreeList;
 
                     return RedirectToLocal(returnUrl);
                 case SignInStatus.LockedOut:

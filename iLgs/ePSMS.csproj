@@ -222,6 +222,8 @@
     <Compile Include="Controllers\Menubases_Controller.cs" />
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\OrdersController.cs" />
+    <Compile Include="Controllers\ParItemsController.cs" />
+    <Compile Include="Controllers\PARsController.cs" />
     <Compile Include="Controllers\QueryController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\RequestsController.cs" />
@@ -492,6 +494,7 @@
     <Compile Include="Services\Interfaces\ICodextnService.cs" />
     <Compile Include="Services\Interfaces\IDirectoryService.cs" />
     <Compile Include="Services\Interfaces\IOrderItemService.cs" />
+    <Compile Include="Services\Interfaces\IParItemService.cs" />
     <Compile Include="Services\Interfaces\IParService.cs" />
     <Compile Include="Services\Interfaces\IPsCodeService.cs" />
     <Compile Include="Services\Interfaces\IRequestItemService.cs" />
@@ -505,6 +508,7 @@
     <Compile Include="Services\OrderItemExtnService.cs" />
     <Compile Include="Services\OrderItemService.cs" />
     <Compile Include="Services\OrderService.cs" />
+    <Compile Include="Services\ParItemService.cs" />
     <Compile Include="Services\ParService.cs" />
     <Compile Include="Services\PsCodeService.cs" />
     <Compile Include="Services\RequestItemExtnService.cs" />
@@ -3375,7 +3379,7 @@
     <Content Include="Views\AIRs\Index.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AIRTemplate.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AirItemTemplate.cshtml" />
-    <Content Include="Views\Shared\_AppLayout.cshtml" />
+    <Content Include="Views\Shared\_AppLayout_Old.cshtml" />
     <Content Include="Views\Shared\kd-sidebar-sample.cshtml" />
     <Content Include="Views\Account\Login_X.cshtml" />
     <Content Include="Views\Account\Shared\_SignInLayout.cshtml" />
@@ -3407,6 +3411,7 @@
     <Content Include="Views\RIS\Cart.cshtml" />
     <Content Include="Views\AIRs\_AIRItemAddEdit.cshtml" />
     <Content Include="Views\AIRs\_AIRItem.cshtml" />
+    <Content Include="Views\Shared\_AppLayout.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3414,6 +3419,8 @@
     <Folder Include="Views\Issuances\" />
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
+    <Folder Include="Views\ParItems\" />
+    <Folder Include="Views\PARs\" />
     <Folder Include="Views\Query\" />
     <Folder Include="Views\Sequence\" />
   </ItemGroup>
@@ -3493,7 +3500,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

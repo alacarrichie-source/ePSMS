@@ -9,26 +9,18 @@ namespace iLgs.Services.Interfaces
 {
     public interface IParService
     {
-        IQueryable<PAR_VM> GetAllPars();
-        Task<Models.PAR> GetParByIdAsync(Guid parId);
-        Task<Models.PAR> GetParByParNoAsync(string parNo);
-        Task<bool> IsAnyParNoAsync(Guid id, string parNo);
+        IQueryable<PAR_VM> GetAll();
+        Task<Models.PAR> GetByIdAsync(Guid parId);
+        Task<Models.PAR> GetByParNoAsync(string parNo);
+        Task<bool> IsAnyParNoAsync(Guid parId, string parNo);
         Task<bool> IsPostedAsync(Guid parId);
         
 
-        Task<PAR_VM> CreateParAsync(PAR_VM model, string user, DateTime date);
-        Task<PAR_VM> UpdateParAsync(PAR_VM model, string user, DateTime date);
-        Task<PAR_VM> DeleteParAsync(PAR_VM model, string user, DateTime date);
+        Task<PAR_VM> CreateAsync(PAR_VM model, string user, DateTime date);
+        Task<PAR_VM> UpdateAsync(PAR_VM model, string user, DateTime date);
+        Task<PAR_VM> DeleteAsync(PAR_VM model, string user, DateTime date);
         Task PostAsync(Guid parId, string user, DateTime date);
         Task UnpostAsync(Guid parId, string user, DateTime date);
-
-        #region PAR ITEMS
-        IQueryable<PARItemVM> GetAllParItems();
-        Task<Models.PARItem> GetParItemByIdAsync(Guid itemId);
-
-        Task<PARItemVM> CreateParItemAsync(PARItemVM model, string user, DateTime date);
-        Task<PARItemVM> UpdateParItemAsync(PARItemVM model, string user, DateTime date);
-        Task<PARItemVM> DeletePaItemrAsync(PARItemVM model, string user, DateTime date);
-        #endregion  
+        
     }
 }

@@ -75,8 +75,8 @@
         <EntityTypeShape EntityType="AppManModel.PsStockExtn" Width="1.5" PointX="15.75" PointY="12.25" />
         <AssociationConnector Association="AppManModel.FK_PsStockExtns_PsStocks" />
         <EntityTypeShape EntityType="AppManModel.PARItem" Width="1.5" PointX="15.75" PointY="26.75" />
-        <EntityTypeShape EntityType="AppManModel.PAR" Width="1.5" PointX="7.5" PointY="30" />
         <AssociationConnector Association="AppManModel.FK_PARItems_OrderItems" />
+        <EntityTypeShape EntityType="AppManModel.PAR" Width="1.5" PointX="7.5" PointY="7.375" />
         <AssociationConnector Association="AppManModel.FK_PARs_Orders" />
         <AssociationConnector Association="AppManModel.FK_PARItems_PARs" />
         </Diagram>

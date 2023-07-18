@@ -298,6 +298,8 @@
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="datetime" />
+          <Property Name="PostedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="PostedDt" Type="datetime" />
         </EntityType>
         <EntityType Name="PsCodes">
           <Key>
@@ -1759,11 +1761,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="PsStockExtn" EntitySet="PsStockExtns" />
           </AssociationSet>
           <EntitySet Name="PARItems" EntityType="AppManModel.PARItem" />
-          <EntitySet Name="PARs" EntityType="AppManModel.PAR" />
           <AssociationSet Name="FK_PARItems_OrderItems" Association="AppManModel.FK_PARItems_OrderItems">
             <End Role="OrderItem" EntitySet="OrderItems" />
             <End Role="PARItem" EntitySet="PARItems" />
           </AssociationSet>
+          <EntitySet Name="PARs" EntityType="AppManModel.PAR" />
           <AssociationSet Name="FK_PARs_Orders" Association="AppManModel.FK_PARs_Orders">
             <End Role="Order" EntitySet="Orders" />
             <End Role="PAR" EntitySet="PARs" />
@@ -3078,6 +3080,18 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PARItems_OrderItems" FromRole="PARItem" ToRole="OrderItem" />
           <NavigationProperty Name="PAR" Relationship="AppManModel.FK_PARItems_PARs" FromRole="PARItem" ToRole="PAR" />
         </EntityType>
+        <Association Name="FK_PARItems_OrderItems">
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
+          <End Type="AppManModel.PARItem" Role="PARItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PARItem">
+              <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <EntityType Name="PAR">
           <Key>
             <PropertyRef Name="Id" />
@@ -3096,21 +3110,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="PostedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="Order" Relationship="AppManModel.FK_PARs_Orders" FromRole="PAR" ToRole="Order" />
           <NavigationProperty Name="PARItems" Relationship="AppManModel.FK_PARItems_PARs" FromRole="PAR" ToRole="PARItem" />
         </EntityType>
-        <Association Name="FK_PARItems_OrderItems">
-          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
-          <End Type="AppManModel.PARItem" Role="PARItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PARItem">
-              <PropertyRef Name="OrderItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_PARs_Orders">
           <End Type="AppManModel.Order" Role="Order" Multiplicity="0..1" />
           <End Type="AppManModel.PAR" Role="PAR" Multiplicity="*" />
@@ -3917,6 +3921,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySetMapping Name="PARs">
             <EntityTypeMapping TypeName="AppManModel.PAR">
               <MappingFragment StoreEntitySet="PARs">
+                <ScalarProperty Name="PostedDt" ColumnName="PostedDt" />
+                <ScalarProperty Name="PostedBy" ColumnName="PostedBy" />
                 <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
                 <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
                 <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
