@@ -12,6 +12,7 @@ namespace iLgs.Services.Interfaces
         IQueryable<RIS_VM> GetAll();
         Task<RISs> GetByIdAsync(Guid id);
         Task<RISs> GetByRisNoAsync(string risNo);
+        Task<RISs> GetByOrderIdAsync(Guid orderId);
         Task<bool> GetAnyRisNoAsync(Guid risId, string risNo);
         Task<bool> IsPostedAsync(Guid risId);
         Task<bool> IsPrPostedAsync(Guid risId);

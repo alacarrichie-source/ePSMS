@@ -25,8 +25,14 @@ namespace iLgs.Controllers
         {
             this.parService = new ParService(db);
             this.parItemService = new ParItemService(db);
-        }        
-        
+        }
+
+        public ActionResult _Item(Guid parId)
+        {
+            ViewData["parId"] = parId;
+            return PartialView();
+        }
+
         public async Task<ActionResult> _ItemAddEdit(Guid parId, Guid? parItemId)
         {
             var data = await parItemService.GetVmByIdAsync(parItemId);

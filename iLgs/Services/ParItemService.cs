@@ -26,6 +26,7 @@ namespace iLgs.Services
                     ParId = s.ParId,
                     OrderItemId = s.OrderItemId,
                     Qty = s.Qty,
+                    Amount = s.Amount,
                     Unit = s.OrderItem.RequestItem.RisItem.PsCode.UnitMeas,
                     PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
                     DateAcquired = s.OrderItem.Order.PoDate,

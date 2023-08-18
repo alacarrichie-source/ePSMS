@@ -67,7 +67,7 @@ namespace iLgs.Models
         public virtual DbSet<RequestItemExtn> RequestItemExtns { get; set; }
         public virtual DbSet<AIR> AIRs { get; set; }
         public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
-        public virtual DbSet<PARItem> PARItems { get; set; }
         public virtual DbSet<PAR> PARs { get; set; }
+        public virtual DbSet<PARItem> PARItems { get; set; }
     }
 }

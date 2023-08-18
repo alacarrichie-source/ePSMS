@@ -67,6 +67,11 @@ namespace iLgs.Services
             return await db.RISses.Where(w => w.RisNo == risNo).FirstOrDefaultAsync();
         }
 
+        public async Task<RISs> GetByOrderIdAsync(Guid orderId)
+        {
+            return await db.RISses.Where(w => w.Requests.Any(a => a.Orders.Any(b => b.Id == orderId))).FirstOrDefaultAsync();
+        }
+
         public async Task<bool> IsPostedAsync(Guid risId)
         {
             var entity = await db.RISses.FindAsync(risId);

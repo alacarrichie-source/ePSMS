@@ -3412,6 +3412,12 @@
     <Content Include="Views\AIRs\_AIRItemAddEdit.cshtml" />
     <Content Include="Views\AIRs\_AIRItem.cshtml" />
     <Content Include="Views\Shared\_AppLayout.cshtml" />
+    <Content Include="Views\PARs\Index.cshtml" />
+    <Content Include="Views\PARs\EditorTemplates\_PARTemplate.cshtml" />
+    <Content Include="Views\ParItems\_Item.cshtml" />
+    <Content Include="Views\PARs\PARItem.cshtml" />
+    <Content Include="Views\PARs\_PARItemAddEdit.cshtml" />
+    <Content Include="Views\PARs\_PARItem.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3419,8 +3425,6 @@
     <Folder Include="Views\Issuances\" />
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
-    <Folder Include="Views\ParItems\" />
-    <Folder Include="Views\PARs\" />
     <Folder Include="Views\Query\" />
     <Folder Include="Views\Sequence\" />
   </ItemGroup>
@@ -3500,7 +3504,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

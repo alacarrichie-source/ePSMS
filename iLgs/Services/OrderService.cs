@@ -61,6 +61,24 @@ namespace iLgs.Services
             return data;
         }
 
+        public IQueryable<OrderVM> GetAllParOrders()
+        {
+            var data = db.Orders
+                .Where(w => w.PostedBy != null && w.AIRs.Any(a => a.PostedBy != null))
+                .Select(s => new OrderVM
+                {
+                    Id = s.Id,
+                    PoNo = s.PoNo,
+                    PoDate = s.PoDate,
+                    PoMode = s.PoMode,
+                    SupplierId = s.SupplierId,
+                    SupplierName = s.Supplier.Name,
+                    SupplierAddress = s.Supplier.Address                    
+                })
+                .AsQueryable();
+            return data;
+        }
+
         public async Task<Models.Order> GetByIdAsync(Guid orderId)
         {
             return await db.Orders.FindAsync(orderId);

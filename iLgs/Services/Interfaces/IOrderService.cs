@@ -10,6 +10,7 @@ namespace iLgs.Services.Interfaces
     public interface IOrderService
     {
         IQueryable<OrderVM> GetAll();
+        IQueryable<OrderVM> GetAllParOrders();
         Task<Models.Order> GetByIdAsync(Guid orderId);
         Task<Models.Order> GetByPoNoAsync(string poNo);
         Task<bool> GetAnyPoNoAsync(Guid id, string poNo);        

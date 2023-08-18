@@ -466,6 +466,7 @@ namespace iLgs.Controllers
 
             return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
         }
+        
     }
 
     public class GetSysCodeVM

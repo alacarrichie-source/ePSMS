@@ -40,12 +40,70 @@ namespace iLgs.Services
                 .AsQueryable();
             return data;
         }
+        public IQueryable<PARAcknowledgementVM> GetAcknowledgedOrderItems(Guid? orderItemId)
+        {
+            var data = db.PARItems
+                .Where(w => w.OrderItemId == orderItemId)
+                .Select(s => new PARAcknowledgementVM
+                {
+                    ParId = s.PAR.Id,
+                    ParItemId = s.Id,
+                    OrderId = s.OrderItem.OrderId,
+                    OrderItemId = s.OrderItemId,
+                    ParNo = s.PAR.ParNo,
+                    ParDate = s.PAR.ParDate,
+                    ReceivedBy = s.PAR.ReceivedBy,
+                    ReceivedByPosition = s.PAR.ReceivedByPosition,
+                    ReceivedDate = s.PAR.ReceivedDate,
+                    IssuedBy = s.PAR.IssuedBy,
+                    IssuedByPosition = s.PAR.IssuedByPosition,
+                    IssuedDate = s.PAR.IssuedDate,
+                    PostedBy = s.PAR.PostedBy,
+                    PostedDt = s.PAR.PostedDt,
+                    Unit = s.OrderItem.RequestItem.RisItem.PsCode.UnitMeas,
+                    PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
+                    DateAcquired = s.OrderItem.Order.PoDate,
+                    Qty = s.Qty,
+                    Amount = s.Amount
+                })
+                .AsQueryable();
+            return data;
+        }
+        public async Task<PARAcknowledgementVM> GetAcknowledgedOrderItemByItemId(Guid? parItemId)
+        {
+            var data = await db.PARItems
+                .Where(w => w.Id == parItemId)
+                .Select(s => new PARAcknowledgementVM
+                {
+                    ParId = s.PAR.Id,
+                    ParItemId = s.Id,
+                    OrderId = s.OrderItem.OrderId,
+                    OrderItemId = s.OrderItemId,
+                    ParNo = s.PAR.ParNo,
+                    ParDate = s.PAR.ParDate,
+                    ReceivedBy = s.PAR.ReceivedBy,
+                    ReceivedByPosition = s.PAR.ReceivedByPosition,
+                    ReceivedDate = s.PAR.ReceivedDate,
+                    IssuedBy = s.PAR.IssuedBy,
+                    IssuedByPosition = s.PAR.IssuedByPosition,
+                    IssuedDate = s.PAR.IssuedDate,
+                    PostedBy = s.PAR.PostedBy,
+                    PostedDt = s.PAR.PostedDt,
+                    Unit = s.OrderItem.RequestItem.RisItem.PsCode.UnitMeas,
+                    PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
+                    DateAcquired = s.OrderItem.Order.PoDate,
+                    Qty = s.Qty,
+                    Amount = s.Amount
+                })
+                .FirstOrDefaultAsync();
+            return data;
+        }
 
         public async Task<PAR> GetByIdAsync(Guid parId)
         {
             return await db.PARs.FindAsync(parId);
         }
-
+        
         public async Task<bool> IsAnyParNoAsync(Guid parId, string parNo)
         {
             return await db.PARs.AnyAsync(a => a.Id != parId && a.ParNo == parNo);
@@ -53,7 +111,11 @@ namespace iLgs.Services
         public async Task<bool> IsPostedAsync(Guid parId)
         {
             var entity = await db.PARs.FindAsync(parId);
-            return !string.IsNullOrWhiteSpace(entity.PostedBy);
+            if (entity != null)
+            {
+                return !string.IsNullOrWhiteSpace(entity.PostedBy);
+            }
+            return false;
         }
 
         public async Task<PAR> GetByParNoAsync(string parNo)
@@ -221,6 +283,145 @@ namespace iLgs.Services
             db.PARs.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
+        }
+
+        public async Task<PARAcknowledgementVM> CreateAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date)
+        {
+            //model.Id = Guid.NewGuid();
+            if (string.IsNullOrWhiteSpace(model.ParNo))
+            {
+                model.ParNo = NextParNo((DateTime)model.ParDate);
+            }
+            model.InsertedBy = user;
+            model.InsertedDt = date;
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            var entity = new PAR()
+            {
+                Id = model.ParId,
+                OrderId = model.OrderId,
+                ParNo = model.ParNo,
+                ParDate = model.ParDate,
+                ReceivedBy = model.ReceivedBy ?? "",
+                ReceivedByPosition = model.ReceivedByPosition ?? "",
+                ReceivedDate = model.ReceivedDate,
+                IssuedBy = model.IssuedBy ?? "",
+                IssuedByPosition = model.IssuedByPosition ?? "",
+                IssuedDate = model.IssuedDate,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
+
+            var parItem = new PARItem()
+            {
+                Id = Guid.NewGuid(),
+                ParId = entity.Id,
+                OrderItemId = model.OrderItemId,
+                Qty = model.Qty,
+                Amount = model.Amount,
+                InsertedBy = user,
+                InsertedDt = date,
+                UpdatedBy = user,
+                UpdatedDt = date
+            };
+
+            entity.PARItems.Add(parItem);
+
+            db.PARs.Add(entity);
+            await db.SaveChangesAsync();
+
+            return model;
+        }
+        public async Task<PARAcknowledgementVM> UpdateAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date)
+        {
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            var entity = await db.PARs.Where(w => w.Id == model.ParId).FirstOrDefaultAsync();
+            
+            entity.ParNo = model.ParNo;
+            entity.ParDate = model.ParDate;
+            entity.ReceivedBy = model.ReceivedBy ?? "";
+            entity.ReceivedByPosition = model.ReceivedByPosition ?? "";
+            entity.ReceivedDate = model.ReceivedDate;
+            entity.IssuedBy = model.IssuedBy ?? "";
+            entity.IssuedByPosition = model.IssuedByPosition ?? "";
+            entity.IssuedDate = model.IssuedDate;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            var parItem = entity.PARItems.FirstOrDefault(f => f.OrderItemId == model.OrderItemId);
+            if (parItem != null)
+            {
+                parItem.Qty = model.Qty;
+                parItem.Amount = model.Amount;
+                parItem.UpdatedBy = model.UpdatedBy;
+                parItem.UpdatedDt = model.UpdatedDt;                
+            }
+
+            db.PARs.Attach(entity);
+            db.Entry(entity).State = EntityState.Modified;
+            await db.SaveChangesAsync();
+
+            return model;
+        }
+        public async Task<PARAcknowledgementVM> DeleteAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date)
+        {
+            //model.Id = Guid.NewGuid();
+            //if (string.IsNullOrWhiteSpace(model.ParNo))
+            //{
+            //    model.PoNo = NextParNo((DateTime)model.ParDate);
+            //}
+            //model.InsertedBy = user;
+            //model.InsertedDt = date;
+            //model.UpdatedBy = user;
+            //model.UpdatedDt = date;
+
+            //var entity = new PAR()
+            //{
+            //    Id = model.Id,
+            //    OrderId = model.OrderId,
+            //    ParNo = model.ParNo,
+            //    ParDate = model.ParDate,
+            //    ReceivedBy = model.ReceivedBy ?? "",
+            //    ReceivedByPosition = model.ReceivedByPosition ?? "",
+            //    ReceivedDate = model.ReceivedDate,
+            //    IssuedBy = model.IssuedBy ?? "",
+            //    IssuedByPosition = model.IssuedByPosition ?? "",
+            //    IssuedDate = model.IssuedDate,
+            //    InsertedBy = model.InsertedBy,
+            //    InsertedDt = model.InsertedDt,
+            //    UpdatedBy = model.UpdatedBy,
+            //    UpdatedDt = model.UpdatedDt
+            //};
+
+            //// include items during add, ORDER Items not yet in PAR Items
+            //var orderItems = await db.OrderItems
+            //    .Where(w => w.OrderId == model.OrderId && !w.PARItems.Any()).ToListAsync();
+            //foreach (var orderItem in orderItems)
+            //{
+            //    var parItem = new PARItem()
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        ParId = entity.Id,
+            //        OrderItemId = orderItem.Id,
+            //        Qty = (int)orderItem.Qty,
+            //        InsertedBy = user,
+            //        InsertedDt = date,
+            //        UpdatedBy = user,
+            //        UpdatedDt = date
+            //    };
+
+            //    entity.PARItems.Add(parItem);
+            //}
+
+            //db.PARs.Add(entity);
+            //await db.SaveChangesAsync();
+
+            return model;
         }
 
         private string NextParNo(DateTime parDate)

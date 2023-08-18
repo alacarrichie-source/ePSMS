@@ -1,0 +1,756 @@
+﻿@{
+    ViewBag.Title = "Property Acknowledgement Receipt";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div id="item-list" class="col col-xs-3">
+    <h3>ORDERS</h3>
+    @(Html.Kendo().Grid<iLgs.Models.OrderVM>()
+    .Name("grid")
+    .Columns(col =>
+    {
+        col.Bound(c => c.PoNo).Width(70);
+        col.Bound(c => c.PoDate).Width(70);
+        col.Bound(c => c.SupplierName).Width(150);
+    })
+    .ToolBar(t =>
+    {
+        t.Search();
+    })
+    .Search(s =>
+    {
+        s.Field(o => o.PoNo, "contains");
+        s.Field(o => o.SupplierName, "contains");
+    })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+    )
+    .Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    .Scrollable()
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Sortable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Events(events => events.Error("GridError"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+        })
+        .Read(read => read.Action("OrdersRead", "PARs"))
+    )
+    .Events(events => events
+        .Change("onChangeGrid")
+        .DataBound("onDataBoundGrid")
+        )
+    )
+</div>
+
+<div id="item-details" class="row">
+    <div id="item-about" class="col-xs-12">
+        <div class="row">
+            <div id="itemBio" class="col-xs-12 col-sm-4">
+            </div>
+        </div>
+    </div>
+    <div id="item-stat" class="col-xs-12">
+        <h3 class="section-header">Order Items</h3>
+        @(Html.Kendo().Grid<iLgs.Models.OrderItemVM>()
+                .Name("gridItems")
+                .Columns(col =>
+                {
+                    col.Bound(c => c.PsNo).Width(50);
+                    col.Bound(c => c.PsUnit).Width(50);
+                    col.Bound(c => c.Description).Width(150);
+                    col.Bound(c => c.Qty).Width(50);
+                    col.Bound(c => c.UnitCost).Width(50);
+                    col.Bound(c => c.Amount).Width(50);
+                })
+                .Pageable(pager => pager
+                    .Input(false)
+                    .Numeric(true)
+                    .Info(true)
+                    .PreviousNext(true)
+                    .Refresh(true)
+                    .PageSizes(true)
+                    .ButtonCount(5)
+                )
+                .Filterable()
+                .NoRecords()
+                .Resizable(r => r.Columns(true))
+                .Scrollable()
+                .Selectable(s => s.Mode(GridSelectionMode.Single))
+                .Sortable()
+                .ClientDetailTemplateId("DetailTemplate")
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .Events(events => events.Error("GridError"))
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                    })
+                    .Read(read => read.Action("OrderItemsRead", "PARs").Data("DataGridItems"))
+                )
+                .Events(events => events
+                    .Change("onChangeGridItems")
+                    .DataBound("onDataBoundGridItems")
+                )
+        )
+    </div>
+</div>
+
+<script type="text/x-kendo-tmpl" id="itemTemplate">
+    <div class="item">
+        <div class="item-wrapper">
+            <dl class="item-list-details">
+                <dt class="name">#:ItemName#</dt>
+                <dd class="title">#:PoNo#</dd>
+            </dl>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-tmpl" id="itemBioTemplate">
+    # var poDate = kendo.toString(PoDate, "yyyy-MM-dd"); #
+    <div>
+        <dl class="item-bio-details">
+            <dt class="title">#:PoNo#</dt>
+            <dd class="name">#:poDate#</dd>
+            <dd class="name">#:SupplierName#</dd>
+        </dl>
+    </div>
+</script>
+
+<script id="DetailTemplate" type="text/x-kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+        .Name("details_tabstrip_#=Id#")
+        .TabPosition(TabStripTabPosition.Top)
+        .Animation(animation =>
+        {
+            animation.Open(config =>
+            {
+                config.Fade(FadeDirection.In);
+            });
+        })
+        .SelectedIndex(0)
+        .Items(items =>
+        {
+            items.Add()
+                .Text("PARs")
+                .Selected(true)
+                .LoadContentFrom("_PARItem", "PARs", new { orderItemId = "#=Id#" });
+                @*.Content(@<text>
+                    @RenderPARs()
+                </text>);*@
+        })
+       .ToClientTemplate()
+    )
+</script>
+
+
+@(Html.Kendo().Tooltip()
+    .For("#itemBio")
+    .Filter("a")
+    .ContentHandler("getBio")
+)
+
+<div id="windowcontainer"></div>
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .k-floating-label-container {
+        width: 100%;
+    }
+
+    .container {
+        max-width: 100%;
+    }
+
+    .placeholder {
+        margin-bottom: 20px;
+    }
+
+    #item-list,
+    #item-details-wrapper {
+        padding: 0;
+    }
+
+    #item-details-wrapper {
+        height: 100%;
+        overflow-y: auto;
+        background-color: #fff;
+    }
+
+    #item-details {
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    #item-list,
+    #itemsList {
+        background-color: #eee;
+    }
+
+    #item-list h3 {
+        padding: 0.5em 0.727em;
+        font-size: 11px;
+        color: #35373d;
+        border-bottom: 1px solid #dbdbdb;
+    }
+
+    .item-wrapper {
+        border-top: 1px solid #f3f3f3;
+        border-bottom: 1px solid #dbdbdb;
+        padding: 1.25em 0;
+        margin-left: 2.5em;
+    }
+
+    /*.item.k-state-selected {
+        background-color: #6abd2d;
+    }*/
+
+    .item.k-state-selected .item-wrapper {
+        border-top: 1px solid #6abd2d;
+        border-bottom: 1px solid #6abd2d;
+    }
+
+    #itemsList {
+        border: none;
+        overflow: auto;
+        height: 100%;
+        height: calc(100% - 154px);
+    }
+
+    #item-details-wrapper {
+        border: none;
+        overflow: auto;
+        height: 100%;
+        height: calc(100% - 86px);
+    }
+
+    .name {
+        font-size: 14px;
+        color: #35373d;
+    }
+
+    .title {
+        font-size: 9px;
+        line-height: 9px;
+        /*color: #8a8b8f;*/
+        text-transform: uppercase;
+        display: inline-block;
+    }
+
+    .phone {
+        font-size: 10px;
+        line-height: 10px;
+        color: #35373d;
+    }
+
+    .k-state-selected .name,
+    .k-state-selected .title {
+        color: #fff;
+    }
+
+    .k-listview-content > .k-selected {
+        background-color: rgba(255,99,88,.25);
+    }
+
+    .k-listview-item {
+        padding: 0;
+        border-width: 0;
+        outline: 0;
+        border-style: solid;
+        box-sizing: border-box;
+        -ms-flex-negative: 0;
+        flex-shrink: 0;
+    }
+    /* About */
+    #map-wrapper {
+        padding: 15px;
+    }
+
+    #map {
+        height: 350px;
+        outline: 0;
+    }
+
+    #about {
+        font-size: 15px;
+        line-height: 24px;
+    }
+
+    #about > div {
+        padding: 90px 60px;
+    }
+
+    #about p {
+        padding-bottom: 1em;
+        max-width: 960px;
+    }
+
+    #about ul {
+        list-style: disc;
+        color: #428bca;
+    }
+
+    .section-title {
+        font-size: 36px;
+        color: #35373d;
+        padding-bottom: 1em;
+    }
+
+    .section-sub-title {
+        font-weight: bold;
+        padding-top: 1em;
+        padding-bottom: .5em;
+    }
+
+    .section-white {
+        background-color: #fff;
+    }
+
+    #item-about {
+        border-bottom: 1px solid #eaeaeb;
+    }
+    
+    #item-about h3,
+    .section-header {
+        font-size: 11px;
+        color: #35373d;
+        text-transform: uppercase;
+        padding-bottom: 1.091em;
+        padding: 1px 0;
+    }
+
+    .client-details ul {
+        list-style: none;
+        font-style: italic;
+        margin: 15px;
+        padding: 0;
+    }
+
+    .client-details ul li {
+        margin: 0;
+        line-height: 1.7em;
+    }
+
+    .client-details label {
+        display: inline-block;
+        width: 90px;
+        padding-right: 10px;
+        text-align: right;
+        font-style: normal;
+        font-weight: bold;
+    }
+    
+    #grid .k-grid-content {
+        overflow-y: auto;
+        height: calc(100vh - 230px) !important;
+    }
+
+    #gridItems .k-grid-content {
+        overflow-y: auto;
+        height: calc(100vh - 295px) !important;
+    }
+
+    .item-photo {
+        display: inline-block;
+        width: 150px;
+        height: 150px;
+        border-radius: 1%;
+        background-size: 150px 150px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 80px;
+        box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+        margin-left: 5px;
+    }
+
+    .item-list-image,
+    .item-details-image,
+    .item-list-details,
+    .item-bio-details {
+        display: inline-block;
+    }
+
+    .item-list-image {
+        border-radius: 30px;
+        margin-right: 5px;
+    }
+
+    .item-details-image {
+        border-radius: 45px;
+        border: 2px solid #737374;
+        margin-right: 20px;
+    }
+
+    .item-list-details,
+    .item-bio-details {
+        vertical-align: middle;
+    }
+
+    .item-bio-details dt {
+        font-size: 18px;
+        line-height: 18px;
+        margin: 4px auto;
+    }
+
+    .item-bio-details dd {
+        margin: 4px auto;
+    }
+
+    .item-details-image {
+        width: 70px;
+        height: 70px;
+    }
+
+    .clickable-image {
+        cursor: pointer; /* Change the cursor to a pointer */
+        opacity: 0.8; /* Reduce the opacity to indicate interactivity */
+        transition: opacity 0.3s ease; /* Add a smooth transition effect */
+    }
+
+    .clickable-image:hover {
+        opacity: 1; /* Increase the opacity when hovering */
+    }
+
+    .card-body {
+        flex: 1 1 auto;
+        padding: 1rem 1rem;
+        min-height: 100px;
+    }
+
+    .card-header {
+        padding: 0.5rem 1rem;
+        margin-bottom: 0;
+        background-color: rgba(0,0,0,.03);
+        border-bottom: 1px solid rgba(0,0,0,.125);
+    }
+    
+    .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        word-wrap: break-word;
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid rgba(0,0,0,.125);
+        border-radius: 0.25rem;
+    }
+
+    .clearfix::after {
+        display: block;
+        clear: both;
+        content: "";
+    }
+
+    #span_ {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: fit-content;
+    }
+</style>
+
+
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    <li>
+        #=field#
+        <ul>
+            # for (var i = 0; i < messages.length; ++i) { #
+            <li>#= messages[i] #</li>
+            # } #
+        </ul>
+    </li>
+    # } #
+</script>
+
+
+<script type="text/javascript">
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function GridError(args) {
+        if (args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    var selectedGrid = null;
+    var selectedId = null;
+    var selectedItemId = null;
+    var selectedParId = null;
+
+    function onChangeGrid(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedId = selectedData.Id;
+        selectedItemId = null;
+        selectedParId = null;
+
+        var items = $("#grid").data("kendoGrid"),
+            item = items.dataSource.getByUid(items.select().attr("data-uid")),
+            gridItems = $("#gridItems").data("kendoGrid"),
+            template = kendo.template($("#itemBioTemplate").html());
+
+        $("#itemBio").html(template(item));
+
+        gridItems.dataSource.read();
+    }
+
+    function getBio(e) {
+        return e.target.find("span").text();
+    }
+
+    function onDataBoundGrid(e) {
+        if (selectedId) {
+            var dataItem = this.dataSource.get(selectedId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    // GRID ITEMS
+    function onChangeGridItems(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedItemId = selectedData.Id;
+        selectedParId = null;
+    }
+
+    function DataGridItems() {
+        return {
+            poId: selectedId
+        };
+    }
+
+    function onDataBoundGridItems(e) {
+        if (selectedItemId) {
+            var dataItem = this.dataSource.get(selectedItemId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+
+            var firstRow = this.tbody.find("tr.k-master-row").first();
+            this.expandRow(firstRow);
+
+            // Attach a handler to the "detailExpand" event
+            this.bind("detailExpand", function (e) {
+                // Select the expanded master row
+                this.select(e.masterRow);
+            });
+        }
+    }
+
+    // END GRID ITEMS
+
+    // GRID PAR
+    function onRequestEndGridPars(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                selectedGrid.dataSource.read();
+            }
+        }
+    }
+
+    function onEditGridPars(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        //e.model.set("OrderId", parentModel.OrderId);
+        //e.model.set("OrderItemId", parentModel.Id);
+    }
+
+    function onChangeGridPars(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedParId = selectedData.ParId;
+    }
+
+    function onDataBoundGridPars(e) {
+        if (selectedParId) {
+            var dataItem = this.dataSource.get(selectedParId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    // Order Selection
+    function onClickBtnAddPar(e) {
+        e.preventDefault();
+        ParEntry("A", null, null);
+    }
+
+    function onClickBtnEdiPar(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        ParEntry("E", dataItem.ParId, dataItem.ParItemId);
+    }
+
+    function onGridDeleteClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        const tr = $(e.currentTarget).closest("tr");
+        const dataItem = this.dataItem(tr);
+        const rowitem = this.dataSource.get(dataItem.Id);
+        this.select($('[data-uid=' + rowitem.uid + ']'));
+        this.removeRow(tr);
+    }
+
+    function ParEntry(mode, parId, parItemId) {
+        var myTitle = (mode == "A") ? "PAR - ADD" : "PAR - EDIT";
+        var width = 800;
+        var height = 400;
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                close: function () {
+                    $("#gridPars_" + selectedItemId).data("kendoGrid").dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width,
+            height: height
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_PARItemAddEdit", "PARs")',
+            data: {
+                orderIdx: selectedId,
+                orderItemIdx: selectedItemId,
+                parIdx: parId,
+                parItemIdx: parItemId
+            }
+        });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    // END GRID PAR
+
+
+    // PAR ITEM ADD EDIT
+
+    function changeAmount(e) {
+        var qty = $("#Qty").data("kendoNumericTextBox").value();
+
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("GetAmount", "PARs")',
+            data: { orderItemId: selectedItemId, qty: qty },
+            success: function (result) {
+                if (result.Errors) {
+                    alert(result.Errors);
+                }
+                else {
+                    $("#Amount").data("kendoNumericTextBox").value(result.Amount);
+                    $("#Amount").data("kendoNumericTextBox").trigger("change");
+                }
+            }, error: function (req, status, errorObj) {
+                alert(req.responseText);
+            }
+        });
+    }
+
+    function DataReceivedBy() {
+        alert('@ViewData["department"]');
+        var text = $("#ReceivedBy").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#ReceivedBy").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            department: '@ViewData["department"]',
+            text: text
+        };
+    }
+
+    function onSelectReceivedBy(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#ReceivedByPosition").val(dataItem.Desc2).trigger("change");
+    }
+
+    function onSelectIssuedBy(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#IssuedByPosition").val(dataItem.Desc2).trigger("change");
+    }
+
+    // END PAR ITEM ADD EDIT
+</script>
+
+

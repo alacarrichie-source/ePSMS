@@ -1,0 +1,65 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.PARAcknowledgementVM>()
+        .Name("gridPars_" + @ViewData["orderItemId"])
+        .ToolBar(t =>
+            {
+                t.Template(@<text>
+                    @(Html.Kendo().Button().Icon("k-icon k-i-checkbox-checked").Name("btnParsAdd").Content("Add new record").Events(e => e.Click("onClickBtnAddPar")))
+                </text>);
+        })
+        .Columns(columns =>
+        {
+            columns.Bound(f => f.ParNo).Width(70);
+            columns.Bound(f => f.ParDate).Width(70);
+            columns.Bound(f => f.Qty)//.EditorTemplateName("_QtyTemplate")
+                .Width(50)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });            
+            columns.Bound(f => f.Amount)//.EditorTemplateName("_QtyTemplate")
+                .Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(f => f.ReceivedBy).Width(70);
+            columns.Bound(f => f.ReceivedDate).Width(50);
+            columns.Bound(f => f.ReceivedByPosition).Hidden(true);
+            columns.Bound(f => f.IssuedBy).Width(70);
+            columns.Bound(f => f.IssuedDate).Width(50);
+            columns.Bound(f => f.IssuedByPosition).Hidden(true);
+            columns.Command(commands =>
+            {
+                //commands.Edit();
+                //commands.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+                commands.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEdiPar");
+                commands.Destroy();
+            }).Width(100);
+        })
+        .Selectable()
+        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AcknowledgementTemplate").Window(w => w.Width(800).Title("Acknowledgement")))
+        //.Pageable(pageable => pageable.Refresh(true))
+        .Navigatable()
+        .NoRecords()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Model(model =>
+            {
+                model.Id(p => p.ParItemId);
+                model.Field(p => p.ParItemId).DefaultValue(Guid.Empty).Editable(true);
+                model.Field(p => p.PsNo).Editable(false);
+                model.Field(p => p.Unit).Editable(false);
+                model.Field(p => p.Description).Editable(false);
+            })
+            .Aggregates(a =>
+            {
+                a.Add(p => p.Qty).Sum();
+                a.Add(p => p.Amount).Sum();
+            })
+            .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridPars"))
+            .Read("_PARItemRead", "PARs", new { orderItemId = @ViewData["orderItemId"] })
+            .Destroy("_PARItemDestroy", "PARs")
+        ).Events(e => e
+            .Edit("onEditGridPars") 
+            .Change("onChangeGridPars").DataBound("onDataBoundGridPars")
+            )        
+)
+

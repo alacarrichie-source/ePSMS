@@ -1,0 +1,231 @@
+﻿@model iLgs.Models.PARAcknowledgementVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    @Html.HiddenFor(model => model.Mode)
+    @Html.HiddenFor(model => model.OrderId)
+    @Html.HiddenFor(model => model.OrderItemId)
+    @Html.HiddenFor(model => model.ParId)
+    @Html.HiddenFor(model => model.ParItemId)
+
+    @*@Model.OrderId
+    <br />
+    @Model.OrderItemId
+    <br />
+    @Model.ParId
+    <br />
+    @Model.ParItemId*@
+
+    <fieldset>
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.ParNo, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.ParNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                    @Html.ValidationMessageFor(model => model.ParNo)
+                </div>
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.ParDate, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().DatePickerFor(model => model.ParDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.ParDate)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(2).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("changeAmount"))
+                    )
+                    @Html.ValidationMessageFor(model => model.Qty)
+                </div>
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.Amount, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().NumericTextBoxFor(model => model.Amount).Enable(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.Amount)
+                </div>
+            </div>
+        </div>
+
+        <br />
+
+        <div class="row clearfix">
+            <div class="col-md-6">
+                <section id="acceptance" class="card ra-section">
+                    <div class="card-header">Received by</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.ReceivedDate, htmlAttributes: new { @class = "col-md-3" })
+                                <div class="col-md-9">
+                                    @(Html.Kendo().DatePickerFor(m => m.ReceivedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.ReceivedBy, htmlAttributes: new { @class = "col-md-3" })
+                                <div class="col-md-9">
+                                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.ReceivedBy)
+                                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                                        .Placeholder("Select Name")
+                                        .DataTextField("Description")
+                                        .DataValueField("Description")
+                                        .Filter(FilterType.Contains)
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetReceivedBy", "Getters").Data("DataReceivedBy");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Columns(c =>
+                                        {
+                                            c.Add().Field("Description").Title("Name").Width("60%");
+                                            c.Add().Field("Desc2").Title("Designation").Width("40%");
+                                        })
+                                        .Suggest(true)
+                                        .Events(e => e.Change("onSelectReceivedBy"))
+                                    )
+                                    @Html.ValidationMessageFor(model => model.ReceivedBy)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.ReceivedByPosition, htmlAttributes: new { @class = "col-md-12" })
+                                <div class="col-md-12">
+                                    @(Html.Kendo().TextBoxFor(m => m.ReceivedByPosition).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-md-6">
+                <section id="inspection" class="card ra-section">
+                    <div class="card-header">Issued by</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.IssuedDate, htmlAttributes: new { @class = "col-md-3" })
+                                <div class="col-md-9">
+                                    @(Html.Kendo().DatePickerFor(m => m.IssuedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.IssuedBy, htmlAttributes: new { @class = "col-md-3" })
+                                <div class="col-md-9">
+                                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.IssuedBy)
+                                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                                        .Placeholder("Select Name")
+                                        .DataTextField("Description")
+                                        .DataValueField("Description")
+                                        .Filter(FilterType.Contains)
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetOfficers", "Getters");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Columns(c =>
+                                        {
+                                            c.Add().Field("Description").Title("Name").Width("60%");
+                                            c.Add().Field("Desc2").Title("Designation").Width("40%");
+                                        })
+                                        .Suggest(true)
+                                        .Events(e => e.Change("onSelectIssuedBy"))
+                                    )
+                                    @Html.ValidationMessageFor(model => model.IssuedBy)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.IssuedByPosition, htmlAttributes: new { @class = "col-md-12" })
+                                <div class="col-md-12">
+                                    @(Html.Kendo().TextBoxFor(m => m.IssuedByPosition).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                <span id="span_">
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave"))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+                </span>
+            </div>
+        </div>
+    </fieldset>
+}
+
+
+<script type="text/javascript">
+    $("#btnSave").click(function (e) {
+        e.preventDefault();
+        
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_PARItemSave", "PARs")',
+                data: $("#form").serialize(),
+                beforeSend: function () {
+                    window.kendo.ui.progress($("#form"), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($("#form"), false);
+                    if (result.Errors == "") {
+                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                    }
+                    else {
+                        alert(result.Errors);
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+            disabled.attr('disabled', 'disabled');
+        }
+    });
+
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+</script>
+
+
+
