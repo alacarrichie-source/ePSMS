@@ -14,6 +14,7 @@ namespace iLgs.Services.Interfaces
         Task<PARAcknowledgementVM> GetAcknowledgedOrderItemByItemId(Guid? parItemId);
         Task<Models.PAR> GetByIdAsync(Guid parId);
         Task<Models.PAR> GetByParNoAsync(string parNo);
+        Task<int?> GetRemainingQty(Guid? orderItemId, Guid? parItemId);
         Task<bool> IsAnyParNoAsync(Guid parId, string parNo);
         Task<bool> IsPostedAsync(Guid parId);
         

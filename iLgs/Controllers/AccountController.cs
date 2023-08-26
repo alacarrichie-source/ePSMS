@@ -143,37 +143,46 @@ namespace iLgs.Controllers
                     //    return View(model);
                     //}
 
-                    //bool isLocalhost = false;
-
-                    //string host = HttpContext.Request.Url.Host;
-                    //if (host == "localhost" || host == "127.0.0.1" || host == "::1")
-                    //{
-                    //    isLocalhost = true;
-                    //}
-
-                    //if (isLocalhost)
-                    //{
-                    //    Session["WebsiteName"] = string.Empty;
-                    //}
-                    //else
-                    //{
-                    //    string url = HttpContext.Request.Url.ToString();
-                    //    Uri uri = new Uri(url);
-                    //    string path = uri.AbsolutePath;
-                    //    string websiteName = path.Trim('/');
-                    //    Session["WebHost"] = url + ":" + path + ":" + websiteName;
-                    //    Session["WebsiteName"] = websiteName;
-                    //}
-
                     var allMenu = await new MenuController().GetMainMenu(user.Id);
 
-                    string url = HttpContext.Request.Url.ToString();
-                    Uri uri = new Uri(url);
-                    string path = uri.AbsolutePath;
-                    string websiteName = path.Trim('/');
-                    Session["WebHost"] = url + ":" + path + ":" + websiteName;                    
-                    Session["WebsiteName"] = websiteName;
-                    Session["MainMenu"] = allMenu;
+                    bool isLocalhost = false;
+
+                    string host = HttpContext.Request.Url.Host;
+                    if (host == "localhost" || host == "127.0.0.1" || host == "::1")
+                    {
+                        isLocalhost = true;
+                    }
+
+                    if (isLocalhost)
+                    {
+                        Session["WebsiteName"] = string.Empty;
+                    }
+                    else
+                    {
+                        string url = HttpContext.Request.Url.ToString();
+                        Uri uri = new Uri(url);
+                        string path = uri.AbsolutePath;
+                        string websiteName = path.Trim('/');
+                        //Session["WebHost"] = url + ":" + path + ":" + websiteName;
+                        //Session["WebsiteName"] = websiteName;
+
+                        foreach (var menu in allMenu)
+                        {
+                            if (!isLocalhost)
+                            {
+                                menu.Controller = websiteName + "/" + menu.Controller;
+                            }
+                        }
+                    }
+                                       
+
+                    //string url = HttpContext.Request.Url.ToString();
+                    //Uri uri = new Uri(url);
+                    //string path = uri.AbsolutePath;
+                    //string websiteName = path.Trim('/');
+                    //Session["WebHost"] = url + ":" + path + ":" + websiteName;                    
+                    //Session["WebsiteName"] = websiteName;
+                    //Session["MainMenu"] = allMenu;
 
 
                     var menuTreeList = new List<TreeViewItemModel>();

@@ -72,8 +72,14 @@
                     col.Bound(c => c.PsUnit).Width(50);
                     col.Bound(c => c.Description).Width(150);
                     col.Bound(c => c.Qty).Width(50);
-                    col.Bound(c => c.UnitCost).Width(50);
-                    col.Bound(c => c.Amount).Width(50);
+                    col.Bound(c => c.UnitCost).Format("{0:n2}")
+                        .HtmlAttributes(new { style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" })
+                        .Width(50);
+                    col.Bound(c => c.Amount).Format("{0:n2}")
+                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" })
+                        .Width(50);
                 })
                 .Pageable(pager => pager
                     .Input(false)
@@ -146,11 +152,11 @@
         .SelectedIndex(0)
         .Items(items =>
         {
-            items.Add()
-                .Text("PARs")
-                .Selected(true)
-                .LoadContentFrom("_PARItem", "PARs", new { orderItemId = "#=Id#" });
-                @*.Content(@<text>
+        items.Add()
+            .Text("PARs")
+            .Selected(true)
+            .LoadContentFrom("_PARItem", "PARs", new { orderId = "#=OrderId#", orderItemId = "#=Id#" });
+            @*.Content(@<text>
                     @RenderPARs()
                 </text>);*@
         })
@@ -163,6 +169,11 @@
     .For("#itemBio")
     .Filter("a")
     .ContentHandler("getBio")
+)
+
+@(Html.Kendo().Notification()
+        .Name("popupNotification")
+        .Events(e => e.Show("onShowNotification"))
 )
 
 <div id="windowcontainer"></div>
@@ -211,12 +222,12 @@
         background-color: #eee;
     }
 
-    #item-list h3 {
-        padding: 0.5em 0.727em;
-        font-size: 11px;
-        color: #35373d;
-        border-bottom: 1px solid #dbdbdb;
-    }
+        #item-list h3 {
+            padding: 0.5em 0.727em;
+            font-size: 11px;
+            color: #35373d;
+            border-bottom: 1px solid #dbdbdb;
+        }
 
     .item-wrapper {
         border-top: 1px solid #f3f3f3;
@@ -224,10 +235,6 @@
         padding: 1.25em 0;
         margin-left: 2.5em;
     }
-
-    /*.item.k-state-selected {
-        background-color: #6abd2d;
-    }*/
 
     .item.k-state-selected .item-wrapper {
         border-top: 1px solid #6abd2d;
@@ -256,7 +263,6 @@
     .title {
         font-size: 9px;
         line-height: 9px;
-        /*color: #8a8b8f;*/
         text-transform: uppercase;
         display: inline-block;
     }
@@ -285,6 +291,7 @@
         -ms-flex-negative: 0;
         flex-shrink: 0;
     }
+
     /* About */
     #map-wrapper {
         padding: 15px;
@@ -300,19 +307,19 @@
         line-height: 24px;
     }
 
-    #about > div {
-        padding: 90px 60px;
-    }
+        #about > div {
+            padding: 90px 60px;
+        }
 
-    #about p {
-        padding-bottom: 1em;
-        max-width: 960px;
-    }
+        #about p {
+            padding-bottom: 1em;
+            max-width: 960px;
+        }
 
-    #about ul {
-        list-style: disc;
-        color: #428bca;
-    }
+        #about ul {
+            list-style: disc;
+            color: #428bca;
+        }
 
     .section-title {
         font-size: 36px;
@@ -333,15 +340,15 @@
     #item-about {
         border-bottom: 1px solid #eaeaeb;
     }
-    
-    #item-about h3,
-    .section-header {
-        font-size: 11px;
-        color: #35373d;
-        text-transform: uppercase;
-        padding-bottom: 1.091em;
-        padding: 1px 0;
-    }
+
+        #item-about h3,
+        .section-header {
+            font-size: 11px;
+            color: #35373d;
+            text-transform: uppercase;
+            padding-bottom: 1.091em;
+            padding: 1px 0;
+        }
 
     .client-details ul {
         list-style: none;
@@ -350,10 +357,10 @@
         padding: 0;
     }
 
-    .client-details ul li {
-        margin: 0;
-        line-height: 1.7em;
-    }
+        .client-details ul li {
+            margin: 0;
+            line-height: 1.7em;
+        }
 
     .client-details label {
         display: inline-block;
@@ -363,14 +370,14 @@
         font-style: normal;
         font-weight: bold;
     }
-    
+
     #grid .k-grid-content {
-        overflow-y: auto;
+        overflow-x: auto;
         height: calc(100vh - 230px) !important;
     }
 
     #gridItems .k-grid-content {
-        overflow-y: auto;
+        overflow-x: auto;
         height: calc(100vh - 295px) !important;
     }
 
@@ -410,15 +417,15 @@
         vertical-align: middle;
     }
 
-    .item-bio-details dt {
-        font-size: 18px;
-        line-height: 18px;
-        margin: 4px auto;
-    }
+        .item-bio-details dt {
+            font-size: 18px;
+            line-height: 18px;
+            margin: 4px auto;
+        }
 
-    .item-bio-details dd {
-        margin: 4px auto;
-    }
+        .item-bio-details dd {
+            margin: 4px auto;
+        }
 
     .item-details-image {
         width: 70px;
@@ -431,9 +438,9 @@
         transition: opacity 0.3s ease; /* Add a smooth transition effect */
     }
 
-    .clickable-image:hover {
-        opacity: 1; /* Increase the opacity when hovering */
-    }
+        .clickable-image:hover {
+            opacity: 1; /* Increase the opacity when hovering */
+        }
 
     .card-body {
         flex: 1 1 auto;
@@ -447,7 +454,7 @@
         background-color: rgba(0,0,0,.03);
         border-bottom: 1px solid rgba(0,0,0,.125);
     }
-    
+
     .card {
         position: relative;
         display: flex;
@@ -490,6 +497,12 @@
 
 
 <script type="text/javascript">
+    function onShowNotification(e) {
+        if (e.sender.getNotifications().length == 1) {
+            e.element.parent().css({ zIndex: 22222 });
+        }
+    }
+
     function error_handler(e, status) {
         if ((e.errors)) {
             var message = "Errors:\n";
@@ -535,12 +548,18 @@
     var selectedId = null;
     var selectedItemId = null;
     var selectedParId = null;
+    var selectedParItemId = null;
+    var selectedDepartment = null;
+    var postedBy = null;
+    var selectedParNo = null;
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         selectedId = selectedData.Id;
+        selectedDepartment = selectedData.Department;
         selectedItemId = null;
         selectedParId = null;
+        selectedParItemId = null;
 
         var items = $("#grid").data("kendoGrid"),
             item = items.dataSource.getByUid(items.select().attr("data-uid")),
@@ -573,6 +592,7 @@
         var selectedData = this.dataItem(this.select());
         selectedItemId = selectedData.Id;
         selectedParId = null;
+        selectedParItemId = null;
     }
 
     function DataGridItems() {
@@ -587,6 +607,21 @@
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
             }
+
+            //var selectedRow = this.select();
+
+            //if (selectedRow.length > 0) {
+            //    // Get the data item associated with the selected row
+            //    var selectedItem = this.dataItem(selectedRow);
+
+            //    // Find the corresponding detail row
+            //    var detailRow = selectedRow.next(".k-detail-row");
+
+            //    // Expand the detail row if not already expanded
+            //    if (!detailRow.hasClass("k-state-expanded")) {
+            //        this.expandRow(selectedRow);
+            //    }
+            //}
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
@@ -594,22 +629,156 @@
             var firstRow = this.tbody.find("tr.k-master-row").first();
             this.expandRow(firstRow);
 
-            // Attach a handler to the "detailExpand" event
+            //Attach a handler to the "detailExpand" event
             this.bind("detailExpand", function (e) {
                 // Select the expanded master row
                 this.select(e.masterRow);
             });
         }
+
+        //// Attach a handler to the "detailExpand" event
+        //this.bind("detailExpand", function (e) {
+        //    // Select the expanded master row
+        //    this.select(e.masterRow);
+        //});
+
     }
 
     // END GRID ITEMS
 
     // GRID PAR
+    function GridParError(args) {
+        if (args.errors) {
+            var selectedGrid = $("#gridPars_" + selectedItemId).data("kendoGrid");
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+    function onClickBtnPostPar(e) {
+        e.preventDefault();
+        if (postedBy) {
+            alert("PAR already posted by " + postedBy);
+        }
+        else {
+            var msg = "Post PAR Number " + selectedParNo + "?";
+
+            if (confirm(msg)) {
+                var popupNotification = $("#popupNotification").data("kendoNotification");
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("PostPAR", "PARs")',
+                    data: { parId: selectedParId },
+                    async: true,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($(document.body), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($(document.body), false);
+                        if (result.Errors == "") {
+                            popupNotification.show("Record Posted...", "info");
+                            $("#gridPars_" + selectedItemId).data("kendoGrid").dataSource.read();
+                        } else {
+                            alert(result.Errors);
+                            return false;
+                        }
+                    },
+                    error: function (req, status, errorObj) {
+                        alert(req.responseText);
+                        return false;
+                    }
+                });
+            }
+        }
+    }
+
+    function onClickBtnUnpostPar(e) {
+        e.preventDefault();
+        var msg = "Unpost PAR Number " + selectedParNo + "?";
+
+        if (confirm(msg)) {
+            var popupNotification = $("#popupNotification").data("kendoNotification");
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("UnpostPAR", "PARs")',
+                data: { parId: selectedParId },
+                async: true,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    if (result.Errors == "") {
+                        popupNotification.show("Record Unposted...", "info");
+                        $("#gridPars_" + selectedItemId).data("kendoGrid").dataSource.read();
+                    } else {
+                        alert(result.Errors);
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+        }
+    }
+
+    function onClickBtnPrintPar(e) {
+        e.preventDefault();
+        var url = '@Url.Action("PARRpt", ":PARs")?parNo=' + selectedParNo;
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    }
+
     function onRequestEndGridPars(e) {
         e.preventDefault();
         if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                selectedGrid.dataSource.read();
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") { // create && update not triggered for custom pupop
+                // Refresh the content of the current tab
+                var tabstrip = $("#details_tabstrip_" + selectedItemId).data("kendoTabStrip");
+                var currentTab = tabstrip.select();
+                tabstrip.reload(currentTab);
+
             }
         }
     }
@@ -627,18 +796,37 @@
 
     function onChangeGridPars(e) {
         var selectedData = this.dataItem(this.select());
+        //var grid = $("#gridPars_" + selectedItemId);
+
         selectedParId = selectedData.ParId;
+        selectedParItemId = selectedData.ParItemId;
+        postedBy = selectedData.PostedBy;
+        selectedParNo = selectedData.ParNo;
+        
+        if (postedBy) {
+            $("#btnUnpost_" + selectedItemId).show();
+            $("#btnPost_" + selectedItemId).hide();
+        } else {
+            $("#btnUnpost_" + selectedItemId).hide();
+            $("#btnPost_" + selectedItemId).show();
+        }
     }
 
     function onDataBoundGridPars(e) {
-        if (selectedParId) {
-            var dataItem = this.dataSource.get(selectedParId);
+        if (selectedParItemId) {
+            var dataItem = this.dataSource.get(selectedParItemId);
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
             }
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
+        }
+        var grid = $("#gridPars_" + selectedItemId);
+        if (this.dataSource.data().length == 0) {
+            $("#btnPrint_" + selectedItemId).hide();
+            $("#btnPost_" + selectedItemId).hide();
+            $("btnUnpost_" + selectedItemId).hide();
         }
     }
 
@@ -727,13 +915,12 @@
     }
 
     function DataReceivedBy() {
-        alert('@ViewData["department"]');
         var text = $("#ReceivedBy").data("kendoMultiColumnComboBox").text();
         if (text == null || text == "") {
             text = $("#ReceivedBy").data("kendoMultiColumnComboBox").value();
         }
         return {
-            department: '@ViewData["department"]',
+            department: selectedDepartment,
             text: text
         };
     }

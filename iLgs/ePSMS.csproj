@@ -519,7 +519,7 @@
     <Compile Include="Services\RisService.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
-    <Compile Include="Utilities\JsonMvcNetSerializer.cs" />
+    <Compile Include="Controllers\BaseConroller.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\city-hall.jpg" />
@@ -3379,7 +3379,6 @@
     <Content Include="Views\AIRs\Index.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AIRTemplate.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AirItemTemplate.cshtml" />
-    <Content Include="Views\Shared\_AppLayout_Old.cshtml" />
     <Content Include="Views\Shared\kd-sidebar-sample.cshtml" />
     <Content Include="Views\Account\Login_X.cshtml" />
     <Content Include="Views\Account\Shared\_SignInLayout.cshtml" />
@@ -3421,6 +3420,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\Base\" />
     <Folder Include="Views\Getters\" />
     <Folder Include="Views\Issuances\" />
     <Folder Include="Views\MenuAccessAction\" />

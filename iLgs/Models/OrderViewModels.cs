@@ -111,7 +111,7 @@ namespace iLgs.Models
         public Nullable<decimal> QtyRemaining { get; set; }
         public Nullable<decimal> TotalAmount { get; set; }
         public bool IsLocked { get; set; }        
-
+        public string Department { get; set; }
     }
 
     public class OrderItemVM

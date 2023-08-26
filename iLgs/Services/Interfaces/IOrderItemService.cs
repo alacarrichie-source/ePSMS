@@ -11,6 +11,8 @@ namespace iLgs.Services.Interfaces
     {
         IQueryable<OrderItemVM> GetByPoId(Guid? poId);
         Task<OrderItemVM> GetByIdAsync(Guid? id);
+        Task<bool> GetAnyParItemsAsync(Guid id);
+        Task<bool> GetAnyAirItemsAsync(Guid id);
 
         Task<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date);
         Task<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date);

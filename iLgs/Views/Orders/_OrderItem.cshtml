@@ -42,7 +42,7 @@
         .Sortable()
         .DataSource(dataSource => dataSource
             .Ajax()
-            .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
+            .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
             .Model(model =>
             {
                 model.Id(p => p.Id);

@@ -59,6 +59,16 @@ namespace iLgs.Services
             return data;
         }
 
+        public async Task<bool> GetAnyParItemsAsync(Guid id)
+        {
+            return await db.PARItems.AnyAsync(a => a.OrderItemId == id);
+        }
+
+        public async Task<bool> GetAnyAirItemsAsync(Guid id)
+        {
+            return await db.AIRItems.AnyAsync(a => a.OrderItemId == id);
+        }
+
         public async Task<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date)
         {
             model.Id = Guid.NewGuid();

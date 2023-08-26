@@ -171,6 +171,14 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "PO Number already Posted, cannot delete!");
                 }
+                else if (await orderService.GetAnyAirsAsync(model.Id))
+                {
+                    ModelState.AddModelError("DeleteError", "PO Number already with AIR, cannot delete!");
+                }
+                else if (await orderService.GetAnyParsAsync(model.Id))
+                {
+                    ModelState.AddModelError("DeleteError", "PO Number already with PAR, cannot delete!");
+                }
                 else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -357,6 +365,14 @@ namespace iLgs.Controllers
                 else if (await orderService.IsPostedAsync((Guid)model.OrderId))
                 {
                     ModelState.AddModelError("DeleteError", "PO Number already Posted, cannot delete!");
+                }
+                else if (await orderItemService.GetAnyAirItemsAsync(model.Id))
+                {
+                    ModelState.AddModelError("DeleteError", "PO Number already with AIR, cannot delete!");
+                }
+                else if (await orderItemService.GetAnyParItemsAsync(model.Id))
+                {
+                    ModelState.AddModelError("DeleteError", "PO Number already with PAR, cannot delete!");
                 }
 
                 if (ModelState.IsValid)

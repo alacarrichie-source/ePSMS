@@ -73,7 +73,8 @@ namespace iLgs.Services
                     PoMode = s.PoMode,
                     SupplierId = s.SupplierId,
                     SupplierName = s.Supplier.Name,
-                    SupplierAddress = s.Supplier.Address                    
+                    SupplierAddress = s.Supplier.Address,
+                    Department = s.Request.RISs.Office
                 })
                 .AsQueryable();
             return data;
@@ -92,6 +93,16 @@ namespace iLgs.Services
         public async Task<Models.Order> GetByPoNoAsync(string poNo)
         {
             return await db.Orders.Where(w => w.PoNo == poNo).FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> GetAnyParsAsync(Guid id)
+        {
+            return await db.PARs.AnyAsync(a => a.OrderId == id);
+        }
+
+        public async Task<bool> GetAnyAirsAsync(Guid id)
+        {
+            return await db.AIRs.AnyAsync(a => a.OrderId == id);
         }
 
         public async Task<OrderVM> CreateAsync(OrderVM model, string user, DateTime date)

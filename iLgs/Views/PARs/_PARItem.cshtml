@@ -3,8 +3,11 @@
         .ToolBar(t =>
             {
                 t.Template(@<text>
-                    @(Html.Kendo().Button().Icon("k-icon k-i-checkbox-checked").Name("btnParsAdd").Content("Add new record").Events(e => e.Click("onClickBtnAddPar")))
-                </text>);
+                    @(Html.Kendo().Button().Icon("k-icon k-i-checkbox-checked").Name("btnParsAdd").Content("Add new record").Events(e => e.Click("onClickBtnAddPar")))                    
+                    @(Html.Kendo().Button().Content("Print").Icon("k-icon k-i-print").Name("btnPrint_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPrintPar")))
+                    @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPostPar")))
+                    @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnUnpostPar")))
+                </text>);            
         })
         .Columns(columns =>
         {
@@ -14,11 +17,11 @@
                 .Width(50)
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });            
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
             columns.Bound(f => f.Amount)//.EditorTemplateName("_QtyTemplate")
                 .Width(70)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             columns.Bound(f => f.ReceivedBy).Width(70);
             columns.Bound(f => f.ReceivedDate).Width(50);
@@ -26,6 +29,7 @@
             columns.Bound(f => f.IssuedBy).Width(70);
             columns.Bound(f => f.IssuedDate).Width(50);
             columns.Bound(f => f.IssuedByPosition).Hidden(true);
+            columns.Bound(f => f.PostedBy).Hidden(true);
             columns.Command(commands =>
             {
                 //commands.Edit();
@@ -54,12 +58,13 @@
                 a.Add(p => p.Qty).Sum();
                 a.Add(p => p.Amount).Sum();
             })
-            .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridPars"))
+            .Events(events => events.Error("GridParError")
+                .RequestEnd("onRequestEndGridPars")
+            )
             .Read("_PARItemRead", "PARs", new { orderItemId = @ViewData["orderItemId"] })
             .Destroy("_PARItemDestroy", "PARs")
         ).Events(e => e
-            .Edit("onEditGridPars") 
+            .Edit("onEditGridPars")
             .Change("onChangeGridPars").DataBound("onDataBoundGridPars")
-            )        
+        )
 )
-
