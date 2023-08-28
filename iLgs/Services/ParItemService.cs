@@ -27,8 +27,8 @@ namespace iLgs.Services
                     OrderItemId = s.OrderItemId,
                     Qty = s.Qty,
                     Amount = s.Amount,
-                    Unit = s.OrderItem.RequestItem.RisItem.PsCode.UnitMeas,
-                    PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
+                    Unit = s.OrderItem.RequestItem.RisItem.Unit,
+                    PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
                     DateAcquired = s.OrderItem.Order.PoDate,
                     InsertedDt = s.InsertedDt
                 });
@@ -44,8 +44,8 @@ namespace iLgs.Services
                     ParId = s.ParId,
                     OrderItemId = s.OrderItemId,
                     Qty = s.Qty,
-                    Unit = s.OrderItem.RequestItem.RisItem.PsCode.UnitMeas,
-                    PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
+                    Unit = s.OrderItem.RequestItem.RisItem.Unit,
+                    PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
                     DateAcquired = s.OrderItem.Order.PoDate,
                     InsertedDt = s.InsertedDt
                 }).FirstOrDefaultAsync();

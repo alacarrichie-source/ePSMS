@@ -36,7 +36,7 @@ namespace iLgs.Services
                     PrDate = s.Request.PrDate,
                     PoDate = s.PoDate,
                     PoMode = s.PoMode,
-                    PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC_MODE").FirstOrDefault().Description,
+                    PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC-MODE").FirstOrDefault().Description,
                     PrNo = s.Request.PrNo,
                     SupplierId = s.SupplierId,
                     SupplierName = s.Supplier.Name,

@@ -48,7 +48,7 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "PROC_MODE", addAll = false });
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "PROC-MODE", addAll = false });
                                 })
                                 .ServerFiltering(true);
                             })
@@ -170,7 +170,7 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "DELI_TERM", addAll = false });
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "DELI-TERM", addAll = false });
                                 })
                                 .ServerFiltering(true);
                             })
@@ -200,7 +200,7 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "PAY_TERM", addAll = false });
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "PAY-TERM", addAll = false });
                                 })
                                 .ServerFiltering(true);
                             })

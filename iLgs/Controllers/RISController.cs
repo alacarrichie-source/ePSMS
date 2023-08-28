@@ -311,7 +311,7 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
-
+                    
                     var entity = await risItemService.GetByIdAsync(model.Id);
 
                     if (entity == null)
@@ -322,6 +322,7 @@ namespace iLgs.Controllers
                     {
                         model = await risItemService.UpdateAsync(model, user, date);
                     }
+
                     var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
                     await risItemExtnService.SaveAsync(model.Id, risItemExtns, user, date);
                 }
@@ -392,9 +393,9 @@ namespace iLgs.Controllers
         }
         #endregion        
 
-        public ActionResult _RISItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId, Guid? psCodeId)
+        public ActionResult _RISItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId, string psType)
         {
-            var data = risItemExtnService.GetBatchInfo(risItemId, psCodeId);
+            var data = risItemExtnService.GetBatchInfo(risItemId, psType);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

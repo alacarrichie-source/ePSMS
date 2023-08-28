@@ -17,6 +17,51 @@ namespace iLgs.Services
         {
             this.db = db;
         }
+        public async Task<RisItemVM> GetVmByIdAsync(Guid? id)
+        {
+            var data = await db.RisItems.Where(w => w.Id == id)
+                .Select(s => new RisItemVM
+                {
+                    Id = s.Id,
+                    RisId = s.RisId,
+                    PsType = s.PsType,
+                    PsNo = s.PsNo,
+                    Unit = s.Unit,
+                    ItemName = s.ItemName,
+                    Description = s.Description,
+                    QtyRequest = s.QtyRequest,
+                    QtyIssue = s.QtyIssue,
+                    Remarks = s.Remarks,
+                    InsertedDt = s.InsertedDt
+                }).FirstOrDefaultAsync();
+            return data;
+        }
+
+        public async Task<RisItem> GetByIdAsync(Guid? id)
+        {
+            var data = await db.RisItems.FindAsync(id);
+            return data;
+        }
+
+        public IQueryable<RisItemVM> GetByRisId(Guid? risId)
+        {
+            var data = db.RisItems.Where(w => w.RisId == risId)
+                .Select(s => new RisItemVM
+                {
+                    Id = s.Id,
+                    RisId = s.RisId,
+                    PsType = s.PsType,
+                    PsNo = s.PsNo,
+                    Unit = s.Unit,
+                    ItemName = s.ItemName,
+                    Description = s.Description,
+                    QtyRequest = s.QtyRequest,
+                    QtyIssue = s.QtyIssue,
+                    Remarks = s.Remarks,
+                    InsertedDt = s.InsertedDt
+                });
+            return data;
+        }
 
         public async Task<RisItemVM> CreateAsync(RisItemVM model, string user, DateTime date)
         {
@@ -24,13 +69,18 @@ namespace iLgs.Services
             model.InsertedBy = user;
             model.UpdatedBy = user;
             model.InsertedDt = date;
-            model.UpdatedDt = date;
+            model.UpdatedDt = date;                       
+
+            model.PsNo = GeneratePsNo(model);
 
             RisItem entity = new RisItem()
             {
                 Id = model.Id,
                 RisId = model.RisId,
-                PsCodeId = model.PsCodeId,
+                PsNo = model.PsNo,
+                ItemName = model.ItemName,
+                Unit = model.Unit,
+                PsType = model.PsType,
                 Description = model.Description,
                 QtyRequest = model.QtyRequest,
                 QtyIssue = model.QtyIssue,
@@ -67,53 +117,7 @@ namespace iLgs.Services
 
             return model;
         }
-
-        public async Task<RisItemVM> GetVmByIdAsync(Guid? id)
-        {
-            var data = await db.RisItems.Where(w => w.Id == id)
-                .Select(s => new RisItemVM
-                {
-                    Id = s.Id,
-                    RisId = s.RisId,
-                    PsCodeId = s.PsCodeId,
-                    PsCode = s.PsCode.PsNo,
-                    PsUnit = s.PsCode.UnitMeas,
-                    PsItem = s.PsCode.ItemName,
-                    Description = s.Description,
-                    QtyRequest = s.QtyRequest,
-                    QtyIssue = s.QtyIssue,
-                    Remarks = s.Remarks,
-                    InsertedDt = s.InsertedDt
-                }).FirstOrDefaultAsync();
-            return data;
-        }
-
-        public async Task<RisItem> GetByIdAsync(Guid? id)
-        {
-            var data = await db.RisItems.FindAsync(id);
-            return data;
-        }
-
-        public IQueryable<RisItemVM> GetByRisId(Guid? risId)
-        {
-            var data = db.RisItems.Where(w => w.RisId == risId)
-                .Select(s => new RisItemVM
-                {
-                    Id = s.Id,
-                    RisId = s.RisId,
-                    PsCodeId = s.PsCodeId,
-                    PsCode = s.PsCode.PsNo,
-                    PsUnit = s.PsCode.UnitMeas,
-                    PsItem = s.PsCode.ItemName,
-                    Description = s.Description,
-                    QtyRequest = s.QtyRequest,
-                    QtyIssue = s.QtyIssue,
-                    Remarks = s.Remarks,
-                    InsertedDt = s.InsertedDt
-                });
-            return data;
-        }
-
+        
         public async Task<RisItemVM> UpdateAsync(RisItemVM model, string user, DateTime date)
         {
             model.UpdatedBy = user;
@@ -121,8 +125,13 @@ namespace iLgs.Services
 
             RisItem entity = await db.RisItems.FindAsync(model.Id);
 
+            model.PsNo = GeneratePsNo(model);
+
             entity.RisId = model.RisId;
-            entity.PsCodeId = model.PsCodeId;
+            entity.PsNo = model.PsNo;
+            entity.PsType = model.PsType;
+            entity.ItemName = model.ItemName;
+            entity.Unit = model.Unit;
             entity.Description = model.Description;
             entity.QtyRequest = model.QtyRequest;
             entity.QtyIssue = model.QtyIssue;
@@ -141,5 +150,19 @@ namespace iLgs.Services
 
             return model;
         }        
+
+        private string GeneratePsNo(RisItemVM model)
+        {
+            var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
+            string psNo = model.PsType.Trim() + "-" + model.ItemName.Substring(0, 3) + "-";
+            foreach(var risItemExtn in risItemExtns)
+            {
+                if (!string.IsNullOrWhiteSpace(risItemExtn.ItemValue))
+                {
+                    psNo += risItemExtn.ItemValue.Substring(0, 1);
+                }
+            }
+            return psNo.ToUpper();
+        }
     }
 }

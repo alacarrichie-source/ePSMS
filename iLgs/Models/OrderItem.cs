@@ -19,8 +19,8 @@ namespace iLgs.Models
         {
             this.AIRItems = new HashSet<AIRItem>();
             this.PsItems = new HashSet<PsItem>();
-            this.OrderItemExtns = new HashSet<OrderItemExtn>();
             this.PARItems = new HashSet<PARItem>();
+            this.OrderItemExtns = new HashSet<OrderItemExtn>();
         }
     
         public System.Guid Id { get; set; }
@@ -43,8 +43,8 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsItem> PsItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItemExtn> OrderItemExtns { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PARItem> PARItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<OrderItemExtn> OrderItemExtns { get; set; }
     }
 }

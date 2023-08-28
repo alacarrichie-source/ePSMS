@@ -533,7 +533,7 @@
         gridData.sort(function (a, b) {
             // Sort the data items first by 'ItemKey', then by 'Sequence'
             if (a.Sequence === b.Sequence) {
-                return a.ItemCode.localeCompare(b.ItemCode);
+                return a.ItemNo.localeCompare(b.ItemNo);
             }
             return a.Sequence - b.Sequence;
         });

@@ -16,6 +16,7 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RequestItemId { get; set; }
+        public string ItemNo { get; set; }
         public string ItemKey { get; set; }
         public string ItemValue { get; set; }
         public Nullable<int> Sequence { get; set; }

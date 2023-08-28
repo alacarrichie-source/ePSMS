@@ -178,8 +178,6 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisId { get; set; }
-        [Display(Name = "Item No.")]
-        public Nullable<System.Guid> PsCodeId { get; set; }
         public string Description { get; set; }
 
         [Display(Name = "Qty Req.")]
@@ -193,17 +191,20 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+        
+        [Display(Name = "Stock/Property No.")]
+        public string PsNo { get; set; }        
+
+        public string Unit { get; set; }
+
+        [Display(Name = "Item Type")]
+        public string PsType { get; set; }
+
+        [Display(Name = "Item Name")]
+        public string ItemName { get; set; }
 
         // Transients
-        [Display(Name = "Stock/Property No.")]
-        public string PsCode { get; set; }        
-
-        [Display(Name = "Unit")]
-        public string PsUnit { get; set; }
-
-        [Display(Name = "Item")]
-        public string PsItem { get; set; }
-
+        public string PsTypeCode { get; set; }
         public string GridRisItemExtns { get; set; }
     }
 
@@ -211,7 +212,11 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisItemId { get; set; }
+        [Display(Name = "Field No.")]
+        public string ItemNo { get; set; }
+        [Display(Name = "Field Name")]
         public string ItemKey { get; set; }
+        [Display(Name = "Field Value")]
         public string ItemValue { get; set; }
         public int? Sequence { get; set; }
         public string InsertedBy { get; set; }
@@ -220,7 +225,6 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
         // Transients
-        public string ItemCode { get; set; }
         public bool IsEnabled { get; set; }
     }
 }

@@ -36,6 +36,7 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     RequestItemId = s.RequestItemId,
+                    ItemNo = s.ItemNo,
                     ItemKey = s.ItemKey,
                     ItemValue = s.ItemValue
                 }).AsQueryable();
@@ -84,6 +85,7 @@ namespace iLgs.Services
                     {
                         Id = Guid.NewGuid(),
                         RequestItemId = requestItemExtn.RequestItemId,
+                        ItemNo = requestItemExtn.ItemNo,
                         ItemKey = requestItemExtn.ItemKey,
                         ItemValue = requestItemExtn.ItemValue ?? "",
                         Sequence = requestItemExtn.Sequence,
@@ -119,6 +121,7 @@ namespace iLgs.Services
             {
                 Id = model.Id,
                 RequestItemId = model.RequestItemId,
+                ItemNo = model.ItemNo,
                 ItemKey = model.ItemKey,
                 ItemValue = model.ItemValue,
                 Sequence = model.Sequence,
@@ -163,6 +166,7 @@ namespace iLgs.Services
             var entity = await db.RequestItemExtns.FindAsync(model.Id);
 
             entity.RequestItemId = model.RequestItemId;
+            entity.ItemNo = model.ItemNo;
             entity.ItemKey = model.ItemKey;
             entity.ItemValue = model.ItemValue;
             entity.Sequence = model.Sequence;

@@ -127,7 +127,7 @@ namespace iLgs.Services
                     //var orderItemList = order.OrderItems.Where(w => db.RequestItems.Any(a => a.PsCodeId == oig.PsCodeId)).ToList();
                     var orderItemList = await db.OrderItems
                         .Include(i => i.Order)
-                        .Include(i => i.RequestItem.RisItem.PsCode)
+                        .Include(i => i.RequestItem.RisItem)
                         .Include(i => i.OrderItemExtns)
                         .Where(w => w.OrderId == orderId && w.RequestItem.PsCodeId == oig.PsCodeId && w.Description == oig.Description).ToListAsync();
                     foreach (var orderItem in orderItemList)
@@ -200,7 +200,7 @@ namespace iLgs.Services
                  * PsStocks, PsStockExtns --> if no PsItem
                 */
                 var orderId = entity.OrderId;
-                var orderItems = db.OrderItems.Include(i => i.RequestItem.RisItem.PsCode).Where(w => w.OrderId == orderId).ToList();
+                var orderItems = db.OrderItems.Include(i => i.RequestItem.RisItem).Where(w => w.OrderId == orderId).ToList();
 
                 foreach (var orderItem in orderItems)
                 {

@@ -119,14 +119,14 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RequestItemId { get; set; }
+        
+        [Display(Name = "Field No.")]
+        public string ItemNo { get; set; }
 
-        [Display(Name = "Code")]
-        public string ItemCode { get; set; }
-
-        [Display(Name = "Field")]
+        [Display(Name = "Field Name")]
         public string ItemKey { get; set; }
 
-        [Display(Name = "Value")]
+        [Display(Name = "Field Value")]
         public string ItemValue { get; set; }
 
         public int? Sequence { get; set; }

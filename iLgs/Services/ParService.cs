@@ -60,8 +60,8 @@ namespace iLgs.Services
                     IssuedDate = s.PAR.IssuedDate,
                     PostedBy = s.PAR.PostedBy,
                     PostedDt = s.PAR.PostedDt,
-                    Unit = s.OrderItem.RequestItem.RisItem.PsCode.UnitMeas,
-                    PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
+                    Unit = s.OrderItem.RequestItem.RisItem.Unit,
+                    PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
                     DateAcquired = s.OrderItem.Order.PoDate,
                     Qty = s.Qty,
                     Amount = s.Amount
@@ -90,8 +90,8 @@ namespace iLgs.Services
                     IssuedDate = s.PAR.IssuedDate,
                     PostedBy = s.PAR.PostedBy,
                     PostedDt = s.PAR.PostedDt,
-                    Unit = s.OrderItem.RequestItem.RisItem.PsCode.UnitMeas,
-                    PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
+                    Unit = s.OrderItem.RequestItem.RisItem.Unit,
+                    PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
                     DateAcquired = s.OrderItem.Order.PoDate,
                     Qty = s.Qty,
                     Amount = s.Amount

@@ -10,7 +10,7 @@ namespace iLgs.Services.Interfaces
     public interface IRisItemExtnService
     {
         IQueryable<RisItemExtnVM> GetAll();
-        IQueryable<RisItemExtnVM> GetBatchInfo(Guid? risItemId, Guid? psCodeId);
+        IQueryable<RisItemExtnVM> GetBatchInfo(Guid? risItemId, string psType);
         Task SaveAsync(Guid risItemId, List<RisItemExtnVM> risItemExtnList, string user, DateTime date);
     }
 }

@@ -238,8 +238,8 @@ namespace iLgs.Controllers
 
             if (!string.IsNullOrWhiteSpace(text))
             {
-                model = model.Where(p => p.Id.ToString() == text || p.RisItem.PsCode.ItemName.Contains(text) 
-                    || p.RisItem.PsCode.ItemDescription.Contains(text) || p.RisItem.PsCode.PsNo.Contains(text)
+                model = model.Where(p => p.Id.ToString() == text || p.RisItem.ItemName.Contains(text) 
+                    || p.RisItem.Description.Contains(text) || p.RisItem.PsNo.Contains(text)
                     || p.Description.Contains(text));
             }
 
@@ -247,11 +247,11 @@ namespace iLgs.Controllers
             {
                 Id = c.Id,
                 PsCodeId = c.PsCodeId,
-                Code = c.RisItem.PsCode.PsNo,
-                Name = c.RisItem.PsCode.ItemName,
+                Code = c.RisItem.PsNo,
+                Name = c.RisItem.ItemName,
                 Description = c.Description,
-                Unit = c.RisItem.PsCode.UnitMeas,
-                Type = c.RisItem.PsCode.PsType,
+                Unit = c.RisItem.Unit,
+                Type = c.RisItem.PsType,
                 Qty = c.Qty, 
                 UnitCost = c.UnitCost,
                 TotalCost = c.TotalCost
@@ -268,8 +268,8 @@ namespace iLgs.Controllers
             }
             if (!string.IsNullOrWhiteSpace(text))
             {
-                model = model.Where(p => p.Id.ToString() == text || p.RisItem.PsCode.ItemName.Contains(text)
-                    || p.RisItem.PsCode.ItemDescription.Contains(text) || p.RisItem.PsCode.PsNo.Contains(text)
+                model = model.Where(p => p.Id.ToString() == text || p.RisItem.ItemName.Contains(text)
+                    || p.RisItem.Description.Contains(text) || p.RisItem.PsNo.Contains(text)
                     || p.Description.Contains(text));
             }
 
@@ -277,11 +277,11 @@ namespace iLgs.Controllers
             {
                 Id = c.Id,
                 PsCodeId = c.PsCodeId,
-                Code = c.RisItem.PsCode.PsNo,
-                Name = c.RisItem.PsCode.ItemName,
+                Code = c.RisItem.PsNo,
+                Name = c.RisItem.ItemName,
                 Description = c.Description,
-                Unit = c.RisItem.PsCode.UnitMeas,
-                Type = c.RisItem.PsCode.PsType,
+                Unit = c.RisItem.Unit,
+                Type = c.RisItem.PsType,
                 Qty = c.Qty,
                 UnitCost = c.UnitCost,
                 TotalCost = c.TotalCost
@@ -342,19 +342,19 @@ namespace iLgs.Controllers
 
             if (!string.IsNullOrWhiteSpace(text))
             {
-                model = model.Where(p => p.Id.ToString() == text || p.RequestItem.RisItem.PsCode.ItemName.Contains(text) 
-                    || p.RequestItem.RisItem.PsCode.ItemDescription.Contains(text) || p.RequestItem.RisItem.PsCode.PsNo.Contains(text) 
+                model = model.Where(p => p.Id.ToString() == text || p.RequestItem.RisItem.ItemName.Contains(text) 
+                    || p.RequestItem.RisItem.Description.Contains(text) || p.RequestItem.RisItem.PsNo.Contains(text) 
                     || p.Description.Contains(text));
             }
 
             return Json(model.Select(c => new
             {
                 Id = c.Id,
-                Code = c.RequestItem.RisItem.PsCode.PsNo,
-                Name = c.RequestItem.RisItem.PsCode.ItemName,
+                Code = c.RequestItem.RisItem.PsNo,
+                Name = c.RequestItem.RisItem.ItemName,
                 Description = c.Description,
-                Unit = c.RequestItem.RisItem.PsCode.UnitMeas,
-                Type = c.RequestItem.RisItem.PsCode.PsType,
+                Unit = c.RequestItem.RisItem.Unit,
+                Type = c.RequestItem.RisItem.PsType,
                 Qty = c.Qty,
                 UnitCost = c.UnitCost,
                 Amount = c.Amount                

@@ -25,6 +25,7 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     RisItemId = s.RisItemId,
+                    ItemNo = s.ItemNo,
                     ItemKey = s.ItemKey,
                     ItemValue = s.ItemValue,
                     Sequence = s.Sequence
@@ -32,9 +33,9 @@ namespace iLgs.Services
             return data;
         }
 
-        public IQueryable<RisItemExtnVM> GetBatchInfo(Guid? RisItemId, Guid? psCodeId)
+        public IQueryable<RisItemExtnVM> GetBatchInfo(Guid? RisItemId, string psType)
         {
-            var data = db.Database.SqlQuery<RisItemExtnVM>("Exec RisItemExtnService_GetBatchInfo {0}, {1}", RisItemId, psCodeId).AsQueryable();
+            var data = db.Database.SqlQuery<RisItemExtnVM>("Exec RisItemExtnService_GetBatchInfo {0}, {1}", RisItemId, psType).AsQueryable();
             return data;
         }
 
@@ -68,6 +69,7 @@ namespace iLgs.Services
                     {
                         Id = Guid.NewGuid(),
                         RisItemId = risItemId,
+                        ItemNo = risItemExtn.ItemNo,
                         ItemKey = risItemExtn.ItemKey,
                         ItemValue = risItemExtn.ItemValue ?? "",
                         Sequence = risItemExtn.Sequence,

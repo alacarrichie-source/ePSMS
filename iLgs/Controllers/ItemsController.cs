@@ -565,28 +565,28 @@ namespace iLgs.Controllers
             return PartialView(model);
         }
 
-        public async Task<ActionResult> _QueryOrderItemRead([DataSourceRequest] DataSourceRequest request, Guid psId)
-        {
+        //public async Task<ActionResult> _QueryOrderItemRead([DataSourceRequest] DataSourceRequest request, Guid psId)
+        //{
 
-            var data = db.OrderItems.Where(w => w.RequestItem.RisItem.PsCode.Id == psId && !w.PsItems.Any(a => a.OrderItemId == w.Id))
-                .Select(s => new QueryOrderItemsVM
-                {
-                    Id = s.Id,
-                    PsNo = s.RequestItem.RisItem.PsCode.PsNo,
-                    ItemName = s.RequestItem.RisItem.PsCode.ItemName,
-                    PoDate = s.Order.PoDate,
-                    PoNo = s.Order.PoNo,
-                    Qty = s.Qty
-                });
+        //    var data = db.OrderItems.Where(w => w.RequestItem.RisItem.PsCode.Id == psId && !w.PsItems.Any(a => a.OrderItemId == w.Id))
+        //        .Select(s => new QueryOrderItemsVM
+        //        {
+        //            Id = s.Id,
+        //            PsNo = s.RequestItem.RisItem.PsCode.PsNo,
+        //            ItemName = s.RequestItem.RisItem.PsCode.ItemName,
+        //            PoDate = s.Order.PoDate,
+        //            PoNo = s.Order.PoNo,
+        //            Qty = s.Qty
+        //        });
 
-            var result = new JsonNetResult
-            {
-                Data = await data.ToDataSourceResultAsync(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
-            return result;
-        }
+        //    var result = new JsonNetResult
+        //    {
+        //        Data = await data.ToDataSourceResultAsync(request),
+        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+        //    };
+        //    return result;
+        //}
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> _QueryOrderItemSelectionSave([DataSourceRequest] DataSourceRequest request, QueryOrderItemsVM searchModel)

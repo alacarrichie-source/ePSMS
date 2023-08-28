@@ -74,13 +74,12 @@
 {
     @(Html.Kendo().Grid<iLgs.Models.PsItemVM>()
         .Name("gridStockDetails_#=Id#")
-        .ToolBar(t =>
+        @*.ToolBar(t =>
         {
-            //t.Create().Text("Add Items");
             t.Template(@<text>                
                 @(Html.Kendo().Button().Icon("k-icon k-i-checkbox-checked").Name("btnSelectionAdd").Content("Add from orders").Events(e => e.Click("onClickBtnSelection")).ToClientTemplate())                                                
             </text>);
-        })
+        })*@
         .Columns(columns =>
         {
             columns.Bound(f => f.RefNo).EditorTemplateName("_RefNoTemplate")
@@ -964,7 +963,7 @@
     }
 
     // Order Selection
-    function onClickBtnSelection(e)
+    @*function onClickBtnSelection(e)
     {
         window.kendo.ui.progress($(document.body), true);
         var myUrl = '@Url.Action("_QueryOrderItems", "Items")';
@@ -1002,7 +1001,7 @@
             }
         });
         mywindow.center().open();
-    }
+    }*@
 
     function onChangeGridSelection(e) {
         var selectedRows = this.select();

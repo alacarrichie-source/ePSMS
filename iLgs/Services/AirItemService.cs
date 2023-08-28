@@ -74,11 +74,11 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     OrderItemId = s.OrderItemId,
-                    PsCodeId = s.OrderItem.RequestItem.RisItem.PsCodeId,
-                    PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
-                    PsItem = s.OrderItem.RequestItem.RisItem.PsCode.ItemName,
+                    //PsCodeId = s.OrderItem.RequestItem.RisItem.PsCodeId,
+                    PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
+                    PsItem = s.OrderItem.RequestItem.RisItem.ItemName,
                     OrderDescription = s.OrderItem.RequestItem.Description,
-                    PsUnit = s.OrderItem.RequestItem.RisItem.PsCode.UnitMeas,
+                    PsUnit = s.OrderItem.RequestItem.RisItem.Unit,
                     Qty = s.Qty,
                     InsertedDt = s.InsertedDt
                 }).FirstOrDefaultAsync();
@@ -92,10 +92,10 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     OrderItemId = s.OrderItemId,
-                    PsNo = s.OrderItem.RequestItem.RisItem.PsCode.PsNo,
-                    PsItem = s.OrderItem.RequestItem.RisItem.PsCode.ItemName,
+                    PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
+                    PsItem = s.OrderItem.RequestItem.RisItem.ItemName,
                     OrderDescription = s.OrderItem.RequestItem.Description,
-                    PsUnit = s.OrderItem.RequestItem.RisItem.PsCode.UnitMeas,
+                    PsUnit = s.OrderItem.RequestItem.RisItem.Unit,
                     Qty = s.Qty,
                     InsertedDt = s.InsertedDt
                 });

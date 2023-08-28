@@ -2,9 +2,9 @@
         .Name("gridItems_" + @ViewData["risId"])
         .Columns(col =>
         {
-            col.Bound(c => c.PsCode).Width(70);
-            col.Bound(c => c.PsUnit).Width(50);
-            col.Bound(c => c.PsItem).Width(150);
+            col.Bound(c => c.PsNo).Width(70);
+            col.Bound(c => c.Unit).Width(50);
+            col.Bound(c => c.ItemName).Width(150);
             col.Bound(c => c.Description).Width(150);
             col.Bound(c => c.QtyRequest).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })

@@ -473,17 +473,14 @@
         model.set('ReceivedByDesignation', $('#ReceivedByDesignation').val());
     }
 
-    function onSelectPsCode(e) {
+    function onSelectPsType(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#PsCodeId").val(dataItem.Id).trigger("change");
-        $("#PsItem").val(dataItem.Name).trigger("change");
-        $("#PsUnit").val(dataItem.Unit).trigger("change");
-        $("#PsCode").val(dataItem.Code).trigger("change");
+        $("#PsType").val(dataItem.Code).trigger("change");
         RefreshGridItemExtn();
     }
 
-    function onDataBoundPsCode(e) {
+    function onDataBoundPsType(e) {
         RefreshGridItemExtn();
     }
 
@@ -525,15 +522,19 @@
         gridData.sort(function (a, b) {
             // Sort the data items first by 'ItemKey', then by 'Sequence'
             if (a.Sequence === b.Sequence) {
-                return a.ItemCode.localeCompare(b.ItemCode);
+                return a.ItemNo.localeCompare(b.ItemNo);
             }
             return a.Sequence - b.Sequence;
         });
 
 
         for (var i = 0; i < gridData.length; i++) {
-            var rowData = gridData[i];
-            rowValues.push(rowData.ItemValue);
+            var rowData = gridData[i];            
+            if (rowData.ItemKey == "Item Name") {
+                $("#ItemName").val(rowData.ItemValue).trigger('change');
+            } else {
+                rowValues.push(rowData.ItemValue);
+            }
         }
 
         var description = rowValues.join(" ");
@@ -585,10 +586,14 @@
     }
 
     function DataRisItemExtnGrid()
-    {
+    {       
+        var psType = $("#PsType").data("kendoMultiColumnComboBox").value();
+        if (psType == null || psType == "") {
+            psType = $("#PsType").data("kendoMultiColumnComboBox").text();
+        }
         return {
             risItemId: $("#Id").val(),
-            psCodeId: $("#PsCodeId").val()
+            psType: psType
         };
     }
 

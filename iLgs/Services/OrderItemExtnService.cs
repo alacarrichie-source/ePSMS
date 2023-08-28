@@ -24,6 +24,7 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     OrderItemId = s.OrderItemId,
+                    ItemNo = s.ItemNo,
                     ItemKey = s.ItemKey,
                     ItemValue = s.ItemValue
                 }).AsQueryable();
@@ -48,7 +49,7 @@ namespace iLgs.Services
                     {
                         Id = rix.Id,
                         OrderItemId = orderItemId,
-                        ItemCode = rix.ItemCode,
+                        ItemNo = rix.ItemNo,
                         ItemKey = rix.ItemKey,
                         ItemValue = rix.ItemValue,
                         InsertedBy = rix.InsertedBy,
@@ -100,6 +101,7 @@ namespace iLgs.Services
                     {
                         Id = Guid.NewGuid(),
                         OrderItemId = orderItemId,
+                        ItemNo = orderItemExtn.ItemNo,
                         ItemKey = orderItemExtn.ItemKey,
                         ItemValue = orderItemExtn.ItemValue ?? "",
                         Sequence = orderItemExtn.Sequence,
