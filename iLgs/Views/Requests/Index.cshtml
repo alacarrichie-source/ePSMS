@@ -109,7 +109,11 @@
     .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
         width: auto;                        
     }
-        
+
+    .k-window-content {
+        overflow-x: hidden;
+    }
+
     .k-grid .k-grid-search {
         display: flex;
         margin-left: auto;
@@ -467,19 +471,16 @@
         model.set('ApprovedDesig', $('#ApprovedDesig').val());
     }
 
-    function onSelectPsCode(e) {
+    function onSelectPsType(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#PsCodeId").val(dataItem.Id).trigger("change");
-        $("#PsItem").val(dataItem.Name).trigger("change");
-        $("#PsUnit").val(dataItem.Unit).trigger("change");
-        $("#PsCode").val(dataItem.Code).trigger("change");
+        $("#PsType").val(dataItem.Code).trigger("change");
         RefreshGridItemExtn();
     }
 
-    function onDataBoundPsCode(e) {
+    function onDataBoundPsType(e) {
         RefreshGridItemExtn();
-    }    
+    }
 
     function RefreshGridItemExtn()
     {
@@ -550,9 +551,13 @@
 
     function DataRequestItemExtnGrid()
     {
+        var psType = $("#PsType").data("kendoMultiColumnComboBox").value();
+        if (psType == null || psType == "") {
+            psType = $("#PsType").data("kendoMultiColumnComboBox").text();
+        }
         return {
             requestItemId: $("#Id").val(),
-            psCodeId: $("#PsCodeId").val()
+            psType: psType
         };
     }
 

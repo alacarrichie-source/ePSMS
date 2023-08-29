@@ -107,8 +107,13 @@
 <div id="windowcontainer"></div>
 
 <style>
-    .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
+
+    .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {        
         width: auto;
+    }
+
+    .k-window-content {
+        overflow-x: hidden;
     }
     
     .k-grid .k-grid-search {
@@ -538,7 +543,7 @@
         }
 
         var description = rowValues.join(" ");
-        $("#Description").val(description).trigger('change');
+        $("#Description").val(description.trim()).trigger('change');
     }
 
     function onDataBoundGridItemExtn(e) {

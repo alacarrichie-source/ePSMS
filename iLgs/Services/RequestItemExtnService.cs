@@ -12,7 +12,7 @@ namespace iLgs.Services
     {
         IQueryable<RequestItemExtnVM> GetAll();
         Task<RequestItemExtn> GetByIdAsync(Guid? id);
-        IQueryable<RequestItemExtnVM> GetBatchInfo(Guid? requestItemId, Guid? psCodeId);
+        IQueryable<RequestItemExtnVM> GetBatchInfo(Guid? requestItemId, string psType);
         Task UpdateBatchAsync(List<RequestItemExtnVM> itemExtnList, string user, DateTime date);
         Task SaveAsync(Guid requestItemId, List<RequestItemExtnVM> requestItemExtnList, string user, DateTime date);
         Task<RequestItemExtnVM> CreateAsync(RequestItemExtnVM model, string user, DateTime date);
@@ -49,9 +49,9 @@ namespace iLgs.Services
             return data;
         }
 
-        public IQueryable<RequestItemExtnVM> GetBatchInfo(Guid? requestItemId, Guid? psCodeId)
+        public IQueryable<RequestItemExtnVM> GetBatchInfo(Guid? requestItemId, string psType)
         {
-            var data = db.Database.SqlQuery<RequestItemExtnVM>("Exec RequestItemExtnService_GetBatchInfo {0}, {1}", requestItemId, psCodeId).AsQueryable();
+            var data = db.Database.SqlQuery<RequestItemExtnVM>("Exec RequestItemExtnService_GetBatchInfo {0}, {1}", requestItemId, psType).AsQueryable();
             return data;
         }
 

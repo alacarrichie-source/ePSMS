@@ -112,6 +112,10 @@
         width: auto;
     }
 
+    .k-window-content {
+        overflow-x: hidden;
+    }
+
     .k-grid .k-grid-search {
         display: flex;
         margin-left: auto;
@@ -471,6 +475,7 @@
     function onSelectRequestItemId(e) {
         var dataItem = this.dataItem(e.item.index());
 
+        $("#PsType").val(dataItem.Type).trigger("change");
         $("#PsItem").val(dataItem.Name).trigger("change");
         $("#PsUnit").val(dataItem.Unit).trigger("change");
         $("#PsCodeId").val(dataItem.PsCodeId).trigger("change");
@@ -667,7 +672,11 @@
 
         for (var i = 0; i < gridData.length; i++) {
             var rowData = gridData[i];
-            rowValues.push(rowData.ItemValue);
+            if (rowData.ItemKey == "Item Name") {
+                $("#ItemName").val(rowData.ItemValue).trigger('change');
+            } else {
+                rowValues.push(rowData.ItemValue);
+            }
         }
 
         var description = rowValues.join(" ");
@@ -679,7 +688,8 @@
             mode: $("#Mode").val(),
             requestItemId: $("#RequestItemId").data("kendoMultiColumnComboBox").value(),
             orderItemId: $("#Id").val(),
-            psCodeId: $("#PsCodeId").val()
+            psType: $("#PsType").val()
+            //psCodeId: $("#PsCodeId").val()
         };
     }
     // ------------ END GRID ITEMEXTN

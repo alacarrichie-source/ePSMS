@@ -545,9 +545,9 @@ namespace iLgs.Controllers
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult _OrderItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? orderItemId, Guid? psCodeId)
+        public ActionResult _OrderItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? orderItemId, string psType)
         {
-            var data = orderItemExtnService.GetBatchInfo(orderItemId, psCodeId);
+            var data = orderItemExtnService.GetBatchInfo(orderItemId, psType);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

@@ -74,18 +74,9 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PrId { get; set; }
 
-        [Display(Name = "Item No.")]
-        public Nullable<System.Guid> PsCodeId { get; set; }
-
         [MaxLength(2000)]
         public string Description { get; set; }
-
-        [Display(Name = "Brand")]
-        public string BrandName { get; set; }
-
-        [Display(Name = "Other Specs")]
-        public string OtherSpecs { get; set; }
-
+        
         [Required]
         public Nullable<decimal> Qty { get; set; }
 
@@ -105,6 +96,9 @@ namespace iLgs.Models
 
         [Display(Name = "Item No.")]
         public string PsCode { get; set; }
+
+        [Display(Name = "Item Type")]
+        public string PsType { get; set; }
 
         [Display(Name = "Unit")]
         public string PsUnit { get; set; }

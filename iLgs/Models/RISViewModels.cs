@@ -204,7 +204,6 @@ namespace iLgs.Models
         public string ItemName { get; set; }
 
         // Transients
-        public string PsTypeCode { get; set; }
         public string GridRisItemExtns { get; set; }
     }
 

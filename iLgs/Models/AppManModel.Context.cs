@@ -57,7 +57,6 @@ namespace iLgs.Models
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
-        public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<Request> Requests { get; set; }
         public virtual DbSet<RISs> RISses { get; set; }
         public virtual DbSet<PsCode> PsCodes { get; set; }
@@ -69,5 +68,6 @@ namespace iLgs.Models
         public virtual DbSet<OrderItemExtn> OrderItemExtns { get; set; }
         public virtual DbSet<RequestItemExtn> RequestItemExtns { get; set; }
         public virtual DbSet<RisItemExtn> RisItemExtns { get; set; }
+        public virtual DbSet<RequestItem> RequestItems { get; set; }
     }
 }

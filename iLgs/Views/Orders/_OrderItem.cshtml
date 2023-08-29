@@ -23,7 +23,7 @@
         .ToolBar(toolbar =>
         {
             toolbar.Template(@<text>
-                @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["orderId"]).Content("Add Order Item").Events(e => e.Click("onClickBtnAddOrderItem")))
+                @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["orderId"]).Content("Add Order Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddOrderItem")))
             </text>);
         })
         .Pageable(pager => pager

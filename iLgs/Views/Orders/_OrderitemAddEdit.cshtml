@@ -7,7 +7,7 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.OrderId)
-    @Html.HiddenFor(model => model.PsCodeId)
+    @Html.HiddenFor(model => model.PsType)
     @Html.HiddenFor(model => model.PsNo)
     @Html.HiddenFor(model => model.GridOrderItemExtns)
     @Html.HiddenFor(model => model.Mode)
@@ -47,7 +47,7 @@
                             c.Add().Field("UnitCost").Title("Type").Width("15%");
 
                         })
-                        .Suggest(true)                        
+                        .Suggest(true)
                         .Events(e => { e.Select("onSelectRequestItemId").DataBound("onDataBoundRequestItemId"); })
                 )
                 @Html.ValidationMessageFor(m => m.RequestItemId)

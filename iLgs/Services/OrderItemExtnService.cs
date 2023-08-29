@@ -31,18 +31,18 @@ namespace iLgs.Services
             return data;
         }
 
-        public IQueryable<OrderItemExtnVM> GetBatchInfo(string mode, Guid? requestItemId, Guid? orderItemId, Guid? psCodeId)
+        public IQueryable<OrderItemExtnVM> GetBatchInfo(string mode, Guid? requestItemId, Guid? orderItemId, string psType)
         {
             IQueryable<OrderItemExtnVM> orderItemExtns = null;
             IQueryable<RequestItemExtnVM> requestItemExtns = null;
             if (mode == "E")
             {
-                orderItemExtns = db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItemId, psCodeId).AsQueryable();
+                orderItemExtns = db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItemId, psType).AsQueryable();
             }
             else
             {
                 var orderItemExtnList = new List<OrderItemExtnVM>();
-                requestItemExtns = db.Database.SqlQuery<RequestItemExtnVM>("Exec RequestItemExtnService_GetBatchInfo {0}, {1}", requestItemId, psCodeId).AsQueryable();
+                requestItemExtns = db.Database.SqlQuery<RequestItemExtnVM>("Exec RequestItemExtnService_GetBatchInfo {0}, {1}", requestItemId, psType).AsQueryable();
                 foreach(var rix in requestItemExtns)
                 {
                     OrderItemExtnVM orderItemExtn = new OrderItemExtnVM()
@@ -65,9 +65,9 @@ namespace iLgs.Services
             return orderItemExtns;
         }
 
-        public IQueryable<OrderItemExtnVM> GetBatchInfo(Guid? orderItemId, Guid? psCodeId)
+        public IQueryable<OrderItemExtnVM> GetBatchInfo(Guid? orderItemId, string psType)
         {            
-            var orderItemExtns = db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItemId, psCodeId).AsQueryable();
+            var orderItemExtns = db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItemId, psType).AsQueryable();
             return orderItemExtns;
         }
 

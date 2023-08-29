@@ -85,99 +85,100 @@ namespace iLgs.Services
         public async Task PostAsync(Guid airId, string user, DateTime date)
         {
             var entity = await db.AIRs.FindAsync(airId);
-            if (entity != null)
-            {
-                entity.PostedBy = user;
-                entity.PostedDt = date;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            // update code below
+            //if (entity != null)
+            //{
+            //    entity.PostedBy = user;
+            //    entity.PostedDt = date;
+            //    entity.UpdatedBy = user;
+            //    entity.UpdatedDt = date;
 
-                db.AIRs.Attach(entity);
-                db.Entry(entity).State = EntityState.Modified;
-                await db.SaveChangesAsync();
+            //    db.AIRs.Attach(entity);
+            //    db.Entry(entity).State = EntityState.Modified;
+            //    await db.SaveChangesAsync();
 
-                var orderId = entity.OrderId;
-                var orderItemGroups = await db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}", orderId).ToListAsync();
-                // create stock for each group
-                foreach (var oig in orderItemGroups)
-                {
-                    // find group in stocks
-                    PsStock psStock = await db.PsStocks.Where(w => w.PsId == oig.PsCodeId && w.Description == oig.Description).FirstOrDefaultAsync();
-                    if (psStock == null)
-                    {
-                        var stockNo = db.PsCodes.Find(oig.PsCodeId).PsNo;
-                        var nextStockNo = this.itemService.NextStockNo(stockNo);
-                        psStock = new PsStock
-                        {
-                            Id = Guid.NewGuid(),
-                            PsId = oig.PsCodeId,
-                            StockNo = nextStockNo,
-                            Description = oig.Description,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
+            //    var orderId = entity.OrderId;
+            //    var orderItemGroups = await db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}", orderId).ToListAsync();
+            //    // create stock for each group
+            //    foreach (var oig in orderItemGroups)
+            //    {
+            //        // find group in stocks
+            //        PsStock psStock = await db.PsStocks.Where(w => w.PsId == oig.PsCodeId && w.Description == oig.Description).FirstOrDefaultAsync();
+            //        if (psStock == null)
+            //        {
+            //            var stockNo = db.PsCodes.Find(oig.PsCodeId).PsNo;
+            //            var nextStockNo = this.itemService.NextStockNo(stockNo);
+            //            psStock = new PsStock
+            //            {
+            //                Id = Guid.NewGuid(),
+            //                PsId = oig.PsCodeId,
+            //                StockNo = nextStockNo,
+            //                Description = oig.Description,
+            //                InsertedBy = user,
+            //                InsertedDt = date,
+            //                UpdatedBy = user,
+            //                UpdatedDt = date
+            //            };
 
-                        db.PsStocks.Add(psStock);
-                        await db.SaveChangesAsync();
-                    }
+            //            db.PsStocks.Add(psStock);
+            //            await db.SaveChangesAsync();
+            //        }
 
-                    // Post the OrderItems under the stocks having the same PsCodeId
-                    //var orderItemList = order.OrderItems.Where(w => db.RequestItems.Any(a => a.PsCodeId == oig.PsCodeId)).ToList();
-                    var orderItemList = await db.OrderItems
-                        .Include(i => i.Order)
-                        .Include(i => i.RequestItem.RisItem)
-                        .Include(i => i.OrderItemExtns)
-                        .Where(w => w.OrderId == orderId && w.RequestItem.PsCodeId == oig.PsCodeId && w.Description == oig.Description).ToListAsync();
-                    foreach (var orderItem in orderItemList)
-                    {
-                        var qtyIss = db.AIRItems.Where(w => w.OrderItemId == orderItem.Id).Sum(s => s.Qty);
-                        var psItem = new PsItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            PsStockId = psStock.Id,
-                            OrderItemId = orderItem.Id,
-                            RefNo = orderItem.Order.PoNo,
-                            RefDate = orderItem.Order.PoDate,
-                            RefType = "PO",
-                            Qty = orderItem.Qty,
-                            QtyIss = qtyIss,
-                            QtyBal = orderItem.Qty - qtyIss,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-                        db.PsItems.Add(psItem);
-                    }
-                    await db.SaveChangesAsync();
+            //        // Post the OrderItems under the stocks having the same PsCodeId
+            //        //var orderItemList = order.OrderItems.Where(w => db.RequestItems.Any(a => a.PsCodeId == oig.PsCodeId)).ToList();
+            //        var orderItemList = await db.OrderItems
+            //            .Include(i => i.Order)
+            //            .Include(i => i.RequestItem.RisItem)
+            //            .Include(i => i.OrderItemExtns)
+            //            .Where(w => w.OrderId == orderId && w.RequestItem.PsCodeId == oig.PsCodeId && w.Description == oig.Description).ToListAsync();
+            //        foreach (var orderItem in orderItemList)
+            //        {
+            //            var qtyIss = db.AIRItems.Where(w => w.OrderItemId == orderItem.Id).Sum(s => s.Qty);
+            //            var psItem = new PsItem()
+            //            {
+            //                Id = Guid.NewGuid(),
+            //                PsStockId = psStock.Id,
+            //                OrderItemId = orderItem.Id,
+            //                RefNo = orderItem.Order.PoNo,
+            //                RefDate = orderItem.Order.PoDate,
+            //                RefType = "PO",
+            //                Qty = orderItem.Qty,
+            //                QtyIss = qtyIss,
+            //                QtyBal = orderItem.Qty - qtyIss,
+            //                InsertedBy = user,
+            //                InsertedDt = date,
+            //                UpdatedBy = user,
+            //                UpdatedDt = date
+            //            };
+            //            db.PsItems.Add(psItem);
+            //        }
+            //        await db.SaveChangesAsync();
 
-                    // search PsStockExtns for Field Descripsiotn
-                    if (!db.PsStockExtns.Any(a => a.PsStockId == psStock.Id))
-                    {
-                        // get first orderItemExtn from orderItemList
-                        var orderItemExtns = orderItemList.FirstOrDefault().OrderItemExtns;
-                        foreach (var orderItemExtn in orderItemExtns)
-                        {
-                            var psStockExtn = new PsStockExtn()
-                            {
-                                Id = Guid.NewGuid(),
-                                PsStockId = psStock.Id,
-                                ItemKey = orderItemExtn.ItemKey,
-                                ItemValue = orderItemExtn.ItemValue,
-                                Sequence = orderItemExtn.Sequence,
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                            };
-                            db.PsStockExtns.Add(psStockExtn);
-                        }
-                        await db.SaveChangesAsync();
-                    }
-                }
-            }
+            //        // search PsStockExtns for Field Descripsiotn
+            //        if (!db.PsStockExtns.Any(a => a.PsStockId == psStock.Id))
+            //        {
+            //            // get first orderItemExtn from orderItemList
+            //            var orderItemExtns = orderItemList.FirstOrDefault().OrderItemExtns;
+            //            foreach (var orderItemExtn in orderItemExtns)
+            //            {
+            //                var psStockExtn = new PsStockExtn()
+            //                {
+            //                    Id = Guid.NewGuid(),
+            //                    PsStockId = psStock.Id,
+            //                    ItemKey = orderItemExtn.ItemKey,
+            //                    ItemValue = orderItemExtn.ItemValue,
+            //                    Sequence = orderItemExtn.Sequence,
+            //                    InsertedBy = user,
+            //                    InsertedDt = date,
+            //                    UpdatedBy = user,
+            //                    UpdatedDt = date
+            //                };
+            //                db.PsStockExtns.Add(psStockExtn);
+            //            }
+            //            await db.SaveChangesAsync();
+            //        }
+            //    }
+            //}
         }
 
         public async Task UnpostAsync(Guid airId, string user, DateTime date)

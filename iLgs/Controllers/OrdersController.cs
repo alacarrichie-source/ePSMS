@@ -496,12 +496,12 @@ namespace iLgs.Controllers
             return Json(new { PoYear = poYear, PoMonth = poMonth }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult _OrderItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, string mode, Guid? requestItemId, Guid? orderItemId, Guid? psCodeId)
+        public ActionResult _OrderItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, string mode, Guid? requestItemId, Guid? orderItemId, string psType)
         {
             /*
              * Need orderId: if mode == 'A' orderItemId is still null or invalid value 
              */
-            var data = orderItemExtnService.GetBatchInfo(mode, requestItemId, orderItemId, psCodeId);
+            var data = orderItemExtnService.GetBatchInfo(mode, requestItemId, orderItemId, psType);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

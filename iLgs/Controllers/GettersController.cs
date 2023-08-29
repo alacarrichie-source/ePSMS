@@ -234,7 +234,7 @@ namespace iLgs.Controllers
         public JsonResult GetPrItems(Guid prId, string text)
         {
 
-            var model = db.RequestItems.Include("PsCodes").Where(w => w.PrId == prId).AsQueryable();
+            var model = db.RequestItems.Where(w => w.PrId == prId).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -246,7 +246,6 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new
             {
                 Id = c.Id,
-                PsCodeId = c.PsCodeId,
                 Code = c.RisItem.PsNo,
                 Name = c.RisItem.ItemName,
                 Description = c.Description,
@@ -276,7 +275,6 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new
             {
                 Id = c.Id,
-                PsCodeId = c.PsCodeId,
                 Code = c.RisItem.PsNo,
                 Name = c.RisItem.ItemName,
                 Description = c.Description,

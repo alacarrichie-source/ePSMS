@@ -393,9 +393,9 @@ namespace iLgs.Controllers
 
         #region REQUEST ITEM EXTNS
 
-        public ActionResult _RequestItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? requestItemId, Guid? psCodeId)
+        public ActionResult _RequestItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? requestItemId, string psType)
         {
-            var data = requestItemExtnService.GetBatchInfo(requestItemId, psCodeId);
+            var data = requestItemExtnService.GetBatchInfo(requestItemId, psType);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

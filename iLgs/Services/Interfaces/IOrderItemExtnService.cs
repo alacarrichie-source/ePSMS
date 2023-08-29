@@ -10,8 +10,8 @@ namespace iLgs.Services
     public interface IOrderItemExtnService
     {
         IQueryable<OrderItemExtnVM> GetAll();
-        IQueryable<OrderItemExtnVM> GetBatchInfo(Guid? orderItemId, Guid? psCodeId);
-        IQueryable<OrderItemExtnVM> GetBatchInfo(string mode, Guid? requestItemId, Guid? orderItemId, Guid? psCodeId);
+        IQueryable<OrderItemExtnVM> GetBatchInfo(Guid? orderItemId, string psType);
+        IQueryable<OrderItemExtnVM> GetBatchInfo(string mode, Guid? requestItemId, Guid? orderItemId, string psType);
         Task UpdateBatchAsync(List<OrderItemExtnVM> orderExtnList, string user, DateTime date);
         Task SaveAsync(Guid orderItemId, List<OrderItemExtnVM> orderItemExtnList, string user, DateTime date);
 

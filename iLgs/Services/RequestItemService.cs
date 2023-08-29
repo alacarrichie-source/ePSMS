@@ -25,11 +25,11 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     PrId = s.PrId,
-                    PsCodeId = s.PsCodeId,
                     PsCode = s.RisItem.PsNo,
                     PsUnit = s.RisItem.Unit,
                     PsItem = s.RisItem.ItemName,
                     Description = s.Description,
+                    PsType = s.RisItem.PsType,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     TotalCost = s.TotalCost,
@@ -45,11 +45,11 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     PrId = s.PrId,
-                    PsCodeId = s.PsCodeId,
                     PsCode = s.RisItem.PsNo,
                     PsUnit = s.RisItem.Unit,
                     PsItem = s.RisItem.ItemName,
                     Description = s.Description,
+                    PsType = s.RisItem.PsType,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     TotalCost = s.TotalCost,
@@ -77,7 +77,6 @@ namespace iLgs.Services
             {
                 Id = model.Id,
                 PrId = model.PrId,
-                PsCodeId = model.PsCodeId,
                 Description = model.Description,
                 Qty = model.Qty,
                 UnitCost = model.UnitCost,
@@ -120,7 +119,6 @@ namespace iLgs.Services
             model.UpdatedDt = date;
 
             RequestItem entity = await db.RequestItems.FindAsync(model.Id);
-            entity.PsCodeId = model.PsCodeId;
             entity.Description = model.Description;
             entity.Qty = model.Qty;
             entity.UnitCost = model.UnitCost;

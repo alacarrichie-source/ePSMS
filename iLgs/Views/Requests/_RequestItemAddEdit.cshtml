@@ -19,38 +19,38 @@
     <fieldset>
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.PsCodeId, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(m => m.PsType, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.PsCodeId).Enable(false)
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.PsType)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                        .Placeholder("Select stock/property Code")
-                        .DataTextField("Code")
-                        .DataValueField("Id")
+                        .Placeholder("Select stock/property type")
+                        .DataTextField("Description")
+                        .DataValueField("Code")
                         .ValuePrimitive(true)
                         .Filter(FilterType.Contains)
                         .DataSource(source =>
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetPsCode", "Getters").Data("DataPsCodeId");
+                                read.Action("GetCodes", "Getters", new { mastCode = "PS-TYPES", text = "" });
                             })
                             .ServerFiltering(true);
                         })
                         .Columns(c =>
                         {
                             c.Add().Field("Code").Title("Code").Width("20%");
-                            c.Add().Field("Name").Title("Item Name").Width("50%");
-                            c.Add().Field("Unit").Title("Unit").Width("15%");
-                            c.Add().Field("Type").Title("Type").Width("15%");
+                            c.Add().Field("Description").Title("Description").Width("80%");
 
                         })
-                        .Suggest(true)
-                        .Events(e => { e.Select("onSelectPsCode").DataBound("onDataBoundPsCode"); })
+                        .Suggest(true).Enable(false)
+                        .Events(e => { e.Select("onSelectPsType").DataBound("onDataBoundPsType"); })
                     )
-                    @Html.ValidationMessageFor(m => m.PsCodeId)
+                    @Html.ValidationMessageFor(m => m.PsType)
                 </div>
             </div>
         </div>
+
+
 
         <div class="row">
             <div class="col-md-12">
@@ -80,7 +80,7 @@
                         col.Bound(c => c.ItemNo).Width(50);
                         col.Bound(c => c.ItemKey).Width(100);
                         col.Bound(c => c.ItemValue).Width(200);
-                        col.Bound(c => c.Sequence).Width(200);
+                        col.Bound(c => c.Sequence).Width(50);
                     })
                     //.Editable(editable => editable.Mode(GridEditMode.InCell))
                     .Sortable()
@@ -113,9 +113,35 @@
         <div class="row">
             <div class="col-md-6">
                 @Html.LabelFor(m => m.PsUnit, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @*<div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.PsUnit).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                </div>*@
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.PsUnit)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select unit")
+                        .DataTextField("Description")
+                        .DataValueField("Code")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetCodes", "Getters", new { mastCode = "UNIT", text = "" });
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Description").Title("Unit").Width("100%");
+
+                        })
+                        .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(m => m.PsUnit)
                 </div>
+
             </div>
             <div class="col-md-6">
                 @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
