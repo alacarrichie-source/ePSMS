@@ -74,7 +74,7 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     OrderItemId = s.OrderItemId,
-                    //PsCodeId = s.OrderItem.RequestItem.RisItem.PsCodeId,
+                    PsType = s.OrderItem.RequestItem.RisItem.ItemCode.ItemType.Code,
                     PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
                     PsItem = s.OrderItem.RequestItem.RisItem.ItemName,
                     OrderDescription = s.OrderItem.RequestItem.Description,
@@ -92,6 +92,7 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     OrderItemId = s.OrderItemId,
+                    PsType = s.OrderItem.RequestItem.RisItem.ItemCode.ItemType.Code,
                     PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
                     PsItem = s.OrderItem.RequestItem.RisItem.ItemName,
                     OrderDescription = s.OrderItem.RequestItem.Description,

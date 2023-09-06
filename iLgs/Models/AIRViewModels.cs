@@ -109,6 +109,6 @@ namespace iLgs.Models
 
         public string GridOrderItemExtns { get; set; }
         public string Mode { get; set; }
-        public Guid? PsCodeId { get; set; }
+        public string PsType { get; set; }
     }
 }

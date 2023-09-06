@@ -12,19 +12,17 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PsStockExtn
+    public partial class ItemField
     {
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> PsStockId { get; set; }
-        public string ItemNo { get; set; }
-        public string ItemKey { get; set; }
-        public string ItemValue { get; set; }
-        public Nullable<int> Sequence { get; set; }
+        public Nullable<System.Guid> ItemTypeId { get; set; }
+        public string FieldNo { get; set; }
+        public string FieldName { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual PsStock PsStock { get; set; }
+        public virtual ItemType ItemType { get; set; }
     }
 }

@@ -24,12 +24,18 @@ namespace iLgs.Controllers
     public class ItemsController : Controller
     {
         private AppManEntities db = new AppManEntities();
+        private IItemTypeService itemTypeService;
+        private IItemCodeService itemCodeService;
+        private IItemFieldService itemFieldService;
         private IPsCodeService psCodeService;
         private ICodextnService codextnService;
         private IDirectoryService directoryService;        
 
         public ItemsController()
         {
+            this.itemTypeService = new ItemTypeService(db);
+            this.itemCodeService = new ItemCodeService(db);
+            this.itemFieldService = new ItemFieldService(db);
             this.psCodeService = new PsCodeService(db);
             this.codextnService = new CodextnService(db);
             this.directoryService = new DirectoryService(db);            
@@ -43,7 +49,7 @@ namespace iLgs.Controllers
 
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = psCodeService.GetAll();
+            var data = itemTypeService.GetAll();
 
             var result = new JsonNetResult
             {
@@ -56,7 +62,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> ItemCreate([DataSourceRequest] DataSourceRequest request, PsCode model)
+        public async Task<ActionResult> ItemCreate([DataSourceRequest] DataSourceRequest request, ItemTypeVM model)
         {
             try
             {
@@ -72,7 +78,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await psCodeService.CreateAsync(model, user, date);
+                    model = await itemTypeService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -85,7 +91,7 @@ namespace iLgs.Controllers
         }        
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> ItemUpdate([DataSourceRequest] DataSourceRequest request, PsCode model)
+        public async Task<ActionResult> ItemUpdate([DataSourceRequest] DataSourceRequest request, ItemTypeVM model)
         {
             try
             {
@@ -101,7 +107,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await psCodeService.UpdateAsync(model, user, date);
+                    model = await itemTypeService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -114,7 +120,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> ItemDestroy([DataSourceRequest]DataSourceRequest request, PsCode model)
+        public async Task<ActionResult> ItemDestroy([DataSourceRequest]DataSourceRequest request, ItemTypeVM model)
         {
             try
             {
@@ -129,7 +135,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await psCodeService.DeleteAsync(model, user, date);
+                    model = await itemTypeService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -140,6 +146,228 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
+
+        #region ITEM CODES
+
+        public ActionResult _ItemCodes(Guid itemTypeId)
+        {
+            ViewData["itemTypeId"] = itemTypeId;            
+            return PartialView();
+        }
+
+        public ActionResult ItemCodeRead([DataSourceRequest] DataSourceRequest request, Guid? itemTypeId)
+        {
+            var data = itemCodeService.GetAll();
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> ItemCodeCreate([DataSourceRequest] DataSourceRequest request, ItemCodeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("", "Add Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await itemCodeService.CreateAsync(model, user, date);                    
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> ItemCodeUpdate([DataSourceRequest] DataSourceRequest request, ItemCodeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model.UpdatedBy = user;
+                    model.UpdatedDt = date;
+
+                    model = await itemCodeService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> ItemCodeDestroy([DataSourceRequest]DataSourceRequest request, ItemCodeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await itemCodeService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion
+
+        #region ITEM FIELDS
+        public ActionResult _ItemFields(Guid itemTypeId)
+        {
+            ViewData["itemTypeId"] = itemTypeId;
+            return PartialView();
+        }
+
+        public ActionResult ItemFieldRead([DataSourceRequest] DataSourceRequest request, Guid? itemTypeId)
+        {
+            var data = itemFieldService.GetAll();
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> ItemFieldCreate([DataSourceRequest] DataSourceRequest request, ItemFieldVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("", "Add Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await itemFieldService.CreateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> ItemFieldUpdate([DataSourceRequest] DataSourceRequest request, ItemFieldVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model.UpdatedBy = user;
+                    model.UpdatedDt = date;
+
+                    model = await itemFieldService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> ItemFieldDestroy([DataSourceRequest]DataSourceRequest request, ItemFieldVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await itemFieldService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion  
+
 
         public ActionResult Maintenance()
         {

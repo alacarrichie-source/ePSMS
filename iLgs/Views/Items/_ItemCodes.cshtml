@@ -1,0 +1,60 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.ItemCodeVM>()
+        .Name("gridItems_" + @ViewData["itemTypeId"])
+        .Columns(col =>
+        {
+            col.Bound(c => c.Code).Width(70);
+            col.Bound(c => c.Description).Width(200);
+            col.Command(command =>
+            {
+                //command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
+                command.Edit();
+                command.Destroy();
+            }).Width(172);
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Create();
+            @*toolbar.Template(@<text>
+        @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["risId"]).Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRisItem")))
+            </text>);*@
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                model.Field(p => p.ItemTypeId).DefaultValue(@ViewData["itemTypeId"]).Editable(true);
+            })
+            .Sort(s =>
+            {
+                s.Add(a => a.Code);
+            })
+            .Read(read => read.Action("ItemCodeRead", "Items", new { itemTypeId = @ViewData["itemTypeId"] }))
+            .Create(create => create.Action("ItemCodeCreate", "Items"))
+            .Update(update => update.Action("ItemCodeUpdate", "Items"))
+            .Destroy(destroy => destroy.Action("ItemCodeDestroy", "Items"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItems")
+            .Edit("onEditGridItems")
+            .DataBound("onDataBoundGridItems")
+        )
+        .AutoBind(true)
+)
+

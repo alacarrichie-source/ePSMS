@@ -12,35 +12,26 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class RisItem
+    public partial class ItemType
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public RisItem()
+        public ItemType()
         {
-            this.RequestItems = new HashSet<RequestItem>();
-            this.RisItemExtns = new HashSet<RisItemExtn>();
+            this.ItemCodes = new HashSet<ItemCode>();
+            this.ItemFields = new HashSet<ItemField>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> RisId { get; set; }
-        public Nullable<System.Guid> ItemCodeId { get; set; }
-        public string PsNo { get; set; }
-        public string ItemName { get; set; }
+        public string Code { get; set; }
         public string Description { get; set; }
-        public string Unit { get; set; }
-        public Nullable<int> QtyRequest { get; set; }
-        public Nullable<int> QtyIssue { get; set; }
-        public string Remarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RequestItem> RequestItems { get; set; }
+        public virtual ICollection<ItemCode> ItemCodes { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RisItemExtn> RisItemExtns { get; set; }
-        public virtual RISs RISs { get; set; }
-        public virtual ItemCode ItemCode { get; set; }
+        public virtual ICollection<ItemField> ItemFields { get; set; }
     }
 }

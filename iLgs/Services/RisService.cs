@@ -107,6 +107,54 @@ namespace iLgs.Services
                 db.Entry(entity).State = EntityState.Modified;
                 await db.SaveChangesAsync();
             }
+
+            // crate psCode foreach item (problem in unpost, sequence number will rumble)
+            var risItemList = await db.RisItems.Where(w => w.RisId == entity.Id).ToListAsync();
+            foreach(var risItem in risItemList)
+            {
+                if (!db.PsCodes.Any(a => a.PsType == risItem.ItemCode.ItemType.Code && a.ItemName == risItem.ItemName))
+                {
+                    var psCode = new PsCode()
+                    {
+                        Id = Guid.NewGuid(),
+                        PsNo = NextPsNo(risItem.ItemCode.ItemType.Code),
+                        PsType = risItem.ItemCode.ItemType.Code,
+                        ItemName = risItem.ItemName,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+
+                    db.PsCodes.Add(psCode);
+                    await db.SaveChangesAsync();
+                }
+            }            
+        }
+
+        private string NextPsNo(string psType)
+        {            
+            string keyName = psType;
+            // yyyy-mm-9999
+            // 123456789012
+
+            var rec = db.PsCodes.Where(w => w.PsType == psType).OrderByDescending(o => o.PsNo).FirstOrDefault();
+            if (rec == null)
+            {
+                return keyName + "0001";
+            }
+            else
+            {
+                string sequence = "";
+                foreach (char c in rec.PsNo)
+                {
+                    if (char.IsDigit(c))
+                    {
+                        sequence += c;
+                    }
+                }
+                return keyName + sequence.PadLeft(4, '0');
+            }
         }
 
         public async Task UnpostAsync(Guid risId, string user, DateTime date)

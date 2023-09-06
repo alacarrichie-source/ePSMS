@@ -24,7 +24,7 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     RisId = s.RisId,
-                    PsType = s.PsType,
+                    PsType = s.ItemCode.ItemType.Description,
                     PsNo = s.PsNo,
                     Unit = s.Unit,
                     ItemName = s.ItemName,
@@ -50,7 +50,7 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     RisId = s.RisId,
-                    PsType = s.PsType,
+                    PsType = s.ItemCode.ItemType.Description,
                     PsNo = s.PsNo,
                     Unit = s.Unit,
                     ItemName = s.ItemName,
@@ -80,7 +80,6 @@ namespace iLgs.Services
                 PsNo = model.PsNo,
                 ItemName = model.ItemName,
                 Unit = model.Unit,
-                PsType = model.PsType,
                 Description = model.Description,
                 QtyRequest = model.QtyRequest,
                 QtyIssue = model.QtyIssue,
@@ -129,7 +128,6 @@ namespace iLgs.Services
 
             entity.RisId = model.RisId;
             entity.PsNo = model.PsNo;
-            entity.PsType = model.PsType;
             entity.ItemName = model.ItemName;
             entity.Unit = model.Unit;
             entity.Description = model.Description;

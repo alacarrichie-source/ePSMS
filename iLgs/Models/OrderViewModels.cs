@@ -169,7 +169,9 @@ namespace iLgs.Models
 
     public class OrderItemGroupVM
     {
-        public string PsCode { get; set; }
+        public Guid PsCodeId { get; set; }
+        public string PsType { get; set; }
+        public string ItemName { get; set; }
         public string Description { get; set; }        
     }
 

@@ -1,0 +1,61 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.ItemFieldVM>()
+        .Name("gridItemFields_" + @ViewData["itemTypeId"])
+        .Columns(col =>
+        {
+            col.Bound(c => c.FieldNo).Width(70);
+            col.Bound(c => c.FieldName).Width(200);
+            col.Command(command =>
+            {
+                //command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
+                command.Edit();
+                command.Destroy();
+            }).Width(172);
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Create();
+            @*toolbar.Template(@<text>
+                @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["risId"]).Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRisItem")))
+                    </text>);*@
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridItemFieldsError").RequestEnd("onGridItemFieldsRequestEnd"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                model.Field(p => p.ItemTypeId).DefaultValue(@ViewData["itemTypeId"]).Editable(true);
+            })
+            .Sort(s =>
+            {
+                s.Add(a => a.FieldNo);
+            })
+            .Read(read => read.Action("ItemFieldRead", "Items", new { itemTypeId = @ViewData["itemTypeId"] }))
+            .Create(create => create.Action("ItemFieldCreate", "Items"))
+            .Update(update => update.Action("ItemFieldUpdate", "Items"))
+            .Destroy(destroy => destroy.Action("ItemFieldDestroy", "Items"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItemFields")
+            .Edit("onEditGridItemFields")
+            .DataBound("onDataBoundGridItemFields")
+        )
+        .AutoBind(true)
+)
+
+

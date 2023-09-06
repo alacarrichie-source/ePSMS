@@ -68,8 +68,9 @@
                 .Name("gridItems")
                 .Columns(col =>
                 {
-                    col.Bound(c => c.PsNo).Width(50);
+                    col.Bound(c => c.PsNo).Width(70);
                     col.Bound(c => c.PsUnit).Width(50);
+                    col.Bound(c => c.PsItem).Width(70);
                     col.Bound(c => c.Description).Width(150);
                     col.Bound(c => c.Qty).Width(50);
                     col.Bound(c => c.UnitCost).Format("{0:n2}")

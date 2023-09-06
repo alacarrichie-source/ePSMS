@@ -9,6 +9,15 @@ namespace iLgs.Services.Items
 {
     public interface IItemService
     {
+        //IQueryable<PsCode> GetAll();
+        //IQueryable<PsCodeVM> GetMaintenanceView();
+        //Task<PsCode> GetByIdAsync(Guid psId);
+        //Task<PsCode> GetByPsNoAsync(string psNo);
+        //Task<bool> GetAnyPsNoAsync(Guid id, string psNo);
+
+        //Task<PsCode> CreateAsync(PsCode model, string user, DateTime date);
+        //Task<PsCode> UpdateAsync(PsCode model, string user, DateTime date);
+        //Task<PsCode> DeleteAsync(PsCode model, string user, DateTime date);
         string NextStockNo(string psNo);
     }
 

@@ -331,7 +331,16 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\IssuedViewModels.cs" />
+    <Compile Include="Models\ItemCode.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ItemField.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\ItemsViewModels.cs" />
+    <Compile Include="Models\ItemType.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\MenuAccess.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -493,6 +502,9 @@
     <Compile Include="Services\Interfaces\IAirService.cs" />
     <Compile Include="Services\Interfaces\ICodextnService.cs" />
     <Compile Include="Services\Interfaces\IDirectoryService.cs" />
+    <Compile Include="Services\Interfaces\IItemCodeService.cs" />
+    <Compile Include="Services\Interfaces\IItemFieldService.cs" />
+    <Compile Include="Services\Interfaces\IItemTypeService.cs" />
     <Compile Include="Services\Interfaces\IOrderItemService.cs" />
     <Compile Include="Services\Interfaces\IParItemService.cs" />
     <Compile Include="Services\Interfaces\IParService.cs" />
@@ -504,7 +516,10 @@
     <Compile Include="Services\Interfaces\IRisItemExtnService.cs" />
     <Compile Include="Services\Interfaces\IRisItemService.cs" />
     <Compile Include="Services\Interfaces\IRisService.cs" />
+    <Compile Include="Services\ItemCodeService.cs" />
+    <Compile Include="Services\ItemFieldService.cs" />
     <Compile Include="Services\ItemService.cs" />
+    <Compile Include="Services\ItemTypeService.cs" />
     <Compile Include="Services\OrderItemExtnService.cs" />
     <Compile Include="Services\OrderItemService.cs" />
     <Compile Include="Services\OrderService.cs" />
@@ -3353,7 +3368,7 @@
     <Content Include="Views\Codes\Index.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_CodeMastTemplate.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_CodextnTemplate.cshtml" />
-    <Content Include="Views\Items\Index.cshtml" />
+    <Content Include="Views\Items\Index_PsCode.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_PsTypeTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_UnitMeasTemplate.cshtml" />
     <Content Include="Views\Orders\Index_killed.cshtml" />
@@ -3417,6 +3432,9 @@
     <Content Include="Views\PARs\PARItem.cshtml" />
     <Content Include="Views\PARs\_PARItemAddEdit.cshtml" />
     <Content Include="Views\PARs\_PARItem.cshtml" />
+    <Content Include="Views\Items\Index.cshtml" />
+    <Content Include="Views\Items\_ItemCodes.cshtml" />
+    <Content Include="Views\Items\_ItemFields.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3504,7 +3522,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

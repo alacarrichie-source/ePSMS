@@ -250,7 +250,7 @@ namespace iLgs.Controllers
                 Name = c.RisItem.ItemName,
                 Description = c.Description,
                 Unit = c.RisItem.Unit,
-                Type = c.RisItem.PsType,
+                Type = c.RisItem.ItemCode.ItemType.Code,
                 Qty = c.Qty, 
                 UnitCost = c.UnitCost,
                 TotalCost = c.TotalCost
@@ -279,7 +279,7 @@ namespace iLgs.Controllers
                 Name = c.RisItem.ItemName,
                 Description = c.Description,
                 Unit = c.RisItem.Unit,
-                Type = c.RisItem.PsType,
+                Type = c.RisItem.ItemCode.ItemType.Code,
                 Qty = c.Qty,
                 UnitCost = c.UnitCost,
                 TotalCost = c.TotalCost
@@ -352,7 +352,7 @@ namespace iLgs.Controllers
                 Name = c.RequestItem.RisItem.ItemName,
                 Description = c.Description,
                 Unit = c.RequestItem.RisItem.Unit,
-                Type = c.RequestItem.RisItem.PsType,
+                Type = c.RequestItem.RisItem.ItemCode.ItemType.Code,
                 Qty = c.Qty,
                 UnitCost = c.UnitCost,
                 Amount = c.Amount                
