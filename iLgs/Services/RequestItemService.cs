@@ -25,11 +25,15 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     PrId = s.PrId,
-                    PsCode = s.RisItem.PsNo,
-                    PsUnit = s.RisItem.Unit,
-                    PsItem = s.RisItem.ItemName,
-                    Description = s.Description,
+                    RisItemId = s.RisItemId,
+                    ItemCode = s.RisItem.ItemCode.Code,
+                    ItemType = s.RisItem.ItemCode.Description,
                     PsType = s.RisItem.ItemCode.ItemType.Code,
+                    PsNo = s.RisItem.PsNo,
+                    PsNoDisplay = s.RisItem.PsNoDisplay,
+                    Unit = s.RisItem.Unit,
+                    ItemName = s.RisItem.ItemName,
+                    Description = s.RisItem.Description,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     TotalCost = s.TotalCost,
@@ -45,11 +49,15 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     PrId = s.PrId,
-                    PsCode = s.RisItem.PsNo,
-                    PsUnit = s.RisItem.Unit,
-                    PsItem = s.RisItem.ItemName,
-                    Description = s.Description,
+                    RisItemId = s.RisItemId,
+                    ItemCode = s.RisItem.ItemCode.Code,
+                    ItemType = s.RisItem.ItemCode.Description,
                     PsType = s.RisItem.ItemCode.ItemType.Code,
+                    PsNo = s.RisItem.PsNo,
+                    PsNoDisplay = s.RisItem.PsNoDisplay,
+                    Unit = s.RisItem.Unit,
+                    ItemName = s.RisItem.ItemName,
+                    Description = s.RisItem.Description,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     TotalCost = s.TotalCost,
@@ -77,7 +85,6 @@ namespace iLgs.Services
             {
                 Id = model.Id,
                 PrId = model.PrId,
-                Description = model.Description,
                 Qty = model.Qty,
                 UnitCost = model.UnitCost,
                 TotalCost = model.TotalCost,
@@ -119,7 +126,6 @@ namespace iLgs.Services
             model.UpdatedDt = date;
 
             RequestItem entity = await db.RequestItems.FindAsync(model.Id);
-            entity.Description = model.Description;
             entity.Qty = model.Qty;
             entity.UnitCost = model.UnitCost;
             entity.TotalCost = model.TotalCost;

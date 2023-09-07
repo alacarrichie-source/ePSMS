@@ -549,15 +549,11 @@
         $("#Description").val(description).trigger('change');        
     }
 
-    function DataRequestItemExtnGrid()
-    {
-        var psType = $("#PsType").data("kendoMultiColumnComboBox").value();
-        if (psType == null || psType == "") {
-            psType = $("#PsType").data("kendoMultiColumnComboBox").text();
-        }
+    function DataRisItemExtnGrid()
+    {        
         return {
-            requestItemId: $("#Id").val(),
-            psType: psType
+            risItemId: $("#RisItemId").val(),
+            psType: $("#PsType").val()
         };
     }
 
@@ -730,7 +726,7 @@
     function RequestItem(mode, recId) {
         var myTitle = (mode == "A") ? "Request Item - ADD" : "Request Item - EDIT";
         var width = 800;
-        var height = 550;
+        var height = 570;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({

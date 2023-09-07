@@ -64,13 +64,12 @@ namespace iLgs.Models
         public virtual DbSet<PAR> PARs { get; set; }
         public virtual DbSet<PARItem> PARItems { get; set; }
         public virtual DbSet<OrderItemExtn> OrderItemExtns { get; set; }
-        public virtual DbSet<RequestItemExtn> RequestItemExtns { get; set; }
-        public virtual DbSet<RisItemExtn> RisItemExtns { get; set; }
-        public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
         public virtual DbSet<ItemType> ItemTypes { get; set; }
         public virtual DbSet<ItemField> ItemFields { get; set; }
         public virtual DbSet<ItemCode> ItemCodes { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
+        public virtual DbSet<RequestItem> RequestItems { get; set; }
+        public virtual DbSet<RisItemExtn> RisItemExtns { get; set; }
     }
 }

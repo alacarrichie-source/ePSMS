@@ -134,7 +134,7 @@ namespace iLgs.Services
             };
 
             // include items during add
-            var risItems = db.RisItems.Include(i => i.RisItemExtns).Where(w => w.RisId == model.RisId).ToList();
+            var risItems = db.RisItems.Where(w => w.RisId == model.RisId).ToList();
             foreach (var risItem in risItems)
             {
                 RequestItem requestItem = new RequestItem()
@@ -142,32 +142,29 @@ namespace iLgs.Services
                     Id = Guid.NewGuid(),
                     RisItemId = risItem.Id,
                     PrId = entity.Id,
-                    Description = risItem.Description,
                     Qty = risItem.QtyRequest,
-                    //UnitCost = risItem.UnitCost,
-                    //Amount = risItem.TotalCost,
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
                     UpdatedDt = date
                 };
 
-                foreach (var risItemExtn in risItem.RisItemExtns)
-                {
-                    RequestItemExtn requestItemExtn = new RequestItemExtn()
-                    {
-                        Id = Guid.NewGuid(),
-                        RequestItemId = requestItem.Id,
-                        ItemKey = risItemExtn.ItemKey,
-                        ItemValue = risItemExtn.ItemValue,
-                        Sequence = risItemExtn.Sequence,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
-                    requestItem.RequestItemExtns.Add(requestItemExtn);
-                }
+                //foreach (var risItemExtn in risItem.RisItemExtns)
+                //{
+                //    RequestItemExtn requestItemExtn = new RequestItemExtn()
+                //    {
+                //        Id = Guid.NewGuid(),
+                //        RequestItemId = requestItem.Id,
+                //        ItemKey = risItemExtn.ItemKey,
+                //        ItemValue = risItemExtn.ItemValue,
+                //        Sequence = risItemExtn.Sequence,
+                //        InsertedBy = user,
+                //        InsertedDt = date,
+                //        UpdatedBy = user,
+                //        UpdatedDt = date
+                //    };
+                //    requestItem.RequestItemExtns.Add(requestItemExtn);
+                //}
 
                 entity.RequestItems.Add(requestItem);
             }
@@ -199,7 +196,7 @@ namespace iLgs.Services
                 await db.SaveChangesAsync();
                 
                 // include items during add
-                var risItems = db.RisItems.Include(i => i.RisItemExtns).Where(w => w.RisId == model.RisId).ToList();
+                var risItems = db.RisItems.Where(w => w.RisId == model.RisId).ToList();
                 foreach (var risItem in risItems)
                 {
                     RequestItem requestItem = new RequestItem()
@@ -207,7 +204,6 @@ namespace iLgs.Services
                         Id = Guid.NewGuid(),
                         RisItemId = risItem.Id,
                         PrId = entity.Id,
-                        Description = risItem.Description,
                         Qty = risItem.QtyRequest,
                         InsertedBy = user,
                         InsertedDt = date,
@@ -215,22 +211,22 @@ namespace iLgs.Services
                         UpdatedDt = date
                     };
 
-                    foreach (var risItemExtn in risItem.RisItemExtns)
-                    {
-                        RequestItemExtn requestItemExtn = new RequestItemExtn()
-                        {
-                            Id = Guid.NewGuid(),
-                            RequestItemId = requestItem.Id,
-                            ItemKey = risItemExtn.ItemKey,
-                            ItemValue = risItemExtn.ItemValue,
-                            Sequence = risItemExtn.Sequence,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-                        requestItem.RequestItemExtns.Add(requestItemExtn);
-                    }
+                    //foreach (var risItemExtn in risItem.RisItemExtns)
+                    //{
+                    //    RequestItemExtn requestItemExtn = new RequestItemExtn()
+                    //    {
+                    //        Id = Guid.NewGuid(),
+                    //        RequestItemId = requestItem.Id,
+                    //        ItemKey = risItemExtn.ItemKey,
+                    //        ItemValue = risItemExtn.ItemValue,
+                    //        Sequence = risItemExtn.Sequence,
+                    //        InsertedBy = user,
+                    //        InsertedDt = date,
+                    //        UpdatedBy = user,
+                    //        UpdatedDt = date
+                    //    };
+                    //    requestItem.RequestItemExtns.Add(requestItemExtn);
+                    //}
 
                     entity.RequestItems.Add(requestItem);
                 }

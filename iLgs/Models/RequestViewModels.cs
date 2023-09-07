@@ -69,14 +69,12 @@ namespace iLgs.Models
         public string RisNo { get; set; }
     }
 
-    public class RequestItemVM
+    public class RequestItemVM : RisItemCommonVM
     {
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> RisItemId { get; set; }
         public Nullable<System.Guid> PrId { get; set; }
 
-        [MaxLength(2000)]
-        public string Description { get; set; }
-        
         [Required]
         public Nullable<decimal> Qty { get; set; }
 
@@ -90,22 +88,8 @@ namespace iLgs.Models
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }        
-
-        // Transients
-
-        [Display(Name = "Item No.")]
-        public string PsCode { get; set; }
-
-        [Display(Name = "Item Type")]
-        public string PsType { get; set; }
-
-        [Display(Name = "Unit")]
-        public string PsUnit { get; set; }
-
-        [Display(Name = "Item")]
-        public string PsItem { get; set; }
-
+        public Nullable<System.DateTime> UpdatedDt { get; set; }                
+        
         public string GridRequestItemExtns { get; set; }
     }
 

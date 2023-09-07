@@ -392,9 +392,6 @@
     <Compile Include="Models\RequestItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\RequestItemExtn.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\RequestViewModels.cs" />
     <Compile Include="Models\RisItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -526,7 +523,6 @@
     <Compile Include="Services\ParItemService.cs" />
     <Compile Include="Services\ParService.cs" />
     <Compile Include="Services\PsCodeService.cs" />
-    <Compile Include="Services\RequestItemExtnService.cs" />
     <Compile Include="Services\RequestItemService.cs" />
     <Compile Include="Services\RequestService.cs" />
     <Compile Include="Services\RisItemExtnService.cs" />
@@ -3522,7 +3518,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -143,7 +143,7 @@ namespace iLgs.Services
             };
 
             // include items during add, PR Items not yet in Order Items
-            var requestItems = db.RequestItems.Include(i => i.RequestItemExtns)
+            var requestItems = db.RequestItems.Include(i => i.RisItem.RisItemExtns)
                 .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToList();
             foreach (var requestItem in requestItems)
             {
@@ -152,7 +152,7 @@ namespace iLgs.Services
                     Id = Guid.NewGuid(),
                     OrderId = entity.Id,
                     RequestItemId = requestItem.Id,
-                    Description = requestItem.Description,
+                    Description = requestItem.RisItem.Description,
                     Qty = requestItem.Qty,
                     UnitCost = requestItem.UnitCost,
                     Amount = requestItem.TotalCost,
@@ -162,15 +162,15 @@ namespace iLgs.Services
                     UpdatedDt = date
                 };
 
-                foreach (var requestItemExtn in requestItem.RequestItemExtns)
+                foreach (var risItemExtn in requestItem.RisItem.RisItemExtns)
                 {
                     OrderItemExtn orderItemExtn = new OrderItemExtn()
                     {
                         Id = Guid.NewGuid(),
                         OrderItemId = orderItem.Id,
-                        ItemKey = requestItemExtn.ItemKey,
-                        ItemValue = requestItemExtn.ItemValue,
-                        Sequence = requestItemExtn.Sequence,
+                        ItemKey = risItemExtn.ItemKey,
+                        ItemValue = risItemExtn.ItemValue,
+                        Sequence = risItemExtn.Sequence,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -209,7 +209,7 @@ namespace iLgs.Services
                 await db.SaveChangesAsync();
 
                 // include items during add, PR Items not yet in Order Items
-                var prItemList = db.RequestItems.Include(i => i.RequestItemExtns)
+                var prItemList = db.RequestItems.Include(i => i.RisItem.RisItemExtns)
                     .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToList();
                 foreach (var prItem in prItemList)
                 {
@@ -218,7 +218,7 @@ namespace iLgs.Services
                         Id = Guid.NewGuid(),
                         OrderId = entity.Id,
                         RequestItemId = prItem.Id,
-                        Description = prItem.Description,
+                        Description = prItem.RisItem.Description,
                         Qty = prItem.Qty,
                         UnitCost = prItem.UnitCost,
                         Amount = prItem.TotalCost,
@@ -228,7 +228,7 @@ namespace iLgs.Services
                         UpdatedDt = date
                     };
 
-                    foreach (var prItemExtn in prItem.RequestItemExtns)
+                    foreach (var prItemExtn in prItem.RisItem.RisItemExtns)
                     {
                         OrderItemExtn orderItemExtn = new OrderItemExtn()
                         {

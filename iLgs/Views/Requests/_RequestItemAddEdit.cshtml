@@ -6,8 +6,10 @@
 
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.RisItemId)
     @Html.HiddenFor(model => model.PrId)
-    @Html.HiddenFor(model => model.PsCode)
+    @Html.HiddenFor(model => model.PsNo)
+    @Html.HiddenFor(model => model.PsType)
     @Html.HiddenFor(model => model.GridRequestItemExtns)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
@@ -19,44 +21,27 @@
     <fieldset>
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.PsType, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(m => m.ItemCode, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.PsType)
-                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                        .Placeholder("Select stock/property type")
-                        .DataTextField("Description")
-                        .DataValueField("Code")
-                        .ValuePrimitive(true)
-                        .Filter(FilterType.Contains)
-                        .DataSource(source =>
-                        {
-                            source.Read(read =>
-                            {
-                                read.Action("GetCodes", "Getters", new { mastCode = "PS-TYPES", text = "" });
-                            })
-                            .ServerFiltering(true);
-                        })
-                        .Columns(c =>
-                        {
-                            c.Add().Field("Code").Title("Code").Width("20%");
-                            c.Add().Field("Description").Title("Description").Width("80%");
-
-                        })
-                        .Suggest(true).Enable(false)
-                        .Events(e => { e.Select("onSelectPsType").DataBound("onDataBoundPsType"); })
-                    )
-                    @Html.ValidationMessageFor(m => m.PsType)
+                    @(Html.Kendo().TextBoxFor(m => m.ItemCode).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
         </div>
 
-
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.ItemType, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.ItemType).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                </div>
+            </div>
+        </div>
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.PsItem, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(m => m.ItemName, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.PsItem).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(m => m.ItemName).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
         </div>
@@ -73,16 +58,15 @@
         <br />
         <div class="row">
             <div class="col-md-12">
-                @(Html.Kendo().Grid<iLgs.Models.RequestItemExtnVM>()
+                @(Html.Kendo().Grid<iLgs.Models.RisItemExtnVM>()
                     .Name("gridItemExtn")
                     .Columns(col =>
                     {
                         col.Bound(c => c.ItemNo).Width(50);
-                        col.Bound(c => c.ItemKey).Width(100);
-                        col.Bound(c => c.ItemValue).Width(200);
+                        col.Bound(c => c.ItemKey).Width(70);
+                        col.Bound(c => c.ItemValue).Width(150);
                         col.Bound(c => c.Sequence).Width(50);
                     })
-                    //.Editable(editable => editable.Mode(GridEditMode.InCell))
                     .Sortable()
                     .NoRecords()
                     .Navigatable()
@@ -92,19 +76,16 @@
                         .Batch(true)
                         .Sort(s => s.Add(a => a.ItemNo))
                         .ServerOperation(true)
-                        //.Events(events => events.Sync("onSyncGridItemExtn"))
                         .Model(model =>
                         {
                             model.Id(p => p.Id);
                             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-                            model.Field(p => p.ItemNo).Editable(false);
-                            model.Field(p => p.ItemKey).Editable(false);
                         })
-                        .Read(read => read.Action("_RequestItemExtnBatchRead", "Requests").Data("DataRequestItemExtnGrid"))
+                        .Read(read => read.Action("_RISItemExtnBatchRead", "RIS").Data("DataRisItemExtnGrid"))
                     )
                     .Selectable(s => s.Mode(GridSelectionMode.Single))
-                    .Events(e => e.Save("onSaveGridItemExtn").DataBound("onDataBoundGridItemExtn"))
-                    .AutoBind(false)
+                    //.Events(e => e.Save("onSaveGridItemExtn").DataBound("onDataBoundGridItemExtn"))
+                    .AutoBind(true)
                 )
             </div>
         </div>
@@ -112,36 +93,10 @@
         <br />
         <div class="row">
             <div class="col-md-6">
-                @Html.LabelFor(m => m.PsUnit, htmlAttributes: new { @class = "col-md-12" })
-                @*<div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.PsUnit).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                </div>*@
+                @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.PsUnit)
-                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                        .Placeholder("Select unit")
-                        .DataTextField("Description")
-                        .DataValueField("Code")
-                        .ValuePrimitive(true)
-                        .Filter(FilterType.Contains)
-                        .DataSource(source =>
-                        {
-                            source.Read(read =>
-                            {
-                                read.Action("GetCodes", "Getters", new { mastCode = "UNIT", text = "" });
-                            })
-                            .ServerFiltering(true);
-                        })
-                        .Columns(c =>
-                        {
-                            c.Add().Field("Description").Title("Unit").Width("100%");
-
-                        })
-                        .Suggest(true)
-                    )
-                    @Html.ValidationMessageFor(m => m.PsUnit)
-                </div>
-
+                    @(Html.Kendo().TextBoxFor(m => m.Unit).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                </div>                
             </div>
             <div class="col-md-6">
                 @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })

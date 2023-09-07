@@ -26,7 +26,7 @@ namespace iLgs.Controllers
         private IOrderService orderService;
         private IRequestService requestService;
         private IRequestItemService requestItemService;
-        private IRequestItemExtnService requestItemExtnService;
+        private IRisItemExtnService risItemExtnService;
         private ICodextnService codextnService;
 
         public RequestsController()
@@ -34,7 +34,7 @@ namespace iLgs.Controllers
             this.orderService = new OrderService(db);
             this.requestService = new RequestService(db);
             this.requestItemService = new RequestItemService(db);
-            this.requestItemExtnService = new RequestItemExtnService(db);
+            this.risItemExtnService = new RisItemExtnService(db);
             this.codextnService = new CodextnService(db);
         }
 
@@ -223,9 +223,7 @@ namespace iLgs.Controllers
                     else
                     {
                         model = await requestItemService.UpdateAsync(model, user, date);
-                    }
-                    var requestItemExtns = (List<RequestItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRequestItemExtns, typeof(List<RequestItemExtnVM>));
-                    await requestItemExtnService.SaveAsync(model.Id, requestItemExtns, user, date);
+                    }                    
                 }
             }
             catch (Exception e)
@@ -395,7 +393,7 @@ namespace iLgs.Controllers
 
         public ActionResult _RequestItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? requestItemId, string psType)
         {
-            var data = requestItemExtnService.GetBatchInfo(requestItemId, psType);
+            var data = risItemExtnService.GetBatchInfo(requestItemId, psType);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

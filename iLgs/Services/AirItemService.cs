@@ -77,7 +77,7 @@ namespace iLgs.Services
                     PsType = s.OrderItem.RequestItem.RisItem.ItemCode.ItemType.Code,
                     PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
                     PsItem = s.OrderItem.RequestItem.RisItem.ItemName,
-                    OrderDescription = s.OrderItem.RequestItem.Description,
+                    OrderDescription = s.OrderItem.RequestItem.RisItem.Description,
                     PsUnit = s.OrderItem.RequestItem.RisItem.Unit,
                     Qty = s.Qty,
                     InsertedDt = s.InsertedDt
@@ -95,7 +95,7 @@ namespace iLgs.Services
                     PsType = s.OrderItem.RequestItem.RisItem.ItemCode.ItemType.Code,
                     PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
                     PsItem = s.OrderItem.RequestItem.RisItem.ItemName,
-                    OrderDescription = s.OrderItem.RequestItem.Description,
+                    OrderDescription = s.OrderItem.RequestItem.RisItem.Description,
                     PsUnit = s.OrderItem.RequestItem.RisItem.Unit,
                     Qty = s.Qty,
                     InsertedDt = s.InsertedDt
