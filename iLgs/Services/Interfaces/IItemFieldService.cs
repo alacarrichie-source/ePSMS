@@ -8,6 +8,7 @@ namespace iLgs.Services.Interfaces
     public interface IItemFieldService
     {
         IQueryable<ItemFieldVM> GetAll();
+        IQueryable<ItemFieldVM> GetAllbyItemTypeId(Guid? itemTypeId);
         Task<ItemField> GetByIdAsync(Guid id);
 
         Task<ItemFieldVM> CreateAsync(ItemFieldVM model, string user, DateTime date);

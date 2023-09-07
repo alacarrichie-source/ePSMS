@@ -109,15 +109,15 @@ namespace iLgs.Services
             }
 
             // crate psCode foreach item (problem in unpost, sequence number will rumble)
-            var risItemList = await db.RisItems.Where(w => w.RisId == entity.Id).ToListAsync();
+            var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
             foreach(var risItem in risItemList)
             {
-                if (!db.PsCodes.Any(a => a.PsType == risItem.ItemCode.ItemType.Code && a.ItemName == risItem.ItemName))
+                if (!db.PsCodes.Any(a => a.PsType == risItem.ItemCode.ItemType.Code && a.PsNo == risItem.PsNoDisplay))
                 {
                     var psCode = new PsCode()
                     {
                         Id = Guid.NewGuid(),
-                        PsNo = NextPsNo(risItem.ItemCode.ItemType.Code),
+                        PsNo = risItem.PsNoDisplay, //NextPsNo(risItem.ItemCode.ItemType.Code),
                         PsType = risItem.ItemCode.ItemType.Code,
                         ItemName = risItem.ItemName,
                         InsertedBy = user,
@@ -170,6 +170,19 @@ namespace iLgs.Services
                 db.RISses.Attach(entity);
                 db.Entry(entity).State = EntityState.Modified;
                 await db.SaveChangesAsync();
+
+                // delete un-used psCode foreach item (problem in unpost, sequence number will rumble)
+                var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
+                foreach (var risItem in risItemList)
+                {
+                    var psCode = await db.PsCodes.Where(w => w.PsNo == risItem.PsNoDisplay && !w.PsStocks.Any()).FirstOrDefaultAsync();
+                    if (psCode != null)
+                    {
+                        db.PsCodes.Remove(psCode);
+                        db.Entry(psCode).State = EntityState.Deleted;
+                        await db.SaveChangesAsync();
+                    }
+                }
             }
         }
 

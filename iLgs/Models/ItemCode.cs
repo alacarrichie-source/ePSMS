@@ -22,6 +22,7 @@ namespace iLgs.Models
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> ItemTypeId { get; set; }
+        public string ItemNo { get; set; }
         public string Code { get; set; }
         public string Description { get; set; }
         public string InsertedBy { get; set; }

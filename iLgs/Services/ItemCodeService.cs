@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -25,6 +26,7 @@ namespace iLgs.Services
                 {
                     Id = s.Id,                    
                     ItemTypeId = s.ItemTypeId,
+                    ItemNo = s.ItemNo,
                     Code = s.Code,
                     Description = s.Description,                    
                     InsertedDt = s.InsertedDt
@@ -39,6 +41,7 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     ItemTypeId = s.ItemTypeId,
+                    ItemNo = s.ItemNo,
                     Code = s.Code,
                     Description = s.Description,
                     InsertedDt = s.InsertedDt
@@ -61,11 +64,13 @@ namespace iLgs.Services
             model.UpdatedDt = date;
 
             model.Id = Guid.NewGuid();
+            model.Code = GetItemCode(model.ItemTypeId, model.ItemNo, model.Description);
 
             ItemCode entity = new ItemCode()
             {
                 Id = model.Id,
                 ItemTypeId = model.ItemTypeId,
+                ItemNo = model.ItemNo,
                 Code = model.Code,
                 Description = model.Description,
                 InsertedBy = user,
@@ -87,7 +92,10 @@ namespace iLgs.Services
 
             ItemCode entity = await db.ItemCodes.FindAsync(model.Id);
 
+            model.Code = GetItemCode(model.ItemTypeId, model.ItemNo, model.Description);
+
             entity.ItemTypeId = model.ItemTypeId;
+            entity.ItemNo = model.ItemNo;
             entity.Code = model.Code;
             entity.Description = model.Description;
             entity.UpdatedBy = user;
@@ -121,5 +129,17 @@ namespace iLgs.Services
             return model;
         }
 
+
+        private string GetItemCode(Guid? itemTypeId, string itemNo, string description)
+        {
+            var itemType = db.ItemTypes.Find(itemTypeId);
+            string exemptionPattern = @"[-.]+|\[.*?\]|\(.*?\)";
+            string itemCode = Regex.Replace(itemNo, exemptionPattern, "");
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                return itemType.Code + "*" + itemCode;
+            }
+            return itemType.Code + itemCode;
+        }
     }
 }

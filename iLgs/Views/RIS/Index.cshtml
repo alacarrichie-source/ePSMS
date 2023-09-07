@@ -478,14 +478,18 @@
         model.set('ReceivedByDesignation', $('#ReceivedByDesignation').val());
     }
 
-    function onSelectPsType(e) {
+    function onSelectItemCode(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#PsType").val(dataItem.Code).trigger("change");
+        $("#ItemCodeId").val(dataItem.Id).trigger("change");
+        $("#ItemCode").val(dataItem.Code).trigger("change");
+        $("#PsType").val(dataItem.Type).trigger("change");
+        $("#ItemType").val(dataItem.Description).trigger("change");
+
         RefreshGridItemExtn();
     }
 
-    function onDataBoundPsType(e) {
+    function onDataBoundItemCode(e) {
         RefreshGridItemExtn();
     }
 
@@ -535,7 +539,7 @@
 
         for (var i = 0; i < gridData.length; i++) {
             var rowData = gridData[i];            
-            if (rowData.ItemKey == "Item Name") {
+            if (rowData.ItemKey == "Generic Name") {
                 $("#ItemName").val(rowData.ItemValue).trigger('change');
             } else {
                 rowValues.push(rowData.ItemValue);
@@ -592,13 +596,9 @@
 
     function DataRisItemExtnGrid()
     {       
-        var psType = $("#PsType").data("kendoMultiColumnComboBox").value();
-        if (psType == null || psType == "") {
-            psType = $("#PsType").data("kendoMultiColumnComboBox").text();
-        }
         return {
             risItemId: $("#Id").val(),
-            psType: psType
+            psType: $("#PsType").val()
         };
     }
 
@@ -806,7 +806,7 @@
     function RisItem(mode, recId) {
         var myTitle = (mode == "A") ? "RIS Item - ADD" : "RIS Item - EDIT";
         var width = 800;
-        var height = 550;
+        var height = 570;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({

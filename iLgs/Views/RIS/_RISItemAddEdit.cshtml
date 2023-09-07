@@ -8,7 +8,8 @@
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.RisId)
     @Html.HiddenFor(model => model.PsNo)
-    @*@Html.HiddenFor(model => model.PsTypeCode)*@
+    @Html.HiddenFor(model => model.PsType)
+    @Html.HiddenFor(model => model.ItemCode)
     @Html.HiddenFor(model => model.GridRisItemExtns)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
@@ -20,33 +21,41 @@
     <fieldset>
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.PsType, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(m => m.ItemCodeId, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.PsType)
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                        .Placeholder("Select stock/property type")
-                        .DataTextField("Description")
-                        .DataValueField("Code")
+                        .Placeholder("Select Item Code")
+                        .DataTextField("Code")
+                        .DataValueField("Id")
                         .ValuePrimitive(true)
                         .Filter(FilterType.Contains)
                         .DataSource(source =>
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetCodes", "Getters", new { mastCode = "PS-TYPES", text = "" });
+                                read.Action("GetItems", "Items");
                             })
                             .ServerFiltering(true);
                         })
                         .Columns(c =>
                         {
-                            c.Add().Field("Code").Title("Code").Width("20%");
-                            c.Add().Field("Description").Title("Description").Width("80%");                            
-
+                            c.Add().Field("Code").Title("Item No.").Width("20%");
+                            c.Add().Field("Description").Title("Item Type").Width("80%");                            
                         })
                         .Suggest(true)
-                        .Events(e => { e.Select("onSelectPsType").DataBound("onDataBoundPsType"); })
+                        .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
                     )
-                    @Html.ValidationMessageFor(m => m.PsType)
+                    @Html.ValidationMessageFor(m => m.ItemCodeId)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.ItemType, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.ItemType).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                    
                 </div>
             </div>
         </div>
@@ -79,8 +88,8 @@
                     .Columns(col =>
                     {
                         col.Bound(c => c.ItemNo).Width(50);
-                        col.Bound(c => c.ItemKey).Width(100);
-                        col.Bound(c => c.ItemValue).Width(200);
+                        col.Bound(c => c.ItemKey).Width(70);
+                        col.Bound(c => c.ItemValue).Width(120);
                         col.Bound(c => c.Sequence).Width(50);
                     })
                     .Editable(editable => editable.Mode(GridEditMode.InCell))

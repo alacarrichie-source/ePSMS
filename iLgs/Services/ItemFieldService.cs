@@ -30,6 +30,20 @@ namespace iLgs.Services
             return data;
         }
 
+        public IQueryable<ItemFieldVM> GetAllbyItemTypeId(Guid? itemTypeId)
+        {
+            var data = db.ItemFields.Where(w => w.ItemTypeId == itemTypeId)
+                .Select(s => new ItemFieldVM
+                {
+                    Id = s.Id,
+                    ItemTypeId = s.ItemTypeId,
+                    FieldNo = s.FieldNo,
+                    FieldName = s.FieldName,
+                    InsertedDt = s.InsertedDt
+                });
+            return data;
+        }
+
         public async Task<ItemField> GetByIdAsync(Guid id)
         {
             var data = await db.ItemFields.FindAsync(id);

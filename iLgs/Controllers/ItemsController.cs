@@ -157,7 +157,7 @@ namespace iLgs.Controllers
 
         public ActionResult ItemCodeRead([DataSourceRequest] DataSourceRequest request, Guid? itemTypeId)
         {
-            var data = itemCodeService.GetAll();
+            var data = itemCodeService.GetAllByItemTypeId(itemTypeId);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -267,7 +267,7 @@ namespace iLgs.Controllers
 
         public ActionResult ItemFieldRead([DataSourceRequest] DataSourceRequest request, Guid? itemTypeId)
         {
-            var data = itemFieldService.GetAll();
+            var data = itemFieldService.GetAllbyItemTypeId(itemTypeId);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -933,5 +933,21 @@ namespace iLgs.Controllers
             return null;
         }
 
+        #region HELPERS
+        [Authorize]
+        public JsonResult GetItems(string text)
+        {
+
+            var model = db.ItemCodes.AsQueryable();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id,  Code = c.Code, Description = c.Description, Type = c.ItemType.Code}), JsonRequestBehavior.AllowGet);
+        }
+
+        #endregion
     }
 }

@@ -378,6 +378,13 @@
 
     function onEditGridItems(e) {
         e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
         selectedGrid = e.sender;
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
@@ -470,6 +477,13 @@
 
     function onEditGridItemFields(e) {
         e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
         selectedGrid = e.sender;
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");

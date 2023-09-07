@@ -68,9 +68,9 @@ namespace iLgs.Models
         public virtual DbSet<RisItemExtn> RisItemExtns { get; set; }
         public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
-        public virtual DbSet<RisItem> RisItems { get; set; }
-        public virtual DbSet<ItemCode> ItemCodes { get; set; }
         public virtual DbSet<ItemType> ItemTypes { get; set; }
         public virtual DbSet<ItemField> ItemFields { get; set; }
+        public virtual DbSet<ItemCode> ItemCodes { get; set; }
+        public virtual DbSet<RisItem> RisItems { get; set; }
     }
 }

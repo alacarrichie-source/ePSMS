@@ -178,6 +178,8 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisId { get; set; }
+        [Display(Name = "Item No.")]
+        public Nullable<System.Guid> ItemCodeId { get; set; }
         public string Description { get; set; }
 
         [Display(Name = "Qty Req.")]
@@ -193,17 +195,24 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         
         [Display(Name = "Stock/Property No.")]
-        public string PsNo { get; set; }        
+        public string PsNo { get; set; } // Generic (Without Brand)        
+
+        public string PsNoDisplay { get; set; } // For printing 
 
         public string Unit { get; set; }
-
-        [Display(Name = "Item Type")]
-        public string PsType { get; set; }
-
+        
         [Display(Name = "Item Name")]
         public string ItemName { get; set; }
 
         // Transients
+        [Display(Name = "Category")]
+        public string PsType { get; set; } // Used as category
+
+        public string ItemCode { get; set; } // Code of ItemCodeId
+
+        [Display(Name = "Item Type")]
+        public string ItemType { get; set; } // Description of ItemCodeId
+
         public string GridRisItemExtns { get; set; }
     }
 

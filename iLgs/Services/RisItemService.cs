@@ -24,8 +24,12 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     RisId = s.RisId,
-                    PsType = s.ItemCode.ItemType.Description,
+                    ItemCodeId = s.ItemCodeId,
+                    ItemCode = s.ItemCode.Code,
+                    ItemType = s.ItemCode.Description,
+                    PsType = s.ItemCode.ItemType.Code,
                     PsNo = s.PsNo,
+                    PsNoDisplay = s.PsNoDisplay,
                     Unit = s.Unit,
                     ItemName = s.ItemName,
                     Description = s.Description,
@@ -50,8 +54,12 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     RisId = s.RisId,
-                    PsType = s.ItemCode.ItemType.Description,
+                    ItemCodeId = s.ItemCodeId,
+                    ItemCode = s.ItemCode.Code,
+                    ItemType = s.ItemCode.Description,
+                    PsType = s.ItemCode.ItemType.Code,
                     PsNo = s.PsNo,
+                    PsNoDisplay = s.PsNoDisplay,
                     Unit = s.Unit,
                     ItemName = s.ItemName,
                     Description = s.Description,
@@ -71,13 +79,16 @@ namespace iLgs.Services
             model.InsertedDt = date;
             model.UpdatedDt = date;                       
 
-            model.PsNo = GeneratePsNo(model);
+            model.PsNo = PsNo(model);
+            model.PsNoDisplay = PsNoDisplay(model);
 
             RisItem entity = new RisItem()
             {
                 Id = model.Id,
                 RisId = model.RisId,
+                ItemCodeId = model.ItemCodeId,
                 PsNo = model.PsNo,
+                PsNoDisplay = model.PsNoDisplay,
                 ItemName = model.ItemName,
                 Unit = model.Unit,
                 Description = model.Description,
@@ -124,10 +135,13 @@ namespace iLgs.Services
 
             RisItem entity = await db.RisItems.FindAsync(model.Id);
 
-            model.PsNo = GeneratePsNo(model);
+            model.PsNo = PsNo(model);
+            model.PsNoDisplay = PsNoDisplay(model);
 
             entity.RisId = model.RisId;
+            entity.ItemCodeId = model.ItemCodeId;
             entity.PsNo = model.PsNo;
+            entity.PsNoDisplay = model.PsNoDisplay;
             entity.ItemName = model.ItemName;
             entity.Unit = model.Unit;
             entity.Description = model.Description;
@@ -149,18 +163,31 @@ namespace iLgs.Services
             return model;
         }        
 
-        private string GeneratePsNo(RisItemVM model)
+        private string PsNo(RisItemVM model)
         {
             var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
-            string psNo = model.PsType.Trim() + "-" + model.ItemName.Substring(0, 3) + "-";
-            foreach(var risItemExtn in risItemExtns)
+            string psNo = model.ItemCode.Trim() + model.ItemName.Substring(0, 1) + model.ItemName.Substring(2, 1);
+            if (model.PsType == "M")
             {
-                if (!string.IsNullOrWhiteSpace(risItemExtn.ItemValue))
+                var ds = risItemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Strength");
+                if (ds != null)
                 {
-                    psNo += risItemExtn.ItemValue.Substring(0, 1);
+                    psNo += ds.ItemValue.Replace(" ", "");
+                }
+
+                var df = risItemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Form");
+                if (df != null)
+                {
+                    psNo += df.ItemValue.Substring(0, 3);
                 }
             }
-            return psNo.ToUpper();
+            
+            return psNo;
+        }
+
+        private string PsNoDisplay(RisItemVM model)
+        {
+            return model.ItemCode.Trim() + model.ItemName.Substring(0, 1) + model.ItemName.Substring(2, 1);
         }
     }
 }
