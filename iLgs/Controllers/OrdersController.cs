@@ -16,6 +16,7 @@ using CrystalDecisions.CrystalReports.Engine;
 using System.Data.SqlClient;
 using System.IO;
 using System.Collections.Generic;
+using iLgs.Exceptions;
 
 namespace iLgs.Controllers
 {
@@ -88,7 +89,7 @@ namespace iLgs.Controllers
                         }
                     }
                 }
-
+                
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -406,15 +407,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await orderService.GetByIdAsync(orderId) == null)
-                {
-                    ModelState.AddModelError("Order", "Invalid Order Id");
-                }
-                else if (await orderService.IsPostedAsync(orderId))
-                {
-                    ModelState.AddModelError("PO No.", "PO Number already Posted, cannot post again!");
-                }
-
+                
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -422,6 +415,22 @@ namespace iLgs.Controllers
 
                     await orderService.PostAsync(orderId, user, date);
                 }
+            }
+            catch (RecordNotFoundException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (PoNumberAlreadyPostedException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (RequiredFieldException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (PurchaseRequestNotYetPostedException e)
+            {
+                ModelState.AddModelError("", e.Message);
             }
             catch (Exception e)
             {

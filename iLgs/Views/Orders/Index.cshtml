@@ -80,7 +80,7 @@
 )
 
 <script id="Details" type="text/x-kendo-tmpl">
-@(Html.Kendo().TabStrip()
+    @(Html.Kendo().TabStrip()
     .Name("tabStrip_#=Id#")
     .HtmlAttributes(new { @class = "no-text-tabstrip" })
     .TabPosition(TabStripTabPosition.Top)
@@ -97,7 +97,7 @@
         items.Add()
             .Selected(true)
             .LoadContentFrom("_OrderItem", "Orders", new { orderId = "#=Id#" });
-    }).ToClientTemplate())    
+    }).ToClientTemplate())
 </script>
 
 @(Html.Kendo().Notification()
@@ -137,7 +137,7 @@
         padding: 0; /* Remove padding */
         text-indent: -9999px; /* Move the text outside the visible area */
         overflow: hidden; /* Hide any overflow */
-    }    
+    }
 </style>
 
 
@@ -210,7 +210,7 @@
     var selecteItemId = null;
     var postedBy = null;
     var selectedPoNo = null;
-    
+
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         var grid = $("#grid");
@@ -276,16 +276,16 @@
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-            selectedId = null;            
+            selectedId = null;
         } else {
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));                        
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
             //$("#Code").attr("readonly", "readonly");
 
             // Refresh PR Nos
             $("#PrId").data("kendoMultiColumnComboBox").dataSource.read(DataPrId());
-        }        
+        }
     }
 
     function onGridDeleteClick(e) {
@@ -370,7 +370,7 @@
     function OrderItem(mode, recId) {
         var myTitle = (mode == "A") ? "Order Item - ADD" : "Order Item - EDIT";
         var width = 800;
-        var height = 550;
+        var height = 620;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -434,19 +434,19 @@
 
     function onEditGridItems(e) {
         e.preventDefault();
-        selectedGrid = e.sender;        
+        selectedGrid = e.sender;
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selecteItemId = null;
-            e.model.set("OrderId", selectedId);         
+            e.model.set("OrderId", selectedId);
         } else {
             selecteItemId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selecteItemId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));            
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
             //$("#Code").attr("readonly", "readonly");
-            
-        }                
+
+        }
     }
 
     function DataPrId() {
@@ -458,7 +458,7 @@
             orderId: $("#Id").val(),
             text: text
         };
-    }    
+    }
 
     function DataRequestItemId() {
         var text = $("#RequestItemId").data("kendoMultiColumnComboBox").text();
@@ -475,14 +475,16 @@
     function onSelectRequestItemId(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#PsType").val(dataItem.Type).trigger("change");
-        $("#PsItem").val(dataItem.Name).trigger("change");
+        $("#PsType").val(dataItem.PsType).trigger("change");
+        $("#ItemType").val(dataItem.ItemType).trigger("change");
+        $("#ItemCode").val(dataItem.ItemCode).trigger("change");
+        $("#ItemName").val(dataItem.ItemName).trigger("change");
         $("#PsUnit").val(dataItem.Unit).trigger("change");
-        $("#PsCodeId").val(dataItem.PsCodeId).trigger("change");
+        //$("#PsCodeId").val(dataItem.PsCodeId).trigger("change");
         $("#PsCode").val(dataItem.Code).trigger("change");
         $("#Description").val(dataItem.Description).trigger("change");
 
-        $("#RequestItemId").data("kendoMultiColumnComboBox").value(dataItem.Id);        
+        $("#RequestItemId").data("kendoMultiColumnComboBox").value(dataItem.Id);
         $("#Qty").data("kendoNumericTextBox").value(dataItem.Qty);
         $("#UnitCost").data("kendoNumericTextBox").value(dataItem.UnitCost);
 
@@ -672,6 +674,11 @@
 
         for (var i = 0; i < gridData.length; i++) {
             var rowData = gridData[i];
+
+            if (rowData.ItemKey == "Brand") {
+                $("#Brand").val(rowData.ItemValue).trigger('change');
+            }
+
             if (rowData.ItemKey == "Item Name") {
                 $("#ItemName").val(rowData.ItemValue).trigger('change');
             } else {
@@ -681,6 +688,20 @@
 
         var description = rowValues.join(" ");
         $("#Description").val(description.trim()).trigger('change');
+    }
+
+    function onDataBoundGridItemExtn(e) {
+        var grid = e.sender;
+        // Iterate over each row in the grid
+        grid.tbody.find("tr").each(function () {
+            var dataItem = grid.dataItem(this);
+
+            // Add condition based on your requirements to disable the row
+            if (dataItem.ItemKey != "Brand") {
+                // Disable the row
+                $(this).addClass("k-state-disabled");
+            }
+        });
     }
 
     function DataOrderItemExtnGrid() {

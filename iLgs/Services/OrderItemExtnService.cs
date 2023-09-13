@@ -81,7 +81,7 @@ namespace iLgs.Services
                 if (entity != null)
                 {
                     entity.UpdatedBy = user;
-                    entity.UpdatedDt = date;
+                    entity.UpdatedDt = date;                    
                     db.OrderItemExtns.Attach(entity);
                     db.Entry(entity).State = EntityState.Modified;
                     await db.SaveChangesAsync();

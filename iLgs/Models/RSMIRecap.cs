@@ -25,7 +25,7 @@ namespace iLgs.Models
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
     
-        public virtual PsItem PsItem { get; set; }
         public virtual RSMI RSMI { get; set; }
+        public virtual PsItem PsItem { get; set; }
     }
 }

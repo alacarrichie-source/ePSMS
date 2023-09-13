@@ -437,24 +437,8 @@ namespace iLgs.Controllers
                         Id = model.Id,
                         PsId = model.PsId,
                         StockNo = model.StockNo,
+                        StockName = model.StockName,
                         Description = model.Description,
-                        Type = model.Type,
-                        IdNo = model.IdNo,
-                        Location = model.Location,
-                        Area = model.Area,
-                        TctNo = model.TctNo,
-                        BrandName = model.BrandName,
-                        Department = model.Department,
-                        OtherSpecs = model.OtherSpecs,
-                        SerialNo = model.SerialNo,
-                        Color = model.Color,
-                        EngineNo = model.EngineNo,
-                        ChassisNo = model.ChassisNo,
-                        ParNo = model.ParNo,
-                        AccountableOfficer = model.AccountableOfficer,
-                        CompletionDate = model.CompletionDate,
-                        EstimatedLife = model.EstimatedLife,
-                        Amount = model.Amount,
                         InsertedBy = model.InsertedBy,
                         InsertedDt = model.InsertedDt,
                         UpdatedBy = model.UpdatedBy,
@@ -498,24 +482,8 @@ namespace iLgs.Controllers
 
                     entity.PsId = model.PsId;
                     entity.StockNo = model.StockNo;
+                    entity.StockName = model.StockName;
                     entity.Description = model.Description;
-                    entity.Type = model.Type;
-                    entity.IdNo = model.IdNo;
-                    entity.Location = model.Location;
-                    entity.Area = model.Area;
-                    entity.TctNo = model.TctNo;
-                    entity.BrandName = model.BrandName;
-                    entity.Department = model.Department;
-                    entity.OtherSpecs = model.OtherSpecs;
-                    entity.SerialNo = model.SerialNo;
-                    entity.Color = model.Color;
-                    entity.EngineNo = model.EngineNo;
-                    entity.ChassisNo = model.ChassisNo;
-                    entity.ParNo = model.ParNo;
-                    entity.AccountableOfficer = model.AccountableOfficer;
-                    entity.CompletionDate = model.CompletionDate;
-                    entity.EstimatedLife = model.EstimatedLife;
-                    entity.Amount = model.Amount;
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
                     
@@ -625,8 +593,7 @@ namespace iLgs.Controllers
                     Qty = s.Qty,
                     QtyIss = s.QtyIss,
                     QtyBal = s.QtyBal,
-                    Days = s.Days,
-                    UnitCost = s.OrderItem.UnitCost
+                    Days = s.Days              
                 }).AsQueryable();
             var result = new JsonNetResult
             {
@@ -665,7 +632,6 @@ namespace iLgs.Controllers
                     {
                         Id = model.Id,
                         PsStockId = model.PsStockId,
-                        OrderItemId = model.OrderItemId,
                         RefNo = model.RefNo,
                         RefDate = model.RefDate,
                         RefType = model.RefType,
@@ -714,7 +680,6 @@ namespace iLgs.Controllers
                     var qtyBal = model.Qty - qtyIss;
 
                     entity.PsStockId = model.PsStockId;
-                    entity.OrderItemId = model.OrderItemId;
                     entity.RefNo = model.RefNo;
                     entity.RefDate = model.RefDate;
                     entity.RefType = model.RefType;
@@ -840,7 +805,6 @@ namespace iLgs.Controllers
                     {
                         Id = Guid.NewGuid(),
                         PsStockId = searchModel.PsStockId,
-                        OrderItemId = orderItemId,
                         RefNo = data.PoNo,
                         RefDate = data.PoDate,
                         RefType = "",

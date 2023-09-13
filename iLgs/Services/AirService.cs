@@ -1,4 +1,5 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
 using iLgs.Services.Interfaces;
 using iLgs.Services.Items;
 using System;
@@ -85,157 +86,65 @@ namespace iLgs.Services
         public async Task PostAsync(Guid airId, string user, DateTime date)
         {
             var entity = await db.AIRs.FindAsync(airId);
-            if (entity != null)
+            if (entity == null)
             {
-                entity.PostedBy = user;
-                entity.PostedDt = date;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
-
-                db.AIRs.Attach(entity);
-                db.Entry(entity).State = EntityState.Modified;
-                await db.SaveChangesAsync();
-
-                var orderId = entity.OrderId;
-                var orderItemGroups = await db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}", orderId).ToListAsync();
-                // create stock for each group
-                foreach (var oig in orderItemGroups)
-                {
-                    // find group in stocks
-                    PsStock psStock = await db.PsStocks.Where(w => w.PsId == oig.PsCodeId && w.Description == oig.Description).FirstOrDefaultAsync();
-                    if (psStock == null)
-                    {
-                        var stockNo = db.PsCodes.Find(oig.PsCodeId).PsNo;
-                        var nextStockNo = this.itemService.NextStockNo(stockNo);
-                        psStock = new PsStock
-                        {
-                            Id = Guid.NewGuid(),
-                            PsId = oig.PsCodeId,
-                            StockNo = nextStockNo,
-                            Description = oig.Description,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-
-                        db.PsStocks.Add(psStock);
-                        await db.SaveChangesAsync();
-                    }
-
-                    // Post the OrderItems under the stocks having the same PsCodeId
-                    //var orderItemList = order.OrderItems.Where(w => db.RequestItems.Any(a => a.PsCodeId == oig.PsCodeId)).ToList();
-                    var orderItemList = await db.OrderItems
-                        .Include(i => i.Order)
-                        .Include(i => i.RequestItem.RisItem)
-                        .Include(i => i.OrderItemExtns)
-                        .Where(w => w.OrderId == orderId && w.RequestItem.RisItem.ItemCode.ItemType.Code == oig.PsType 
-                            && w.RequestItem.RisItem.ItemName == oig.ItemName && w.Description == oig.Description).ToListAsync();
-                    foreach (var orderItem in orderItemList)
-                    {
-                        var qtyIss = db.AIRItems.Where(w => w.OrderItemId == orderItem.Id).Sum(s => s.Qty);
-                        var psItem = new PsItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            PsStockId = psStock.Id,
-                            OrderItemId = orderItem.Id,
-                            RefNo = orderItem.Order.PoNo,
-                            RefDate = orderItem.Order.PoDate,
-                            RefType = "PO",
-                            Qty = orderItem.Qty,
-                            QtyIss = qtyIss,
-                            QtyBal = orderItem.Qty - qtyIss,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-                        db.PsItems.Add(psItem);
-                    }
-                    await db.SaveChangesAsync();
-
-                    // search PsStockExtns for Field Descripsiotn
-                    if (!db.PsStockExtns.Any(a => a.PsStockId == psStock.Id))
-                    {
-                        // get first orderItemExtn from orderItemList
-                        var orderItemExtns = orderItemList.FirstOrDefault().OrderItemExtns;
-                        foreach (var orderItemExtn in orderItemExtns)
-                        {
-                            var psStockExtn = new PsStockExtn()
-                            {
-                                Id = Guid.NewGuid(),
-                                PsStockId = psStock.Id,
-                                ItemNo = orderItemExtn.ItemNo,
-                                ItemKey = orderItemExtn.ItemKey,
-                                ItemValue = orderItemExtn.ItemValue,
-                                Sequence = orderItemExtn.Sequence,
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                            };
-                            db.PsStockExtns.Add(psStockExtn);
-                        }
-                        await db.SaveChangesAsync();
-                    }
-                }
+                throw new RecordNotFoundException(airId);
             }
+
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            db.AIRs.Attach(entity);
+            db.Entry(entity).State = EntityState.Modified;
+            await db.SaveChangesAsync();
+
+            await UpdatePsItem(airId, user, date, true);
+            
         }
 
         public async Task UnpostAsync(Guid airId, string user, DateTime date)
         {
             var entity = await db.AIRs.FindAsync(airId);
-            if (entity != null)
+            if (entity == null)
             {
-                entity.PostedBy = null;
-                entity.PostedDt = null;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+                throw new RecordNotFoundException(airId);
+            }
 
-                db.AIRs.Attach(entity);
-                db.Entry(entity).State = EntityState.Modified;
-                await db.SaveChangesAsync();
+            entity.PostedBy = null;
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                /*
-                 * Delete the following records onUnpost:
-                 * PsItem             
-                 * PsStocks, PsStockExtns --> if no PsItem
-                */
-                var orderId = entity.OrderId;
-                var orderItems = db.OrderItems.Include(i => i.RequestItem.RisItem).Where(w => w.OrderId == orderId).ToList();
+            db.AIRs.Attach(entity);
+            db.Entry(entity).State = EntityState.Modified;
+            await db.SaveChangesAsync();                
+            
+            await UpdatePsItem(airId, user, date, false);
+        }
 
-                foreach (var orderItem in orderItems)
+        private async Task UpdatePsItem(Guid airId, string user, DateTime date, bool post)
+        {
+            var orderItemIdList = await db.AIRItems.Where(w => w.AirId == airId).GroupBy(g => g.OrderItemId)
+                .Select(s => s.Key).ToListAsync();
+            foreach (var orderItemId in orderItemIdList)
+            {
+                decimal? qtyIss = 0;
+                if (post)
                 {
-                    var psItems = db.PsItems.Where(w => w.OrderItemId == orderItem.Id);
-                    if (psItems.Count() > 0)
-                    {
-                        var psStockId = psItems.FirstOrDefault().PsStockId;
-                        await psItems.ForEachAsync(f => {
-                            f.UpdatedBy = user;
-                            f.UpdatedDt = date;
-                        });
-                        await db.SaveChangesAsync();
-
-                        // delete each orderitem in stock psItems
-                        db.PsItems.RemoveRange(psItems);
-                        await db.SaveChangesAsync();                        
-
-                        if (!db.PsItems.Any(a => a.PsStockId == psStockId)) // no other order item is using this item
-                        {
-                            var psStockEntity = await db.PsStocks.FindAsync(psStockId);
-                            psStockEntity.UpdatedBy = user;
-                            psStockEntity.UpdatedDt = date;
-
-                            db.PsStocks.Attach(psStockEntity);
-                            db.Entry(psStockEntity).State = EntityState.Modified;
-                            await db.SaveChangesAsync();
-
-                            // delete stock during unpost if not used by other order item
-                            db.PsStocks.Remove(psStockEntity);
-                            db.Entry(psStockEntity).State = EntityState.Deleted;
-                            await db.SaveChangesAsync();
-                        }
-                    }
+                    qtyIss = db.AIRItems.Where(w => w.OrderItemId == orderItemId).Sum(s => s.Qty);
+                }
+                var psItem = await db.PsItems.Where(w => w.OrderItemId == orderItemId).FirstOrDefaultAsync();
+                if (psItem != null)
+                {
+                    psItem.QtyIss = qtyIss;
+                    psItem.QtyBal = psItem.Qty - qtyIss;
+                    psItem.UpdatedBy = user;
+                    psItem.UpdatedDt = date;
+                    db.PsItems.Attach(psItem);
+                    db.Entry(psItem).State = EntityState.Modified;
+                    await db.SaveChangesAsync();
                 }
             }
         }

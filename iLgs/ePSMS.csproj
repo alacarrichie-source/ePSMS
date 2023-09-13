@@ -228,7 +228,6 @@
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\RequestsController.cs" />
     <Compile Include="Controllers\RISController.cs" />
-    <Compile Include="Controllers\RIS_Controller.cs" />
     <Compile Include="Controllers\RolesController.cs" />
     <Compile Include="Controllers\Roles_Controller.cs" />
     <Compile Include="Controllers\RSMIController.cs" />
@@ -244,9 +243,12 @@
     <Compile Include="Exceptions\DependencyException.cs" />
     <Compile Include="Exceptions\FailedServiceException.cs" />
     <Compile Include="Exceptions\IException.cs" />
+    <Compile Include="Exceptions\PoNumberAlreadyPostedException.cs" />
+    <Compile Include="Exceptions\PurchaseRequestNotYetPostedException.cs" />
     <Compile Include="Exceptions\RecordAlreadyExistsException.cs" />
     <Compile Include="Exceptions\RecordLockedException.cs" />
     <Compile Include="Exceptions\RecordNotFoundException.cs" />
+    <Compile Include="Exceptions\RequiredFieldException.cs" />
     <Compile Include="Exceptions\ServiceException.cs" />
     <Compile Include="Exceptions\ValidationException.cs" />
     <Compile Include="Extensions\HtmlHelperExtension.cs" />
@@ -355,6 +357,7 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\MenuViewModels.cs" />
+    <Compile Include="Models\MiscViewModels.cs" />
     <Compile Include="Models\Order.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>

@@ -393,6 +393,7 @@ namespace iLgs.Controllers
         }
         #endregion        
 
+        [Authorize]
         public ActionResult _RISItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId, string psType)
         {
             var data = risItemExtnService.GetBatchInfo(risItemId, psType);

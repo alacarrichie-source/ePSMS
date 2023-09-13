@@ -114,26 +114,8 @@ namespace iLgs.Models
         public string Department { get; set; }
     }
 
-    public class OrderItemVM
-    {
-        [Display(Name = "Stock/Property No.")]
-        public string PsNo { get; set; }
-
-        [Display(Name = "Unit")]
-        public string PsUnit { get; set; }
-
-        [Display(Name = "Item")]
-        public string PsItem { get; set; }
-
-        [MaxLength(2000)]
-        public string Description { get; set; }
-
-        [Display(Name = "Brand")]
-        public string BrandName { get; set; }
-
-        [Display(Name = "Other Specs")]
-        public string OtherSpecs { get; set; }
-
+    public class OrderItemVM : RisItemCommonVM
+    {                       
         [Display(Name = "Estimated Life")]
         public Nullable<decimal> EstimatedLife { get; set; }
 
@@ -158,20 +140,25 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
-        // TRANSIENTS
-        [Display(Name = "Item Type")]
-        public string PsType { get; set; }
         public Nullable<decimal> QtyIssued { get; set; }
         public Nullable<decimal> QtyRemaining { get; set; }
         public string GridOrderItemExtns { get; set; }
         public string Mode { get; set; }
+
+        public string Brand { get; set; }
+
+        [Display(Name = "Stock No.")]
+        public string StockNo { get; set; }
+
+        [Display(Name = "Stock Name")]
+        public string StockName { get; set; }
     }
 
     public class OrderItemGroupVM
     {
-        public Guid PsCodeId { get; set; }
-        public string PsType { get; set; }
-        public string ItemName { get; set; }
+        public Guid? PsCodeId { get; set; }
+        public string StockNo { get; set; }
+        public string StockName { get; set; }
         public string Description { get; set; }        
     }
 

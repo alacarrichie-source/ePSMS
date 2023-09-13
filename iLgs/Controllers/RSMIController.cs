@@ -120,23 +120,23 @@ namespace iLgs.Controllers
                                 };
                                 entity.RSMIItems.Add(rsmiItem);
 
-                                var riSlipItems = db.RISlipItems.Include(i => i.PsItem.PsStock.PsCode).Include(i => i.PsItem.OrderItem.Order).AsNoTracking().ToList();
+                                //var riSlipItems = db.RISlipItems.Include(i => i.PsItem.PsStock.PsCode).Include(i => i.PsItem.OrderItem.Order).AsNoTracking().ToList();
 
-                                foreach (var riSlipItem in riSlipItems)
-                                {
-                                    var rsmiRecap = new RSMIRecap()
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        RsmiId = entity.Id,
-                                        PsItemId = riSlipItem.PsItem.Id,
-                                        StockNo = riSlipItem.PsItem.PsStock.StockNo,
-                                        Qty = riSlipItem.IssQty,
-                                        UnitCost = riSlipItem.UnitCost,
-                                        TotalCost = riSlipItem.Amount,
-                                        AccountCode = ""
-                                    };
-                                    entity.RSMIRecaps.Add(rsmiRecap);
-                                }
+                                //foreach (var riSlipItem in riSlipItems)
+                                //{
+                                //    var rsmiRecap = new RSMIRecap()
+                                //    {
+                                //        Id = Guid.NewGuid(),
+                                //        RsmiId = entity.Id,
+                                //        PsItemId = riSlipItem.PsItem.Id,
+                                //        StockNo = riSlipItem.PsItem.PsStock.StockNo,
+                                //        Qty = riSlipItem.IssQty,
+                                //        UnitCost = riSlipItem.UnitCost,
+                                //        TotalCost = riSlipItem.Amount,
+                                //        AccountCode = ""
+                                //    };
+                                //    entity.RSMIRecaps.Add(rsmiRecap);
+                                //}
                             }
                             db.RSMIs.Add(entity);
                             await db.SaveChangesAsync();
@@ -362,7 +362,7 @@ namespace iLgs.Controllers
                     Id = s.Id,
                     RISNo = s.RISlip.RisNo,
                     StockNo = s.PsItem.PsStock.StockNo,
-                    RCC = s.PsItem.OrderItem.RequestItem.Request.FPP,
+                    //RCC = s.PsItem.OrderItem.RequestItem.Request.FPP,
                     ItemName = s.PsItem.PsStock.PsCode.ItemName,
                     QtyIss = s.IssQty,
                     Unit = s.PsItem.PsStock.PsCode.UnitMeas,

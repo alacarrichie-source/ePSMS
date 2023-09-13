@@ -17,5 +17,7 @@ namespace iLgs.Services.Interfaces
         Task<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date);
         Task<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date);
         Task<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date);
+
+        //Task<string> StockNameAsync(Guid? orderItemId, string brand);
     }
 }

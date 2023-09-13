@@ -18,15 +18,18 @@ namespace iLgs.Models
         public OrderItem()
         {
             this.AIRItems = new HashSet<AIRItem>();
-            this.PsItems = new HashSet<PsItem>();
-            this.PARItems = new HashSet<PARItem>();
             this.OrderItemExtns = new HashSet<OrderItemExtn>();
+            this.PARItems = new HashSet<PARItem>();
+            this.PsItems = new HashSet<PsItem>();
         }
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
         public Nullable<System.Guid> RequestItemId { get; set; }
+        public string StockNo { get; set; }
+        public string StockName { get; set; }
         public string Description { get; set; }
+        public string Brand { get; set; }
         public Nullable<decimal> EstimatedLife { get; set; }
         public Nullable<decimal> Qty { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
@@ -38,13 +41,13 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRItem> AIRItems { get; set; }
-        public virtual Order Order { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsItem> PsItems { get; set; }
+        public virtual ICollection<OrderItemExtn> OrderItemExtns { get; set; }
+        public virtual Order Order { get; set; }
+        public virtual RequestItem RequestItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PARItem> PARItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItemExtn> OrderItemExtns { get; set; }
-        public virtual RequestItem RequestItem { get; set; }
+        public virtual ICollection<PsItem> PsItems { get; set; }
     }
 }

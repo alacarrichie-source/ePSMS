@@ -46,8 +46,6 @@ namespace iLgs.Models
         public virtual DbSet<IssuedItem> IssuedItems { get; set; }
         public virtual DbSet<Issued> Issueds { get; set; }
         public virtual DbSet<AIRItem> AIRItems { get; set; }
-        public virtual DbSet<PsStock> PsStocks { get; set; }
-        public virtual DbSet<PsItem> PsItems { get; set; }
         public virtual DbSet<RSMI> RSMIs { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<RSMIRecap> RSMIRecaps { get; set; }
@@ -56,20 +54,22 @@ namespace iLgs.Models
         public virtual DbSet<RISlip> RISlips { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
-        public virtual DbSet<OrderItem> OrderItems { get; set; }
         public virtual DbSet<Request> Requests { get; set; }
         public virtual DbSet<RISs> RISses { get; set; }
-        public virtual DbSet<PsCode> PsCodes { get; set; }
         public virtual DbSet<AIR> AIRs { get; set; }
         public virtual DbSet<PAR> PARs { get; set; }
         public virtual DbSet<PARItem> PARItems { get; set; }
         public virtual DbSet<OrderItemExtn> OrderItemExtns { get; set; }
-        public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
         public virtual DbSet<ItemType> ItemTypes { get; set; }
         public virtual DbSet<ItemField> ItemFields { get; set; }
         public virtual DbSet<ItemCode> ItemCodes { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<RisItemExtn> RisItemExtns { get; set; }
+        public virtual DbSet<PsStock> PsStocks { get; set; }
+        public virtual DbSet<PsCode> PsCodes { get; set; }
+        public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
+        public virtual DbSet<OrderItem> OrderItems { get; set; }
+        public virtual DbSet<PsItem> PsItems { get; set; }
     }
 }

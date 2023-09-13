@@ -259,7 +259,7 @@ namespace iLgs.Controllers
 
         public JsonResult GetPrItemsWithNoPo(string mode, Guid prId, string text)
         {
-            var model = db.RequestItems.Include("PsCodes").Where(w => w.PrId == prId);
+            var model = db.RequestItems.Where(w => w.PrId == prId);
             if (mode == "A")
             {
                 model = model.Where(w => !w.OrderItems.Any());
@@ -273,14 +273,16 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new
             {
                 Id = c.Id,
-                Code = c.RisItem.PsNo,
-                Name = c.RisItem.ItemName,
+                ItemCode = c.RisItem.ItemCode.Code,
+                ItemType = c.RisItem.ItemCode.Description,
+                ItemName = c.RisItem.ItemName,
+                PsNo = c.RisItem.PsNo,
                 Description = c.RisItem.Description,
-                Unit = c.RisItem.Unit,
-                Type = c.RisItem.ItemCode.ItemType.Code,
+                Unit = c.RisItem.Unit,                
                 Qty = c.Qty,
                 UnitCost = c.UnitCost,
-                TotalCost = c.TotalCost
+                TotalCost = c.TotalCost,
+                PsType = c.RisItem.ItemCode.ItemType.Code
             })
             , JsonRequestBehavior.AllowGet);
         }

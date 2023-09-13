@@ -17,6 +17,7 @@ namespace iLgs.Services.Interfaces
         Task<bool> IsPostedAsync(Guid orderId);
         Task<bool> GetAnyParsAsync(Guid id);
         Task<bool> GetAnyAirsAsync(Guid id);
+    
         Task<OrderVM> CreateAsync(OrderVM model, string user, DateTime date);
         Task<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date);
         Task<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date);

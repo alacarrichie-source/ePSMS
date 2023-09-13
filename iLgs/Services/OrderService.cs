@@ -10,6 +10,7 @@ using iLgs.Exceptions;
 using System.Data.SqlClient;
 using System.Data.Entity.Infrastructure;
 using iLgs.Services.Items;
+using System.Web.Http.ModelBinding;
 
 namespace iLgs.Services
 {
@@ -18,11 +19,11 @@ namespace iLgs.Services
         private readonly AppManEntities db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private IItemService itemService;
-
+        
         public OrderService(AppManEntities db)
         {
             this.db = db;
-            this.itemService = new ItemService(db);
+            this.itemService = new ItemService(db);        
         }
 
         public IQueryable<OrderVM> GetAll()
@@ -104,7 +105,7 @@ namespace iLgs.Services
         {
             return await db.AIRs.AnyAsync(a => a.OrderId == id);
         }
-
+        
         public async Task<OrderVM> CreateAsync(OrderVM model, string user, DateTime date)
         {
             model.Id = Guid.NewGuid();
@@ -298,14 +299,104 @@ namespace iLgs.Services
         }
 
         public async Task PostAsync(Guid orderId, string user, DateTime date)
-        {            
+        {
             var entity = await db.Orders.FindAsync(orderId);
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(orderId);
+            }
+
+            await ValidateOnPost(entity);
+
             entity.PostedBy = user;
             entity.PostedDt = date;
 
             db.Orders.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
+
+            var orderItemGroups = await db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}", orderId).ToListAsync();
+            // create stock for each group
+            foreach (var oig in orderItemGroups)
+            {
+                // find group in stocks
+                PsStock psStock = await db.PsStocks.Where(w => w.PsId == oig.PsCodeId && w.StockNo == oig.StockNo).FirstOrDefaultAsync();
+                if (psStock == null)
+                {
+                    psStock = new PsStock
+                    {
+                        Id = Guid.NewGuid(),
+                        PsId = oig.PsCodeId,
+                        StockNo = oig.StockNo,
+                        StockName = oig.StockName,
+                        Description = oig.Description,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+
+                    db.PsStocks.Add(psStock);
+                    await db.SaveChangesAsync();
+                }
+
+                // Post the OrderItems under the stocks having the same PsCodeId
+                var orderItemList = await db.OrderItems
+                    .Include(i => i.Order)
+                    .Include(i => i.RequestItem.RisItem)
+                    .Include(i => i.OrderItemExtns)
+                    .Where(w => w.OrderId == orderId 
+                        && w.StockNo == oig.StockNo
+                        && w.StockName == oig.StockName
+                        && w.Description == oig.Description).ToListAsync();
+                foreach (var orderItem in orderItemList)
+                {
+                    var qtyIss = db.AIRItems.Where(w => w.OrderItemId == orderItem.Id).Sum(s => s.Qty);
+                    var psItem = new PsItem()
+                    {
+                        Id = Guid.NewGuid(),
+                        PsStockId = psStock.Id,
+                        OrderItemId = orderItem.Id,
+                        RefNo = orderItem.Order.PoNo,
+                        RefDate = orderItem.Order.PoDate,
+                        RefType = "PO",
+                        Qty = orderItem.Qty,
+                        QtyIss = qtyIss,
+                        QtyBal = orderItem.Qty - qtyIss,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+                    db.PsItems.Add(psItem);
+                }
+                await db.SaveChangesAsync();
+
+                // search PsStockExtns for Field Descripsiotn
+                if (!db.PsStockExtns.Any(a => a.PsStockId == psStock.Id))
+                {
+                    // get first orderItemExtn from orderItemList
+                    var orderItemExtns = orderItemList.FirstOrDefault().OrderItemExtns;
+                    foreach (var orderItemExtn in orderItemExtns)
+                    {
+                        var psStockExtn = new PsStockExtn()
+                        {
+                            Id = Guid.NewGuid(),
+                            PsStockId = psStock.Id,
+                            ItemNo = orderItemExtn.ItemNo,
+                            ItemKey = orderItemExtn.ItemKey,
+                            ItemValue = orderItemExtn.ItemValue,
+                            Sequence = orderItemExtn.Sequence,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+                        db.PsStockExtns.Add(psStockExtn);
+                    }
+                    await db.SaveChangesAsync();
+                }
+            }
         }
 
         public async Task UnpostAsync(Guid orderId, string user, DateTime date)
@@ -320,6 +411,49 @@ namespace iLgs.Services
             db.Orders.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
+
+            /*
+                * Delete the following records onUnpost:
+                * PsItem             
+                * PsStocks, PsStockExtns --> if no PsItem
+            */
+            var orderItems = db.OrderItems.Include(i => i.RequestItem.RisItem).Where(w => w.OrderId == orderId).ToList();
+
+            foreach (var orderItem in orderItems)
+            {
+                //var psItems = db.PsItems.Where(w => w.RefNo == orderItem.Order.PoNo && w.RefDate == orderItem.Order.PoDate);
+                var psItems = db.PsItems.Where(w => w.OrderItemId == orderItem.Id);
+                if (psItems.Count() > 0)
+                {
+                    var psStockId = psItems.FirstOrDefault().PsStockId;
+                    await psItems.ForEachAsync(f => {
+                        f.UpdatedBy = user;
+                        f.UpdatedDt = date;
+                    });
+                    await db.SaveChangesAsync();
+
+                    // delete each orderitem in stock psItems
+                    db.PsItems.RemoveRange(psItems);
+                    await db.SaveChangesAsync();
+
+                    if (!db.PsItems.Any(a => a.PsStockId == psStockId)) // no other order item is using this item
+                    {
+                        var psStockEntity = await db.PsStocks.FindAsync(psStockId);
+                        psStockEntity.UpdatedBy = user;
+                        psStockEntity.UpdatedDt = date;
+
+                        db.PsStocks.Attach(psStockEntity);
+                        db.Entry(psStockEntity).State = EntityState.Modified;
+                        await db.SaveChangesAsync();
+
+                        // delete stock during unpost if not used by other order item
+                        db.PsStocks.Remove(psStockEntity);
+                        db.Entry(psStockEntity).State = EntityState.Deleted;
+                        await db.SaveChangesAsync();
+                    }
+                }
+            }
+
         }
 
         private string NextPoNo(DateTime poDate)
@@ -346,6 +480,7 @@ namespace iLgs.Services
         }
 
         #region VALIDATION
+
         private void ValidateOnCreate(OrderVM model)
         {
             //var uniqueId = _ra.CodeMast.GetByIdAsync(model.Id).Result;
@@ -361,6 +496,42 @@ namespace iLgs.Services
             //        throw new RecordAlreadyExistsException(model.Code);
             //    }
             //}
+
+        }
+        private async Task ValidateOnPost(Order entity)
+        {            
+            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new PoNumberAlreadyPostedException(entity.PoNo);
+            }
+
+            var idList = await db.OrderItems.Where(w => w.OrderId == entity.Id).GroupBy(g => g.RequestItem.Request.Id)
+                .Select(s => s.Key).ToListAsync();
+
+            foreach (var id in idList)
+            {
+                var request = await db.Requests.FindAsync(id);
+                if (request == null)
+                {
+                    throw new RecordNotFoundException(id);
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(request.SubmittedBy))
+                    {
+                        throw new PurchaseRequestNotYetPostedException(request.PrNo);
+                    }
+                }
+            }
+
+            var orderItems = await db.OrderItems.Where(w => w.OrderId == entity.Id).ToListAsync();
+            foreach(var orderItem in orderItems)
+            {
+                if (string.IsNullOrWhiteSpace(orderItem.Brand))
+                {
+                    throw new RequiredFieldException(nameof(orderItem.Brand));
+                }
+            }
         }
         #endregion
 

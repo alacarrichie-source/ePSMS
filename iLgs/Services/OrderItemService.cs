@@ -26,10 +26,16 @@ namespace iLgs.Services
                     Id = s.Id,
                     OrderId = s.OrderId,
                     RequestItemId = s.RequestItemId,
-                    PsType = s.RequestItem.RisItem.ItemCode.ItemType.Description,
-                    PsNo = s.RequestItem.RisItem.PsNo,
-                    PsUnit = s.RequestItem.RisItem.Unit,
-                    PsItem = s.RequestItem.RisItem.ItemName,
+                    ItemCode = s.RequestItem.RisItem.ItemCode.Code,
+                    ItemType = s.RequestItem.RisItem.ItemCode.Description,
+                    PsType = s.RequestItem.RisItem.ItemCode.ItemType.Code,
+                    PsNo = s.RequestItem.RisItem.PsNo,                    
+                    Brand = s.Brand,
+                    StockNo = s.StockNo,
+                    StockName = s.StockName,
+                    PsNoDisplay = s.RequestItem.RisItem.PsNoDisplay,
+                    Unit = s.RequestItem.RisItem.Unit,
+                    ItemName= s.RequestItem.RisItem.ItemName,
                     Description = s.Description,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
@@ -47,10 +53,16 @@ namespace iLgs.Services
                     Id = s.Id,
                     OrderId = s.OrderId,
                     RequestItemId = s.RequestItemId,
+                    ItemCode = s.RequestItem.RisItem.ItemCode.Code,
+                    ItemType = s.RequestItem.RisItem.ItemCode.Description,
                     PsType = s.RequestItem.RisItem.ItemCode.ItemType.Code,
-                    PsNo = s.RequestItem.RisItem.PsNo,
-                    PsUnit = s.RequestItem.RisItem.Unit,
-                    PsItem = s.RequestItem.RisItem.ItemName,
+                    PsNo = s.RequestItem.RisItem.PsNo,                    
+                    Brand = s.Brand,
+                    StockNo = s.StockNo,
+                    StockName = s.StockName,
+                    PsNoDisplay = s.RequestItem.RisItem.PsNoDisplay,
+                    Unit = s.RequestItem.RisItem.Unit,
+                    ItemName = s.RequestItem.RisItem.ItemName,
                     Description = s.Description,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
@@ -77,12 +89,16 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
+            model.StockName = await StockNameAsync(model);
 
             OrderItem entity = new OrderItem()
             {
                 Id = model.Id,
                 OrderId = model.OrderId,
                 RequestItemId = model.RequestItemId,
+                StockNo = model.PsNo.Trim() + model.Brand,
+                StockName = model.StockName,
+                Brand = model.Brand,
                 Description = model.Description,
                 Qty = model.Qty,
                 UnitCost = model.UnitCost,
@@ -128,6 +144,9 @@ namespace iLgs.Services
             OrderItem entity = await db.OrderItems.FindAsync(model.Id);
 
             entity.RequestItemId = model.RequestItemId;
+            entity.StockNo = model.PsNo.Trim() + model.Brand;
+            entity.StockName = await StockNameAsync(model);
+            entity.Brand = model.Brand;
             entity.Description = model.Description;
             entity.Qty = model.Qty;
             entity.UnitCost = model.UnitCost;
@@ -141,5 +160,72 @@ namespace iLgs.Services
 
             return model;
         }
+
+        private async Task<string> StockNameAsync(OrderItemVM orderItem)
+        {
+            var psCode = orderItem.ItemCode.ToString();
+            var psType = orderItem.PsType;
+            var itemExtns = await db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItem.Id, psType).ToListAsync();
+            string stockName = orderItem.Brand.Trim();
+            string itemName = orderItem.ItemName.Substring(0, 1) + orderItem.ItemName.Substring(2, 1);
+
+            if (psType == "M")
+            {
+                var df = itemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Form");
+                if (df != null)
+                {
+                    stockName += df.ItemValue.Substring(0, 3);
+                }
+                var ds = itemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Strength");
+                if (ds != null)
+                {
+                    stockName += ds.ItemValue.Replace(" ", "");
+                }
+
+                stockName += itemName;
+
+                if (orderItem.ItemType == "")
+                {
+                    stockName += "*";
+                }
+
+                stockName += psCode;
+            }
+            return stockName;
+        }
+
+        //public async Task<string> StockNameAsync(Guid? orderItemId)
+        //{
+        //    var orderItem = await db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode.ItemType).Where(w => w.Id == orderItemId).FirstOrDefaultAsync();
+        //    var psCode = orderItem.RequestItem.RisItem.ItemCode.ToString();
+        //    var psType = orderItem.RequestItem.RisItem.ItemCode.ItemType.Code;
+        //    var itemExtns = await db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItemId, psType).ToListAsync();
+        //    string stockName = orderItem.Brand.Trim();
+        //    string itemName = orderItem.RequestItem.RisItem.ItemName.Substring(0, 1) + orderItem.RequestItem.RisItem.ItemName.Substring(2, 1);
+
+        //    if (psType == "M")
+        //    {
+        //        var df = itemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Form");
+        //        if (df != null)
+        //        {
+        //            stockName += df.ItemValue.Substring(0, 3);
+        //        }
+        //        var ds = itemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Strength");
+        //        if (ds != null)
+        //        {
+        //            stockName += ds.ItemValue.Replace(" ", "");
+        //        }
+
+        //        stockName += itemName;
+
+        //        if (orderItem.RequestItem.RisItem.ItemCode.Description == "")
+        //        {
+        //            stockName += "*";
+        //        }
+
+        //        stockName += psCode;
+        //    }
+        //    return stockName;
+        //}
     }
 }
