@@ -3,18 +3,18 @@
         .ToolBar(t =>
             {
                 t.Template(@<text>
-                    @(Html.Kendo().Button().Icon("k-icon k-i-checkbox-checked").Name("btnParsAdd").Content("Add new record").Events(e => e.Click("onClickBtnAddPar")))                    
+                    @*@(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAdd").Content("Generate PARs").Events(e => e.Click("onClickBtnAddPar")))*@                    
                     @(Html.Kendo().Button().Content("Print").Icon("k-icon k-i-print").Name("btnPrint_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPrintPar")))
                     @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPostPar")))
                     @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnUnpostPar")))
-                </text>);            
+                </text>);
         })
         .Columns(columns =>
         {
-            columns.Bound(f => f.ParNo).Width(70);
-            columns.Bound(f => f.ParDate).Width(70);
+            columns.Bound(f => f.ParNo).Width(60);
+            columns.Bound(f => f.ParDate).Width(50);
             columns.Bound(f => f.Qty)//.EditorTemplateName("_QtyTemplate")
-                .Width(50)
+                .Width(30)
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -23,11 +23,12 @@
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Bound(f => f.ReceivedBy).Width(70);
+            columns.Bound(f => f.ReceivedBy).Width(70).EditorTemplateName("_ReceivedByTemplate");
             columns.Bound(f => f.ReceivedDate).Width(50);
             columns.Bound(f => f.ReceivedByPosition).Hidden(true);
             columns.Bound(f => f.IssuedBy).Width(70);
             columns.Bound(f => f.IssuedDate).Width(50);
+            columns.Bound(f => f.SerialNo).Width(70);
             columns.Bound(f => f.IssuedByPosition).Hidden(true);
             columns.Bound(f => f.PostedBy).Hidden(true);
             columns.Command(commands =>
@@ -41,6 +42,8 @@
         .Selectable()
         //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AcknowledgementTemplate").Window(w => w.Width(800).Title("Acknowledgement")))
         //.Pageable(pageable => pageable.Refresh(true))
+        //.Editable(editable => editable.Mode(GridEditMode.InLine))
+        .Sortable()
         .Navigatable()
         .NoRecords()
         .DataSource(dataSource => dataSource
@@ -49,6 +52,10 @@
             {
                 model.Id(p => p.ParItemId);
                 model.Field(p => p.ParItemId).DefaultValue(Guid.Empty).Editable(true);
+                model.Field(p => p.ParNo).Editable(false);
+                model.Field(p => p.ParDate).Editable(false);
+                model.Field(p => p.Qty).Editable(false);
+                model.Field(p => p.Amount).Editable(false);
                 model.Field(p => p.PsNo).Editable(false);
                 model.Field(p => p.Unit).Editable(false);
                 model.Field(p => p.Description).Editable(false);
@@ -58,11 +65,14 @@
                 a.Add(p => p.Qty).Sum();
                 a.Add(p => p.Amount).Sum();
             })
+            .Sort(s => s.Add(a => a.ParNo))
             .Events(events => events.Error("GridParError")
                 .RequestEnd("onRequestEndGridPars")
             )
-            .Read("_PARItemRead", "PARs", new { orderItemId = @ViewData["orderItemId"] })
-            .Destroy("_PARItemDestroy", "PARs")
+            .Read(read => read.Action("_PARItemRead", "PARs", new { orderItemId = @ViewData["orderItemId"] }))
+            //.Update(update => update.Action("_PARItemIUpdate", "PARs"))
+            .Destroy(destroy => destroy.Action("_PARItemDestroy", "PARs"))
+
         ).Events(e => e
             .Edit("onEditGridPars")
             .Change("onChangeGridPars").DataBound("onDataBoundGridPars")

@@ -319,6 +319,7 @@
           <Property Name="OrderItemId" Type="uniqueidentifier" />
           <Property Name="Qty" Type="int" />
           <Property Name="Amount" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="SerialNo" Type="varchar" MaxLength="50" />
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
@@ -1725,11 +1726,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="Order" EntitySet="Orders" />
             <End Role="PAR" EntitySet="PARs" />
           </AssociationSet>
-          <EntitySet Name="PARItems" EntityType="AppManModel.PARItem" />
-          <AssociationSet Name="FK_PARItems_PARs" Association="AppManModel.FK_PARItems_PARs">
-            <End Role="PAR" EntitySet="PARs" />
-            <End Role="PARItem" EntitySet="PARItems" />
-          </AssociationSet>
           <EntitySet Name="OrderItemExtns" EntityType="AppManModel.OrderItemExtn" />
           <EntitySet Name="ItemTypes" EntityType="AppManModel.ItemType" />
           <EntitySet Name="ItemFields" EntityType="AppManModel.ItemField" />
@@ -1793,10 +1789,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RequestItem" EntitySet="RequestItems" />
             <End Role="OrderItem" EntitySet="OrderItems" />
           </AssociationSet>
-          <AssociationSet Name="FK_PARItems_OrderItems" Association="AppManModel.FK_PARItems_OrderItems">
-            <End Role="OrderItem" EntitySet="OrderItems" />
-            <End Role="PARItem" EntitySet="PARItems" />
-          </AssociationSet>
           <EntitySet Name="PsItems" EntityType="AppManModel.PsItem" />
           <AssociationSet Name="FK_PsItems_OrderItems" Association="AppManModel.FK_PsItems_OrderItems">
             <End Role="OrderItem" EntitySet="OrderItems" />
@@ -1813,6 +1805,15 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_RSMIRecap_PsItems" Association="AppManModel.FK_RSMIRecap_PsItems">
             <End Role="PsItem" EntitySet="PsItems" />
             <End Role="RSMIRecap" EntitySet="RSMIRecaps" />
+          </AssociationSet>
+          <EntitySet Name="PARItems" EntityType="AppManModel.PARItem" />
+          <AssociationSet Name="FK_PARItems_OrderItems" Association="AppManModel.FK_PARItems_OrderItems">
+            <End Role="OrderItem" EntitySet="OrderItems" />
+            <End Role="PARItem" EntitySet="PARItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PARItems_PARs" Association="AppManModel.FK_PARItems_PARs">
+            <End Role="PAR" EntitySet="PARs" />
+            <End Role="PARItem" EntitySet="PARItems" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -2739,36 +2740,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="PARItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="ParId" Type="Guid" />
-          <Property Name="OrderItemId" Type="Guid" />
-          <Property Name="Qty" Type="Int32" />
-          <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="PAR" Relationship="AppManModel.FK_PARItems_PARs" FromRole="PARItem" ToRole="PAR" />
-          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PARItems_OrderItems" FromRole="PARItem" ToRole="OrderItem" />
-        </EntityType>
-        <Association Name="FK_PARItems_PARs">
-          <End Type="AppManModel.PAR" Role="PAR" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.PARItem" Role="PARItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PAR">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PARItem">
-              <PropertyRef Name="ParId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="OrderItemExtn">
           <Key>
             <PropertyRef Name="Id" />
@@ -3077,8 +3048,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="OrderItemExtns" Relationship="AppManModel.FK_OrderItemExtns_OrderItems" FromRole="OrderItem" ToRole="OrderItemExtn" />
           <NavigationProperty Name="Order" Relationship="AppManModel.FK_OrderItems_Orders" FromRole="OrderItem" ToRole="Order" />
           <NavigationProperty Name="RequestItem" Relationship="AppManModel.FK_OrderItems_RequestItems" FromRole="OrderItem" ToRole="RequestItem" />
-          <NavigationProperty Name="PARItems" Relationship="AppManModel.FK_PARItems_OrderItems" FromRole="OrderItem" ToRole="PARItem" />
           <NavigationProperty Name="PsItems" Relationship="AppManModel.FK_PsItems_OrderItems" FromRole="OrderItem" ToRole="PsItem" />
+          <NavigationProperty Name="PARItems" Relationship="AppManModel.FK_PARItems_OrderItems" FromRole="OrderItem" ToRole="PARItem" />
         </EntityType>
         <Association Name="FK_AIRItems_OrderItems">
           <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
@@ -3129,18 +3100,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="OrderItem">
               <PropertyRef Name="RequestItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_PARItems_OrderItems">
-          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
-          <End Type="AppManModel.PARItem" Role="PARItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PARItem">
-              <PropertyRef Name="OrderItemId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -3214,6 +3173,49 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="RSMIRecap">
               <PropertyRef Name="PsItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="PARItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ParId" Type="Guid" />
+          <Property Name="OrderItemId" Type="Guid" />
+          <Property Name="Qty" Type="Int32" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="SerialNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PARItems_OrderItems" FromRole="PARItem" ToRole="OrderItem" />
+          <NavigationProperty Name="PAR" Relationship="AppManModel.FK_PARItems_PARs" FromRole="PARItem" ToRole="PAR" />
+        </EntityType>
+        <Association Name="FK_PARItems_OrderItems">
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
+          <End Type="AppManModel.PARItem" Role="PARItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PARItem">
+              <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PARItems_PARs">
+          <End Type="AppManModel.PAR" Role="PAR" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.PARItem" Role="PARItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PAR">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PARItem">
+              <PropertyRef Name="ParId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -3820,21 +3822,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="PARItems">
-            <EntityTypeMapping TypeName="AppManModel.PARItem">
-              <MappingFragment StoreEntitySet="PARItems">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Amount" ColumnName="Amount" />
-                <ScalarProperty Name="Qty" ColumnName="Qty" />
-                <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
-                <ScalarProperty Name="ParId" ColumnName="ParId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="OrderItemExtns">
             <EntityTypeMapping TypeName="AppManModel.OrderItemExtn">
               <MappingFragment StoreEntitySet="OrderItemExtns">
@@ -4032,6 +4019,22 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="RefNo" ColumnName="RefNo" />
                 <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
                 <ScalarProperty Name="PsStockId" ColumnName="PsStockId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PARItems">
+            <EntityTypeMapping TypeName="AppManModel.PARItem">
+              <MappingFragment StoreEntitySet="PARItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="SerialNo" ColumnName="SerialNo" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
+                <ScalarProperty Name="ParId" ColumnName="ParId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

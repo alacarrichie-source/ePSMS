@@ -173,5 +173,21 @@ namespace iLgs.Models
         [Display(Name = "Posted Date")]
         public Nullable<System.DateTime> PostedDt { get; set; }
         public string Mode { get; set; }
+
+        [Display(Name = "Serial No.")]
+        public string SerialNo { get; set; }
+    }
+
+    public class GenerateParVM
+    {
+        public Nullable<System.Guid> OrderItemId { get; set; }
+
+        [Display(Name = "PAR Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> ParDate { get; set; }
+        
+        //[Required]
+        public Nullable<int> Qty { get; set; }
+        
     }
 }

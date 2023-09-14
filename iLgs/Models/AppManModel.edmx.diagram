@@ -52,8 +52,6 @@
         <AssociationConnector Association="AppManModel.FK_AIRs_Orders" />
         <EntityTypeShape EntityType="AppManModel.PAR" Width="1.5" PointX="9.75" PointY="24.75" />
         <AssociationConnector Association="AppManModel.FK_PARs_Orders" />
-        <EntityTypeShape EntityType="AppManModel.PARItem" Width="1.5" PointX="12" PointY="15.375" />
-        <AssociationConnector Association="AppManModel.FK_PARItems_PARs" />
         <EntityTypeShape EntityType="AppManModel.OrderItemExtn" Width="1.5" PointX="12" PointY="28.25" />
         <EntityTypeShape EntityType="AppManModel.ItemType" Width="1.5" PointX="0.75" PointY="17.375" />
         <EntityTypeShape EntityType="AppManModel.ItemField" Width="1.5" PointX="3" PointY="19.125" />
@@ -73,7 +71,9 @@
         <AssociationConnector Association="AppManModel.FK_OrderItemExtns_OrderItems" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_RequestItems" />
+        <EntityTypeShape EntityType="AppManModel.PARItem" Width="1.5" PointX="12" PointY="22" />
         <AssociationConnector Association="AppManModel.FK_PARItems_OrderItems" />
+        <AssociationConnector Association="AppManModel.FK_PARItems_PARs" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="Issuance" ZoomLevel="75" >
         <EntityTypeShape EntityType="AppManModel.IssuedItem" Width="1.5" PointX="5.25" PointY="7.125" />

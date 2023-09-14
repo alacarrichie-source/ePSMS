@@ -69,8 +69,8 @@
                 .Columns(col =>
                 {
                     col.Bound(c => c.PsNo).Width(70);
-                    col.Bound(c => c.PsUnit).Width(50);
-                    col.Bound(c => c.PsItem).Width(70);
+                    col.Bound(c => c.Unit).Width(50);
+                    col.Bound(c => c.ItemName).Width(70);
                     col.Bound(c => c.Description).Width(150);
                     col.Bound(c => c.Qty).Width(50);
                     col.Bound(c => c.UnitCost).Format("{0:n2}")
@@ -81,6 +81,20 @@
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                         .HeaderHtmlAttributes(new { style = "text-align:right;" })
                         .Width(50);
+                })
+                //.ToolBar(t =>
+                //{
+                //    t.Create();
+                //    t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintStock").HtmlAttributes(new { @class = "k-button", href = "" });
+                //})
+                .ToolBar(t =>
+                {
+                t.Template(@<text>
+                        @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAdd").Content("Generate PARs").Events(e => e.Click("onClickBtnAddPar")))
+                        @*@(Html.Kendo().Button().Content("Print").Icon("k-icon k-i-print").Name("btnPrint_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPrintPar")))
+                        @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPostPar")))
+                        @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnUnpostPar")))*@
+                    </text>);
                 })
                 .Pageable(pager => pager
                     .Input(false)
@@ -182,6 +196,10 @@
 <style>
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
         width: auto;
+    }
+
+    .k-window-content {
+        overflow-x: hidden;
     }
 
     .k-grid .k-grid-search {
@@ -744,7 +762,7 @@
 
     function onClickBtnPrintPar(e) {
         e.preventDefault();
-        var url = '@Url.Action("PARRpt", ":PARs")?parNo=' + selectedParNo;
+        var url = '@Url.Action("PARRpt", "PARs")?parNo=' + selectedParNo;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -803,7 +821,7 @@
         selectedParItemId = selectedData.ParItemId;
         postedBy = selectedData.PostedBy;
         selectedParNo = selectedData.ParNo;
-        
+
         if (postedBy) {
             $("#btnUnpost_" + selectedItemId).show();
             $("#btnPost_" + selectedItemId).hide();
@@ -823,23 +841,67 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
         }
+
         var grid = $("#gridPars_" + selectedItemId);
         if (this.dataSource.data().length == 0) {
             $("#btnPrint_" + selectedItemId).hide();
             $("#btnPost_" + selectedItemId).hide();
-            $("btnUnpost_" + selectedItemId).hide();
+            $("#btnUnpost_" + selectedItemId).hide();
         }
     }
 
     // Order Selection
     function onClickBtnAddPar(e) {
         e.preventDefault();
-        ParEntry("A", null, null);
+        var myTitle = "Generate PAR";
+        var width = 300;
+        var height = 150;
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+            .kendoWindow({
+                actions: ["Minimize", "Close"],
+                draggable: true,
+                modal: true,
+                visible: false,
+                close: function () {
+                    $("#gridPars_" + selectedItemId).data("kendoGrid").dataSource.read();
+                },
+                deactivate: function () {
+                    this.destroy();
+                }
+            }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width,
+            height: height
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_GeneratePAR", "PARs")',
+            data: {
+                orderItemId: selectedItemId                
+            }
+        });
+        mywindow.center();
+        mywindow.open();
     }
 
     function onClickBtnEdiPar(e) {
         e.preventDefault();
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        // the current row for this detail
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.ParItemId);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        
         ParEntry("E", dataItem.ParId, dataItem.ParItemId);
     }
 
@@ -856,7 +918,7 @@
     function ParEntry(mode, parId, parItemId) {
         var myTitle = (mode == "A") ? "PAR - ADD" : "PAR - EDIT";
         var width = 800;
-        var height = 400;
+        var height = 420;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
             .kendoWindow({

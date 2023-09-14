@@ -1,5 +1,6 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
+using iLgs.Exceptions.PARs;
 using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Interfaces;
@@ -320,6 +321,55 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _PARItemUpdate([DataSourceRequest]DataSourceRequest request, PARAcknowledgementVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                else if (await service.IsPostedAsync(model.ParId))
+                {
+                    ModelState.AddModelError("PAR No.", "PAR Number already Posted, cannot update!");
+                }
+                else if (model.ParDate == null)
+                {
+                    ModelState.AddModelError("PAR Date", "PAR Date is required, cannot update!");
+                }
+
+        
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+        
+                    model = await service.UpdateAcknowledgementAsync(model, user, date);                    
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message.ToString());
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> _PARItemDestroy([DataSourceRequest]DataSourceRequest request, PARAcknowledgementVM model)
         {
             try
@@ -352,7 +402,6 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-
         [AcceptVerbs(HttpVerbs.Get)]
         public async Task<JsonResult> GetAmount(Guid orderItemId, int qty)
         {
@@ -364,7 +413,7 @@ namespace iLgs.Controllers
             return Json(new { Errors = "Invalid Order Id", Amount = 0 }, JsonRequestBehavior.DenyGet);
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
+        //[AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> PARRpt(string parNo)
         {
             try
@@ -530,6 +579,62 @@ namespace iLgs.Controllers
 
                     await service.UnpostAsync(parId, user, date);
                 }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+
+        public ActionResult _GeneratePAR(Guid orderItemId)
+        {
+            ViewData["orderItemId"] = orderItemId;
+            var model = new GenerateParVM()
+            {
+                OrderItemId = orderItemId,
+                ParDate = DateTime.Now
+            };
+
+            return PartialView(model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> GeneratePAR(GenerateParVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await service.GeneratePAR(model, user, date);
+                }
+            }
+            catch (ParsAlreadyExistsException e)
+            {
+                ModelState.AddModelError("", e.Message);
             }
             catch (Exception e)
             {

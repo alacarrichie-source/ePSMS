@@ -19,6 +19,6 @@ namespace iLgs.Exceptions
         }
 
         public RequiredFieldException(string fieldName)
-            : base(message: string.Format("Field (0) is required.", fieldName)) { }
+            : base(message: string.Format("Field {0} is required.", fieldName)) { }
     }
 }

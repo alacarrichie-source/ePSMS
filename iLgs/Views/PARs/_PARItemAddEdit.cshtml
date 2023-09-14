@@ -62,6 +62,16 @@
             </div>
         </div>
 
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.SerialNo, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                    @Html.ValidationMessageFor(model => model.SerialNo)
+                </div>
+            </div>            
+        </div>
+
         <br />
 
         <div class="row clearfix">

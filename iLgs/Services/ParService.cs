@@ -1,4 +1,6 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Exceptions.PARs;
+using iLgs.Models;
 using iLgs.Services.Interfaces;
 using System;
 using System.Data.Entity;
@@ -64,7 +66,8 @@ namespace iLgs.Services
                     PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
                     DateAcquired = s.OrderItem.Order.PoDate,
                     Qty = s.Qty,
-                    Amount = s.Amount
+                    Amount = s.Amount,
+                    SerialNo = s.SerialNo
                 })
                 .AsQueryable();
             return data;
@@ -94,7 +97,8 @@ namespace iLgs.Services
                     PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
                     DateAcquired = s.OrderItem.Order.PoDate,
                     Qty = s.Qty,
-                    Amount = s.Amount
+                    Amount = s.Amount,
+                    SerialNo = s.SerialNo
                 })
                 .FirstOrDefaultAsync();
             return data;
@@ -298,6 +302,72 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
         }
 
+        public async Task GeneratePAR(GenerateParVM model, string user, DateTime date)
+        {
+            var orderItem = await db.OrderItems.FindAsync(model.OrderItemId);
+            if (orderItem == null)
+            {
+                throw new RecordNotFoundException((Guid)model.OrderItemId);
+            }
+
+            if (db.PARItems.Any(a => a.OrderItemId == model.OrderItemId))
+            {
+                throw new ParsAlreadyExistsException();
+            }
+
+            // generate par per qty
+            for (var qty = 0; qty < orderItem.Qty; ++qty)
+            {
+                var par = new PAR()
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = orderItem.OrderId,
+                    ParNo = NextParNo((DateTime)model.ParDate),
+                    ParDate = model.ParDate,
+                    ReceivedBy = "",
+                    ReceivedByPosition = "",
+                    ReceivedDate = null,
+                    IssuedBy = "",
+                    IssuedByPosition = "",
+                    IssuedDate = null,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date,
+                    PostedBy = "",
+                    PostedDt = null
+                };
+                db.PARs.Add(par);
+                db.Entry(par).State = EntityState.Added;
+                await db.SaveChangesAsync();
+
+                var parItem = new PARItem()
+                {
+                    Id = Guid.NewGuid(),
+                    ParId = par.Id,
+                    OrderItemId = model.OrderItemId,
+                    Qty = 1,
+                    Amount = orderItem.UnitCost,
+                    SerialNo = "",
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+                db.PARItems.Add(parItem);
+                db.Entry(parItem).State = EntityState.Added;
+                await db.SaveChangesAsync();
+            }
+
+            //var entity = await db.PARs.FindAsync(orderId);
+            //entity.PostedBy = user;
+            //entity.PostedDt = date;
+
+            //db.PARs.Attach(entity);
+            //db.Entry(entity).State = EntityState.Modified;
+            //await db.SaveChangesAsync();
+        }
+
         public async Task<PARAcknowledgementVM> CreateAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date)
         {
             //model.Id = Guid.NewGuid();
@@ -371,6 +441,7 @@ namespace iLgs.Services
             {
                 parItem.Qty = model.Qty;
                 parItem.Amount = model.Amount;
+                parItem.SerialNo = model.SerialNo ?? "";
                 parItem.UpdatedBy = model.UpdatedBy;
                 parItem.UpdatedDt = model.UpdatedDt;
 

@@ -243,6 +243,7 @@
     <Compile Include="Exceptions\DependencyException.cs" />
     <Compile Include="Exceptions\FailedServiceException.cs" />
     <Compile Include="Exceptions\IException.cs" />
+    <Compile Include="Exceptions\PARs\ParsAlreadyExistsException.cs" />
     <Compile Include="Exceptions\PoNumberAlreadyPostedException.cs" />
     <Compile Include="Exceptions\PurchaseRequestNotYetPostedException.cs" />
     <Compile Include="Exceptions\RecordAlreadyExistsException.cs" />
@@ -449,6 +450,12 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Air.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\Par.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Par.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Reports\Po_1.cs">
@@ -3434,6 +3441,8 @@
     <Content Include="Views\Items\Index.cshtml" />
     <Content Include="Views\Items\_ItemCodes.cshtml" />
     <Content Include="Views\Items\_ItemFields.cshtml" />
+    <Content Include="Views\PARs\_GeneratePAR.cshtml" />
+    <Content Include="Views\PARs\EditorTemplates\_ReceivedByTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3500,6 +3509,10 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Air.cs</LastGenOutput>
     </Content>
+    <Content Include="Reports\Par.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>Par.cs</LastGenOutput>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
@@ -3521,7 +3534,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
