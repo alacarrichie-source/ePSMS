@@ -18,7 +18,10 @@ namespace iLgs.Exceptions
             return Message;
         }
 
-        public RecordNotFoundException(Guid id)
+        public RecordNotFoundException(Guid? id)
             : base(message: string.Format("Couldn't find record with id: {0}.", id)) { }
+
+        public RecordNotFoundException(string message)
+            : base(message: message) { }
     }
 }

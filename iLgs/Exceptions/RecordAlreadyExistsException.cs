@@ -28,7 +28,7 @@ namespace iLgs.Exceptions
         public RecordAlreadyExistsException(Guid id)
             : base(message: string.Format("Record with id: {0} already exists.", id)) { }
 
-        public RecordAlreadyExistsException(string id)
-            : base(message: string.Format("Record with id: {0} already exists.", id)) { }
+        public RecordAlreadyExistsException(string message)
+            : base(message: message) { }
     }
 }

@@ -13,7 +13,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>iLgs</RootNamespace>
     <AssemblyName>iLgs</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
@@ -243,12 +243,15 @@
     <Compile Include="Exceptions\DependencyException.cs" />
     <Compile Include="Exceptions\FailedServiceException.cs" />
     <Compile Include="Exceptions\IException.cs" />
+    <Compile Include="Exceptions\InvalidValueException.cs" />
     <Compile Include="Exceptions\PARs\ParsAlreadyExistsException.cs" />
     <Compile Include="Exceptions\PoNumberAlreadyPostedException.cs" />
     <Compile Include="Exceptions\PurchaseRequestNotYetPostedException.cs" />
     <Compile Include="Exceptions\RecordAlreadyExistsException.cs" />
+    <Compile Include="Exceptions\RecordAlreadyPostedException.cs" />
     <Compile Include="Exceptions\RecordLockedException.cs" />
     <Compile Include="Exceptions\RecordNotFoundException.cs" />
+    <Compile Include="Exceptions\RecordRelationshipException.cs" />
     <Compile Include="Exceptions\RequiredFieldException.cs" />
     <Compile Include="Exceptions\ServiceException.cs" />
     <Compile Include="Exceptions\ValidationException.cs" />
@@ -3446,6 +3449,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Exceptions\Orders\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Getters\" />
     <Folder Include="Views\Issuances\" />

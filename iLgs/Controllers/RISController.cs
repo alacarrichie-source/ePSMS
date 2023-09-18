@@ -68,11 +68,6 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("", "Add Access Denied!");
                 }
-
-                if (await risService.GetByRisNoAsync(model.RisNo) != null)
-                {
-                    ModelState.AddModelError("RIS No.", "RIS No. already exists!");
-                }
                 
                 if (model != null && ModelState.IsValid)
                 {                    
@@ -84,8 +79,13 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException") {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                } else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -101,19 +101,7 @@ namespace iLgs.Controllers
                 if (!access.AllowEdit)
                 {
                     ModelState.AddModelError("", "Update Access Denied!");
-                }
-                else if (await risService.IsPostedAsync(model.Id))
-                {
-                    ModelState.AddModelError("RIS No.", "RIS Number already Posted, cannot update!");
-                }
-                else if (await risService.IsPrPostedAsync(model.Id))
-                {
-                    ModelState.AddModelError("RIS No.", "This RIS No has a posted PR, cannot update!");
-                }
-                else if (await risService.GetAnyRisNoAsync(model.Id, model.RisNo))
-                {
-                    ModelState.AddModelError("RIS No.", "RIS No. already exists!");
-                }
+                }                
 
                 if (ModelState.IsValid)
                 {
@@ -125,8 +113,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -143,16 +138,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await risService.IsPostedAsync(model.Id))
-                {
-                    ModelState.AddModelError("RIS No.", "RIS Number already Posted, cannot delete!");
-                }
-                else if (await risService.IsPrPostedAsync(model.Id))
-                {
-                    ModelState.AddModelError("RIS No.", "This RIS No has a posted PR, cannot delete!");
-                }
-                else
-                {
+                else { 
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
@@ -161,8 +147,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -178,15 +171,7 @@ namespace iLgs.Controllers
                 if (!access.AllowPost)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
-                }
-                else if (await risService.GetByIdAsync(risId) == null)
-                {
-                    ModelState.AddModelError("RIS", "Invalid RIS Id");
-                }
-                else if (await risService.IsPostedAsync(risId))
-                {
-                    ModelState.AddModelError("RIS No.", "RIS Number already Posted, cannot post again!");
-                }
+                }                
 
                 if (ModelState.IsValid)
                 {
@@ -198,8 +183,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
             }
 
             var query = from state in ModelState.Values
@@ -226,18 +218,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await risService.GetByIdAsync(risId) == null)
-                {
-                    ModelState.AddModelError("RIS", "Invalid RIS Id");
-                }
-                else if (await risService.IsPrPostedAsync(risId))
-                {
-                    ModelState.AddModelError("RIS No.", "This RIS No has a posted PR, cannot unpost!");
-                }
-                else if (!(await risService.IsPostedAsync(risId)))
-                {
-                    ModelState.AddModelError("RIS No.", "RIS Number not yet posted, cannot unpost!");
-                }
+                
 
                 if (ModelState.IsValid)
                 {
@@ -249,8 +230,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
             }
 
             var query = from state in ModelState.Values

@@ -70,25 +70,25 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("Access", "Add Access Denied!");
                 }
 
-                if (await orderService.GetByPoNoAsync(model.PoNo) != null)
-                {
-                    ModelState.AddModelError("PoNo", "P.O. number already exists!");
-                }
-                else
-                {
-                    var pr = await requestService.GetByIdAsync(model.PrId);
-                    if (pr == null)
-                    {
-                        ModelState.AddModelError("PrNo", "Invalid P.R. Number!");
-                    }
-                    else
-                    {
-                        if (pr.PrDate > model.PoDate)
-                        {
-                            ModelState.AddModelError("PoDate", "P.O. date must be greather than or equal to P.R. date!");
-                        }
-                    }
-                }
+                //if (await orderService.GetByPoNoAsync(model.PoNo) != null)
+                //{
+                //    ModelState.AddModelError("PoNo", "P.O. number already exists!");
+                //}
+                //else
+                //{
+                //    var pr = await requestService.GetByIdAsync(model.PrId);
+                //    if (pr == null)
+                //    {
+                //        ModelState.AddModelError("PrNo", "Invalid P.R. Number!");
+                //    }
+                //    else
+                //    {
+                //        if (pr.PrDate > model.PoDate)
+                //        {
+                //            ModelState.AddModelError("PoDate", "P.O. date must be greather than or equal to P.R. date!");
+                //        }
+                //    }
+                //}
                 
                 if (model != null && ModelState.IsValid)
                 {
@@ -100,8 +100,14 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e is Exception ex)
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + ex.Message + " " + e.GetType().Name);
+                } else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));

@@ -105,9 +105,12 @@ namespace iLgs.Services
         {
             return await db.AIRs.AnyAsync(a => a.OrderId == id);
         }
-        
-        public async Task<OrderVM> CreateAsync(OrderVM model, string user, DateTime date)
+
+        public Task<OrderVM> CreateAsync(OrderVM model, string user, DateTime date) =>
+        TryCatch(async () =>
         {
+            ValidateOnCreate(model);
+
             model.Id = Guid.NewGuid();
             if (string.IsNullOrWhiteSpace(model.PoNo))
             {
@@ -187,7 +190,7 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
         public async Task<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date)
         {
@@ -483,19 +486,25 @@ namespace iLgs.Services
 
         private void ValidateOnCreate(OrderVM model)
         {
-            //var uniqueId = _ra.CodeMast.GetByIdAsync(model.Id).Result;
-            //if (uniqueId != null)
-            //{
-            //    throw new RecordAlreadyExistsException(model.Id);
-            //}
-            //else
-            //{
-            //    var record = _ra.CodeMast.GetByIdAndCodeAsync(model.Id, model.Code).Result;
-            //    if (record != null)
-            //    {
-            //        throw new RecordAlreadyExistsException(model.Code);
-            //    }
-            //}
+            if (!db.Orders.Any(a => a.PoNo == model.PoNo))
+            {
+                throw new RecordAlreadyExistsException(string.Format("PO Number {0} already exists", model.PoNo));
+            }
+            else
+            {
+                var pr = db.Requests.Find(model.PrId);
+                if (pr == null)
+                {
+                    throw new RecordNotFoundException(model.PrId);
+                }
+                else
+                {
+                    if (pr.PrDate > model.PoDate)
+                    {
+                        throw new InvalidValueException("PO Date must be greater thatn or equal to PR date!");                        
+                    }
+                }
+            }
 
         }
         private async Task ValidateOnPost(Order entity)
@@ -536,22 +545,14 @@ namespace iLgs.Services
         #endregion
 
         #region EXCEPTIONS
-        private delegate iLgs.Models.OrderVM ReturningFunction();
-        private delegate IQueryable<iLgs.Models.OrderVM> ReturningQueryableFunction();
-        private iLgs.Models.OrderVM TryCatch(ReturningFunction returningFunction)
+        private delegate Task<OrderVM> ReturningFunction();
+        private delegate IQueryable<OrderVM> ReturningQueryableFunction();
+        private async Task<OrderVM> TryCatch(ReturningFunction returningFunction)
         {
             try
             {
-                return returningFunction();
+                return await returningFunction();
             }
-            //catch (ModelIsNullException nullException)
-            //{
-            //    throw nullException;
-            //}
-            //catch (InvalidRecordException invalidException)
-            //{
-            //    throw invalidException;
-            //}
             catch (RecordNotFoundException notFoundException)
             {
                 throw notFoundException;

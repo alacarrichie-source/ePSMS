@@ -6,22 +6,27 @@ using System.Linq;
 using System.Web;
 using System.Threading.Tasks;
 using System.Data.Entity;
+using iLgs.Exceptions;
+using System.Data.SqlClient;
+using System.Data.Entity.Infrastructure;
 
 namespace iLgs.Services
 {
     public class RisService : IRisService
     {
         private readonly AppManEntities db = new AppManEntities();
-        
+        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
+
         public RisService(AppManEntities db)
         {
             this.db = db;
         }
-        
+
         public IQueryable<RIS_VM> GetAll()
         {
             var data = db.RISses
-                .Select(s => new RIS_VM {
+                .Select(s => new RIS_VM
+                {
                     Id = s.Id,
                     Fund = s.Fund,
                     Division = s.Division,
@@ -85,7 +90,7 @@ namespace iLgs.Services
             {
                 return !string.IsNullOrWhiteSpace(pr.SubmittedBy);
             }
-            return false;            
+            return false;
         }
 
         public async Task<bool> IsWithPrAsync(Guid risId)
@@ -93,24 +98,25 @@ namespace iLgs.Services
             return await db.Requests.AnyAsync(a => a.RisId == risId);
         }
 
-        public async Task PostAsync(Guid risId, string user, DateTime date)
+        public Task PostAsync(Guid risId, string user, DateTime date) =>
+        TryCatch(async () =>
         {
-            var entity = await db.RISses.FindAsync(risId);
-            if (entity != null)
-            {
-                entity.PostedBy = user;
-                entity.PostedDt = date;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
+            await ValidateOnPost(risId);
 
-                db.RISses.Attach(entity);
-                db.Entry(entity).State = EntityState.Modified;
-                await db.SaveChangesAsync();
-            }
+            var entity = await db.RISses.FindAsync(risId);
+            
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            db.RISses.Attach(entity);
+            db.Entry(entity).State = EntityState.Modified;
+            await db.SaveChangesAsync();            
 
             // crate psCode foreach item (problem in unpost, sequence number will rumble)
             var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
-            foreach(var risItem in risItemList)
+            foreach (var risItem in risItemList)
             {
                 if (!db.PsCodes.Any(a => a.PsType == risItem.ItemCode.ItemType.Code && a.PsNo == risItem.PsNoDisplay))
                 {
@@ -129,11 +135,11 @@ namespace iLgs.Services
                     db.PsCodes.Add(psCode);
                     await db.SaveChangesAsync();
                 }
-            }            
-        }
+            }
+        });
 
         private string NextPsNo(string psType)
-        {            
+        {
             string keyName = psType;
             // yyyy-mm-9999
             // 123456789012
@@ -157,83 +163,91 @@ namespace iLgs.Services
             }
         }
 
-        public async Task UnpostAsync(Guid risId, string user, DateTime date)
+        public Task UnpostAsync(Guid risId, string user, DateTime date) =>
+        TryCatch(async () =>
         {
+            await ValidateOnUnpost(risId);
+
             var entity = await db.RISses.FindAsync(risId);
-            if (entity != null)
-            {
-                entity.PostedBy = null;
-                entity.PostedDt = null;
-                entity.UpdatedBy = user;
-                entity.UpdatedDt = date;
 
-                db.RISses.Attach(entity);
-                db.Entry(entity).State = EntityState.Modified;
-                await db.SaveChangesAsync();
+            entity.PostedBy = null;
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-                // delete un-used psCode foreach item (problem in unpost, sequence number will rumble)
-                var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
-                foreach (var risItem in risItemList)
-                {
-                    var psCode = await db.PsCodes.Where(w => w.PsNo == risItem.PsNoDisplay && !w.PsStocks.Any()).FirstOrDefaultAsync();
-                    if (psCode != null)
-                    {
-                        db.PsCodes.Remove(psCode);
-                        db.Entry(psCode).State = EntityState.Deleted;
-                        await db.SaveChangesAsync();
-                    }
-                }
-            }
-        }
-
-        public async Task<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date)
-        {
-            model.Id = Guid.NewGuid();
-            if (string.IsNullOrWhiteSpace(model.RisNo))
-            {
-                model.RisNo = NextRisNo((DateTime)model.RisDate);
-            }
-            model.InsertedBy = user;
-            model.InsertedDt = date;
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            var entity = new iLgs.Models.RISs()
-            {
-                Id = model.Id,
-                Fund = model.Fund,
-                Division = model.Division ?? "",
-                Office = model.Office,
-                FPP = model.FPP,
-                RisNo = model.RisNo,
-                RisDate = model.RisDate,
-                Purpose = model.Purpose,
-                RequestedBy = model.RequestedBy ?? "",
-                RequestedByDesignation = model.RequestedByDesignation ?? "",
-                RequestedDate = model.RequestedDate,
-                ApprovedBy = model.ApprovedBy ?? "",
-                ApprovedByDesignation = model.ApprovedByDesignation ?? "",
-                ApprovedDate = model.ApprovedDate,
-                IssuedBy = model.IssuedBy ?? "",
-                IssuedByDesignation = model.IssuedByDesignation ?? "",
-                IssuedDate = model.IssuedDate,
-                ReceivedBy = model.ReceivedBy ?? "",
-                ReceivedByDesignation = model.ReceivedByDesignation ?? "",
-                ReceivedDate = model.ReceivedDate,
-                InsertedBy = model.InsertedBy,
-                InsertedDt = model.InsertedDt,
-                UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
-            };
-
-            db.RISses.Add(entity);
+            db.RISses.Attach(entity);
+            db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
 
-            return model;
-        }
+            // delete un-used psCode foreach item (problem in unpost, sequence number will rumble)
+            var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
+            foreach (var risItem in risItemList)
+            {
+                var psCode = await db.PsCodes.Where(w => w.PsNo == risItem.PsNoDisplay && !w.PsStocks.Any()).FirstOrDefaultAsync();
+                if (psCode != null)
+                {
+                    db.PsCodes.Remove(psCode);
+                    db.Entry(psCode).State = EntityState.Deleted;
+                    await db.SaveChangesAsync();
+                }
+            }
+            
+        });
 
-        public async Task<RIS_VM> DeleteAsync(RIS_VM model, string user, DateTime date)
+        public Task<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date) =>
+        TryCatch(async () =>
+            {
+                await ValidateOnCreate(model);
+
+                model.Id = Guid.NewGuid();
+                if (string.IsNullOrWhiteSpace(model.RisNo))
+                {
+                    model.RisNo = NextRisNo((DateTime)model.RisDate);
+                }
+                model.InsertedBy = user;
+                model.InsertedDt = date;
+                model.UpdatedBy = user;
+                model.UpdatedDt = date;
+
+                var entity = new iLgs.Models.RISs()
+                {
+                    Id = model.Id,
+                    Fund = model.Fund,
+                    Division = model.Division ?? "",
+                    Office = model.Office,
+                    FPP = model.FPP,
+                    RisNo = model.RisNo,
+                    RisDate = model.RisDate,
+                    Purpose = model.Purpose,
+                    RequestedBy = model.RequestedBy ?? "",
+                    RequestedByDesignation = model.RequestedByDesignation ?? "",
+                    RequestedDate = model.RequestedDate,
+                    ApprovedBy = model.ApprovedBy ?? "",
+                    ApprovedByDesignation = model.ApprovedByDesignation ?? "",
+                    ApprovedDate = model.ApprovedDate,
+                    IssuedBy = model.IssuedBy ?? "",
+                    IssuedByDesignation = model.IssuedByDesignation ?? "",
+                    IssuedDate = model.IssuedDate,
+                    ReceivedBy = model.ReceivedBy ?? "",
+                    ReceivedByDesignation = model.ReceivedByDesignation ?? "",
+                    ReceivedDate = model.ReceivedDate,
+                    InsertedBy = model.InsertedBy,
+                    InsertedDt = model.InsertedDt,
+                    UpdatedBy = model.UpdatedBy,
+                    UpdatedDt = model.UpdatedDt
+                };
+
+                db.RISses.Add(entity);
+                await db.SaveChangesAsync();
+
+                return model;
+            });
+
+        public Task<RIS_VM> DeleteAsync(RIS_VM model, string user, DateTime date) =>
+        TryCatch(async () =>
         {
+            await ValidateOnDelete(model);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -251,10 +265,13 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        public async Task<RIS_VM> UpdateAsync(RIS_VM model, string user, DateTime date)
+        public Task<RIS_VM> UpdateAsync(RIS_VM model, string user, DateTime date) =>
+        TryCatch(async () =>
         {
+            await ValidateOnUpdate(model);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -281,13 +298,13 @@ namespace iLgs.Services
             entity.ReceivedDate = model.ReceivedDate;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
-            
+
             db.RISses.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
         private string NextRisNo(DateTime date)
         {
@@ -310,6 +327,226 @@ namespace iLgs.Services
                 var sequence = (int.Parse(data.RisNo.Split('-')[2]) + 1).ToString();
                 return keyName + "-" + sequence.PadLeft(4, '0');
             }
+        }
+
+        #region VALIDATION
+
+        private async Task ValidateOnCreate(RIS_VM model)
+        {
+            if (await db.RISses.AnyAsync(a => a.RisNo == model.RisNo))
+            {
+                throw new RecordAlreadyExistsException(string.Format("RIS Number {0} already exists", model.RisNo));
+            }            
+        }
+
+        private async Task ValidateOnUpdate(RIS_VM model)
+        {
+            var rec = await db.RISses.FindAsync(model.Id);
+            if (rec == null)
+            {
+                throw new RecordNotFoundException(model.Id);
+            }
+
+            if (!string.IsNullOrWhiteSpace(rec.PostedBy))
+            {
+                throw new RecordAlreadyPostedException(string.Format("RIS No {0} already posted. Cannot update!", rec.RisNo));
+            }
+
+
+            if (await IsPrPostedAsync(model.Id))
+            {
+                throw new RecordRelationshipException("This RIS No has a posted PR, cannot update!");
+            }
+            else if (await GetAnyRisNoAsync(model.Id, model.RisNo))
+            {
+                throw new RecordAlreadyExistsException(string.Format("RIS No {0} already exists!", model.RisNo));
+            }
+        }
+
+        private async Task ValidateOnDelete(RIS_VM model)
+        {
+            if (await IsPostedAsync(model.Id))
+            {
+                throw new RecordAlreadyPostedException(string.Format("RIS No. {0} already Posted, cannot delete!", model.RisNo));
+            }
+
+            if (await IsPrPostedAsync(model.Id))
+            {
+                throw new RecordRelationshipException("This RIS Number has a posted PR, cannot delete!");
+            }
+        }
+
+        private async Task ValidateOnPost(Guid id)
+        {
+            var rec = await db.RISses.FindAsync(id);
+            if (rec == null)
+            {
+                throw new RecordNotFoundException(id);
+            }
+
+            if (!string.IsNullOrWhiteSpace(rec.PostedBy))
+            {
+                throw new RecordAlreadyPostedException(string.Format("RIS No {0} already posted. Please verify!", rec.RisNo));
+            }            
+        }
+        private async Task ValidateOnUnpost(Guid id)
+        {
+            var rec = await db.RISses.FindAsync(id);
+            if (rec == null)
+            {
+                throw new RecordNotFoundException(id);
+            }
+
+            if (string.IsNullOrWhiteSpace(rec.PostedBy))
+            {
+                throw new RecordAlreadyPostedException(string.Format("RIS No {0} is not yet posted. Please verify!", rec.RisNo));
+            }
+
+            if (await IsPrPostedAsync(id))
+            {
+                throw new RecordRelationshipException("This RIS No has a posted PR, cannot unpost!");
+            }
         }        
+
+        //private async Task ValidateOnPost(Order entity)
+        //{
+        //    if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+        //    {
+        //        throw new PoNumberAlreadyPostedException(entity.PoNo);
+        //    }
+
+        //    var idList = await db.OrderItems.Where(w => w.OrderId == entity.Id).GroupBy(g => g.RequestItem.Request.Id)
+        //        .Select(s => s.Key).ToListAsync();
+
+        //    foreach (var id in idList)
+        //    {
+        //        var request = await db.Requests.FindAsync(id);
+        //        if (request == null)
+        //        {
+        //            throw new RecordNotFoundException(id);
+        //        }
+        //        else
+        //        {
+        //            if (string.IsNullOrWhiteSpace(request.SubmittedBy))
+        //            {
+        //                throw new PurchaseRequestNotYetPostedException(request.PrNo);
+        //            }
+        //        }
+        //    }
+
+        //    var orderItems = await db.OrderItems.Where(w => w.OrderId == entity.Id).ToListAsync();
+        //    foreach (var orderItem in orderItems)
+        //    {
+        //        if (string.IsNullOrWhiteSpace(orderItem.Brand))
+        //        {
+        //            throw new RequiredFieldException(nameof(orderItem.Brand));
+        //        }
+        //    }
+        //}
+        #endregion
+
+        #region EXCEPTIONS
+        private delegate Task NonReturningFunction();
+        private delegate Task<RIS_VM> ReturningFunction();
+        private delegate IQueryable<RIS_VM> ReturningQueryableFunction();
+
+        private async Task TryCatch(NonReturningFunction nonReturningFunction)
+        {
+            try
+            {
+                await nonReturningFunction();
+            }
+            catch (RecordNotFoundException notFoundException)
+            {
+                throw notFoundException;
+            }
+            catch (RecordAlreadyExistsException recordAlreadyExistsException)
+            {
+                throw recordAlreadyExistsException;
+            }
+            catch (InvalidValueException invalidValueException)
+            {
+                throw invalidValueException;
+            }
+            catch (RecordAlreadyPostedException recordAlreadyPostedException)
+            {
+                throw recordAlreadyPostedException;
+            }
+            catch (RecordRelationshipException recordRelationshipExistsException)
+            {
+                throw recordRelationshipExistsException;
+            }
+            catch (SqlException sqlException)
+            {
+                throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+            }
+            catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
+            {
+                var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
+
+                throw exceptions.CreateAndLogDependencyException(recordLockedException);
+            }
+            catch (DbUpdateException dbUpdateException)
+            {
+                throw exceptions.CreateAndLogDependencyException(dbUpdateException);
+            }
+            catch (Exception exception)
+            {
+                var failedServiceException =
+                    new FailedServiceException(exception);
+
+                throw exceptions.CreateAndLogServiceException(failedServiceException);
+            }
+        }
+        private async Task<RIS_VM> TryCatch(ReturningFunction returningFunction)
+        {
+            try
+            {
+                return await returningFunction();
+            }
+            catch (RecordNotFoundException notFoundException)
+            {
+                throw notFoundException;
+            }
+            catch (RecordAlreadyExistsException recordAlreadyExistsException)
+            {
+                throw recordAlreadyExistsException;
+            }
+            catch (InvalidValueException invalidValueException)
+            {
+                throw invalidValueException;
+            }
+            catch (RecordAlreadyPostedException recordAlreadyPostedException)
+            {
+                throw recordAlreadyPostedException;
+            }
+            catch (RecordRelationshipException recordRelationshipExistsException)
+            {
+                throw recordRelationshipExistsException;
+            }
+            catch (SqlException sqlException)
+            {
+                throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+            }
+            catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
+            {
+                var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
+
+                throw exceptions.CreateAndLogDependencyException(recordLockedException);
+            }
+            catch (DbUpdateException dbUpdateException)
+            {
+                throw exceptions.CreateAndLogDependencyException(dbUpdateException);
+            }
+            catch (Exception exception)
+            {
+                var failedServiceException =
+                    new FailedServiceException(exception);
+
+                throw exceptions.CreateAndLogServiceException(failedServiceException);
+            }
+        }
+
+        #endregion
     }
 }
