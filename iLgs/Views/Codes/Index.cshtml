@@ -3,50 +3,10 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-@*<style>
-    #main-section {
-        float: none;
-        width: auto;
-        overflow: hidden;
-        height: 100%;
-        background-color: #eee;
-    }
 
-    #main-section-header {
-        height: auto;
-        border-bottom: 1px solid #ededee;
-        -moz-box-shadow: 1px 0 4px #ededee;
-        -webkit-box-shadow: 1px 0 4px #ededee;
-        box-shadow: 1px 0 4px #ededee;
-        background-color: #fff;
-    }
-
-    #codes-main-content {
-        border: none;
-        overflow: auto;
-        height: 100%;
-        height: calc(100% - 86px);
-        color: #464648;
-        font-size: 11px;
-    }
-</style>*@
-
-
-@*<div id="main-section-header" class="row">
-    <h2 id="team-efficiency" class="col-xs-3">CODES</h2>
-    <div style="clear:both;"></div>
-</div>*@
-
-@*<style>    
-    .container {
-        max-width: 100%;
-    }
-</style>*@
-
-<div id="codes-main-content" class="main-section-content">
-    <div class="col-md-12">
-        @(Html.Kendo().Grid<iLgs.Models.CodeMast>()
+@(Html.Kendo().Grid<iLgs.Models.CodeMast>()
     .Name("grid")
+    .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
         col.Bound(c => c.Code).Width(70);
@@ -69,7 +29,7 @@
         t.Search();
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodeMastTemplate").Window(w => w.Width(800).Title("Codes")))
-                //.Editable(editable => editable.Mode(GridEditMode.InLine))
+    //.Editable(editable => editable.Mode(GridEditMode.InLine))
     .Search(s =>
     {
         s.Field(o => o.Code, "contains");
@@ -90,6 +50,7 @@
     .Scrollable(s => s.Height(200))
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
+    .ClientDetailTemplateId("Details")
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)
@@ -109,79 +70,42 @@
         .Edit("onEditGrid")
         .DataBound("onDataBoundGrid")
         )
-        )
-    </div>
-    <div id="windowcontainer"></div>
+)
 
-    <div class="col-md-12">
-        @(Html.Kendo().Grid<iLgs.Models.CodextnVM>()
-        .Name("gridItems")
-        .Columns(columns =>
-        {
-            columns.Bound(o => o.Code).Width(70);
-            columns.Bound(o => o.Description).Width(150);
-            columns.Bound(o => o.Desc2).Width(100);
-            columns.Bound(o => o.Desc3).Width(100);
-            columns.Bound(o => o.Desc4).Width(100);
-            columns.Bound(o => o.Desc5).Width(100);
-            columns.Command(command =>
+<div id="windowcontainer"></div>
+
+
+<script id="Details" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+            .Name("tabStrip_#=Id#")
+            .HtmlAttributes(new { @class = "no-text-tabstrip" })
+            .TabPosition(TabStripTabPosition.Top)
+            .Animation(animation =>
             {
-                command.Edit();
-                command.Destroy();
-            }).Width(172);
-        })
-        .ToolBar(t =>
-        {
-            t.Create().Text("Add Code Items");
-            t.Search();
-        })
-        .Search(s =>
-        {
-            s.Field(o => o.Code, "contains");
-            s.Field(o => o.Description, "contains");
-        })
-        .Pageable(pager => pager
-            .Input(false)
-            .Numeric(true)
-            .Info(true)
-            .PreviousNext(true)
-            .Refresh(true)
-            .PageSizes(true)
-            .ButtonCount(5)
-        )
-        .Filterable()
-        .NoRecords()
-        .Resizable(r => r.Columns(true))
-        .Scrollable(s => s.Height(120))
-        .Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Sortable()
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodextnTemplate").Window(w => w.Width(500).Title("Code items")))
-        .DataSource(dataSource => dataSource
-            .Ajax()
-            .Events(events => events.Error("GridError"))
-            .Model(model =>
-            {
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                animation.Open(config =>
+                {
+                    config.Fade(FadeDirection.In);
+                });
             })
-            .Read(read => read.Action("CodextnRead", "Codes").Data("ItemData"))
-            .Create(create => create.Action("CodextnCreate", "Codes").Data("ItemData"))
-            .Update(update => update.Action("CodextnUpdate", "Codes"))
-            .Destroy(destroy => destroy.Action("CodextnDestroy", "Codes"))
-        )
-        .Events(events => events
-            .Change("onChangeGridItems")
-            .Edit("onEditGridItems")
-            .DataBound("onDataBoundGridItems")
-        )
-        .AutoBind(true)
-        )
-    </div>
-</div>
+            .SelectedIndex(0)
+            .Items(items =>
+            {
+                items.Add()
+                    .Selected(true)
+                    .LoadContentFrom("_Codextn", "Codes", new { mastId = "#=Id#" });
+            }).ToClientTemplate())
+</script>
+
+<div id="windowcontainer"></div>
+
 
 <style>
-    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+    .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
         width: auto;
+    }
+
+    .k-window-content {
+        overflow-x: hidden;
     }
 
     .k-grid .k-grid-search {
@@ -193,7 +117,29 @@
     .k-floating-label-container {
         width: 100%;
     }
+
+    #span_ {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: fit-content;
+    }
+
+    .no-text-tabstrip .k-item .k-link {
+        padding: 0; /* Remove padding */
+        text-indent: -9999px; /* Move the text outside the visible area */
+        overflow: hidden; /* Hide any overflow */
+    }
+
+    /*#grid .k-grid-content {
+        overflow-y: auto;
+        height: calc(100vh - 200px)!important;
+    }*/
 </style>
+
+
+
+
 
 
 <script type="text/x-kendo-template" id="validationMessageTemplate">
@@ -211,7 +157,19 @@
 
 
 <script type="text/javascript">
-
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
 
     function GridError(args) {
         if (args.errors) {
@@ -255,12 +213,13 @@
         selectedId = selectedData.Id;
         selectedItemId = null;
         codeHdg = selectedData.CodeHdg;
-        hdg1 = selectedData.Desc1Hdg;
-        hdg2 = selectedData.Desc2Hdg;
-        hdg3 = selectedData.Desc3Hdg;
-        hdg4 = selectedData.Desc4Hdg;
-        hdg5 = selectedData.Desc5Hdg;
-        $("#gridItems").data("kendoGrid").dataSource.read();
+
+        //hdg1 = selectedData.Desc1Hdg;
+        //hdg2 = selectedData.Desc2Hdg;
+        //hdg3 = selectedData.Desc3Hdg;
+        //hdg4 = selectedData.Desc4Hdg;
+        //hdg5 = selectedData.Desc5Hdg;
+        //$("#gridItems").data("kendoGrid").dataSource.read();
     }
 
 
@@ -273,10 +232,16 @@
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-        }
-        //if (this.dataSource.total() == 0) {
-        //   // to do: disable item add button
-        //}
+
+            var firstRow = this.tbody.find("tr.k-master-row").first();
+            this.expandRow(firstRow);
+
+            // Attach a handler to the "detailExpand" event
+            this.bind("detailExpand", function (e) {
+                // Select the expanded master row
+                this.select(e.masterRow);
+            });
+        }        
     }
 
     function onEditGrid(e) {
@@ -289,10 +254,8 @@
         } else {
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            $("#Code").attr("readonly", "readonly");
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));            
         }
-
     }
 
     function onGridDeleteClick(e) {
@@ -306,6 +269,14 @@
     }
 
     // Grid Item
+    function onGridItemsRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
+            }
+        }
+    }
 
     function ItemData() {
         return {
@@ -330,16 +301,40 @@
         }
     }
 
+    //function onEditGridItems(e) {
+    //    e.preventDefault();
+
+    //    e.model.set("CodeHdg", codeHdg);
+    //    e.model.set("Hdg1Desc", hdg1);
+    //    e.model.set("Hdg2Desc", hdg2);
+    //    e.model.set("Hdg3Desc", hdg3);
+    //    e.model.set("Hdg4Desc", hdg4);
+    //    e.model.set("Hdg5Desc", hdg5);
+
+    //    selectedGrid = e.sender;
+    //    if (e.model.isNew()) {
+    //        var row = e.sender.tbody.find("tr:first");
+    //        this.select(row);
+    //        selecteItemId = null;
+
+    //        e.model.set("MastId", selectedId);
+    //        $("#MastId").val(selectedId).trigger("change");
+    //    } else {
+    //        selecteItemId = e.model.get("Id");
+    //        var rowitem = selectedGrid.dataSource.get(selecteItemId);
+    //        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+    //        //$("#Code").attr("readonly", "readonly");
+    //    }
+    //}
+
     function onEditGridItems(e) {
         e.preventDefault();
-
-        e.model.set("CodeHdg", codeHdg);
-        e.model.set("Hdg1Desc", hdg1);
-        e.model.set("Hdg2Desc", hdg2);
-        e.model.set("Hdg3Desc", hdg3);
-        e.model.set("Hdg4Desc", hdg4);
-        e.model.set("Hdg5Desc", hdg5);
-        
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+       
         selectedGrid = e.sender;
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
@@ -351,10 +346,44 @@
         } else {
             selecteItemId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selecteItemId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            //$("#Code").attr("readonly", "readonly");
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));        
         }
     }
+
+    function onClickBtnDeleteItem(e) {
+        e.preventDefault();
+        
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        parentGrid.select(parentRow);
+
+        var parentGridDataItem = parentGrid.dataItem(parentRow);
+        selectedId = parentGridDataItem.Id;
+        
+        selectedGrid = this;
+        itemTr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(itemTr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () {
+            selectedGrid.removeRow(itemTr);
+        }, 200);        
+    }
+
+    // Add this script to your page or view
+    $(document).on("click", ".k-pager-refresh", function (e) {
+        // Find the main grid (parent grid)
+        var parentGrid = $(this).closest(".k-grid").prev().data("kendoGrid");
+
+        // Find the row for the main grid
+        var parentRow = parentGrid.select().closest("tr");
+
+        // Select the row in the main grid
+        parentGrid.select(parentRow);
+    });
+
+    
 </script>
 
 

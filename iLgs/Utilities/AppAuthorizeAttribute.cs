@@ -20,8 +20,8 @@ namespace iLgs.Utilities
     {
         AppManEntities context = new AppManEntities();
         private readonly string[] allowedController;
-        string sysCode = "APPMAN";
-        string[] roles = { "ADMIN", "APPMAN_ADMIN" };
+        string sysCode = "PSMS";
+        string[] roles = { "ADMIN", "PSMS_ADMIN" };
 
         HttpClient client;
 

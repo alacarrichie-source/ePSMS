@@ -10,11 +10,11 @@ namespace iLgs.Services.Interfaces
     public interface IRisItemService
     {
         IQueryable<RisItemVM> GetByRisId(Guid? risId);
-        Task<RisItem> GetByIdAsync(Guid? id);
-        Task<RisItemVM> GetVmByIdAsync(Guid? id);
+        ValueTask<RisItem> GetByIdAsync(Guid? id);
+        ValueTask<RisItemVM> GetVmByIdAsync(Guid? id);
 
-        Task<RisItemVM> CreateAsync(RisItemVM model, string user, DateTime date);
-        Task<RisItemVM> UpdateAsync(RisItemVM model, string user, DateTime date);
-        Task<RisItemVM> DeleteAsync(RisItemVM model, string user, DateTime date);
+        ValueTask<RisItemVM> CreateAsync(RisItemVM model, string user, DateTime date);
+        ValueTask<RisItemVM> UpdateAsync(RisItemVM model, string user, DateTime date);
+        ValueTask<RisItemVM> DeleteAsync(RisItemVM model, string user, DateTime date);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
+using iLgs.Agents.Services;
 using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Interfaces;
@@ -22,20 +23,12 @@ namespace iLgs.Controllers
     [AppAuthorize("RIS")]
     public class RISController : Controller
     {
-        private AppManEntities db = new AppManEntities();
-        private IRisService risService;
-        private IRisItemService risItemService;
-        private IRisItemExtnService risItemExtnService;
-        private ICodextnService codextnService;
-        private IPsCodeService psCodeService;
+        private AppManEntities _db = new AppManEntities();
+        private IServiceAgent _sa;
 
         public RISController()
         {
-            this.risService = new RisService(db);
-            this.risItemService = new RisItemService(db);
-            this.risItemExtnService = new RisItemExtnService(db);
-            this.codextnService = new CodextnService(db);
-            this.psCodeService = new PsCodeService(db);
+            _sa = new ServiceAgent(_db);
         }
 
         // GET: RIS
@@ -46,7 +39,7 @@ namespace iLgs.Controllers
 
         public ActionResult RISRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = risService.GetAll();
+            var data = _sa.Ris.GetAll();
 
             var result = new JsonNetResult
             {
@@ -74,7 +67,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await risService.CreateAsync(model, user, date);                    
+                    model = await _sa.Ris.CreateAsync(model, user, date);                    
                 }
             }
             catch (Exception e)
@@ -108,7 +101,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await risService.UpdateAsync(model, user, date);
+                    model = await _sa.Ris.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -142,7 +135,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await risService.DeleteAsync(model, user, date);                    
+                    model = await _sa.Ris.DeleteAsync(model, user, date);                    
                 }
             }
             catch (Exception e)
@@ -178,7 +171,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await risService.PostAsync(risId, user, date);
+                    await _sa.Ris.PostAsync(risId, user, date);
                 }
             }
             catch (Exception e)
@@ -225,7 +218,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await risService.UnpostAsync(risId, user, date);
+                    await _sa.Ris.UnpostAsync(risId, user, date);
                 }
             }
             catch (Exception e)
@@ -262,7 +255,7 @@ namespace iLgs.Controllers
         }
         public async Task<ActionResult> _RISItemAddEdit(Guid risId, Guid? risItemId)
         {
-            var data = await risItemService.GetVmByIdAsync(risItemId);
+            var data = await _sa.RisItems.GetVmByIdAsync(risItemId);
             if (data == null)
             {
                 data = new RisItemVM()
@@ -286,11 +279,11 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await risService.IsPrPostedAsync(model.Id))
+                else if (await _sa.Ris.IsPrPostedAsync(model.Id))
                 {
                     ModelState.AddModelError("RIS No.", "This RIS No has a posted PR, cannot update!");
                 }
-                else if (await risService.IsPostedAsync((Guid)model.RisId))
+                else if (await _sa.Ris.IsPostedAsync((Guid)model.RisId))
                 {
                     ModelState.AddModelError("RIS No.", "RIS Number already Posted, cannot update!");
                 }
@@ -300,19 +293,19 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
                     
-                    var entity = await risItemService.GetByIdAsync(model.Id);
+                    var entity = await _sa.RisItems.GetByIdAsync(model.Id);
 
                     if (entity == null)
                     {
-                        model = await risItemService.CreateAsync(model, user, date);
+                        model = await _sa.RisItems.CreateAsync(model, user, date);
                     }
                     else
                     {
-                        model = await risItemService.UpdateAsync(model, user, date);
+                        model = await _sa.RisItems.UpdateAsync(model, user, date);
                     }
 
                     var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
-                    await risItemExtnService.SaveAsync(model.Id, risItemExtns, user, date);
+                    await _sa.RisItemExtns.SaveAsync(model.Id, risItemExtns, user, date);
                 }
             }
             catch (Exception e)
@@ -337,7 +330,7 @@ namespace iLgs.Controllers
 
         public ActionResult _RISItemRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
         {
-            var data = risItemService.GetByRisId(risId);
+            var data = _sa.RisItems.GetByRisId(risId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -353,11 +346,11 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await risService.IsWithPrAsync(model.Id))
+                else if (await _sa.Ris.IsWithPrAsync(model.Id))
                 {
                     ModelState.AddModelError("DeleteError", "This RIS No has a PR, cannot delete!");
                 }
-                else if (await risService.IsPostedAsync((Guid)model.RisId))
+                else if (await _sa.Ris.IsPostedAsync((Guid)model.RisId))
                 {
                     ModelState.AddModelError("DeleteError", "RIS Number already Posted, cannot delete!");
                 }
@@ -367,7 +360,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await risItemService.DeleteAsync(model, user, date);
+                    model = await _sa.RisItems.DeleteAsync(model, user, date);
                 }
 
             }
@@ -384,7 +377,7 @@ namespace iLgs.Controllers
         [Authorize]
         public ActionResult _RISItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId, string psType)
         {
-            var data = risItemExtnService.GetBatchInfo(risItemId, psType);
+            var data = _sa.RisItemExtns.GetBatchInfo(risItemId, psType);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -426,7 +419,7 @@ namespace iLgs.Controllers
             rpt.Refresh();
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            string conString = db.Database.Connection.ConnectionString.ToString();
+            string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
 
             string un = decoder.UserID;
@@ -475,7 +468,7 @@ namespace iLgs.Controllers
                 }
             }
 
-            var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            var lgu = _sa.Codextns.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
             rpt.SetParameterValue("@cRisNo", risNo);
             rpt.SetParameterValue("LGU", lgu);
@@ -493,7 +486,7 @@ namespace iLgs.Controllers
 
         public ActionResult RequisitionRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = psCodeService.GetMaintenanceView();
+            var data = _sa.PsCodes.GetMaintenanceView();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

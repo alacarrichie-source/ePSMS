@@ -11,6 +11,6 @@ namespace iLgs.Services.Interfaces
     {
         IQueryable<RisItemExtnVM> GetAll();
         IQueryable<RisItemExtnVM> GetBatchInfo(Guid? risItemId, string psType);
-        Task SaveAsync(Guid risItemId, List<RisItemExtnVM> risItemExtnList, string user, DateTime date);
+        ValueTask SaveAsync(Guid risItemId, List<RisItemExtnVM> risItemExtnList, string user, DateTime date);
     }
 }

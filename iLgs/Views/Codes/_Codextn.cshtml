@@ -1,0 +1,65 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.CodextnVM>()
+        .Name("gridItems_" + @ViewData["MastId"])
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Code).Width(70);
+            columns.Bound(o => o.Description).Width(150);
+            columns.Bound(o => o.Desc2).Width(100);
+            columns.Bound(o => o.Desc3).Width(100);
+            columns.Bound(o => o.Desc4).Width(100);
+            columns.Bound(o => o.Desc5).Width(100);
+            columns.Command(command =>
+            {
+                command.Edit();
+                //command.Destroy();
+                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickBtnDeleteItem").SendDataKeys(true);
+            }).Width(172);
+        })
+        .ToolBar(t =>
+        {
+            t.Create().Text("Add Code Items");
+            t.Search();
+        })
+        .Search(s =>
+        {
+            s.Field(o => o.Code, "contains");
+            s.Field(o => o.Description, "contains");
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        //.Scrollable(s => s.Height(120))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodextnTemplate").Window(w => w.Width(500).Title("Code items")))
+        .Editable(e => e.Mode(GridEditMode.InLine))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("error_handler").RequestEnd("onGridItemsRequestEnd"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Read(read => read.Action("CodextnRead", "Codes", new { mastId = @ViewData["MastId"] }))
+            .Create(create => create.Action("CodextnCreate", "Codes", new { mastId = @ViewData["MastId"] }))
+            .Update(update => update.Action("CodextnUpdate", "Codes"))
+            .Destroy(destroy => destroy.Action("CodextnDestroy", "Codes"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItems")
+            .Edit("onEditGridItems")
+            .DataBound("onDataBoundGridItems")
+        )
+        .AutoBind(true)
+)
+

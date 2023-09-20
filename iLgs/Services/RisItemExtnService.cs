@@ -12,13 +12,15 @@ namespace iLgs.Services
     public class RisItemExtnService : IRisItemExtnService
     {
         private readonly AppManEntities db = new AppManEntities();
-
+        private readonly IExceptionService<RisItemExtnVM> _vmExceptionService = new ExceptionService<RisItemExtnVM>();
+        
         public RisItemExtnService(AppManEntities db)
         {
             this.db = db;
         }
 
-        public IQueryable<RisItemExtnVM> GetAll()
+        public IQueryable<RisItemExtnVM> GetAll() =>
+        _vmExceptionService.TryCatch(() =>
         {
             var data = db.RisItemExtns
                 .Select(s => new RisItemExtnVM
@@ -31,15 +33,17 @@ namespace iLgs.Services
                     Sequence = s.Sequence
                 }).AsQueryable();
             return data;
-        }
+        });
 
-        public IQueryable<RisItemExtnVM> GetBatchInfo(Guid? RisItemId, string psType)
+        public IQueryable<RisItemExtnVM> GetBatchInfo(Guid? RisItemId, string psType) =>
+        _vmExceptionService.TryCatch(() =>
         {
             var data = db.Database.SqlQuery<RisItemExtnVM>("Exec RisItemExtnService_GetBatchInfo {0}, {1}", RisItemId, psType).AsQueryable();
             return data;
-        }
+        });
 
-        public async Task SaveAsync(Guid risItemId, List<RisItemExtnVM> risItemExtnList, string user, DateTime date)
+        public ValueTask SaveAsync(Guid risItemId, List<RisItemExtnVM> risItemExtnList, string user, DateTime date) =>
+        _vmExceptionService.TryCatchAsync(async () =>
         {
             // log updates
             var existingRisItemExtns = db.RisItemExtns.Where(w => w.RisItemId == risItemId).ToList();
@@ -92,6 +96,6 @@ namespace iLgs.Services
                 }
             }
             await db.SaveChangesAsync();
-        }        
+        });        
     }
 }

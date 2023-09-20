@@ -22,8 +22,8 @@ namespace iLgs.Controllers
     [AppAuthorize("users")]
     public class UsersController : BaseController
     {
-        private static string sysCode = "APPMAN";
-        private static string sysAdmin = "APPMAN_ADMIN";
+        private static string sysCode = "PSMS";
+        private static string sysAdmin = "PSMS_ADMIN";
 
         private AppManEntities db = new AppManEntities();
 

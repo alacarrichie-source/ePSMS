@@ -94,6 +94,12 @@ namespace iLgs.Controllers
             return View("Codextn", codeMast);
         }
 
+        public ActionResult _Codextn(Guid mastId)
+        {
+            ViewData["MastId"] = mastId;
+            return PartialView();
+        }
+
         public ActionResult Codextn()
         {
             return View();
@@ -331,9 +337,8 @@ namespace iLgs.Controllers
         public async Task<ActionResult> CodextnDestroy([DataSourceRequest]DataSourceRequest request, CodextnVM model)
         {
             try
-            {
-                string user = ControllerContext.HttpContext.User.Identity.Name;                
-                Task<Access> accessTask = new HomeController().Access(user, "codes");
+            {                
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -345,6 +350,7 @@ namespace iLgs.Controllers
 
                 if (ModelState.IsValid)
                 {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
                     model = await codextnService.DeleteAsync(model, user, date);

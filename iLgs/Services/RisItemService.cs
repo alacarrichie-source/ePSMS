@@ -1,8 +1,11 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
 using iLgs.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -12,12 +15,17 @@ namespace iLgs.Services
     public class RisItemService : IRisItemService
     {
         private readonly AppManEntities db = new AppManEntities();
+        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
+        private readonly IExceptionService<RisItemVM> _vmExceptionService = new ExceptionService<RisItemVM>();
+        private readonly IExceptionService<RisItem> _exceptionService = new ExceptionService<RisItem>();
 
         public RisItemService(AppManEntities db)
         {
             this.db = db;
         }
-        public async Task<RisItemVM> GetVmByIdAsync(Guid? id)
+
+        public ValueTask<RisItemVM> GetVmByIdAsync(Guid? id) =>
+        _vmExceptionService.TryCatchAsync(async () =>
         {
             var data = await db.RisItems.Where(w => w.Id == id)
                 .Select(s => new RisItemVM
@@ -39,15 +47,17 @@ namespace iLgs.Services
                     InsertedDt = s.InsertedDt
                 }).FirstOrDefaultAsync();
             return data;
-        }
+        });
 
-        public async Task<RisItem> GetByIdAsync(Guid? id)
+        public ValueTask<RisItem> GetByIdAsync(Guid? id) =>
+        _exceptionService.TryCatchAsync(async () =>
         {
             var data = await db.RisItems.FindAsync(id);
             return data;
-        }
+        });
 
-        public IQueryable<RisItemVM> GetByRisId(Guid? risId)
+        public IQueryable<RisItemVM> GetByRisId(Guid? risId) =>
+        _vmExceptionService.TryCatch(() =>
         {
             var data = db.RisItems.Where(w => w.RisId == risId)
                 .Select(s => new RisItemVM
@@ -69,15 +79,16 @@ namespace iLgs.Services
                     InsertedDt = s.InsertedDt
                 });
             return data;
-        }
+        });
 
-        public async Task<RisItemVM> CreateAsync(RisItemVM model, string user, DateTime date)
+        public ValueTask<RisItemVM> CreateAsync(RisItemVM model, string user, DateTime date) =>
+        _vmExceptionService.TryCatchAsync(async () =>
         {
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
             model.InsertedDt = date;
-            model.UpdatedDt = date;                       
+            model.UpdatedDt = date;
 
             model.PsNo = PsNo(model);
             model.PsNoDisplay = PsNoDisplay(model);
@@ -105,9 +116,10 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        public async Task<RisItemVM> DeleteAsync(RisItemVM model, string user, DateTime date)
+        public ValueTask<RisItemVM> DeleteAsync(RisItemVM model, string user, DateTime date) =>
+        _vmExceptionService.TryCatchAsync(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -126,9 +138,10 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
-        
-        public async Task<RisItemVM> UpdateAsync(RisItemVM model, string user, DateTime date)
+        });
+
+        public ValueTask<RisItemVM> UpdateAsync(RisItemVM model, string user, DateTime date) =>
+        _vmExceptionService.TryCatchAsync(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -161,7 +174,7 @@ namespace iLgs.Services
             // AIR, Qty            
 
             return model;
-        }        
+        });
 
         private string PsNo(RisItemVM model)
         {
@@ -181,7 +194,7 @@ namespace iLgs.Services
                     psNo += df.ItemValue.Substring(0, 3);
                 }
             }
-            
+
             return psNo;
         }
 
@@ -189,5 +202,195 @@ namespace iLgs.Services
         {
             return model.ItemCode.Trim() + model.ItemName.Substring(0, 1) + model.ItemName.Substring(2, 1);
         }
+
+        //#region EXCEPTIONS
+
+        //private delegate ValueTask NonReturningFunction();
+        //private delegate ValueTask<RisItemVM> ReturningVMFunction();
+        //private delegate ValueTask<RisItem> ReturningFunction();
+        //private delegate IQueryable<RisItemVM> ReturningQueryableVMFunction();
+        //private delegate IQueryable<RisItem> ReturningQueryableFunction();
+
+        //private async ValueTask TryCatch(NonReturningFunction nonReturningFunction)
+        //{
+        //    try
+        //    {
+        //        await nonReturningFunction();
+        //    }
+        //    catch (RecordNotFoundException notFoundException)
+        //    {
+        //        throw notFoundException;
+        //    }
+        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
+        //    {
+        //        throw recordAlreadyExistsException;
+        //    }
+        //    catch (InvalidValueException invalidValueException)
+        //    {
+        //        throw invalidValueException;
+        //    }
+        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
+        //    {
+        //        throw recordAlreadyPostedException;
+        //    }
+        //    catch (RecordRelationshipException recordRelationshipExistsException)
+        //    {
+        //        throw recordRelationshipExistsException;
+        //    }
+        //    catch (SqlException sqlException)
+        //    {
+        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+        //    }
+        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
+        //    {
+        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
+
+        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
+        //    }
+        //    catch (DbUpdateException dbUpdateException)
+        //    {
+        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var failedServiceException =
+        //            new FailedServiceException(exception);
+
+        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //    }
+        //}
+        //private async ValueTask<RisItemVM> TryCatch(ReturningVMFunction returningVMFunction)
+        //{
+        //    try
+        //    {
+        //        return await returningVMFunction();
+        //    }
+        //    catch (RecordNotFoundException notFoundException)
+        //    {
+        //        throw notFoundException;
+        //    }
+        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
+        //    {
+        //        throw recordAlreadyExistsException;
+        //    }
+        //    catch (InvalidValueException invalidValueException)
+        //    {
+        //        throw invalidValueException;
+        //    }
+        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
+        //    {
+        //        throw recordAlreadyPostedException;
+        //    }
+        //    catch (RecordRelationshipException recordRelationshipExistsException)
+        //    {
+        //        throw recordRelationshipExistsException;
+        //    }
+        //    catch (SqlException sqlException)
+        //    {
+        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+        //    }
+        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
+        //    {
+        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
+
+        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
+        //    }
+        //    catch (DbUpdateException dbUpdateException)
+        //    {
+        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var failedServiceException =
+        //            new FailedServiceException(exception);
+
+        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //    }
+        //}
+        //private async ValueTask<RisItem> TryCatch(ReturningFunction returningFunction)
+        //{
+        //    try
+        //    {
+        //        return await returningFunction();
+        //    }
+        //    catch (RecordNotFoundException notFoundException)
+        //    {
+        //        throw notFoundException;
+        //    }
+        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
+        //    {
+        //        throw recordAlreadyExistsException;
+        //    }
+        //    catch (InvalidValueException invalidValueException)
+        //    {
+        //        throw invalidValueException;
+        //    }
+        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
+        //    {
+        //        throw recordAlreadyPostedException;
+        //    }
+        //    catch (RecordRelationshipException recordRelationshipExistsException)
+        //    {
+        //        throw recordRelationshipExistsException;
+        //    }
+        //    catch (SqlException sqlException)
+        //    {
+        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+        //    }
+        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
+        //    {
+        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
+
+        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
+        //    }
+        //    catch (DbUpdateException dbUpdateException)
+        //    {
+        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var failedServiceException =
+        //            new FailedServiceException(exception);
+
+        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //    }
+        //}
+        //private IQueryable<RisItemVM> TryCatch(ReturningQueryableVMFunction returningQueryableVMFunction)
+        //{
+        //    try
+        //    {
+        //        return returningQueryableVMFunction();
+        //    }
+        //    catch (SqlException sqlException)
+        //    {
+        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var failedServiceException =
+        //            new FailedServiceException(exception);
+
+        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //    }
+        //}
+        //private IQueryable<RisItem> TryCatch(ReturningQueryableFunction returningQueryableFunction)
+        //{
+        //    try
+        //    {
+        //        return returningQueryableFunction();
+        //    }
+        //    catch (SqlException sqlException)
+        //    {
+        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var failedServiceException =
+        //            new FailedServiceException(exception);
+
+        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //    }
+        //}
+        //#endregion
     }
 }

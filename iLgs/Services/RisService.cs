@@ -1,14 +1,12 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
 using iLgs.Services.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Threading.Tasks;
 using System.Data.Entity;
-using iLgs.Exceptions;
-using System.Data.SqlClient;
 using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace iLgs.Services
 {
@@ -16,13 +14,16 @@ namespace iLgs.Services
     {
         private readonly AppManEntities db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
+        private readonly IExceptionService<RIS_VM> _risVmExceptionService = new ExceptionService<RIS_VM>();
+        private readonly IExceptionService<RISs> _risExceptionService = new ExceptionService<RISs>();
 
         public RisService(AppManEntities db)
         {
-            this.db = db;
+            this.db = db;            
         }
 
-        public IQueryable<RIS_VM> GetAll()
+        public IQueryable<RIS_VM> GetAll() =>
+        _risVmExceptionService.TryCatch(() =>
         {
             var data = db.RISses
                 .Select(s => new RIS_VM
@@ -55,35 +56,39 @@ namespace iLgs.Services
                     PostedDt = s.PostedDt
                 });
             return data;
-        }
+        });
 
-        public async Task<bool> GetAnyRisNoAsync(Guid risId, string risNo)
+        public async ValueTask<bool> GetAnyRisNoAsync(Guid risId, string risNo) 
         {
             return await db.RISses.AnyAsync(a => a.Id != risId && a.RisNo == risNo);
         }
 
-        public async Task<RISs> GetByIdAsync(Guid id)
+        public ValueTask<RISs> GetByIdAsync(Guid id) =>
+        _risExceptionService.TryCatchAsync(async () =>
         {
-            return await db.RISses.FindAsync(id);
-        }
+            var data = await db.RISses.FindAsync(id);
+            return data;
+        });
 
-        public async Task<RISs> GetByRisNoAsync(string risNo)
+        public ValueTask<RISs> GetByRisNoAsync(string risNo) =>
+        _risExceptionService.TryCatchAsync(async () =>
         {
             return await db.RISses.Where(w => w.RisNo == risNo).FirstOrDefaultAsync();
-        }
+        });
 
-        public async Task<RISs> GetByOrderIdAsync(Guid orderId)
+        public ValueTask<RISs> GetByOrderIdAsync(Guid orderId) =>
+        _risExceptionService.TryCatch(async () =>
         {
             return await db.RISses.Where(w => w.Requests.Any(a => a.Orders.Any(b => b.Id == orderId))).FirstOrDefaultAsync();
-        }
+        });
 
-        public async Task<bool> IsPostedAsync(Guid risId)
+        public async ValueTask<bool> IsPostedAsync(Guid risId)
         {
             var entity = await db.RISses.FindAsync(risId);
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
         }
 
-        public async Task<bool> IsPrPostedAsync(Guid risId)
+        public async ValueTask<bool> IsPrPostedAsync(Guid risId)
         {
             var pr = await db.Requests.Where(a => a.RisId == risId).FirstOrDefaultAsync();
             if (pr != null)
@@ -93,13 +98,13 @@ namespace iLgs.Services
             return false;
         }
 
-        public async Task<bool> IsWithPrAsync(Guid risId)
+        public async ValueTask<bool> IsWithPrAsync(Guid risId)
         {
             return await db.Requests.AnyAsync(a => a.RisId == risId);
         }
 
-        public Task PostAsync(Guid risId, string user, DateTime date) =>
-        TryCatch(async () =>
+        public ValueTask PostAsync(Guid risId, string user, DateTime date) =>
+        _risExceptionService.TryCatchAsync(async () =>
         {
             await ValidateOnPost(risId);
 
@@ -163,8 +168,8 @@ namespace iLgs.Services
             }
         }
 
-        public Task UnpostAsync(Guid risId, string user, DateTime date) =>
-        TryCatch(async () =>
+        public ValueTask UnpostAsync(Guid risId, string user, DateTime date) =>
+        _risExceptionService.TryCatchAsync(async () =>
         {
             await ValidateOnUnpost(risId);
 
@@ -194,8 +199,8 @@ namespace iLgs.Services
             
         });
 
-        public Task<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date) =>
-        TryCatch(async () =>
+        public ValueTask<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date) =>
+        _risVmExceptionService.TryCatchAsync(async () =>
             {
                 await ValidateOnCreate(model);
 
@@ -243,8 +248,8 @@ namespace iLgs.Services
                 return model;
             });
 
-        public Task<RIS_VM> DeleteAsync(RIS_VM model, string user, DateTime date) =>
-        TryCatch(async () =>
+        public ValueTask<RIS_VM> DeleteAsync(RIS_VM model, string user, DateTime date) =>
+        _risVmExceptionService.TryCatchAsync(async () =>
         {
             await ValidateOnDelete(model);
 
@@ -267,8 +272,8 @@ namespace iLgs.Services
             return model;
         });
 
-        public Task<RIS_VM> UpdateAsync(RIS_VM model, string user, DateTime date) =>
-        TryCatch(async () =>
+        public ValueTask<RIS_VM> UpdateAsync(RIS_VM model, string user, DateTime date) =>
+        _risVmExceptionService.TryCatchAsync(async () =>
         {
             await ValidateOnUpdate(model);
 
@@ -330,16 +335,16 @@ namespace iLgs.Services
         }
 
         #region VALIDATION
-
-        private async Task ValidateOnCreate(RIS_VM model)
+        private async ValueTask ValidateOnCreate(RIS_VM model)
         {
+
             if (await db.RISses.AnyAsync(a => a.RisNo == model.RisNo))
             {
                 throw new RecordAlreadyExistsException(string.Format("RIS Number {0} already exists", model.RisNo));
-            }            
+            }
         }
 
-        private async Task ValidateOnUpdate(RIS_VM model)
+        private async ValueTask ValidateOnUpdate(RIS_VM model)
         {
             var rec = await db.RISses.FindAsync(model.Id);
             if (rec == null)
@@ -387,7 +392,7 @@ namespace iLgs.Services
             if (!string.IsNullOrWhiteSpace(rec.PostedBy))
             {
                 throw new RecordAlreadyPostedException(string.Format("RIS No {0} already posted. Please verify!", rec.RisNo));
-            }            
+            }
         }
         private async Task ValidateOnUnpost(Guid id)
         {
@@ -406,147 +411,196 @@ namespace iLgs.Services
             {
                 throw new RecordRelationshipException("This RIS No has a posted PR, cannot unpost!");
             }
-        }        
-
-        //private async Task ValidateOnPost(Order entity)
-        //{
-        //    if (!string.IsNullOrWhiteSpace(entity.PostedBy))
-        //    {
-        //        throw new PoNumberAlreadyPostedException(entity.PoNo);
-        //    }
-
-        //    var idList = await db.OrderItems.Where(w => w.OrderId == entity.Id).GroupBy(g => g.RequestItem.Request.Id)
-        //        .Select(s => s.Key).ToListAsync();
-
-        //    foreach (var id in idList)
-        //    {
-        //        var request = await db.Requests.FindAsync(id);
-        //        if (request == null)
-        //        {
-        //            throw new RecordNotFoundException(id);
-        //        }
-        //        else
-        //        {
-        //            if (string.IsNullOrWhiteSpace(request.SubmittedBy))
-        //            {
-        //                throw new PurchaseRequestNotYetPostedException(request.PrNo);
-        //            }
-        //        }
-        //    }
-
-        //    var orderItems = await db.OrderItems.Where(w => w.OrderId == entity.Id).ToListAsync();
-        //    foreach (var orderItem in orderItems)
-        //    {
-        //        if (string.IsNullOrWhiteSpace(orderItem.Brand))
-        //        {
-        //            throw new RequiredFieldException(nameof(orderItem.Brand));
-        //        }
-        //    }
-        //}
+        }
         #endregion
 
-        #region EXCEPTIONS
-        private delegate Task NonReturningFunction();
-        private delegate Task<RIS_VM> ReturningFunction();
-        private delegate IQueryable<RIS_VM> ReturningQueryableFunction();
+        #region EXCEPTION
+        //private delegate ValueTask NonReturningFunction();
+        //private delegate ValueTask<RIS_VM> ReturningVMFunction();
+        //private delegate ValueTask<RISs> ReturningFunction();
+        //private delegate IQueryable<RIS_VM> ReturningQueryableVMFunction();
+        //private delegate IQueryable<RISs> ReturningQueryableFunction();
 
-        private async Task TryCatch(NonReturningFunction nonReturningFunction)
-        {
-            try
-            {
-                await nonReturningFunction();
-            }
-            catch (RecordNotFoundException notFoundException)
-            {
-                throw notFoundException;
-            }
-            catch (RecordAlreadyExistsException recordAlreadyExistsException)
-            {
-                throw recordAlreadyExistsException;
-            }
-            catch (InvalidValueException invalidValueException)
-            {
-                throw invalidValueException;
-            }
-            catch (RecordAlreadyPostedException recordAlreadyPostedException)
-            {
-                throw recordAlreadyPostedException;
-            }
-            catch (RecordRelationshipException recordRelationshipExistsException)
-            {
-                throw recordRelationshipExistsException;
-            }
-            catch (SqlException sqlException)
-            {
-                throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-            }
-            catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-            {
-                var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
+        //private async ValueTask TryCatch(NonReturningFunction nonReturningFunction)
+        //{
+        //    try
+        //    {
+        //        await nonReturningFunction();
+        //    }
+        //    catch (RecordNotFoundException notFoundException)
+        //    {
+        //        throw notFoundException;
+        //    }
+        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
+        //    {
+        //        throw recordAlreadyExistsException;
+        //    }
+        //    catch (InvalidValueException invalidValueException)
+        //    {
+        //        throw invalidValueException;
+        //    }
+        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
+        //    {
+        //        throw recordAlreadyPostedException;
+        //    }
+        //    catch (RecordRelationshipException recordRelationshipExistsException)
+        //    {
+        //        throw recordRelationshipExistsException;
+        //    }
+        //    catch (SqlException sqlException)
+        //    {
+        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+        //    }
+        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
+        //    {
+        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
 
-                throw exceptions.CreateAndLogDependencyException(recordLockedException);
-            }
-            catch (DbUpdateException dbUpdateException)
-            {
-                throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-            }
-            catch (Exception exception)
-            {
-                var failedServiceException =
-                    new FailedServiceException(exception);
+        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
+        //    }
+        //    catch (DbUpdateException dbUpdateException)
+        //    {
+        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var failedServiceException =
+        //            new FailedServiceException(exception);
 
-                throw exceptions.CreateAndLogServiceException(failedServiceException);
-            }
-        }
-        private async Task<RIS_VM> TryCatch(ReturningFunction returningFunction)
-        {
-            try
-            {
-                return await returningFunction();
-            }
-            catch (RecordNotFoundException notFoundException)
-            {
-                throw notFoundException;
-            }
-            catch (RecordAlreadyExistsException recordAlreadyExistsException)
-            {
-                throw recordAlreadyExistsException;
-            }
-            catch (InvalidValueException invalidValueException)
-            {
-                throw invalidValueException;
-            }
-            catch (RecordAlreadyPostedException recordAlreadyPostedException)
-            {
-                throw recordAlreadyPostedException;
-            }
-            catch (RecordRelationshipException recordRelationshipExistsException)
-            {
-                throw recordRelationshipExistsException;
-            }
-            catch (SqlException sqlException)
-            {
-                throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-            }
-            catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-            {
-                var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
+        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //    }
+        //}
+        //private async ValueTask<RIS_VM> TryCatch(ReturningVMFunction returningVMFunction)
+        //{
+        //    try
+        //    {
+        //        return await returningVMFunction();
+        //    }
+        //    catch (RecordNotFoundException notFoundException)
+        //    {
+        //        throw notFoundException;
+        //    }
+        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
+        //    {
+        //        throw recordAlreadyExistsException;
+        //    }
+        //    catch (InvalidValueException invalidValueException)
+        //    {
+        //        throw invalidValueException;
+        //    }
+        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
+        //    {
+        //        throw recordAlreadyPostedException;
+        //    }
+        //    catch (RecordRelationshipException recordRelationshipExistsException)
+        //    {
+        //        throw recordRelationshipExistsException;
+        //    }
+        //    catch (SqlException sqlException)
+        //    {
+        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+        //    }
+        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
+        //    {
+        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
 
-                throw exceptions.CreateAndLogDependencyException(recordLockedException);
-            }
-            catch (DbUpdateException dbUpdateException)
-            {
-                throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-            }
-            catch (Exception exception)
-            {
-                var failedServiceException =
-                    new FailedServiceException(exception);
+        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
+        //    }
+        //    catch (DbUpdateException dbUpdateException)
+        //    {
+        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var failedServiceException =
+        //            new FailedServiceException(exception);
 
-                throw exceptions.CreateAndLogServiceException(failedServiceException);
-            }
-        }
+        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //    }
+        //}
+        //private async ValueTask<RISs> TryCatch(ReturningFunction returningFunction)
+        //{
+        //    try
+        //    {
+        //        return await returningFunction();
+        //    }
+        //    catch (RecordNotFoundException notFoundException)
+        //    {
+        //        throw notFoundException;
+        //    }
+        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
+        //    {
+        //        throw recordAlreadyExistsException;
+        //    }
+        //    catch (InvalidValueException invalidValueException)
+        //    {
+        //        throw invalidValueException;
+        //    }
+        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
+        //    {
+        //        throw recordAlreadyPostedException;
+        //    }
+        //    catch (RecordRelationshipException recordRelationshipExistsException)
+        //    {
+        //        throw recordRelationshipExistsException;
+        //    }
+        //    catch (SqlException sqlException)
+        //    {
+        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+        //    }
+        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
+        //    {
+        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
 
+        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
+        //    }
+        //    catch (DbUpdateException dbUpdateException)
+        //    {
+        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var failedServiceException =
+        //            new FailedServiceException(exception);
+
+        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //    }
+        //}
+        //private IQueryable<RIS_VM> TryCatch(ReturningQueryableVMFunction returningQueryableVMFunction)
+        //{
+        //    try
+        //    {
+        //        return returningQueryableVMFunction();
+        //    }
+        //    catch (SqlException sqlException)
+        //    {
+        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var failedServiceException =
+        //            new FailedServiceException(exception);
+
+        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //    }
+        //}
+        //private IQueryable<RISs> TryCatch(ReturningQueryableFunction returningQueryableFunction)
+        //{
+        //    try
+        //    {
+        //        return returningQueryableFunction();
+        //    }
+        //    catch (SqlException sqlException)
+        //    {
+        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var failedServiceException =
+        //            new FailedServiceException(exception);
+
+        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //    }
+        //}        
         #endregion
     }
 }
