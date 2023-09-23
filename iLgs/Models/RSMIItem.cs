@@ -16,11 +16,11 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RsmiId { get; set; }
-        public Nullable<System.Guid> RisId { get; set; }
+        public Nullable<System.Guid> RisIssuedId { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
     
+        public virtual RisIssued RisIssued { get; set; }
         public virtual RSMI RSMI { get; set; }
-        public virtual RISlip RISlip { get; set; }
     }
 }

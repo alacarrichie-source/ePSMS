@@ -24,12 +24,12 @@ namespace iLgs.Models
         public Nullable<System.DateTime> AIRDate { get; set; }
 
         [Display(Name = "Invoice No.")]
-        [Required]
+        //[Required]
         public string InvoiceNo { get; set; }
 
         [Display(Name = "Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [Required]
+        //[Required]
         public Nullable<System.DateTime> InvoiceDate { get; set; }
 
         [Display(Name = "Date Received")]
@@ -77,6 +77,8 @@ namespace iLgs.Models
 
         [Display(Name = "Requisitioning Office/Dept.")]
         public string Department { get; set; }
+
+        public string Mode { get; set; }
     }
 
     public class AIRItemVM
@@ -110,5 +112,24 @@ namespace iLgs.Models
         public string GridOrderItemExtns { get; set; }
         public string Mode { get; set; }
         public string PsType { get; set; }
+    }
+
+    public class AIRInvoiceVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> AirId { get; set; }
+
+        [Display(Name = "Invoice No.")]
+        //[Required]
+        public string InvoiceNo { get; set; }
+
+        [Display(Name = "Invoice Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        //[Required]
+        public Nullable<System.DateTime> InvoiceDate { get; set; }
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }        
     }
 }

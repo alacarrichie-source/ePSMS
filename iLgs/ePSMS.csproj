@@ -207,6 +207,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\AIRInvoice.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RisIssued.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Services\Agents\IServiceAgent.cs" />
     <Compile Include="Services\Agents\ServiceAgent.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
@@ -340,12 +346,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AppManModel.edmx</DependentUpon>
     </Compile>
-    <Compile Include="Models\Issued.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\IssuedItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\IssuedViewModels.cs" />
     <Compile Include="Models\ItemCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -414,12 +414,6 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RisItemExtn.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\RISlip.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\RISlipItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RISs.cs">
@@ -513,12 +507,14 @@
       <DependentUpon>UserRoles.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Services\AirInvoiceService.cs" />
     <Compile Include="Services\AirItemService.cs" />
     <Compile Include="Services\AirService.cs" />
     <Compile Include="Services\CodextnService.cs" />
     <Compile Include="Services\DirectoryService.cs" />
     <Compile Include="Services\ExceptionService.cs" />
     <Compile Include="Services\GmailEmailService.cs" />
+    <Compile Include="Services\Interfaces\IAirInvoiceService.cs" />
     <Compile Include="Services\Interfaces\IAirItemService.cs" />
     <Compile Include="Services\Interfaces\IAirService.cs" />
     <Compile Include="Services\Interfaces\ICodextnService.cs" />
@@ -3459,6 +3455,8 @@
     <Content Include="Views\PARs\_GeneratePAR.cshtml" />
     <Content Include="Views\PARs\EditorTemplates\_ReceivedByTemplate.cshtml" />
     <Content Include="Views\Codes\_Codextn.cshtml" />
+    <Content Include="Views\AIRs\_AIRAddEdit.cshtml" />
+    <Content Include="Views\AIRs\EditorTemplates\_InvoiceDateTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

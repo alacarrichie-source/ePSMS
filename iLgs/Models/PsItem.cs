@@ -17,7 +17,6 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public PsItem()
         {
-            this.RISlipItems = new HashSet<RISlipItem>();
             this.RSMIRecaps = new HashSet<RSMIRecap>();
         }
     
@@ -38,8 +37,6 @@ namespace iLgs.Models
     
         public virtual OrderItem OrderItem { get; set; }
         public virtual PsStock PsStock { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RISlipItem> RISlipItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RSMIRecap> RSMIRecaps { get; set; }
     }

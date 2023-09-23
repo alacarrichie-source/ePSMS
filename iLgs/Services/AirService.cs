@@ -62,6 +62,37 @@ namespace iLgs.Services
             return await db.AIRs.FindAsync(id);
         }
 
+        public async Task<AIR_VM> GetVmByIdAsync(Guid id)
+        {
+            var data = await db.AIRs
+                .Where(w => w.Id == id)
+                .Select(s => new AIR_VM
+                {
+                    Id = s.Id,
+                    OrderId = s.OrderId,
+                    PoNo = s.Order.PoNo,
+                    Supplier = s.Order.Supplier.BusinessName,
+                    PoDate = s.Order.PoDate,
+                    Department = s.Order.DeliveryPlace,
+                    Fund = s.Fund,
+                    AIRNo = s.AIRNo,
+                    AIRDate = s.AIRDate,
+                    InvoiceNo = s.InvoiceNo,
+                    InvoiceDate = s.InvoiceDate,
+                    AcceptedDate = s.AcceptedDate,
+                    IsComplete = s.IsComplete,
+                    IsPartial = s.IsPartial,
+                    Custodian = s.Custodian,
+                    InspectedDate = s.InspectedDate,
+                    IsInspected = s.IsInspected,
+                    Officer = s.Officer,
+                    Remarks = s.Remarks,
+                    PostedBy = s.PostedBy,
+                    PostedDt = s.PostedDt
+                }).FirstOrDefaultAsync();
+            return data;
+        }
+
         public async Task<AIR> GetByAirNoAsync(string airNo)
         {
             return await db.AIRs.Where(w => w.AIRNo == airNo).FirstOrDefaultAsync();
@@ -151,7 +182,7 @@ namespace iLgs.Services
 
         public async Task<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date)
         {
-            model.Id = Guid.NewGuid();
+            model.Id = (model.Id == Guid.Empty || model.Id == null) ? Guid.NewGuid() : model.Id;
             if (string.IsNullOrWhiteSpace(model.AIRNo))
             {
                 model.AIRNo = NextAirNo((DateTime)model.AIRDate);
@@ -168,8 +199,8 @@ namespace iLgs.Services
                 AIRNo = model.AIRNo,
                 AIRDate = model.AIRDate,
                 OrderId = model.OrderId,
-                InvoiceNo = model.InvoiceNo ?? "",
-                InvoiceDate = model.InvoiceDate,
+                //InvoiceNo = model.InvoiceNo ?? "",
+                //InvoiceDate = model.InvoiceDate,
                 AcceptedDate = model.AcceptedDate,
                 IsComplete = model.IsComplete,
                 IsPartial = model.IsPartial,
@@ -276,8 +307,8 @@ namespace iLgs.Services
             entity.AIRNo = model.AIRNo;
             entity.AIRDate = model.AIRDate;
             entity.OrderId = model.OrderId;
-            entity.InvoiceNo = model.InvoiceNo ?? "";
-            entity.InvoiceDate = model.InvoiceDate;
+            //entity.InvoiceNo = model.InvoiceNo ?? "";
+            //entity.InvoiceDate = model.InvoiceDate;
             entity.AcceptedDate = model.AcceptedDate;
             entity.IsComplete = model.IsComplete;
             entity.IsPartial = model.IsPartial;

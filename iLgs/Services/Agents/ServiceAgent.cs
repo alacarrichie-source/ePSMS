@@ -13,6 +13,8 @@ namespace iLgs.Agents.Services
         private IRisItemExtnService _risItemExtnService;
         private ICodextnService _codextnService;
         private IPsCodeService _psCodeService;
+        private IAirService _airService;
+        private IAirInvoiceService _airInvoiceService;
 
         public ServiceAgent(AppManEntities db)
         {
@@ -20,9 +22,11 @@ namespace iLgs.Agents.Services
         }
 
         public IRisService Ris { get { return _risService = _risService ?? new RisService(_db); } }
-        public IRisItemService RisItems { get { return _risItemService = _risItemService ?? new RisItemService(_db); } }
-        public IRisItemExtnService RisItemExtns { get { return _risItemExtnService = _risItemExtnService ?? new RisItemExtnService(_db); } }
-        public ICodextnService Codextns { get { return _codextnService = _codextnService ?? new CodextnService(_db); } }
-        public IPsCodeService PsCodes { get { return _psCodeService = _psCodeService ?? new PsCodeService(_db); } }
+        public IRisItemService RisItem { get { return _risItemService = _risItemService ?? new RisItemService(_db); } }
+        public IRisItemExtnService RisItemExtn { get { return _risItemExtnService = _risItemExtnService ?? new RisItemExtnService(_db); } }
+        public ICodextnService Codextn { get { return _codextnService = _codextnService ?? new CodextnService(_db); } }
+        public IPsCodeService PsCode { get { return _psCodeService = _psCodeService ?? new PsCodeService(_db); } }
+        public IAirService Air { get { return _airService = _airService ?? new AirService(_db); } }
+        public IAirInvoiceService AirInvoice { get { return _airInvoiceService = _airInvoiceService ?? new AirInvoiceService(_db); } }
     }
 }

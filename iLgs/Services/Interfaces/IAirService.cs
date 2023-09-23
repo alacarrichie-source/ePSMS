@@ -11,6 +11,7 @@ namespace iLgs.Services.Interfaces
     {
         IQueryable<AIR_VM> GetAll();
         Task<AIR> GetByIdAsync(Guid id);
+        Task<AIR_VM> GetVmByIdAsync(Guid id);
         Task<AIR> GetByAirNoAsync(string airNo);
         Task<bool> GetAnyAirNoAsync(Guid airId, string airNo);
         Task<bool> IsPostedAsync(Guid airId);

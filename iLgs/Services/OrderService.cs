@@ -486,7 +486,7 @@ namespace iLgs.Services
 
         private void ValidateOnCreate(OrderVM model)
         {
-            if (!db.Orders.Any(a => a.PoNo == model.PoNo))
+            if (db.Orders.Any(a => a.PoNo == model.PoNo))
             {
                 throw new RecordAlreadyExistsException(string.Format("PO Number {0} already exists", model.PoNo));
             }

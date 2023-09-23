@@ -17,26 +17,30 @@ using System.Data.SqlClient;
 using iLgs.Services.Interfaces;
 using iLgs.Services;
 using System.IO;
+using iLgs.Agents.Services;
 
 namespace iLgs.Controllers
 {
     [AppAuthorize("AIRS")]
     public class AIRsController : Controller
     {
-        private AppManEntities db = new AppManEntities();
+        private AppManEntities _db = new AppManEntities();
         private IAirService airService;
         private IAirItemService airItemService;
         private ICodextnService codextnService;
         private IOrderService orderService;
         private IOrderItemExtnService orderItemExtnService;
 
+        private IServiceAgent _sa;
+
         public AIRsController()
         {
-            this.airService = new AirService(db);
-            this.airItemService = new AirItemService(db);
-            this.codextnService = new CodextnService(db);
-            this.orderService = new OrderService(db);
-            this.orderItemExtnService = new OrderItemExtnService(db);
+            this.airService = new AirService(_db);
+            this.airItemService = new AirItemService(_db);
+            this.codextnService = new CodextnService(_db);
+            this.orderService = new OrderService(_db);
+            this.orderItemExtnService = new OrderItemExtnService(_db);
+            _sa = new ServiceAgent(_db);
         }
 
         // GET: 
@@ -80,17 +84,17 @@ namespace iLgs.Controllers
                     {
                         ModelState.AddModelError("PO No.", "Invalid PO No.!");
                     }
-                    else
-                    {
-                        if (order.PoDate > model.AIRDate)
-                        {
-                            ModelState.AddModelError("AIR Date", "AIR date must be greather than or equal to P.O. date!");
-                        }
-                        if (order.PoDate > model.InvoiceDate)
-                        {
-                            ModelState.AddModelError("Invoice Date", "Invoice Date date must be greather than or equal to P.O. date!");
-                        }
-                    }
+                    //else
+                    //{
+                    //    if (order.PoDate > model.AIRDate)
+                    //    {
+                    //        ModelState.AddModelError("AIR Date", "AIR date must be greather than or equal to P.O. date!");
+                    //    }
+                    //    if (order.PoDate > model.InvoiceDate)
+                    //    {
+                    //        ModelState.AddModelError("Invoice Date", "Invoice Date date must be greather than or equal to P.O. date!");
+                    //    }
+                    //}
                 }
 
                 if (model != null && ModelState.IsValid)
@@ -133,18 +137,18 @@ namespace iLgs.Controllers
                     {
                         ModelState.AddModelError("PO No", "Invalid PO No.!");
                     }
-                    else
-                    {
-                        if (order.PoDate > model.AIRDate)
-                        {
-                            ModelState.AddModelError("AIR Date", "AIR date must be greather than or equal to P.O. date!");
-                        }
+                    //else
+                    //{
+                    //    if (order.PoDate > model.AIRDate)
+                    //    {
+                    //        ModelState.AddModelError("AIR Date", "AIR date must be greather than or equal to P.O. date!");
+                    //    }
 
-                        if (order.PoDate > model.InvoiceDate)
-                        {
-                            ModelState.AddModelError("Invoice Date", "Invoice Date date must be greather than or equal to P.O. date!");
-                        }
-                    }
+                    //    if (order.PoDate > model.InvoiceDate)
+                    //    {
+                    //        ModelState.AddModelError("Invoice Date", "Invoice Date date must be greather than or equal to P.O. date!");
+                    //    }
+                    //}
                 }
 
                 if (ModelState.IsValid)
@@ -186,6 +190,180 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
                      "please contact tech support with this message: " + e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> _AIRAddEdit(Guid? airId)
+        {
+            var model = new AIR_VM();
+            if (airId != null)
+            {
+                model = await airService.GetVmByIdAsync((Guid)airId);
+                model.Mode = "E";
+            }
+            else
+            {
+                model.Mode = "A";
+                model.Id = Guid.NewGuid();
+            }
+            ViewData["airId"] = airId;
+            return PartialView(model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _AIRSave(AIR_VM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("Access Error", "Access Denied!");
+                }
+                
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;                    
+                    DateTime date = System.DateTime.Now;
+
+                    if (model.Mode == "A")
+                    {
+                        model = await _sa.Air.CreateAsync(model, user, date);
+                    }
+                    else
+                    {
+                        model = await _sa.Air.UpdateAsync(model, user, date);
+                    }
+                    
+                    return Json(new { Errors = "", Model = model });
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+            return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
+        }
+
+        public ActionResult _AIRInvoiceRead([DataSourceRequest] DataSourceRequest request, Guid? airId)
+        {
+            var data = _sa.AirInvoice.GetVmByAirId(airId);
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _AIRInvoiceCreate([DataSourceRequest] DataSourceRequest request, AIRInvoiceVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("", "Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _sa.AirInvoice.CreateAsync(model, user, date);                    
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _AIRInvoiceUpdate([DataSourceRequest] DataSourceRequest request, AIRInvoiceVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _sa.AirInvoice.UpdateAsync(model, user, date);                    
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _AIRInvoiceDestroy([DataSourceRequest]DataSourceRequest request, AIRInvoiceVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("GridError", "Delete Access Denied!");
+                }
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _sa.AirInvoice.DeleteAsync(model, user, date);                                        
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -391,7 +569,7 @@ namespace iLgs.Controllers
             rpt.Refresh();
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            string conString = db.Database.Connection.ConnectionString.ToString();
+            string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
 
             string un = decoder.UserID;

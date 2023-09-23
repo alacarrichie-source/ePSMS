@@ -75,7 +75,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var risDates = db.RISlips.Where(w => w.RisDate >= model.DateFrom && w.RisDate <= model.DateTo)
+                    var risDates = db.RISses.Where(w => w.RisDate >= model.DateFrom && w.RisDate <= model.DateTo)
                                     .AsNoTracking()
                                     .GroupBy(g => new { g.RisDate, g.Fund })
                                     .Select(s => new { Date = s.Key.RisDate, Fund = s.Key.Fund }).ToList();
@@ -104,7 +104,7 @@ namespace iLgs.Controllers
                                 UpdatedDt = date
                             };
 
-                            var riSlips = db.RISlips
+                            var riSlips = db.RISses
                                 .Where(w => w.RisDate == risDate.Date && w.Fund == risDate.Fund)
                                 .AsNoTracking()
                                 .Select(s => new { Id = s.Id  }).ToList();
@@ -114,7 +114,7 @@ namespace iLgs.Controllers
                                 {
                                     Id = Guid.NewGuid(),
                                     RsmiId = entity.Id,
-                                    RisId = riSlip.Id,
+                                    RisIssuedId = riSlip.Id,
                                     InsertedBy = user,
                                     InsertedDt = date
                                 };
@@ -201,11 +201,17 @@ namespace iLgs.Controllers
                             Code = s.Code
                         }).ToListAsync();
 
-                    var risDates = db.Orders.Where(a => a.PoDate >= model.DateFrom && a.PoDate <= model.DateTo
-                        && a.RISlips.Any())
-                        .AsNoTracking()
-                        .GroupBy(g => new { g.PoDate })
-                        .Select(s => new { Date = s.Key.PoDate });
+                    //var risDates = db.Orders.Where(a => a.PoDate >= model.DateFrom && a.PoDate <= model.DateTo
+                    //    && a.RISlips.Any())
+                    //    .AsNoTracking()
+                    //    .GroupBy(g => new { g.PoDate })
+                    //    .Select(s => new { Date = s.Key.PoDate });
+                    
+                    var risDates = db.RisIssueds.AsNoTracking().Where(w => w.IssuedDate >= model.DateFrom && w.IssuedDate <= model.DateTo
+                        && w.RisItem.RISs.PostedDt != null
+                        ).GroupBy(g => g.IssuedDate)
+                        .Select(s => new { Date = s.Key });
+
 
                     foreach (var fund in funds)
                     {
@@ -227,36 +233,42 @@ namespace iLgs.Controllers
                                 UpdatedDt = date
                             };
 
-                            var riSlips = db.RISlips.Where(w => w.Order.PoDate == risDate.Date && w.Fund == fund.Code)
-                                .AsNoTracking()
-                                .Select(s => new { Id = s.Id, RISlipItems = s.RISlipItems });
+                            //var riSlips = db.RISlips.Where(w => w.Order.PoDate == risDate.Date && w.Fund == fund.Code)
+                            //    .AsNoTracking()
+                            //    .Select(s => new { Id = s.Id, RISlipItems = s.RISlipItems });
+                            var riSlips = db.RisIssueds.AsNoTracking()
+                                .Where(w => w.IssuedDate == risDate.Date && w.RisItem.RISs.Fund == fund.Code)
+                                .Select(s => new { Id = s.Id, RisItemId = s.RisItemId });
                             foreach (var riSlip in riSlips)
                             {
                                 var rsmiItem = new RSMIItem()
                                 {
                                     Id = Guid.NewGuid(),
                                     RsmiId = entity.Id,
-                                    RisId = riSlip.Id,
+                                    RisIssuedId = riSlip.Id,
                                     InsertedBy = user,
                                     InsertedDt = date
                                 };
                                 entity.RSMIItems.Add(rsmiItem);
 
-                                foreach (var riSlipItem in riSlip.RISlipItems)
-                                {
-                                    var rsmiRecap = new RSMIRecap()
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        RsmiId = entity.Id,
-                                        PsItemId = riSlipItem.PsItem.Id,
-                                        StockNo = riSlipItem.PsItem.PsStock.StockNo,
-                                        Qty = riSlipItem.IssQty,
-                                        UnitCost = riSlipItem.UnitCost,
-                                        TotalCost = riSlipItem.Amount,
-                                        AccountCode = ""
-                                    };
-                                    entity.RSMIRecaps.Add(rsmiRecap);
-                                }
+                                //var orderItems = db.OrderItems.Where(w => w.RequestItem.RisItem.Id == riSlip.RisItemId);
+
+                                //foreach (var orderItem in orderItems)
+                                //{
+                                //    var psItem = db.PsItems.Where(w => w.OrderItemId == )
+                                //    var rsmiRecap = new RSMIRecap()
+                                //    {
+                                //        Id = Guid.NewGuid(),
+                                //        RsmiId = entity.Id,
+                                //        PsItemId = orderItem.PsItem.Id,
+                                //        StockNo = orderItem.PsItem.PsStock.StockNo,
+                                //        Qty = orderItem.IssQty,
+                                //        UnitCost = orderItem.UnitCost,
+                                //        TotalCost = orderItem.Amount,
+                                //        AccountCode = ""
+                                //    };
+                                //    entity.RSMIRecaps.Add(rsmiRecap);
+                                //}
                             }
 
                             db.RSMIs.Add(entity);
@@ -354,31 +366,31 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public ActionResult RSMIItemRead([DataSourceRequest] DataSourceRequest request, Guid? rsmiId)
-        {
-            var data = db.RISlipItems.Where(w => w.RISlip.RSMIItems.Any(a => a.RsmiId == rsmiId))
-                .Select(s => new RSMIItemVM
-                {
-                    Id = s.Id,
-                    RISNo = s.RISlip.RisNo,
-                    StockNo = s.PsItem.PsStock.StockNo,
-                    //RCC = s.PsItem.OrderItem.RequestItem.Request.FPP,
-                    ItemName = s.PsItem.PsStock.PsCode.ItemName,
-                    QtyIss = s.IssQty,
-                    Unit = s.PsItem.PsStock.PsCode.UnitMeas,
-                    UnitCost = s.UnitCost,
-                    Amount = s.Amount
-                }).AsQueryable();
+        //public ActionResult RSMIItemRead([DataSourceRequest] DataSourceRequest request, Guid? rsmiId)
+        //{
+        //    var data = db.RISlipItems.Where(w => w.RISlip.RSMIItems.Any(a => a.RsmiId == rsmiId))
+        //        .Select(s => new RSMIItemVM
+        //        {
+        //            Id = s.Id,
+        //            RISNo = s.RISlip.RisNo,
+        //            StockNo = s.PsItem.PsStock.StockNo,
+        //            //RCC = s.PsItem.OrderItem.RequestItem.Request.FPP,
+        //            ItemName = s.PsItem.PsStock.PsCode.ItemName,
+        //            QtyIss = s.IssQty,
+        //            Unit = s.PsItem.PsStock.PsCode.UnitMeas,
+        //            UnitCost = s.UnitCost,
+        //            Amount = s.Amount
+        //        }).AsQueryable();
 
-            var result = new JsonNetResult
-            {
-                Data = data.ToDataSourceResult(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
+        //    var result = new JsonNetResult
+        //    {
+        //        Data = data.ToDataSourceResult(request),
+        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+        //    };
 
-            return result;
-        }
+        //    return result;
+        //}
 
         #region PRINTING
         public ActionResult _PrintRsmi()

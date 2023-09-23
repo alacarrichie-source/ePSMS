@@ -1,0 +1,365 @@
+﻿@model iLgs.Models.AIR_VM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formAir", id = "formAir" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.Mode)
+
+    <fieldset>
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.AIRNo, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.AIRNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                    @Html.ValidationMessageFor(model => model.AIRNo)
+                </div>
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.AIRDate, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().DatePickerFor(model => model.AIRDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.AIRDate)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.OrderId, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.OrderId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select PO No.")
+                            .DataTextField("PoNo")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetPoNosWithoutPr", "Getters").Data("DataOrderId");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("PoNo").Title("PO No.").Width("30%");
+                                c.Add().Template("#= kendo.toString(new Date(parseInt(PoDate.substr(6))), 'MM/dd/yyyy') #").Title("Date").Width("30%");
+                                c.Add().Field("Department").Title("Department").Width("40%");
+                            })
+                            .Events(e => { e.Select("onSelectOrderId"); })
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.OrderId)
+                </div>
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.PoDate, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().DatePickerFor(model => model.PoDate).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.PoDate)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.Supplier, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.Supplier).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.Department, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.Department).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                </div>
+            </div>
+        </div>
+
+        @*<div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.InvoiceNo, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.InvoiceNo).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
+                    @Html.ValidationMessageFor(model => model.InvoiceNo)
+                </div>
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.InvoiceDate, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().DatePickerFor(model => model.InvoiceDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.InvoiceDate)
+                </div>
+            </div>
+        </div>*@
+
+        <br />
+
+        <div class="row clearfix">
+            <div class="col-md-6">
+                <section id="acceptance" class="card ra-section">
+                    <div class="card-header">Acceptance</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.AcceptedDate, htmlAttributes: new { @class = "col-md-3" })
+                                <div class="col-md-9">
+                                    @(Html.Kendo().DatePickerFor(m => m.AcceptedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-offset-2">
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsComplete).Label("Complete"))
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-offset-2">
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsPartial).Label("Partial (pls. specify)"))
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-3">
+                                    &nbsp;
+                                </div>
+                                <div class="col-md-9">
+                                    @(Html.Kendo().TextBoxFor(m => m.Remarks).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.Custodian, htmlAttributes: new { @class = "col-md-3" })
+                                <div class="col-md-9">
+                                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Custodian)
+                                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                                        .Placeholder("Select Custodian")
+                                        .DataTextField("Description")
+                                        .DataValueField("Description")
+                                        .Filter(FilterType.Contains)
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetCustodians", "Getters");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Columns(c =>
+                                        {
+                                            c.Add().Field("Description").Title("Name").Width("60%");
+                                            c.Add().Field("Desc2").Title("Designation").Width("40%");
+                                        })
+                                        .Suggest(true)
+                                    )
+                                    @Html.ValidationMessageFor(model => model.Custodian)
+                                </div>
+                            </div>
+                        </div>
+                </section>
+            </div>
+
+            <div class="col-md-6">
+                <section id="inspection" class="card ra-section">
+                    <div class="card-header">Inspection</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.InspectedDate, htmlAttributes: new { @class = "col-md-3" })
+                                <div class="col-md-9">
+                                    @(Html.Kendo().DatePickerFor(m => m.InspectedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-offset-2">
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsInspected).Label("Inspected, verified and found in order as to quality and specifications."))
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.Officer, htmlAttributes: new { @class = "col-md-3" })
+                                <div class="col-md-9">
+                                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Officer)
+                                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                                        .Placeholder("Select Officer")
+                                        .DataTextField("Description")
+                                        .DataValueField("Description")
+                                        .Filter(FilterType.Contains)
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetOfficers", "Getters");
+                                            })
+                                            .ServerFiltering(true);
+                                        })
+                                        .Columns(c =>
+                                        {
+                                            c.Add().Field("Description").Title("Name").Width("60%");
+                                            c.Add().Field("Desc2").Title("Designation").Width("40%");
+                                        })
+                                        .Suggest(true)
+                                    )
+                                    @Html.ValidationMessageFor(model => model.Officer)
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <br />
+
+        <div class="row">
+            <div class="col-md-12">
+                @RenderTabstrip()
+            </div>
+        </div>
+
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                <span id="span_">
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSaveSelection"))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancelSelection"))
+                </span>
+            </div>
+        </div>
+    </fieldset>
+}
+
+@helper RenderTabstrip()
+{
+    @(Html.Kendo().TabStrip()
+    .Name("tabstrip")
+    .TabPosition(TabStripTabPosition.Top)
+    .Animation(animation =>
+    {
+        animation.Open(config =>
+        {
+            config.Fade(FadeDirection.In);
+        });
+    })
+    .SelectedIndex(0)
+    .Items(items =>
+    {
+        items.Add().Text("Invoices")
+        .Selected(true)
+        .Content(@<text> @RenderGridItems() </text>);
+    })
+    )
+}
+
+@helper RenderGridItems()
+{
+    @(Html.Kendo().Grid<iLgs.Models.AIRInvoiceVM>()
+    .Name("gridInvoices")
+    .Columns(col =>
+    {
+        col.Bound(c => c.Id).Hidden();
+        col.Bound(c => c.InvoiceNo).Width(100);
+        col.Bound(c => c.InvoiceDate).Width(50).EditorTemplateName("_InvoiceDateTemplate");
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+        }).Width(50);
+    })
+    .ToolBar(toolbar => toolbar.Create().Text("Add Items"))
+    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_IssuedItemTemplate").Window(w => w.Width(600).Title("Issued Item")))
+    .Editable(editable => editable.Mode(GridEditMode.InLine))
+    .Resizable(r => r.Columns(true))
+    //.Filterable()
+    //.Pageable(pager => pager
+    //    //.Input(false)
+    //    //.Numeric(true)
+    //    //.Info(true)
+    //    //.PreviousNext(true)
+    //    //.Refresh(true)
+    //    //.PageSizes(true)
+    //    //.ButtonCount(5)
+    //)
+    .Sortable()
+    .NoRecords()
+    .Scrollable(s => s.Height(100))
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .PageSize(10000)
+    .Events(events => events.Error("error_handler"))
+    .Model(model =>
+    {
+        model.Id(p => p.Id);
+        model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+    })
+    .Read(read => read.Action("_AIRInvoiceRead", "AIRs", new { airId = @ViewData["airId"] }))
+    .Create(create => create.Action("_AIRInvoiceCreate", "AIRs"))
+    .Update(update => update.Action("_AIRInvoiceUpdate", "AIRs"))
+    .Destroy(destroy => destroy.Action("_AIRInvoiceDestroy", "AIRs"))
+    )
+    //.AutoBind(false)
+    .Events(e => e.Edit("onEditGridInvoice")
+    //.Change("onChangeGridItems")
+    //.Save("onSaveGridItems")
+    //.DataBound("onDataBoundGridItems")
+    )
+    )
+}
+
+
+<script type="text/javascript">
+
+    $("#btnSaveSelection").click(function (e) {
+        e.preventDefault();
+        var validator = $("#formAir").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            //window.kendo.ui.progress($("#form"), true);
+            //var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            // Get reference to Grid object
+            var grid = $("#gridInvoices").data("kendoGrid");
+
+            if (grid.dataSource.total() == 0) {
+                if (!confirm("Save with empty invoice?")) {
+                    return;
+                }
+            }
+            SaveRecords(e, true);
+            //disabled.attr('disabled', 'disabled');
+        }
+    });
+
+    $("#btnCancelSelection").click(function (e) {
+        e.preventDefault();
+        $("#btnCancelSelection").closest(".k-window-content").data("kendoWindow").close();
+    });
+
+
+</script>
+
+
+

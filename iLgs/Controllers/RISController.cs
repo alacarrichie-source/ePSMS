@@ -255,7 +255,7 @@ namespace iLgs.Controllers
         }
         public async Task<ActionResult> _RISItemAddEdit(Guid risId, Guid? risItemId)
         {
-            var data = await _sa.RisItems.GetVmByIdAsync(risItemId);
+            var data = await _sa.RisItem.GetVmByIdAsync(risItemId);
             if (data == null)
             {
                 data = new RisItemVM()
@@ -293,19 +293,19 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
                     
-                    var entity = await _sa.RisItems.GetByIdAsync(model.Id);
+                    var entity = await _sa.RisItem.GetByIdAsync(model.Id);
 
                     if (entity == null)
                     {
-                        model = await _sa.RisItems.CreateAsync(model, user, date);
+                        model = await _sa.RisItem.CreateAsync(model, user, date);
                     }
                     else
                     {
-                        model = await _sa.RisItems.UpdateAsync(model, user, date);
+                        model = await _sa.RisItem.UpdateAsync(model, user, date);
                     }
 
                     var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
-                    await _sa.RisItemExtns.SaveAsync(model.Id, risItemExtns, user, date);
+                    await _sa.RisItemExtn.SaveAsync(model.Id, risItemExtns, user, date);
                 }
             }
             catch (Exception e)
@@ -330,7 +330,7 @@ namespace iLgs.Controllers
 
         public ActionResult _RISItemRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
         {
-            var data = _sa.RisItems.GetByRisId(risId);
+            var data = _sa.RisItem.GetByRisId(risId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -360,9 +360,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _sa.RisItems.DeleteAsync(model, user, date);
+                    model = await _sa.RisItem.DeleteAsync(model, user, date);
                 }
-
             }
             catch (Exception e)
             {
@@ -377,7 +376,7 @@ namespace iLgs.Controllers
         [Authorize]
         public ActionResult _RISItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId, string psType)
         {
-            var data = _sa.RisItemExtns.GetBatchInfo(risItemId, psType);
+            var data = _sa.RisItemExtn.GetBatchInfo(risItemId, psType);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -468,7 +467,7 @@ namespace iLgs.Controllers
                 }
             }
 
-            var lgu = _sa.Codextns.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            var lgu = _sa.Codextn.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
             rpt.SetParameterValue("@cRisNo", risNo);
             rpt.SetParameterValue("LGU", lgu);
@@ -486,7 +485,7 @@ namespace iLgs.Controllers
 
         public ActionResult RequisitionRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _sa.PsCodes.GetMaintenanceView();
+            var data = _sa.PsCode.GetMaintenanceView();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

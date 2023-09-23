@@ -9,9 +9,13 @@ namespace iLgs.Agents.Services
     public interface IServiceAgent
     {
         IRisService Ris { get; }
-        IRisItemService RisItems { get; }
-        IRisItemExtnService RisItemExtns { get; }
-        ICodextnService Codextns { get; }
-        IPsCodeService PsCodes { get; }
+        IRisItemService RisItem { get; }
+        IRisItemExtnService RisItemExtn { get; }
+        ICodextnService Codextn { get; }
+        IPsCodeService PsCode { get; }
+
+        IAirService Air { get; }
+
+        IAirInvoiceService AirInvoice { get; }
     }
 }

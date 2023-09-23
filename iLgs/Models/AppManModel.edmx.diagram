@@ -36,9 +36,6 @@
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="97" >
         <EntityTypeShape EntityType="AppManModel.Supplier" Width="1.5" PointX="5.25" PointY="25.625" />
         <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="0.75" PointY="3.625" />
-        <EntityTypeShape EntityType="AppManModel.IssuedItem" Width="1.5" PointX="20" PointY="4.25" />
-        <EntityTypeShape EntityType="AppManModel.Issued" Width="1.5" PointX="17.75" PointY="3.875" />
-        <AssociationConnector Association="AppManModel.FK_RPSMIssuedItems_RPSMIssued" />
         <EntityTypeShape EntityType="AppManModel.AIRItem" Width="1.5" PointX="12" PointY="11.5" />
         <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="7.5" PointY="24.625" />
         <AssociationConnector Association="AppManModel.FK_Orders_Suppliers" />
@@ -74,22 +71,20 @@
         <EntityTypeShape EntityType="AppManModel.PARItem" Width="1.5" PointX="12" PointY="22" />
         <AssociationConnector Association="AppManModel.FK_PARItems_OrderItems" />
         <AssociationConnector Association="AppManModel.FK_PARItems_PARs" />
+        <EntityTypeShape EntityType="AppManModel.AIRInvoice" Width="1.5" PointX="12" PointY="7.75" />
+        <AssociationConnector Association="AppManModel.FK_AIRInvoices_AIRs" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="Issuance" ZoomLevel="75" >
-        <EntityTypeShape EntityType="AppManModel.IssuedItem" Width="1.5" PointX="5.25" PointY="7.125" />
-        <EntityTypeShape EntityType="AppManModel.Issued" Width="1.5" PointX="3" PointY="0.75" />
-        <AssociationConnector Association="AppManModel.FK_RPSMIssuedItems_RPSMIssued" />
-        <EntityTypeShape EntityType="AppManModel.RSMI" Width="1.5" PointX="6" PointY="2.75" />
-        <EntityTypeShape EntityType="AppManModel.RSMIItem" Width="1.5" PointX="8.25" PointY="7.375" />
-        <EntityTypeShape EntityType="AppManModel.RSMIRecap" Width="1.5" PointX="8.25" PointY="10.625" />
-        <AssociationConnector Association="AppManModel.FK_RSMIItems_RSMI" />
+        <EntityTypeShape EntityType="AppManModel.RSMI" Width="1.5" PointX="0.75" PointY="2.75" />
+        <EntityTypeShape EntityType="AppManModel.RSMIRecap" Width="1.5" PointX="7.5" PointY="5.5" />
         <AssociationConnector Association="AppManModel.FK_RSMIRecap_RSMI" />
-        <EntityTypeShape EntityType="AppManModel.RISlipItem" Width="1.5" PointX="5.25" PointY="10.75" />
-        <EntityTypeShape EntityType="AppManModel.RISlip" Width="1.5" PointX="3" PointY="7.5" />
-        <AssociationConnector Association="AppManModel.FK_IssuedItems_RISlips" />
-        <AssociationConnector Association="AppManModel.FK_RISlipItems_RISlips" />
-        <AssociationConnector Association="AppManModel.FK_RSMIItems_RISlips" />
-      </Diagram>
+        <EntityTypeShape EntityType="AppManModel.RisIssued" Width="1.5" PointX="0.75" PointY="7.625" />
+        <EntityTypeShape EntityType="AppManModel.RisItem" Width="1.5" PointX="0.75" PointY="13" />
+        <AssociationConnector Association="AppManModel.FK_RisIssueds_RisItems" />
+        <EntityTypeShape EntityType="AppManModel.RSMIItem" Width="1.5" PointX="3" PointY="5.875" />
+        <AssociationConnector Association="AppManModel.FK_RSMIItems_RisIssueds" />
+        <AssociationConnector Association="AppManModel.FK_RSMIItems_RSMI" />
+        </Diagram>
       <Diagram DiagramId="4250ae833eb14d9bb2aef43c6a35f5be" Name="Stocks" ZoomLevel="94" >
         <EntityTypeShape EntityType="AppManModel.PsStock" Width="1.5" PointX="3" PointY="3.75" />
         <EntityTypeShape EntityType="AppManModel.PsCode" Width="1.5" PointX="0.75" PointY="3.625" />

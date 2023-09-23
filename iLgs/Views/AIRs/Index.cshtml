@@ -18,25 +18,30 @@
         col.Bound(c => c.PostedBy).Width(70);
         col.Command(command =>
         {
-            command.Edit();
-            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            //command.Edit();
+            command.Custom("Edit").IconClass("k-icon k-i-edit").Click("onGridEditClick").SendDataKeys(true);
+            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            command.Destroy();
         }).Width(120);
     })
     .ToolBar(t =>
     {
-        t.Create().Text("Add Record");
+    //t.Create().Text("Add Record");
+@*@(Html.Kendo().Button().Name("btnAdd").Icon("k-icon k-i-add").Content("Issue Order")
+                        .Events(e => e.Click("onClickBtnAdd"))*@
+        t.Custom().Text("Add Record").IconClass("k-icon k-i-add").Name("btnAddAir_").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrint_").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost_").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost_").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRTemplate").Window(w => w.Width(800).Title("Acceptance and Inspection")))
+    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRTemplate").Window(w => w.Width(800).Title("Acceptance and Inspection")))
     .Search(s =>
     {
         s.Field(o => o.AIRNo, "contains");
         s.Field(o => o.PoNo, "contains");
         s.Field(o => o.Department, "contains");
-        s.Field(o => o.InvoiceNo, "contains");
+        //s.Field(o => o.InvoiceNo, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -61,16 +66,16 @@
         .Model(model =>
         {
             model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            model.Field(p => p.Id).DefaultValue(Guid.NewGuid()).Editable(true);
         })
         .Read(read => read.Action("AIRRead", "AIRs"))
-        .Create(create => create.Action("AIRCreate", "AIRs"))
-        .Update(update => update.Action("AIRUpdate", "AIRs"))
+        //.Create(create => create.Action("AIRCreate", "AIRs"))
+        //.Update(update => update.Action("AIRUpdate", "AIRs"))
         .Destroy(destroy => destroy.Action("AIRDestroy", "AIRs"))
     )
     .Events(events => events
         .Change("onChangeGrid")
-        .Edit("onEditGrid")
+        //.Edit("onEditGrid")
         .DataBound("onDataBoundGrid")
         )
 )
@@ -198,6 +203,22 @@
         }
     }
 
+    function error_handler(e, status) {
+        if ((e.errors)) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+            //var selectedGrid = $("#gridInvoices").data("kendoGrid");
+            //selectedGrid.cancelRow();
+        }
+    }
+
     function GridError(args) {
         if (args.errors) {
             var validationError = true;
@@ -311,13 +332,70 @@
     }
 
     function onGridDeleteClick(e) {
+        //e.preventDefault();
+        //selectedGrid = this;
+        //var tr = $(e.currentTarget).closest("tr");
+        //var dataItem = selectedGrid.dataItem(tr);
+        //var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        //selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        //setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+
         e.preventDefault();
         selectedGrid = this;
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
+        const tr = $(e.currentTarget).closest("tr");
+        const dataItem = this.dataItem(tr);
+        const rowitem = this.dataSource.get(dataItem.Id);
+        this.select($('[data-uid=' + rowitem.uid + ']'));
+        this.removeRow(tr);
+    }
+
+    $(".k-grid-btnAddAir_").click(function (e) {
+        e.preventDefault();
+        Entry("A", null);
+    });
+
+    function onGridEditClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var dataItem = selectedGrid.dataItem($(e.currentTarget).closest("tr"));
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+        selectedGrid.select(row);
+        selectedId = selectedGrid.dataItem(selectedGrid.select()).Id;
+        Entry("E", selectedId);
+    }
+
+    function Entry(mode, airId) {
+        var myTitle = (mode == "A") ? "Acceptance & Inspection - ADD" : "Acceptance & Inspection - EDIT";
+        var width = "50%";
+        var height = "75%";
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    close: function () {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width,
+            height: height
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_AIRAddEdit", "AIRs")',
+            data: {
+                airId: airId
+            }
+        });
+        mywindow.center().open();
     }
 
     // Grid Item
@@ -430,7 +508,8 @@
 
     function onClickBtnEditItem(e) {
         e.preventDefault();
-
+        e.stopPropagation();
+        
         // the master row for this detail
         var parentRow = this.wrapper.closest("tr").prev();
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
@@ -445,6 +524,7 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        
         AIRItem("E", dataItem.Id);
     }
 
@@ -581,6 +661,88 @@
             orderItemId: $("#OrderItemId").val(),
             psType: $("#PsType").val()
         };
+    }
+
+    // GRID INVOICE
+    function DataGridInvoice() {
+        return {
+            airId: selectedId
+        };
+    }
+
+    function onEditGridInvoice(e) {
+        e.preventDefault();        
+        selectedGrid = e.sender;
+
+        var validator = $("#formAir").kendoValidator().data("kendoValidator");        
+        
+        if (!validator.validate()) {
+
+            // Get all the invalid input elements.
+            var invalidInputs = validator.element.find(".k-invalid");
+
+            // Loop through each invalid input element and display its properties.
+            invalidInputs.each(function () {
+                var invalidInput = $(this);
+                var invalidInputId = invalidInput.attr("id");
+                var invalidInputName = invalidInput.attr("name");
+
+                console.log("Invalid input ID: " + invalidInputId);
+                console.log("Invalid input name: " + invalidInputName);
+
+                // You can also display more properties or perform other actions as needed.
+            });
+
+            selectedGrid.cancelRow();
+        }
+        else {
+            SaveRecords(e, false);
+        }
+    }
+
+    function SaveRecords(e, closeWindow) {        
+        var disabled = $("#formAir").find(':input:disabled').removeAttr('disabled');
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("_AirSave", "AIRs")',
+            data: $("#formAir").serialize(),
+            beforeSend: function () {
+                window.kendo.ui.progress($("#formAir"), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($("#formAir"), false);
+                if (result.Errors == "") {
+                    $("#formAir input[name=Id]").val(result.Model.Id).trigger("change");
+                    $("#formAir input[name=AIRNo]").val(result.Model.AIRNo).trigger("change");
+                    if (closeWindow) {
+                        $("#btnCancelSelection").closest(".k-window-content").data("kendoWindow").close();
+                    } else {                        
+                        if (e.model.isNew()) {                            
+                            selectedId = result.Model.Id;
+
+                            e.model.set("AirId", selectedId);                            
+
+                            var row = e.sender.tbody.find("tr:first");
+                            if (row) {
+                                selectedGrid.select(row);
+                            }
+                        } else {
+                            selectedId = e.model.get("Id");
+                            var rowitem = selectedGrid.dataSource.get(selectedId);
+                            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+                        }
+                    }
+                    disabled.attr('disabled', 'disabled')
+                } else {
+                    alert(result.Errors);
+                }
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+            }
+        }).always(function () {
+            window.kendo.ui.progress($("#formAir"), false);
+        });
     }
 </script>
 

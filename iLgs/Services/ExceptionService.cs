@@ -36,6 +36,10 @@ namespace iLgs.Services
             {
                 throw invalidValueException;
             }
+            catch (RequiredFieldException requiredFieldException)
+            {
+                throw requiredFieldException;
+            }
             catch (RecordAlreadyPostedException recordAlreadyPostedException)
             {
                 throw recordAlreadyPostedException;
@@ -84,6 +88,10 @@ namespace iLgs.Services
             catch (InvalidValueException invalidValueException)
             {
                 throw invalidValueException;
+            }
+            catch (RequiredFieldException requiredFieldException)
+            {
+                throw requiredFieldException;
             }
             catch (RecordAlreadyPostedException recordAlreadyPostedException)
             {
@@ -134,6 +142,10 @@ namespace iLgs.Services
             {
                 throw invalidValueException;
             }
+            catch (RequiredFieldException requiredFieldException)
+            {
+                throw requiredFieldException;
+            }
             catch (RecordAlreadyPostedException recordAlreadyPostedException)
             {
                 throw recordAlreadyPostedException;
@@ -182,6 +194,10 @@ namespace iLgs.Services
             catch (InvalidValueException invalidValueException)
             {
                 throw invalidValueException;
+            }
+            catch (RequiredFieldException requiredFieldException)
+            {
+                throw requiredFieldException;
             }
             catch (RecordAlreadyPostedException recordAlreadyPostedException)
             {

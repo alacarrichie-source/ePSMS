@@ -676,16 +676,16 @@ namespace iLgs.Controllers
                     model.UpdatedDt = date;
 
                     var entity = await db.PsItems.FindAsync(model.Id);
-                    var qtyIss = db.RISlipItems.Where(w => w.StockItemId == entity.Id).Sum(s => s.IssQty) ?? 0;
-                    var qtyBal = model.Qty - qtyIss;
+                    //var qtyIss = db.RISlipItems.Where(w => w.StockItemId == entity.Id).Sum(s => s.IssQty) ?? 0;
+                    //var qtyBal = model.Qty - qtyIss;                    
 
                     entity.PsStockId = model.PsStockId;
                     entity.RefNo = model.RefNo;
                     entity.RefDate = model.RefDate;
                     entity.RefType = model.RefType;
                     entity.Qty = model.Qty;
-                    entity.QtyIss = qtyIss;
-                    entity.QtyBal = qtyBal;
+                    entity.QtyIss = model.QtyIss;
+                    entity.QtyBal = model.QtyBal;
                     entity.Days = model.Days;
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
