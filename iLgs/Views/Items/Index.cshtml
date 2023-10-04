@@ -491,7 +491,7 @@
             selecteItemFieldId = null;
         } else {
             selecteItemFieldId = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selecteItemId);
+            var rowitem = selectedGrid.dataSource.get(selecteItemFieldId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
             //$("#Code").attr("readonly", "readonly");
         }

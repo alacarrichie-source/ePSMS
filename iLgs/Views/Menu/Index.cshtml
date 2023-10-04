@@ -62,6 +62,7 @@
 <div class="col-md-9">
     @(Html.Kendo().Grid<iLgs.Models.Menubase>()
         .Name("grid")
+        .HtmlAttributes(new { @class = "menu-grid" })
         .Columns(col =>
         {
             col.Bound(c => c.ChildId).Hidden();
@@ -114,6 +115,7 @@
 <div class="col-md-3">
     @(Html.Kendo().Grid<iLgs.Models.MenuActionSw>()
         .Name("gridActions")
+        .HtmlAttributes(new { @class = "menu-grid2" })
         .Columns(columns =>
         {
             columns.Bound(o => o.Code).Width(100);
@@ -194,6 +196,16 @@
 <style>
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
         width: auto;
+    }
+
+    .menu-grid .k-grid-content {
+        overflow-x: auto;
+        height: calc(100vh - 270px) !important;
+    }
+
+    .menu-grid2 .k-grid-content {
+        overflow-x: auto;
+        height: calc(100vh - 210px) !important;
     }
 </style>
 

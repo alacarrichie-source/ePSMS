@@ -29,7 +29,8 @@ namespace iLgs.Controllers
         private IItemFieldService itemFieldService;
         private IPsCodeService psCodeService;
         private ICodextnService codextnService;
-        private IDirectoryService directoryService;        
+        private IDirectoryService directoryService;
+        private IRisIssuedService risIssuedService;
 
         public ItemsController()
         {
@@ -38,7 +39,8 @@ namespace iLgs.Controllers
             this.itemFieldService = new ItemFieldService(db);
             this.psCodeService = new PsCodeService(db);
             this.codextnService = new CodextnService(db);
-            this.directoryService = new DirectoryService(db);            
+            this.directoryService = new DirectoryService(db);
+            this.risIssuedService = new RisIssuedService(db);
         }
 
         // GET: Codes
@@ -88,7 +90,7 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }        
+        }
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> ItemUpdate([DataSourceRequest] DataSourceRequest request, ItemTypeVM model)
@@ -151,7 +153,7 @@ namespace iLgs.Controllers
 
         public ActionResult _ItemCodes(Guid itemTypeId)
         {
-            ViewData["itemTypeId"] = itemTypeId;            
+            ViewData["itemTypeId"] = itemTypeId;
             return PartialView();
         }
 
@@ -185,7 +187,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await itemCodeService.CreateAsync(model, user, date);                    
+                    model = await itemCodeService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -376,7 +378,7 @@ namespace iLgs.Controllers
         }
 
         public string GetImageDir()
-        {            
+        {
             return directoryService.GetItemImageDirectory();
         }
 
@@ -433,12 +435,14 @@ namespace iLgs.Controllers
                     model.UpdatedDt = date;
                     model.StockNo = NextStockNo(psNo);
 
-                    var entity = new PsStock { 
+                    var entity = new PsStock
+                    {
                         Id = model.Id,
                         PsId = model.PsId,
                         StockNo = model.StockNo,
                         StockName = model.StockName,
                         Description = model.Description,
+                        Brand = model.Brand,
                         InsertedBy = model.InsertedBy,
                         InsertedDt = model.InsertedDt,
                         UpdatedBy = model.UpdatedBy,
@@ -484,9 +488,10 @@ namespace iLgs.Controllers
                     entity.StockNo = model.StockNo;
                     entity.StockName = model.StockName;
                     entity.Description = model.Description;
+                    entity.Brand = model.Brand;
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
-                    
+
                     db.PsStocks.Attach(entity);
                     db.Entry(entity).State = EntityState.Modified;
                     await db.SaveChangesAsync();
@@ -546,9 +551,9 @@ namespace iLgs.Controllers
         }
 
         public string NextStockNo(string psNo)
-        {            
+        {
             string keyName = psNo;
-            
+
             var data = db.PsStocks.Where(w => w.PsCode.PsNo == psNo)
                 .OrderByDescending(o => o.StockNo).FirstOrDefault();
             if (data == null)
@@ -562,16 +567,18 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult StockExtnRead([DataSourceRequest] DataSourceRequest request, Guid? stockId)
+        public ActionResult StockExtnRead([DataSourceRequest] DataSourceRequest request, string stockNo)
         {
-            var data = db.PsStockExtns.Where(w => w.PsStockId == stockId)
+
+            var data = db.RisItemExtns.Where(w => w.RisItem.RequestItems.Any(a => a.OrderItems.Any(o => o.StockNo == stockNo)))
                 .Select(s => new PsStockExtnVM
                 {
                     Id = s.Id,
-                    ItemCode = db.Codextns.FirstOrDefault(a => a.CodeMast.Code == "PS-FIELDS" && a.Description == s.ItemKey && a.Code.Contains(s.PsStock.StockNo.Substring(0, 2))).Code,
+                    ItemCode = s.ItemNo,
                     ItemKey = s.ItemKey,
                     ItemValue = s.ItemValue
                 }).AsQueryable();
+
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -585,7 +592,8 @@ namespace iLgs.Controllers
         public ActionResult StockItemRead([DataSourceRequest] DataSourceRequest request, Guid? stockId)
         {
             var data = db.PsItems.Where(w => w.PsStockId == stockId)
-                .Select(s => new PsItemVM { 
+                .Select(s => new PsItemVM
+                {
                     Id = s.Id,
                     RefNo = s.RefNo,
                     RefDate = s.RefDate,
@@ -593,7 +601,8 @@ namespace iLgs.Controllers
                     Qty = s.Qty,
                     QtyIss = s.QtyIss,
                     QtyBal = s.QtyBal,
-                    Days = s.Days              
+                    Days = s.Days,
+                    StockNo = s.PsStock.StockNo
                 }).AsQueryable();
             var result = new JsonNetResult
             {
@@ -627,7 +636,7 @@ namespace iLgs.Controllers
                     model.InsertedDt = date;
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
-                    
+
                     var entity = new PsItem
                     {
                         Id = model.Id,
@@ -635,7 +644,7 @@ namespace iLgs.Controllers
                         RefNo = model.RefNo,
                         RefDate = model.RefDate,
                         RefType = model.RefType,
-                        Qty = model.Qty,                        
+                        Qty = model.Qty,
                         InsertedBy = model.InsertedBy,
                         InsertedDt = model.InsertedDt,
                         UpdatedBy = model.UpdatedBy,
@@ -820,7 +829,7 @@ namespace iLgs.Controllers
                     db.PsItems.Add(entity);
                     await db.SaveChangesAsync();
                 }
-                
+
                 if (Request.IsAjaxRequest())
                 {
                     var query = from state in ModelState.Values
@@ -830,7 +839,7 @@ namespace iLgs.Controllers
                     var errorList = query.ToList();
                     if (errorList.Count() > 0)
                     {
-                        return Json(new {Errors = errorList }, JsonRequestBehavior.DenyGet);
+                        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
                     }
                 }
             }
@@ -842,6 +851,21 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
+
+        #region ISSUED
+        public ActionResult _RISIssuedRead([DataSourceRequest] DataSourceRequest request, string poNo, string stockNo)
+        {
+            var data = risIssuedService.GetByPoNoStockNo(poNo, stockNo);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+        #endregion
 
         #region PRINTOUTS
         public ActionResult StockCardRpt(string stockNo)
@@ -860,7 +884,7 @@ namespace iLgs.Controllers
 
             rpt.Load();
             rpt.Refresh();
-            
+
             foreach (Table table in rpt.Database.Tables)
             {
                 var logonInfo = table.LogOnInfo;
@@ -873,10 +897,10 @@ namespace iLgs.Controllers
 
             var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
             var imagePath = codextnService.GetByMastCode("DIRS").Where(w => w.Code == "IMAGE-ITEMS").FirstOrDefault().Description;
-            
+
             rpt.SetParameterValue("@cStockNo", stockNo);
             rpt.SetParameterValue("ImagePath", imagePath);
-            rpt.SetParameterValue("LGU", lgu);            
+            rpt.SetParameterValue("LGU", lgu);
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             rpt.Close();
@@ -909,7 +933,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id,  Code = c.Code, Description = c.Description, Type = c.ItemType.Code}), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType.Code }), JsonRequestBehavior.AllowGet);
         }
 
         #endregion

@@ -17,8 +17,8 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public PsStock()
         {
-            this.PsStockExtns = new HashSet<PsStockExtn>();
             this.PsItems = new HashSet<PsItem>();
+            this.PsStockExtns = new HashSet<PsStockExtn>();
         }
     
         public System.Guid Id { get; set; }
@@ -26,6 +26,7 @@ namespace iLgs.Models
         public string StockNo { get; set; }
         public string StockName { get; set; }
         public string Description { get; set; }
+        public string Brand { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
@@ -33,8 +34,8 @@ namespace iLgs.Models
     
         public virtual PsCode PsCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsStockExtn> PsStockExtns { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsItem> PsItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsStockExtn> PsStockExtns { get; set; }
     }
 }

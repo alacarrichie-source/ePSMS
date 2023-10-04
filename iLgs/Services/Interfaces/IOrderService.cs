@@ -11,17 +11,17 @@ namespace iLgs.Services.Interfaces
     {
         IQueryable<OrderVM> GetAll();
         IQueryable<OrderVM> GetAllParOrders();
-        Task<Models.Order> GetByIdAsync(Guid orderId);
-        Task<Models.Order> GetByPoNoAsync(string poNo);
-        Task<bool> GetAnyPoNoAsync(Guid id, string poNo);        
-        Task<bool> IsPostedAsync(Guid orderId);
-        Task<bool> GetAnyParsAsync(Guid id);
-        Task<bool> GetAnyAirsAsync(Guid id);
-    
-        Task<OrderVM> CreateAsync(OrderVM model, string user, DateTime date);
-        Task<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date);
-        Task<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date);
-        Task PostAsync(Guid orderId, string user, DateTime date);
-        Task UnpostAsync(Guid orderId, string user, DateTime date);
+        ValueTask<Models.Order> GetByIdAsync(Guid orderId);
+        ValueTask<Models.Order> GetByPoNoAsync(string poNo);
+        ValueTask<bool> GetAnyPoNoAsync(Guid id, string poNo);
+        ValueTask<bool> IsPostedAsync(Guid orderId);
+        ValueTask<bool> GetAnyParsAsync(Guid id);
+        ValueTask<bool> GetAnyAirsAsync(Guid id);
+
+        ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date);
+        ValueTask<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date);
+        ValueTask<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date);
+        ValueTask PostAsync(Guid orderId, string user, DateTime date);
+        ValueTask UnpostAsync(Guid orderId, string user, DateTime date);
     }
 }

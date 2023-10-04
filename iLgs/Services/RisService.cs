@@ -53,7 +53,9 @@ namespace iLgs.Services
                     UpdatedBy = s.UpdatedBy,
                     UpdatedDt = s.UpdatedDt,
                     PostedBy = s.PostedBy,
-                    PostedDt = s.PostedDt
+                    PostedDt = s.PostedDt,
+                    IsPosted = s.PostedDt != null,
+                    IssuanceSw = false                    
                 });
             return data;
         });
@@ -123,7 +125,7 @@ namespace iLgs.Services
             var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
             foreach (var risItem in risItemList)
             {
-                if (!db.PsCodes.Any(a => a.PsType == risItem.ItemCode.ItemType.Code && a.PsNo == risItem.PsNoDisplay))
+                if (!db.PsCodes.Any(a => a.PsType == risItem.ItemCode.ItemType.Code && a.PsNo == risItem.PsNoDisplay && a.ItemName == risItem.ItemName))
                 {
                     var psCode = new PsCode()
                     {
@@ -188,7 +190,7 @@ namespace iLgs.Services
             var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
             foreach (var risItem in risItemList)
             {
-                var psCode = await db.PsCodes.Where(w => w.PsNo == risItem.PsNoDisplay && !w.PsStocks.Any()).FirstOrDefaultAsync();
+                var psCode = await db.PsCodes.Where(w => w.PsNo == risItem.PsNoDisplay && w.ItemName == risItem.ItemName && !w.PsStocks.Any()).FirstOrDefaultAsync();
                 if (psCode != null)
                 {
                     db.PsCodes.Remove(psCode);
@@ -352,17 +354,20 @@ namespace iLgs.Services
                 throw new RecordNotFoundException(model.Id);
             }
 
-            if (!string.IsNullOrWhiteSpace(rec.PostedBy))
+            if (!model.IssuanceSw)
             {
-                throw new RecordAlreadyPostedException(string.Format("RIS No {0} already posted. Cannot update!", rec.RisNo));
+                if (!string.IsNullOrWhiteSpace(rec.PostedBy))
+                {
+                    throw new RecordAlreadyPostedException(string.Format("RIS No {0} already posted. Cannot update!", rec.RisNo));
+                }
+
+                if (await IsPrPostedAsync(model.Id))
+                {
+                    throw new RecordRelationshipException("This RIS No has a posted PR, cannot update!");
+                }
             }
 
-
-            if (await IsPrPostedAsync(model.Id))
-            {
-                throw new RecordRelationshipException("This RIS No has a posted PR, cannot update!");
-            }
-            else if (await GetAnyRisNoAsync(model.Id, model.RisNo))
+            if (await GetAnyRisNoAsync(model.Id, model.RisNo))
             {
                 throw new RecordAlreadyExistsException(string.Format("RIS No {0} already exists!", model.RisNo));
             }

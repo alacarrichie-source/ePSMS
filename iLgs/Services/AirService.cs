@@ -15,6 +15,8 @@ namespace iLgs.Services
     {
         private readonly AppManEntities db = new AppManEntities();
         private IItemService itemService;
+        private readonly IExceptionService<AIR_VM> _VmExceptionService = new ExceptionService<AIR_VM>();
+        private readonly IExceptionService<AIR> _ExceptionService = new ExceptionService<AIR>();
 
         public AirService(AppManEntities db)
         {
@@ -22,9 +24,10 @@ namespace iLgs.Services
             this.itemService = new ItemService(db);
         }
 
-        public IQueryable<AIR_VM> GetAll()
+        public IQueryable<AIR_VM> GetAll() => _VmExceptionService.TryCatch(() =>
         {
             var data = db.AIRs
+                .AsNoTracking()
                 .Select(s => new AIR_VM
                 {
                     Id = s.Id,
@@ -50,19 +53,19 @@ namespace iLgs.Services
                     PostedDt = s.PostedDt
                 });
             return data;
-        }
+        });
 
-        public async Task<bool> GetAnyAirNoAsync(Guid airId, string airNo)
+        public async ValueTask<bool> GetAnyAirNoAsync(Guid airId, string airNo)
         {
             return await db.AIRs.AnyAsync(a => a.Id != airId && a.AIRNo == airNo);
         }
 
-        public async Task<AIR> GetByIdAsync(Guid id)
+        public ValueTask<AIR> GetByIdAsync(Guid id) => _ExceptionService.TryCatch(async () =>
         {
             return await db.AIRs.FindAsync(id);
-        }
+        });
 
-        public async Task<AIR_VM> GetVmByIdAsync(Guid id)
+        public ValueTask<AIR_VM> GetVmByIdAsync(Guid id) => _VmExceptionService.TryCatch(async () =>
         {
             var data = await db.AIRs
                 .Where(w => w.Id == id)
@@ -91,14 +94,14 @@ namespace iLgs.Services
                     PostedDt = s.PostedDt
                 }).FirstOrDefaultAsync();
             return data;
-        }
+        });
 
-        public async Task<AIR> GetByAirNoAsync(string airNo)
+        public ValueTask<AIR> GetByAirNoAsync(string airNo) => _ExceptionService.TryCatch(async () =>
         {
             return await db.AIRs.Where(w => w.AIRNo == airNo).FirstOrDefaultAsync();
-        }
+        });
 
-        public async Task<bool> IsPostedAsync(Guid airId)
+        public async ValueTask<bool> IsPostedAsync(Guid airId)
         {
             var entity = await db.AIRs.FindAsync(airId);
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
@@ -114,7 +117,7 @@ namespace iLgs.Services
         //    return false;
         //}
 
-        public async Task PostAsync(Guid airId, string user, DateTime date)
+        public ValueTask PostAsync(Guid airId, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
             var entity = await db.AIRs.FindAsync(airId);
             if (entity == null)
@@ -132,10 +135,10 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             await UpdatePsItem(airId, user, date, true);
-            
-        }
 
-        public async Task UnpostAsync(Guid airId, string user, DateTime date)
+        });
+
+        public ValueTask UnpostAsync(Guid airId, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
             var entity = await db.AIRs.FindAsync(airId);
             if (entity == null)
@@ -150,12 +153,12 @@ namespace iLgs.Services
 
             db.AIRs.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();                
-            
-            await UpdatePsItem(airId, user, date, false);
-        }
+            await db.SaveChangesAsync();
 
-        private async Task UpdatePsItem(Guid airId, string user, DateTime date, bool post)
+            await UpdatePsItem(airId, user, date, false);
+        });
+
+        private ValueTask UpdatePsItem(Guid airId, string user, DateTime date, bool post) => _VmExceptionService.TryCatch(async () =>
         {
             var orderItemIdList = await db.AIRItems.Where(w => w.AirId == airId).GroupBy(g => g.OrderItemId)
                 .Select(s => s.Key).ToListAsync();
@@ -178,10 +181,21 @@ namespace iLgs.Services
                     await db.SaveChangesAsync();
                 }
             }
-        }
+        });
 
-        public async Task<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date)
+        public ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            if (model.Id == Guid.Empty || model.Id == null)
+            {
+                return await CreateAsync(model, user, date);
+            }
+            return await UpdateAsync(model, user, date);
+        });
+
+        public async ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date) 
+        {
+            await ValidateOnCreate(model);
+
             model.Id = (model.Id == Guid.Empty || model.Id == null) ? Guid.NewGuid() : model.Id;
             if (string.IsNullOrWhiteSpace(model.AIRNo))
             {
@@ -241,29 +255,10 @@ namespace iLgs.Services
             return model;
         }
 
-        public async Task<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date)
+        public async ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date) 
         {
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
+            await ValidateOnUpdate(model);
 
-            var entity = await db.AIRs.FindAsync(model.Id);
-
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            db.AIRs.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
-
-            db.AIRs.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
-
-            return model;
-        }
-
-        public async Task<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date)
-        {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -327,6 +322,30 @@ namespace iLgs.Services
             return model;
         }
 
+        public ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        {
+
+            await ValidateOnDelete(model);
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            var entity = await db.AIRs.FindAsync(model.Id);
+
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            db.AIRs.Attach(entity);
+            db.Entry(entity).State = EntityState.Modified;
+            await db.SaveChangesAsync();
+
+            db.AIRs.Remove(entity);
+            db.Entry(entity).State = EntityState.Deleted;
+            await db.SaveChangesAsync();
+
+            return model;
+        });        
+
         private string NextAirNo(DateTime date)
         {
             string yyyy = date.Year.ToString().Trim();
@@ -349,5 +368,34 @@ namespace iLgs.Services
                 return keyName + "-" + sequence.PadLeft(4, '0');
             }
         }
+
+        private async ValueTask ValidateOnCreate(AIR_VM model)
+        {
+            if (await db.AIRs.AnyAsync(a => a.AIRNo == model.AIRNo))
+            {
+                throw new RecordAlreadyExistsException(string.Format("AIR Number {0} already exists", model.AIRNo));
+            }
+        }
+
+        private async ValueTask ValidateOnUpdate(AIR_VM model)
+        {
+            if (await db.AIRs.FindAsync(model.Id) == null)
+            {
+                throw new RecordNotFoundException(model.Id);
+            }
+
+            if (await db.AIRs.AnyAsync(a => a.AIRNo == model.AIRNo && a.Id != model.Id))
+            {
+                throw new RecordAlreadyExistsException(string.Format("AIR Number {0} already exists", model.AIRNo));
+            }
+        }
+
+        private async ValueTask ValidateOnDelete(AIR_VM model)
+        {
+            if (await db.AIRs.FindAsync(model.Id) == null)
+            {
+                throw new RecordNotFoundException(model.Id);
+            }            
+        }        
     }
 }

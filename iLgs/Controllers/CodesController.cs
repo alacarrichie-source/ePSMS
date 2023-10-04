@@ -40,6 +40,15 @@ namespace iLgs.Controllers
             return View("Codextn", codeMast);
         }
 
+        public async Task<ActionResult> IssuedBy()
+        {
+            var code = "ISSUED-BY";
+            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Issued by";
+            return View("Codextn", codeMast);
+        }
+
         public async Task<ActionResult> RequestedBy()
         {
             var code = "REQUEST-BY";

@@ -152,6 +152,8 @@ namespace iLgs.Models
 
         [Display(Name = "Stock Name")]
         public string StockName { get; set; }
+
+        public Nullable<System.Guid> RisItemId { get; set; }
     }
 
     public class OrderItemGroupVM
@@ -159,7 +161,8 @@ namespace iLgs.Models
         public Guid? PsCodeId { get; set; }
         public string StockNo { get; set; }
         public string StockName { get; set; }
-        public string Description { get; set; }        
+        public string Description { get; set; }
+        public string Brand { get; set; }
     }
 
     public class OrderItemExtnVM

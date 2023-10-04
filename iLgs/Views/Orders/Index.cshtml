@@ -370,7 +370,7 @@
     function OrderItem(mode, recId) {
         var myTitle = (mode == "A") ? "Order Item - ADD" : "Order Item - EDIT";
         var width = 800;
-        var height = 620;
+        var height = 670;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -480,7 +480,7 @@
         $("#ItemCode").val(dataItem.ItemCode).trigger("change");
         $("#ItemName").val(dataItem.ItemName).trigger("change");
         $("#PsUnit").val(dataItem.Unit).trigger("change");
-        //$("#PsCodeId").val(dataItem.PsCodeId).trigger("change");
+        $("#PsNo").val(dataItem.PsNo).trigger("change");
         $("#PsCode").val(dataItem.Code).trigger("change");
         $("#Description").val(dataItem.Description).trigger("change");
 
@@ -495,9 +495,9 @@
         RefreshGridItemExtn();
     }
 
-    function onDataBoundRequestItemId(e) {
-        RefreshGridItemExtn();
-    }
+    //function onDataBoundRequestItemId(e) {
+    //    RefreshGridItemExtn();
+    //}
 
     function RefreshGridItemExtn() {
         $("#gridItemExtn").data("kendoGrid").dataSource.read();
@@ -704,15 +704,12 @@
         });
     }
 
-    function DataOrderItemExtnGrid() {
+    function DataRisItemExtnGrid() {
         return {
-            mode: $("#Mode").val(),
-            requestItemId: $("#RequestItemId").data("kendoMultiColumnComboBox").value(),
-            orderItemId: $("#Id").val(),
+            risItemId: $("#RisItemId").val(),
             psType: $("#PsType").val()
-            //psCodeId: $("#PsCodeId").val()
         };
-    }
+    }    
     // ------------ END GRID ITEMEXTN
 
 

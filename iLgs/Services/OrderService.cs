@@ -18,6 +18,8 @@ namespace iLgs.Services
     {
         private readonly AppManEntities db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
+        private readonly IExceptionService<OrderVM> _orderVmExceptionService = new ExceptionService<OrderVM>();
+        private readonly IExceptionService<Order> _orderExceptionService = new ExceptionService<Order>();
         private IItemService itemService;
         
         public OrderService(AppManEntities db)
@@ -26,9 +28,9 @@ namespace iLgs.Services
             this.itemService = new ItemService(db);        
         }
 
-        public IQueryable<OrderVM> GetAll()
+        public IQueryable<OrderVM> GetAll() => _orderVmExceptionService.TryCatch(() =>
         {
-            var data = db.Orders
+            var data = db.Orders.AsNoTracking()
                 .Select(s => new OrderVM
                 {
                     Id = s.Id,
@@ -60,11 +62,11 @@ namespace iLgs.Services
                 })
                 .AsQueryable();
             return data;
-        }
+        });
 
-        public IQueryable<OrderVM> GetAllParOrders()
+        public IQueryable<OrderVM> GetAllParOrders() => _orderVmExceptionService.TryCatch(() =>
         {
-            var data = db.Orders
+            var data = db.Orders.AsNoTracking()
                 .Where(w => w.PostedBy != null && w.AIRs.Any(a => a.PostedBy != null))
                 .Select(s => new OrderVM
                 {
@@ -79,37 +81,42 @@ namespace iLgs.Services
                 })
                 .AsQueryable();
             return data;
-        }
+        });
 
-        public async Task<Models.Order> GetByIdAsync(Guid orderId)
+        public ValueTask<Order> GetByIdAsync(Guid orderId) => _orderExceptionService.TryCatch(async () =>
         {
             return await db.Orders.FindAsync(orderId);
-        }
+        });
 
-        public async Task<bool> GetAnyPoNoAsync(Guid id, string poNo)
+        public async ValueTask<bool> GetAnyPoNoAsync(Guid id, string poNo) 
         {
             return await db.Orders.AnyAsync(a => a.Id != id && a.PoNo == poNo);
         }
 
-        public async Task<Models.Order> GetByPoNoAsync(string poNo)
+        public ValueTask<Order> GetByPoNoAsync(string poNo) => _orderExceptionService.TryCatch(async () =>
         {
             return await db.Orders.Where(w => w.PoNo == poNo).FirstOrDefaultAsync();
-        }
+        });
 
-        public async Task<bool> GetAnyParsAsync(Guid id)
+        public async ValueTask<bool> GetAnyParsAsync(Guid id)
         {
             return await db.PARs.AnyAsync(a => a.OrderId == id);
         }
 
-        public async Task<bool> GetAnyAirsAsync(Guid id)
+        public async ValueTask<bool> GetAnyAirsAsync(Guid id)
         {
             return await db.AIRs.AnyAsync(a => a.OrderId == id);
         }
 
-        public Task<OrderVM> CreateAsync(OrderVM model, string user, DateTime date) =>
-        TryCatch(async () =>
+        public async ValueTask<bool> IsPostedAsync(Guid orderId)
         {
-            ValidateOnCreate(model);
+            var entity = await db.Orders.FindAsync(orderId);
+            return !string.IsNullOrWhiteSpace(entity.PostedBy);
+        }
+
+        public ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch(async () =>
+        {
+            await ValidateOnCreate(model);
 
             model.Id = Guid.NewGuid();
             if (string.IsNullOrWhiteSpace(model.PoNo))
@@ -192,8 +199,10 @@ namespace iLgs.Services
             return model;
         });
 
-        public async Task<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date)
+        public ValueTask<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatchAsync(async () =>
         {
+            await ValidateOnUpdate(model);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -203,7 +212,8 @@ namespace iLgs.Services
             if (entity.PrId != model.PrId)
             {
                 var orderItems = db.OrderItems.Where(w => w.OrderId == model.Id);
-                await orderItems.ForEachAsync(f => {
+                await orderItems.ForEachAsync(f =>
+                {
                     f.UpdatedBy = model.UpdatedBy;
                     f.UpdatedDt = model.UpdatedDt;
                 });
@@ -277,9 +287,10 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        public async Task<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date)
+        public ValueTask<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date) =>
+        _orderVmExceptionService.TryCatchAsync(async () =>
         {
 
             model.UpdatedBy = user;
@@ -299,9 +310,9 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        public async Task PostAsync(Guid orderId, string user, DateTime date)
+        public ValueTask PostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {            
             var entity = await db.Orders.FindAsync(orderId);
             if (entity == null)
@@ -333,6 +344,7 @@ namespace iLgs.Services
                         StockNo = oig.StockNo,
                         StockName = oig.StockName,
                         Description = oig.Description,
+                        Brand = oig.Brand,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -351,10 +363,17 @@ namespace iLgs.Services
                     .Where(w => w.OrderId == orderId 
                         && w.StockNo == oig.StockNo
                         && w.StockName == oig.StockName
-                        && w.Description == oig.Description).ToListAsync();
+                        && w.Description == oig.Description
+                        && w.Brand == oig.Brand).ToListAsync();
                 foreach (var orderItem in orderItemList)
                 {
-                    var qtyIss = db.AIRItems.Where(w => w.OrderItemId == orderItem.Id).Sum(s => s.Qty);
+                    var qty = db.AIRItems.Where(w => w.OrderItemId == orderItem.Id).Sum(s => s.Qty) ?? 0;
+                    var risItemId = db.OrderItems.Where(w => w.Id == orderItem.Id).FirstOrDefault()?.RequestItem?.RisItem.Id;
+                    int qtyIss = 0;
+                    if (risItemId != null)
+                    {
+                        qtyIss = db.RisIssueds.Where(w => w.RisItemId == risItemId && w.RisItem.RISs.PostedDt != null).Sum(s => s.Qty) ?? 0;
+                    }
                     var psItem = new PsItem()
                     {
                         Id = Guid.NewGuid(),
@@ -363,9 +382,9 @@ namespace iLgs.Services
                         RefNo = orderItem.Order.PoNo,
                         RefDate = orderItem.Order.PoDate,
                         RefType = "PO",
-                        Qty = orderItem.Qty,
+                        Qty = qty,
                         QtyIss = qtyIss,
-                        QtyBal = orderItem.Qty - qtyIss,
+                        QtyBal = qty - qtyIss,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -400,12 +419,19 @@ namespace iLgs.Services
                     await db.SaveChangesAsync();
                 }
             }
-        }
+        });
 
-        public async Task UnpostAsync(Guid orderId, string user, DateTime date)
+        public ValueTask UnpostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
             var entity = await db.Orders.FindAsync(orderId);
-            
+
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(orderId);
+            }
+
+            await ValidateOnUnpost(entity);
+
             entity.PostedBy = null;
             entity.PostedDt = null;
             entity.UpdatedBy = user;
@@ -429,7 +455,8 @@ namespace iLgs.Services
                 if (psItems.Count() > 0)
                 {
                     var psStockId = psItems.FirstOrDefault().PsStockId;
-                    await psItems.ForEachAsync(f => {
+                    await psItems.ForEachAsync(f =>
+                    {
                         f.UpdatedBy = user;
                         f.UpdatedDt = date;
                     });
@@ -456,8 +483,7 @@ namespace iLgs.Services
                     }
                 }
             }
-
-        }
+        });
 
         private string NextPoNo(DateTime poDate)
         {
@@ -484,15 +510,15 @@ namespace iLgs.Services
 
         #region VALIDATION
 
-        private void ValidateOnCreate(OrderVM model)
+        private async ValueTask ValidateOnCreate(OrderVM model)
         {
-            if (db.Orders.Any(a => a.PoNo == model.PoNo))
+            if (await db.Orders.AnyAsync(a => a.PoNo == model.PoNo))
             {
                 throw new RecordAlreadyExistsException(string.Format("PO Number {0} already exists", model.PoNo));
             }
             else
             {
-                var pr = db.Requests.Find(model.PrId);
+                var pr = await db.Requests.FindAsync(model.PrId);
                 if (pr == null)
                 {
                     throw new RecordNotFoundException(model.PrId);
@@ -501,13 +527,69 @@ namespace iLgs.Services
                 {
                     if (pr.PrDate > model.PoDate)
                     {
-                        throw new InvalidValueException("PO Date must be greater thatn or equal to PR date!");                        
+                        throw new InvalidValueException("PO Date must be greater than or equal to PR date!");                        
                     }
                 }
             }
-
         }
-        private async Task ValidateOnPost(Order entity)
+
+        private async ValueTask ValidateOnUpdate(OrderVM model)
+        {
+            var order = await db.Orders.FindAsync(model.Id);
+            if (order == null)
+            {
+                throw new RecordNotFoundException(model.Id);
+            }
+
+            if (order.PostedDt != null)
+            {
+                throw new RecordAlreadyPostedException(string.Format("PO Number {0} already posted, cannot update!", model.PoNo));
+            }
+
+
+            if (await GetAnyPoNoAsync(model.Id, model.PoNo))
+            {
+                throw new RecordAlreadyExistsException(string.Format("PO Number {0} already exists!", model.PoNo));                
+            }
+
+
+            var pr = await db.Requests.FindAsync(model.PrId); 
+            if (pr == null)
+            {
+                throw new RecordRelationshipException(string.Format("PR Number {0} does exists!", model.PrNo));                
+            }
+                
+            else if (pr.PrDate > model.PoDate)
+            {
+                throw new InvalidValueException("P.O. date must be greather than or equal to P.R. date!");                
+            }            
+        }
+
+        private async ValueTask ValidateOnDestroy(OrderVM model)
+        {
+            var order = await db.Orders.FindAsync(model.Id);
+            if (order == null)
+            {
+                throw new RecordNotFoundException(model.Id);
+            }
+
+            if (await IsPostedAsync(model.Id))
+            {
+                throw new RecordAlreadyPostedException(string.Format("PO Number {0} already Posted, cannot delete!", model.PoNo));                 
+            }
+
+            if (await GetAnyAirsAsync(model.Id))
+            {
+                throw new RecordRelationshipException("PO Number already with AIR, cannot delete!");                
+            }
+
+            if (await GetAnyParsAsync(model.Id))
+            {
+                throw new RecordRelationshipException("PO Number already with PAR, cannot delete!");                
+            }
+        }
+
+        private async ValueTask ValidateOnPost(Order entity)
         {            
             if (!string.IsNullOrWhiteSpace(entity.PostedBy))
             {
@@ -531,7 +613,7 @@ namespace iLgs.Services
                         throw new PurchaseRequestNotYetPostedException(request.PrNo);
                     }
                 }
-            }
+            }            
 
             var orderItems = await db.OrderItems.Where(w => w.OrderId == entity.Id).ToListAsync();
             foreach(var orderItem in orderItems)
@@ -542,53 +624,62 @@ namespace iLgs.Services
                 }
             }
         }
+
+        private async ValueTask ValidateOnUnpost(Order entity)
+        {
+            if (string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordNotYetPostedException(string.Format("PO Number {0} not yet posted..", entity.PoNo));
+            }
+
+            var airs = await db.AIRs.Where(w => w.OrderId == entity.Id && w.PostedDt != null).ToListAsync();
+
+            foreach (var air in airs) {
+                throw new RecordRelationshipException(string.Format("AIR Number {0} of this PO is already posted.", air.AIRNo));
+            }
+        }
         #endregion
 
         #region EXCEPTIONS
-        private delegate Task<OrderVM> ReturningFunction();
-        private delegate IQueryable<OrderVM> ReturningQueryableFunction();
-        private async Task<OrderVM> TryCatch(ReturningFunction returningFunction)
-        {
-            try
-            {
-                return await returningFunction();
-            }
-            catch (RecordNotFoundException notFoundException)
-            {
-                throw notFoundException;
-            }
-            catch (RecordAlreadyExistsException recordAlreadyExistsException)
-            {
-                throw recordAlreadyExistsException;
-            }
-            catch (SqlException sqlException)
-            {
-                throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-            }
-            catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-            {
-                var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
+        //private delegate ValueTask<OrderVM> ReturningFunction();
+        //private delegate IQueryable<OrderVM> ReturningQueryableFunction();
+        //private async ValueTask<OrderVM> TryCatch(ReturningFunction returningFunction)
+        //{
+        //    try
+        //    {
+        //        return await returningFunction();
+        //    }
+        //    catch (RecordNotFoundException notFoundException)
+        //    {
+        //        throw notFoundException;
+        //    }
+        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
+        //    {
+        //        throw recordAlreadyExistsException;
+        //    }
+        //    catch (SqlException sqlException)
+        //    {
+        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+        //    }
+        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
+        //    {
+        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
 
-                throw exceptions.CreateAndLogDependencyException(recordLockedException);
-            }
-            catch (DbUpdateException dbUpdateException)
-            {
-                throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-            }
-            catch (Exception exception)
-            {
-                var failedServiceException =
-                    new FailedServiceException(exception);
+        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
+        //    }
+        //    catch (DbUpdateException dbUpdateException)
+        //    {
+        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var failedServiceException =
+        //            new FailedServiceException(exception);
 
-                throw exceptions.CreateAndLogServiceException(failedServiceException);
-            }
-        }
-
-        public async Task<bool> IsPostedAsync(Guid orderId)
-        {
-            var entity = await db.Orders.FindAsync(orderId);
-            return !string.IsNullOrWhiteSpace(entity.PostedBy);
-        }
+        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
+        //    }
+        //}
+        
         #endregion
     }
 }

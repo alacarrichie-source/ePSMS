@@ -209,7 +209,7 @@ namespace iLgs.Controllers
 
             foreach (var menu in menus)
             {
-                var children = allMenus.Where(w => w.ParentId == menu.ChildId);
+                var children = allMenus.Where(w => w.ParentId == menu.ChildId).OrderBy(o => o.Description);
                 var hasChildren = children.Any();
                 var items = new List<TreeViewItemModel>();
                 //Dictionary<string, string> attribute;

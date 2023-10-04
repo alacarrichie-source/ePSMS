@@ -107,8 +107,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -161,8 +168,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -188,8 +202,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -206,7 +227,7 @@ namespace iLgs.Controllers
             else
             {
                 model.Mode = "A";
-                model.Id = Guid.NewGuid();
+                //model.Id = Guid.NewGuid();
             }
             ViewData["airId"] = airId;
             return PartialView(model);
@@ -229,14 +250,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;                    
                     DateTime date = System.DateTime.Now;
 
-                    if (model.Mode == "A")
-                    {
-                        model = await _sa.Air.CreateAsync(model, user, date);
-                    }
-                    else
-                    {
-                        model = await _sa.Air.UpdateAsync(model, user, date);
-                    }
+                    model = await _sa.Air.SaveAsync(model, user, date);                    
                     
                     return Json(new { Errors = "", Model = model });
                 }

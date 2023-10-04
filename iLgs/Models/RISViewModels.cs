@@ -172,6 +172,9 @@ namespace iLgs.Models
 
         [Display(Name = "Posted Date")]
         public Nullable<System.DateTime> PostedDt { get; set; }
+
+        public bool IsPosted { get; set; }
+        public bool IssuanceSw { get; set; }
     }
 
 
@@ -189,6 +192,7 @@ namespace iLgs.Models
         [Display(Name = "Category")]
         public string PsType { get; set; } // Used as category
 
+        [Display(Name = "Item Code")]
         public string ItemCode { get; set; } // Code of ItemCodeId
 
         [Display(Name = "Item Type")]
@@ -217,6 +221,10 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }                        
 
         public string GridRisItemExtns { get; set; }
+
+        // for reference in dropdown templates
+        public string Department { get; set; }
+        public bool IsPosted { get; set; }
     }
 
     public class RisItemExtnVM
@@ -237,5 +245,39 @@ namespace iLgs.Models
 
         // Transients
         public bool IsEnabled { get; set; }
+    }
+
+    public class RisIssuedVM
+    {        
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> RisItemId { get; set; }
+
+        [Display(Name = "Issued Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> IssuedDate { get; set; }
+
+        [Display(Name = "Issued By")]
+        public string IssuedBy { get; set; }
+
+        [Display(Name = "Designation")]
+        public string IssuedByDesignation { get; set; }
+
+        public Nullable<int> Qty { get; set; }
+
+        [Display(Name = "Received By")]
+        public string ReceivedBy { get; set; }
+
+        [Display(Name = "Designation")]
+        public string ReceivedByDesignation { get; set; }
+
+        [Display(Name = "Received Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> ReceivedDate { get; set; }
+
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }            
+        public string Department { get; set; }
     }
 }

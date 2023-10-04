@@ -10,18 +10,19 @@ namespace iLgs.Services.Interfaces
     public interface IAirService
     {
         IQueryable<AIR_VM> GetAll();
-        Task<AIR> GetByIdAsync(Guid id);
-        Task<AIR_VM> GetVmByIdAsync(Guid id);
-        Task<AIR> GetByAirNoAsync(string airNo);
-        Task<bool> GetAnyAirNoAsync(Guid airId, string airNo);
-        Task<bool> IsPostedAsync(Guid airId);
-        
+        ValueTask<AIR> GetByIdAsync(Guid id);
+        ValueTask<AIR_VM> GetVmByIdAsync(Guid id);
+        ValueTask<AIR> GetByAirNoAsync(string airNo);
+        ValueTask<bool> GetAnyAirNoAsync(Guid airId, string airNo);
+        ValueTask<bool> IsPostedAsync(Guid airId);
 
-        Task<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date);
-        Task<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date);
-        Task<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date);
 
-        Task PostAsync(Guid airId, string user, DateTime date);
-        Task UnpostAsync(Guid airId, string user, DateTime date);
+        ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date);
+        ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date);
+        ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date);
+        ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date);
+
+        ValueTask PostAsync(Guid airId, string user, DateTime date);
+        ValueTask UnpostAsync(Guid airId, string user, DateTime date);
     }
 }

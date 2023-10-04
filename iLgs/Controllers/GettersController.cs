@@ -393,8 +393,8 @@ namespace iLgs.Controllers
 
         public JsonResult GetSections(string department, string text)
         {
-            var dept = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault();
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc2 == dept.Code);
+            var deptCode = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Code.StartsWith(deptCode));
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -406,8 +406,8 @@ namespace iLgs.Controllers
 
         public JsonResult GetRequestedBy(string department, string text)
         {
-            var dept = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault();
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Desc3 == dept.Code);
+            var deptCode = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Code.StartsWith(deptCode));
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -419,8 +419,8 @@ namespace iLgs.Controllers
 
         public JsonResult GetReceivedBy(string department, string text)
         {
-            var dept = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault();
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Desc3 == dept.Code);
+            var deptCode = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Code.StartsWith(deptCode));
 
             if (!string.IsNullOrEmpty(text))
             {

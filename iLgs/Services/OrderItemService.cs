@@ -6,36 +6,39 @@ using System.Web;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
 using System.Data.Entity;
+using iLgs.Exceptions;
 
 namespace iLgs.Services
 {
     public class OrderItemService : IOrderItemService
     {
         private readonly AppManEntities db = new AppManEntities();
-
+        private readonly IExceptionService<OrderItemVM> _VmExceptionService = new ExceptionService<OrderItemVM>();
+        
         public OrderItemService(AppManEntities db)
         {
             this.db = db;
         }
 
-        public async Task<OrderItemVM> GetByIdAsync(Guid? id)
+        public ValueTask<OrderItemVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
         {
             var data = await db.OrderItems.Where(w => w.Id == id)
                 .Select(s => new OrderItemVM
                 {
                     Id = s.Id,
-                    OrderId = s.OrderId,
+                    OrderId = s.OrderId,                    
                     RequestItemId = s.RequestItemId,
+                    RisItemId = s.RequestItem.RisItem.Id,
                     ItemCode = s.RequestItem.RisItem.ItemCode.Code,
                     ItemType = s.RequestItem.RisItem.ItemCode.Description,
                     PsType = s.RequestItem.RisItem.ItemCode.ItemType.Code,
-                    PsNo = s.RequestItem.RisItem.PsNo,                    
+                    PsNo = s.RequestItem.RisItem.PsNo,
                     Brand = s.Brand,
                     StockNo = s.StockNo,
                     StockName = s.StockName,
                     PsNoDisplay = s.RequestItem.RisItem.PsNoDisplay,
                     Unit = s.RequestItem.RisItem.Unit,
-                    ItemName= s.RequestItem.RisItem.ItemName,
+                    ItemName = s.RequestItem.RisItem.ItemName,
                     Description = s.Description,
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
@@ -43,9 +46,9 @@ namespace iLgs.Services
                     InsertedDt = s.InsertedDt
                 }).FirstOrDefaultAsync();
             return data;
-        }
+        });
 
-        public IQueryable<OrderItemVM> GetByPoId(Guid? poId)
+        public IQueryable<OrderItemVM> GetByPoId(Guid? poId) => _VmExceptionService.TryCatch(() =>
         {
             var data = db.OrderItems.Where(w => w.OrderId == poId)
                 .Select(s => new OrderItemVM
@@ -53,10 +56,11 @@ namespace iLgs.Services
                     Id = s.Id,
                     OrderId = s.OrderId,
                     RequestItemId = s.RequestItemId,
+                    RisItemId = s.RequestItem.RisItem.Id,
                     ItemCode = s.RequestItem.RisItem.ItemCode.Code,
                     ItemType = s.RequestItem.RisItem.ItemCode.Description,
                     PsType = s.RequestItem.RisItem.ItemCode.ItemType.Code,
-                    PsNo = s.RequestItem.RisItem.PsNo,                    
+                    PsNo = s.RequestItem.RisItem.PsNo,
                     Brand = s.Brand,
                     StockNo = s.StockNo,
                     StockName = s.StockName,
@@ -70,26 +74,43 @@ namespace iLgs.Services
                     InsertedDt = s.InsertedDt
                 });
             return data;
-        }
+        });
 
-        public async Task<bool> GetAnyParItemsAsync(Guid id)
+        public async ValueTask<bool> GetAnyParItemsAsync(Guid id)
         {
             return await db.PARItems.AnyAsync(a => a.OrderItemId == id);
         }
 
-        public async Task<bool> GetAnyAirItemsAsync(Guid id)
+        public async ValueTask<bool> GetAnyAirItemsAsync(Guid id)
         {
             return await db.AIRItems.AnyAsync(a => a.OrderItemId == id);
         }
 
-        public async Task<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date)
+        public ValueTask<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            if (string.IsNullOrWhiteSpace(model.Brand))
+            {
+                throw new RequiredFieldException(nameof(model.Brand));
+            }
+
+            var requestItemId = db.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
+            if (requestItemId == null)
+            {
+                throw new RecordRelationshipException("Could not find request item this record!");
+            }
+
+            var risItemId = db.RisItems.FindAsync(requestItemId).Result?.Id;
+            if (risItemId == null)
+            {
+                throw new RecordRelationshipException("Cound not find RIS item for this record!");
+            }
+
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
-            model.StockName = await StockNameAsync(model);
+            model.StockName = await StockNameAsync(model, risItemId);
 
             OrderItem entity = new OrderItem()
             {
@@ -113,10 +134,12 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        public async Task<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date)
+        public ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            await ValidateOnDelete(model);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -134,10 +157,26 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }        
+        });
 
-        public async Task<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date)
+        public ValueTask<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            if (string.IsNullOrWhiteSpace(model.Brand))
+            {
+                throw new RequiredFieldException(nameof(model.Brand));
+            }
+
+            var requestItemId = db.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
+            if (requestItemId == null)
+            {
+                throw new RecordRelationshipException("Could not find request item this record!");
+            }
+
+            var risItemId = db.RisItems.FindAsync(requestItemId).Result?.Id;
+            if (risItemId == null)
+            {
+                throw new RecordRelationshipException("Cound not find RIS item for this record!");
+            }
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -145,7 +184,7 @@ namespace iLgs.Services
 
             entity.RequestItemId = model.RequestItemId;
             entity.StockNo = model.PsNo.Trim() + model.Brand;
-            entity.StockName = await StockNameAsync(model);
+            entity.StockName = await StockNameAsync(model, risItemId);
             entity.Brand = model.Brand;
             entity.Description = model.Description;
             entity.Qty = model.Qty;
@@ -159,13 +198,15 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        private async Task<string> StockNameAsync(OrderItemVM orderItem)
+        private async ValueTask<string> StockNameAsync(OrderItemVM orderItem, Guid? risItemId) 
         {
-            var psCode = orderItem.ItemCode.ToString();
+            
             var psType = orderItem.PsType;
-            var itemExtns = await db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItem.Id, psType).ToListAsync();
+            var itemExtns = await db.Database.SqlQuery<RisItemExtnVM>("Exec RisItemExtnService_GetBatchInfo {0}, {1}", risItemId, psType).ToListAsync();
+            var psCode = orderItem.ItemCode.ToString();
+
             string stockName = orderItem.Brand.Trim();
             string itemName = orderItem.ItemName.Substring(0, 1) + orderItem.ItemName.Substring(2, 1);
 
@@ -227,5 +268,22 @@ namespace iLgs.Services
         //    }
         //    return stockName;
         //}
+
+        private async ValueTask ValidateOnDelete(OrderItemVM model)
+        {
+            var postedBy = db.Orders.FindAsync(model.OrderId).Result?.PostedBy;
+            if (!string.IsNullOrWhiteSpace(postedBy))
+            {
+                throw new RecordAlreadyPostedException("PO Number already Posted, cannot delete!");
+            }
+            if (await GetAnyAirItemsAsync(model.Id))
+            {
+                throw new RecordRelationshipException("PO Number already with AIR, cannot delete!");
+            }
+            if (await GetAnyParItemsAsync(model.Id))
+            {
+                throw new RecordRelationshipException("PO Number already with PAR, cannot delete!");
+            }
+        }
     }
 }

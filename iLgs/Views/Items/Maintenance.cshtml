@@ -131,6 +131,7 @@
         //.Pageable(pageable => pageable.Refresh(true))
         .Navigatable()
         .NoRecords()
+        .ClientDetailTemplateId("IssuedItems")
         .DataSource(dataSource => dataSource
             .Ajax()
             .Model(model =>
@@ -181,7 +182,7 @@
             })
             .Sort(s => s.Add(a => a.ItemCode))
             .Events(events => events.Error("GridError"))
-            .Read("StockExtnRead", "Items", new { stockId = "#=Id#" })            
+            .Read("StockExtnRead", "Items", new { stockNo = "#=StockNo#" })            
         )
         //.Events(e => e.Edit("onEditGridStockItems").Change("onChangeGridStockItems").DataBound("onDataBoundGridStockItems"))
         .ToClientTemplate()
@@ -258,19 +259,21 @@
 </div>
 
 <div id="item-details" class="row">
-    <div id="item-about" class="col-xs-12">
+    @*<div id="item-about" class="col-xs-12">
         <div class="row">
             <div id="itemBio" class="col-xs-12 col-sm-4">
             </div>            
         </div>
-    </div>
+    </div>*@
     <div id="item-stat" class="col-xs-12">
-        <h3 class="section-header">Stocks</h3>
+        <h3>STOCKS</h3>
         @(Html.Kendo().Grid<iLgs.Models.PsStockVM>()
                 .Name("gridStocks")
                 .Columns(col =>
                 {
-                    col.Bound(c => c.StockNo).Width(150);
+                    col.Bound(c => c.StockNo).Width(100);
+                    col.Bound(c => c.StockName).Width(100);
+                    col.Bound(c => c.Brand).Width(100);
                     col.Bound(c => c.Description).Width(200);
                     //col.Command(command =>
                     //{
@@ -327,6 +330,40 @@
     </div>    
 </div>
 
+<script id="IssuedItems" type="text/kendo-tmpl">
+    @(Html.Kendo().Grid<iLgs.Models.RisIssuedVM>()
+    .Name("gridIssuedItems_#=Id#")
+    .Columns(col =>
+    {
+        col.Bound(c => c.IssuedBy).Width(70);
+        col.Bound(c => c.IssuedByDesignation).Width(50);
+        col.Bound(c => c.IssuedDate).Width(50);
+        col.Bound(c => c.ReceivedBy).Width(70);
+        col.Bound(c => c.ReceivedByDesignation).Width(50);
+        col.Bound(c => c.ReceivedDate).Width(50);
+        col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });        
+    })
+    .Sortable()
+    .NoRecords()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Events(events => events.Error("error_handler")
+        )
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);            
+        })
+        .Aggregates(a => { a.Add(p => p.Qty).Sum(); })
+        .Read(read => read.Action("_RISIssuedRead", "Items", new { poNo = "#=RefNo#", stockNo = "#=StockNo#" }))        
+    )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))   
+    .ToClientTemplate())
+</script>
+
+
 @(Html.Kendo().Tooltip()
     .For("#itemBio")
     .Filter("a")
@@ -372,6 +409,13 @@
     #item-details {
         overflow-y: auto;
         overflow-x: hidden;
+    }
+
+    #item-details h3 {
+        padding: 0.5em 0.727em;
+        font-size: 11px;
+        color: #35373d;
+        border-bottom: 1px solid #dbdbdb;
     }
 
     #item-list,
@@ -553,7 +597,7 @@
 
     #gridStocks .k-grid-content {
         overflow-y: auto;
-        height: calc(100vh - 295px) !important;
+        height: calc(100vh - 195px) !important;
     }
 
     .item-photo {
@@ -705,16 +749,16 @@
 
         var items = $("#grid").data("kendoGrid"),
             item = items.dataSource.getByUid(items.select().attr("data-uid")),
-            gridStocks = $("#gridStocks").data("kendoGrid"),
+            gridStocks = $("#gridStocks").data("kendoGrid"); //,
             //itemAverageSales = $("#itemAverageSales").data("kendoChart"),
             //teamSales = $("#TeamSales").data("kendoChart"),
             //itemSales = $("#itemSales").data("kendoScheduler"),
             //startDate = $("#StartDate").data("kendoDatePicker"),
             //endDate = $("#EndDate").data("kendoDatePicker"),
             //filter = { itemID: item.itemID, startDate: startDate.value(), endDate: endDate.value() },
-            template = kendo.template($("#itemBioTemplate").html());
+        //    template = kendo.template($("#itemBioTemplate").html());
 
-        $("#itemBio").html(template(item));
+        //$("#itemBio").html(template(item));
 
         gridStocks.dataSource.read();
     }

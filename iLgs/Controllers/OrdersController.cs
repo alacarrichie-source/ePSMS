@@ -100,11 +100,12 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                if (e is Exception ex)
+                if (e.GetType().Name == "ServiceException")
                 {
                     ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + ex.Message + " " + e.GetType().Name);
-                } else
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
                 {
                     ModelState.AddModelError("", e.Message);
                 }
@@ -123,28 +124,7 @@ namespace iLgs.Controllers
                 if (!access.AllowEdit)
                 {
                     ModelState.AddModelError("Access", "Update Access Denied!");
-                }
-
-                if (await orderService.GetAnyPoNoAsync(model.Id, model.PoNo))
-                {
-                    ModelState.AddModelError("PO No.", "P.O. number already exists!");
-                }
-                else
-                {
-                    var pr = await requestService.GetByIdAsync(model.PrId);
-                    if (pr == null)
-                    {
-                        ModelState.AddModelError("PR No.", "Invalid P.R. Number!");
-                    }
-                    else if (await orderService.IsPostedAsync(model.Id))
-                    {
-                        ModelState.AddModelError("PO NO.", "PO Number already Posted, cannot update!");
-                    }
-                    else if (pr.PrDate > model.PoDate)
-                    {
-                        ModelState.AddModelError("PO Date", "P.O. date must be greather than or equal to P.R. date!");
-                    }
-                }
+                }                
 
                 if (ModelState.IsValid)
                 {
@@ -156,8 +136,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("Error", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -173,19 +160,7 @@ namespace iLgs.Controllers
                 if (!access.AllowDelete)
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
-                }
-                else if (await orderService.IsPostedAsync(model.Id))
-                {
-                    ModelState.AddModelError("DeleteError", "PO Number already Posted, cannot delete!");
-                }
-                else if (await orderService.GetAnyAirsAsync(model.Id))
-                {
-                    ModelState.AddModelError("DeleteError", "PO Number already with AIR, cannot delete!");
-                }
-                else if (await orderService.GetAnyParsAsync(model.Id))
-                {
-                    ModelState.AddModelError("DeleteError", "PO Number already with PAR, cannot delete!");
-                }
+                }                
                 else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -196,8 +171,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -259,14 +241,21 @@ namespace iLgs.Controllers
                     {
                         model = await orderItemService.UpdateAsync(model, user, date);
                     }
-                    var orderItemExtns = (List<OrderItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridOrderItemExtns, typeof(List<OrderItemExtnVM>));
-                    await orderItemExtnService.SaveAsync(model.Id, orderItemExtns, user, date);
+                    //var orderItemExtns = (List<OrderItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridOrderItemExtns, typeof(List<OrderItemExtnVM>));
+                    //await orderItemExtnService.SaveAsync(model.Id, orderItemExtns, user, date);
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             var query = from state in ModelState.Values
@@ -368,19 +357,7 @@ namespace iLgs.Controllers
                 if (!access.AllowDelete)
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
-                }
-                else if (await orderService.IsPostedAsync((Guid)model.OrderId))
-                {
-                    ModelState.AddModelError("DeleteError", "PO Number already Posted, cannot delete!");
-                }
-                else if (await orderItemService.GetAnyAirItemsAsync(model.Id))
-                {
-                    ModelState.AddModelError("DeleteError", "PO Number already with AIR, cannot delete!");
-                }
-                else if (await orderItemService.GetAnyParItemsAsync(model.Id))
-                {
-                    ModelState.AddModelError("DeleteError", "PO Number already with PAR, cannot delete!");
-                }
+                }                
 
                 if (ModelState.IsValid)
                 {
@@ -393,8 +370,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message.ToString());
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -468,15 +452,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await orderService.GetByIdAsync(orderId) == null)
-                {
-                    ModelState.AddModelError("Order", "Invalid Order Id");
-                }
-                else if (!(await orderService.IsPostedAsync(orderId)))
-                {
-                    ModelState.AddModelError("PO No.", "PO Number not yet posted, cannot unpost!");
-                }
-
+                
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -487,8 +463,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             var query = from state in ModelState.Values

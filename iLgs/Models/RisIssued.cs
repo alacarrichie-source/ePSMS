@@ -28,6 +28,7 @@ namespace iLgs.Models
         public Nullable<int> Qty { get; set; }
         public string ReceivedBy { get; set; }
         public string ReceivedByDesignation { get; set; }
+        public Nullable<System.DateTime> ReceivedDate { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

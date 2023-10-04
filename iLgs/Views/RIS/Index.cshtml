@@ -18,11 +18,13 @@
         col.Bound(c => c.IssuedBy).Width(100);
         col.Bound(c => c.ReceivedBy).Width(100);
         col.Bound(c => c.PostedBy).Width(100);
+        col.Bound(c => c.IsPosted).Width(30);
         col.Command(command =>
         {
             command.Edit();
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-        }).Width(120);
+            command.Custom("Issue").IconClass("k-icon k-i-book").Click("onClickIssue").Visible("CheckPostedBy");
+        }).Width(170);
     })
     .ToolBar(t =>
     {
@@ -30,6 +32,8 @@
         t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintRIS").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostRIS").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostRIS").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Issue").IconClass("k-icon k-i-unlock").Name("btnIssueRIS").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Remove Issuance").IconClass("k-icon k-i-unlock").Name("btnRemoveIssueRIS").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RISTemplate").Window(w => w.Width(800).Title("Requisition and Issue Slip")))
@@ -218,9 +222,10 @@
 
     var selectedGrid = null;
     var selectedId = null;
-    var selecteItemId = null;
+    var selectedItemId = null;
     var postedBy = null;
     var selectedRisNo = null;
+    var issuedBy = null;
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
@@ -231,12 +236,22 @@
         selectedItemId = null;
         postedBy = selectedData.PostedBy;
         selectedRisNo = selectedData.RisNo;
+        issuedBy = selectedData.IssuedBy;
+
         if (postedBy) {
             $(".k-grid-btnUnpostRIS", grid).show();
             $(".k-grid-btnPostRIS", grid).hide();
         } else {
             $(".k-grid-btnUnpostRIS", grid).hide();
             $(".k-grid-btnPostRIS", grid).show();
+        }
+
+        if (issuedBy) {
+            $(".k-grid-btnRemoveIssueRIS", grid).show();
+            $(".k-grid-btnIssueRIS", grid).hide();
+        } else {
+            $(".k-grid-btnRemoveIssueRIS", grid).hide();
+            $(".k-grid-btnIssueRIS", grid).show();
         }
     }
 
@@ -260,12 +275,30 @@
             });
         }
 
+        var grid = $("#grid");
         if (this.dataSource.data().length == 0) {
-            var grid = $("#grid");
             $(".k-grid-btnPrintRIS", grid).hide();
             $(".k-grid-btnPostRIS", grid).hide();
             $(".k-grid-btnUnpostRIS", grid).hide();
+            $(".k-grid-btnRemoveIssueRIS", grid).hide();
+            $(".k-grid-btnIssueRIS", grid).hide();
         }
+
+        //alert('x');
+        //var trs = this.tbody.find('tr').each(function () {
+        //    alert(grid.dataItem($(this)));
+        //    alert(grid.data("kendoGrid").dataItem($(this)));
+        //    var item = grid.dataItem($(this));
+        //    alert(item.PostedBy);
+        //    if (item.PostedBy) {
+        //        $(this).find('.k-grid-Issue').hide();
+        //    }
+        //});
+    }
+
+    function CheckPostedBy(dataItem) {
+        // Hide the button if UnitPrice is greater than 1000
+        return dataItem.PostedBy;
     }
 
     function onEditGrid(e) {
@@ -280,6 +313,21 @@
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
+    }
+
+    function onClickIssue(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        // Remove the "selected" class from all rows
+        selectedGrid.table.find("tr").removeClass("selected");
+
+        // Add the "selected" class to the clicked row
+        $(e.currentTarget).closest("tr").addClass("selected");
+        selectedId = dataItem.Id;
+        dataItem.set("IssuanceSw", true);
+        selectedGrid.editRow(dataItem);
     }
 
     function onGridDeleteClick(e) {
@@ -355,7 +403,7 @@
 
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
-        selecteItemId = selectedData.Id;
+        selectedItemId = selectedData.Id;
         //var grid = e.sender;
         //var selectedRow = grid.select();
         //if (selectedRow.length > 0) {
@@ -364,8 +412,8 @@
     }
 
     function onDataBoundGridItems(e) {
-        if (selecteItemId) {
-            var dataItem = this.dataSource.get(selecteItemId);
+        if (selectedItemId) {
+            var dataItem = this.dataSource.get(selectedItemId);
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
             }
@@ -381,15 +429,15 @@
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-            selecteItemId = null;
+            selectedItemId = null;
             e.model.set("PrId", selectedId);
         } else {
-            selecteItemId = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selecteItemId);
+            selectedItemId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedItemId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
     }
-    
+
     function onClickDeleteGridItem(e) {
         e.preventDefault();
 
@@ -538,7 +586,7 @@
 
 
         for (var i = 0; i < gridData.length; i++) {
-            var rowData = gridData[i];            
+            var rowData = gridData[i];
             if (rowData.ItemKey == "Generic Name") {
                 $("#ItemName").val(rowData.ItemValue).trigger('change');
             } else {
@@ -595,7 +643,7 @@
     }
 
     function DataRisItemExtnGrid()
-    {       
+    {
         return {
             risItemId: $("#Id").val(),
             psType: $("#PsType").val()
@@ -729,6 +777,7 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
         RisItem("E", dataItem.Id);
     }
 
@@ -802,7 +851,7 @@
         }*@
 
     }
-    
+
     function RisItem(mode, recId) {
         var myTitle = (mode == "A") ? "RIS Item - ADD" : "RIS Item - EDIT";
         var width = 800;
@@ -836,6 +885,76 @@
         mywindow.center();
         mywindow.open();
 
+    }
+
+    // issued items
+
+    function GridIssuedError(args) {
+        if (args.errors) {
+            var validationError = true;
+            var selectedGrid = $("#gridIssuedItems_" + selectedItemId).data("kendoGrid");
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+                    var errors = selectedGrid.editable.element.find(".errors");
+
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    function onDataBoundGridIssuedItems(e) {
+        var grid = this.wrapper.closest("[data-role=grid]");
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        
+        if (parentModel.IsPosted != true) {
+            $(".k-grid-add", grid).hide();
+        }        
+    }
+
+    function onEditGridIssuedItems(e) {
+        e.preventDefault();
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+
+        parentGrid.select(parentRow);
+        e.model.set("RisItemId", parentModel.Id);
+    }
+
+    function DataIssuedReceivedBy() {
+        var text = $("#ReceivedBy").data("kendoMultiColumnComboBox").text();
+        return {
+            department: $("#Department").val(),
+            text: text
+        };
+    }
+
+    function onRequestEndGridIssueItems(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridIssuedItems_" + selectedItemId).data("kendoGrid").dataSource.read();
+            }
+        }
     }
 </script>
 

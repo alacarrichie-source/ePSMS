@@ -44,7 +44,9 @@ namespace iLgs.Services
                     QtyRequest = s.QtyRequest,
                     QtyIssue = s.QtyIssue,
                     Remarks = s.Remarks,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    Department = s.RISs.Office,
+                    IsPosted = s.RISs.PostedDt != null
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -76,7 +78,9 @@ namespace iLgs.Services
                     QtyRequest = s.QtyRequest,
                     QtyIssue = s.QtyIssue,
                     Remarks = s.Remarks,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    Department = s.RISs.Office,
+                    IsPosted = s.RISs.PostedDt != null
                 });
             return data;
         });

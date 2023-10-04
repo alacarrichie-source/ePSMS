@@ -207,6 +207,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
     <Compile Include="Models\AIRInvoice.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -527,10 +528,12 @@
     <Compile Include="Services\Interfaces\IParItemService.cs" />
     <Compile Include="Services\Interfaces\IParService.cs" />
     <Compile Include="Services\Interfaces\IPsCodeService.cs" />
+    <Compile Include="Services\Interfaces\IPsItemService.cs" />
     <Compile Include="Services\Interfaces\IRequestItemService.cs" />
     <Compile Include="Services\Interfaces\IRequestService.cs" />
     <Compile Include="Services\Interfaces\IOrderService.cs" />
     <Compile Include="Services\Interfaces\IOrderItemExtnService.cs" />
+    <Compile Include="Services\Interfaces\IRisIssuedService.cs" />
     <Compile Include="Services\Interfaces\IRisItemExtnService.cs" />
     <Compile Include="Services\Interfaces\IRisItemService.cs" />
     <Compile Include="Services\Interfaces\IRisService.cs" />
@@ -546,6 +549,7 @@
     <Compile Include="Services\PsCodeService.cs" />
     <Compile Include="Services\RequestItemService.cs" />
     <Compile Include="Services\RequestService.cs" />
+    <Compile Include="Services\RisIssuedService.cs" />
     <Compile Include="Services\RisItemExtnService.cs" />
     <Compile Include="Services\RisItemService.cs" />
     <Compile Include="Services\RisService.cs" />
@@ -3457,6 +3461,7 @@
     <Content Include="Views\Codes\_Codextn.cshtml" />
     <Content Include="Views\AIRs\_AIRAddEdit.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_InvoiceDateTemplate.cshtml" />
+    <Content Include="Views\RIS\EditorTemplates\_RISIssuedItemTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3549,7 +3554,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
