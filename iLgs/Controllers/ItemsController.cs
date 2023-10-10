@@ -926,14 +926,15 @@ namespace iLgs.Controllers
         public JsonResult GetItems(string text)
         {
 
-            var model = db.ItemCodes.AsQueryable();
+            //var model = db.ItemCodes.AsQueryable();
+            var model = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", text).AsQueryable();
 
-            if (!string.IsNullOrEmpty(text))
-            {
-                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
-            }
+            //if (!string.IsNullOrEmpty(text))
+            //{
+            //    model = model.Where(p => p.ItemSw == "Y" && (p.Description.Contains(text) || p.Code.Contains(text)));
+            //}
 
-            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType.Code }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType, ItemNo = c.ItemNo, MainDesc = c.MainDesc }), JsonRequestBehavior.AllowGet);
         }
 
         #endregion

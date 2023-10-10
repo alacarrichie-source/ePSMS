@@ -207,6 +207,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\PoIssuanceController.cs" />
+    <Compile Include="Models\DepartmentUser.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Services\DepartmentUuserService.cs" />
+    <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
+    <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
     <Compile Include="Models\AIRInvoice.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -527,6 +534,7 @@
     <Compile Include="Services\Interfaces\IOrderItemService.cs" />
     <Compile Include="Services\Interfaces\IParItemService.cs" />
     <Compile Include="Services\Interfaces\IParService.cs" />
+    <Compile Include="Services\Interfaces\IPoIssuanceService.cs" />
     <Compile Include="Services\Interfaces\IPsCodeService.cs" />
     <Compile Include="Services\Interfaces\IPsItemService.cs" />
     <Compile Include="Services\Interfaces\IRequestItemService.cs" />
@@ -537,6 +545,8 @@
     <Compile Include="Services\Interfaces\IRisItemExtnService.cs" />
     <Compile Include="Services\Interfaces\IRisItemService.cs" />
     <Compile Include="Services\Interfaces\IRisService.cs" />
+    <Compile Include="Services\Interfaces\IUserService.cs" />
+    <Compile Include="Services\PoIssuanceService.cs" />
     <Compile Include="Services\ItemCodeService.cs" />
     <Compile Include="Services\ItemFieldService.cs" />
     <Compile Include="Services\ItemService.cs" />
@@ -3462,6 +3472,12 @@
     <Content Include="Views\AIRs\_AIRAddEdit.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_InvoiceDateTemplate.cshtml" />
     <Content Include="Views\RIS\EditorTemplates\_RISIssuedItemTemplate.cshtml" />
+    <Content Include="Views\PoIssuance\Index.cshtml" />
+    <Content Include="Views\PoIssuance\_RISIssued.cshtml" />
+    <Content Include="Views\PoIssuance\EditorTemplates\_RISIssuedTemplate.cshtml" />
+    <Content Include="Views\Codes\Department.cshtml" />
+    <Content Include="Views\Codes\EditorTemplates\_DepartmentUserTemplate.cshtml" />
+    <Content Include="Views\Codes\_DepartmentUsers.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3554,7 +3570,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

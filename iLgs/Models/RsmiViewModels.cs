@@ -67,16 +67,10 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RsmiId { get; set; }
-        public Nullable<System.Guid> RisId { get; set; }
-        public string InsertedBy { get; set; }
-        public Nullable<System.DateTime> InsertedDt { get; set; }
-
-        // Transients
 
         [Display(Name = "RIS No.")]
-        public string RISNo { get; set; }
+        public string RisNo { get; set; }
 
-        [Display(Name = "RCC")]
         public string RCC { get; set; }
 
         [Display(Name = "Stock No.")]
@@ -85,26 +79,33 @@ namespace iLgs.Models
         [Display(Name = "Item")]
         public string ItemName { get; set; }
 
-        [Display(Name = "Unit")]
         public string Unit { get; set; }
 
         [Display(Name = "Qty Issued")]
-        public Nullable<decimal> QtyIss { get; set; }
+        public Nullable<int> Qty { get; set; }
 
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
 
         public Nullable<decimal> Amount { get; set; }
+
+        [Display(Name = "Account Code")]
+        public string AccountCode { get; set; }
+
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
     }
 
     public class RSMIRecapVM
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RsmiId { get; set; }
-        public Nullable<System.Guid> PsItemId { get; set; }
 
-        [Display(Name = "Stock No")]
+        [Display(Name = "Stock No.")]
         public string StockNo { get; set; }
+
         public Nullable<decimal> Qty { get; set; }
 
         [Display(Name = "Unit Cost")]
@@ -117,7 +118,9 @@ namespace iLgs.Models
         public string AccountCode { get; set; }
 
         public string InsertedBy { get; set; }
-        public Nullable<System.DateTime> InsertedDt { get; set; }                
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
     }
 
     public class RsmiPrintVM : IValidatableObject

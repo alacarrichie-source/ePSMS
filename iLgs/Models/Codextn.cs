@@ -14,6 +14,12 @@ namespace iLgs.Models
     
     public partial class Codextn
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Codextn()
+        {
+            this.DepartmentUsers = new HashSet<DepartmentUser>();
+        }
+    
         public System.Guid Id { get; set; }
         public System.Guid MastId { get; set; }
         public string Code { get; set; }
@@ -28,5 +34,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual CodeMast CodeMast { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<DepartmentUser> DepartmentUsers { get; set; }
     }
 }

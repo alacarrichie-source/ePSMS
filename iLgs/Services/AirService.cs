@@ -164,16 +164,16 @@ namespace iLgs.Services
                 .Select(s => s.Key).ToListAsync();
             foreach (var orderItemId in orderItemIdList)
             {
-                decimal? qtyIss = 0;
+                decimal? qtyAccepted = 0;
                 if (post)
                 {
-                    qtyIss = db.AIRItems.Where(w => w.OrderItemId == orderItemId).Sum(s => s.Qty);
+                    qtyAccepted = db.AIRItems.Where(w => w.OrderItemId == orderItemId).Sum(s => s.Qty);
                 }
                 var psItem = await db.PsItems.Where(w => w.OrderItemId == orderItemId).FirstOrDefaultAsync();
                 if (psItem != null)
                 {
-                    psItem.QtyIss = qtyIss;
-                    psItem.QtyBal = psItem.Qty - qtyIss;
+                    psItem.Qty = qtyAccepted;
+                    psItem.QtyBal = qtyAccepted - psItem.QtyIss;
                     psItem.UpdatedBy = user;
                     psItem.UpdatedDt = date;
                     db.PsItems.Attach(psItem);

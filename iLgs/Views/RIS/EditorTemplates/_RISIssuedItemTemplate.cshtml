@@ -8,14 +8,14 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.Department)
-
+    
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
             <ul class="errors"></ul>
         </div>
     </div>
     <fieldset>
-        <div class="row">
+        @*<div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.IssuedBy, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -103,13 +103,13 @@
                     @Html.ValidationMessageFor(model => model.ReceivedByDesignation)
                 </div>
             </div>
-            </div>
+            </div>*@
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.ReceivedDate, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(model => model.IssuedDate, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(model => model.ReceivedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.ReceivedDate)
+                    @(Html.Kendo().DatePickerFor(model => model.IssuedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.IssuedDate)
                 </div>
             </div>
         </div>
@@ -122,6 +122,24 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.UnitCost, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().NumericTextBoxFor(model => model.UnitCost).Decimals(2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.UnitCost)
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.Amount, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().NumericTextBoxFor(model => model.Amount).Decimals(2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.Amount)
+                </div>
+            </div>
+        </div>        
     </fieldset>
 }
 

@@ -186,4 +186,50 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     }
+
+    public class PoIssuanceVM
+    {
+        public System.Guid Id { get; set; }
+        public System.Guid? RisItemId { get; set; }
+
+        [Display(Name = "PO No.")]
+        public string PoNo { get; set; }
+
+        [Display(Name = "RIS No.")]
+        public string RisNo { get; set; }
+
+        [Display(Name = "PR No.")]
+        public string PrNo { get; set; }
+
+        [Display(Name = "AIR No.")]
+        public string AirNo { get; set; }
+
+        [Display(Name = "PO Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PoDate { get; set; }
+
+        [Display(Name = "Department")]
+        public string Department { get; set; }
+
+        [Display(Name = "Fund")]
+        public string Fund { get; set; }
+
+        [Display(Name = "Qty")]
+        public int? Qty { get; set; }
+
+        [Display(Name = "Qty Iss")]
+        public int? QtyIss { get; set; }
+
+        [Display(Name = "Balance")]
+        public int? Balance { get; set; }
+
+        [Display(Name = "Stock No.")]
+        public string StockNo { get; set; }
+
+        [Display(Name = "Stock Name")]
+        public string StockName { get; set; }
+
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+    }
 }

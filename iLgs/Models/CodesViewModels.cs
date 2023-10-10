@@ -67,4 +67,25 @@ namespace iLgs.Models
         public Guid? AccessId { get; set; }
         public Guid? ActionId { get; set; }
     }
+
+    public class DepartmentUserVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> DeptId { get; set; }
+        public string UserId { get; set; }
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // transients
+
+        public string Email { get; set; }
+
+        [Display(Name = "User Name")]
+        public string UserName { get; set; }
+
+        [Display(Name = "Full Name")]
+        public string NameFull { get; set; }
+    }
 }

@@ -16,7 +16,6 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RsmiId { get; set; }
-        public Nullable<System.Guid> PsItemId { get; set; }
         public string StockNo { get; set; }
         public Nullable<decimal> Qty { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
@@ -24,8 +23,9 @@ namespace iLgs.Models
         public string AccountCode { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual RSMI RSMI { get; set; }
-        public virtual PsItem PsItem { get; set; }
     }
 }

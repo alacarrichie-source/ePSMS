@@ -34,6 +34,8 @@ namespace iLgs.Services
                     IssuedBy = s.IssuedBy,
                     IssuedByDesignation = s.IssuedByDesignation,
                     Qty = s.Qty,
+                    UnitCost = s.UnitCost,
+                    Amount = s.Amount,
                     ReceivedBy = s.ReceivedBy,
                     ReceivedByDesignation = s.ReceivedByDesignation, 
                     ReceivedDate = s.ReceivedDate,
@@ -62,6 +64,8 @@ namespace iLgs.Services
                     IssuedBy = s.IssuedBy,
                     IssuedByDesignation = s.IssuedByDesignation,
                     Qty = s.Qty,
+                    UnitCost = s.UnitCost,
+                    Amount = s.Amount,
                     ReceivedBy = s.ReceivedBy,
                     ReceivedByDesignation = s.ReceivedByDesignation,
                     ReceivedDate = s.ReceivedDate,
@@ -83,6 +87,8 @@ namespace iLgs.Services
                     IssuedBy = s.IssuedBy,
                     IssuedByDesignation = s.IssuedByDesignation,
                     Qty = s.Qty,
+                    UnitCost = s.UnitCost,
+                    Amount = s.Amount,
                     ReceivedBy = s.ReceivedBy,
                     ReceivedByDesignation = s.ReceivedByDesignation,
                     ReceivedDate = s.ReceivedDate,
@@ -100,7 +106,7 @@ namespace iLgs.Services
             var qtyBalance = totalQtyIssued - qtyIssued;
             if (model.Qty > qtyBalance)
             {
-                throw new InvalidValueException(string.Format("Quantity must not exceed the remaing un-issued balance of {0}", qtyBalance));
+                throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
             }
 
             model.Id = Guid.NewGuid();
@@ -117,6 +123,8 @@ namespace iLgs.Services
                 IssuedBy = model.IssuedBy,
                 IssuedByDesignation = model.IssuedByDesignation,
                 Qty = model.Qty,
+                UnitCost = model.UnitCost,
+                Amount = model.Amount,
                 ReceivedBy = model.ReceivedBy,
                 ReceivedByDesignation = model.ReceivedByDesignation,
                 ReceivedDate = model.ReceivedDate,
@@ -162,7 +170,7 @@ namespace iLgs.Services
             var qtyBalance = totalQtyIssued - qtyIssued;
             if (model.Qty > qtyBalance)
             {
-                throw new InvalidValueException(string.Format("Quantity must not exceed the remaing un-issued balance of {0}", qtyBalance));
+                throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
             }
 
             model.UpdatedBy = user;
@@ -175,6 +183,8 @@ namespace iLgs.Services
             entity.IssuedBy = model.IssuedBy;
             entity.IssuedByDesignation = model.IssuedByDesignation;
             entity.Qty = model.Qty;
+            entity.UnitCost = model.UnitCost;
+            entity.Amount = model.Amount;
             entity.ReceivedBy = model.ReceivedBy;
             entity.ReceivedByDesignation = model.ReceivedByDesignation;
             entity.ReceivedDate = model.ReceivedDate;

@@ -1,4 +1,5 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
 using iLgs.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,9 @@ namespace iLgs.Services
                     ItemTypeId = s.ItemTypeId,
                     ItemNo = s.ItemNo,
                     Code = s.Code,
-                    Description = s.Description,                    
+                    Description = s.Description,     
+                    ItemSw = s.ItemSw,
+                    AccountCode = s.AccountCode,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -44,6 +47,8 @@ namespace iLgs.Services
                     ItemNo = s.ItemNo,
                     Code = s.Code,
                     Description = s.Description,
+                    ItemSw = s.ItemSw,
+                    AccountCode = s.AccountCode,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -57,6 +62,10 @@ namespace iLgs.Services
 
         public async Task<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date)
         {
+            //if (!string.IsNullOrWhiteSpace(model.ItemSw) && !(model.ItemSw == "Y" && model.ItemSw == "N"))
+            //{
+            //    throw new InvalidValueException("Valid value for Is Item is Y or N.");
+            //}
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
@@ -72,7 +81,9 @@ namespace iLgs.Services
                 ItemTypeId = model.ItemTypeId,
                 ItemNo = model.ItemNo,
                 Code = model.Code,
-                Description = model.Description,
+                Description = model.Description ?? "",
+                ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper(),
+                AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper(),
                 InsertedBy = user,
                 InsertedDt = date,
                 UpdatedBy = user,
@@ -87,6 +98,11 @@ namespace iLgs.Services
         
         public async Task<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date)
         {
+            //if (!string.IsNullOrWhiteSpace(model.ItemSw) && !(model.ItemSw == "Y" && model.ItemSw == "N"))
+            //{
+            //    throw new InvalidValueException("Valid value for Is Item is Y or N.");
+            //}
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -97,7 +113,9 @@ namespace iLgs.Services
             entity.ItemTypeId = model.ItemTypeId;
             entity.ItemNo = model.ItemNo;
             entity.Code = model.Code;
-            entity.Description = model.Description;
+            entity.Description = model.Description ?? "";
+            entity.ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper();
+            entity.AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper();
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 

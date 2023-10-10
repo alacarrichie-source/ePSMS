@@ -71,6 +71,22 @@ namespace iLgs.Controllers
 
         }
 
+        public ActionResult GetDeptUserList(string text)
+        {
+
+            var model = db.AspNetUsers.Include("UserProfiles").AsQueryable();
+            if (!string.IsNullOrEmpty(text))
+            {
+                text = text.Trim();
+                model = model.Where(p => p.UserName.Contains(text) || p.UserProfile.NameFull.Contains(text));
+            }
+
+            var retModel = model.Select(c => new { Id = c.Id, Email = c.Email, UserName = c.UserName, NameFull = c.UserProfile.NameFull }).ToList();            
+
+            return Json(retModel, JsonRequestBehavior.AllowGet);
+
+        }
+
         public ActionResult GetRoleList(string text)
         {
 

@@ -54,10 +54,18 @@ namespace iLgs.Models
         [Display(Name = "Item Code")]
         public string Code { get; set; }
         public string Description { get; set; }
+        [Display(Name = "In Request?")]
+        public string ItemSw { get; set; }
+        [Display(Name = "Account Code")]
+        public string AccountCode { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }     
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // Transients
+        public string MainDesc { get; set; }
+        public string ItemType { get; set; }
     }
    
     public class ItemFieldVM

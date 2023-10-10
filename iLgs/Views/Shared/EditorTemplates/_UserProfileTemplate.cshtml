@@ -40,8 +40,8 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                @(Html.Kendo().TextBoxFor(Model => Model.NameFull).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false)
-                    .Label(l => l.Content("Full Name").Floating(true))
+                @(Html.Kendo().TextBoxFor(Model => Model.NameFull).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(true)
+                    .Label(l => l.Content("Full Name").Floating(false))
                 )
             </div>
         </div>

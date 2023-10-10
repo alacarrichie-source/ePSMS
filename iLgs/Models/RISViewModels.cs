@@ -264,6 +264,10 @@ namespace iLgs.Models
 
         public Nullable<int> Qty { get; set; }
 
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<decimal> Amount { get; set; }
+        
         [Display(Name = "Received By")]
         public string ReceivedBy { get; set; }
 

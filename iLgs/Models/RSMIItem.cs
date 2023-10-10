@@ -16,11 +16,20 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RsmiId { get; set; }
-        public Nullable<System.Guid> RisIssuedId { get; set; }
+        public string RisNo { get; set; }
+        public string RCC { get; set; }
+        public string StockNo { get; set; }
+        public string ItemName { get; set; }
+        public string Unit { get; set; }
+        public Nullable<int> Qty { get; set; }
+        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<decimal> Amount { get; set; }
+        public string AccountCode { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual RSMI RSMI { get; set; }
-        public virtual RisIssued RisIssued { get; set; }
     }
 }

@@ -5,6 +5,8 @@
             col.Bound(c => c.ItemNo).Width(70);
             col.Bound(c => c.Description).Width(200);
             col.Bound(c => c.Code).Width(70);
+            col.Bound(c => c.ItemSw).Width(50);
+            col.Bound(c => c.AccountCode).Width(50);
             col.Command(command =>
             {
                 //command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
@@ -19,15 +21,15 @@
         @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["risId"]).Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRisItem")))
             </text>);*@
         })
-        .Pageable(pager => pager
-            .Input(false)
-            .Numeric(true)
-            .Info(true)
-            .PreviousNext(true)
-            .Refresh(true)
-            .PageSizes(true)
-            .ButtonCount(5)
-        )
+        //.Pageable(pager => pager
+        //    .Input(false)
+        //    .Numeric(true)
+        //    .Info(true)
+        //    .PreviousNext(true)
+        //    .Refresh(true)
+        //    .PageSizes(true)
+        //    .ButtonCount(5)
+        //)
         .Filterable()
         .NoRecords()
         .Resizable(r => r.Columns(true))

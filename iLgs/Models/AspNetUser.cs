@@ -19,6 +19,7 @@ namespace iLgs.Models
         {
             this.AspNetUserRoles = new HashSet<AspNetUserRole>();
             this.UserCodes = new HashSet<UserCode>();
+            this.DepartmentUsers = new HashSet<DepartmentUser>();
         }
     
         public string Id { get; set; }
@@ -42,5 +43,7 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<UserCode> UserCodes { get; set; }
         public virtual UserInfo UserInfo { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<DepartmentUser> DepartmentUsers { get; set; }
     }
 }

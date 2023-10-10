@@ -20,10 +20,12 @@ namespace iLgs.Controllers
     {
         private AppManEntities db = new AppManEntities();
         private ICodextnService codextnService;
+        private IDepartmentUserService departmentUserService;
 
         public CodesController()
         {
             this.codextnService = new CodextnService(db);
+            this.departmentUserService = new DepartmentUuserService(db);
         }
         // GET: Codes
         public ActionResult Index()
@@ -37,7 +39,7 @@ namespace iLgs.Controllers
             var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "Department & Sections";
-            return View("Codextn", codeMast);
+            return View(codeMast);
         }
 
         public async Task<ActionResult> IssuedBy()
@@ -134,7 +136,7 @@ namespace iLgs.Controllers
                         ModelState.AddModelError("Access Error", "Access Denied!");
                     }
                 }
-                
+
                 if (ModelState.IsValid)
                 {
                     if (db.CodeMasts.Any(a => a.Code == model.Code))
@@ -182,7 +184,7 @@ namespace iLgs.Controllers
                 }
 
                 if (ModelState.IsValid)
-                {                    
+                {
                     var entity = db.CodeMasts.Find(model.Id);
 
                     if (entity != null)
@@ -252,11 +254,11 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
-      
+
         public ActionResult CodextnRead([DataSourceRequest] DataSourceRequest request, Guid mastId)
         {
             var data = codextnService.GetByMastId(mastId);
-                
+
             return Json(data.ToDataSourceResult(request));
         }
 
@@ -346,7 +348,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> CodextnDestroy([DataSourceRequest]DataSourceRequest request, CodextnVM model)
         {
             try
-            {                
+            {
                 Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
@@ -372,6 +374,142 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }        
+        }
+
+        #region DEPARTMENT USERS
+        public ActionResult _DepartmentUsers(Guid deptId)
+        {
+            ViewData["DeptId"] = deptId;
+            return PartialView();
+        }
+
+        public ActionResult _DepartmentUserRead([DataSourceRequest] DataSourceRequest request, Guid deptId)
+        {
+            var data = departmentUserService.GetAllByDeptId(deptId);
+
+            return Json(data.ToDataSourceResult(request));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _DepartmentUserCreate([DataSourceRequest] DataSourceRequest request, DepartmentUserVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "ADD")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+                
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await departmentUserService.CreateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _DepartmentUserUpdate([DataSourceRequest] DataSourceRequest request, DepartmentUserVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "EDIT")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+                
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await departmentUserService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _DepartmentUserDestroy([DataSourceRequest]DataSourceRequest request, DepartmentUserVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "DELETE")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await departmentUserService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion
     }
 }

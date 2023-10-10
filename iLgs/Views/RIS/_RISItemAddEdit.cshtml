@@ -40,8 +40,10 @@
                         })
                         .Columns(c =>
                         {
-                            c.Add().Field("Code").Title("Item No.").Width("20%");
-                            c.Add().Field("Description").Title("Item Type").Width("80%");                            
+                            c.Add().Field("ItemNo").Title("Item No.").Width("10%");
+                            c.Add().Field("Code").Title("Code").Width("10%");
+                            c.Add().Field("MainDesc").Title("Group").Width("40%");
+                            c.Add().Field("Description").Title("Type").Width("40%");                            
                         })
                         .Suggest(true)
                         .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
