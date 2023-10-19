@@ -4,6 +4,34 @@
 {
     @Html.HiddenFor(m => m.SavePrints)
     <br />
+    <div class="row">        
+        @Html.LabelFor(model => model.Fund, htmlAttributes: new { @class = "col-md-3 text-right" })
+        <div class="col-md-9">
+            @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select Fund")
+                        .DataTextField("Description")
+                        .DataValueField("Code")
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetCodeList", "Getters", new { mastCode = "FUND", addAll = false });
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Code").Title("Code").Width("30%");
+                            c.Add().Field("Description").Title("Description").Width("70%");
+                        })
+                        .Suggest(true)
+            )
+            @Html.ValidationMessageFor(model => model.Fund)
+        </div>        
+    </div>
+
     <div class="row">
         <div class="text-right col-md-3">
             @Html.Label("Period From")

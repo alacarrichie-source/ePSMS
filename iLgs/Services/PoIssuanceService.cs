@@ -43,7 +43,10 @@ namespace iLgs.Services.Interfaces
                         Balance = (int?)s.Qty - (s.RequestItem.RisItem.RisIssueds.Sum(x => x.Qty) ?? 0),
                         StockNo = s.StockNo,
                         StockName = s.StockName,
-                        UnitCost = s.UnitCost
+                        UnitCost = s.UnitCost,
+                        ItemName = s.RequestItem.RisItem.ItemName,
+                        Description = s.Description,
+                        Brand = s.Brand
                     })
                     .AsQueryable();
             return data;

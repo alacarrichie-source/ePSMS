@@ -8,10 +8,10 @@
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.OrderId)
     @Html.HiddenFor(model => model.RisItemId)
-    @Html.HiddenFor(model => model.PsNo)    
+    @Html.HiddenFor(model => model.PsNo)
     @Html.HiddenFor(model => model.PsType)
     @Html.HiddenFor(model => model.GridOrderItemExtns)
-    @Html.HiddenFor(model => model.Mode)    
+    @Html.HiddenFor(model => model.Mode)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -50,9 +50,10 @@
 
             })
             .Suggest(true)
-            .Events(e => {
+            .Events(e =>
+            {
                 e.Select("onSelectRequestItemId");
-                //.DataBound("onDataBoundRequestItemId"); 
+                //.DataBound("onDataBoundRequestItemId");
             })
                     )
                     @Html.ValidationMessageFor(m => m.RequestItemId)
@@ -100,7 +101,22 @@
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Brand, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().ComboBoxFor(m => m.Brand)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .DataTextField("Description")
+                        .DataValueField("Description")
+                        .Filter("contains")
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetCodes", "Getters", new { mastCode = "BRANDS", text = "" });
+                            })
+                            .ServerFiltering(false);
+                        })
+                    )
+
+
                 </div>
             </div>
         </div>
@@ -129,12 +145,12 @@
                         .Model(model =>
                         {
                             model.Id(p => p.Id);
-                            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);                           
+                            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
                         })
                         .Read(read => read.Action("_RISItemExtnBatchRead", "RIS").Data("DataRisItemExtnGrid"))
                     )
                     .Selectable(s => s.Mode(GridSelectionMode.Single))
-                    .AutoBind(true)                
+                    .AutoBind(true)
                 )
             </div>
         </div>

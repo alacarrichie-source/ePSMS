@@ -101,12 +101,18 @@ namespace iLgs.Services
         public ValueTask<RisIssuedVM> CreateAsync(RisIssuedVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
-            var totalQtyIssued = db.RisItems.Find(model.RisItemId)?.QtyIssue ?? 0;
+            var totalQtyIssued = db.RisItems.Find(model.RisItemId)?.QtyRequest ?? 0;
             var qtyIssued = db.RisIssueds.Where(w => w.RisItemId == model.RisItemId).Sum(s => s.Qty) ?? 0;
             var qtyBalance = totalQtyIssued - qtyIssued;
             if (model.Qty > qtyBalance)
             {
                 throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
+            }
+
+            var rsmiDate = db.RSMIs.Max(m => m.Date);
+            if (rsmiDate != null && rsmiDate >= model.IssuedDate)
+            {
+                throw new InvalidValueException(string.Format("Date issued must be after the last RSMI date on {0}", rsmiDate.Value.ToShortDateString()));
             }
 
             model.Id = Guid.NewGuid();
@@ -136,13 +142,18 @@ namespace iLgs.Services
 
             db.RisIssueds.Add(entity);
             await db.SaveChangesAsync();
-            await UpdatePsItems(model.RisItemId);
+            await UpdateRisPsItems(model.RisItemId);
             return model;
         });
 
         public ValueTask<RisIssuedVM> DeleteAsync(RisIssuedVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
-        {
+        {            
+            if (db.RSMIs.Any(a => a.Date == model.IssuedDate))
+            {
+                throw new RecordRelationshipException("Date Issued is already in RSMI, Cannot delete!");
+            }
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -158,19 +169,25 @@ namespace iLgs.Services
             db.RisIssueds.Remove(entity);
             db.Entry(entity).State = EntityState.Deleted;
             await db.SaveChangesAsync();
-            await UpdatePsItems(model.RisItemId);
+            await UpdateRisPsItems(model.RisItemId);
             return model;
         });
 
         public ValueTask<RisIssuedVM> UpdateAsync(RisIssuedVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
-            var totalQtyIssued = db.RisItems.Find(model.RisItemId)?.QtyIssue ?? 0;
+            var totalQtyIssued = db.RisItems.Find(model.RisItemId)?.QtyRequest ?? 0;
             var qtyIssued = db.RisIssueds.Where(w => w.RisItemId == model.RisItemId && w.Id != model.Id).Sum(s => s.Qty) ?? 0;
             var qtyBalance = totalQtyIssued - qtyIssued;
             if (model.Qty > qtyBalance)
             {
                 throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
+            }
+
+            var rsmiDate = db.RSMIs.Max(m => m.Date);
+            if (rsmiDate != null && rsmiDate >= model.IssuedDate)
+            {
+                throw new InvalidValueException(string.Format("Date issued must be after the last RSMI date on {0}", rsmiDate.Value.ToShortDateString()));
             }
 
             model.UpdatedBy = user;
@@ -194,11 +211,11 @@ namespace iLgs.Services
             db.RisIssueds.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();                        
-            await UpdatePsItems(model.RisItemId);
+            await UpdateRisPsItems(model.RisItemId);
             return model;
         });
 
-        private async ValueTask UpdatePsItems(Guid? risItemId)
+        private async ValueTask UpdateRisPsItems(Guid? risItemId)
         {
             var qtyReceived = await db.AIRItems.Where(w => w.OrderItem.RequestItem.RisItem.Id == risItemId).SumAsync(s => s.Qty) ?? 0;
             var qtyIssued = await db.RisIssueds.Where(w => w.RisItemId == risItemId).SumAsync(s => s.Qty) ?? 0;
@@ -208,6 +225,11 @@ namespace iLgs.Services
                 var psItems = db.PsItems.Where(w => w.OrderItemId == orderItem.Id);
                 await psItems.ForEachAsync(f => { f.QtyIss = qtyIssued; f.Qty = qtyReceived; f.QtyBal = qtyReceived - qtyIssued; });
             }
+            var risItem = await db.RisItems.FindAsync(risItemId);
+            risItem.QtyIssue = qtyIssued;
+            db.RisItems.Attach(risItem);
+            db.Entry(risItem).State = EntityState.Modified;
+
             await db.SaveChangesAsync();            
         }
     }

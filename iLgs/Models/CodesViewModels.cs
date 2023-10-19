@@ -44,7 +44,7 @@ namespace iLgs.Models
         public string Desc5Hdg { get; set; }
         public Guid Id { get; set; }
         public Guid MastId { get; set; }
-        [Required]
+        //[Required]
         public string Code { get; set; }            
         [Required]
         public string Description { get; set; }

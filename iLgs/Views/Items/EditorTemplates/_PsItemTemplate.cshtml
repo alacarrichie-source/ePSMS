@@ -1,0 +1,80 @@
+﻿@model iLgs.Models.PsItemVM
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.PsStockId)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row">
+            @Html.LabelFor(model => model.RefNo, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().TextBoxFor(model => model.RefNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.RefNo)
+            </div>
+
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(model => model.RefDate, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().DatePickerFor(model => model.RefDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.RefDate)
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(model => model.QtyPo, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().NumericTextBoxFor(model => model.QtyPo).Decimals(0).Format("{0:n0}")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                )
+                @Html.ValidationMessageFor(model => model.QtyPo)
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(0).Format("{0:n0}")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })                    
+                )
+                @Html.ValidationMessageFor(model => model.Qty)
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(model => model.QtyIss, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().NumericTextBoxFor(model => model.QtyIss).Decimals(0).Format("{0:n0}")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                )
+                @Html.ValidationMessageFor(model => model.QtyIss)
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(model => model.QtyBal, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().NumericTextBoxFor(model => model.QtyBal).Decimals(0).Format("{0:n0}")
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                )
+                @Html.ValidationMessageFor(model => model.QtyBal)
+            </div>
+        </div>
+
+    </fieldset>
+}
+
+
+
+

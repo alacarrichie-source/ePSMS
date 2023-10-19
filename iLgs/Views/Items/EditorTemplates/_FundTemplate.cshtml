@@ -1,0 +1,15 @@
+﻿@(Html.Kendo().ComboBox()
+    .Name("Fund")
+    .DataTextField("Code")
+    .DataValueField("Code")
+    .ValuePrimitive(true)
+    .Filter("startswith")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("GetCodes", "Getters", new { mastCode = "FUND", text = "" });
+        })
+        .ServerFiltering(false);
+    })
+)

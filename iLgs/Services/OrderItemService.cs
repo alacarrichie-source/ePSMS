@@ -14,10 +14,12 @@ namespace iLgs.Services
     {
         private readonly AppManEntities db = new AppManEntities();
         private readonly IExceptionService<OrderItemVM> _VmExceptionService = new ExceptionService<OrderItemVM>();
+        private ICodextnService _codextnService;
         
         public OrderItemService(AppManEntities db)
         {
             this.db = db;
+            _codextnService = new CodextnService(db);
         }
 
         public ValueTask<OrderItemVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
@@ -104,6 +106,11 @@ namespace iLgs.Services
             {
                 throw new RecordRelationshipException("Cound not find RIS item for this record!");
             }
+            
+            if (!(await _codextnService.IsValidCodeDescAsync("BRANDS", model.Brand)))
+            {
+                throw new RecordRelationshipException("Brand is not valid!");
+            }
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -177,6 +184,12 @@ namespace iLgs.Services
             {
                 throw new RecordRelationshipException("Cound not find RIS item for this record!");
             }
+
+            if (!(await _codextnService.IsValidCodeDescAsync("BRANDS", model.Brand)))
+            {
+                throw new RecordRelationshipException("Brand is not valid!");
+            }
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 

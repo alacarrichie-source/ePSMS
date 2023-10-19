@@ -136,6 +136,8 @@ namespace iLgs.Models
 
         public bool SavePrints { get; set; }
 
+        public string Fund { get; set; }
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (DateTo < DateFrom)

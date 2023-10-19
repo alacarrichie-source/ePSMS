@@ -30,6 +30,7 @@
         //    .PageSizes(true)
         //    .ButtonCount(5)
         //)
+        .Scrollable()
         .Filterable()
         .NoRecords()
         .Resizable(r => r.Columns(true))
@@ -45,10 +46,10 @@
                 model.Field(p => p.ItemTypeId).DefaultValue(@ViewData["itemTypeId"]).Editable(true);
                 model.Field(p => p.Code).Editable(false);
             })
-            .Sort(s =>
-            {
-                s.Add(a => a.ItemNo);
-            })
+            //.Sort(s =>
+            //{
+            //    s.Add(a => a.ItemNo);
+            //})
             .Read(read => read.Action("ItemCodeRead", "Items", new { itemTypeId = @ViewData["itemTypeId"] }))
             .Create(create => create.Action("ItemCodeCreate", "Items"))
             .Update(update => update.Action("ItemCodeUpdate", "Items"))

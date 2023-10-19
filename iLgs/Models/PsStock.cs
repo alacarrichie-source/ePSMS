@@ -23,6 +23,7 @@ namespace iLgs.Models
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsId { get; set; }
+        public string Fund { get; set; }
         public string StockNo { get; set; }
         public string StockName { get; set; }
         public string Description { get; set; }

@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Property & Supply Maintenance";
+    ViewBag.Title = "Stock Card";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
@@ -55,7 +55,7 @@
         .Items(items =>
         {
             items.Add()
-                .Text("RECEIPT")
+                .Text("ORDERS")
                 .Selected(true)
                 .Content(@<text>
                     @RenderStockDetails()
@@ -74,22 +74,19 @@
 {
     @(Html.Kendo().Grid<iLgs.Models.PsItemVM>()
         .Name("gridStockDetails_#=Id#")
-        @*.ToolBar(t =>
-        {
-            t.Template(@<text>                
-                @(Html.Kendo().Button().Icon("k-icon k-i-checkbox-checked").Name("btnSelectionAdd").Content("Add from orders").Events(e => e.Click("onClickBtnSelection")).ToClientTemplate())                                                
-            </text>);
-        })*@
         .Columns(columns =>
         {
+            columns.Bound(f => f.Office).EditorTemplateName("_OfficeTemplate")
+                .Width(120);
             columns.Bound(f => f.RefNo).EditorTemplateName("_RefNoTemplate")
                 .Width(70);
             columns.Bound(f => f.RefDate).EditorTemplateName("_RefDateTemplate")
                 .Width(70);
-            //columns.Bound(f => f.UnitCost)
-            //    .Width(70)
-            //    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-            //    .HeaderHtmlAttributes(new { style = "text-align:right;" });            
+            columns.Bound(f => f.QtyPo).EditorTemplateName("_QtyPoTemplate")
+                .Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
             columns.Group(group => group.Title("Quantity")
                 .Columns(info =>
                 {
@@ -98,12 +95,12 @@
                       .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                       .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                       .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                    info.Bound(f => f.QtyIss)
+                    info.Bound(f => f.QtyIss).EditorTemplateName("_QtyIssueTemplate")
                         .Width(70).Title("Issue")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                         .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                    info.Bound(f => f.QtyBal)
+                    info.Bound(f => f.QtyBal).EditorTemplateName("_QtyBalTemplate")
                         .Width(70).Title("Balance")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                         .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
@@ -111,16 +108,25 @@
                 }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
          );
 
-            columns.Bound(f => f.Days).EditorTemplateName("_DaysTemplate")
-                .Width(70)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            //columns.Command(commands =>
-            //{
-            //    commands.Edit();
-            //    commands.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-            //}).Width(100);
+            //columns.Bound(f => f.Days).EditorTemplateName("_DaysTemplate")
+            //    .Width(70)
+            //    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            //    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Command(commands =>
+            {
+                commands.Edit();
+                commands.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            }).Width(100);
         })
+        .ToolBar(t =>
+        {
+        t.Create();
+            @*t.Template(@<text>
+                    @(Html.Kendo().Button().Icon("k-icon k-i-checkbox-checked").Name("btnSelectionAdd").Content("Add from orders").Events(e => e.Click("onClickBtnSelection")).ToClientTemplate())
+                </text>);*@
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PsItemTemplate").Window(w => w.Width(800).Title("Order")))
         //.Events(e =>
         //{
         //    e.DataBound("onOrderDetailsDataBound");
@@ -129,6 +135,7 @@
         //})
         .Selectable()
         //.Pageable(pageable => pageable.Refresh(true))
+        //.Editable()
         .Navigatable()
         .NoRecords()
         .ClientDetailTemplateId("IssuedItems")
@@ -138,23 +145,25 @@
             {
                 model.Id(p => p.Id);
                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-                model.Field(p => p.RefNo).Editable(false);
-                model.Field(p => p.RefDate).Editable(false);
-                model.Field(p => p.QtyIss).Editable(false);
-                model.Field(p => p.QtyBal).Editable(false);
-                //model.Field(p => p.UnitCost).Editable(false);
+                //model.Field(p => p.RefNo).Editable(true);
+                //model.Field(p => p.RefDate).Editable(true);
+                //model.Field(p => p.Qty).Editable(true);
+                //model.Field(p => p.QtyIss).Editable(true);
+                //model.Field(p => p.QtyBal).Editable(true);
+                //model.Field(p => p.QtyPo).Editable(true);
             })
             .Aggregates(a =>
             {
+                a.Add(p => p.QtyPo).Sum();
                 a.Add(p => p.Qty).Sum();
                 a.Add(p => p.QtyIss).Sum();
                 a.Add(p => p.QtyBal).Sum();
             })
             .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridStockItems"))
             .Read("StockItemRead", "Items", new { stockId = "#=Id#" })
-        //.Create("StockItemCreate", "Items")
-        //.Update("StockItemUpdate", "Items")
-        //.Destroy("StockItemDestroy", "Items")
+            .Create("StockItemCreate", "Items")
+            .Update("StockItemUpdate", "Items")
+            .Destroy("StockItemDestroy", "Items")
         ).Events(e => e.Edit("onEditGridStockItems").Change("onChangeGridStockItems").DataBound("onDataBoundGridStockItems"))
         .ToClientTemplate()
     )
@@ -271,22 +280,24 @@
                 .Name("gridStocks")
                 .Columns(col =>
                 {
+                    col.Bound(c => c.Fund).Width(70).EditorTemplateName("_FundTemplate");
                     col.Bound(c => c.StockNo).Width(100);
                     col.Bound(c => c.StockName).Width(100);
-                    col.Bound(c => c.Brand).Width(100);
-                    col.Bound(c => c.Description).Width(200);
-                    //col.Command(command =>
-                    //{
-                    //    command.Edit();
-                    //    command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-                    //}).Width(100);
+                    col.Bound(c => c.Brand).Width(70);
+                    col.Bound(c => c.Description).Width(150);
+                    col.Command(command =>
+                    {
+                        command.Edit();
+                        command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+                    }).Width(100);
                 })
-                //.ToolBar(t =>
-                //{
-                //    t.Create();
-                //    t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintStock").HtmlAttributes(new { @class = "k-button", href = "" });
-                //})
-                .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_StockTemplate").Window(w => w.Width(500).Title("Stocks")))
+                .ToolBar(t =>
+                {
+                    t.Create();
+                    t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintStock").HtmlAttributes(new { @class = "k-button", href = "" });
+                })
+                .Editable(editable => editable.Mode(GridEditMode.InLine))
+                //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_StockTemplate").Window(w => w.Width(500).Title("Stocks")))
                 .Pageable(pager => pager
                     .Input(false)
                     .Numeric(true)
@@ -315,9 +326,9 @@
                         model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
                     })
                     .Read(read => read.Action("StockRead", "Items").Data("DataGridStocks"))
-                //.Create(create => create.Action("StockCreate", "Items"))
-                //.Update(update => update.Action("StockUpdate", "Items"))
-                //.Destroy(destroy => destroy.Action("StockDestroy", "Items"))
+                    .Create(create => create.Action("StockCreate", "Items"))
+                    .Update(update => update.Action("StockUpdate", "Items"))
+                    .Destroy(destroy => destroy.Action("StockDestroy", "Items"))
                 )
                 .Events(events => events
                     .Change("onChangeGridStocks")

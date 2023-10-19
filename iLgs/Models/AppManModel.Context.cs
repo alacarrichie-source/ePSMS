@@ -56,19 +56,22 @@ namespace iLgs.Models
         public virtual DbSet<ItemField> ItemFields { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<RequestItem> RequestItems { get; set; }
-        public virtual DbSet<RisItemExtn> RisItemExtns { get; set; }
         public virtual DbSet<PsCode> PsCodes { get; set; }
         public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
-        public virtual DbSet<PsItem> PsItems { get; set; }
         public virtual DbSet<PARItem> PARItems { get; set; }
         public virtual DbSet<AIRInvoice> AIRInvoices { get; set; }
-        public virtual DbSet<PsStock> PsStocks { get; set; }
         public virtual DbSet<RSMI> RSMIs { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
-        public virtual DbSet<ItemCode> ItemCodes { get; set; }
         public virtual DbSet<RSMIRecap> RSMIRecaps { get; set; }
         public virtual DbSet<RisIssued> RisIssueds { get; set; }
         public virtual DbSet<DepartmentUser> DepartmentUsers { get; set; }
+        public virtual DbSet<PsItem> PsItems { get; set; }
+        public virtual DbSet<ItemCode> ItemCodes { get; set; }
+        public virtual DbSet<RisItemExtn> RisItemExtns { get; set; }
+        public virtual DbSet<PsStock> PsStocks { get; set; }
+        public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
+        public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
+        public virtual DbSet<RisItemUnitGroup> RisItemUnitGroups { get; set; }
     }
 }

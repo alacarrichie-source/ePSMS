@@ -3,8 +3,8 @@
         .Columns(columns =>
         {
             columns.Bound(o => o.PsNo).Width(70);
-            columns.Bound(o => o.Unit).Width(70);
-            columns.Bound(o => o.ItemName).Width(70);
+            columns.Bound(o => o.Unit).Width(50);
+            columns.Bound(o => o.ItemName).Width(100);
             columns.Bound(o => o.Description).Width(150);
             columns.Bound(o => o.Qty).Width(70)
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")

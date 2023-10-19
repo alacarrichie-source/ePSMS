@@ -9,12 +9,15 @@
     .Columns(col =>
     {
         col.Bound(c => c.Department).Width(100);
-        col.Bound(c => c.PoDate).Width(70);
-        col.Bound(c => c.PoNo).Width(70);
-        col.Bound(c => c.PrNo).Width(70);
-        col.Bound(c => c.RisNo).Width(70);
+        col.Bound(c => c.PoDate).Width(50);
+        col.Bound(c => c.PoNo).Width(50);
+        col.Bound(c => c.PrNo).Width(50);
+        col.Bound(c => c.RisNo).Width(50);
         col.Bound(c => c.StockNo).Width(100);
         col.Bound(c => c.StockName).Width(150);
+        col.Bound(c => c.ItemName).Width(100);
+        col.Bound(c => c.Description).Width(100);
+        col.Bound(c => c.Brand).Width(70);
         col.Bound(c => c.UnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")                
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
         col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")

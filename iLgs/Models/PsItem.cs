@@ -17,9 +17,11 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsStockId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
+        public string Office { get; set; }
         public string RefNo { get; set; }
         public Nullable<System.DateTime> RefDate { get; set; }
         public string RefType { get; set; }
+        public Nullable<decimal> QtyPo { get; set; }
         public Nullable<decimal> Qty { get; set; }
         public Nullable<decimal> QtyIss { get; set; }
         public Nullable<decimal> QtyBal { get; set; }

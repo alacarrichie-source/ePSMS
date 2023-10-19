@@ -11,6 +11,7 @@ namespace iLgs.Services.Interfaces
     {
         IQueryable<CodextnVM> GetByMastCode(string mastCode);
         IQueryable<CodextnVM> GetByMastId(Guid mastId);
+        ValueTask<bool> IsValidCodeDescAsync(string mainCode, string description);
         Task<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date);
         Task<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date);
         Task<CodextnVM> DeleteAsync(CodextnVM model, string user, DateTime date);        

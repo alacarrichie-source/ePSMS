@@ -56,11 +56,11 @@ namespace iLgs.Models
         public Nullable<System.DateTime> DeliveryDate { get; set; }
 
         [Display(Name = "Delivery Term")]
-        [Required]
+        //[Required]
         public string TermDelivery { get; set; }
 
         [Display(Name = "Payment Term")]
-        [Required]
+        //[Required]
         public string TermPayment { get; set; }
 
         [Display(Name = "Signed by Supplier")]
@@ -163,6 +163,7 @@ namespace iLgs.Models
         public string StockName { get; set; }
         public string Description { get; set; }
         public string Brand { get; set; }
+        public string Fund { get; set; }
     }
 
     public class OrderItemExtnVM
@@ -228,6 +229,11 @@ namespace iLgs.Models
 
         [Display(Name = "Stock Name")]
         public string StockName { get; set; }
+
+        [Display(Name = "Item Name")]
+        public string ItemName { get; set; }
+        public string Description { get; set; }
+        public string Brand { get; set; }
 
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }

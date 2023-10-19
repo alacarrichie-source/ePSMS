@@ -2,7 +2,7 @@
         .Name("gridItems_" + @ViewData["MastId"])
         .Columns(columns =>
         {
-            columns.Bound(o => o.Code).Width(70);
+            columns.Bound(o => o.Code).Width(70).EditorTemplateName("_CodeTemplate");
             columns.Bound(o => o.Description).Width(150);
             columns.Bound(o => o.Desc2).Width(100);
             columns.Bound(o => o.Desc3).Width(100);

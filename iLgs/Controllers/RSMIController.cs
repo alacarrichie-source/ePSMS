@@ -13,14 +13,22 @@ using CrystalDecisions.Shared;
 using CrystalDecisions.CrystalReports.Engine;
 using System.Data.SqlClient;
 using System.IO;
+using iLgs.Services.Interfaces;
+using iLgs.Services;
 
 namespace iLgs.Controllers
 {
     [AppAuthorize("RSMI")]
     public class RSMIController : Controller
     {
-        private AppManEntities db = new AppManEntities();
-        
+        private AppManEntities _db = new AppManEntities();
+        private ICodextnService _codextnService;
+
+        public RSMIController()
+        {
+            _codextnService = new CodextnService(_db);
+        }
+
         // GET: RSMI
         public ActionResult Index()
         {
@@ -29,7 +37,7 @@ namespace iLgs.Controllers
 
         public ActionResult RSMIRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = db.RSMIs.AsQueryable();
+            var data = _db.RSMIs.AsQueryable();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -64,7 +72,7 @@ namespace iLgs.Controllers
                 }
                 else
                 {
-                    if (db.RSMIs.Any(a => a.Date >= model.DateFrom && a.Date <= model.DateTo))
+                    if (_db.RSMIs.Any(a => a.Date >= model.DateFrom && a.Date <= model.DateTo))
                     {
                         ModelState.AddModelError("Period", "Period entered already exists..");
                     }
@@ -80,7 +88,7 @@ namespace iLgs.Controllers
                     //                .GroupBy(g => new { g.RisDate, g.Fund })
                     //                .Select(s => new { Date = s.Key.RisDate, Fund = s.Key.Fund }).ToList();
 
-                    var risList = db.RisIssueds.Where(w => w.IssuedDate >= model.DateFrom && w.IssuedDate <= model.DateTo)
+                    var risList = _db.RisIssueds.Where(w => w.IssuedDate >= model.DateFrom && w.IssuedDate <= model.DateTo)
                                     .AsNoTracking()
                                     .GroupBy(g => new { g.RisItem.RISs.RisNo, g.IssuedDate, g.RisItem.RISs.Fund, g.RisItem.RISs.FPP })
                                     .Select(s => new { RisNo = s.Key.RisNo, Date = s.Key.IssuedDate, Fund = s.Key.Fund, RCC = s.Key.FPP}).ToList();
@@ -114,7 +122,7 @@ namespace iLgs.Controllers
                             //    .AsNoTracking()
                             //    .Select(s => new { Id = s.Id  }).ToList();
 
-                            var risIssueds = db.RisIssueds
+                            var risIssueds = _db.RisIssueds
                                 .Where(w => w.RisItem.RISs.RisNo == ris.RisNo && w.RisItem.RISs.Fund == ris.Fund && w.IssuedDate == ris.Date)
                                 .AsNoTracking()
                                 .Select(s => new  {
@@ -127,7 +135,7 @@ namespace iLgs.Controllers
 
                             foreach (var risIssued in risIssueds)
                             {
-                                var orderItem = db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode).Where(w => w.RequestItem.RisItem.Id == risIssued.RisItemId).FirstOrDefault();
+                                var orderItem = _db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode).Where(w => w.RequestItem.RisItem.Id == risIssued.RisItemId).FirstOrDefault();
                                 var stockNo = orderItem?.StockNo;
                                 var itemName = orderItem?.StockName;
                                 var acctCode = orderItem?.RequestItem.RisItem.ItemCode.AccountCode;
@@ -182,8 +190,8 @@ namespace iLgs.Controllers
                                 entity.RSMIRecaps.Add(rsmiRecap);
                             }
 
-                            db.RSMIs.Add(entity);
-                            await db.SaveChangesAsync();
+                            _db.RSMIs.Add(entity);
+                            await _db.SaveChangesAsync();
                         }                        
                     }
                     
@@ -349,16 +357,16 @@ namespace iLgs.Controllers
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
 
-                    var entity = db.RSMIs.Find(model.Id);
+                    var entity = _db.RSMIs.Find(model.Id);
                     entity.Custodian = model.Custodian;
                     entity.PostedBy = model.PostedBy;
                     entity.PostedDt = model.PostedDt;
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 
-                    db.RSMIs.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
+                    _db.RSMIs.Attach(entity);
+                    _db.Entry(entity).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)
@@ -386,19 +394,19 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = db.RSMIs.Find(model.Id);
+                    var entity = _db.RSMIs.Find(model.Id);
 
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;
 
-                    db.RSMIs.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
+                    _db.RSMIs.Attach(entity);
+                    _db.Entry(entity).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
 
-                    entity = db.RSMIs.Find(model.Id);
-                    db.RSMIs.Attach(entity);
-                    db.RSMIs.Remove(entity);
-                    await db.SaveChangesAsync();                    
+                    entity = _db.RSMIs.Find(model.Id);
+                    _db.RSMIs.Attach(entity);
+                    _db.RSMIs.Remove(entity);
+                    await _db.SaveChangesAsync();                    
                 }
             }
             catch (Exception e)
@@ -413,7 +421,7 @@ namespace iLgs.Controllers
         public ActionResult RSMIItemRead([DataSourceRequest] DataSourceRequest request, Guid? rsmiId)
         {
          
-            var data = db.RSMIItems.Where(w => w.RsmiId == rsmiId)
+            var data = _db.RSMIItems.Where(w => w.RsmiId == rsmiId)
                 .Select(s => new RSMIItemVM
                 {
                     Id = s.Id,
@@ -440,7 +448,7 @@ namespace iLgs.Controllers
         public ActionResult RSMIRecapRead([DataSourceRequest] DataSourceRequest request, Guid? rsmiId)
         {
 
-            var data = db.RSMIRecaps.Where(w => w.RsmiId == rsmiId)
+            var data = _db.RSMIRecaps.Where(w => w.RsmiId == rsmiId)
                 .Select(s => new RSMIRecapVM
                 {
                     Id = s.Id,
@@ -488,7 +496,7 @@ namespace iLgs.Controllers
             crReportDocument.FileName = Server.MapPath(Url.Content("~/Reports/Rsmi.rpt"));
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            string conString = db.Database.Connection.ConnectionString.ToString();
+            string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
 
             string un = decoder.UserID;
@@ -537,6 +545,10 @@ namespace iLgs.Controllers
                 }
             }
 
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault()?.Description;
+
+            crReportDocument.SetParameterValue("LGU", lgu);
+            crReportDocument.SetParameterValue("@cFund", model.Fund);
             crReportDocument.SetParameterValue("@dBdate", model.DateFrom);
             crReportDocument.SetParameterValue("@dEdate", model.DateTo);            
             
@@ -568,7 +580,7 @@ namespace iLgs.Controllers
             // yyyy-mm-9999
             // 123456789012
 
-            var data = db.RSMIs.Where(w => w.Date.Value.Year == date.Value.Year && w.Date.Value.Month == date.Value.Month).OrderByDescending(o => o.SerialNo).FirstOrDefault();
+            var data = _db.RSMIs.Where(w => w.Date.Value.Year == date.Value.Year && w.Date.Value.Month == date.Value.Month).OrderByDescending(o => o.SerialNo).FirstOrDefault();
             if (data == null)
             {
                 return keyName + "-" + "0001";

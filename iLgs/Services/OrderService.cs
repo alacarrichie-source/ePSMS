@@ -334,7 +334,7 @@ namespace iLgs.Services
             foreach (var oig in orderItemGroups)
             {
                 // find group in stocks
-                PsStock psStock = await db.PsStocks.Where(w => w.PsId == oig.PsCodeId && w.StockNo == oig.StockNo).FirstOrDefaultAsync();
+                PsStock psStock = await db.PsStocks.Where(w => w.PsId == oig.PsCodeId && w.StockNo == oig.StockNo && w.Fund == oig.Fund).FirstOrDefaultAsync();
                 if (psStock == null)
                 {
                     psStock = new PsStock
@@ -343,8 +343,9 @@ namespace iLgs.Services
                         PsId = oig.PsCodeId,
                         StockNo = oig.StockNo,
                         StockName = oig.StockName,
-                        Description = oig.Description,
+                        Description = oig.Description,                        
                         Brand = oig.Brand,
+                        Fund = oig.Fund,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -358,13 +359,14 @@ namespace iLgs.Services
                 // Post the OrderItems under the stocks having the same PsCodeId
                 var orderItemList = await db.OrderItems
                     .Include(i => i.Order)
-                    .Include(i => i.RequestItem.RisItem)
+                    .Include(i => i.RequestItem.RisItem.RISs)
                     .Include(i => i.OrderItemExtns)
                     .Where(w => w.OrderId == orderId 
                         && w.StockNo == oig.StockNo
                         && w.StockName == oig.StockName
                         && w.Description == oig.Description
-                        && w.Brand == oig.Brand).ToListAsync();
+                        && w.Brand == oig.Brand
+                        && w.RequestItem.RisItem.RISs.Fund == oig.Fund).ToListAsync();
                 foreach (var orderItem in orderItemList)
                 {
                     var qty = db.AIRItems.Where(w => w.OrderItemId == orderItem.Id).Sum(s => s.Qty) ?? 0;
@@ -378,10 +380,12 @@ namespace iLgs.Services
                     {
                         Id = Guid.NewGuid(),
                         PsStockId = psStock.Id,
+                        Office = orderItem.RequestItem.RisItem.RISs.Office,
                         OrderItemId = orderItem.Id,
                         RefNo = orderItem.Order.PoNo,
                         RefDate = orderItem.Order.PoDate,
                         RefType = "PO",
+                        QtyPo = orderItem.Qty,
                         Qty = qty,
                         QtyIss = qtyIss,
                         QtyBal = qty - qtyIss,

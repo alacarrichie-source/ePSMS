@@ -439,6 +439,7 @@ namespace iLgs.Controllers
                     {
                         Id = model.Id,
                         PsId = model.PsId,
+                        Fund = model.Fund,
                         StockNo = model.StockNo,
                         StockName = model.StockName,
                         Description = model.Description,
@@ -485,6 +486,7 @@ namespace iLgs.Controllers
                     var entity = db.PsStocks.Find(model.Id);
 
                     entity.PsId = model.PsId;
+                    entity.Fund = model.Fund;
                     entity.StockNo = model.StockNo;
                     entity.StockName = model.StockName;
                     entity.Description = model.Description;
@@ -595,9 +597,11 @@ namespace iLgs.Controllers
                 .Select(s => new PsItemVM
                 {
                     Id = s.Id,
+                    Office = s.Office,
                     RefNo = s.RefNo,
                     RefDate = s.RefDate,
                     RefType = s.RefType,
+                    QtyPo = s.QtyPo,
                     Qty = s.Qty,
                     QtyIss = s.QtyIss,
                     QtyBal = s.QtyBal,
@@ -641,10 +645,14 @@ namespace iLgs.Controllers
                     {
                         Id = model.Id,
                         PsStockId = model.PsStockId,
+                        Office = model.Office,
                         RefNo = model.RefNo,
                         RefDate = model.RefDate,
                         RefType = model.RefType,
+                        QtyPo = model.QtyPo,
                         Qty = model.Qty,
+                        QtyIss = model.QtyIss,
+                        QtyBal = model.QtyBal,
                         InsertedBy = model.InsertedBy,
                         InsertedDt = model.InsertedDt,
                         UpdatedBy = model.UpdatedBy,
@@ -689,9 +697,11 @@ namespace iLgs.Controllers
                     //var qtyBal = model.Qty - qtyIss;                    
 
                     entity.PsStockId = model.PsStockId;
+                    entity.Office = model.Office;
                     entity.RefNo = model.RefNo;
                     entity.RefDate = model.RefDate;
                     entity.RefType = model.RefType;
+                    entity.QtyPo = model.QtyPo;
                     entity.Qty = model.Qty;
                     entity.QtyIss = model.QtyIss;
                     entity.QtyBal = model.QtyBal;

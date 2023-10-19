@@ -14,7 +14,8 @@
         col.Command(command =>
         {
             command.Edit();
-            command.Destroy();
+            //command.Destroy();
+            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItem").SendDataKeys(true);
         }).Width(150);
     })
     .ToolBar(t =>

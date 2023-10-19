@@ -20,6 +20,7 @@ namespace iLgs.Models
 
         public string Description { get; set; }
         public string Brand { get; set; }
+        public string Fund { get; set; }
 
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
@@ -33,6 +34,8 @@ namespace iLgs.Models
         public Nullable<System.Guid> PsStockId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
 
+        public string Office { get; set; }
+
         [Display(Name = "PO No.")]
         public string RefNo { get; set; }
 
@@ -40,6 +43,9 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> RefDate { get; set; }
         public string RefType { get; set; }
+
+        [Display(Name = "Order Qty")]
+        public Nullable<decimal> QtyPo { get; set; }
 
         [Display(Name = "Receipt Qty")]
         public Nullable<decimal> Qty { get; set; }

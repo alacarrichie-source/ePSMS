@@ -16,58 +16,7 @@ namespace iLgs.Services
         {
             this.db = db;
         }
-
-        public async Task<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date)
-        {
-            model.Id = Guid.NewGuid();
-            model.InsertedBy = user;
-            model.InsertedDt = date;
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            var entity = new Codextn()
-            {
-                Id = model.Id,
-                MastId = model.MastId,
-                Code = model.Code,
-                Description = model.Description,
-                Desc2 = model.Desc2,
-                Desc3 = model.Desc3,
-                Desc4 = model.Desc4,
-                Desc5 = model.Desc5,
-                InsertedBy = model.InsertedBy,
-                InsertedDt = model.InsertedDt,
-                UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
-            };
-
-            db.Codextns.Add(entity);
-            await db.SaveChangesAsync();
-
-            return model;
-        }
-
-        public async Task<CodextnVM> DeleteAsync(CodextnVM model, string user, DateTime date)
-        {            
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            Codextn entity = await db.Codextns.FindAsync(model.Id);
-
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            db.Codextns.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
-
-            db.Codextns.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
-
-            return model;
-        }
-
+                
         public IQueryable<CodextnVM> GetByMastCode(string mastCode)
         {            
             var data = db.Codextns.Where(w => w.CodeMast.Code == mastCode)
@@ -114,6 +63,42 @@ namespace iLgs.Services
             return data;
         }
 
+        public async ValueTask<bool> IsValidCodeDescAsync(string mainCode, string description)
+        {
+            return await db.Codextns.AnyAsync(a => a.CodeMast.Code == mainCode && a.Description == description);
+        }
+
+        public async Task<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date)
+        {
+            model.Id = Guid.NewGuid();
+            model.InsertedBy = user;
+            model.InsertedDt = date;
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            model.Code = string.IsNullOrWhiteSpace(model.Code) ? NextCode(model.MastId) : model.Code;
+
+            var entity = new Codextn()
+            {
+                Id = model.Id,
+                MastId = model.MastId,
+                Code = model.Code,
+                Description = model.Description,
+                Desc2 = model.Desc2,
+                Desc3 = model.Desc3,
+                Desc4 = model.Desc4,
+                Desc5 = model.Desc5,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
+
+            db.Codextns.Add(entity);
+            await db.SaveChangesAsync();
+
+            return model;
+        }
         public async Task<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date)
         {
             var entity = db.Codextns.Find(model.Id);
@@ -122,6 +107,8 @@ namespace iLgs.Services
             {
                 model.UpdatedBy = user;
                 model.UpdatedDt = date;
+
+                model.Code = string.IsNullOrWhiteSpace(model.Code) ? NextCode(model.MastId) : model.Code;
 
                 entity.Code = model.Code;
                 entity.Description = model.Description;
@@ -137,6 +124,47 @@ namespace iLgs.Services
                 await db.SaveChangesAsync();
             }
             return model;
+        }
+
+        public async Task<CodextnVM> DeleteAsync(CodextnVM model, string user, DateTime date)
+        {
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            Codextn entity = await db.Codextns.FindAsync(model.Id);
+
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            db.Codextns.Attach(entity);
+            db.Entry(entity).State = EntityState.Modified;
+            await db.SaveChangesAsync();
+
+            db.Codextns.Remove(entity);
+            db.Entry(entity).State = EntityState.Deleted;
+            await db.SaveChangesAsync();
+
+            return model;
+        }
+
+        private string NextCode(Guid mastId)
+        {
+            //var data = db.Codextns.Where(w => w.MastId == mastId && IsNumeric(w.Code)).OrderByDescending(o => o.Code).FirstOrDefault();
+            var data = db.Database.SqlQuery<Codextn>("Select Top 1 * From Codextn Where MastId = {0} Order by Code Desc", mastId).FirstOrDefault();
+            if (data == null)
+            {
+                return "0001";
+            }
+            else
+            {
+                var sequence = (int.Parse(data.Code) + 1).ToString();
+                return sequence.PadLeft(4, '0');
+            }
+        }
+
+        static bool IsNumeric(string value)
+        {
+            return int.TryParse(value, out _);
         }
     }
 }
