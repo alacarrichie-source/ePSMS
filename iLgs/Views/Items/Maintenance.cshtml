@@ -79,11 +79,11 @@
             columns.Bound(f => f.Office).EditorTemplateName("_OfficeTemplate")
                 .Width(120);
             columns.Bound(f => f.RefNo).EditorTemplateName("_RefNoTemplate")
-                .Width(70);
+                .Width(50);
             columns.Bound(f => f.RefDate).EditorTemplateName("_RefDateTemplate")
-                .Width(70);
+                .Width(50);
             columns.Bound(f => f.QtyPo).EditorTemplateName("_QtyPoTemplate")
-                .Width(70)
+                .Width(50)
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -91,23 +91,23 @@
                 .Columns(info =>
                 {
                     info.Bound(f => f.Qty).EditorTemplateName("_QtyTemplate")
-                      .Width(70).Title("Receipt")
+                      .Width(50).Title("Receipt")
                       .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                       .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                       .HeaderHtmlAttributes(new { style = "text-align:right;" });
                     info.Bound(f => f.QtyIss).EditorTemplateName("_QtyIssueTemplate")
-                        .Width(70).Title("Issue")
+                        .Width(50).Title("Issue")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                         .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                     info.Bound(f => f.QtyBal).EditorTemplateName("_QtyBalTemplate")
-                        .Width(70).Title("Balance")
+                        .Width(50).Title("Balance")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                         .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                 }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
          );
-
+            columns.Bound(f => f.Remarks).Width(70);
             //columns.Bound(f => f.Days).EditorTemplateName("_DaysTemplate")
             //    .Width(70)
             //    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")

@@ -377,6 +377,7 @@
           <Property Name="QtyIss" Type="numeric" Precision="18" Scale="2" />
           <Property Name="QtyBal" Type="numeric" Precision="18" Scale="2" />
           <Property Name="Days" Type="int" />
+          <Property Name="Remarks" Type="varchar" MaxLength="150" />
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
@@ -1821,11 +1822,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="Codextn" EntitySet="Codextns" />
             <End Role="DepartmentUser" EntitySet="DepartmentUsers" />
           </AssociationSet>
-          <EntitySet Name="PsItems" EntityType="AppManModel.PsItem" />
-          <AssociationSet Name="FK_PsItems_OrderItems" Association="AppManModel.FK_PsItems_OrderItems">
-            <End Role="OrderItem" EntitySet="OrderItems" />
-            <End Role="PsItem" EntitySet="PsItems" />
-          </AssociationSet>
           <EntitySet Name="ItemCodes" EntityType="AppManModel.ItemCode" />
           <AssociationSet Name="FK_ItemCodes_ItemTypes" Association="AppManModel.FK_ItemCodes_ItemTypes">
             <End Role="ItemType" EntitySet="ItemTypes" />
@@ -1844,10 +1840,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_PsStocks_PsCodes" Association="AppManModel.FK_PsStocks_PsCodes">
             <End Role="PsCode" EntitySet="PsCodes" />
             <End Role="PsStock" EntitySet="PsStocks" />
-          </AssociationSet>
-          <AssociationSet Name="FK_PsItems_PsStocks" Association="AppManModel.FK_PsItems_PsStocks">
-            <End Role="PsStock" EntitySet="PsStocks" />
-            <End Role="PsItem" EntitySet="PsItems" />
           </AssociationSet>
           <AssociationSet Name="FK_PsStockExtns_PsStocks" Association="AppManModel.FK_PsStockExtns_PsStocks">
             <End Role="PsStock" EntitySet="PsStocks" />
@@ -1871,6 +1863,15 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_RisItemUnitGroups_RISs" Association="AppManModel.FK_RisItemUnitGroups_RISs">
             <End Role="RISs" EntitySet="RISses" />
             <End Role="RisItemUnitGroup" EntitySet="RisItemUnitGroups" />
+          </AssociationSet>
+          <EntitySet Name="PsItems" EntityType="AppManModel.PsItem" />
+          <AssociationSet Name="FK_PsItems_OrderItems" Association="AppManModel.FK_PsItems_OrderItems">
+            <End Role="OrderItem" EntitySet="OrderItems" />
+            <End Role="PsItem" EntitySet="PsItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PsItems_PsStocks" Association="AppManModel.FK_PsItems_PsStocks">
+            <End Role="PsStock" EntitySet="PsStocks" />
+            <End Role="PsItem" EntitySet="PsItems" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -3058,41 +3059,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="PsItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="PsStockId" Type="Guid" />
-          <Property Name="OrderItemId" Type="Guid" />
-          <Property Name="Office" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="RefNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="RefDate" Type="DateTime" Precision="3" />
-          <Property Name="RefType" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="QtyPo" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Qty" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="QtyIss" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="QtyBal" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Days" Type="Int32" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PsItems_OrderItems" FromRole="PsItem" ToRole="OrderItem" />
-          <NavigationProperty Name="PsStock" Relationship="AppManModel.FK_PsItems_PsStocks" FromRole="PsItem" ToRole="PsStock" />
-        </EntityType>
-        <Association Name="FK_PsItems_OrderItems">
-          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
-          <End Type="AppManModel.PsItem" Role="PsItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsItem">
-              <PropertyRef Name="OrderItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="ItemCode">
           <Key>
             <PropertyRef Name="Id" />
@@ -3181,8 +3147,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="PsCode" Relationship="AppManModel.FK_PsStocks_PsCodes" FromRole="PsStock" ToRole="PsCode" />
-          <NavigationProperty Name="PsItems" Relationship="AppManModel.FK_PsItems_PsStocks" FromRole="PsStock" ToRole="PsItem" />
           <NavigationProperty Name="PsStockExtns" Relationship="AppManModel.FK_PsStockExtns_PsStocks" FromRole="PsStock" ToRole="PsStockExtn" />
+          <NavigationProperty Name="PsItems" Relationship="AppManModel.FK_PsItems_PsStocks" FromRole="PsStock" ToRole="PsItem" />
         </EntityType>
         <Association Name="FK_PsStocks_PsCodes">
           <End Type="AppManModel.PsCode" Role="PsCode" Multiplicity="0..1" />
@@ -3193,20 +3159,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="PsStock">
               <PropertyRef Name="PsId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_PsItems_PsStocks">
-          <End Type="AppManModel.PsStock" Role="PsStock" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.PsItem" Role="PsItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PsStock">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsItem">
-              <PropertyRef Name="PsStockId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -3318,6 +3270,56 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="RisItemUnitGroup">
               <PropertyRef Name="RisId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="PsItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="PsStockId" Type="Guid" />
+          <Property Name="OrderItemId" Type="Guid" />
+          <Property Name="Office" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="RefNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RefDate" Type="DateTime" Precision="3" />
+          <Property Name="RefType" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="QtyPo" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Qty" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="QtyIss" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="QtyBal" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Days" Type="Int32" />
+          <Property Name="Remarks" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PsItems_OrderItems" FromRole="PsItem" ToRole="OrderItem" />
+          <NavigationProperty Name="PsStock" Relationship="AppManModel.FK_PsItems_PsStocks" FromRole="PsItem" ToRole="PsStock" />
+        </EntityType>
+        <Association Name="FK_PsItems_OrderItems">
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
+          <End Type="AppManModel.PsItem" Role="PsItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsItem">
+              <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PsItems_PsStocks">
+          <End Type="AppManModel.PsStock" Role="PsStock" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.PsItem" Role="PsItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PsStock">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsItem">
+              <PropertyRef Name="PsStockId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -4054,28 +4056,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="PsItems">
-            <EntityTypeMapping TypeName="AppManModel.PsItem">
-              <MappingFragment StoreEntitySet="PsItems">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Days" ColumnName="Days" />
-                <ScalarProperty Name="QtyBal" ColumnName="QtyBal" />
-                <ScalarProperty Name="QtyIss" ColumnName="QtyIss" />
-                <ScalarProperty Name="Qty" ColumnName="Qty" />
-                <ScalarProperty Name="QtyPo" ColumnName="QtyPo" />
-                <ScalarProperty Name="RefType" ColumnName="RefType" />
-                <ScalarProperty Name="RefDate" ColumnName="RefDate" />
-                <ScalarProperty Name="RefNo" ColumnName="RefNo" />
-                <ScalarProperty Name="Office" ColumnName="Office" />
-                <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
-                <ScalarProperty Name="PsStockId" ColumnName="PsStockId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="ItemCodes">
             <EntityTypeMapping TypeName="AppManModel.ItemCode">
               <MappingFragment StoreEntitySet="ItemCodes">
@@ -4162,6 +4142,29 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="Unit" ColumnName="Unit" />
                 <ScalarProperty Name="Qty" ColumnName="Qty" />
                 <ScalarProperty Name="RisId" ColumnName="RisId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PsItems">
+            <EntityTypeMapping TypeName="AppManModel.PsItem">
+              <MappingFragment StoreEntitySet="PsItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="Days" ColumnName="Days" />
+                <ScalarProperty Name="QtyBal" ColumnName="QtyBal" />
+                <ScalarProperty Name="QtyIss" ColumnName="QtyIss" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="QtyPo" ColumnName="QtyPo" />
+                <ScalarProperty Name="RefType" ColumnName="RefType" />
+                <ScalarProperty Name="RefDate" ColumnName="RefDate" />
+                <ScalarProperty Name="RefNo" ColumnName="RefNo" />
+                <ScalarProperty Name="Office" ColumnName="Office" />
+                <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
+                <ScalarProperty Name="PsStockId" ColumnName="PsStockId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

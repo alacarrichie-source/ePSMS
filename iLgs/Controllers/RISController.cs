@@ -26,11 +26,16 @@ namespace iLgs.Controllers
         private AppManEntities _db = new AppManEntities();
         private IRisIssuedService _risIssuedService;
         private IServiceAgent _sa;
-
+        private IRisItemUnitGroupService _risItemUnitGroupService;
+        private IRisItemUnitGroupDescriptionService _risItemUnitGroupDescriptionService;
+        private IRisItemUnitGroupDescriptionItemService _risItemUnitGroupDescriptionItemService;
         public RISController()
         {
             _risIssuedService = new RisIssuedService(_db);
             _sa = new ServiceAgent(_db);
+            _risItemUnitGroupService = new RisItemUnitGroupService(_db);
+            _risItemUnitGroupDescriptionService = new RisItemUnitGroupDescriptionService(_db);
+            _risItemUnitGroupDescriptionItemService = new RisItemUnitGroupDescriptionItemService(_db);
         }
 
         // GET: RIS
@@ -373,7 +378,382 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
-        #endregion        
+        #endregion
+
+        #region UNIT GROUP
+        public ActionResult _RISItemUnitGroup(Guid risId)
+        {
+            ViewData["risId"] = risId;
+            return PartialView();
+        }
+
+        public ActionResult _RISItemUnitGroupRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
+        {
+            var data = _risItemUnitGroupService.GetByRisId(risId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _RISItemUnitGroupCreate([DataSourceRequest] DataSourceRequest request, RisItemUnitGroupVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("AccessError", "Add Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _risItemUnitGroupService.CreateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("AccessError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("AccessError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _RISItemUnitGroupUpdate([DataSourceRequest] DataSourceRequest request, RisItemUnitGroupVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("AccessError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _risItemUnitGroupService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("AccessError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("AccessError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _RISItemUnitGroupDestroy([DataSourceRequest]DataSourceRequest request, RisItemUnitGroupVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _risItemUnitGroupService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        #endregion
+
+        #region UNIT GROUP DESCRIPTION
+        public ActionResult _RISItemUnitGroupDescription(Guid unitGroupId)
+        {
+            ViewData["unitGroupId"] = unitGroupId;
+            return PartialView();
+        }
+
+        public ActionResult _RISItemUnitGroupDescriptionRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
+        {
+            var data = _risItemUnitGroupDescriptionService.GetByUnitGroupId(unitGroupId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _RISItemUnitGroupDescriptionCreate([DataSourceRequest] DataSourceRequest request, RisItemUnitGroupDescriptionVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("AccessError", "Add Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _risItemUnitGroupDescriptionService.CreateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("AccessError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("AccessError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _RISItemUnitGroupDescriptionUpdate([DataSourceRequest] DataSourceRequest request, RisItemUnitGroupDescriptionVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("AccessError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _risItemUnitGroupDescriptionService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("AccessError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("AccessError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _RISItemUnitGroupDescriptionDestroy([DataSourceRequest]DataSourceRequest request, RisItemUnitGroupDescriptionVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _risItemUnitGroupDescriptionService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        #endregion
+
+        #region UNIT GROUP DESCRIPTION ITEMS
+        public ActionResult _RISItemUnitGroupDescriptionItem(Guid unitGroupDescriptionId)
+        {
+            ViewData["unitGroupDescriptionId"] = unitGroupDescriptionId;
+            return PartialView();
+        }
+
+        public ActionResult _RISItemUnitGroupDescriptionItemRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupDescriptionId)
+        {
+            var data = _risItemUnitGroupDescriptionItemService.GetByUnitGroupDescriptionId(unitGroupDescriptionId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+        public ActionResult _RISItemAvailableUnitGroupItemRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
+        {
+            var data = _risItemUnitGroupDescriptionItemService.GetAvailableUnitGroupItem(risId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _RISItemUnitGroupDescriptionItemCreate([DataSourceRequest] DataSourceRequest request, RisItemUnitGroupDescriptionItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("AccessError", "Add Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _risItemUnitGroupDescriptionItemService.CreateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("AccessError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("AccessError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _RISItemUnitGroupDescriptionItemUpdate([DataSourceRequest] DataSourceRequest request, RisItemUnitGroupDescriptionItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("AccessError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _risItemUnitGroupDescriptionItemService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("AccessError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("AccessError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _RISItemUnitGroupDescriptionItemDestroy([DataSourceRequest]DataSourceRequest request, RisItemUnitGroupDescriptionItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _risItemUnitGroupDescriptionItemService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        #endregion
 
         [Authorize]
         public ActionResult _RISItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId, string psType)

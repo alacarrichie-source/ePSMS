@@ -1,0 +1,212 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.RisItemUnitGroupVM>()
+        .Name("gridItemUnitGroups_" + @ViewData["risId"])
+        .Columns(col =>
+        {
+            col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")                
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.Unit).Width(100);
+            col.Bound(c => c.InsertedDt).Width(100);
+            col.Command(command =>
+            {
+                //command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRisItemUnitGroup");
+                command.Edit();
+                command.Destroy();
+            }).Width(172);
+        })
+        .ToolBar(t =>
+        {
+            t.Create();
+            @*t.Template(@<text>
+            @(Html.Kendo().Button().Name("btnAddItemUnitGroup_" + ViewData["risId"]).Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddRisItemGroup")))
+            </text>);*@
+        })
+        .Editable(e => e.Mode(GridEditMode.InLine))
+        //.Pageable(pager => pager
+        //    .Input(false)
+        //    .Numeric(true)
+        //    .Info(true)
+        //    .PreviousNext(true)
+        //    .Refresh(true)
+        //    .PageSizes(true)
+        //    .ButtonCount(5)
+        //)
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .ClientDetailTemplateId("GroupDescriptions")
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError").RequestEnd("onGridItemUnitGroupsRequestEnd"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                model.Field(p => p.RisId).DefaultValue(@ViewData["risId"]);
+                model.Field(p => p.InsertedDt).Editable(false);
+            })
+            .Sort(s =>
+            {
+                s.Add(a => a.InsertedDt);
+            })
+            .Read(read => read.Action("_RISItemUnitGroupRead", "RIS", new { risId = @ViewData["risId"] }))
+            .Create(create => create.Action("_RISItemUnitGroupCreate", "RIS"))
+            .Update(update => update.Action("_RISItemUnitGroupUpdate", "RIS"))
+            .Destroy(destroy => destroy.Action("_RISItemUnitGroupDestroy", "RIS"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItemUnitGroups")
+            .Edit("onEditGridItemUnitGroups")
+            .DataBound("onDataBoundGridItemUnitGroups")
+        )
+        .AutoBind(true)
+)
+
+
+<script id="GroupDescriptions" type="text/kendo-tmpl">
+    @(Html.Kendo().Grid<iLgs.Models.RisItemUnitGroupDescriptionVM>()
+    .Name("gridItemUnitGroupDescriptions_#=Id#")
+    .Columns(col =>
+    {
+        col.Bound(c => c.Description).Width(100);
+        col.Bound(c => c.InsertedDt).Width(100);
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+        }).Width(150);
+    })
+    .ToolBar(t =>
+    {
+        t.Create();
+    })
+    .Editable(editable => editable.Mode(GridEditMode.InLine))
+    .Sortable()
+    .NoRecords()
+    .ClientDetailTemplateId("GroupDescriptionItems")
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Events(events => events.Error("GridError")
+        //.RequestEnd("onGridItemUnitGroupDescriptionsRequestEnd")
+        )
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+            //model.Field(p => p.UnitGroupId).DefaultValue("#=Id#");
+            model.Field(p => p.InsertedDt).Editable(false);
+        })
+        .Sort(s => s.Add(a => a.InsertedDt))
+        .Read(read => read.Action("_RISItemUnitGroupDescriptionRead", "RIS", new { unitGroupId = "#=Id#" }))
+    .Create(create => create.Action("_RISItemUnitGroupDescriptionCreate", "RIS"))
+    .Update(update => update.Action("_RISItemUnitGroupDescriptionUpdate", "RIS"))
+    .Destroy(destroy => destroy.Action("_RISItemUnitGroupDescriptionDestroy", "RIS"))
+    )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Events(e => e
+        .Change("onChangeGridItemUnitGroupDescriptions")
+        .Edit("onEditGridItemUnitGroupDescriptions")
+        .DataBound("onDataBoundGridItemUnitGroupDescriptions")
+    )
+    .ToClientTemplate())
+</script>
+
+
+<script id="GroupDescriptionItems" type="text/kendo-tmpl">
+    @(Html.Kendo().Grid<iLgs.Models.RisItemUnitGroupDescriptionItemVM>()
+    .Name("gridItemUnitGroupDescriptionItems_#=Id#")
+    .Columns(col =>
+    {
+        col.Bound(c => c.PsNo).Width(50);
+        col.Bound(c => c.ItemName).Width(50);
+        col.Bound(c => c.Description).Width(50);
+        col.Bound(c => c.Unit).Width(50);
+        col.Bound(c => c.QtyRequest).Width(50);
+        col.Command(command =>
+        {
+            //command.Edit();
+            command.Destroy();
+        }).Width(150);
+    })
+    .ToolBar(t =>
+    {
+        t.Create();
+    })
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RisUnitGroupDescriptionItemTemplate").Window(w => w.Width(1000).Title("Available Items")))
+    .Sortable()
+    .NoRecords()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Events(events => events.Error("GridError").RequestEnd("onGridItemUnitGroupDescriptionItemsRequestEnd")
+        )
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);            
+        })
+        .Read(read => read.Action("_RISItemUnitGroupDescriptionItemRead", "RIS", new { unitGroupDescriptionId = "#=Id#" }))
+        .Create(create => create.Action("_RISItemUnitGroupDescriptionItemCreate", "RIS"))
+        //.Update(update => update.Action("_RISItemUnitGroupDescriptionItemUpdate", "RIS"))
+        .Destroy(destroy => destroy.Action("_RISItemUnitGroupDescriptionItemDestroy", "RIS"))
+    )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Events(e => e
+        .Change("onChangeGridItemUnitGroupDescriptionItems")
+        .Edit("onEditGridItemUnitGroupDescriptionItems")
+        .DataBound("onDataBoundGridItemUnitGroupDescriptionItems")
+    )
+    .ToClientTemplate())
+</script>
+
+
+<script type="text/javascript">
+    function onSelectIssuedItemIssuedBy(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#IssuedByDesignation").val(dataItem.Desc2).trigger("change");
+
+        //var model = $("#grid").data().kendoGrid.editable.options.model;
+        //model.set('IssuedByDesignation', $('#IssuedByDesignation').val());
+    }
+
+    function onSelectIssuedItemReceivedBy(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#ReceivedByDesignation").val(dataItem.Desc2).trigger("change");
+
+        //var model = $("#grid").data().kendoGrid.editable.options.model;
+        //model.set('RequestedByDesignation', $('#RequestedByDesignation').val());
+    }
+
+    function onClickGridIssuedItemAdd(subID) {
+        var button = this;
+        alert(subID);
+        /// Get the current subgrid data item
+        var subGrid = $(button).closest("[data-role=grid]").data("kendoGrid");
+        var subGridItem = subGrid.dataItem(subGrid.tbody.find(".k-grid-edit-row"));
+
+        // Get the main grid
+        var mainGrid = $("#mainGrid").data("kendoGrid");
+
+        // Select the current row in the main grid
+        mainGrid.select(mainGrid.tbody.find("tr[data-uid='" + subGridItem.MainID + "']"));
+
+        // Select the current row in the subgrid
+        subGrid.select(subGrid.tbody.find("tr[data-uid='" + subGridItem.uid + "']"));
+
+        // Get the nestedSubGrid
+        var nestedSubGrid = $("#gridIssuedItems_" + subID).data("kendoGrid");
+
+        // Add a new row to the nestedSubGrid
+        nestedSubGrid.addRow();
+
+        // Scroll the newly added row into view
+        var newRow = nestedSubGrid.tbody.find("tr.k-grid-edit-row");
+        if (newRow.length > 0) {
+            nestedSubGrid.content.scrollTop(newRow.position().top);
+        }
+    }
+
+
+</script>

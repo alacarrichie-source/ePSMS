@@ -62,6 +62,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }        
+        public string Remarks { get; set; }
 
         // transient
         [Display(Name = "Unit Cost")]

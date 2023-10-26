@@ -189,7 +189,9 @@ namespace iLgs.Controllers
                     var menus = allMenu.Where(w => w.ParentId == 0);
 
                     menuTreeList = GetMenuTree(allMenu, menus);
-                    Session["MainMenuTree"] = menuTreeList;
+                    //Session["MainMenuTree"] = menuTreeList;
+
+                    HttpContext.Session.Add("MainMenuTree", menuTreeList);
 
                     return RedirectToLocal(returnUrl);
                 case SignInStatus.LockedOut:

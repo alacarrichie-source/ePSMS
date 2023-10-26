@@ -216,6 +216,7 @@ namespace iLgs.Models
 
         public string Remarks { get; set; }
         public string InsertedBy { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }                        
@@ -279,9 +280,67 @@ namespace iLgs.Models
         public Nullable<System.DateTime> ReceivedDate { get; set; }
 
         public string InsertedBy { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }            
         public string Department { get; set; }
+    }
+
+    public class RisItemUnitGroupVM
+    {        
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> RisId { get; set; }
+        public Nullable<int> Qty { get; set; }
+        public string Unit { get; set; }
+        public string InsertedBy { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }        
+    }
+
+    public class RisItemUnitGroupDescriptionVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> UnitGroupId { get; set; }
+        public string Description { get; set; }
+        public string InsertedBy { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }        
+    }
+
+    public class RisItemUnitGroupDescriptionItemVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
+        public Nullable<System.Guid> RisItemId { get; set; }
+        public string InsertedBy { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+        [Display(Name = "Stock/Prop No.")]
+        public string PsNo { get; set; }
+        public string ItemName { get; set; }
+        public string Description { get; set; }
+        public string Unit { get; set; }
+        public Nullable<int> QtyRequest { get; set; }        
+        public string GridItems { get; set; }        
+    }
+
+    public class RisItemUnitGroupAvailableVM
+    {
+        public System.Guid Id { get; set; }
+        [Display(Name = "Stock/Prop No.")]
+        public string PsNo { get; set; }
+        public string ItemName { get; set; }
+        public string Description { get; set; }
+        public string Unit { get; set; }
+        public Nullable<int> QtyRequest { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
     }
 }

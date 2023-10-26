@@ -606,7 +606,8 @@ namespace iLgs.Controllers
                     QtyIss = s.QtyIss,
                     QtyBal = s.QtyBal,
                     Days = s.Days,
-                    StockNo = s.PsStock.StockNo
+                    StockNo = s.PsStock.StockNo,
+                    Remarks = s.Remarks
                 }).AsQueryable();
             var result = new JsonNetResult
             {

@@ -1,6 +1,7 @@
 ﻿@using Kendo.Mvc.UI.Fluent
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
+    IEnumerable<TreeViewItemModel> smsToken = HttpContext.Current.Session["MainMenuTree"] as IEnumerable<TreeViewItemModel>;
 }
 <head>
     <link href="@Url.Content("~/Content/Sidebar/dist/hc-offcanvas-nav.css")" rel="stylesheet" type="text/css" />
@@ -52,9 +53,9 @@
 
 <nav id="main-nav">
     @if (Request.IsAuthenticated)
-    {
-        @RenderMenuItems((IEnumerable<TreeViewItemModel>)Session["MainMenuTree"]);
-        @*@RenderMenuItems((IEnumerable<TreeViewItemModel>)ViewData["MainMenuTree"]);*@
+    {                
+        @*@RenderMenuItems((IEnumerable<TreeViewItemModel>)Session["MainMenuTree"]);*@
+        @RenderMenuItems(smsToken);
     }
     @*<div class="footer-label">Copyright &copy; City Government of Las Pinas.</div>*@
 </nav>

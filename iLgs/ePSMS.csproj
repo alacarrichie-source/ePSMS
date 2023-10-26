@@ -222,6 +222,9 @@
     </Compile>
     <Compile Include="Services\DepartmentUuserService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
+    <Compile Include="Services\RisItemUnitGroupDescriptionItemService.cs" />
+    <Compile Include="Services\RisItemUnitGroupDescriptionService.cs" />
+    <Compile Include="Services\RisItemUnitGroupService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
     <Compile Include="Models\AIRInvoice.cs">
@@ -3494,6 +3497,8 @@
     <Content Include="Views\Items\EditorTemplates\_FundTemplate.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_OfficeTemplate.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_CodeTemplate.cshtml" />
+    <Content Include="Views\RIS\_RISItemUnitGroup.cshtml" />
+    <Content Include="Views\RIS\EditorTemplates\_RisUnitGroupDescriptionItemTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
