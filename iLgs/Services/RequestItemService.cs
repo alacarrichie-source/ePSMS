@@ -37,6 +37,7 @@ namespace iLgs.Services
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     TotalCost = s.TotalCost,
+                    PriceRate = s.PriceRate,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -61,6 +62,7 @@ namespace iLgs.Services
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     TotalCost = s.TotalCost,
+                    PriceRate = s.PriceRate,
                     InsertedDt = s.InsertedDt,
                     GridRequestItemExtns = ""
                 }).FirstOrDefaultAsync();
@@ -88,6 +90,7 @@ namespace iLgs.Services
                 Qty = model.Qty,
                 UnitCost = model.UnitCost,
                 TotalCost = model.TotalCost,
+                PriceRate = model.PriceRate,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -129,6 +132,7 @@ namespace iLgs.Services
             entity.Qty = model.Qty;
             entity.UnitCost = model.UnitCost;
             entity.TotalCost = model.TotalCost;
+            entity.PriceRate = model.PriceRate;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

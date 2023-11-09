@@ -12,29 +12,30 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class ItemCode
+    public partial class RequestItemUnitGroup
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public ItemCode()
+        public RequestItemUnitGroup()
         {
-            this.RisItems = new HashSet<RisItem>();
+            this.OrderItemUnitGroups = new HashSet<OrderItemUnitGroup>();
+            this.RequestItemUnitGroupDescriptions = new HashSet<RequestItemUnitGroupDescription>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> ItemTypeId { get; set; }
-        public string ItemNo { get; set; }
-        public string ItemNoIndex { get; set; }
-        public string Code { get; set; }
-        public string Description { get; set; }
-        public string ItemSw { get; set; }
-        public string AccountCode { get; set; }
+        public Nullable<System.Guid> PrId { get; set; }
+        public Nullable<System.Guid> RisItemUnitGroupId { get; set; }
+        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<decimal> TotalCost { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual ItemType ItemType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RisItem> RisItems { get; set; }
+        public virtual ICollection<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RequestItemUnitGroupDescription> RequestItemUnitGroupDescriptions { get; set; }
+        public virtual Request Request { get; set; }
+        public virtual RisItemUnitGroup RisItemUnitGroup { get; set; }
     }
 }

@@ -28,6 +28,7 @@ namespace iLgs.Services
                     Id = s.Id,                    
                     ItemTypeId = s.ItemTypeId,
                     ItemNo = s.ItemNo,
+                    ItemNoIndex = s.ItemNoIndex,
                     Code = s.Code,
                     Description = s.Description,     
                     ItemSw = s.ItemSw,
@@ -39,18 +40,19 @@ namespace iLgs.Services
 
         public IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId)
         {            
-            var data = db.ItemCodes.Where(w => w.ItemTypeId == itemTypeId)
+            var data = db.ItemCodes.Where(w => w.ItemTypeId == itemTypeId).ToList()
                 .Select(s => new ItemCodeVM
                 {
                     Id = s.Id,
                     ItemTypeId = s.ItemTypeId,
+                    ItemNoIndex = s.ItemNoIndex,
                     ItemNo = s.ItemNo,
                     Code = s.Code,
-                    Description = s.Description,
+                    Description = s.Description.PadLeft(s.ItemNo.Count(c => c == '.') * 20, ' '),
                     ItemSw = s.ItemSw,
                     AccountCode = s.AccountCode,
                     InsertedDt = s.InsertedDt
-                });
+                }).AsQueryable();
             return data;
         }            
 
@@ -74,14 +76,16 @@ namespace iLgs.Services
 
             model.Id = Guid.NewGuid();
             model.Code = GetItemCode(model.ItemTypeId, model.ItemNo, model.Description);
+            model.ItemNoIndex = ItemNoIndex(model.ItemNo);
 
             ItemCode entity = new ItemCode()
             {
                 Id = model.Id,
                 ItemTypeId = model.ItemTypeId,
-                ItemNo = model.ItemNo,
+                ItemNo = model.ItemNo.Trim(),
+                ItemNoIndex = model.ItemNoIndex,
                 Code = model.Code,
-                Description = model.Description ?? "",
+                Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim(),
                 ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper(),
                 AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper(),
                 InsertedBy = user,
@@ -109,11 +113,13 @@ namespace iLgs.Services
             ItemCode entity = await db.ItemCodes.FindAsync(model.Id);
 
             model.Code = GetItemCode(model.ItemTypeId, model.ItemNo, model.Description);
+            model.ItemNoIndex = ItemNoIndex(model.ItemNo);
 
             entity.ItemTypeId = model.ItemTypeId;
-            entity.ItemNo = model.ItemNo;
+            entity.ItemNo = model.ItemNo.Trim();
+            entity.ItemNoIndex = model.ItemNoIndex;
             entity.Code = model.Code;
-            entity.Description = model.Description ?? "";
+            entity.Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim();
             entity.ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper();
             entity.AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper();
             entity.UpdatedBy = user;
@@ -158,6 +164,17 @@ namespace iLgs.Services
                 return itemType.Code + "*" + itemCode;
             }
             return itemType.Code + itemCode;
+        }
+
+        private string ItemNoIndex(string itemNo)
+        {
+            var raItemNo = itemNo.Trim().Split('.');
+            string itemNoIndex = "";
+            for(var x = 0; x < raItemNo.Length; x++)
+            {
+                itemNoIndex += (x > 0 ? "-" : "") + raItemNo[x].PadLeft(3, '0');
+            }
+            return itemNoIndex;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
 using iLgs.Services.Interfaces;
 using System;
 using System.Data.Entity;
@@ -24,6 +25,7 @@ namespace iLgs.Services
                     Id = s.Id,                   
                     Code = s.Code,
                     Description = s.Description,
+                    FormulaNo = s.FormulaNo,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -37,19 +39,33 @@ namespace iLgs.Services
 
         public async Task<ItemTypeVM> CreateAsync(ItemTypeVM model, string user, DateTime date)
         {
+            if (string.IsNullOrWhiteSpace(model.Code))
+            {
+                throw new InvalidValueException("Code is Required!");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Description))
+            {
+                throw new InvalidValueException("Description is Required!");
+            }
+
+            if (model.FormulaNo == null || model.FormulaNo == 0)
+            {
+                throw new InvalidValueException("Formula Field No. is Required!");
+            }
+
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            model.Id = Guid.NewGuid();
-
             ItemType entity = new ItemType()
             {
                 Id = model.Id,
                 Code = model.Code,
                 Description = model.Description,
+                FormulaNo = model.FormulaNo,
                 InsertedBy = user,
                 InsertedDt = date,
                 UpdatedBy = user,
@@ -64,6 +80,21 @@ namespace iLgs.Services
 
         public async Task<ItemTypeVM> UpdateAsync(ItemTypeVM model, string user, DateTime date)
         {
+            if (string.IsNullOrWhiteSpace(model.Code))
+            {
+                throw new InvalidValueException("Code is Required!");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Description))
+            {
+                throw new InvalidValueException("Description is Required!");
+            }
+
+            if (model.FormulaNo == null || model.FormulaNo == 0)
+            {
+                throw new InvalidValueException("Formula Field No. is Required!");
+            }
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -71,6 +102,7 @@ namespace iLgs.Services
 
             entity.Code = model.Code;
             entity.Description = model.Description;
+            entity.FormulaNo = model.FormulaNo;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 

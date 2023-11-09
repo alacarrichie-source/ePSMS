@@ -183,21 +183,52 @@ namespace iLgs.Services
         private string PsNo(RisItemVM model)
         {
             var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
-            string psNo = model.ItemCode.Trim() + model.ItemName.Substring(0, 1) + model.ItemName.Substring(2, 1);
-            if (model.PsType == "M")
+            string psNo = model.ItemCode.Trim(); // + model.ItemName.Substring(0, 1) + model.ItemName.Substring(2, 1);
+            var itemType = db.ItemTypes.Where(w => w.Code == model.PsType).FirstOrDefault();
+            string itemValue = "";
+            for(var x = 1; x <= itemType.FormulaNo; x++)
             {
-                var ds = risItemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Strength");
-                if (ds != null)
+                itemValue = risItemExtns.FirstOrDefault(f => f.ItemNo == x.ToString())?.ItemValue.Replace(" ", "").Trim();
+                if (string.IsNullOrWhiteSpace(itemValue))
                 {
-                    psNo += ds.ItemValue.Replace(" ", "");
-                }
-
-                var df = risItemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Form");
-                if (df != null)
-                {
-                    psNo += df.ItemValue.Substring(0, 3);
+                    psNo += "XXX";
+                } else {
+                    if (x == 1)
+                    {
+                        if (itemValue.Length >= 3)
+                        {
+                            psNo += itemValue.Substring(0, 1) + itemValue.Substring(2, 1);
+                        }
+                        else
+                        {
+                            psNo += itemValue.Substring(0, 1) + "X";
+                        }
+                    }
+                    else if (x == 2)
+                    {
+                        psNo += itemValue;
+                    }
+                    else if (x == 3)
+                    {
+                        psNo += itemValue.PadRight(3, 'X').Substring(0, 3);                        
+                    }
                 }
             }
+
+            //if (model.PsType == "M")
+            //{
+            //    var ds = risItemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Strength");
+            //    if (ds != null)
+            //    {
+            //        psNo += ds.ItemValue.Replace(" ", "");
+            //    }
+
+            //    var df = risItemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Form");
+            //    if (df != null)
+            //    {
+            //        psNo += df.ItemValue.Substring(0, 3);
+            //    }
+            //}
 
             return psNo;
         }

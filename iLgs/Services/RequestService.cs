@@ -169,6 +169,58 @@ namespace iLgs.Services
                 entity.RequestItems.Add(requestItem);
             }
 
+            // Unit Groups
+            var unitGroups = await db.RisItemUnitGroups.Include(i => i.RisItemUnitGroupDescriptions).Where(w => w.RisId == model.RisId).OrderBy(o => o.InsertedDt).ToListAsync();
+            foreach(var unitGroup in unitGroups)
+            {
+                var unitGroupDt = DateTime.Now;
+                var requestItemUnitGroup = new RequestItemUnitGroup()
+                {
+                    Id = Guid.NewGuid(),
+                    PrId = model.Id,
+                    RisItemUnitGroupId = unitGroup.Id,
+                    InsertedBy = user,
+                    InsertedDt = unitGroupDt,
+                    UpdatedBy = user,
+                    UpdatedDt = unitGroupDt
+                };
+
+                foreach(var unitGroupDescription in unitGroup.RisItemUnitGroupDescriptions.OrderBy(o => o.InsertedDt).ToList())
+                {
+                    var groupDescriptionDt = DateTime.Now;
+                    var requestItemUnitGroupDescription = new RequestItemUnitGroupDescription()
+                    {
+                        Id = Guid.NewGuid(),
+                        RequestItemUnitGroupId = requestItemUnitGroup.Id,
+                        RisItemUnitGroupDescriptionId = unitGroupDescription.Id,
+                        InsertedBy = user,
+                        InsertedDt = groupDescriptionDt,
+                        UpdatedBy = user,
+                        UpdatedDt = groupDescriptionDt
+                    };
+
+                    var risItemUnitGroupDescriptionItems = await db.RisItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
+                    foreach(var unitGroupDescriptionItem in risItemUnitGroupDescriptionItems)
+                    {
+                        var groupDescriptionItemDt = DateTime.Now;
+                        var requsetItemUnitGroupDescriptionItem = new RequestItemUnitGroupDescriptionItem()
+                        {
+                            Id = Guid.NewGuid(),                            
+                            RisItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
+                            RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescription.Id,
+                            RequestItemId = entity.RequestItems.FirstOrDefault(f => f.RisItemId == unitGroupDescriptionItem.RisItemId).Id,
+                            InsertedBy = user,
+                            InsertedDt = groupDescriptionItemDt,
+                            UpdatedBy = user,
+                            UpdatedDt = groupDescriptionItemDt
+                        };
+                        requestItemUnitGroupDescription.RequestItemUnitGroupDescriptionItems.Add(requsetItemUnitGroupDescriptionItem);
+                    }
+                    requestItemUnitGroup.RequestItemUnitGroupDescriptions.Add(requestItemUnitGroupDescription);
+                }
+                entity.RequestItemUnitGroups.Add(requestItemUnitGroup);
+            }
+
             db.Requests.Add(entity);
             await db.SaveChangesAsync();
 

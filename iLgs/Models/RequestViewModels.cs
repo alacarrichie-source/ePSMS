@@ -116,4 +116,88 @@ namespace iLgs.Models
         
         public bool IsEnabled { get; set; }
     }
+
+    public class RequestItemUnitGroupVM
+    {        
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> PrId { get; set; }
+        public Nullable<System.Guid> RisItemUnitGroupId { get; set; }        
+
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+
+        [Display(Name = "Total Cost")]
+        public Nullable<decimal> TotalCost { get; set; }
+        public string InsertedBy { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public RisItemUnitGroup RisItemUnitGroup { get; set; }
+
+        // transients
+        public string Unit { get; set; }
+        public int? Qty { get; set; }
+    }
+
+    public class RequestItemUnitGroupDescriptionVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> RequestItemUnitGroupId { get; set; }
+        public Nullable<System.Guid> RisItemUnitGroupDescriptionId { get; set; }
+        public string InsertedBy { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        public RisItemUnitGroupDescription RisItemUnitGroupDescription { get; set; }
+    }
+
+    public class RequestItemUnitGroupDescriptionItemVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> RequestItemUnitGroupDescriptionId { get; set; }
+        public Nullable<System.Guid> RisItemUnitGroupDescriptionItemId { get; set; }
+        public Nullable<System.Guid> RequestItemId { get; set; }
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        //public virtual ICollection<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
+        //public RequestItem RequestItem { get; set; }
+        //public virtual RequestItemUnitGroupDescription RequestItemUnitGroupDescription { get; set; }
+        //public virtual RisItemUnitGroupDescriptionItem RisItemUnitGroupDescriptionItem { get; set; }
+
+        //public System.Guid Id { get; set; }
+        //public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
+        //public Nullable<System.Guid> RisItemId { get; set; }
+        //public string InsertedBy { get; set; }
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        //public Nullable<System.DateTime> InsertedDt { get; set; }
+        //public string UpdatedBy { get; set; }
+        //public Nullable<System.DateTime> UpdatedDt { get; set; }
+        [Display(Name = "Stock/Prop No.")]
+        public string PsNo { get; set; }
+        public string ItemName { get; set; }
+        public string Description { get; set; }
+        public string Unit { get; set; }
+
+        [Display(Name = "Qty")]
+        public Nullable<int> QtyRequest { get; set; }
+
+        [Display(Name = "Price Rate")]
+        public Nullable<decimal> PriceRate { get; set; }
+
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+
+        [Display(Name = "Total Cost")]
+        public Nullable<decimal> TotalCost { get; set; }
+
+        public Nullable<decimal> GroupCost { get; set; }
+        //public string GridItems { get; set; }
+    }
 }

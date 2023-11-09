@@ -211,6 +211,24 @@
     <Compile Include="Models\DepartmentUser.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\OrderItemUnitGroup.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\OrderItemUnitGroupDescription.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\OrderItemUnitGroupDescriptionItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RequestItemUnitGroup.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RequestItemUnitGroupDescription.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RequestItemUnitGroupDescriptionItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\RisItemUnitGroup.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -222,6 +240,12 @@
     </Compile>
     <Compile Include="Services\DepartmentUuserService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
+    <Compile Include="Services\OrderItemUnitGroupDescriptionItemService.cs" />
+    <Compile Include="Services\OrderItemUnitGroupDescriptionService.cs" />
+    <Compile Include="Services\OrderItemUnitGroupService.cs" />
+    <Compile Include="Services\RequestItemUnitGroupDescriptionItemService.cs" />
+    <Compile Include="Services\RequestItemUnitGroupDescriptionService.cs" />
+    <Compile Include="Services\RequestItemUnitGroupService.cs" />
     <Compile Include="Services\RisItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\RisItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\RisItemUnitGroupService.cs" />
@@ -3499,6 +3523,14 @@
     <Content Include="Views\Codes\EditorTemplates\_CodeTemplate.cshtml" />
     <Content Include="Views\RIS\_RISItemUnitGroup.cshtml" />
     <Content Include="Views\RIS\EditorTemplates\_RisUnitGroupDescriptionItemTemplate.cshtml" />
+    <Content Include="Views\Requests\_UnitGroup.cshtml" />
+    <Content Include="Views\Requests\EditorTemplates\_UnitCostTemplate.cshtml" />
+    <Content Include="Views\Requests\EditorTemplates\_TotalCostTemplate.cshtml" />
+    <Content Include="Views\Requests\EditorTemplates\_PriceRateTemplate.cshtml" />
+    <Content Include="Views\Orders\_UnitGroup.cshtml" />
+    <Content Include="Views\Orders\EditorTemplates\_PriceRateTemplate.cshtml" />
+    <Content Include="Views\Orders\EditorTemplates\_TotalCostTemplate.cshtml" />
+    <Content Include="Views\Orders\EditorTemplates\_UnitCostTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

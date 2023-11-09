@@ -238,4 +238,73 @@ namespace iLgs.Models
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
     }
+
+    public class OrderItemUnitGroupVM
+    {        
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> OrderId { get; set; }
+        public Nullable<System.Guid> RequestItemUnitGroupId { get; set; }
+        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<decimal> TotalCost { get; set; }
+        public string InsertedBy { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // transients
+        public int? Qty { get; set; }
+        public string Unit { get; set; }
+        //public RequestItemUnitGroup RequestItemUnitGroup { get; set; }
+    }
+
+    public class OrderItemUnitGroupDescriptionVM
+    {        
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> OrderItemUnitGroupId { get; set; }
+        public Nullable<System.Guid> RequestItemUnitGroupDescriptionId { get; set; }
+        public string InsertedBy { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        //public RequestItemUnitGroupDescription RequestItemUnitGroupDescription { get; set; }
+        public string Description { get; set; }
+    }
+
+    public class OrderItemUnitGroupDescriptionItemVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> OrderItemUnitGroupDescriptionId { get; set; }
+        public Nullable<System.Guid> RequestItemUnitGroupDescriptionItemId { get; set; }
+        public Nullable<System.Guid> OrderItemId { get; set; }
+        public string InsertedBy { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        public RequestItemUnitGroupDescriptionItem RequestItemUnitGroupDescriptionItem { get; set; }
+
+        [Display(Name = "Stock/Prop No.")]
+        public string PsNo { get; set; }
+        public string ItemName { get; set; }
+        public string Description { get; set; }
+        public string Unit { get; set; }
+
+        [Display(Name = "Qty")]
+        public Nullable<int> QtyRequest { get; set; }
+
+        [Display(Name = "Price Rate")]
+        public Nullable<decimal> PriceRate { get; set; }
+
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+
+        [Display(Name = "Total Cost")]
+        public Nullable<decimal> TotalCost { get; set; }
+
+        public Nullable<decimal> GroupCost { get; set; }
+    }
 }

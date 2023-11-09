@@ -18,6 +18,7 @@ namespace iLgs.Models
         public RisItemUnitGroup()
         {
             this.RisItemUnitGroupDescriptions = new HashSet<RisItemUnitGroupDescription>();
+            this.RequestItemUnitGroups = new HashSet<RequestItemUnitGroup>();
         }
     
         public System.Guid Id { get; set; }
@@ -32,5 +33,7 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
         public virtual RISs RISs { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
     }
 }

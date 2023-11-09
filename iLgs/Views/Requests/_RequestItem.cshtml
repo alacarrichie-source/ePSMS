@@ -3,10 +3,10 @@
         .Columns(columns =>
         {
             columns.Bound(o => o.PsNo).Width(70);
-            columns.Bound(o => o.Unit).Width(50);
-            columns.Bound(o => o.ItemName).Width(100);
+            columns.Bound(o => o.Unit).Width(30);
+            columns.Bound(o => o.ItemName).Width(150);
             columns.Bound(o => o.Description).Width(150);
-            columns.Bound(o => o.Qty).Width(70)
+            columns.Bound(o => o.Qty).Width(50)
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -22,7 +22,7 @@
                 command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRequestItem");
                 //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItem").SendDataKeys(true);
                 //command.Destroy();
-            }).Width(172);
+            }).Width(70);
         })
         @*.ToolBar(toolbar =>
         {

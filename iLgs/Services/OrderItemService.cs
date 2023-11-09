@@ -45,6 +45,7 @@ namespace iLgs.Services
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
+                    PriceRate = s.PriceRate,
                     InsertedDt = s.InsertedDt
                 }).FirstOrDefaultAsync();
             return data;
@@ -73,6 +74,7 @@ namespace iLgs.Services
                     Qty = s.Qty,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
+                    PriceRate = s.PriceRate,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -131,6 +133,7 @@ namespace iLgs.Services
                 Qty = model.Qty,
                 UnitCost = model.UnitCost,
                 Amount = model.Amount,
+                PriceRate = model.PriceRate,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -203,6 +206,7 @@ namespace iLgs.Services
             entity.Qty = model.Qty;
             entity.UnitCost = model.UnitCost;
             entity.Amount = model.Amount;
+            entity.PriceRate = model.PriceRate;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

@@ -22,20 +22,26 @@ namespace iLgs.Controllers
     [AppAuthorize("REQUESTS")]
     public class RequestsController : Controller
     {
-        private AppManEntities db = new AppManEntities();
-        private IOrderService orderService;
-        private IRequestService requestService;
-        private IRequestItemService requestItemService;
-        private IRisItemExtnService risItemExtnService;
-        private ICodextnService codextnService;
+        private AppManEntities _db = new AppManEntities();
+        private IOrderService _orderService;
+        private IRequestService _requestService;
+        private IRequestItemService _requestItemService;
+        private IRisItemExtnService _risItemExtnService;
+        private ICodextnService _codextnService;
+        private IRequestItemUnitGroupService _unitGroupService;
+        private IRequestItemUnitGroupDescriptionService _unitGroupDescriptionService;
+        private IRequestItemUnitGroupDescriptionItemService _unitGroupDescriptionItemService;
 
         public RequestsController()
         {
-            this.orderService = new OrderService(db);
-            this.requestService = new RequestService(db);
-            this.requestItemService = new RequestItemService(db);
-            this.risItemExtnService = new RisItemExtnService(db);
-            this.codextnService = new CodextnService(db);
+            _orderService = new OrderService(_db);
+            _requestService = new RequestService(_db);
+            _requestItemService = new RequestItemService(_db);
+            _risItemExtnService = new RisItemExtnService(_db);
+            _codextnService = new CodextnService(_db);
+            _unitGroupService = new RequestItemUnitGroupService(_db);
+            _unitGroupDescriptionService = new RequestItemUnitGroupDescriptionService(_db);
+            _unitGroupDescriptionItemService = new RequestItemUnitGroupDescriptionItemService(_db);
         }
 
         // GET: Requests
@@ -46,7 +52,7 @@ namespace iLgs.Controllers
 
         public ActionResult RequestRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = requestService.GetAll();
+            var data = _requestService.GetAll();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -69,11 +75,11 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("", "Add Access Denied!");
                 }
 
-                if (await requestService.GetByPrNoAsync(model.PrNo) != null)
+                if (await _requestService.GetByPrNoAsync(model.PrNo) != null)
                 {
                     ModelState.AddModelError("PR No.", "PR number already exists!");
                 }
-                else if (await requestService.IsAnyRisNoAsync(model.Id, model.RisNo))
+                else if (await _requestService.IsAnyRisNoAsync(model.Id, model.RisNo))
                 {
                     ModelState.AddModelError("RIS No.", "RIS number already used by other PR!");
                 }
@@ -83,7 +89,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await requestService.CreateAsync(model, user, date);
+                    model = await _requestService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -106,17 +112,17 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Update Access Denied!");
                 }
-                else if (await requestService.IsPostedAsync(model.Id))
+                else if (await _requestService.IsPostedAsync(model.Id))
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot update!");
                 }
-                else if (await requestService.IsAnyPrNoAsync(model.Id, model.PrNo))
+                else if (await _requestService.IsAnyPrNoAsync(model.Id, model.PrNo))
                 {
                     ModelState.AddModelError("PR No.", "PR number already exists!");
                 }
-                else if (await requestService.IsWithPOAsync(model.Id))
+                else if (await _requestService.IsWithPOAsync(model.Id))
                 {
-                    var entity = await requestService.GetByIdAsync(model.Id);
+                    var entity = await _requestService.GetByIdAsync(model.Id);
                     if (entity.RisId != model.Id)
                     {
                         ModelState.AddModelError("PO No.", "PO number already exists for this PR, cannot change RIS No.");
@@ -128,7 +134,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await requestService.UpdateAsync(model, user, date);
+                    model = await _requestService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -151,7 +157,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await requestService.IsPostedAsync(model.Id))
+                else if (await _requestService.IsPostedAsync(model.Id))
                 {
                     ModelState.AddModelError("DeleteError", "PR Number already Posted, cannot delete!");
                 }
@@ -160,7 +166,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await requestService.DeleteAsync(model, user, date);                    
+                    model = await _requestService.DeleteAsync(model, user, date);                    
                 }
             }
             catch (Exception e)
@@ -180,7 +186,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _RequestItemAddEdit(Guid prId, Guid? requestItemId)
         {
-            var data = await requestItemService.GetVmByIdAsync(requestItemId);
+            var data = await _requestItemService.GetVmByIdAsync(requestItemId);
             if (data == null)
             {
                 data = new RequestItemVM()
@@ -204,7 +210,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await requestService.IsPostedAsync(model.PrId))
+                else if (await _requestService.IsPostedAsync(model.PrId))
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot update!");
                 }
@@ -214,15 +220,15 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = await requestItemService.GetByIdAsync(model.Id);
+                    var entity = await _requestItemService.GetByIdAsync(model.Id);
 
                     if (entity == null)
                     {
-                        model = await requestItemService.CreateAsync(model, user, date);
+                        model = await _requestItemService.CreateAsync(model, user, date);
                     }
                     else
                     {
-                        model = await requestItemService.UpdateAsync(model, user, date);
+                        model = await _requestItemService.UpdateAsync(model, user, date);
                     }                    
                 }
             }
@@ -247,7 +253,7 @@ namespace iLgs.Controllers
 
         public ActionResult _RequestItemRead([DataSourceRequest] DataSourceRequest request, Guid? prId)
         {
-            var data = requestItemService.GetByPrId(prId);
+            var data = _requestItemService.GetByPrId(prId);
             
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -264,7 +270,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await requestService.IsPostedAsync((Guid)model.PrId))
+                else if (await _requestService.IsPostedAsync((Guid)model.PrId))
                 {
                     ModelState.AddModelError("DeleteError", "PR Number already Posted, cannot update!");
                 }
@@ -274,7 +280,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await requestItemService.DeleteAsync(model, user, date);                    
+                    model = await _requestItemService.DeleteAsync(model, user, date);                    
                 }
 
             }
@@ -298,15 +304,15 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await requestService.GetByIdAsync(requestId) == null)
+                else if (await _requestService.GetByIdAsync(requestId) == null)
                 {
                     ModelState.AddModelError("Request", "Invalid Request Id");
                 }
-                else if (await requestService.IsPostedAsync(requestId))
+                else if (await _requestService.IsPostedAsync(requestId))
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot post again!");
                 }
-                else if (await requestService.IsWithInvalidUnitCostAsync(requestId))
+                else if (await _requestService.IsWithInvalidUnitCostAsync(requestId))
                 {
                     ModelState.AddModelError("Unit Cost", "All PR Items must have unit cost!");
                 }
@@ -316,7 +322,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await requestService.PostAsync(requestId, user, date);
+                    await _requestService.PostAsync(requestId, user, date);
                 }
             }
             catch (Exception e)
@@ -349,15 +355,15 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await requestService.GetByIdAsync(requestId) == null)
+                else if (await _requestService.GetByIdAsync(requestId) == null)
                 {
                     ModelState.AddModelError("Request", "Invalid Request Id");
                 }
-                else if (!(await requestService.IsPostedAsync(requestId)))
+                else if (!(await _requestService.IsPostedAsync(requestId)))
                 {
                     ModelState.AddModelError("PR No.", "PR Number not yet posted, cannot unpost!");
                 }
-                else if (await requestService.IsPoPostedAsync(requestId))
+                else if (await _requestService.IsPoPostedAsync(requestId))
                 {
                     ModelState.AddModelError("PO No.", "PO Number for this request is already posted, cannot unpost!");
                 }
@@ -367,7 +373,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await requestService.UnpostAsync(requestId, user, date);
+                    await _requestService.UnpostAsync(requestId, user, date);
                 }
             }
             catch (Exception e)
@@ -393,7 +399,7 @@ namespace iLgs.Controllers
 
         public ActionResult _RequestItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? requestItemId, string psType)
         {
-            var data = risItemExtnService.GetBatchInfo(requestItemId, psType);
+            var data = _risItemExtnService.GetBatchInfo(requestItemId, psType);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -403,13 +409,197 @@ namespace iLgs.Controllers
 
             return result;
         }
+
+        #endregion
+
+        #region UNIT GROUP
+        public ActionResult _UnitGroup(Guid requestId)
+        {
+            ViewData["requestId"] = requestId;
+            return PartialView();
+        }
+
+        public ActionResult _UnitGroupRead([DataSourceRequest] DataSourceRequest request, Guid? requestId)
+        {
+            var data = _unitGroupService.GetByPrId(requestId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
         
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _UnitGroupUpdate([DataSourceRequest] DataSourceRequest request, RequestItemUnitGroupVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "request");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _unitGroupService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("UpdateError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _UnitGroupDestroy([DataSourceRequest]DataSourceRequest request, RequestItemUnitGroupVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "request");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _unitGroupService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        #endregion
+
+        #region UNIT GROUP DESCRIPTION
+        public ActionResult _UnitGroupDescription(Guid unitGroupId)
+        {
+            ViewData["unitGroupId"] = unitGroupId;
+            return PartialView();
+        }
+
+        public ActionResult _UnitGroupDescriptionRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
+        {
+            var data = _unitGroupDescriptionService.GetByUnitGroupId(unitGroupId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _UnitGroupDescriptionUpdate([DataSourceRequest] DataSourceRequest request, RequestItemUnitGroupDescriptionVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "request");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _unitGroupDescriptionService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("UpdateError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        
+        #endregion
+
+        #region UNIT GROUP DESCRIPTION ITEMS        
+        public ActionResult _UnitGroupDescriptionItemRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupDescriptionId)
+        {
+            var data = _unitGroupDescriptionItemService.GetByUnitGroupDescriptionId(unitGroupDescriptionId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _UnitGroupDescriptionItemUpdate([DataSourceRequest] DataSourceRequest request, RequestItemUnitGroupDescriptionItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "request");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _unitGroupDescriptionItemService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("UpdateError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
         #endregion
 
         #region PRINTOUTS
         public ActionResult PurchaseRequestRpt(string prNo)
         {
-            string stringname = db.Database.Connection.ConnectionString.ToString();
+            string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
             
             string un = decoder.UserID;
@@ -433,7 +623,7 @@ namespace iLgs.Controllers
                 table.ApplyLogOnInfo(logonInfo);
             }
 
-            var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
             rpt.SetParameterValue("LGU", lgu);
             rpt.SetParameterValue("@cPrNo", prNo);

@@ -82,7 +82,7 @@
 <script id="Details" type="text/x-kendo-tmpl">
     @(Html.Kendo().TabStrip()
     .Name("tabStrip_#=Id#")
-    .HtmlAttributes(new { @class = "no-text-tabstrip" })
+    //.HtmlAttributes(new { @class = "no-text-tabstrip" })
     .TabPosition(TabStripTabPosition.Top)
     .Animation(animation =>
     {
@@ -94,9 +94,11 @@
     .SelectedIndex(0)
     .Items(items =>
     {
-        items.Add()
+        items.Add().Text("Items")
             .Selected(true)
             .LoadContentFrom("_OrderItem", "Orders", new { orderId = "#=Id#" });
+        items.Add().Text("Groups")
+                    .LoadContentFrom("_UnitGroup", "Orders", new { orderId = "#=Id#" });
     }).ToClientTemplate())
 </script>
 
@@ -709,10 +711,238 @@
             risItemId: $("#RisItemId").val(),
             psType: $("#PsType").val()
         };
-    }    
+    }
     // ------------ END GRID ITEMEXTN
 
+    // ITEM UNIT GROUPS
+    function onClickBtnEditRisItemUnitGroup(e) {
+        e.preventDefault();
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
 
+        // the current row for this detail
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //RisItem("E", dataItem.Id);
+        selectedGrid.editRow();
+    }
+
+    function onGridItemUnitGroupsRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();
+            }
+        }
+    }
+
+    var selectedUnitGroupId;
+    var selectedUnitGroupDescriptionId = null;
+    var selectedUnitGroupDescriptionItemId = null;
+
+    function onChangeGridItemUnitGroups(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedUnitGroupId = selectedData.Id;
+        selectedUnitGroupDescriptionId = null;
+        selectedUnitGroupDescriptionItemId = null;
+    }
+
+    function onDataBoundGridItemUnitGroups(e) {
+        if (selectedUnitGroupId) {
+            var dataItem = this.dataSource.get(selectedUnitGroupId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+
+            // Attach a handler to the "detailExpand" event
+            this.bind("detailExpand", function (e) {
+                // Select the expanded master row
+                this.select(e.masterRow);
+            });
+        }
+    }
+
+    function onEditGridItemUnitGroups(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedUnitGroupId = null;
+            selectedUnitGroupDescriptionId = null;
+            selectedUnitGroupDescriptionItemId = null;
+            e.model.set("OrderId", selectedId);
+        } else {
+            selectedUnitGroupId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedUnitGroupId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onClickDeleteGridItemUnitGroups(e) {
+        e.preventDefault();
+
+        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
+        selectedGrid = grid;
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+
+        if (confirm("Are you sure you want to delete this record?")) {
+            grid.dataSource.remove(dataItem);
+            grid.dataSource.sync();
+            selectedUnitGroupDescriptionId = null;
+        }
+    }
+    // END RIS ITEM UNIT GROUPS
+
+    // RIS ITEM UNIT GROUP DESCRIPTIONS
+    function onGridItemUnitGroupDescriptionsRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridItemUnitGroupDescriptions_" + selectedUnitGroupId).data("kendoGrid").dataSource.read();
+            }
+        }
+    }
+
+    function onChangeGridItemUnitGroupDescriptions(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedUnitGroupDescriptionId = selectedData.Id;
+        selectedUnitGroupDescriptionItemId = null;
+    }
+
+    function onDataBoundGridItemUnitGroupDescriptions(e) {
+        if (selectedUnitGroupDescriptionId) {
+            var dataItem = this.dataSource.get(selectedUnitGroupDescriptionId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+
+            // Attach a handler to the "detailExpand" event
+            this.bind("detailExpand", function (e) {
+                // Select the expanded master row
+                this.select(e.masterRow);
+            });
+        }
+    }
+
+    function onEditGridItemUnitGroupDescriptions(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedUnitGroupDescriptionId = null;
+            selectedUnitGroupDescriptionItemId = null;
+            e.model.set("UnitGroupId", selectedUnitGroupId);
+        } else {
+            selectedUnitGroupDescriptionId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedUnitGroupDescriptionId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onClickDeleteGridItemUnitGroupDescriptions(e) {
+        e.preventDefault();
+
+        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
+        selectedGrid = grid;
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+
+        if (confirm("Are you sure you want to delete this record?")) {
+            grid.dataSource.remove(dataItem);
+            grid.dataSource.sync();
+        }
+    }
+    // END RIS ITEM UNIT GROUP DESCRIPTIONS
+
+    // RIS UNIT GROUP DESCRIPTION ITEMS
+    function onGridItemUnitGroupDescriptionItemsRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridItemUnitGroupDescriptionItems_" + selectedUnitGroupDescriptionId).data("kendoGrid").dataSource.read();
+            }
+        }
+    }
+
+    function onChangeGridItemUnitGroupDescriptionItems(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedUnitGroupDescriptionItemId = selectedData.Id;
+    }
+
+    function onDataBoundGridItemUnitGroupDescriptionItems(e) {
+        if (selectedUnitGroupDescriptionItemId) {
+            var dataItem = this.dataSource.get(selectedUnitGroupDescriptionItemId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onEditGridItemUnitGroupDescriptionItems(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedUnitGroupDescriptionItemId = null;
+            e.model.set("UnitGroupDescriptionId", selectedUnitGroupDescriptionId);
+        } else {
+            selectedUnitGroupDescriptionItemId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedUnitGroupDescriptionItemId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onClickDeleteGridItemUnitGroupDescriptionItems(e) {
+        e.preventDefault();
+
+        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
+        selectedGrid = grid;
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+
+        if (confirm("Are you sure you want to delete this record?")) {
+            grid.dataSource.remove(dataItem);
+            grid.dataSource.sync();
+        }
+    }
+
+    function DataItemAvailableGrid() {
+        return {
+            risId: selectedId
+        };
+    }
+
+    function onChangeGridItemAvailable(arg) {
+        $("#GridItems").val(this.selectedKeyNames().join(",")).trigger("change");
+    }
+    // END RIS UNIT GROUP DESCRIPTION ITEMS
 
 </script>
 

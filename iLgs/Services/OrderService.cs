@@ -167,6 +167,7 @@ namespace iLgs.Services
                     Qty = requestItem.Qty,
                     UnitCost = requestItem.UnitCost,
                     Amount = requestItem.TotalCost,
+                    PriceRate = requestItem.PriceRate,
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
@@ -191,6 +192,60 @@ namespace iLgs.Services
                 }
 
                 entity.OrderItems.Add(orderItem);
+            }
+
+            // Unit Groups
+            var unitGroups = await db.RequestItemUnitGroups.Include(i => i.RequestItemUnitGroupDescriptions).Where(w => w.PrId == model.PrId).OrderBy(o => o.InsertedDt).ToListAsync();
+            foreach (var unitGroup in unitGroups)
+            {
+                var unitGroupDt = DateTime.Now;
+                var orderItemUnitGroup = new OrderItemUnitGroup()
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = model.Id,
+                    RequestItemUnitGroupId = unitGroup.Id,
+                    UnitCost = unitGroup.UnitCost,
+                    TotalCost = unitGroup.TotalCost,
+                    InsertedBy = user,
+                    InsertedDt = unitGroupDt,
+                    UpdatedBy = user,
+                    UpdatedDt = unitGroupDt
+                };
+
+                foreach (var unitGroupDescription in unitGroup.RequestItemUnitGroupDescriptions.OrderBy(o => o.InsertedDt).ToList())
+                {
+                    var groupDescriptionDt = DateTime.Now;
+                    var orderItemUnitGroupDescription = new OrderItemUnitGroupDescription()
+                    {
+                        Id = Guid.NewGuid(),
+                        OrderItemUnitGroupId = orderItemUnitGroup.Id,
+                        RequestItemUnitGroupDescriptionId = unitGroupDescription.Id,
+                        InsertedBy = user,
+                        InsertedDt = groupDescriptionDt,
+                        UpdatedBy = user,
+                        UpdatedDt = groupDescriptionDt
+                    };
+
+                    var requestItemUnitGroupDescriptionItems = await db.RequestItemUnitGroupDescriptionItems.Where(w => w.RequestItemUnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
+                    foreach (var unitGroupDescriptionItem in requestItemUnitGroupDescriptionItems)
+                    {
+                        var groupDescriptionItemDt = DateTime.Now;
+                        var orderItemUnitGroupDescriptionItem = new OrderItemUnitGroupDescriptionItem()
+                        {
+                            Id = Guid.NewGuid(),
+                            RequestItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
+                            OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescription.Id,
+                            OrderItemId = entity.OrderItems.FirstOrDefault(f => f.RequestItemId == unitGroupDescriptionItem.RequestItemId).Id,
+                            InsertedBy = user,
+                            InsertedDt = groupDescriptionItemDt,
+                            UpdatedBy = user,
+                            UpdatedDt = groupDescriptionItemDt
+                        };
+                        orderItemUnitGroupDescription.OrderItemUnitGroupDescriptionItems.Add(orderItemUnitGroupDescriptionItem);
+                    }
+                    orderItemUnitGroup.OrderItemUnitGroupDescriptions.Add(orderItemUnitGroupDescription);
+                }
+                entity.OrderItemUnitGroups.Add(orderItemUnitGroup);
             }
 
             db.Orders.Add(entity);
@@ -292,6 +347,13 @@ namespace iLgs.Services
         public ValueTask<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date) =>
         _orderVmExceptionService.TryCatchAsync(async () =>
         {
+
+            var unitGroups = db.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
+            if (unitGroups.Any())
+            {
+                db.OrderItemUnitGroups.RemoveRange(unitGroups);
+                await db.SaveChangesAsync();
+            }
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;

@@ -52,10 +52,8 @@ namespace iLgs.Models
         public virtual DbSet<AIR> AIRs { get; set; }
         public virtual DbSet<PAR> PARs { get; set; }
         public virtual DbSet<OrderItemExtn> OrderItemExtns { get; set; }
-        public virtual DbSet<ItemType> ItemTypes { get; set; }
         public virtual DbSet<ItemField> ItemFields { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
-        public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<PsCode> PsCodes { get; set; }
         public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
@@ -66,12 +64,20 @@ namespace iLgs.Models
         public virtual DbSet<RSMIRecap> RSMIRecaps { get; set; }
         public virtual DbSet<RisIssued> RisIssueds { get; set; }
         public virtual DbSet<DepartmentUser> DepartmentUsers { get; set; }
-        public virtual DbSet<ItemCode> ItemCodes { get; set; }
         public virtual DbSet<RisItemExtn> RisItemExtns { get; set; }
         public virtual DbSet<PsStock> PsStocks { get; set; }
         public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
-        public virtual DbSet<RisItemUnitGroup> RisItemUnitGroups { get; set; }
         public virtual DbSet<PsItem> PsItems { get; set; }
+        public virtual DbSet<ItemCode> ItemCodes { get; set; }
+        public virtual DbSet<ItemType> ItemTypes { get; set; }
+        public virtual DbSet<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
+        public virtual DbSet<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
+        public virtual DbSet<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
+        public virtual DbSet<RequestItemUnitGroupDescriptionItem> RequestItemUnitGroupDescriptionItems { get; set; }
+        public virtual DbSet<RequestItemUnitGroupDescription> RequestItemUnitGroupDescriptions { get; set; }
+        public virtual DbSet<RequestItem> RequestItems { get; set; }
+        public virtual DbSet<RisItemUnitGroup> RisItemUnitGroups { get; set; }
+        public virtual DbSet<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
     }
 }

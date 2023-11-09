@@ -199,6 +199,7 @@ namespace iLgs.Models
         public string ItemType { get; set; } // Description of ItemCodeId
 
         public string Unit { get; set; }
+        public Nullable<decimal> PriceRate { get; set; }
     }
 
     public class RisItemVM : RisItemCommonVM
