@@ -9,6 +9,9 @@ body {
     padding-bottom: 20px;
     line-height: 1;
     font-size: 12px;
+    /*background-image: url('../Assets/Wall.png');
+    background-position: top;
+    background-size: cover;*/
 }
 
 /* Set padding to keep content from hitting the edges */

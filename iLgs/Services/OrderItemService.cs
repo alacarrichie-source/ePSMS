@@ -12,19 +12,19 @@ namespace iLgs.Services
 {
     public class OrderItemService : IOrderItemService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db = new AppManEntities();
         private readonly IExceptionService<OrderItemVM> _VmExceptionService = new ExceptionService<OrderItemVM>();
         private ICodextnService _codextnService;
         
         public OrderItemService(AppManEntities db)
         {
-            this.db = db;
+            this._db = db;
             _codextnService = new CodextnService(db);
         }
 
         public ValueTask<OrderItemVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
         {
-            var data = await db.OrderItems.Where(w => w.Id == id)
+            var data = await _db.OrderItems.Where(w => w.Id == id)
                 .Select(s => new OrderItemVM
                 {
                     Id = s.Id,
@@ -53,7 +53,7 @@ namespace iLgs.Services
 
         public IQueryable<OrderItemVM> GetByPoId(Guid? poId) => _VmExceptionService.TryCatch(() =>
         {
-            var data = db.OrderItems.Where(w => w.OrderId == poId)
+            var data = _db.OrderItems.Where(w => w.OrderId == poId)
                 .Select(s => new OrderItemVM
                 {
                     Id = s.Id,
@@ -82,12 +82,12 @@ namespace iLgs.Services
 
         public async ValueTask<bool> GetAnyParItemsAsync(Guid id)
         {
-            return await db.PARItems.AnyAsync(a => a.OrderItemId == id);
+            return await _db.PARItems.AnyAsync(a => a.OrderItemId == id);
         }
 
         public async ValueTask<bool> GetAnyAirItemsAsync(Guid id)
         {
-            return await db.AIRItems.AnyAsync(a => a.OrderItemId == id);
+            return await _db.AIRItems.AnyAsync(a => a.OrderItemId == id);
         }
 
         public ValueTask<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
@@ -97,13 +97,13 @@ namespace iLgs.Services
                 throw new RequiredFieldException(nameof(model.Brand));
             }
 
-            var requestItemId = db.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
+            var requestItemId = _db.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
             if (requestItemId == null)
             {
                 throw new RecordRelationshipException("Could not find request item this record!");
             }
 
-            var risItemId = db.RisItems.FindAsync(requestItemId).Result?.Id;
+            var risItemId = _db.RisItems.FindAsync(requestItemId).Result?.Id;
             if (risItemId == null)
             {
                 throw new RecordRelationshipException("Cound not find RIS item for this record!");
@@ -140,8 +140,89 @@ namespace iLgs.Services
                 UpdatedDt = model.UpdatedDt
             };
 
-            db.OrderItems.Add(entity);
-            await db.SaveChangesAsync();
+            _db.OrderItems.Add(entity);
+            await _db.SaveChangesAsync();
+
+            // include unit group if any
+            // check if requestItemId in RequestItemUnitGroup
+            IOrderItemUnitGroupService orderItemUnitGroupService = new OrderItemUnitGroupService(_db);
+            IOrderItemUnitGroupDescriptionService orderItemUnitGroupDescriptionService = new OrderItemUnitGroupDescriptionService(_db);
+            IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
+
+            var requestItemUnitGroupDescriptionItem = await _db.RequestItemUnitGroupDescriptionItems
+                .Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup).Where(w => w.RequestItemId == model.RequestItemId)
+                .FirstOrDefaultAsync();
+            if (requestItemUnitGroupDescriptionItem != null)
+            {
+                var orderItemUnitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
+                    .Where(w => w.RequestItemUnitGroupDescriptionItemId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId)
+                    .FirstOrDefaultAsync();
+                if (orderItemUnitGroupDescriptionItem == null)
+                {
+                    var orderItemUnitGroupDescription = await _db.OrderItemUnitGroupDescriptions
+                        .Where(w => w.RequestItemUnitGroupDescriptionId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId)
+                        .FirstOrDefaultAsync();
+                    if (orderItemUnitGroupDescription == null)
+                    {
+                        var orderItemUnitGroup = await _db.OrderItemUnitGroups
+                            .Where(w => w.RequestItemUnitGroupId == requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescription.RequestItemUnitGroupId)
+                            .FirstOrDefaultAsync();
+                        if (orderItemUnitGroup == null)
+                        {
+                            var orderItemUnitGroupVM = new OrderItemUnitGroupVM()
+                            {
+                                OrderId = model.OrderId,
+                                RequestItemUnitGroupId = requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescription.RequestItemUnitGroupId,
+                                UnitCost = model.UnitCost,
+                                TotalCost = model.Amount
+                            };
+                            orderItemUnitGroupVM = await orderItemUnitGroupService.CreateAsync(orderItemUnitGroupVM, user, date);
+
+                            var orderItemUnitGroupDescriptionVM = new OrderItemUnitGroupDescriptionVM()
+                            {
+                                OrderItemUnitGroupId = orderItemUnitGroupVM.Id,
+                                RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId
+                            };
+                            orderItemUnitGroupDescriptionVM = await orderItemUnitGroupDescriptionService.CreateAsync(orderItemUnitGroupDescriptionVM, user, date);
+
+                            var orderItemUnitGroupDescriptionItemVM = new OrderItemUnitGroupDescriptionItemVM()
+                            {
+                                OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescriptionVM.Id,
+                                RequestItemUnitGroupDescriptionItemId = requestItemUnitGroupDescriptionItem.Id,
+                                OrderItemId = model.Id
+                            };
+                            orderItemUnitGroupDescriptionItemVM = await orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
+                        }
+                        else
+                        {
+                            var orderItemUnitGroupDescriptionVM = new OrderItemUnitGroupDescriptionVM()
+                            {
+                                OrderItemUnitGroupId = orderItemUnitGroup.Id,
+                                RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId
+                            };
+                            orderItemUnitGroupDescriptionVM = await orderItemUnitGroupDescriptionService.CreateAsync(orderItemUnitGroupDescriptionVM, user, date);
+
+                            var orderItemUnitGroupDescriptionItemVM = new OrderItemUnitGroupDescriptionItemVM()
+                            {
+                                OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescriptionVM.Id,
+                                RequestItemUnitGroupDescriptionItemId = requestItemUnitGroupDescriptionItem.Id,
+                                OrderItemId = model.Id
+                            };
+                            orderItemUnitGroupDescriptionItemVM = await orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
+                        }
+                    }
+                    else
+                    {
+                        var orderItemUnitGroupDescriptionItemVM = new OrderItemUnitGroupDescriptionItemVM()
+                        {
+                            OrderItemUnitGroupDescriptionId = orderItemUnitGroupDescription.Id,
+                            RequestItemUnitGroupDescriptionItemId = requestItemUnitGroupDescriptionItem.Id,
+                            OrderItemId = model.Id
+                        };
+                        orderItemUnitGroupDescriptionItemVM = await orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
+                    }
+                }
+            }
 
             return model;
         });
@@ -153,18 +234,21 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            OrderItem entity = await db.OrderItems.FindAsync(model.Id);
+            var orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
+            await orderItemUnitGroupDescriptionItemService.DeleteEmptyGroupsAsync(model.Id);            
+
+            OrderItem entity = await _db.OrderItems.FindAsync(model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.OrderItems.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.OrderItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.OrderItems.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.OrderItems.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();            
 
             return model;
         });
@@ -176,13 +260,13 @@ namespace iLgs.Services
                 throw new RequiredFieldException(nameof(model.Brand));
             }
 
-            var requestItemId = db.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
+            var requestItemId = _db.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
             if (requestItemId == null)
             {
                 throw new RecordRelationshipException("Could not find request item this record!");
             }
 
-            var risItemId = db.RisItems.FindAsync(requestItemId).Result?.Id;
+            var risItemId = _db.RisItems.FindAsync(requestItemId).Result?.Id;
             if (risItemId == null)
             {
                 throw new RecordRelationshipException("Cound not find RIS item for this record!");
@@ -196,7 +280,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            OrderItem entity = await db.OrderItems.FindAsync(model.Id);
+            OrderItem entity = await _db.OrderItems.FindAsync(model.Id);
 
             entity.RequestItemId = model.RequestItemId;
             entity.StockNo = model.PsNo.Trim() + model.Brand;
@@ -210,9 +294,9 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.OrderItems.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.OrderItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -221,7 +305,7 @@ namespace iLgs.Services
         {
             
             var psType = orderItem.PsType;
-            var itemExtns = await db.Database.SqlQuery<RisItemExtnVM>("Exec RisItemExtnService_GetBatchInfo {0}, {1}", risItemId, psType).ToListAsync();
+            var itemExtns = await _db.Database.SqlQuery<RisItemExtnVM>("Exec RisItemExtnService_GetBatchInfo {0}, {1}", risItemId, psType).ToListAsync();
             var psCode = orderItem.ItemCode.ToString();
 
             string stockName = orderItem.Brand.Trim();
@@ -288,7 +372,7 @@ namespace iLgs.Services
 
         private async ValueTask ValidateOnDelete(OrderItemVM model)
         {
-            var postedBy = db.Orders.FindAsync(model.OrderId).Result?.PostedBy;
+            var postedBy = _db.Orders.FindAsync(model.OrderId).Result?.PostedBy;
             if (!string.IsNullOrWhiteSpace(postedBy))
             {
                 throw new RecordAlreadyPostedException("PO Number already Posted, cannot delete!");

@@ -130,6 +130,7 @@ namespace iLgs.Services
                     var psCode = new PsCode()
                     {
                         Id = Guid.NewGuid(),
+                        ItemCodeId = risItem.ItemCodeId,
                         PsNo = risItem.PsNoDisplay, //NextPsNo(risItem.ItemCode.ItemType.Code),
                         PsType = risItem.ItemCode.ItemType.Code,
                         ItemName = risItem.ItemName,

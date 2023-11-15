@@ -98,6 +98,29 @@ namespace iLgs.Services
             return data;
         });
 
+        public IQueryable<RisIssuedVM> GetByStockNo(string stockNo) =>
+        _vmExceptionService.TryCatch(() =>
+        {
+            var data = db.RisIssueds.Where(w => w.RisItem.RequestItems.Any(a => a.OrderItems.Any(o => o.StockNo == stockNo)))
+                .Select(s => new RisIssuedVM
+                {
+                    Id = s.Id,
+                    RisItemId = s.RisItemId,
+                    IssuedDate = s.IssuedDate,
+                    IssuedBy = s.IssuedBy,
+                    IssuedByDesignation = s.IssuedByDesignation,
+                    Qty = s.Qty,
+                    UnitCost = s.UnitCost,
+                    Amount = s.Amount,
+                    ReceivedBy = s.ReceivedBy,
+                    ReceivedByDesignation = s.ReceivedByDesignation,
+                    ReceivedDate = s.ReceivedDate,
+                    InsertedDt = s.InsertedDt,
+                    Department = s.RisItem.RISs.Office
+                });
+            return data;
+        });
+
         public ValueTask<RisIssuedVM> CreateAsync(RisIssuedVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {

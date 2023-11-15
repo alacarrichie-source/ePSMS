@@ -132,8 +132,8 @@
         col.Command(command =>
         {
             command.Edit();
-            //command.Destroy();
-        }).Width(70);
+            command.Destroy();
+        }).Width(100);
     })
     //.ToolBar(t =>
     //{
@@ -159,6 +159,7 @@
         })
         .Read(read => read.Action("_UnitGroupDescriptionItemRead", "Orders", new { unitGroupDescriptionId = "#=Id#" }))
         .Update(update => update.Action("_UnitGroupDescriptionItemUpdate", "Orders"))
+        .Destroy(destroy => destroy.Action("_UnitGroupDescriptionItemDestroy", "Orders"))
     )
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Events(e => e

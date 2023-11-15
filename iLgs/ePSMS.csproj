@@ -615,6 +615,7 @@
     <Content Include="Assets\signin\kendoka.svg" />
     <Content Include="Assets\signin\kendoka_kendo.svg" />
     <Content Include="Assets\signin\signin.svg" />
+    <Content Include="Assets\Wall.png" />
     <Content Include="Content\base-min.css" />
     <Content Include="Content\bootstrap-min-311.css" />
     <Content Include="Content\bootstrap-theme.css" />
@@ -3435,7 +3436,7 @@
     <Content Include="Views\Codes\Index.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_CodeMastTemplate.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_CodextnTemplate.cshtml" />
-    <Content Include="Views\Items\Index_PsCode.cshtml" />
+    <Content Include="Views\Items\PsCode.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_PsTypeTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_UnitMeasTemplate.cshtml" />
     <Content Include="Views\Orders\Index_killed.cshtml" />

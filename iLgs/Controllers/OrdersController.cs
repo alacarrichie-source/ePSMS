@@ -571,6 +571,41 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _UnitGroupDescriptionItemDestroy([DataSourceRequest]DataSourceRequest request, OrderItemUnitGroupDescriptionItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "order");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _unitGroupDescriptionItemService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
         #endregion
 
         #region EXTRAS

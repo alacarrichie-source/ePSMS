@@ -590,11 +590,14 @@
 
         for (var i = 0; i < gridData.length; i++) {
             var rowData = gridData[i];
-            if (rowData.ItemKey == "Generic Name") {
+            
+            if (rowData.ItemNo == 1) {
                 $("#ItemName").val(rowData.ItemValue).trigger('change');
-            } else {
-                rowValues.push(rowData.ItemValue);
+            //} else {
+            //    rowValues.push(rowData.ItemValue);
             }
+
+            rowValues.push(rowData.ItemValue);
         }
 
         var description = rowValues.join(" ");

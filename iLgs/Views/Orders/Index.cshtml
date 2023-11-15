@@ -13,6 +13,7 @@
         col.Bound(c => c.PoDate).Width(70);
         col.Bound(c => c.PoModeDesc).Width(70);
         col.Bound(c => c.PrNo).Width(70);
+        col.Bound(c => c.Department).Width(100);
         col.Bound(c => c.SupplierName).Width(100);
         col.Bound(c => c.SupplierAddress).Width(100);
         col.Bound(c => c.SupplierTin).Width(70);
@@ -92,6 +93,7 @@
         });
     })
     .SelectedIndex(0)
+    .Events(e => e.Select("onSelectTab"))
     .Items(items =>
     {
         items.Add().Text("Items")
@@ -158,6 +160,38 @@
 
 
 <script type="text/javascript">
+    //function reloadTab(idx) {
+    //    var ts = $("#tabStrip").data("kendoTabStrip");
+    //    if (idx == 0) { 
+    //        ts.contentHolder(idx).load("../Orders/_OrderItem?orderId=" + selectedId);        
+    //    } else { 
+    //        ts.contentHolder(idx).load("../Orders/_UnitGroup?orderId=" + selectedItem);
+    //    }        
+    //}
+
+
+    function onSelectTab(e) {
+        var ts = this;
+        for (var idx = 0; ; ++idx) {
+            var tab = ts.contentElement(idx);
+            if (tab == null)
+                break;
+            if (tab == e.contentElement) {
+                //current tab logic - just let it go
+                //tsIndex = idx;
+                if (idx == 0) {
+                    ts.contentHolder(idx).load("../Orders/_OrderItem?orderId=" + selectedId);
+                } else {
+                    ts.contentHolder(idx).load("../Orders/_UnitGroup?orderId=" + selectedId);
+                }        
+            }
+            else {
+                //all other tabs
+                $(tab).html("");
+            }
+        }
+    }
+
     function onShowNotification(e) {
         if (e.sender.getNotifications().length == 1) {
             e.element.parent().css({ zIndex: 22222 });

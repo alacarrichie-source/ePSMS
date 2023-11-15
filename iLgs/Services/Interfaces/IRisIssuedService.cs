@@ -13,6 +13,7 @@ namespace iLgs.Services.Interfaces
         ValueTask<RisIssued> GetByIdAsync(Guid? id);
         ValueTask<RisIssuedVM> GetVmByIdAsync(Guid? id);
         IQueryable<RisIssuedVM> GetByPoNoStockNo(string poNo, string stockNo);
+        IQueryable<RisIssuedVM> GetByStockNo(string stockNo);
 
         ValueTask<RisIssuedVM> CreateAsync(RisIssuedVM model, string user, DateTime date);
         ValueTask<RisIssuedVM> UpdateAsync(RisIssuedVM model, string user, DateTime date);

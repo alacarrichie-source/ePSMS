@@ -53,8 +53,6 @@ namespace iLgs.Models
         public virtual DbSet<PAR> PARs { get; set; }
         public virtual DbSet<OrderItemExtn> OrderItemExtns { get; set; }
         public virtual DbSet<ItemField> ItemFields { get; set; }
-        public virtual DbSet<RisItem> RisItems { get; set; }
-        public virtual DbSet<PsCode> PsCodes { get; set; }
         public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
         public virtual DbSet<PARItem> PARItems { get; set; }
@@ -79,5 +77,7 @@ namespace iLgs.Models
         public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<RisItemUnitGroup> RisItemUnitGroups { get; set; }
         public virtual DbSet<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
+        public virtual DbSet<RisItem> RisItems { get; set; }
+        public virtual DbSet<PsCode> PsCodes { get; set; }
     }
 }

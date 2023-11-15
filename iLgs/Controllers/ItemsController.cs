@@ -49,6 +49,11 @@ namespace iLgs.Controllers
             return View();
         }
 
+        public ActionResult PsCode()
+        {
+            return View();
+        }
+
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request)
         {
             var data = itemTypeService.GetAll();
@@ -936,6 +941,21 @@ namespace iLgs.Controllers
             return result;
         }
         #endregion
+
+        #region  GRID ISSUANCE
+        public ActionResult _IssuanceRead([DataSourceRequest] DataSourceRequest request, string stockNo)
+        {
+            var data = risIssuedService.GetByStockNo(stockNo);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+        #endregion  
 
         #region PRINTOUTS
         public ActionResult StockCardRpt(string stockNo)

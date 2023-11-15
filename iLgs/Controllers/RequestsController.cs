@@ -312,10 +312,10 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot post again!");
                 }
-                else if (await _requestService.IsWithInvalidUnitCostAsync(requestId))
-                {
-                    ModelState.AddModelError("Unit Cost", "All PR Items must have unit cost!");
-                }
+                //else if (await _requestService.IsWithInvalidUnitCostAsync(requestId))
+                //{
+                //    ModelState.AddModelError("Unit Cost", "All PR Items must have unit cost!");
+                //}
 
                 if (ModelState.IsValid)
                 {

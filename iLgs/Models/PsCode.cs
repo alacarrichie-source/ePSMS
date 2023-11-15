@@ -21,6 +21,7 @@ namespace iLgs.Models
         }
     
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> ItemCodeId { get; set; }
         public string PsNo { get; set; }
         public string PsType { get; set; }
         public string ItemName { get; set; }
@@ -33,6 +34,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        public virtual ItemCode ItemCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsStock> PsStocks { get; set; }
     }

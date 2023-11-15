@@ -11,6 +11,7 @@ namespace iLgs.Models
         //[Display(Name = "Additional Info")]
         //public string AdditionalInfo { get; set; }
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> ItemCodeId { get; set; }
 
         [Display(Name = "Item No.")]
         [Required]
@@ -43,6 +44,7 @@ namespace iLgs.Models
 
         public string ImageUrl { get; set; }
         public string FileName { get; set; }
+        public string ItemCode { get; set; }
     }
 
     public class ItemCodeVM

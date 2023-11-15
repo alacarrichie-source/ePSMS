@@ -95,7 +95,7 @@ namespace iLgs.Services
             model.UpdatedDt = date;
 
             model.PsNo = PsNo(model);
-            model.PsNoDisplay = PsNoDisplay(model);
+            model.PsNoDisplay = PsNoDisplay(model.ItemCode, model.ItemName);
 
             RisItem entity = new RisItem()
             {
@@ -153,7 +153,7 @@ namespace iLgs.Services
             RisItem entity = await db.RisItems.FindAsync(model.Id);
 
             model.PsNo = PsNo(model);
-            model.PsNoDisplay = PsNoDisplay(model);
+            model.PsNoDisplay = PsNoDisplay(model.ItemCode, model.ItemName);
 
             entity.RisId = model.RisId;
             entity.ItemCodeId = model.ItemCodeId;
@@ -183,34 +183,46 @@ namespace iLgs.Services
         private string PsNo(RisItemVM model)
         {
             var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
-            string psNo = model.ItemCode.Trim(); // + model.ItemName.Substring(0, 1) + model.ItemName.Substring(2, 1);
+            string psNo = model.ItemCode.Trim();
             var itemType = db.ItemTypes.Where(w => w.Code == model.PsType).FirstOrDefault();
             string itemValue = "";
-            for(var x = 1; x <= itemType.FormulaNo; x++)
+            for (var x = 1; x <= itemType.FormulaNo; x++)
             {
                 itemValue = risItemExtns.FirstOrDefault(f => f.ItemNo == x.ToString())?.ItemValue.Replace(" ", "").Trim();
                 if (string.IsNullOrWhiteSpace(itemValue))
                 {
                     psNo += "XXX";
-                } else {
-                    if (x == 1)
+                }
+                else
+                {
+                    int itemCount = 0;
+                    var raItems = itemValue.Split('/');
+                    foreach (var raItem in raItems)
                     {
-                        if (itemValue.Length >= 3)
+                        if (++itemCount > 1)
                         {
-                            psNo += itemValue.Substring(0, 1) + itemValue.Substring(2, 1);
+                            psNo += "/";
                         }
-                        else
+
+                        if (x == 1)
                         {
-                            psNo += itemValue.Substring(0, 1) + "X";
+                            if (raItem.Length >= 3)
+                            {
+                                psNo += raItem.Substring(0, 1) + raItem.Substring(2, 1);
+                            }
+                            else
+                            {
+                                psNo += raItem.Substring(0, 1) + "X";
+                            }
                         }
-                    }
-                    else if (x == 2)
-                    {
-                        psNo += itemValue;
-                    }
-                    else if (x == 3)
-                    {
-                        psNo += itemValue.PadRight(3, 'X').Substring(0, 3);                        
+                        else if (x == 2)
+                        {
+                            psNo += raItem;
+                        }
+                        else if (x == 3)
+                        {
+                            psNo += raItem.PadRight(3, 'X').Substring(0, 3);
+                        }                        
                     }
                 }
             }
@@ -233,9 +245,27 @@ namespace iLgs.Services
             return psNo;
         }
 
-        private string PsNoDisplay(RisItemVM model)
+        public string PsNoDisplay(string itemCode, string itemName)
         {
-            return model.ItemCode.Trim() + model.ItemName.Substring(0, 1) + model.ItemName.Substring(2, 1);
+            var raItems = itemName.Replace(" ", "").Split('/');
+            int itemCount = 0;
+            string psNoDisplay = "";
+            foreach(var raItem in raItems)
+            {
+                if (++itemCount > 1)
+                {
+                    psNoDisplay += "/";
+                }
+                if (raItem.Length >= 3)
+                {
+                    psNoDisplay += raItem.Substring(0, 1) + raItem.Substring(2, 1);
+                }
+                else
+                {
+                    psNoDisplay += raItem.Substring(0, 1) + "X";
+                }
+            }
+            return itemCode.Trim() + psNoDisplay; // model.ItemName.Substring(0, 1) + model.ItemName.Substring(2, 1);
         }
 
         //#region EXCEPTIONS

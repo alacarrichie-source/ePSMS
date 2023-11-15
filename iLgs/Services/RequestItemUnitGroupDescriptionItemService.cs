@@ -157,9 +157,9 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
 
             var reqItem = _db.RequestItems.Find(model.RequestItemId);
-            reqItem.PriceRate = model.PriceRate;
-            reqItem.UnitCost = model.PriceRate == 0 ? model.UnitCost : model.GroupCost * (model.PriceRate / 100);
-            reqItem.TotalCost = model.QtyRequest * reqItem.UnitCost;
+            reqItem.PriceRate = model.PriceRate;            
+            reqItem.TotalCost = model.PriceRate == 0 ? model.UnitCost * model.QtyRequest : model.GroupCost * (model.PriceRate / 100);
+            reqItem.UnitCost = model.PriceRate == 0 ? model.UnitCost : decimal.Round((decimal)(reqItem.TotalCost / model.QtyRequest), 2, MidpointRounding.AwayFromZero);
             reqItem.UpdatedBy = model.UpdatedBy;
             reqItem.UpdatedDt = model.UpdatedDt;
             _db.RequestItems.Attach(reqItem);

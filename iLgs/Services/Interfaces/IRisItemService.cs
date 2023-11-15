@@ -13,6 +13,8 @@ namespace iLgs.Services.Interfaces
         ValueTask<RisItem> GetByIdAsync(Guid? id);
         ValueTask<RisItemVM> GetVmByIdAsync(Guid? id);
 
+        string PsNoDisplay(string itemCode, string itemName);
+
         ValueTask<RisItemVM> CreateAsync(RisItemVM model, string user, DateTime date);
         ValueTask<RisItemVM> UpdateAsync(RisItemVM model, string user, DateTime date);
         ValueTask<RisItemVM> DeleteAsync(RisItemVM model, string user, DateTime date);

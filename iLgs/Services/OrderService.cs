@@ -41,6 +41,7 @@ namespace iLgs.Services
                     PoMode = s.PoMode,
                     PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC-MODE").FirstOrDefault().Description,
                     PrNo = s.Request.PrNo,
+                    Department = s.Request.RISs.Office,
                     SupplierId = s.SupplierId,
                     SupplierName = s.Supplier.Name,
                     SupplierAddress = s.Supplier.Address,
