@@ -1,0 +1,87 @@
+﻿@model iLgs.Models.PsCodeVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+    @*@Html.HiddenFor(model => model.PsNo)*@
+    @Html.HiddenFor(model => model.PsType)
+    @Html.HiddenFor(model => model.ItemCode)
+   
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.ItemCodeId, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select Item Code")
+                        .DataTextField("Code")
+                        .DataValueField("Id")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetItems", "Items");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("ItemNo").Title("Item No.").Width("10%");
+                            c.Add().Field("Code").Title("Code").Width("10%");
+                            c.Add().Field("MainDesc").Title("Group").Width("40%");
+                            c.Add().Field("Description").Title("Type").Width("40%");
+                        })
+                        .Suggest(true)
+                        .Events(e => { e.Select("onSelectItemCode"); })
+                    )
+                    @Html.ValidationMessageFor(m => m.ItemCodeId)
+                </div>
+            </div>
+        </div>
+
+        @*<div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.ItemType, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.ItemType).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                </div>
+            </div>
+        </div>*@
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.ItemName, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MaskedTextBoxFor(m => m.ItemName).Events(e => e.Change("onChangeItemName")).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.ItemName)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.PsNo, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.PsNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                </div>
+            </div>
+        </div>
+        
+
+    </fieldset>
+}
+
+

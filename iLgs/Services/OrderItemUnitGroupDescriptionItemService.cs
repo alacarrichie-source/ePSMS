@@ -59,7 +59,7 @@ namespace iLgs.Services
                     PriceRate = s.OrderItem.PriceRate,
                     UnitCost = s.OrderItem.UnitCost,
                     TotalCost = s.OrderItem.Amount,
-                    GroupCost = s.RequestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescription.RequestItemUnitGroup.TotalCost,
+                    GroupCost = s.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
                     InsertedDt = s.InsertedDt
                 });
             return data;

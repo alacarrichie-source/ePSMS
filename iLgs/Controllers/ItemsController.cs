@@ -23,24 +23,24 @@ namespace iLgs.Controllers
     [AppAuthorize("ITEMS")]
     public class ItemsController : Controller
     {
-        private AppManEntities db = new AppManEntities();
-        private IItemTypeService itemTypeService;
-        private IItemCodeService itemCodeService;
-        private IItemFieldService itemFieldService;
-        private IPsCodeService psCodeService;
-        private ICodextnService codextnService;
-        private IDirectoryService directoryService;
-        private IRisIssuedService risIssuedService;
+        private AppManEntities _db = new AppManEntities();
+        private IItemTypeService _itemTypeService;
+        private IItemCodeService _itemCodeService;
+        private IItemFieldService _itemFieldService;
+        private IPsCodeService _psCodeService;
+        private ICodextnService _codextnService;
+        private IDirectoryService _directoryService;
+        private IRisIssuedService _risIssuedService;
 
         public ItemsController()
         {
-            this.itemTypeService = new ItemTypeService(db);
-            this.itemCodeService = new ItemCodeService(db);
-            this.itemFieldService = new ItemFieldService(db);
-            this.psCodeService = new PsCodeService(db);
-            this.codextnService = new CodextnService(db);
-            this.directoryService = new DirectoryService(db);
-            this.risIssuedService = new RisIssuedService(db);
+            _itemTypeService = new ItemTypeService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _itemFieldService = new ItemFieldService(_db);
+            _psCodeService = new PsCodeService(_db);
+            _codextnService = new CodextnService(_db);
+            _directoryService = new DirectoryService(_db);
+            _risIssuedService = new RisIssuedService(_db);
         }
 
         // GET: Codes
@@ -54,9 +54,129 @@ namespace iLgs.Controllers
             return View();
         }
 
+        public ActionResult PsCodeRead([DataSourceRequest] DataSourceRequest request)
+        {
+            var data = _psCodeService.GetMaintenanceView();
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PsCodeCreate([DataSourceRequest] DataSourceRequest request, PsCodeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pscodes");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("AddError", "Add Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCodeService.CreateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PsCodeUpdate([DataSourceRequest] DataSourceRequest request, PsCodeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pscodes");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCodeService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PsCodeDestroy([DataSourceRequest]DataSourceRequest request, PsCodeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pscodes");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCodeService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = itemTypeService.GetAll();
+            var data = _itemTypeService.GetAll();
 
             var result = new JsonNetResult
             {
@@ -85,7 +205,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await itemTypeService.CreateAsync(model, user, date);
+                    model = await _itemTypeService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -120,7 +240,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await itemTypeService.UpdateAsync(model, user, date);
+                    model = await _itemTypeService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -155,7 +275,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await itemTypeService.DeleteAsync(model, user, date);
+                    model = await _itemTypeService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -184,7 +304,7 @@ namespace iLgs.Controllers
 
         public ActionResult ItemCodeRead([DataSourceRequest] DataSourceRequest request, Guid? itemTypeId)
         {
-            var data = itemCodeService.GetAllByItemTypeId(itemTypeId);
+            var data = _itemCodeService.GetAllByItemTypeId(itemTypeId);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -212,7 +332,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await itemCodeService.CreateAsync(model, user, date);
+                    model = await _itemCodeService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -251,7 +371,7 @@ namespace iLgs.Controllers
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
 
-                    model = await itemCodeService.UpdateAsync(model, user, date);
+                    model = await _itemCodeService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -286,7 +406,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await itemCodeService.DeleteAsync(model, user, date);
+                    model = await _itemCodeService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -314,7 +434,7 @@ namespace iLgs.Controllers
 
         public ActionResult ItemFieldRead([DataSourceRequest] DataSourceRequest request, Guid? itemTypeId)
         {
-            var data = itemFieldService.GetAllbyItemTypeId(itemTypeId);
+            var data = _itemFieldService.GetAllbyItemTypeId(itemTypeId);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -342,7 +462,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await itemFieldService.CreateAsync(model, user, date);
+                    model = await _itemFieldService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -380,7 +500,7 @@ namespace iLgs.Controllers
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
 
-                    model = await itemFieldService.UpdateAsync(model, user, date);
+                    model = await _itemFieldService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -415,7 +535,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await itemFieldService.DeleteAsync(model, user, date);
+                    model = await _itemFieldService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -443,12 +563,12 @@ namespace iLgs.Controllers
 
         public string GetImageDir()
         {
-            return directoryService.GetItemImageDirectory();
+            return _directoryService.GetItemImageDirectory();
         }
 
         public ActionResult ItemMainRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = psCodeService.GetMaintenanceView();
+            var data = _psCodeService.GetMaintenanceView();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -461,7 +581,7 @@ namespace iLgs.Controllers
 
         public ActionResult StockRead([DataSourceRequest] DataSourceRequest request, Guid? psId)
         {
-            var data = db.PsStocks.Where(w => w.PsId == psId)
+            var data = _db.PsStocks.Where(w => w.PsId == psId)
                 .AsQueryable();
             var result = new JsonNetResult
             {
@@ -490,7 +610,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var psNo = db.PsCodes.Find(model.PsId).PsNo;
+                    var psNo = _db.PsCodes.Find(model.PsId).PsNo;
 
                     model.Id = Guid.NewGuid();
                     model.InsertedBy = user;
@@ -514,8 +634,8 @@ namespace iLgs.Controllers
                         UpdatedDt = model.UpdatedDt
                     };
 
-                    db.PsStocks.Add(entity);
-                    await db.SaveChangesAsync();
+                    _db.PsStocks.Add(entity);
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)
@@ -547,7 +667,7 @@ namespace iLgs.Controllers
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
 
-                    var entity = db.PsStocks.Find(model.Id);
+                    var entity = _db.PsStocks.Find(model.Id);
 
                     entity.PsId = model.PsId;
                     entity.Fund = model.Fund;
@@ -558,9 +678,9 @@ namespace iLgs.Controllers
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 
-                    db.PsStocks.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
+                    _db.PsStocks.Attach(entity);
+                    _db.Entry(entity).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)
@@ -588,22 +708,22 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = db.PsStocks.Find(model.Id);
+                    var entity = _db.PsStocks.Find(model.Id);
 
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;
 
-                    db.PsStocks.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
+                    _db.PsStocks.Attach(entity);
+                    _db.Entry(entity).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
 
                     //db.PsStocks.Attach(model);
                     // Delete the entity
-                    db.PsStocks.Remove(entity);
+                    _db.PsStocks.Remove(entity);
                     // Or use DeleteObject if using a previous version of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    await db.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
                     //db.Configuration.ValidateOnSaveEnabled = true;                
                 }
             }
@@ -620,7 +740,7 @@ namespace iLgs.Controllers
         {
             string keyName = psNo;
 
-            var data = db.PsStocks.Where(w => w.PsCode.PsNo == psNo)
+            var data = _db.PsStocks.Where(w => w.PsCode.PsNo == psNo)
                 .OrderByDescending(o => o.StockNo).FirstOrDefault();
             if (data == null)
             {
@@ -636,7 +756,7 @@ namespace iLgs.Controllers
         public ActionResult StockExtnRead([DataSourceRequest] DataSourceRequest request, string stockNo)
         {
 
-            var data = db.RisItemExtns.Where(w => w.RisItem.RequestItems.Any(a => a.OrderItems.Any(o => o.StockNo == stockNo)))
+            var data = _db.RisItemExtns.Where(w => w.RisItem.RequestItems.Any(a => a.OrderItems.Any(o => o.StockNo == stockNo)))
                 .Select(s => new PsStockExtnVM
                 {
                     Id = s.Id,
@@ -657,7 +777,7 @@ namespace iLgs.Controllers
 
         public ActionResult StockItemRead([DataSourceRequest] DataSourceRequest request, Guid? stockId)
         {
-            var data = db.PsItems.Where(w => w.PsStockId == stockId)
+            var data = _db.PsItems.Where(w => w.PsStockId == stockId)
                 .Select(s => new PsItemVM
                 {
                     Id = s.Id,
@@ -724,8 +844,8 @@ namespace iLgs.Controllers
                         UpdatedDt = model.UpdatedDt
                     };
 
-                    db.PsItems.Add(entity);
-                    await db.SaveChangesAsync();
+                    _db.PsItems.Add(entity);
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)
@@ -757,7 +877,7 @@ namespace iLgs.Controllers
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
 
-                    var entity = await db.PsItems.FindAsync(model.Id);
+                    var entity = await _db.PsItems.FindAsync(model.Id);
                     //var qtyIss = db.RISlipItems.Where(w => w.StockItemId == entity.Id).Sum(s => s.IssQty) ?? 0;
                     //var qtyBal = model.Qty - qtyIss;                    
 
@@ -774,9 +894,9 @@ namespace iLgs.Controllers
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 
-                    db.PsItems.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
+                    _db.PsItems.Attach(entity);
+                    _db.Entry(entity).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (Exception e)
@@ -804,22 +924,22 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = db.PsItems.Find(model.Id);
+                    var entity = _db.PsItems.Find(model.Id);
 
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;
 
-                    db.PsItems.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
+                    _db.PsItems.Attach(entity);
+                    _db.Entry(entity).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
 
                     //db.PsStocks.Attach(model);
                     // Delete the entity
-                    db.PsItems.Remove(entity);
+                    _db.PsItems.Remove(entity);
                     // Or use DeleteObject if using a previous version of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    await db.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
                     //db.Configuration.ValidateOnSaveEnabled = true;                
                 }
             }
@@ -874,7 +994,7 @@ namespace iLgs.Controllers
                 foreach (var gridId in gridIdList)
                 {
                     var orderItemId = Guid.Parse(gridId);
-                    var data = await db.OrderItems.Where(w => w.Id == orderItemId)
+                    var data = await _db.OrderItems.Where(w => w.Id == orderItemId)
                         .Select(s => new QueryOrderItemsVM
                         {
                             PoDate = s.Order.PoDate,
@@ -901,8 +1021,8 @@ namespace iLgs.Controllers
                         UpdatedDt = date
                     };
 
-                    db.PsItems.Add(entity);
-                    await db.SaveChangesAsync();
+                    _db.PsItems.Add(entity);
+                    await _db.SaveChangesAsync();
                 }
 
                 if (Request.IsAjaxRequest())
@@ -930,7 +1050,7 @@ namespace iLgs.Controllers
         #region ISSUED
         public ActionResult _RISIssuedRead([DataSourceRequest] DataSourceRequest request, string poNo, string stockNo)
         {
-            var data = risIssuedService.GetByPoNoStockNo(poNo, stockNo);
+            var data = _risIssuedService.GetByPoNoStockNo(poNo, stockNo);
 
             var result = new JsonNetResult
             {
@@ -945,7 +1065,7 @@ namespace iLgs.Controllers
         #region  GRID ISSUANCE
         public ActionResult _IssuanceRead([DataSourceRequest] DataSourceRequest request, string stockNo)
         {
-            var data = risIssuedService.GetByStockNo(stockNo);
+            var data = _risIssuedService.GetByStockNo(stockNo);
 
             var result = new JsonNetResult
             {
@@ -960,7 +1080,7 @@ namespace iLgs.Controllers
         #region PRINTOUTS
         public ActionResult StockCardRpt(string stockNo)
         {
-            string stringname = db.Database.Connection.ConnectionString.ToString();
+            string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
 
             string un = decoder.UserID;
@@ -985,8 +1105,8 @@ namespace iLgs.Controllers
                 table.ApplyLogOnInfo(logonInfo);
             }
 
-            var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
-            var imagePath = codextnService.GetByMastCode("DIRS").Where(w => w.Code == "IMAGE-ITEMS").FirstOrDefault().Description;
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            var imagePath = _codextnService.GetByMastCode("DIRS").Where(w => w.Code == "IMAGE-ITEMS").FirstOrDefault().Description;
 
             rpt.SetParameterValue("@cStockNo", stockNo);
             rpt.SetParameterValue("ImagePath", imagePath);
@@ -1001,10 +1121,10 @@ namespace iLgs.Controllers
 
         public FileResult GetProductImage(Guid imageId)
         {
-            var upload = db.Uploads.Where(w => w.ImageId == imageId).FirstOrDefault();
+            var upload = _db.Uploads.Where(w => w.ImageId == imageId).FirstOrDefault();
             if (upload != null)
             {
-                string networkImagePath = directoryService.GetItemImageDirectory() + upload.FileName;
+                string networkImagePath = _directoryService.GetItemImageDirectory() + upload.FileName;
                 byte[] imageBytes = System.IO.File.ReadAllBytes(networkImagePath);
                 return File(imageBytes, "image/jpeg");
             }
@@ -1017,7 +1137,7 @@ namespace iLgs.Controllers
         {
 
             //var model = db.ItemCodes.AsQueryable();
-            var model = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", text).AsQueryable();
+            var model = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", text).AsQueryable();
 
             //if (!string.IsNullOrEmpty(text))
             //{
@@ -1027,6 +1147,13 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType, ItemNo = c.ItemNo, MainDesc = c.MainDesc }), JsonRequestBehavior.AllowGet);
         }
 
+
+        public JsonResult GetPsNo(string itemCode, string itemName)
+        {
+
+            var psNo = _psCodeService.PsNo(itemCode, itemName);
+            return Json(new { Errors = "", PsNo = psNo}, JsonRequestBehavior.AllowGet);
+        }
         #endregion
     }
 }

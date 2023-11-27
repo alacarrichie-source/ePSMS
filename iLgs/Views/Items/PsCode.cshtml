@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Property Acknowledgement Receipt";
+    ViewBag.Title = "Property & Supply Codes";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
@@ -8,26 +8,26 @@
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
-        col.Bound(c => c.PsType).Width(70).EditorTemplateName("_PsTypeTemplate");
-        col.Bound(c => c.PsNo).Width(70);
-        col.Bound(c => c.ItemName).Width(100);
-        col.Bound(c => c.ItemDescription).Width(100);
-        col.Bound(c => c.UnitMeas).Width(100).EditorTemplateName("_UnitMeasTemplate");
-        col.Bound(c => c.ReorderPoint).Width(100).EditorTemplateName("_ReorderTemplate");
-        col.Bound(c => c.DaysToConsume).Width(100).EditorTemplateName("_DaysToConsumeTemplate");        
+        col.Bound(c => c.PsType).Width(50);
+        col.Bound(c => c.PsNo).Width(100);
+        col.Bound(c => c.ItemName).Width(200);
+        //col.Bound(c => c.ItemDescription).Width(100);
+        //col.Bound(c => c.UnitMeas).Width(100);
+        //col.Bound(c => c.ReorderPoint).Width(100);
+        //col.Bound(c => c.DaysToConsume).Width(100);
         col.Command(command =>
         {
             command.Edit();
             command.Destroy();
-        }).Width(120);
+        }).Width(100);
     })
     .ToolBar(t =>
     {
         t.Create().Text("Add Item");
         t.Search();
     })
-        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodeMastTemplate").Window(w => w.Width(800).Title("Codes")))
-    .Editable(editable => editable.Mode(GridEditMode.InLine))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PsCodeTemplate").Window(w => w.Width(800).Title("Property & Supply")))
+    //.Editable(editable => editable.Mode(GridEditMode.InLine))
     .Search(s =>
     {
         s.Field(o => o.PsType, "contains");
@@ -60,10 +60,10 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
-        .Read(read => read.Action("ItemRead", "Items"))
-        .Create(create => create.Action("ItemCreate", "Items"))
-        .Update(update => update.Action("ItemUpdate", "Items"))
-        .Destroy(destroy => destroy.Action("ItemDestroy", "Items"))
+        .Read(read => read.Action("PsCodeRead", "Items"))
+        .Create(create => create.Action("PsCodeCreate", "Items"))
+        .Update(update => update.Action("PsCodeUpdate", "Items"))
+        .Destroy(destroy => destroy.Action("PsCodeDestroy", "Items"))
     )
     .Events(events => events
         .Change("onChangeGrid")
@@ -196,6 +196,53 @@
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+    function onSelectItemCode(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#ItemCodeId").val(dataItem.Id).trigger("change");
+        $("#ItemCode").val(dataItem.Code).trigger("change");
+        $("#PsType").val(dataItem.Type).trigger("change");
+        //$("#ItemType").val(dataItem.Description).trigger("change");
+
+        var itemName = $("#ItemName").val();
+        if (itemName) {
+            var itemCode = dataItem.Code;
+            getPsNo(itemCode, itemName);
+        }
+    }
+
+    function onChangeItemName(e) {
+        var itemName = this.value();
+        var itemCode = $("#ItemCode").val();
+        getPsNo(itemCode, itemName);
+    }
+
+    function getPsNo(itemCode, itemName) {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GetPsNo", "Items")',
+            data: {
+                itemCode: itemCode,
+                itemName: itemName
+            },
+            beforeSend: function () {
+                window.kendo.ui.progress($(document.body), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($(document.body), false);
+                if (result.Errors != "") {
+                    alert(result.Errors);
+                } else {
+                    $("#PsNo").val(result.PsNo).trigger("change");
+                }
+            },
+            error: function (req, status, errorObj) {
+                window.kendo.ui.progress($(document.body), false);
+                alert(req.responseText);
+            }
+        });
     }
 
 </script>

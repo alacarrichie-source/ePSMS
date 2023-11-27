@@ -126,7 +126,7 @@ namespace iLgs.Services
                 Id = model.Id,
                 OrderId = model.OrderId,
                 RequestItemId = model.RequestItemId,
-                StockNo = model.PsNo.Trim() + model.Brand,
+                StockNo = model.PsNo.Trim() + model.Brand.Replace(" ", "").Trim(),
                 StockName = model.StockName,
                 Brand = model.Brand,
                 Description = model.Description,
@@ -283,7 +283,7 @@ namespace iLgs.Services
             OrderItem entity = await _db.OrderItems.FindAsync(model.Id);
 
             entity.RequestItemId = model.RequestItemId;
-            entity.StockNo = model.PsNo.Trim() + model.Brand;
+            entity.StockNo = model.PsNo.Trim() + model.Brand.Replace(" ", "").Trim();
             entity.StockName = await StockNameAsync(model, risItemId);
             entity.Brand = model.Brand;
             entity.Description = model.Description;
@@ -308,7 +308,7 @@ namespace iLgs.Services
             var itemExtns = await _db.Database.SqlQuery<RisItemExtnVM>("Exec RisItemExtnService_GetBatchInfo {0}, {1}", risItemId, psType).ToListAsync();
             var psCode = orderItem.ItemCode.ToString();
 
-            string stockName = orderItem.Brand.Trim();
+            string stockName = orderItem.Brand.Replace(" ", "").Trim();
             string itemName = orderItem.ItemName.Substring(0, 1) + orderItem.ItemName.Substring(2, 1);
 
             if (psType == "M")

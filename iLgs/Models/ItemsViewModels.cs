@@ -11,6 +11,7 @@ namespace iLgs.Models
         //[Display(Name = "Additional Info")]
         //public string AdditionalInfo { get; set; }
         public System.Guid Id { get; set; }
+        [Display(Name = "Item Type")]
         public Nullable<System.Guid> ItemCodeId { get; set; }
 
         [Display(Name = "Item No.")]
@@ -29,7 +30,7 @@ namespace iLgs.Models
         public string ItemDescription { get; set; }
 
         [Display(Name = "Unit")]
-        [Required]
+        //[Required]
         public string UnitMeas { get; set; }
 
         [Display(Name = "Reorder Point")]

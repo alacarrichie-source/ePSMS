@@ -1,4 +1,5 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
 using iLgs.Services.Interfaces;
 using System;
 using System.Data.Entity;
@@ -11,6 +12,9 @@ namespace iLgs.Services
     {
         private readonly AppManEntities _db = new AppManEntities();
         private readonly IRisItemService _risItemService;
+        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
+        private readonly IExceptionService<PsCodeVM> _vmExceptionService = new ExceptionService<PsCodeVM>();
+        private readonly IExceptionService<PsCode> _exceptionService = new ExceptionService<PsCode>();
         //private IDirectoryService directoryService;
         //private string imageDirectory;
         public PsCodeService(AppManEntities db)
@@ -21,12 +25,13 @@ namespace iLgs.Services
             //this.imageDirectory = directoryService.GetItemImageDirectory();
         }
 
-        public IQueryable<PsCode> GetAll()
+        public IQueryable<PsCode> GetAll() => _exceptionService.TryCatch(() =>
         {
             var data = _db.PsCodes.AsQueryable();
             return data;
-        }
-        public IQueryable<PsCodeVM> GetMaintenanceView()
+        });
+
+        public IQueryable<PsCodeVM> GetMaintenanceView() => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.PsCodes
                 .Select(s => new PsCodeVM
@@ -43,61 +48,117 @@ namespace iLgs.Services
                     //    db.Uploads.FirstOrDefault(f => f.ImageId == s.Id).FileName : "")
                 });
             return data;
-        }
+        });
 
-        public async Task<PsCode> GetByIdAsync(Guid psId)
+        public ValueTask<PsCode> GetByIdAsync(Guid psId) => _exceptionService.TryCatch(async () =>
         {
             return await _db.PsCodes.FindAsync(psId);
-        }
+        });
 
-        public async Task<bool> GetAnyPsNoAsync(Guid psId, string psNo)
+        public async ValueTask<bool> GetAnyPsNoAsync(Guid psId, string psNo) 
         {
             return await _db.PsCodes.AnyAsync(a => a.Id != psId && a.PsNo == psNo);
         }
 
-        public async Task<PsCode> GetByPsNoAsync(string psNo)
+        public ValueTask<PsCode> GetByPsNoAsync(string psNo) => _exceptionService.TryCatch(async () =>
         {
             return await _db.PsCodes.Where(w => w.PsNo == psNo).FirstOrDefaultAsync();
-        }        
+        });
 
-        public async Task<PsCode> CreateAsync(PsCode model, string user, DateTime date)
+        public ValueTask<PsCodeVM> CreateAsync(PsCodeVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
+            if (string.IsNullOrWhiteSpace(model.ItemName))
+            {
+                throw new InvalidValueException("Item Name is Required!");
+            }
+
+            model.PsNo = PsNo(model.ItemCode, model.ItemName);
+
+            if (_db.PsCodes.Where(w => w.PsNo == model.PsNo && w.ItemName == model.ItemName).Any())
+            {
+                throw new RecordAlreadyExistsException("Item Number already exists!");
+            }
+
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.InsertedDt = date;
             model.UpdatedBy = user;
-            model.UpdatedDt = date;
-            model.PsNo = PsNo(model);
+            model.UpdatedDt = date;            
+            model.ItemName = model.ItemName.Trim();
             model.ItemDescription = model.ItemDescription ?? "";
             model.ReorderPoint = model.ReorderPoint ?? 0;
             model.DaysToConsume = model.DaysToConsume ?? 0;
 
-            _db.PsCodes.Add(model);
+
+            var entity = new PsCode()
+            {
+                Id = model.Id,
+                ItemCodeId = model.ItemCodeId,
+                PsNo = model.PsNo,
+                PsType = model.PsType,
+                ItemName = model.ItemName,
+                ItemDescription = model.ItemDescription,
+                ReorderPoint = model.ReorderPoint,
+                UnitMeas = model.UnitMeas,
+                DaysToConsume = model.DaysToConsume,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
+            
+            _db.PsCodes.Add(entity);
             await _db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        public async Task<PsCode> UpdateAsync(PsCode model, string user, DateTime date)
+        public ValueTask<PsCodeVM> UpdateAsync(PsCodeVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-            model.UnitMeas = model.UnitMeas;
+            var entity = _db.PsCodes.Find(model.Id);
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(model.Id);
+            }
 
-            model.PsNo = PsNo(model);
+            if (string.IsNullOrWhiteSpace(model.ItemName))
+            {
+                throw new InvalidValueException("Item Name is Required!");
+            }
+
+
+            model.PsNo = PsNo(model.ItemCode, model.ItemName);
+
+            if (_db.PsCodes.Where(w => w.PsNo == model.PsNo && w.ItemName == model.ItemName && w.Id != model.Id).Any())
+            {
+                throw new RecordAlreadyExistsException("Item Number already exists!");
+            }
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;            
             model.PsType = model.PsType.ToUpper();
             model.ItemDescription = model.ItemDescription ?? "";
             model.ReorderPoint = model.ReorderPoint ?? 0;
             model.DaysToConsume = model.DaysToConsume ?? 0;
 
-            _db.PsCodes.Attach(model);
+            entity.PsNo = model.PsNo;
+            entity.PsType = model.PsType;
+            entity.ItemName = model.ItemName.Trim();
+            entity.ItemDescription = model.ItemDescription;
+            entity.ReorderPoint = model.ReorderPoint;
+            entity.DaysToConsume = model.DaysToConsume;
+            entity.UnitMeas = model.UnitMeas;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.PsCodes.Attach(entity);
             _db.Entry(model).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        public async Task<PsCode> DeleteAsync(PsCode model, string user, DateTime date)
+        public ValueTask<PsCodeVM> DeleteAsync(PsCodeVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
 
             model.UpdatedBy = user;
@@ -117,12 +178,10 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
 
             return model;
-        }        
+        });
 
-        private string PsNo(PsCode model)
+        public string PsNo(string itemCode, string itemName)
         {
-            var itemCode = model.ItemCode.Code;
-            var itemName = model.ItemName;
             return _risItemService.PsNoDisplay(itemCode, itemName);
         }
 

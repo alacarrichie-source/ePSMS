@@ -3532,6 +3532,7 @@
     <Content Include="Views\Orders\EditorTemplates\_PriceRateTemplate.cshtml" />
     <Content Include="Views\Orders\EditorTemplates\_TotalCostTemplate.cshtml" />
     <Content Include="Views\Orders\EditorTemplates\_UnitCostTemplate.cshtml" />
+    <Content Include="Views\Items\EditorTemplates\_PsCodeTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -72,6 +72,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
+            model.TotalCost = model.Qty * model.UnitCost;
 
             var entity = new OrderItemUnitGroup()
             {
@@ -144,7 +145,7 @@ namespace iLgs.Services
             entity.OrderId = model.OrderId;
             entity.RequestItemUnitGroupId = model.RequestItemUnitGroupId;
             entity.UnitCost = model.UnitCost;
-            entity.TotalCost = model.TotalCost;
+            entity.TotalCost = model.Qty * model.UnitCost;            
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
