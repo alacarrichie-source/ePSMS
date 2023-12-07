@@ -27,6 +27,8 @@ namespace iLgs.Models
         public Nullable<decimal> QtyBal { get; set; }
         public Nullable<int> Days { get; set; }
         public string Remarks { get; set; }
+        public string UnitMeas { get; set; }
+        public Nullable<decimal> UnitCost { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

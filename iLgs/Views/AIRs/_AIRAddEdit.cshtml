@@ -285,6 +285,10 @@
         col.Bound(c => c.Id).Hidden();
         col.Bound(c => c.InvoiceNo).Width(100);
         col.Bound(c => c.InvoiceDate).Width(50).EditorTemplateName("_InvoiceDateTemplate");
+        col.Bound(c => c.Amount).Width(50).EditorTemplateName("_AmountTemplate")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
         col.Command(command =>
         {
             command.Edit();
@@ -316,6 +320,10 @@
     {
         model.Id(p => p.Id);
         model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+    })
+    .Aggregates(a =>
+    {
+        a.Add(p => p.Amount).Sum();
     })
     .Read(read => read.Action("_AIRInvoiceRead", "AIRs", new { airId = @ViewData["airId"] }))
     .Create(create => create.Action("_AIRInvoiceCreate", "AIRs"))

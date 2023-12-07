@@ -270,7 +270,7 @@ namespace iLgs.Models
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> Amount { get; set; }
         
-        [Display(Name = "Received By")]
+        [Display(Name = "Issued To")]
         public string ReceivedBy { get; set; }
 
         [Display(Name = "Designation")]

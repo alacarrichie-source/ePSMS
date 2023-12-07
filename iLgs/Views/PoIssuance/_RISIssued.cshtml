@@ -11,6 +11,7 @@
         col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Bound(c => c.ReceivedBy).Width(70);
         col.Command(command =>
         {
             command.Edit();

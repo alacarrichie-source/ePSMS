@@ -115,6 +115,11 @@ namespace iLgs.Services
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
         }
 
+        public async ValueTask<int> GetNotPostedAsync(DateTime asOf)
+        {
+            return await db.Orders.Where(w => w.PoDate <= asOf && w.PostedDt == null).CountAsync();
+        }
+
         public ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch(async () =>
         {
             await ValidateOnCreate(model);
@@ -397,7 +402,7 @@ namespace iLgs.Services
             foreach (var oig in orderItemGroups)
             {
                 // find group in stocks
-                PsStock psStock = await db.PsStocks.Where(w => w.PsId == oig.PsCodeId && w.StockNo == oig.StockNo && w.Fund == oig.Fund).FirstOrDefaultAsync();
+                PsStock psStock = await db.PsStocks.Where(w => w.PsId == oig.PsCodeId && w.StockNo == oig.StockNo && w.Fund == oig.Fund && w.UnitMeas == oig.Unit).FirstOrDefaultAsync();
                 if (psStock == null)
                 {
                     psStock = new PsStock
@@ -409,6 +414,7 @@ namespace iLgs.Services
                         Description = oig.Description,                        
                         Brand = oig.Brand,
                         Fund = oig.Fund,
+                        UnitMeas = oig.Unit,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -452,6 +458,8 @@ namespace iLgs.Services
                         Qty = qty,
                         QtyIss = qtyIss,
                         QtyBal = qty - qtyIss,
+                        UnitMeas = orderItem.RequestItem.RisItem.Unit,
+                        UnitCost = orderItem.UnitCost,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,

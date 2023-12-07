@@ -133,7 +133,7 @@ namespace iLgs.Services
             }
 
             var rsmiDate = db.RSMIs.Max(m => m.Date);
-            if (rsmiDate != null && rsmiDate >= model.IssuedDate)
+            if (rsmiDate != null && rsmiDate > model.IssuedDate)
             {
                 throw new InvalidValueException(string.Format("Date issued must be after the last RSMI date on {0}", rsmiDate.Value.ToShortDateString()));
             }

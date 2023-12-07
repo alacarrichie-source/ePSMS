@@ -55,6 +55,15 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.ReceivedBy, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.ReceivedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.ReceivedBy)
+                </div>
+            </div>
+        </div>        
     </fieldset>
 }
 

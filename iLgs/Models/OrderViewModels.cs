@@ -52,8 +52,7 @@ namespace iLgs.Models
         public string DeliveryPlace { get; set; }
 
         [Display(Name = "Date of Delivery")]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> DeliveryDate { get; set; }
+        public string DeliveryDate { get; set; }
 
         [Display(Name = "Delivery Term")]
         //[Required]
@@ -164,6 +163,7 @@ namespace iLgs.Models
         public string Description { get; set; }
         public string Brand { get; set; }
         public string Fund { get; set; }
+        public string Unit { get; set; }
     }
 
     public class OrderItemExtnVM

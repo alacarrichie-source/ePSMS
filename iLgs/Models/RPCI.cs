@@ -12,27 +12,32 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class OrderItemUnitGroup
+    public partial class RPCI
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public OrderItemUnitGroup()
+        public RPCI()
         {
-            this.OrderItemUnitGroupDescriptions = new HashSet<OrderItemUnitGroupDescription>();
+            this.RPCIItems = new HashSet<RPCIItem>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> OrderId { get; set; }
-        public Nullable<System.Guid> RequestItemUnitGroupId { get; set; }
-        public Nullable<decimal> UnitCost { get; set; }
-        public Nullable<decimal> TotalCost { get; set; }
+        public string ItemType { get; set; }
+        public Nullable<System.DateTime> AsAt { get; set; }
+        public string Fund { get; set; }
+        public string AccountableOfficer { get; set; }
+        public string Designation { get; set; }
+        public Nullable<System.DateTime> AssumptionDt { get; set; }
+        public string CertifiedCorrectBy { get; set; }
+        public string ApprovedBy { get; set; }
+        public string VerifiedBy { get; set; }
+        public string PostedBy { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public System.DateTime UpdatedDt { get; set; }
+        public Nullable<System.DateTime> PostedDt { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
-        public virtual RequestItemUnitGroup RequestItemUnitGroup { get; set; }
-        public virtual Order Order { get; set; }
+        public virtual ICollection<RPCIItem> RPCIItems { get; set; }
     }
 }

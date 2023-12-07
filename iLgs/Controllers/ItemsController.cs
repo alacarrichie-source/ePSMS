@@ -628,6 +628,7 @@ namespace iLgs.Controllers
                         StockName = model.StockName,
                         Description = model.Description,
                         Brand = model.Brand,
+                        UnitMeas = model.UnitMeas,
                         InsertedBy = model.InsertedBy,
                         InsertedDt = model.InsertedDt,
                         UpdatedBy = model.UpdatedBy,
@@ -675,6 +676,7 @@ namespace iLgs.Controllers
                     entity.StockName = model.StockName;
                     entity.Description = model.Description;
                     entity.Brand = model.Brand;
+                    entity.UnitMeas = model.UnitMeas;
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 
@@ -785,6 +787,8 @@ namespace iLgs.Controllers
                     RefNo = s.RefNo,
                     RefDate = s.RefDate,
                     RefType = s.RefType,
+                    UnitMeas = s.UnitMeas,
+                    UnitCost = s.UnitCost,
                     QtyPo = s.QtyPo,
                     Qty = s.Qty,
                     QtyIss = s.QtyIss,
@@ -838,6 +842,8 @@ namespace iLgs.Controllers
                         Qty = model.Qty,
                         QtyIss = model.QtyIss,
                         QtyBal = model.QtyBal,
+                        UnitMeas = model.UnitMeas,
+                        UnitCost = model.UnitCost,
                         InsertedBy = model.InsertedBy,
                         InsertedDt = model.InsertedDt,
                         UpdatedBy = model.UpdatedBy,
@@ -891,6 +897,8 @@ namespace iLgs.Controllers
                     entity.QtyIss = model.QtyIss;
                     entity.QtyBal = model.QtyBal;
                     entity.Days = model.Days;
+                    entity.UnitMeas = model.UnitMeas;
+                    entity.UnitCost = model.UnitCost;
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 

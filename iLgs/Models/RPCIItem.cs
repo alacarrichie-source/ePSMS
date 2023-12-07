@@ -12,18 +12,25 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class AIRInvoice
+    public partial class RPCIItem
     {
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> AirId { get; set; }
-        public string InvoiceNo { get; set; }
-        public Nullable<System.DateTime> InvoiceDate { get; set; }
-        public Nullable<decimal> Amount { get; set; }
+        public Nullable<System.Guid> RpciId { get; set; }
+        public string Article { get; set; }
+        public string Description { get; set; }
+        public string StockNo { get; set; }
+        public string Unit { get; set; }
+        public Nullable<decimal> UnitValue { get; set; }
+        public Nullable<int> QtyBalance { get; set; }
+        public Nullable<int> QtyOnHand { get; set; }
+        public Nullable<int> QtyShortOver { get; set; }
+        public Nullable<decimal> ValueShortOver { get; set; }
+        public string Remarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual AIR AIR { get; set; }
+        public virtual RPCI RPCI { get; set; }
     }
 }

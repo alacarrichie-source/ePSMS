@@ -18,6 +18,8 @@ namespace iLgs.Services.Interfaces
         ValueTask<bool> GetAnyParsAsync(Guid id);
         ValueTask<bool> GetAnyAirsAsync(Guid id);
 
+        ValueTask<int> GetNotPostedAsync(DateTime asOf);
+
         ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date);
         ValueTask<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date);
         ValueTask<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date);

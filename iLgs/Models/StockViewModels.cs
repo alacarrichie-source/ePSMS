@@ -22,6 +22,9 @@ namespace iLgs.Models
         public string Brand { get; set; }
         public string Fund { get; set; }
 
+        [Display(Name = "Unit")]
+        public string UnitMeas { get; set; }
+
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
@@ -64,9 +67,14 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }        
         public string Remarks { get; set; }
 
-        // transient
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
+
+        [Display(Name = "Unit Meas")]
+        public string UnitMeas { get; set; }
+
+        // transient
+
         public string StockNo { get; set; } // for reference of clientDetailTemmplate
     }
 

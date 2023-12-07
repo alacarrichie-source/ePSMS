@@ -31,6 +31,7 @@ namespace iLgs.Services
                    Id = s.Id,
                    AirId = s.AirId,
                    InvoiceNo = s.InvoiceNo,
+                   Amount = s.Amount,
                    InvoiceDate = s.InvoiceDate,
                    InsertedDt = s.InsertedDt
                });
@@ -47,6 +48,7 @@ namespace iLgs.Services
                    AirId = s.AirId,
                    InvoiceNo = s.InvoiceNo,
                    InvoiceDate = s.InvoiceDate,
+                   Amount = s.Amount,
                    InsertedDt = s.InsertedDt
                }).FirstOrDefaultAsync();
             return data;
@@ -72,6 +74,7 @@ namespace iLgs.Services
                 AirId = model.AirId,
                 InvoiceNo = model.InvoiceNo,
                 InvoiceDate = model.InvoiceDate,
+                Amount = model.Amount,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -106,7 +109,7 @@ namespace iLgs.Services
             air.UpdatedBy = user;
             air.UpdatedDt = date;
             air.InvoiceNo = invoiceNo;
-            air.InvoiceDate = invoiceDate;
+            air.InvoiceDate = invoiceDate;            
 
             db.AIRs.Attach(air);
             db.Entry(air).State = EntityState.Modified;
@@ -132,6 +135,7 @@ namespace iLgs.Services
 
             entity.InvoiceNo = model.InvoiceNo;
             entity.InvoiceDate = model.InvoiceDate;
+            entity.Amount = model.Amount;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

@@ -127,6 +127,9 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         //[Required]
         public Nullable<System.DateTime> InvoiceDate { get; set; }
+
+        public Nullable<decimal> Amount { get; set; }
+
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

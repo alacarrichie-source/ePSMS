@@ -208,6 +208,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\PoIssuanceController.cs" />
+    <Compile Include="Controllers\RpciController.cs" />
     <Compile Include="Models\DepartmentUser.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -220,6 +221,7 @@
     <Compile Include="Models\OrderItemUnitGroupDescriptionItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\RpciViewModels.cs" />
     <Compile Include="Models\RequestItemUnitGroup.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -238,6 +240,18 @@
     <Compile Include="Models\RisItemUnitGroupDescriptionItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\RPCI.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RPCIItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Reports\Rpci.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Rpci.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Services\DepartmentUuserService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionItemService.cs" />
@@ -249,6 +263,8 @@
     <Compile Include="Services\RisItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\RisItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\RisItemUnitGroupService.cs" />
+    <Compile Include="Services\RpciItemService.cs" />
+    <Compile Include="Services\RpciService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
     <Compile Include="Models\AIRInvoice.cs">
@@ -3533,6 +3549,12 @@
     <Content Include="Views\Orders\EditorTemplates\_TotalCostTemplate.cshtml" />
     <Content Include="Views\Orders\EditorTemplates\_UnitCostTemplate.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_PsCodeTemplate.cshtml" />
+    <Content Include="Views\Items\EditorTemplates\_UnitCostTemplate.cshtml" />
+    <Content Include="Views\Items\EditorTemplates\_UnitMeasTemplate.cshtml" />
+    <Content Include="Views\Rpci\Index.cshtml" />
+    <Content Include="Views\Rpci\_RpciItem.cshtml" />
+    <Content Include="Views\Rpci\EditorTemplates\_RpciTemplate.cshtml" />
+    <Content Include="Views\AIRs\EditorTemplates\_AmountTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3604,6 +3626,10 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Par.cs</LastGenOutput>
     </Content>
+    <Content Include="Reports\Rpci.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>Rpci.cs</LastGenOutput>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
@@ -3625,7 +3651,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -162,7 +162,7 @@
             <div class="col-md-6">
                 @Html.LabelFor(model => model.DeliveryDate, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(model => model.DeliveryDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(model => model.DeliveryDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.DeliveryDate)
                 </div>
             </div>            
