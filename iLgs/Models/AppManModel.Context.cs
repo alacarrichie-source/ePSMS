@@ -73,13 +73,15 @@ namespace iLgs.Models
         public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<RisItemUnitGroup> RisItemUnitGroups { get; set; }
         public virtual DbSet<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
-        public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<PsCode> PsCodes { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
-        public virtual DbSet<PsItem> PsItems { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<PsStock> PsStocks { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<AIRInvoice> AIRInvoices { get; set; }
+        public virtual DbSet<PsItem> PsItems { get; set; }
+        public virtual DbSet<RPCEFFOPPEItem> RPCEFFOPPEItems { get; set; }
+        public virtual DbSet<RPCEFFOPPE> RPCEFFOPPEs { get; set; }
+        public virtual DbSet<RisItem> RisItems { get; set; }
     }
 }

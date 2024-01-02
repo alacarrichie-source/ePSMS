@@ -867,7 +867,7 @@ namespace iLgs.Controllers
 
         public ActionResult RequisitionRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _sa.PsCode.GetMaintenanceView();
+            var data = _sa.PsCode.GetAll();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

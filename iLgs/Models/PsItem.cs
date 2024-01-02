@@ -18,6 +18,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> PsStockId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
         public string Office { get; set; }
+        public string Officer { get; set; }
         public string RefNo { get; set; }
         public Nullable<System.DateTime> RefDate { get; set; }
         public string RefType { get; set; }
@@ -29,6 +30,7 @@ namespace iLgs.Models
         public string Remarks { get; set; }
         public string UnitMeas { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<decimal> Amount { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

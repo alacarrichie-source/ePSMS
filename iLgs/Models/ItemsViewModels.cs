@@ -8,8 +8,6 @@ namespace iLgs.Models
 {
     public class PsCodeVM
     {
-        //[Display(Name = "Additional Info")]
-        //public string AdditionalInfo { get; set; }
         public System.Guid Id { get; set; }
         [Display(Name = "Item Type")]
         public Nullable<System.Guid> ItemCodeId { get; set; }

@@ -31,7 +31,26 @@ namespace iLgs.Services
             return data;
         });
 
-        public IQueryable<PsCodeVM> GetMaintenanceView() => _vmExceptionService.TryCatch(() =>
+        public IQueryable<PsCodeVM> GetStockItems() => _vmExceptionService.TryCatch(() =>
+        {
+            var data = _db.PsCodes
+                .Select(s => new PsCodeVM
+                {
+                    Id = s.Id,
+                    ItemCodeId = s.ItemCodeId,
+                    ItemCode = s.ItemCode.Code,
+                    PsType = s.PsType,
+                    PsNo = s.PsNo,
+                    ItemName = s.ItemName,
+                    UnitMeas = s.UnitMeas,
+                    FileName = _db.Uploads.Any(a => a.ImageId == s.Id) ? _db.Uploads.FirstOrDefault(f => f.ImageId == s.Id).FileName : ""
+                    //ImageUrl = this.imageDirectory + (db.Uploads.Any(a => a.ImageId == s.Id) ?
+                    //    db.Uploads.FirstOrDefault(f => f.ImageId == s.Id).FileName : "")
+                });
+            return data;
+        });
+
+        public IQueryable<PsCodeVM> GetPropertyItems() => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.PsCodes
                 .Select(s => new PsCodeVM

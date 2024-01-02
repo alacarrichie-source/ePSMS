@@ -1,5 +1,5 @@
 ﻿@(Html.Kendo().Grid<iLgs.Models.RPCIItemVM>()
-        .Name("gridItems_" + @ViewData["rptciId"])
+        .Name("gridItems_" + @ViewData["rpciId"])
         .Columns(col =>
         {
             col.Bound(c => c.Article).Width(70);
@@ -67,7 +67,7 @@
                 s.Add(a => a.InsertedDt);
             })
             .Read(read => read.Action("_RpciItemRead", "Rpci", new { rpciId = @ViewData["rpciId"] }))
-            .Update(update => update.Action("_RpciItemDestroy", "Rpci"))
+            .Update(update => update.Action("_RpciItemUpdate", "Rpci"))
             .Destroy(destroy => destroy.Action("_RpciItemDestroy", "Rpci"))
         )
         .Events(events => events

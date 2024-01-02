@@ -30,6 +30,7 @@ namespace iLgs.Models
         public string PsNoDisplay { get; set; }
         public string ItemName { get; set; }
         public string Description { get; set; }
+        public string OtherDesc { get; set; }
         public string Unit { get; set; }
         public Nullable<int> QtyRequest { get; set; }
         public Nullable<int> QtyIssue { get; set; }

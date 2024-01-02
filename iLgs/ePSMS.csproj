@@ -208,7 +208,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\PoIssuanceController.cs" />
+    <Compile Include="Controllers\PropertiesController.cs" />
+    <Compile Include="Controllers\RpceffoppeController.cs" />
     <Compile Include="Controllers\RpciController.cs" />
+    <Compile Include="Controllers\StocksController.cs" />
     <Compile Include="Models\DepartmentUser.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -221,7 +224,14 @@
     <Compile Include="Models\OrderItemUnitGroupDescriptionItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\RpciViewModels.cs" />
+    <Compile Include="Models\PropertyViewModels.cs" />
+    <Compile Include="Models\RPCEFFOPPE.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RPCEFFOPPEItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RpcViewModels.cs" />
     <Compile Include="Models\RequestItemUnitGroup.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -246,25 +256,35 @@
     <Compile Include="Models\RPCIItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Reports\Rpci.cs">
+    <Compile Include="Reports\Rpceffoppe.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
+      <DependentUpon>Rpceffoppe.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\Rpci.cs">
       <DependentUpon>Rpci.rpt</DependentUpon>
       <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Services\DepartmentUuserService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\OrderItemUnitGroupService.cs" />
+    <Compile Include="Services\PropertyItemService.cs" />
+    <Compile Include="Services\PropertyService.cs" />
     <Compile Include="Services\RequestItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\RequestItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\RequestItemUnitGroupService.cs" />
     <Compile Include="Services\RisItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\RisItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\RisItemUnitGroupService.cs" />
+    <Compile Include="Services\RpceffoppeItemService.cs" />
     <Compile Include="Services\RpciItemService.cs" />
     <Compile Include="Services\RpciService.cs" />
+    <Compile Include="Services\RpceffoppeService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
     <Compile Include="Models\AIRInvoice.cs">
@@ -1169,6 +1189,10 @@
     <None Include="Properties\PublishProfiles\ilgs manila.pubxml" />
     <None Include="Properties\PublishProfiles\Web02.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
+    <Content Include="Reports\Rpci.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>Rpci.cs</LastGenOutput>
+    </Content>
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
@@ -3481,15 +3505,15 @@
     <Content Include="Views\Shared\kd-sidebar-sample.cshtml" />
     <Content Include="Views\Account\Login_X.cshtml" />
     <Content Include="Views\Account\Shared\_SignInLayout.cshtml" />
-    <Content Include="Views\Items\Maintenance.cshtml" />
+    <Content Include="Views\Stocks\Index.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_StockTemplate.cshtml" />
-    <Content Include="Views\Items\EditorTemplates\_RefNoTemplate.cshtml" />
-    <Content Include="Views\Items\EditorTemplates\_RefDateTemplate.cshtml" />
-    <Content Include="Views\Items\EditorTemplates\_QtyTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_RefNoTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_RefDateTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_QtyTemplate.cshtml" />
     <Content Include="Views\Items\_QueryOrderItems.cshtml" />
     <Content Include="Views\RIS_\Index.cshtml" />
     <Content Include="Views\RIS_\EditorTemplates\_RISTemplate.cshtml" />
-    <Content Include="Views\Items\EditorTemplates\_DaysTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_DaysTemplate.cshtml" />
     <Content Include="Views\RSMI\Index.cshtml" />
     <Content Include="Views\RSMI\_RSMIAdd.cshtml" />
     <Content Include="Views\RSMI\_PrintRsmi.cshtml" />
@@ -3532,11 +3556,11 @@
     <Content Include="Views\Codes\EditorTemplates\_DepartmentUserTemplate.cshtml" />
     <Content Include="Views\Codes\_DepartmentUsers.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_PsItemTemplate.cshtml" />
-    <Content Include="Views\Items\EditorTemplates\_QtyPoTemplate.cshtml" />
-    <Content Include="Views\Items\EditorTemplates\_QtyIssueTemplate.cshtml" />
-    <Content Include="Views\Items\EditorTemplates\_QtyBalTemplate.cshtml" />
-    <Content Include="Views\Items\EditorTemplates\_FundTemplate.cshtml" />
-    <Content Include="Views\Items\EditorTemplates\_OfficeTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_QtyPoTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_QtyIssueTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_QtyBalTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_FundTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_OfficeTemplate.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_CodeTemplate.cshtml" />
     <Content Include="Views\RIS\_RISItemUnitGroup.cshtml" />
     <Content Include="Views\RIS\EditorTemplates\_RisUnitGroupDescriptionItemTemplate.cshtml" />
@@ -3549,12 +3573,17 @@
     <Content Include="Views\Orders\EditorTemplates\_TotalCostTemplate.cshtml" />
     <Content Include="Views\Orders\EditorTemplates\_UnitCostTemplate.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_PsCodeTemplate.cshtml" />
-    <Content Include="Views\Items\EditorTemplates\_UnitCostTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_UnitCostTemplate.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_UnitMeasTemplate.cshtml" />
     <Content Include="Views\Rpci\Index.cshtml" />
     <Content Include="Views\Rpci\_RpciItem.cshtml" />
     <Content Include="Views\Rpci\EditorTemplates\_RpciTemplate.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AmountTemplate.cshtml" />
+    <Content Include="Views\Properties\Index.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_AmountTemplate.cshtml" />
+    <Content Include="Views\Rpceffoppe\Index.cshtml" />
+    <Content Include="Views\Rpceffoppe\_Item.cshtml" />
+    <Content Include="Views\Rpceffoppe\EditorTemplates\_RpcTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3626,9 +3655,9 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Par.cs</LastGenOutput>
     </Content>
-    <Content Include="Reports\Rpci.rpt">
+    <Content Include="Reports\Rpceffoppe.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
-      <LastGenOutput>Rpci.cs</LastGenOutput>
+      <LastGenOutput>Rpceffoppe.cs</LastGenOutput>
     </Content>
   </ItemGroup>
   <ItemGroup>
@@ -3651,7 +3680,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

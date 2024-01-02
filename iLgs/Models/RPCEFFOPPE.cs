@@ -12,32 +12,32 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class ItemCode
+    public partial class RPCEFFOPPE
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public ItemCode()
+        public RPCEFFOPPE()
         {
-            this.PsCodes = new HashSet<PsCode>();
-            this.RisItems = new HashSet<RisItem>();
+            this.RPCEFFOPPEItems = new HashSet<RPCEFFOPPEItem>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> ItemTypeId { get; set; }
-        public string ItemNo { get; set; }
-        public string ItemNoIndex { get; set; }
-        public string Code { get; set; }
-        public string Description { get; set; }
-        public string ItemSw { get; set; }
-        public string AccountCode { get; set; }
+        public string ItemType { get; set; }
+        public Nullable<System.DateTime> AsAt { get; set; }
+        public string Fund { get; set; }
+        public string AccountableOfficer { get; set; }
+        public string Designation { get; set; }
+        public Nullable<System.DateTime> AssumptionDt { get; set; }
+        public string CertifiedCorrectBy { get; set; }
+        public string ApprovedBy { get; set; }
+        public string VerifiedBy { get; set; }
+        public string PostedBy { get; set; }
+        public Nullable<System.DateTime> PostedDt { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual ItemType ItemType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCode> PsCodes { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RisItem> RisItems { get; set; }
+        public virtual ICollection<RPCEFFOPPEItem> RPCEFFOPPEItems { get; set; }
     }
 }

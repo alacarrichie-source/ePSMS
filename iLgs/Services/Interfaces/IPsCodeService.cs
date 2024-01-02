@@ -10,7 +10,8 @@ namespace iLgs.Services.Interfaces
     public interface IPsCodeService
     {
         IQueryable<PsCode> GetAll();
-        IQueryable<PsCodeVM> GetMaintenanceView();
+        IQueryable<PsCodeVM> GetStockItems();
+        IQueryable<PsCodeVM> GetPropertyItems();
         ValueTask<PsCode> GetByIdAsync(Guid psId);
         ValueTask<PsCode> GetByPsNoAsync(string psNo);
         ValueTask<bool> GetAnyPsNoAsync(Guid id, string psNo);

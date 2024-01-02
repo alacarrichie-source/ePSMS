@@ -1,21 +1,21 @@
 ﻿@{
-    ViewBag.Title = "Report on the Physical Count of Inventories (RPCI)";
+    ViewBag.Title = "Report on the Physical Count of Equipment, Furnitures and Fixtures, and other PPE (RPCEFFOPPE)";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
 
-@(Html.Kendo().Grid<iLgs.Models.RPCI_VM>()
+@(Html.Kendo().Grid<iLgs.Models.RPCEFFOPPE_VM>()
     .Name("grid")
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
         col.Bound(c => c.AsAt).Width(70);
         col.Bound(c => c.ItemType).Width(70);
-        col.Bound(c => c.Fund).Width(70);        
+        col.Bound(c => c.Fund).Width(70);
         col.Command(command =>
         {
             command.Edit();
-            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);            
+            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
         }).Width(150);
     })
     .ToolBar(t =>
@@ -26,12 +26,12 @@
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpciTemplate").Window(w => w.Width(600).Title("RPCI")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpcTemplate").Window(w => w.Width(600).Title("RPCEFFOPPE")))
     .Search(s =>
     {
         s.Field(o => o.AsAt, "contains");
         s.Field(o => o.ItemType, "contains");
-        s.Field(o => o.Fund, "contains");        
+        s.Field(o => o.Fund, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -58,10 +58,10 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
-        .Read(read => read.Action("RpciRead", "Rpci"))
-        .Create(create => create.Action("RpciCreate", "Rpci"))
-        .Update(update => update.Action("RpciUpdate", "Rpci"))
-        .Destroy(destroy => destroy.Action("RpciDestroy", "Rpci"))
+        .Read(read => read.Action("Read", "Rpceffoppe"))
+        .Create(create => create.Action("Create", "Rpceffoppe"))
+        .Update(update => update.Action("Update", "Rpceffoppe"))
+        .Destroy(destroy => destroy.Action("Destroy", "Rpceffoppe"))
     )
     .Events(events => events
         .Change("onChangeGrid")
@@ -88,7 +88,7 @@
     {
         items.Add().Text("Items")
             .Selected(true)
-            .LoadContentFrom("_RpciItem", "Rpci", new { rpciId = "#=Id#" });        
+            .LoadContentFrom("_Item", "Rpceffoppe", new { rpcId = "#=Id#" });
     }).ToClientTemplate())
 </script>
 
@@ -168,7 +168,7 @@
                 //current tab logic - just let it go
                 //tsIndex = idx;
                 if (idx == 0) {
-                    ts.contentHolder(idx).load("../Rpci/_RpciItem?rpciId=" + selectedId);                
+                    ts.contentHolder(idx).load("../Rpceffoppe/_Item?rpcId=" + selectedId);
                 }
             }
             else {
@@ -231,7 +231,7 @@
     var selectedAsAt = null;
     var selecteItemId = null;
     var postedBy = null;
-    
+
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         var grid = $("#grid");
@@ -240,9 +240,9 @@
         selectedAsAt = selectedData.AsAt;
         selectedItemId = null;
         postedBy = selectedData.PostedBy;
-    
+
         if (postedBy) {
-            $(".k-grid-btnUnpostPO", grid).show();        
+            $(".k-grid-btnUnpostPO", grid).show();
             $(".k-grid-btnPostPO", grid).hide();
         } else {
             $(".k-grid-btnUnpostPO", grid).hide();
@@ -297,16 +297,16 @@
             //setTimeout(function () {
             //    // Recenter the pop-up window
             //    popupWindow.center();
-            //}, 300); // Adjust the delay (in milliseconds) based on your needs        
+            //}, 300); // Adjust the delay (in milliseconds) based on your needs
 
         } else {
             selectedId = e.model.get("Id");
-            selectedAsAt = e.model.get("AsAt"); 
+            selectedAsAt = e.model.get("AsAt");
             var rowitem = selectedGrid.dataSource.get(selectedId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));            
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
             $("#AsAt").data("kendoDatePicker").enable(false);
             e.container.find("[id=EditDiv]").toggle(true);
-        }        
+        }
     }
 
     function onGridDeleteClick(e) {
@@ -436,7 +436,7 @@
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-        }        
+        }
     }
 
     function onEditGridItems(e) {
@@ -455,7 +455,7 @@
 
         }
     }
-    
+
     function onGridItemsRequestEnd(e) {
         e.preventDefault();
         if (!e.response.Errors) {
@@ -477,7 +477,7 @@
                 var popupNotification = $("#popupNotification").data("kendoNotification");
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("PostRpci", "RPCI")',
+                    url: '@Url.Action("PostRpc", "Rpceffoppe")',
                     data: { rpciId: selectedId },
                     async: true,
                     beforeSend: function () {
@@ -510,7 +510,7 @@
         if (confirm(msg)) {
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("UnpostRpci", "Rpci")',
+                url: '@Url.Action("UnpostRpc", "Rpceffoppe")',
                 data: { rpciId: selectedId },
                 async: true,
                 beforeSend: function () {
@@ -534,7 +534,7 @@
     $(".k-grid-btnPrintPO").click(function (e) {
         e.preventDefault();
         var asAt = selectedAsAt;
-        var url = '@Url.Action("RpciRpt", "Rpci")?asAt=' + asAt + "&id=null";
+        var url = '@Url.Action("RpcRpt", "Rpceffoppe")?asAt=' + asAt + "&id=null";
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -560,7 +560,7 @@
         mywindow.center();
         mywindow.open();
     });
-    
+
 </script>
 
 

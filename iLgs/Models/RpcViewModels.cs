@@ -80,4 +80,67 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }        
     }
+
+    public class RPCEFFOPPE_VM
+    {
+        public System.Guid Id { get; set; }
+
+        [Display(Name = "Item Type")]
+        public string ItemType { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+
+        [Display(Name = "As At")]
+        public Nullable<System.DateTime> AsAt { get; set; }
+        public string Fund { get; set; }
+
+        [Display(Name = "Accountable Officer")]
+        public string AccountableOfficer { get; set; }
+        public string Designation { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> AssumptionDt { get; set; }
+
+        [Display(Name = "Certified correct by")]
+        public string CertifiedCorrectBy { get; set; }
+
+        [Display(Name = "Approved by")]
+        public string ApprovedBy { get; set; }
+
+        [Display(Name = "Verrified by")]
+        public string VerifiedBy { get; set; }
+
+        [Display(Name = "Posted by")]
+        public string PostedBy { get; set; }
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public System.DateTime UpdatedDt { get; set; }
+
+        [Display(Name = "Posted Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PostedDt { get; set; }
+
+        // Transients
+    }
+
+    public class RPCEFFOPPEItemVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> RpceffoppeId { get; set; }
+        public string Article { get; set; }
+        public string Description { get; set; }
+
+        [Display(Name = "Property No.")]
+        public string PropertyNo { get; set; }
+        
+        [Display(Name = "Cost")]
+        public Nullable<decimal> Cost { get; set; }
+
+        public string Location { get; set; }
+        public string Condition { get; set; }
+        public string Remarks { get; set; }
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+    }
 }

@@ -181,6 +181,10 @@ namespace iLgs.Models
     public class RisItemCommonVM
     {
         public string Description { get; set; }
+
+        [Display(Name = "Other Description")]
+        public string OtherDesc { get; set; } 
+
         [Display(Name = "Stock/Property No.")]
         public string PsNo { get; set; } // Generic (Without Brand)        
 

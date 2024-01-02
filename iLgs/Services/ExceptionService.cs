@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using iLgs.Exceptions;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
+using iLgs.Models;
 
 namespace iLgs.Services
 {
@@ -247,6 +248,6 @@ namespace iLgs.Services
 
                 throw exceptions.CreateAndLogServiceException(failedServiceException);
             }
-        }
+        }        
     }
 }

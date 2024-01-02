@@ -121,6 +121,17 @@
         </div>
 
         <br />
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.OtherDesc, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(3).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.OtherDesc)
+                </div>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-md-4">
                 @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-12" })
