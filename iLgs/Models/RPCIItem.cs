@@ -16,6 +16,8 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RpciId { get; set; }
+        public string ItemType { get; set; }
+        public string Fund { get; set; }
         public string Article { get; set; }
         public string Description { get; set; }
         public string StockNo { get; set; }

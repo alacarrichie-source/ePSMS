@@ -9,14 +9,12 @@ namespace iLgs.Models
     public class RPCI_VM
     {        
         public System.Guid Id { get; set; }
-
-        [Display(Name = "Item Type")]
-        public string ItemType { get; set; }
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-
+       
         [Display(Name = "As At")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AsAt { get; set; }
-        public string Fund { get; set; }
+
+        public string Department { get; set; }
 
         [Display(Name = "Accountable Officer")]
         public string AccountableOfficer { get; set; }
@@ -51,6 +49,10 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RpciId { get; set; }
+        [Display(Name = "Item Type")]
+        public string ItemType { get; set; }        
+
+        public string Fund { get; set; }
         public string Article { get; set; }
         public string Description { get; set; }
 
@@ -84,14 +86,11 @@ namespace iLgs.Models
     public class RPCEFFOPPE_VM
     {
         public System.Guid Id { get; set; }
-
-        [Display(Name = "Item Type")]
-        public string ItemType { get; set; }
+        
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-
         [Display(Name = "As At")]
         public Nullable<System.DateTime> AsAt { get; set; }
-        public string Fund { get; set; }
+        public string Department { get; set; }
 
         [Display(Name = "Accountable Officer")]
         public string AccountableOfficer { get; set; }
@@ -126,6 +125,10 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RpceffoppeId { get; set; }
+
+        [Display(Name = "Item Type")]
+        public string ItemType { get; set; }
+        public string Fund { get; set; }
         public string Article { get; set; }
         public string Description { get; set; }
 

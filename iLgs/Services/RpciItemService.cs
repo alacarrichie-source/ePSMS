@@ -49,6 +49,8 @@ namespace iLgs.Services
                     Id = s.Id,
                     RpciId = s.RpciId,
                     Article = s.Article,
+                    ItemType = s.ItemType,
+                    Fund = s.Fund,
                     Description = s.Description,
                     StockNo = s.StockNo,
                     Unit = s.Unit,
@@ -78,6 +80,8 @@ namespace iLgs.Services
                 Id = model.Id,
                 RpciId = model.RpciId,
                 Article = model.Article,
+                ItemType = model.ItemType,
+                Fund = model.Fund,
                 Description = model.Description,
                 StockNo = model.StockNo,
                 Unit = model.Unit,
@@ -108,7 +112,6 @@ namespace iLgs.Services
             {
                 throw new RecordNotFoundException(model.Id);
             }
-
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -141,6 +144,8 @@ namespace iLgs.Services
 
             entity.RpciId = model.RpciId;
             entity.Article = model.Article;
+            entity.ItemType = model.ItemType;
+            entity.Fund = model.Fund;
             entity.Description = model.Description;
             entity.StockNo = model.StockNo;
             entity.Unit = model.Unit;

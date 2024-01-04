@@ -41,6 +41,7 @@ namespace iLgs.Services
                     Unit = s.Unit,
                     ItemName = s.ItemName,
                     Description = s.Description,
+                    OtherDesc = s.OtherDesc,
                     QtyRequest = s.QtyRequest,
                     QtyIssue = s.QtyIssue,
                     Remarks = s.Remarks,
@@ -75,6 +76,7 @@ namespace iLgs.Services
                     Unit = s.Unit,
                     ItemName = s.ItemName,
                     Description = s.Description,
+                    OtherDesc = s.OtherDesc,
                     QtyRequest = s.QtyRequest,
                     QtyIssue = s.QtyIssue,
                     Remarks = s.Remarks,
@@ -107,6 +109,7 @@ namespace iLgs.Services
                 ItemName = model.ItemName,
                 Unit = model.Unit,
                 Description = model.Description,
+                OtherDesc = model.OtherDesc,
                 QtyRequest = model.QtyRequest,
                 QtyIssue = model.QtyIssue,
                 Remarks = model.Remarks ?? "",
@@ -162,6 +165,7 @@ namespace iLgs.Services
             entity.ItemName = model.ItemName;
             entity.Unit = model.Unit;
             entity.Description = model.Description;
+            entity.OtherDesc = model.OtherDesc;
             entity.QtyRequest = model.QtyRequest;
             entity.QtyIssue = model.QtyIssue;
             entity.Remarks = model.Remarks ?? "";

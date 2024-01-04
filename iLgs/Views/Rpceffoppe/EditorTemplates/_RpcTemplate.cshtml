@@ -6,15 +6,41 @@
 
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
-    @Html.HiddenFor(model => model.ItemType)
-    @Html.HiddenFor(model => model.Fund)
-
+    
     <fieldset>
         <div class="row">
             @Html.LabelFor(m => m.AsAt, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().DatePickerFor(m => m.AsAt).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.AsAt)
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(m => m.Department, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.Department)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Placeholder("Select Department")
+                    .DataTextField("Description")
+                    .DataValueField("Description")
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetDepartments", "Getters");
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Code").Title("Code").Width("30%");
+                        c.Add().Field("Description").Title("Description").Width("70%");
+                    })
+                    .Suggest(true)
+                )
+                @Html.ValidationMessageFor(model => model.Department)
             </div>
         </div>
 

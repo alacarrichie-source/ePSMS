@@ -47,6 +47,8 @@ namespace iLgs.Services
                 .Select(s => new RPCEFFOPPEItemVM
                 {
                     Id = s.Id,
+                    Fund = s.Fund,
+                    ItemType = s.ItemType,
                     RpceffoppeId = s.RpceffoppeId,
                     Article = s.Article,
                     Description = s.Description,
@@ -74,6 +76,8 @@ namespace iLgs.Services
             {
                 Id = model.Id,
                 RpceffoppeId = model.RpceffoppeId,
+                Fund = model.Fund,
+                ItemType = model.ItemType,
                 Article = model.Article,
                 Description = model.Description,
                 PropertyNo = model.PropertyNo,
@@ -133,6 +137,8 @@ namespace iLgs.Services
             model.UpdatedDt = date;
 
             entity.Article = model.Article;
+            entity.Fund = model.Fund;
+            entity.ItemType = model.ItemType;
             entity.Description = model.Description;
             entity.PropertyNo = model.PropertyNo;
             entity.Cost = model.Cost;

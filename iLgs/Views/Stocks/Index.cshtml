@@ -218,6 +218,7 @@
     .Columns(col =>
     {
         col.Bound(c => c.Department).Width(70);
+        col.Bound(c => c.ReceivedBy).Width(70);
         col.Bound(c => c.IssuedDate).Width(50);
         col.Bound(c => c.UnitCost).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -397,24 +398,30 @@
 
 <script id="IssuedItems" type="text/kendo-tmpl">
     @(Html.Kendo().Grid<iLgs.Models.RisIssuedVM>()
-    .Name("gridIssuedItems_#=Id#")
+    .Name("gridIssuance_#=Id#")
     .Columns(col =>
     {
-        //col.Bound(c => c.IssuedBy).Width(70);
-        //col.Bound(c => c.IssuedByDesignation).Width(50);
-        col.Bound(c => c.IssuedDate).Width(50);
-        //col.Bound(c => c.ReceivedBy).Width(70);
-        //col.Bound(c => c.ReceivedByDesignation).Width(50);
-        //col.Bound(c => c.ReceivedDate).Width(50);
-        col.Bound(c => c.UnitCost).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")                
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Bound(c => c.IssuedDate).Width(50).EditorTemplateName("_IssuedDateTemplate");
+        col.Bound(c => c.ReceivedBy).Width(70);
+        col.Bound(c => c.UnitCost).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_UnitCostTemplate");
         col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_QtyTemplate");
         col.Bound(c => c.Amount).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_AmountTemplate");
+        //col.Command(command =>
+        //{
+        //    command.Edit();
+        //    command.Destroy();
+        //    //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+        //}).Width(100);
     })
+    //.ToolBar(t =>
+    //{
+    //    t.Create();
+    //})
     .Sortable()
     .NoRecords()
     .DataSource(dataSource => dataSource
@@ -430,8 +437,16 @@
             a.Add(p => p.Qty).Sum();
             a.Add(p => p.Amount).Sum();
         })
-        .Read(read => read.Action("_RISIssuedRead", "Stocks", new { poNo = "#=RefNo#", stockNo = "#=StockNo#" }))
+        .Read(read => read.Action("_IssuanceRead", "Stocks", new { stockNo = "#=StockNo#" }))
+    //.Create(create => create.Action("_IssuanceCreate", "Stocks" ))
+    //.Update(update => update.Action("_IssuanceUpdate", "Stocks"))
+    //.Destroy(destroy => destroy.Action("_IssuanceDestroy", "Stocks"))
     )
+    //.Events(events => events
+    //    .Change("onChangeGridIssuance")
+    //    .Edit("onEditGridIssuance")
+    //    .DataBound("onDataBoundGridIssuance")
+    //)
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .ToClientTemplate())
 </script>
@@ -812,6 +827,7 @@
     var selecteItemId = null;
     var selectedStockNo = null;
     var selectedPsNo = null;
+    var selectedIssuedId = null;
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
@@ -819,6 +835,7 @@
         selectedPsNo = selectedData.PsNo;
         selectedStockId = null;
         selectedItemId = null;
+        selectedIssuedId = null;
 
         var items = $("#grid").data("kendoGrid"),
             item = items.dataSource.getByUid(items.select().attr("data-uid")),
@@ -962,6 +979,7 @@
         selectedStockId = selectedData.Id;
         selectedStockNo = selectedData.StockNo
         selectedItemId = null;
+        selectedIssuedId = null;
 
         var items = $("#gridStocks").data("kendoGrid"),
             item = items.dataSource.getByUid(items.select().attr("data-uid"))
@@ -1065,6 +1083,7 @@
     function onChangeGridStockItems(e) {
         var selectedData = this.dataItem(this.select());
         selectedItemId = selectedData.Id;
+        selectedIssuedId = null;
     }
 
     function onDataBoundGridStockItems(e) {
@@ -1078,48 +1097,7 @@
             this.select(row);
         }
     }
-
-    // Order Selection
-    @*function onClickBtnSelection(e)
-    {
-        window.kendo.ui.progress($(document.body), true);
-        var myUrl = '@Url.Action("_QueryOrderItems", "Stocks")';
-        var myTitle = "Purchase Order Items";
-        var width = "80%";
-        var height = "80%";
-
-        $("#windowcontainer").append("<div id='window'></div>");
-        var mywindow = $("#window")
-            .kendoWindow({
-                actions: ["Close"],
-                resizable: true,
-                draggable: true,
-                modal: true,
-                visible: false,
-                activate: function () {
-                    window.kendo.ui.progress($(document.body), false);
-                },
-                deactivate: function () {
-                    this.destroy();
-                    onLoad = 1;
-                    $("#gridStockDetails_" + selectedStockId).data("kendoGrid").dataSource.read();
-                }
-            }).data("kendoWindow");
-        mywindow.setOptions({
-            title: myTitle,
-            width: width,
-            height: height
-        });
-        mywindow.refresh({
-            url: myUrl,
-            data: {
-                psId: selectedId,
-                stockId: selectedStockId
-            }
-        });
-        mywindow.center().open();
-    }*@
-
+    
     function onChangeGridSelection(e) {
         var selectedRows = this.select();
         var totalSelectedRow = this.selectedKeyNames().length;
@@ -1196,6 +1174,41 @@
             alert(message);
         }
     }
+
+    // GRID ISSUANCE
+    function onChangeGridIssuance(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedIssuedId = selectedData.Id;        
+    }
+    
+    function onDataBoundGridIssuance(e) {
+        if (selectedIssuedId) {
+            var dataItem = this.dataSource.get(selectedIssuedId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);            
+        }        
+    }
+
+    function onEditGridIssuance(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedStockId = null;
+            selectedItemId = null;
+            e.model.set("PsId", selectedId);
+        } else {
+            selectedStockId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedStockId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+    // END GRID ISSUANCE
 </script>
 
 

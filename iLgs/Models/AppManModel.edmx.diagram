@@ -124,11 +124,11 @@
         <AssociationConnector Association="AppManModel.FK_RequestItemUnitGroups_RisItemUnitGroups" />
       </Diagram>
       <Diagram DiagramId="0a18cc5b62d44966aa30d686ae3dff77" Name="RPCI" >
-        <EntityTypeShape EntityType="AppManModel.RPCI" Width="1.5" PointX="0.75" PointY="0.75" />
-        <EntityTypeShape EntityType="AppManModel.RPCIItem" Width="1.5" PointX="3" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.RPCEFFOPPEItem" Width="1.5" PointX="8" PointY="1" />
+        <EntityTypeShape EntityType="AppManModel.RPCIItem" Width="1.5" PointX="3" PointY="1" />
+        <EntityTypeShape EntityType="AppManModel.RPCI" Width="1.5" PointX="0.75" PointY="1.375" />
         <AssociationConnector Association="AppManModel.FK_RPCIItems_RPCIs" />
-        <EntityTypeShape EntityType="AppManModel.RPCEFFOPPEItem" Width="1.5" PointX="7.625" PointY="1.375" />
-        <EntityTypeShape EntityType="AppManModel.RPCEFFOPPE" Width="1.5" PointX="5.375" PointY="1" />
+        <EntityTypeShape EntityType="AppManModel.RPCEFFOPPE" Width="1.5" PointX="5.75" PointY="1" />
         <AssociationConnector Association="AppManModel.FK_RPCEFFOPPEItems_RPCEFFOPPEs" />
       </Diagram>
     </edmx:Diagrams>

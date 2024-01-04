@@ -10,12 +10,14 @@
     .Columns(col =>
     {
         col.Bound(c => c.AsAt).Width(70);
-        col.Bound(c => c.ItemType).Width(70);
-        col.Bound(c => c.Fund).Width(70);        
+        col.Bound(c => c.Department).Width(70);
+        col.Bound(c => c.AccountableOfficer).Width(70);
+        col.Bound(c => c.Designation).Width(70);
+        col.Bound(c => c.AssumptionDt).Width(70);
         col.Command(command =>
         {
             command.Edit();
-            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);            
+            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
         }).Width(150);
     })
     .ToolBar(t =>
@@ -26,12 +28,12 @@
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpciTemplate").Window(w => w.Width(600).Title("RPCI")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpciTemplate").Window(w => w.Width(500).Title("RPCI")))
     .Search(s =>
     {
         s.Field(o => o.AsAt, "contains");
-        s.Field(o => o.ItemType, "contains");
-        s.Field(o => o.Fund, "contains");        
+        s.Field(o => o.Department, "contains");
+        s.Field(o => o.AccountableOfficer, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -305,6 +307,7 @@
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));            
             $("#AsAt").data("kendoDatePicker").enable(false);
+            $("#Department").data("kendoMultiColumnComboBox").enable(false);
             e.container.find("[id=EditDiv]").toggle(true);
         }        
     }

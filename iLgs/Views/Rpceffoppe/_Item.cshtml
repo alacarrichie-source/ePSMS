@@ -1,7 +1,9 @@
 ﻿@(Html.Kendo().Grid<iLgs.Models.RPCEFFOPPEItemVM>()
         .Name("gridItems_" + @ViewData["rpcId"])
         .Columns(col =>
-        {
+        {            
+            col.Bound(c => c.Fund).Width(70);
+            col.Bound(c => c.ItemType).Width(70);
             col.Bound(c => c.Article).Width(70);
             col.Bound(c => c.Description).Width(150);
             col.Bound(c => c.PropertyNo).Width(70);

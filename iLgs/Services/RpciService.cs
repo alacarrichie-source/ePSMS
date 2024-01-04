@@ -49,9 +49,8 @@ namespace iLgs.Services
                 .Select(s => new RPCI_VM
                 {
                     Id = s.Id,
-                    ItemType = s.ItemType,
                     AsAt = s.AsAt,
-                    Fund = s.Fund,
+                    Department = s.Department,
                     AccountableOfficer = s.AccountableOfficer,
                     Designation = s.Designation,
                     AssumptionDt = s.AssumptionDt,
@@ -72,9 +71,8 @@ namespace iLgs.Services
                 .Select(s => new RPCI_VM
                 {
                     Id = s.Id,
-                    ItemType = s.ItemType,
                     AsAt = s.AsAt,
-                    Fund = s.Fund,
+                    Department = s.Department,
                     AccountableOfficer = s.AccountableOfficer,
                     Designation = s.Designation,
                     AssumptionDt = s.AssumptionDt,
@@ -92,7 +90,7 @@ namespace iLgs.Services
         _vmExceptionService.TryCatchAsync(async () =>
         {
 
-            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}", model.AsAt, user);
+            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}", model.AsAt, model.Department, user);
             model = await GetByAsAtAsync(model.AsAt);
             return model;
         });
@@ -115,9 +113,8 @@ namespace iLgs.Services
             var entity = new RPCI()
             {
                 Id = model.Id,
-                ItemType = model.ItemType,
                 AsAt = model.AsAt,
-                Fund = model.Fund,
+                Department = model.Department,
                 AccountableOfficer = model.AccountableOfficer, 
                 Designation = model.Designation,
                 AssumptionDt = model.AssumptionDt,
@@ -178,9 +175,8 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            entity.ItemType = model.ItemType;
             entity.AsAt = model.AsAt;
-            entity.Fund = model.Fund;
+            entity.Department = model.Department;
             entity.AccountableOfficer = model.AccountableOfficer;
             entity.Designation = model.Designation;
             entity.AssumptionDt = model.AssumptionDt;

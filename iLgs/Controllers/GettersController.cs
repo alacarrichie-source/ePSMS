@@ -397,7 +397,8 @@ namespace iLgs.Controllers
         public JsonResult GetDepartments(string text)
         {
 
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc2 == "");
+            //var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc2 == "");
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS");
 
             if (!string.IsNullOrEmpty(text))
             {

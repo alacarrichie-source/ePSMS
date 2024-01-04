@@ -674,6 +674,8 @@
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RpceffoppeId" Type="uniqueidentifier" />
+          <Property Name="ItemType" Type="varchar" MaxLength="10" />
+          <Property Name="Fund" Type="varchar" MaxLength="10" />
           <Property Name="Article" Type="varchar" MaxLength="100" />
           <Property Name="Description" Type="varchar" MaxLength="300" />
           <Property Name="PropertyNo" Type="varchar" MaxLength="50" />
@@ -691,9 +693,8 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="ItemType" Type="varchar" MaxLength="10" />
           <Property Name="AsAt" Type="datetime" />
-          <Property Name="Fund" Type="varchar" MaxLength="10" />
+          <Property Name="Department" Type="varchar" MaxLength="100" />
           <Property Name="AccountableOfficer" Type="varchar" MaxLength="50" />
           <Property Name="Designation" Type="varchar" MaxLength="50" />
           <Property Name="AssumptionDt" Type="datetime" />
@@ -713,6 +714,8 @@
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RpciId" Type="uniqueidentifier" />
+          <Property Name="ItemType" Type="varchar" MaxLength="10" />
+          <Property Name="Fund" Type="varchar" MaxLength="10" />
           <Property Name="Article" Type="varchar" MaxLength="100" />
           <Property Name="Description" Type="varchar" MaxLength="300" />
           <Property Name="StockNo" Type="varchar" MaxLength="50" />
@@ -733,9 +736,8 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="ItemType" Type="varchar" MaxLength="10" />
           <Property Name="AsAt" Type="datetime" />
-          <Property Name="Fund" Type="varchar" MaxLength="10" />
+          <Property Name="Department" Type="varchar" MaxLength="100" />
           <Property Name="AccountableOfficer" Type="varchar" MaxLength="50" />
           <Property Name="Designation" Type="varchar" MaxLength="50" />
           <Property Name="AssumptionDt" Type="datetime" />
@@ -2337,12 +2339,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="ItemCode" EntitySet="ItemCodes" />
             <End Role="PsCode" EntitySet="PsCodes" />
           </AssociationSet>
-          <EntitySet Name="RPCIs" EntityType="AppManModel.RPCI" />
-          <EntitySet Name="RPCIItems" EntityType="AppManModel.RPCIItem" />
-          <AssociationSet Name="FK_RPCIItems_RPCIs" Association="AppManModel.FK_RPCIItems_RPCIs">
-            <End Role="RPCI" EntitySet="RPCIs" />
-            <End Role="RPCIItem" EntitySet="RPCIItems" />
-          </AssociationSet>
           <EntitySet Name="PsStocks" EntityType="AppManModel.PsStock" />
           <AssociationSet Name="FK_PsStocks_PsCodes" Association="AppManModel.FK_PsStocks_PsCodes">
             <End Role="PsCode" EntitySet="PsCodes" />
@@ -2391,12 +2387,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="PsStock" EntitySet="PsStocks" />
             <End Role="PsItem" EntitySet="PsItems" />
           </AssociationSet>
-          <EntitySet Name="RPCEFFOPPEItems" EntityType="AppManModel.RPCEFFOPPEItem" />
-          <EntitySet Name="RPCEFFOPPEs" EntityType="AppManModel.RPCEFFOPPE" />
-          <AssociationSet Name="FK_RPCEFFOPPEItems_RPCEFFOPPEs" Association="AppManModel.FK_RPCEFFOPPEItems_RPCEFFOPPEs">
-            <End Role="RPCEFFOPPE" EntitySet="RPCEFFOPPEs" />
-            <End Role="RPCEFFOPPEItem" EntitySet="RPCEFFOPPEItems" />
-          </AssociationSet>
           <EntitySet Name="RisItems" EntityType="AppManModel.RisItem" />
           <AssociationSet Name="FK_RisItems_ItemCodes" Association="AppManModel.FK_RisItems_ItemCodes">
             <End Role="ItemCode" EntitySet="ItemCodes" />
@@ -2421,6 +2411,18 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_RisItemUnitGroupDescriptionItems_RisItems" Association="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItems">
             <End Role="RisItem" EntitySet="RisItems" />
             <End Role="RisItemUnitGroupDescriptionItem" EntitySet="RisItemUnitGroupDescriptionItems" />
+          </AssociationSet>
+          <EntitySet Name="RPCEFFOPPEItems" EntityType="AppManModel.RPCEFFOPPEItem" />
+          <EntitySet Name="RPCIItems" EntityType="AppManModel.RPCIItem" />
+          <EntitySet Name="RPCIs" EntityType="AppManModel.RPCI" />
+          <AssociationSet Name="FK_RPCIItems_RPCIs" Association="AppManModel.FK_RPCIItems_RPCIs">
+            <End Role="RPCI" EntitySet="RPCIs" />
+            <End Role="RPCIItem" EntitySet="RPCIItems" />
+          </AssociationSet>
+          <EntitySet Name="RPCEFFOPPEs" EntityType="AppManModel.RPCEFFOPPE" />
+          <AssociationSet Name="FK_RPCEFFOPPEItems_RPCEFFOPPEs" Association="AppManModel.FK_RPCEFFOPPEItems_RPCEFFOPPEs">
+            <End Role="RPCEFFOPPE" EntitySet="RPCEFFOPPEs" />
+            <End Role="RPCEFFOPPEItem" EntitySet="RPCEFFOPPEItems" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -3846,64 +3848,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="RPCI">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="ItemType" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="AsAt" Type="DateTime" Precision="3" />
-          <Property Name="Fund" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="AccountableOfficer" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Designation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="AssumptionDt" Type="DateTime" Precision="3" />
-          <Property Name="CertifiedCorrectBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="ApprovedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="VerifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="PostedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_RPCIs" FromRole="RPCI" ToRole="RPCIItem" />
-        </EntityType>
-        <EntityType Name="RPCIItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="RpciId" Type="Guid" />
-          <Property Name="Article" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
-          <Property Name="StockNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Unit" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="UnitValue" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="QtyBalance" Type="Int32" />
-          <Property Name="QtyOnHand" Type="Int32" />
-          <Property Name="QtyShortOver" Type="Int32" />
-          <Property Name="ValueShortOver" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Remarks" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="RPCI" Relationship="AppManModel.FK_RPCIItems_RPCIs" FromRole="RPCIItem" ToRole="RPCI" />
-        </EntityType>
-        <Association Name="FK_RPCIItems_RPCIs">
-          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RPCIItem" Role="RPCIItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RPCI">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RPCIItem">
-              <PropertyRef Name="RpciId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="PsStock">
           <Key>
             <PropertyRef Name="Id" />
@@ -4141,61 +4085,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="RPCEFFOPPEItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="RpceffoppeId" Type="Guid" />
-          <Property Name="Article" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
-          <Property Name="PropertyNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Cost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Location" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Condition" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Remarks" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="RPCEFFOPPE" Relationship="AppManModel.FK_RPCEFFOPPEItems_RPCEFFOPPEs" FromRole="RPCEFFOPPEItem" ToRole="RPCEFFOPPE" />
-        </EntityType>
-        <EntityType Name="RPCEFFOPPE">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="ItemType" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="AsAt" Type="DateTime" Precision="3" />
-          <Property Name="Fund" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="AccountableOfficer" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Designation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="AssumptionDt" Type="DateTime" Precision="3" />
-          <Property Name="CertifiedCorrectBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="ApprovedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="VerifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="PostedDt" Type="DateTime" Precision="3" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="RPCEFFOPPEItems" Relationship="AppManModel.FK_RPCEFFOPPEItems_RPCEFFOPPEs" FromRole="RPCEFFOPPE" ToRole="RPCEFFOPPEItem" />
-        </EntityType>
-        <Association Name="FK_RPCEFFOPPEItems_RPCEFFOPPEs">
-          <End Type="AppManModel.RPCEFFOPPE" Role="RPCEFFOPPE" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RPCEFFOPPEItem" Role="RPCEFFOPPEItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RPCEFFOPPE">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RPCEFFOPPEItem">
-              <PropertyRef Name="RpceffoppeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="RisItem">
           <Key>
             <PropertyRef Name="Id" />
@@ -4298,6 +4187,121 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="RisItemUnitGroupDescriptionItem">
               <PropertyRef Name="RisItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="RPCEFFOPPEItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RpceffoppeId" Type="Guid" />
+          <Property Name="ItemType" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="Fund" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="Article" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
+          <Property Name="PropertyNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Cost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Location" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Condition" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Remarks" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="RPCEFFOPPE" Relationship="AppManModel.FK_RPCEFFOPPEItems_RPCEFFOPPEs" FromRole="RPCEFFOPPEItem" ToRole="RPCEFFOPPE" />
+        </EntityType>
+        <EntityType Name="RPCIItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RpciId" Type="Guid" />
+          <Property Name="ItemType" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="Fund" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="Article" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
+          <Property Name="StockNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Unit" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="UnitValue" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="QtyBalance" Type="Int32" />
+          <Property Name="QtyOnHand" Type="Int32" />
+          <Property Name="QtyShortOver" Type="Int32" />
+          <Property Name="ValueShortOver" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Remarks" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="RPCI" Relationship="AppManModel.FK_RPCIItems_RPCIs" FromRole="RPCIItem" ToRole="RPCI" />
+        </EntityType>
+        <EntityType Name="RPCI">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="AsAt" Type="DateTime" Precision="3" />
+          <Property Name="Department" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="AccountableOfficer" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Designation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="AssumptionDt" Type="DateTime" Precision="3" />
+          <Property Name="CertifiedCorrectBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ApprovedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="VerifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PostedDt" Type="DateTime" Precision="3" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_RPCIs" FromRole="RPCI" ToRole="RPCIItem" />
+        </EntityType>
+        <Association Name="FK_RPCIItems_RPCIs">
+          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RPCIItem" Role="RPCIItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RPCI">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCIItem">
+              <PropertyRef Name="RpciId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="RPCEFFOPPE">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="AsAt" Type="DateTime" Precision="3" />
+          <Property Name="Department" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="AccountableOfficer" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Designation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="AssumptionDt" Type="DateTime" Precision="3" />
+          <Property Name="CertifiedCorrectBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ApprovedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="VerifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PostedDt" Type="DateTime" Precision="3" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="RPCEFFOPPEItems" Relationship="AppManModel.FK_RPCEFFOPPEItems_RPCEFFOPPEs" FromRole="RPCEFFOPPE" ToRole="RPCEFFOPPEItem" />
+        </EntityType>
+        <Association Name="FK_RPCEFFOPPEItems_RPCEFFOPPEs">
+          <End Type="AppManModel.RPCEFFOPPE" Role="RPCEFFOPPE" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RPCEFFOPPEItem" Role="RPCEFFOPPEItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RPCEFFOPPE">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCEFFOPPEItem">
+              <PropertyRef Name="RpceffoppeId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -5132,50 +5136,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="RPCIs">
-            <EntityTypeMapping TypeName="AppManModel.RPCI">
-              <MappingFragment StoreEntitySet="RPCIs">
-                <ScalarProperty Name="PostedDt" ColumnName="PostedDt" />
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="PostedBy" ColumnName="PostedBy" />
-                <ScalarProperty Name="VerifiedBy" ColumnName="VerifiedBy" />
-                <ScalarProperty Name="ApprovedBy" ColumnName="ApprovedBy" />
-                <ScalarProperty Name="CertifiedCorrectBy" ColumnName="CertifiedCorrectBy" />
-                <ScalarProperty Name="AssumptionDt" ColumnName="AssumptionDt" />
-                <ScalarProperty Name="Designation" ColumnName="Designation" />
-                <ScalarProperty Name="AccountableOfficer" ColumnName="AccountableOfficer" />
-                <ScalarProperty Name="Fund" ColumnName="Fund" />
-                <ScalarProperty Name="AsAt" ColumnName="AsAt" />
-                <ScalarProperty Name="ItemType" ColumnName="ItemType" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="RPCIItems">
-            <EntityTypeMapping TypeName="AppManModel.RPCIItem">
-              <MappingFragment StoreEntitySet="RPCIItems">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
-                <ScalarProperty Name="ValueShortOver" ColumnName="ValueShortOver" />
-                <ScalarProperty Name="QtyShortOver" ColumnName="QtyShortOver" />
-                <ScalarProperty Name="QtyOnHand" ColumnName="QtyOnHand" />
-                <ScalarProperty Name="QtyBalance" ColumnName="QtyBalance" />
-                <ScalarProperty Name="UnitValue" ColumnName="UnitValue" />
-                <ScalarProperty Name="Unit" ColumnName="Unit" />
-                <ScalarProperty Name="StockNo" ColumnName="StockNo" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="Article" ColumnName="Article" />
-                <ScalarProperty Name="RpciId" ColumnName="RpciId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="PsStocks">
             <EntityTypeMapping TypeName="AppManModel.PsStock">
               <MappingFragment StoreEntitySet="PsStocks">
@@ -5265,6 +5225,28 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="RisItems">
+            <EntityTypeMapping TypeName="AppManModel.RisItem">
+              <MappingFragment StoreEntitySet="RisItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="QtyIssue" ColumnName="QtyIssue" />
+                <ScalarProperty Name="QtyRequest" ColumnName="QtyRequest" />
+                <ScalarProperty Name="Unit" ColumnName="Unit" />
+                <ScalarProperty Name="OtherDesc" ColumnName="OtherDesc" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
+                <ScalarProperty Name="PsNoDisplay" ColumnName="PsNoDisplay" />
+                <ScalarProperty Name="PsNo" ColumnName="PsNo" />
+                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
+                <ScalarProperty Name="RisId" ColumnName="RisId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="RPCEFFOPPEItems">
             <EntityTypeMapping TypeName="AppManModel.RPCEFFOPPEItem">
               <MappingFragment StoreEntitySet="RPCEFFOPPEItems">
@@ -5279,7 +5261,54 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="PropertyNo" ColumnName="PropertyNo" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="Article" ColumnName="Article" />
+                <ScalarProperty Name="Fund" ColumnName="Fund" />
+                <ScalarProperty Name="ItemType" ColumnName="ItemType" />
                 <ScalarProperty Name="RpceffoppeId" ColumnName="RpceffoppeId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RPCIItems">
+            <EntityTypeMapping TypeName="AppManModel.RPCIItem">
+              <MappingFragment StoreEntitySet="RPCIItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="ValueShortOver" ColumnName="ValueShortOver" />
+                <ScalarProperty Name="QtyShortOver" ColumnName="QtyShortOver" />
+                <ScalarProperty Name="QtyOnHand" ColumnName="QtyOnHand" />
+                <ScalarProperty Name="QtyBalance" ColumnName="QtyBalance" />
+                <ScalarProperty Name="UnitValue" ColumnName="UnitValue" />
+                <ScalarProperty Name="Unit" ColumnName="Unit" />
+                <ScalarProperty Name="StockNo" ColumnName="StockNo" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Article" ColumnName="Article" />
+                <ScalarProperty Name="Fund" ColumnName="Fund" />
+                <ScalarProperty Name="ItemType" ColumnName="ItemType" />
+                <ScalarProperty Name="RpciId" ColumnName="RpciId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RPCIs">
+            <EntityTypeMapping TypeName="AppManModel.RPCI">
+              <MappingFragment StoreEntitySet="RPCIs">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="PostedDt" ColumnName="PostedDt" />
+                <ScalarProperty Name="PostedBy" ColumnName="PostedBy" />
+                <ScalarProperty Name="VerifiedBy" ColumnName="VerifiedBy" />
+                <ScalarProperty Name="ApprovedBy" ColumnName="ApprovedBy" />
+                <ScalarProperty Name="CertifiedCorrectBy" ColumnName="CertifiedCorrectBy" />
+                <ScalarProperty Name="AssumptionDt" ColumnName="AssumptionDt" />
+                <ScalarProperty Name="Designation" ColumnName="Designation" />
+                <ScalarProperty Name="AccountableOfficer" ColumnName="AccountableOfficer" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="AsAt" ColumnName="AsAt" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -5299,31 +5328,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="AssumptionDt" ColumnName="AssumptionDt" />
                 <ScalarProperty Name="Designation" ColumnName="Designation" />
                 <ScalarProperty Name="AccountableOfficer" ColumnName="AccountableOfficer" />
-                <ScalarProperty Name="Fund" ColumnName="Fund" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
                 <ScalarProperty Name="AsAt" ColumnName="AsAt" />
-                <ScalarProperty Name="ItemType" ColumnName="ItemType" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="RisItems">
-            <EntityTypeMapping TypeName="AppManModel.RisItem">
-              <MappingFragment StoreEntitySet="RisItems">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
-                <ScalarProperty Name="QtyIssue" ColumnName="QtyIssue" />
-                <ScalarProperty Name="QtyRequest" ColumnName="QtyRequest" />
-                <ScalarProperty Name="Unit" ColumnName="Unit" />
-                <ScalarProperty Name="OtherDesc" ColumnName="OtherDesc" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
-                <ScalarProperty Name="PsNoDisplay" ColumnName="PsNoDisplay" />
-                <ScalarProperty Name="PsNo" ColumnName="PsNo" />
-                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
-                <ScalarProperty Name="RisId" ColumnName="RisId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

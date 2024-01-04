@@ -2,6 +2,8 @@
         .Name("gridItems_" + @ViewData["rpciId"])
         .Columns(col =>
         {
+            col.Bound(c => c.ItemType).Width(50);
+            col.Bound(c => c.Fund).Width(50);
             col.Bound(c => c.Article).Width(70);
             col.Bound(c => c.Description).Width(150);
             col.Bound(c => c.StockNo).Width(70);
@@ -62,10 +64,10 @@
                 a.Add(p => p.QtyShortOver).Sum();
                 a.Add(p => p.ValueShortOver).Sum();
             })
-            .Sort(s =>
-            {
-                s.Add(a => a.InsertedDt);
-            })
+            //.Sort(s =>
+            //{
+            //    s.Add(a => a.InsertedDt);
+            //})
             .Read(read => read.Action("_RpciItemRead", "Rpci", new { rpciId = @ViewData["rpciId"] }))
             .Update(update => update.Action("_RpciItemUpdate", "Rpci"))
             .Destroy(destroy => destroy.Action("_RpciItemDestroy", "Rpci"))
