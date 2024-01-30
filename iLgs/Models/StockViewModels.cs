@@ -94,4 +94,29 @@ namespace iLgs.Models
         [Display(Name = "Field No.")]
         public string ItemCode { get; set; }
     }
+
+    public class PsItemIssuanceVM
+    {
+        public System.Guid Id { get; set; }
+        [Display(Name = "Tran. Code")]
+        public string TranCode { get; set; }
+        public Nullable<System.Guid> PsItemId { get; set; }
+        public Nullable<System.Guid> RisIssuedId { get; set; }
+
+        [Display(Name = "Issued date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> IssuedDate { get; set; }
+
+        [Display(Name = "Issued to")]
+        public string IssuedTo { get; set; }
+        public string InsertedBy { get; set; }
+        public Nullable<int> Qty { get; set; }
+
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<System.Guid> SourceId { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }        
+    }
 }

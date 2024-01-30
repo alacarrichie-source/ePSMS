@@ -257,6 +257,7 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisItemId { get; set; }
+        public Nullable<System.Guid> OrderItemId { get; set; }
 
         [Display(Name = "Issued Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]

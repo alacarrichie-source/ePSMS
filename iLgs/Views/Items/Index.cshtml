@@ -299,7 +299,7 @@
 
     $(".k-grid-btnPrint_").click(function (e) {
         e.preventDefault();
-        var url = '@Url.Action("ItemCodeRpt", "Items")';
+        var url = '@Url.Action("ItemCodeRpt", "Items")?itemTypeId=' + selectedId;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")

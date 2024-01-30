@@ -58,7 +58,6 @@ namespace iLgs.Models
         public virtual DbSet<RSMI> RSMIs { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<RSMIRecap> RSMIRecaps { get; set; }
-        public virtual DbSet<RisIssued> RisIssueds { get; set; }
         public virtual DbSet<DepartmentUser> DepartmentUsers { get; set; }
         public virtual DbSet<RisItemExtn> RisItemExtns { get; set; }
         public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
@@ -83,5 +82,7 @@ namespace iLgs.Models
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<RPCEFFOPPE> RPCEFFOPPEs { get; set; }
+        public virtual DbSet<PsItemIssuance> PsItemIssuances { get; set; }
+        public virtual DbSet<RisIssued> RisIssueds { get; set; }
     }
 }
