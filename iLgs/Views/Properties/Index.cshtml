@@ -258,8 +258,9 @@
     //.HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
-        col.Bound(c => c.PsNo).Width(50);
+        col.Bound(c => c.ItemCodeDesc).Width(50);        
         col.Bound(c => c.ItemName).Width(150);
+        col.Bound(c => c.PsNo).Width(50);
     })
     //.ClientRowTemplate("itemTemplate")
     .ToolBar(t =>

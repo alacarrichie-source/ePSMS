@@ -200,33 +200,75 @@ namespace iLgs.Services
                 else
                 {
                     int itemCount = 0;
-                    var raItems = itemValue.Split('/');
-                    foreach (var raItem in raItems)
+                    if (model.PsType == "M")
                     {
-                        if (++itemCount > 1)
+                        var raItems = itemValue.Split('/');
+                        foreach (var raItem in raItems)
                         {
-                            psNo += "/";
-                        }
+                            if (++itemCount > 1)
+                            {
+                                psNo += "/";
+                            }
 
+                            if (x == 1)
+                            {
+                                if (raItem.Length >= 3)
+                                {
+                                    psNo += raItem.Substring(0, 1) + raItem.Substring(2, 1);
+                                }
+                                else
+                                {
+                                    psNo += raItem.Substring(0, 1) + "X";
+                                }
+                            }
+                            else if (x == 2)
+                            {
+                                psNo += raItem;
+                            }
+                            else if (x == 3)
+                            {
+                                psNo += raItem.PadRight(3, 'X').Substring(0, 3);
+                            }
+                        }
+                    }
+                    else if (model.PsType == "L")
+                    {
                         if (x == 1)
                         {
-                            if (raItem.Length >= 3)
-                            {
-                                psNo += raItem.Substring(0, 1) + raItem.Substring(2, 1);
-                            }
-                            else
-                            {
-                                psNo += raItem.Substring(0, 1) + "X";
-                            }
+                            psNo += itemValue;
                         }
                         else if (x == 2)
                         {
-                            psNo += raItem;
+                            psNo += itemValue.Substring(0, 1).ToUpper();
                         }
                         else if (x == 3)
                         {
-                            psNo += raItem.PadRight(3, 'X').Substring(0, 3);
-                        }                        
+                            psNo += itemValue.Substring(0, 1).ToUpper();
+                        }
+                        else if (x == 4)
+                        {
+                            psNo += itemValue.Substring(2, 2);
+                        }
+                        else if (x == 5)
+                        {
+                            psNo += itemValue.Replace(",", "");
+                        }
+                        else if (x == 6)
+                        {
+                            psNo += itemValue.Substring(0, 1).ToUpper();
+                        }
+                        else if (x == 7)
+                        {
+                            psNo += itemValue.Substring(itemValue.Length - 3);
+                        }
+                        else if (x == 8)
+                        {
+                            psNo += itemValue.Substring(0, 1).ToUpper();
+                        }
+                        else if (x == 9)
+                        {
+                            psNo += itemValue.Substring(2, 2);
+                        }
                     }
                 }
             }
@@ -254,7 +296,7 @@ namespace iLgs.Services
             var raItems = itemName.Replace(" ", "").Split('/');
             int itemCount = 0;
             string psNoDisplay = "";
-            foreach(var raItem in raItems)
+            foreach (var raItem in raItems)
             {
                 if (++itemCount > 1)
                 {

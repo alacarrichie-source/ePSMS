@@ -7,7 +7,8 @@
     .Name("grid")
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
-    {        
+    {
+        col.Bound(c => c.Category).Width(70).EditorTemplateName("_CategoryTemplate");
         col.Bound(c => c.Code).Width(70);
         col.Bound(c => c.Description).Width(100); //.ClientTemplate("#= kendo.htmlEncode(Description) #");
         col.Bound(c => c.FormulaNo).Width(70);

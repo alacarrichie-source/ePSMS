@@ -26,6 +26,8 @@ namespace iLgs.Services
                     Code = s.Code,
                     Description = s.Description,
                     FormulaNo = s.FormulaNo,
+                    Category = s.Category,
+                    CategoryDesc = db.Codextns.Where(w => w.Code == s.Category && w.CodeMast.Code == "PS-CATEGORY").FirstOrDefault().Description,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -66,6 +68,7 @@ namespace iLgs.Services
                 Code = model.Code,
                 Description = model.Description,
                 FormulaNo = model.FormulaNo,
+                Category = model.Category,
                 InsertedBy = user,
                 InsertedDt = date,
                 UpdatedBy = user,
@@ -103,6 +106,7 @@ namespace iLgs.Services
             entity.Code = model.Code;
             entity.Description = model.Description;
             entity.FormulaNo = model.FormulaNo;
+            entity.Category = model.Category;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 

@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="5e70c6830d604fe299e241ab0c429177" Name="Menu" ZoomLevel="72">
+      <Diagram DiagramId="5e70c6830d604fe299e241ab0c429177" Name="Menu" ZoomLevel="62">
         <EntityTypeShape EntityType="AppManModel.Menubase" Width="1.5" PointX="5.75" PointY="2.25" />
         <AssociationConnector Association="AppManModel.MenubaseMenubase" />
         <EntityTypeShape EntityType="AppManModel.AspNetUserRoles_View" Width="2.75" PointX="10.75" PointY="6.75" />
@@ -60,9 +60,6 @@
         <EntityTypeShape EntityType="AppManModel.RisItemUnitGroupDescription" Width="1.5" PointX="7.5" PointY="3.625" />
         <AssociationConnector Association="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItemUnitGroupDescriptions" />
         <EntityTypeShape EntityType="AppManModel.ItemCode" Width="1.5" PointX="3" PointY="22.625" />
-        <EntityTypeShape EntityType="AppManModel.ItemType" Width="1.5" PointX="0.75" PointY="19" />
-        <AssociationConnector Association="AppManModel.FK_ItemCodes_ItemTypes" />
-        <AssociationConnector Association="AppManModel.FK_ItemFields_ItemTypes" />
         <EntityTypeShape EntityType="AppManModel.RequestItem" Width="1.5" PointX="7.5" PointY="11" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_RequestItems" />
         <AssociationConnector Association="AppManModel.FK_RequestItems_Requests" />
@@ -80,6 +77,9 @@
         <AssociationConnector Association="AppManModel.FK_RisItemExtns_RisItems" />
         <AssociationConnector Association="AppManModel.FK_RisItems_RIS" />
         <AssociationConnector Association="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItems" />
+        <EntityTypeShape EntityType="AppManModel.ItemType" Width="1.5" PointX="0.75" PointY="21.25" />
+        <AssociationConnector Association="AppManModel.FK_ItemCodes_ItemTypes" />
+        <AssociationConnector Association="AppManModel.FK_ItemFields_ItemTypes" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="Issuance" ZoomLevel="75" >
         <EntityTypeShape EntityType="AppManModel.RSMI" Width="1.5" PointX="0.75" PointY="3.5" />

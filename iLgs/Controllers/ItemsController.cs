@@ -58,7 +58,7 @@ namespace iLgs.Controllers
 
         public ActionResult PsCodeRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _psCodeService.GetAll();
+            var data = _psCodeService.GetAllItems();
 
             var result = new JsonNetResult
             {

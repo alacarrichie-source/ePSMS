@@ -8,8 +8,10 @@
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
-        col.Bound(c => c.PsType).Width(50);
-        col.Bound(c => c.PsNo).Width(100);
+        //col.Bound(c => c.PsType).Width(50);
+        col.Bound(c => c.PsTypeDesc).Width(100);
+        col.Bound(c => c.ItemCodeDesc).Width(100);
+        col.Bound(c => c.PsNo).Width(100);        
         col.Bound(c => c.ItemName).Width(200);
         //col.Bound(c => c.ItemDescription).Width(100);
         //col.Bound(c => c.UnitMeas).Width(100);
@@ -54,7 +56,7 @@
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)
-        .Events(events => events.Error("GridError"))
+        .Events(events => events.Error("GridError").RequestEnd("onGridRequestEnd"))
         .Model(model =>
         {
             model.Id(p => p.Id);
@@ -156,6 +158,20 @@
         selectedItemId = null;
     }
 
+    function onGridRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#grid").data("kendoGrid").dataSource.read();
+            }
+            if (e.type == "create") {
+                var responseData = e.response;
+                var newRecord = responseData.Data[0];
+                selectedId = newRecord.Id;
+            }
+        }
+    }
+
 
     function onDataBoundGrid(e) {
         if (selectedId) {
@@ -204,6 +220,8 @@
         $("#ItemCodeId").val(dataItem.Id).trigger("change");
         $("#ItemCode").val(dataItem.Code).trigger("change");
         $("#PsType").val(dataItem.Type).trigger("change");
+        //$("#PsTypeCode").val(dataItem.Type).trigger("change");
+        //$("#ItemCodeDesc").val(dataItem.Type).trigger("change");
         //$("#ItemType").val(dataItem.Description).trigger("change");
 
         var itemName = $("#ItemName").val();

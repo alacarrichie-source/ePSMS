@@ -25,6 +25,7 @@ namespace iLgs.Models
         public string Code { get; set; }
         public string Description { get; set; }
         public Nullable<int> FormulaNo { get; set; }
+        public string Category { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

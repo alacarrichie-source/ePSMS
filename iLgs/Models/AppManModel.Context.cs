@@ -63,7 +63,6 @@ namespace iLgs.Models
         public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<ItemCode> ItemCodes { get; set; }
-        public virtual DbSet<ItemType> ItemTypes { get; set; }
         public virtual DbSet<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
@@ -84,5 +83,6 @@ namespace iLgs.Models
         public virtual DbSet<RPCEFFOPPE> RPCEFFOPPEs { get; set; }
         public virtual DbSet<PsItemIssuance> PsItemIssuances { get; set; }
         public virtual DbSet<RisIssued> RisIssueds { get; set; }
+        public virtual DbSet<ItemType> ItemTypes { get; set; }
     }
 }

@@ -9,7 +9,9 @@
     @*@Html.HiddenFor(model => model.PsNo)*@
     @Html.HiddenFor(model => model.PsType)
     @Html.HiddenFor(model => model.ItemCode)
-   
+    @Html.HiddenFor(model => model.PsTypeDesc)
+    @Html.HiddenFor(model => model.ItemCodeDesc)
+    
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -42,7 +44,7 @@
                             c.Add().Field("ItemNo").Title("Item No.").Width("10%");
                             c.Add().Field("Code").Title("Code").Width("10%");
                             c.Add().Field("MainDesc").Title("Group").Width("40%");
-                            c.Add().Field("Description").Title("Type").Width("40%");
+                            c.Add().Field("Description").Title("Kind").Width("40%");
                         })
                         .Suggest(true)
                         .Events(e => { e.Select("onSelectItemCode"); })

@@ -9,8 +9,11 @@ namespace iLgs.Models
     public class PsCodeVM
     {
         public System.Guid Id { get; set; }
-        [Display(Name = "Item Type")]
+        [Display(Name = "Item Kind")]
         public Nullable<System.Guid> ItemCodeId { get; set; }
+
+        [Display(Name = "Item Kind")]        
+        public string ItemCodeDesc { get; set; }
 
         [Display(Name = "Item No.")]
         [Required]
@@ -19,6 +22,9 @@ namespace iLgs.Models
         [Display(Name = "Type")]
         [Required]
         public string PsType { get; set; }
+
+        [Display(Name = "Type")]
+        public string PsTypeDesc { get; set; }
 
         [Display(Name = "Item Name")]
         [Required]
@@ -86,13 +92,16 @@ namespace iLgs.Models
     public class ItemTypeVM
     {     
         public System.Guid Id { get; set; }
+        [Display(Name = "Type Code")]
         public string Code { get; set; }
         public string Description { get; set; }
         [Display(Name = "Formula Fields")]
         public int? FormulaNo { get; set; }
+        public string Category { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }     
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public string CategoryDesc { get; set; }
     }
 }

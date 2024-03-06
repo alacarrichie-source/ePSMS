@@ -1,0 +1,19 @@
+﻿@(Html.Kendo().ComboBox()
+    .Name("Category")
+    //.HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+    .DataTextField("Description")
+    .DataValueField("Code")
+    .ValuePrimitive(true)
+    .Filter("contains")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("GetCodes", "Getters", new { mastCode = "PS-CATEGORY", text = "" });
+        })
+        .ServerFiltering(false);
+    })
+)
+
+
+

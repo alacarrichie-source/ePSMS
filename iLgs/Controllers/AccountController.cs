@@ -148,6 +148,7 @@ namespace iLgs.Controllers
                     bool isLocalhost = false;
 
                     string host = HttpContext.Request.Url.Host;
+                    Console.WriteLine("Host = " + host);
                     if (host == "localhost" || host == "127.0.0.1" || host == "::1")
                     {
                         isLocalhost = true;
@@ -169,8 +170,9 @@ namespace iLgs.Controllers
                         foreach (var menu in allMenu)
                         {
                             if (!isLocalhost)
-                            {
+                            {                                
                                 menu.Controller = websiteName + "/" + menu.Controller;
+                                Console.WriteLine(menu.Controller);
                             }
                         }
                     }
