@@ -9,7 +9,9 @@ namespace iLgs.Services.Interfaces
     {
         IQueryable<ItemCodeVM> GetAll();
         IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId);
-        Task<ItemCode> GetByIdAsync(Guid id);        
+        Task<ItemCode> GetByIdAsync(Guid id);
+        IQueryable<ItemCodeVM> GetItems(string item);
+        IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item);
 
         Task<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date);
         Task<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date);

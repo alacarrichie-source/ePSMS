@@ -88,4 +88,21 @@ namespace iLgs.Models
         [Display(Name = "Full Name")]
         public string NameFull { get; set; }
     }
+
+    public class AccountableOfficerVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> DeptId { get; set; }
+        public string Name { get; set; }
+        public string Designation { get; set; }
+
+        [Display(Name = "Date of Assumption")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> DateAssumption { get; set; }
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+        
+    }
 }

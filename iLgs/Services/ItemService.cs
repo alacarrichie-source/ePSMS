@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,7 @@ namespace iLgs.Services.Items
         //Task<PsCode> CreateAsync(PsCode model, string user, DateTime date);
         //Task<PsCode> UpdateAsync(PsCode model, string user, DateTime date);
         //Task<PsCode> DeleteAsync(PsCode model, string user, DateTime date);
+        
         string NextStockNo(string psNo);
     }
 
@@ -25,6 +27,7 @@ namespace iLgs.Services.Items
     {
         private readonly AppManEntities db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
+        private readonly IExceptionService<ItemCodeVM> _VmExceptionService = new ExceptionService<ItemCodeVM>();
 
         public ItemService(AppManEntities db)
         {
@@ -46,6 +49,6 @@ namespace iLgs.Services.Items
                 var sequence = (int.Parse(data.StockNo.Split('-')[1]) + 1).ToString();
                 return keyName + "-" + sequence.PadLeft(3, '0');
             }
-        }        
+        }                
     }
 }

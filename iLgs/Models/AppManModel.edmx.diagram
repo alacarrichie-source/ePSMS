@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="5e70c6830d604fe299e241ab0c429177" Name="Menu" ZoomLevel="62">
+      <Diagram DiagramId="5e70c6830d604fe299e241ab0c429177" Name="Menu" ZoomLevel="106">
         <EntityTypeShape EntityType="AppManModel.Menubase" Width="1.5" PointX="5.75" PointY="2.25" />
         <AssociationConnector Association="AppManModel.MenubaseMenubase" />
         <EntityTypeShape EntityType="AppManModel.AspNetUserRoles_View" Width="2.75" PointX="10.75" PointY="6.75" />
@@ -32,9 +32,11 @@
         <AssociationConnector Association="AppManModel.FK_MenuActions_MenuActions" />
         <EntityTypeShape EntityType="AppManModel.Codextn" Width="1.5" PointX="15" PointY="1.125" />
         <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
-        <EntityTypeShape EntityType="AppManModel.DepartmentUser" Width="1.5" PointX="17.25" PointY="5.625" />
+        <EntityTypeShape EntityType="AppManModel.DepartmentUser" Width="1.5" PointX="15" PointY="5.875" />
         <AssociationConnector Association="AppManModel.FK_DepartmentUsers_AspNetUsers" />
         <AssociationConnector Association="AppManModel.FK_DepartmentUsers_Codextn" />
+        <EntityTypeShape EntityType="AppManModel.AccountableOfficer" Width="1.5" PointX="17.25" PointY="1.625" />
+        <AssociationConnector Association="AppManModel.FK_DepartmentAccountableOfficers_Codextn" />
         </Diagram>
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="97" >
         <EntityTypeShape EntityType="AppManModel.Supplier" Width="1.5" PointX="5.25" PointY="25.625" />
@@ -132,6 +134,11 @@
         <AssociationConnector Association="AppManModel.FK_RPCIItems_RPCIs" />
         <EntityTypeShape EntityType="AppManModel.RPCEFFOPPE" Width="1.5" PointX="5.75" PointY="1" />
         <AssociationConnector Association="AppManModel.FK_RPCEFFOPPEItems_RPCEFFOPPEs" />
+      </Diagram>
+      <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" >
+        <EntityTypeShape EntityType="AppManModel.PropertyCard" Width="1.5" PointX="0.75" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.PropertyCardItem" Width="1.5" PointX="3" PointY="7.375" />
+        <AssociationConnector Association="AppManModel.FK_PropertyCardItems_PropertyCards" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

@@ -212,6 +212,9 @@
     <Compile Include="Controllers\RpceffoppeController.cs" />
     <Compile Include="Controllers\RpciController.cs" />
     <Compile Include="Controllers\StocksController.cs" />
+    <Compile Include="Models\AccountableOfficer.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\DepartmentUser.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -222,6 +225,12 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\OrderItemUnitGroupDescriptionItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PropertyCard.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PropertyCardItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PropertyViewModels.cs" />
@@ -277,7 +286,8 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Include="Services\DepartmentUuserService.cs" />
+    <Compile Include="Services\AccountableOfficerService.cs" />
+    <Compile Include="Services\DepartmentUserService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionService.cs" />
@@ -3596,6 +3606,8 @@
     <Content Include="Views\Rpceffoppe\EditorTemplates\_RpcTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_IssuedDateTemplate.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_CategoryTemplate.cshtml" />
+    <Content Include="Views\Codes\_AccountableOfficers.cshtml" />
+    <Content Include="Views\Codes\EditorTemplates\_DateAssumptionTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3696,7 +3708,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

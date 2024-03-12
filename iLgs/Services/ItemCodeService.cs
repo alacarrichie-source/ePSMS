@@ -14,6 +14,7 @@ namespace iLgs.Services
     public class ItemCodeService : IItemCodeService
     {
         private readonly AppManEntities db = new AppManEntities();
+        private readonly IExceptionService<ItemCodeVM> _VmExceptionService = new ExceptionService<ItemCodeVM>();
 
         public ItemCodeService(AppManEntities db)
         {
@@ -60,7 +61,19 @@ namespace iLgs.Services
         {
             var data = await db.ItemCodes.FindAsync(id);                
             return data;
-        }        
+        }
+
+        public IQueryable<ItemCodeVM> GetItems(string item) => _VmExceptionService.TryCatch(() =>
+        {
+            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", item).AsQueryable();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item) => _VmExceptionService.TryCatch(() =>
+        {
+            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItemsByCategory {0}, {1}", category, item).AsQueryable();
+            return data;
+        });
 
         public async Task<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date)
         {

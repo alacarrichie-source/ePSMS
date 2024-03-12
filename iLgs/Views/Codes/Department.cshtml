@@ -97,6 +97,9 @@
                 items.Add().Text("Users")
                     .Selected(true)
                     .LoadContentFrom("_DepartmentUsers", "Codes", new { deptId = "#=Id#" });
+                items.Add().Text("Accountable Officers")
+                    .Selected(true)
+                    .LoadContentFrom("_AccountableOfficers", "Codes", new { deptId = "#=Id#" });
             }).ToClientTemplate())
 </script>
 
@@ -164,11 +167,13 @@
     var selectedGrid = null;
     var selectedItemId = null;
     var selectedUserItemId = null;
+    var selectedOfficerItemId = null;
 
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
         selectedItemId = selectedData.Id;
         selectedUserItemId = null;
+        selectedOfficerItemId = null;
     }
     
     function onDataBoundGridItems(e) {
@@ -286,6 +291,62 @@
         model.set('Email', dataItem.Email);
         model.set('UserId', dataItem.Id);
         model.set('NameFull', dataItem.NameFull);
+    }
+
+    // GRID OFFICERS
+
+
+    function onChangeGridOfficers(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedOfficerItemId = selectedData.Id;
+    }
+
+    function onDataBoundGridOfficers(e) {
+        if (selectedOfficerItemId) {
+            var dataItem = this.dataSource.get(selectedOfficerItemId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onEditGridOfficers(e) {
+        e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+
+        parentGrid.select(parentRow);
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedUserItemId = null;
+            e.model.set("DeptId", selectedItemId);
+        } else {
+            selectedOfficerItemId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedOfficerItemId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onClickDeleteGridOfficers(e) {
+        e.preventDefault();
+
+        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
+        selectedGrid = grid;
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+
+        if (confirm("Are you sure you want to delete this record?")) {
+            grid.dataSource.remove(dataItem);
+            grid.dataSource.sync();
+        }
     }
 </script>
 

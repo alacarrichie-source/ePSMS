@@ -84,5 +84,8 @@ namespace iLgs.Models
         public virtual DbSet<PsItemIssuance> PsItemIssuances { get; set; }
         public virtual DbSet<RisIssued> RisIssueds { get; set; }
         public virtual DbSet<ItemType> ItemTypes { get; set; }
+        public virtual DbSet<PropertyCard> PropertyCards { get; set; }
+        public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
+        public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
     }
 }

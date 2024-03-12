@@ -255,24 +255,25 @@
 
 <div id="item-list" class="col col-xs-3">
     <h3>ITEMS</h3>
-    @(Html.Kendo().Grid<iLgs.Models.PsCodeVM>()
+    @(Html.Kendo().Grid<iLgs.Models.ItemCodeVM>()
     .Name("grid")
     //.HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
-    {
-        col.Bound(c => c.PsNo).Width(50);
-        col.Bound(c => c.ItemName).Width(150);
+    {        
+        col.Bound(c => c.MainDesc).Width(100);
+        col.Bound(c => c.Description).Width(100);
+        col.Bound(c => c.Code).Width(50);
     })
-            //.ClientRowTemplate("itemTemplate")
+    //.ClientRowTemplate("itemTemplate")
     .ToolBar(t =>
     {
         t.Search();
     })
     .Search(s =>
     {
-        s.Field(o => o.PsNo, "contains");
-        s.Field(o => o.ItemName, "contains");
-        //s.Field(o => o.ItemDescription, "contains");
+        s.Field(o => o.MainDesc, "contains");
+        s.Field(o => o.Description, "contains");
+        s.Field(o => o.Code, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -298,7 +299,8 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
-        .Read(read => read.Action("ItemsRead", "Stocks"))
+        //.Read(read => read.Action("ItemsRead", "Stocks"))
+        .Read(read => read.Action("GetItemsByCategory", "Items"))
     )
     .Events(events => events
         .Change("onChangeGrid")
@@ -832,7 +834,7 @@
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         selectedId = selectedData.Id;
-        selectedPsNo = selectedData.PsNo;
+        selectedPsNo = ""; // selectedData.PsNo;
         selectedStockId = null;
         selectedItemId = null;
         selectedIssuedId = null;

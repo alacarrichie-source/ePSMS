@@ -11,14 +11,14 @@ using System.Web;
 namespace iLgs.Services
 {
     
-    public class DepartmentUuserService : IDepartmentUserService
+    public class DepartmentUserService : IDepartmentUserService
     {
         private readonly AppManEntities db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<DepartmentUserVM> _vmExceptionService = new ExceptionService<DepartmentUserVM>();
         private readonly IExceptionService<DepartmentUser> _exceptionService = new ExceptionService<DepartmentUser>();
 
-        public DepartmentUuserService(AppManEntities db)
+        public DepartmentUserService(AppManEntities db)
         {
             this.db = db;
         }

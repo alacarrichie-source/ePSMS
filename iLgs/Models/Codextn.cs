@@ -18,6 +18,7 @@ namespace iLgs.Models
         public Codextn()
         {
             this.DepartmentUsers = new HashSet<DepartmentUser>();
+            this.AccountableOfficers = new HashSet<AccountableOfficer>();
         }
     
         public System.Guid Id { get; set; }
@@ -36,5 +37,7 @@ namespace iLgs.Models
         public virtual CodeMast CodeMast { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<DepartmentUser> DepartmentUsers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AccountableOfficer> AccountableOfficers { get; set; }
     }
 }

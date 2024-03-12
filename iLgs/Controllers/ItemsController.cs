@@ -572,7 +572,21 @@ namespace iLgs.Controllers
             };
 
             return result;
-        }       
+        }
+
+        [Authorize]
+        public ActionResult GetItemByCategoryRead([DataSourceRequest] DataSourceRequest request, string category)
+        {
+            var data = _itemCodeService.GetItemsByCategory(category, "");
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
 
         public ActionResult _QueryOrderItems(Guid psId, Guid stockId)
         {
@@ -703,15 +717,14 @@ namespace iLgs.Controllers
         [Authorize]
         public JsonResult GetItems(string text)
         {
+            var model = _itemCodeService.GetItems(text);            
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType, ItemNo = c.ItemNo, MainDesc = c.MainDesc }), JsonRequestBehavior.AllowGet);
+        }
 
-            //var model = db.ItemCodes.AsQueryable();
-            var model = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", text).AsQueryable();
-
-            //if (!string.IsNullOrEmpty(text))
-            //{
-            //    model = model.Where(p => p.ItemSw == "Y" && (p.Description.Contains(text) || p.Code.Contains(text)));
-            //}
-
+        [Authorize]
+        public JsonResult GetItemsByCategory(string category, string text)
+        {
+            var model = _itemCodeService.GetItemsByCategory(category, text);
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType, ItemNo = c.ItemNo, MainDesc = c.MainDesc }), JsonRequestBehavior.AllowGet);
         }
 

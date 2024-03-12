@@ -18,14 +18,16 @@ namespace iLgs.Controllers
     [AppAuthorize("CODES")]
     public class CodesController : Controller
     {
-        private AppManEntities db = new AppManEntities();
-        private ICodextnService codextnService;
-        private IDepartmentUserService departmentUserService;
+        private AppManEntities _db = new AppManEntities();
+        private ICodextnService _codextnService;
+        private IDepartmentUserService _departmentUserService;
+        private IAccountableOfficerService _accountableOfficerService;
 
         public CodesController()
         {
-            this.codextnService = new CodextnService(db);
-            this.departmentUserService = new DepartmentUuserService(db);
+            _codextnService = new CodextnService(_db);
+            _departmentUserService = new DepartmentUserService(_db);
+            _accountableOfficerService = new AccountableOfficerService(_db);
         }
         // GET: Codes
         public ActionResult Index()
@@ -36,7 +38,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> Department()
         {
             var code = "Departments";
-            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "Department & Sections";
             return View(codeMast);
@@ -45,7 +47,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> IssuedBy()
         {
             var code = "ISSUED-BY";
-            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "Issued by";
             return View("Codextn", codeMast);
@@ -54,7 +56,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> RequestedBy()
         {
             var code = "REQUEST-BY";
-            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "Requested by";
             return View("Codextn", codeMast);
@@ -63,7 +65,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> ApprovedBy()
         {
             var code = "APPROVED-BY";
-            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "Approved by";
             return View("Codextn", codeMast);
@@ -72,7 +74,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> CashAvailability()
         {
             var code = "CASH-AVAILABLE";
-            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "Cash Availability";
             return View("Codextn", codeMast);
@@ -81,7 +83,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> PsFields()
         {
             var code = "PS-FIELDS";
-            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "Property & Supply Fields";
             return View("Codextn", codeMast);
@@ -90,7 +92,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> Custodians()
         {
             var code = "CUSTODIANS";
-            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "Supply/Property Custodians";
             return View("Codextn", codeMast);
@@ -99,7 +101,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> Officers()
         {
             var code = "OFFICERS";
-            var codeMast = await db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "Inspection Officer/Inspection Committee";
             return View("Codextn", codeMast);
@@ -118,7 +120,7 @@ namespace iLgs.Controllers
 
         public ActionResult CodeMastRead([DataSourceRequest] DataSourceRequest request)
         {
-            var model = db.CodeMasts.AsNoTracking();
+            var model = _db.CodeMasts.AsNoTracking();
             return Json(model.ToDataSourceResult(request));
         }
 
@@ -139,7 +141,7 @@ namespace iLgs.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    if (db.CodeMasts.Any(a => a.Code == model.Code))
+                    if (_db.CodeMasts.Any(a => a.Code == model.Code))
                     {
                         ModelState.AddModelError("Code", "Already Exists!");
                     }
@@ -153,8 +155,8 @@ namespace iLgs.Controllers
                     model.UpdatedBy = model.InsertedBy;
                     model.UpdatedDt = model.InsertedDt;
 
-                    db.CodeMasts.Add(model);
-                    db.SaveChanges();
+                    _db.CodeMasts.Add(model);
+                    _db.SaveChanges();
                 }
             }
             catch (Exception e)
@@ -185,7 +187,7 @@ namespace iLgs.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    var entity = db.CodeMasts.Find(model.Id);
+                    var entity = _db.CodeMasts.Find(model.Id);
 
                     if (entity != null)
                     {
@@ -202,9 +204,9 @@ namespace iLgs.Controllers
                         entity.UpdatedBy = model.UpdatedBy;
                         entity.UpdatedDt = model.UpdatedDt;
 
-                        db.CodeMasts.Attach(entity);
-                        db.Entry(entity).State = EntityState.Modified;
-                        db.SaveChanges();
+                        _db.CodeMasts.Attach(entity);
+                        _db.Entry(entity).State = EntityState.Modified;
+                        _db.SaveChanges();
                     }
                 }
             }
@@ -236,13 +238,13 @@ namespace iLgs.Controllers
                 if (ModelState.IsValid)
                 {
                     // Attach the entity
-                    db.CodeMasts.Attach(model);
+                    _db.CodeMasts.Attach(model);
                     // Delete the entity
-                    db.CodeMasts.Remove(model);
+                    _db.CodeMasts.Remove(model);
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    db.SaveChanges();
+                    _db.SaveChanges();
                 }
             }
             catch (Exception e)
@@ -257,7 +259,7 @@ namespace iLgs.Controllers
 
         public ActionResult CodextnRead([DataSourceRequest] DataSourceRequest request, Guid mastId)
         {
-            var data = codextnService.GetByMastId(mastId);
+            var data = _codextnService.GetByMastId(mastId);
 
             return Json(data.ToDataSourceResult(request));
         }
@@ -279,7 +281,7 @@ namespace iLgs.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    if (db.Codextns.Any(a => a.MastId == model.MastId && a.Code == model.Code))
+                    if (_db.Codextns.Any(a => a.MastId == model.MastId && a.Code == model.Code))
                     {
                         ModelState.AddModelError("Code", "Already Exists!");
                     }
@@ -290,7 +292,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await codextnService.CreateAsync(model, user, date);
+                    model = await _codextnService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -321,7 +323,7 @@ namespace iLgs.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    if (db.Codextns.Any(a => a.MastId == model.MastId && a.Code == model.Code && a.Id != model.Id))
+                    if (_db.Codextns.Any(a => a.MastId == model.MastId && a.Code == model.Code && a.Id != model.Id))
                     {
                         ModelState.AddModelError("Code", "Already Exists!");
                     }
@@ -332,7 +334,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await codextnService.UpdateAsync(model, user, date);
+                    model = await _codextnService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -364,7 +366,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await codextnService.DeleteAsync(model, user, date);
+                    model = await _codextnService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -385,7 +387,7 @@ namespace iLgs.Controllers
 
         public ActionResult _DepartmentUserRead([DataSourceRequest] DataSourceRequest request, Guid deptId)
         {
-            var data = departmentUserService.GetAllByDeptId(deptId);
+            var data = _departmentUserService.GetAllByDeptId(deptId);
 
             return Json(data.ToDataSourceResult(request));
         }
@@ -411,7 +413,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await departmentUserService.CreateAsync(model, user, date);
+                    model = await _departmentUserService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -453,7 +455,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await departmentUserService.UpdateAsync(model, user, date);
+                    model = await _departmentUserService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -492,7 +494,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await departmentUserService.DeleteAsync(model, user, date);
+                    model = await _departmentUserService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -511,5 +513,141 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
         #endregion
+
+        #region ACCOUNTABLE OFFICER
+        public ActionResult _AccountableOfficers(Guid deptId)
+        {
+            ViewData["DeptId"] = deptId;
+            return PartialView();
+        }
+
+        public ActionResult _AccountableOfficerRead([DataSourceRequest] DataSourceRequest request, Guid deptId)
+        {
+            var data = _accountableOfficerService.GetAllByDeptId(deptId);
+
+            return Json(data.ToDataSourceResult(request));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _AccountableOfficerCreate([DataSourceRequest] DataSourceRequest request, AccountableOfficerVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "ADD")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _accountableOfficerService.CreateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _AccountableOfficerUpdate([DataSourceRequest] DataSourceRequest request, AccountableOfficerVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "EDIT")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _accountableOfficerService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _AccountableOfficerDestroy([DataSourceRequest]DataSourceRequest request, AccountableOfficerVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "DELETE")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _accountableOfficerService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion  
     }
 }
