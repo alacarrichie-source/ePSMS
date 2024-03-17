@@ -137,7 +137,9 @@
       </Diagram>
       <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" >
         <EntityTypeShape EntityType="AppManModel.PropertyCard" Width="1.5" PointX="0.75" PointY="0.75" />
-        <EntityTypeShape EntityType="AppManModel.PropertyCardItem" Width="1.5" PointX="3" PointY="7.375" />
+        <EntityTypeShape EntityType="AppManModel.PropertyCardPpe" Width="1.5" PointX="3" PointY="0.75" />
+        <InheritanceConnector EntityType="AppManModel.PropertyCardPpe" />
+        <EntityTypeShape EntityType="AppManModel.PropertyCardItem" Width="1.5" PointX="3" PointY="5.75" />
         <AssociationConnector Association="AppManModel.FK_PropertyCardItems_PropertyCards" />
       </Diagram>
     </edmx:Diagrams>

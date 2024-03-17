@@ -207,6 +207,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
     <Compile Include="Controllers\PropertiesController.cs" />
     <Compile Include="Controllers\RpceffoppeController.cs" />
@@ -233,6 +234,10 @@
     <Compile Include="Models\PropertyCardItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PropertyCardPpe.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PropertyCardViewModels.cs" />
     <Compile Include="Models\PropertyViewModels.cs" />
     <Compile Include="Models\PsItemIssuance.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -287,11 +292,14 @@
       <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Services\AccountableOfficerService.cs" />
+    <Compile Include="Services\CardItemExtnService.cs" />
     <Compile Include="Services\DepartmentUserService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\OrderItemUnitGroupService.cs" />
+    <Compile Include="Services\PropertyCardPpeService.cs" />
+    <Compile Include="Services\PropertyCardService.cs" />
     <Compile Include="Services\PropertyItemService.cs" />
     <Compile Include="Services\PropertyService.cs" />
     <Compile Include="Services\PsItemIssuanceService.cs" />
@@ -3608,11 +3616,15 @@
     <Content Include="Views\Items\EditorTemplates\_CategoryTemplate.cshtml" />
     <Content Include="Views\Codes\_AccountableOfficers.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_DateAssumptionTemplate.cshtml" />
+    <Content Include="Views\PropertyCard\Index.cshtml" />
+    <Content Include="Views\PropertyCard\EditorTemplates\_PropertyCardTemplate.cshtml" />
+    <Content Include="Views\PropertyCard\_MachineryEquipment.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Exceptions\Orders\" />
     <Folder Include="Views\Base\" />
+    <Folder Include="Views\Cards\" />
     <Folder Include="Views\Getters\" />
     <Folder Include="Views\Issuances\" />
     <Folder Include="Views\MenuAccessAction\" />
@@ -3708,7 +3720,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

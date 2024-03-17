@@ -98,6 +98,8 @@ namespace iLgs.Models
         [Display(Name = "Formula Fields")]
         public int? FormulaNo { get; set; }
         public string Category { get; set; }
+        [Display(Name = "Group Code")]
+        public string GroupCode { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
