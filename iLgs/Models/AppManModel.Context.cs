@@ -79,7 +79,6 @@ namespace iLgs.Models
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<RPCEFFOPPEItem> RPCEFFOPPEItems { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
-        public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<RPCEFFOPPE> RPCEFFOPPEs { get; set; }
         public virtual DbSet<PsItemIssuance> PsItemIssuances { get; set; }
         public virtual DbSet<RisIssued> RisIssueds { get; set; }
@@ -87,5 +86,9 @@ namespace iLgs.Models
         public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
         public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
         public virtual DbSet<ItemType> ItemTypes { get; set; }
+        public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
+        public virtual DbSet<RPCI> RPCIs { get; set; }
+        public virtual DbSet<RpcPpe> RpcPpes { get; set; }
+        public virtual DbSet<PropertyCardVehicle> PropertyCardVehicles { get; set; }
     }
 }

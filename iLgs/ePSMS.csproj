@@ -212,6 +212,7 @@
     <Compile Include="Controllers\PropertiesController.cs" />
     <Compile Include="Controllers\RpceffoppeController.cs" />
     <Compile Include="Controllers\RpciController.cs" />
+    <Compile Include="Controllers\RpcPpeController.cs" />
     <Compile Include="Controllers\StocksController.cs" />
     <Compile Include="Models\AccountableOfficer.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -237,6 +238,9 @@
     <Compile Include="Models\PropertyCardPpe.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PropertyCardVehicle.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PropertyCardViewModels.cs" />
     <Compile Include="Models\PropertyViewModels.cs" />
     <Compile Include="Models\PsItemIssuance.cs">
@@ -246,6 +250,12 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RPCEFFOPPEItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RpcPpe.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RpcPpeItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RpcViewModels.cs" />
@@ -291,6 +301,12 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
+    <Compile Include="Reports\RpcPpe.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RpcPpe.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Services\AccountableOfficerService.cs" />
     <Compile Include="Services\CardItemExtnService.cs" />
     <Compile Include="Services\DepartmentUserService.cs" />
@@ -313,6 +329,8 @@
     <Compile Include="Services\RpciItemService.cs" />
     <Compile Include="Services\RpciService.cs" />
     <Compile Include="Services\RpceffoppeService.cs" />
+    <Compile Include="Services\RpcPpeItemService.cs" />
+    <Compile Include="Services\RpcPpeService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
     <Compile Include="Models\AIRInvoice.cs">
@@ -3619,6 +3637,10 @@
     <Content Include="Views\PropertyCard\Index.cshtml" />
     <Content Include="Views\PropertyCard\EditorTemplates\_PropertyCardTemplate.cshtml" />
     <Content Include="Views\PropertyCard\_MachineryEquipment.cshtml" />
+    <Content Include="Views\RpcPpe\Index.cshtml" />
+    <Content Include="Views\RpcPpe\EditorTemplates\_RpcTemplate.cshtml" />
+    <Content Include="Views\RpcPpe\_Item.cshtml" />
+    <Content Include="Views\RpcPpe\EditorTemplates\_ItemTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3698,6 +3720,10 @@
     <EmbeddedResource Include="Reports\ItemCode.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>ItemCode.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Reports\RpcPpe.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpcPpe.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

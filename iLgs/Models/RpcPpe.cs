@@ -12,32 +12,31 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PropertyCard
+    public partial class RpcPpe
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public PropertyCard()
+        public RpcPpe()
         {
-            this.PropertyCardItems = new HashSet<PropertyCardItem>();
+            this.RpcPpeItems = new HashSet<RpcPpeItem>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> ItemCodeId { get; set; }
-        public string Fund { get; set; }
-        public string Description { get; set; }
-        public string Unit { get; set; }
-        public string PropNo { get; set; }
+        public Nullable<System.DateTime> AsOf { get; set; }
+        public string Department { get; set; }
+        public string CertifiedCorrectBy { get; set; }
+        public string CertifiedCorrectDesignation { get; set; }
+        public string ApprovedBy { get; set; }
+        public string ApprovedDesignation { get; set; }
+        public string VerifiedBy { get; set; }
+        public string VerifiedDesignation { get; set; }
+        public string PostedBy { get; set; }
+        public Nullable<System.DateTime> PostedDt { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        public string PrevPropNo { get; set; }
-        public Nullable<System.DateTime> AcqDate { get; set; }
-        public string AcqMode { get; set; }
-        public Nullable<decimal> Amount { get; set; }
     
-        public virtual ItemCode ItemCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PropertyCardItem> PropertyCardItems { get; set; }
-        public virtual PropertyCardVehicle PropertyCardVehicle { get; set; }
+        public virtual ICollection<RpcPpeItem> RpcPpeItems { get; set; }
     }
 }

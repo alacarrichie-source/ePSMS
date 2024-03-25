@@ -49,6 +49,58 @@ namespace iLgs.Models
         public string ItemTypeCode { get; set; }
 
         PropertyCardPpe PropertyCardPpe { get; set; }
+        PropertyCardVehicle Vehicle { get; set; }
+    }
+
+    public class PropertyCardVehicleVM
+    {
+        public System.Guid CardId { get; set; }
+        public string Type { get; set; }
+        public string Make { get; set; }
+        public string Series { get; set; }
+        public Nullable<int> YearModel { get; set; }
+        public string PlateNo { get; set; }
+        public string BodyNo { get; set; }
+        public string Color { get; set; }
+        public string EngineNo { get; set; }
+        public string ChasisNo { get; set; }
+
+        public virtual PropertyCard PropertyCard { get; set; }
+    }
+
+    public class PropertyCardPpeVM : PropertyCardVM
+    {
+        public string Type { get; set; }
+        public string Brand { get; set; }
+        [Display(Name = "Model")]
+        public string Model_ { get; set; }
+        [Display(Name = "Serial No.")]
+        public string SerialNo { get; set; }
+        public string Others { get; set; }
+        public string Color { get; set; }
+    }
+
+    public class PropertyCardTranspoVM : PropertyCardVM
+    {
+        public string EngineNo { get; set; }
+        public string Brand { get; set; }
+        [Display(Name = "Model")]
+        public string Model_ { get; set; }
+        [Display(Name = "Serial No.")]
+        public string SerialNo { get; set; }
+        public string Others { get; set; }
+        public string Color { get; set; }
+    }
+
+    public class PropertyCardPpeFields
+    {
+        public string Type { get; set; }
+        public string Brand { get; set; }
+        public string Model_ { get; set; }
+        [Display(Name = "Serial No.")]
+        public string SerialNo { get; set; }
+        public string Others { get; set; }
+        public string Color { get; set; }
     }
 
     public class PropertyCardItemVM
@@ -96,37 +148,11 @@ namespace iLgs.Models
         [Display(Name = "Prev. Ref. Type")]
         public string PrevRefType { get; set; }
 
-
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     }
-
-    public class PropertyCardPpeVM : PropertyCardVM
-    {
-        public string Type { get; set; }
-        public string Brand { get; set; }
-        [Display(Name = "Model")]
-        public string Model_ { get; set; }
-        [Display(Name = "Serial No.")]
-        public string SerialNo { get; set; }
-        public string Others { get; set; }
-        public string Color { get; set; }
-    }
-
-    public class PropertyCardPpeFields
-    {
-        public string Type { get; set; }
-        public string Brand { get; set; }
-        public string Model_ { get; set; }
-        [Display(Name = "Serial No.")]
-        public string SerialNo { get; set; }
-        public string Others { get; set; }
-        public string Color { get; set; }
-    }
-
-
 
     public class CardItemExtnVM
     {
