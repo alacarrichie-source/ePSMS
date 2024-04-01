@@ -75,6 +75,12 @@ namespace iLgs.Services
             return data;
         });
 
+        public IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item) => _VmExceptionService.TryCatch(() =>
+        {
+            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItemsByTypeCode {0}, {1}", typeCode, item).AsQueryable();
+            return data;
+        });
+
         public async Task<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date)
         {
             //if (!string.IsNullOrWhiteSpace(model.ItemSw) && !(model.ItemSw == "Y" && model.ItemSw == "N"))

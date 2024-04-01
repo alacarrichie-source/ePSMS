@@ -18,6 +18,7 @@ namespace iLgs.Models
         public PropertyCard()
         {
             this.PropertyCardItems = new HashSet<PropertyCardItem>();
+            this.EquipmentFieldReferences = new HashSet<EquipmentFieldReference>();
         }
     
         public System.Guid Id { get; set; }
@@ -38,6 +39,7 @@ namespace iLgs.Models
         public virtual ItemCode ItemCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PropertyCardItem> PropertyCardItems { get; set; }
-        public virtual PropertyCardVehicle PropertyCardVehicle { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<EquipmentFieldReference> EquipmentFieldReferences { get; set; }
     }
 }

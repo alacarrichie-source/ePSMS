@@ -21,7 +21,7 @@ namespace iLgs.Services
         ValueTask<PropertyCardPpeVM> CreateAsync(PropertyCardPpeVM model, string user, DateTime date);
         ValueTask<PropertyCardPpeVM> UpdateAsync(PropertyCardPpeVM model, string user, DateTime date);
         ValueTask<PropertyCardPpeVM> DeleteAsync(PropertyCardPpeVM model, string user, DateTime date);
-        string GetDescription(PropertyCardPpeFields fields);
+        string GetDescription(PropertyCardPpeVM fields);
         //string GetPropNo(PropertyCardPpeVM model);
     }
 
@@ -217,7 +217,7 @@ namespace iLgs.Services
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
-            
+
             entity.ItemCodeId = model.ItemCodeId;
             entity.Fund = model.Fund;
             entity.Description = model.Description;
@@ -265,124 +265,16 @@ namespace iLgs.Services
 
             return model;
         });
-        
-        public string GetDescription(PropertyCardPpeFields fields)
+
+        public string GetDescription(PropertyCardPpeVM fields)
         {
             string description = "";
             description += string.IsNullOrWhiteSpace(fields.Type) ? "" : fields.Type.Trim();
             description += string.IsNullOrWhiteSpace(fields.Model_) ? "" : " " + fields.Model_.Trim();
-            //description += string.IsNullOrWhiteSpace(fields.SerialNo) ? "" : " " + fields.SerialNo.Trim();
             description += string.IsNullOrWhiteSpace(fields.Others) ? "" : " " + fields.Others.Trim();
             description += string.IsNullOrWhiteSpace(fields.Color) ? "" : " " + fields.Color.Trim();
             description += string.IsNullOrWhiteSpace(fields.Brand) ? "" : " (" + fields.Brand.Trim() + ")";
             return description;
         }
-
-        //public string GetPropNo(PropertyCardPpeVM model)
-        //{
-        //    var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
-        //    string psNo = model.ItemCode.Trim();
-        //    var itemType = db.ItemTypes.Where(w => w.Code == model.PsType).FirstOrDefault();
-        //    string itemValue = "";
-        //    for (var x = 1; x <= itemType.FormulaNo; x++)
-        //    {
-        //        itemValue = risItemExtns.FirstOrDefault(f => f.ItemNo == x.ToString())?.ItemValue.Replace(" ", "").Trim();
-        //        if (string.IsNullOrWhiteSpace(itemValue))
-        //        {
-        //            psNo += "XXX";
-        //        }
-        //        else
-        //        {
-        //            int itemCount = 0;
-        //            if (model.PsType == "M")
-        //            {
-        //                var raItems = itemValue.Split('/');
-        //                foreach (var raItem in raItems)
-        //                {
-        //                    if (++itemCount > 1)
-        //                    {
-        //                        psNo += "/";
-        //                    }
-
-        //                    if (x == 1)
-        //                    {
-        //                        if (raItem.Length >= 3)
-        //                        {
-        //                            psNo += raItem.Substring(0, 1) + raItem.Substring(2, 1);
-        //                        }
-        //                        else
-        //                        {
-        //                            psNo += raItem.Substring(0, 1) + "X";
-        //                        }
-        //                    }
-        //                    else if (x == 2)
-        //                    {
-        //                        psNo += raItem;
-        //                    }
-        //                    else if (x == 3)
-        //                    {
-        //                        psNo += raItem.PadRight(3, 'X').Substring(0, 3);
-        //                    }
-        //                }
-        //            }
-        //            else if (model.PsType == "L")
-        //            {
-        //                if (x == 1)
-        //                {
-        //                    psNo += itemValue;
-        //                }
-        //                else if (x == 2)
-        //                {
-        //                    psNo += itemValue.Substring(0, 1).ToUpper();
-        //                }
-        //                else if (x == 3)
-        //                {
-        //                    psNo += itemValue.Substring(0, 1).ToUpper();
-        //                }
-        //                else if (x == 4)
-        //                {
-        //                    psNo += itemValue.Substring(2, 2);
-        //                }
-        //                else if (x == 5)
-        //                {
-        //                    psNo += itemValue.Replace(",", "");
-        //                }
-        //                else if (x == 6)
-        //                {
-        //                    psNo += itemValue.Substring(0, 1).ToUpper();
-        //                }
-        //                else if (x == 7)
-        //                {
-        //                    psNo += itemValue.Substring(itemValue.Length - 3);
-        //                }
-        //                else if (x == 8)
-        //                {
-        //                    psNo += itemValue.Substring(0, 1).ToUpper();
-        //                }
-        //                else if (x == 9)
-        //                {
-        //                    psNo += itemValue.Substring(2, 2);
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    //if (model.PsType == "M")
-        //    //{
-        //    //    var ds = risItemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Strength");
-        //    //    if (ds != null)
-        //    //    {
-        //    //        psNo += ds.ItemValue.Replace(" ", "");
-        //    //    }
-
-        //    //    var df = risItemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Form");
-        //    //    if (df != null)
-        //    //    {
-        //    //        psNo += df.ItemValue.Substring(0, 3);
-        //    //    }
-        //    //}
-
-        //    return psNo;
-        //}
     }
 }

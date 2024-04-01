@@ -153,6 +153,26 @@
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="datetime" />
         </EntityType>
+        <EntityType Name="EquipmentFieldReferences">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="EquipFieldId" Type="uniqueidentifier" />
+          <Property Name="RefId" Type="uniqueidentifier" />
+        </EntityType>
+        <EntityType Name="EquipmentFields">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Type" Type="varchar" MaxLength="50" />
+          <Property Name="Brand" Type="varchar" MaxLength="50" />
+          <Property Name="Model_" Type="varchar" MaxLength="50" />
+          <Property Name="SerialNo" Type="varchar" MaxLength="50" />
+          <Property Name="Others" Type="varchar" MaxLength="150" />
+          <Property Name="Color" Type="varchar" MaxLength="50" />
+        </EntityType>
         <EntityType Name="ErrorLogs">
           <Key>
             <PropertyRef Name="Id" />
@@ -438,7 +458,7 @@
           <Property Name="Brand" Type="varchar" MaxLength="50" />
           <Property Name="Model_" Type="varchar" MaxLength="50" />
           <Property Name="SerialNo" Type="varchar" MaxLength="50" />
-          <Property Name="Others" Type="varchar" MaxLength="50" />
+          <Property Name="Others" Type="varchar" MaxLength="150" />
           <Property Name="Color" Type="varchar" MaxLength="50" />
         </EntityType>
         <EntityType Name="PropertyCards">
@@ -1272,6 +1292,42 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_EquipmentFieldReferences_EquipmentFields">
+          <End Role="EquipmentFields" Type="Self.EquipmentFields" Multiplicity="0..1" />
+          <End Role="EquipmentFieldReferences" Type="Self.EquipmentFieldReferences" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EquipmentFields">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="EquipmentFieldReferences">
+              <PropertyRef Name="EquipFieldId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EquipmentFieldReferences_PropertyCards">
+          <End Role="PropertyCards" Type="Self.PropertyCards" Multiplicity="0..1" />
+          <End Role="EquipmentFieldReferences" Type="Self.EquipmentFieldReferences" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PropertyCards">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="EquipmentFieldReferences">
+              <PropertyRef Name="RefId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EquipmentFieldReferences_RisItems">
+          <End Role="RisItems" Type="Self.RisItems" Multiplicity="0..1" />
+          <End Role="EquipmentFieldReferences" Type="Self.EquipmentFieldReferences" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RisItems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="EquipmentFieldReferences">
+              <PropertyRef Name="RefId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_ItemCodes_ItemTypes">
           <End Role="ItemTypes" Type="Self.ItemTypes" Multiplicity="0..1" />
           <End Role="ItemCodes" Type="Self.ItemCodes" Multiplicity="*" />
@@ -2033,6 +2089,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="CodeMast" EntityType="Self.CodeMast" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Codextn" EntityType="Self.Codextn" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DepartmentUsers" EntityType="Self.DepartmentUsers" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="EquipmentFieldReferences" EntityType="Self.EquipmentFieldReferences" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="EquipmentFields" EntityType="Self.EquipmentFields" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ErrorLogs" EntityType="Self.ErrorLogs" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ItemCodes" EntityType="Self.ItemCodes" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ItemFields" EntityType="Self.ItemFields" Schema="dbo" store:Type="Tables" />
@@ -2180,6 +2238,18 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_DepartmentUsers_Codextn" Association="Self.FK_DepartmentUsers_Codextn">
             <End Role="Codextn" EntitySet="Codextn" />
             <End Role="DepartmentUsers" EntitySet="DepartmentUsers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EquipmentFieldReferences_EquipmentFields" Association="Self.FK_EquipmentFieldReferences_EquipmentFields">
+            <End Role="EquipmentFields" EntitySet="EquipmentFields" />
+            <End Role="EquipmentFieldReferences" EntitySet="EquipmentFieldReferences" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EquipmentFieldReferences_PropertyCards" Association="Self.FK_EquipmentFieldReferences_PropertyCards">
+            <End Role="PropertyCards" EntitySet="PropertyCards" />
+            <End Role="EquipmentFieldReferences" EntitySet="EquipmentFieldReferences" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EquipmentFieldReferences_RisItems" Association="Self.FK_EquipmentFieldReferences_RisItems">
+            <End Role="RisItems" EntitySet="RisItems" />
+            <End Role="EquipmentFieldReferences" EntitySet="EquipmentFieldReferences" />
           </AssociationSet>
           <AssociationSet Name="FK_ItemCodes_ItemTypes" Association="Self.FK_ItemCodes_ItemTypes">
             <End Role="ItemTypes" EntitySet="ItemTypes" />
@@ -2742,10 +2812,19 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RpcPpe" EntitySet="RpcPpes" />
             <End Role="RpcPpeItem" EntitySet="RpcPpeItems" />
           </AssociationSet>
-          <EntitySet Name="PropertyCardVehicles" EntityType="AppManModel.PropertyCardVehicle" />
-          <AssociationSet Name="FK_PropertyCardVehicles_PropertyCards" Association="AppManModel.FK_PropertyCardVehicles_PropertyCards">
+          <EntitySet Name="EquipmentFields" EntityType="AppManModel.EquipmentField" />
+          <EntitySet Name="EquipmentFieldReferences" EntityType="AppManModel.EquipmentFieldReference" />
+          <AssociationSet Name="FK_EquipmentFieldReferences_EquipmentFields" Association="AppManModel.FK_EquipmentFieldReferences_EquipmentFields">
+            <End Role="EquipmentField" EntitySet="EquipmentFields" />
+            <End Role="EquipmentFieldReference" EntitySet="EquipmentFieldReferences" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EquipmentFieldReferences_PropertyCards" Association="AppManModel.FK_EquipmentFieldReferences_PropertyCards">
             <End Role="PropertyCard" EntitySet="PropertyCards" />
-            <End Role="PropertyCardVehicle" EntitySet="PropertyCardVehicles" />
+            <End Role="EquipmentFieldReference" EntitySet="EquipmentFieldReferences" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EquipmentFieldReferences_RisItems" Association="AppManModel.FK_EquipmentFieldReferences_RisItems">
+            <End Role="RisItem" EntitySet="RisItems" />
+            <End Role="EquipmentFieldReference" EntitySet="EquipmentFieldReferences" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -4377,6 +4456,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="RISs" Relationship="AppManModel.FK_RisItems_RIS" FromRole="RisItem" ToRole="RISs" />
           <NavigationProperty Name="RisItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItems" FromRole="RisItem" ToRole="RisItemUnitGroupDescriptionItem" />
           <NavigationProperty Name="RisIssueds" Relationship="AppManModel.FK_RisIssueds_RisItems" FromRole="RisItem" ToRole="RisIssued" />
+          <NavigationProperty Name="EquipmentFieldReferences" Relationship="AppManModel.FK_EquipmentFieldReferences_RisItems" FromRole="RisItem" ToRole="EquipmentFieldReference" />
         </EntityType>
         <Association Name="FK_RisItems_ItemCodes">
           <End Type="AppManModel.ItemCode" Role="ItemCode" Multiplicity="0..1" />
@@ -4611,7 +4691,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="AcqMode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
           <NavigationProperty Name="PropertyCardItems" Relationship="AppManModel.FK_PropertyCardItems_PropertyCards" FromRole="PropertyCard" ToRole="PropertyCardItem" />
-          <NavigationProperty Name="PropertyCardVehicle" Relationship="AppManModel.FK_PropertyCardVehicles_PropertyCards" FromRole="PropertyCard" ToRole="PropertyCardVehicle" />
+          <NavigationProperty Name="EquipmentFieldReferences" Relationship="AppManModel.FK_EquipmentFieldReferences_PropertyCards" FromRole="PropertyCard" ToRole="EquipmentFieldReference" />
         </EntityType>
         <EntityType Name="AccountableOfficer">
           <Key>
@@ -4656,7 +4736,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="Type" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Brand" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="SerialNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Others" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Others" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
           <Property Name="Color" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Model_" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
         </EntityType>
@@ -4848,11 +4928,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="PropertyCardVehicle">
-          <Key>
-            <PropertyRef Name="CardId" />
-          </Key>
-          <Property Name="CardId" Type="Guid" Nullable="false" />
+        <EntityType Name="PropertyCardVehicle" BaseType="AppManModel.PropertyCard">
           <Property Name="Type" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Make" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Series" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
@@ -4862,19 +4938,64 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="Color" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="EngineNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="ChasisNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="PropertyCard" Relationship="AppManModel.FK_PropertyCardVehicles_PropertyCards" FromRole="PropertyCardVehicle" ToRole="PropertyCard" />
         </EntityType>
-        <Association Name="FK_PropertyCardVehicles_PropertyCards">
-          <End Type="AppManModel.PropertyCard" Role="PropertyCard" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.PropertyCardVehicle" Role="PropertyCardVehicle" Multiplicity="0..1" />
+        <EntityType Name="EquipmentField">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="Type" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Brand" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Model_" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SerialNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Others" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="Color" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="EquipmentFieldReferences" Relationship="AppManModel.FK_EquipmentFieldReferences_EquipmentFields" FromRole="EquipmentField" ToRole="EquipmentFieldReference" />
+        </EntityType>
+        <EntityType Name="EquipmentFieldReference">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="EquipFieldId" Type="Guid" />
+          <Property Name="RefId" Type="Guid" />
+          <NavigationProperty Name="EquipmentField" Relationship="AppManModel.FK_EquipmentFieldReferences_EquipmentFields" FromRole="EquipmentFieldReference" ToRole="EquipmentField" />
+          <NavigationProperty Name="PropertyCard" Relationship="AppManModel.FK_EquipmentFieldReferences_PropertyCards" FromRole="EquipmentFieldReference" ToRole="PropertyCard" />
+          <NavigationProperty Name="RisItem" Relationship="AppManModel.FK_EquipmentFieldReferences_RisItems" FromRole="EquipmentFieldReference" ToRole="RisItem" />
+        </EntityType>
+        <Association Name="FK_EquipmentFieldReferences_EquipmentFields">
+          <End Type="AppManModel.EquipmentField" Role="EquipmentField" Multiplicity="0..1" />
+          <End Type="AppManModel.EquipmentFieldReference" Role="EquipmentFieldReference" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EquipmentField">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="EquipmentFieldReference">
+              <PropertyRef Name="EquipFieldId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EquipmentFieldReferences_PropertyCards">
+          <End Type="AppManModel.PropertyCard" Role="PropertyCard" Multiplicity="0..1" />
+          <End Type="AppManModel.EquipmentFieldReference" Role="EquipmentFieldReference" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="PropertyCard">
               <PropertyRef Name="Id" />
             </Principal>
-            <Dependent Role="PropertyCardVehicle">
-              <PropertyRef Name="CardId" />
+            <Dependent Role="EquipmentFieldReference">
+              <PropertyRef Name="RefId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EquipmentFieldReferences_RisItems">
+          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="0..1" />
+          <End Type="AppManModel.EquipmentFieldReference" Role="EquipmentFieldReference" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RisItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="EquipmentFieldReference">
+              <PropertyRef Name="RefId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -5922,6 +6043,20 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="Color" ColumnName="Color" />
               </MappingFragment>
             </EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(AppManModel.PropertyCardVehicle)">
+              <MappingFragment StoreEntitySet="PropertyCardVehicles">
+                <ScalarProperty Name="Id" ColumnName="CardId" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="Make" ColumnName="Make" />
+                <ScalarProperty Name="Series" ColumnName="Series" />
+                <ScalarProperty Name="YearModel" ColumnName="YearModel" />
+                <ScalarProperty Name="PlateNo" ColumnName="PlateNo" />
+                <ScalarProperty Name="BodyNo" ColumnName="BodyNo" />
+                <ScalarProperty Name="Color" ColumnName="Color" />
+                <ScalarProperty Name="EngineNo" ColumnName="EngineNo" />
+                <ScalarProperty Name="ChasisNo" ColumnName="ChasisNo" />
+              </MappingFragment>
+            </EntityTypeMapping>
           </EntitySetMapping>
           <EntitySetMapping Name="AccountableOfficers">
             <EntityTypeMapping TypeName="AppManModel.AccountableOfficer">
@@ -6059,19 +6194,25 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="PropertyCardVehicles">
-            <EntityTypeMapping TypeName="AppManModel.PropertyCardVehicle">
-              <MappingFragment StoreEntitySet="PropertyCardVehicles">
-                <ScalarProperty Name="ChasisNo" ColumnName="ChasisNo" />
-                <ScalarProperty Name="EngineNo" ColumnName="EngineNo" />
+          <EntitySetMapping Name="EquipmentFields">
+            <EntityTypeMapping TypeName="AppManModel.EquipmentField">
+              <MappingFragment StoreEntitySet="EquipmentFields">
                 <ScalarProperty Name="Color" ColumnName="Color" />
-                <ScalarProperty Name="BodyNo" ColumnName="BodyNo" />
-                <ScalarProperty Name="PlateNo" ColumnName="PlateNo" />
-                <ScalarProperty Name="YearModel" ColumnName="YearModel" />
-                <ScalarProperty Name="Series" ColumnName="Series" />
-                <ScalarProperty Name="Make" ColumnName="Make" />
+                <ScalarProperty Name="Others" ColumnName="Others" />
+                <ScalarProperty Name="SerialNo" ColumnName="SerialNo" />
+                <ScalarProperty Name="Model_" ColumnName="Model_" />
+                <ScalarProperty Name="Brand" ColumnName="Brand" />
                 <ScalarProperty Name="Type" ColumnName="Type" />
-                <ScalarProperty Name="CardId" ColumnName="CardId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="EquipmentFieldReferences">
+            <EntityTypeMapping TypeName="AppManModel.EquipmentFieldReference">
+              <MappingFragment StoreEntitySet="EquipmentFieldReferences">
+                <ScalarProperty Name="RefId" ColumnName="RefId" />
+                <ScalarProperty Name="EquipFieldId" ColumnName="EquipFieldId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

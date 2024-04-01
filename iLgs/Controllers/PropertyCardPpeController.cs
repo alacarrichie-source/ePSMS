@@ -18,18 +18,18 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("PROPERTYCARD")]
-    public class PropertyCardController : Controller
+    [AppAuthorize("PROPERTYCARDPPE")]
+    public class PropertyCardPpeController : Controller
     {
         private AppManEntities _db = new AppManEntities();        
-        private IPropertyCardPpeService _propertyCardPpeService;
+        private IPropertyCardPpeService _ppeCardService;
         
-        public PropertyCardController()
+        public PropertyCardPpeController()
         {          
-            _propertyCardPpeService = new PropertyCardPpeService(_db);        
+            _ppeCardService = new PropertyCardPpeService(_db);        
         }
 
-        // GET: Cards
+        // GET: EquipmentCard
         public ActionResult Index()
         {
             return View();
@@ -37,7 +37,7 @@ namespace iLgs.Controllers
         
         public ActionResult Read([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _propertyCardPpeService.GetAll();
+            var data = _ppeCardService.GetAll();
 
             var result = new JsonNetResult
             {
@@ -54,7 +54,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "property_card");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ppe_card");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -66,7 +66,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _propertyCardPpeService.CreateAsync(model, user, date);
+                    model = await _ppeCardService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -89,7 +89,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "property_card");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ppe_card");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -101,7 +101,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _propertyCardPpeService.UpdateAsync(model, user, date);
+                    model = await _ppeCardService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -125,7 +125,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "property_card");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ppe_card");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -136,7 +136,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _propertyCardPpeService.DeleteAsync(model, user, date);
+                    model = await _ppeCardService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -157,7 +157,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _CardAddEdit(Guid? cardId)
         {
-            var data = await _propertyCardPpeService.GetVmByIdAsync(cardId);
+            var data = await _ppeCardService.GetVmByIdAsync(cardId);
             if (data == null)
             {
                 data = new PropertyCardPpeVM()
@@ -183,9 +183,9 @@ namespace iLgs.Controllers
         //}
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public JsonResult GetDescription(PropertyCardPpeFields fields)
+        public JsonResult GetDescription(PropertyCardPpeVM fields)
         {
-            var description = _propertyCardPpeService.GetDescription(fields);
+            var description = _ppeCardService.GetDescription(fields);
 
             return Json(new { Description = description }, JsonRequestBehavior.AllowGet);
         }

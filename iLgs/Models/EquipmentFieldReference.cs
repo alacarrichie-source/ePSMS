@@ -12,16 +12,14 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PropertyCardVehicle : PropertyCard
+    public partial class EquipmentFieldReference
     {
-        public string Type { get; set; }
-        public string Make { get; set; }
-        public string Series { get; set; }
-        public Nullable<int> YearModel { get; set; }
-        public string PlateNo { get; set; }
-        public string BodyNo { get; set; }
-        public string Color { get; set; }
-        public string EngineNo { get; set; }
-        public string ChasisNo { get; set; }
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> EquipFieldId { get; set; }
+        public Nullable<System.Guid> RefId { get; set; }
+    
+        public virtual EquipmentField EquipmentField { get; set; }
+        public virtual PropertyCard PropertyCard { get; set; }
+        public virtual RisItem RisItem { get; set; }
     }
 }

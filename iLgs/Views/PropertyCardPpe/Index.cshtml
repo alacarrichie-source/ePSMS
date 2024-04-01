@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Property Card";
+    ViewBag.Title = "Property Card - Equipment";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
@@ -12,6 +12,7 @@
         col.Bound(c => c.Item).Width(100);
         col.Bound(c => c.PropNo).Width(70);
         col.Bound(c => c.Description).Width(150);
+        col.Bound(c => c.Type).Width(70);
         //col.Bound(c => c.UnitMeas).Width(70).EditorTemplateName("_UnitMeasTemplate");
         col.Command(command =>
         {
@@ -25,7 +26,7 @@
         t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintCard").HtmlAttributes(new { @class = "k-button", href = "" });
     })
     //.Editable(editable => editable.Mode(GridEditMode.InLine))
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PropertyCardTemplate").Window(w => w.Width(800).Title("Property Card")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardTemplate").Window(w => w.Width(800).Title("Property Card")))
     @*.ToolBar(toolbar =>
         {
         toolbar.Template(@<text>
@@ -61,10 +62,10 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
-        .Read(read => read.Action("Read", "PropertyCard"))
-        .Create(create => create.Action("Create", "PropertyCard"))
-        .Update(update => update.Action("Update", "PropertyCard"))
-        .Destroy(destroy => destroy.Action("Destroy", "PropertyCard"))
+        .Read(read => read.Action("Read", "PropertyCardPpe"))
+        .Create(create => create.Action("Create", "PropertyCardPpe"))
+        .Update(update => update.Action("Update", "PropertyCardPpe"))
+        .Destroy(destroy => destroy.Action("Destroy", "PropertyCardPpe"))
     )
     .Events(events => events
         .Change("onChangeGrid")
@@ -163,10 +164,10 @@
             //    a.Add(p => p.UnitCost).Sum();
             //})
             .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridCardItems"))
-            .Read("ItemRead", "PropertyCard", new { propId = "#=Id#" })
-            .Create("ItemCreate", "PropertyCard")
-            .Update("ItemUpdate", "PropertyCard")
-            .Destroy("ItemDestroy", "PropertyCard")
+            .Read("ItemRead", "PropertyCardPpe", new { propId = "#=Id#" })
+            .Create("ItemCreate", "PropertyCardPpe")
+            .Update("ItemUpdate", "PropertyCardPpe")
+            .Destroy("ItemDestroy", "PropertyCardPpe")
         ).Events(e => e.Edit("onEditGridStockItems").Change("onChangeGridStockItems").DataBound("onDataBoundGridStockItems"))
         .ToClientTemplate()
     )
@@ -894,16 +895,16 @@
     // CARD ADD EDIT
     function onClickBtnAdd(e) {
         e.preventDefault();
-        PropertyCard("A", null);
+        PropertyCardPpe("A", null);
     }
 
     function onClickBtnEdit(e) {
         e.preventDefault();
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        PropertyCard("E", dataItem.Id);
+        PropertyCardPpe("E", dataItem.Id);
     }
 
-    function PropertyCard(mode, recId) {
+    function PropertyCardPpe(mode, recId) {
         var myTitle = (mode == "A") ? "Property Card - ADD" : "Property Card - EDIT";
         var width = 800;
         var height = 650;
@@ -927,7 +928,7 @@
             height: height
         });
         mywindow.refresh({
-            url: '@Url.Action("_CardAddEdit", "PropertyCard")',
+            url: '@Url.Action("_CardAddEdit", "PropertyCardPpe")',
             data: {
                 cardId: selectedId
             }
@@ -938,11 +939,11 @@
     //
 
 
-    // PROPERTYCARD TEMPLATE
+    // PropertyCardPpe TEMPLATE
     function DataItemCode() {
         var text = $("#ItemCodeId").data("kendoMultiColumnComboBox").text();
         return {
-            category: "PPE",
+            typeCode: "E",
             text: text
         };
     }
@@ -957,14 +958,14 @@
 
         //RefreshGridItemExtn();
 
-        var itemType = dataItem.Type;
-        
-        for (var i = 65; i <= 90; i++) { // ASCII codes for A to Z
-            var divId = "DIV_ITEM_" + String.fromCharCode(i);
-            $("#" + divId).hide();
-        }
+        //var itemType = dataItem.Type;
 
-        $("#DIV_ITEM_" + itemType).show();
+        //for (var i = 65; i <= 90; i++) { // ASCII codes for A to Z
+        //    var divId = "DIV_ITEM_" + String.fromCharCode(i);
+        //    $("#" + divId).hide();
+        //}
+
+        //$("#DIV_ITEM_" + itemType).show();
     }
 
     function onDataBoundItemCode(e) {
@@ -1041,13 +1042,19 @@
         });
     }
 
+    //var txtType = $("#EquipmentField_Type").data("kendoTextBox");
+    //// Add onChange event handler
+    //txtType.bind("change", function () {        
+    //    alert("TextBox value changed!");
+    //});
+
     function UpdateDescription(e)
     {
         var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
         var data = $("#form").serialize();
         $.ajax({
             type: "POST",
-            url: '@Url.Action("GetDescription", "PropertyCard")',
+            url: '@Url.Action("GetDescription", "PropertyCardPpe")',
             data: data,
             beforeSend: function () {
                 window.kendo.ui.progress($(document.body), true);
@@ -1063,7 +1070,7 @@
         });
     }
 
-    // END PROPERTYCARD TEMPLATE
+    // END PropertyCardPpe TEMPLATE
 
 </script>
 

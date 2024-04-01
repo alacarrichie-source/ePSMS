@@ -7,7 +7,7 @@ using System.Web;
 namespace iLgs.Models
 {    
     public class PropertyCardVM
-    {        
+    {                
         public System.Guid Id { get; set; }
 
         [Display(Name = "Item Code")]
@@ -47,26 +47,54 @@ namespace iLgs.Models
         public string ItemType { get; set; }
 
         public string ItemTypeCode { get; set; }
-
-        PropertyCardPpe PropertyCardPpe { get; set; }
-        PropertyCardVehicle Vehicle { get; set; }
+                
     }
 
-    public class PropertyCardVehicleVM
-    {
-        public System.Guid CardId { get; set; }
-        public string Type { get; set; }
-        public string Make { get; set; }
-        public string Series { get; set; }
-        public Nullable<int> YearModel { get; set; }
-        public string PlateNo { get; set; }
-        public string BodyNo { get; set; }
-        public string Color { get; set; }
-        public string EngineNo { get; set; }
-        public string ChasisNo { get; set; }
 
-        public virtual PropertyCard PropertyCard { get; set; }
-    }
+    //public class EquipmentFieldVM
+    //{
+    //    public EquipmentFieldVM()
+    //    {
+    //        this.EquipmentFieldReferences = new HashSet<EquipmentFieldReferenceVM>();
+    //    }
+
+    //    public System.Guid Id { get; set; }
+    //    public string Type { get; set; }
+    //    public string Brand { get; set; }
+    //    public string Model_ { get; set; }
+    //    public string SerialNo { get; set; }
+    //    public string Others { get; set; }
+    //    public string Color { get; set; }
+
+    //    public ICollection<EquipmentFieldReferenceVM> EquipmentFieldReferences { get; set; }
+    //}
+
+    //public class EquipmentFieldReferenceVM
+    //{
+    //    public System.Guid Id { get; set; }
+    //    public Nullable<System.Guid> EquipFieldId { get; set; }
+    //    public Nullable<System.Guid> RefId { get; set; }
+
+    //    public PropertyCardVM PropertyCard { get; set; }
+    //    //public RisItem RisItem { get; set; }
+    //    public EquipmentFieldVM EquipmentField { get; set; }
+    //}
+
+    //public class PropertyCardVehicleVM
+    //{
+    //    public System.Guid CardId { get; set; }
+    //    public string Type { get; set; }
+    //    public string Make { get; set; }
+    //    public string Series { get; set; }
+    //    public Nullable<int> YearModel { get; set; }
+    //    public string PlateNo { get; set; }
+    //    public string BodyNo { get; set; }
+    //    public string Color { get; set; }
+    //    public string EngineNo { get; set; }
+    //    public string ChasisNo { get; set; }
+
+    //    public virtual PropertyCard PropertyCard { get; set; }
+    //}
 
     public class PropertyCardPpeVM : PropertyCardVM
     {
@@ -80,28 +108,28 @@ namespace iLgs.Models
         public string Color { get; set; }
     }
 
-    public class PropertyCardTranspoVM : PropertyCardVM
-    {
-        public string EngineNo { get; set; }
-        public string Brand { get; set; }
-        [Display(Name = "Model")]
-        public string Model_ { get; set; }
-        [Display(Name = "Serial No.")]
-        public string SerialNo { get; set; }
-        public string Others { get; set; }
-        public string Color { get; set; }
-    }
+    //public class PropertyCardTranspoVM : PropertyCardVM
+    //{
+    //    public string EngineNo { get; set; }
+    //    public string Brand { get; set; }
+    //    [Display(Name = "Model")]
+    //    public string Model_ { get; set; }
+    //    [Display(Name = "Serial No.")]
+    //    public string SerialNo { get; set; }
+    //    public string Others { get; set; }
+    //    public string Color { get; set; }
+    //}
 
-    public class PropertyCardPpeFields
-    {
-        public string Type { get; set; }
-        public string Brand { get; set; }
-        public string Model_ { get; set; }
-        [Display(Name = "Serial No.")]
-        public string SerialNo { get; set; }
-        public string Others { get; set; }
-        public string Color { get; set; }
-    }
+    //public class PropertyCardPpeFields
+    //{
+    //    public string Type { get; set; }
+    //    public string Brand { get; set; }
+    //    public string Model_ { get; set; }
+    //    [Display(Name = "Serial No.")]
+    //    public string SerialNo { get; set; }
+    //    public string Others { get; set; }
+    //    public string Color { get; set; }
+    //}
 
     public class PropertyCardItemVM
     {

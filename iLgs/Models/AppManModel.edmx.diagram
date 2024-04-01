@@ -144,8 +144,13 @@
         <InheritanceConnector EntityType="AppManModel.PropertyCardPpe" />
         <EntityTypeShape EntityType="AppManModel.PropertyCardItem" Width="1.5" PointX="3" PointY="5.75" />
         <AssociationConnector Association="AppManModel.FK_PropertyCardItems_PropertyCards" />
-        <EntityTypeShape EntityType="AppManModel.PropertyCardVehicle" Width="1.5" PointX="3" PointY="12.375" />
-        <AssociationConnector Association="AppManModel.FK_PropertyCardVehicles_PropertyCards" />
+        <EntityTypeShape EntityType="AppManModel.PropertyCardVehicle" Width="2" PointX="2.875" PointY="3.25" />
+        <InheritanceConnector EntityType="AppManModel.PropertyCardVehicle" />
+      </Diagram>
+      <Diagram DiagramId="eda6e1342cab4ef2bd46a7465b735284" Name="Item Fields" >
+        <EntityTypeShape EntityType="AppManModel.EquipmentField" Width="1.5" PointX="0.75" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.EquipmentFieldReference" Width="1.5" PointX="3" PointY="1" />
+        <AssociationConnector Association="AppManModel.FK_EquipmentFieldReferences_EquipmentFields" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

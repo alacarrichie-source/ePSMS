@@ -63,7 +63,7 @@
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetItemsByCategory", "Items").Data("DataItemCode");
+                                read.Action("GetItemsByTypeCode", "Items").Data("DataItemCode");
                             })
                             .ServerFiltering(true);
                         })
@@ -101,17 +101,82 @@
             </div>
         </div>
 
-        <div id="DIV_ITEM_E">
+        @*<div id="DIV_ITEM_E">
             @Html.Partial("_MachineryEquipment")
-        </div>        
+        </div>*@        
 
-        <div id="DIV_ITEM_F" style="display: none;">
-            <label>item f</label>
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Type, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.Type).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                    @Html.ValidationMessageFor(m => m.Type)
+                </div>
+            </div>
         </div>
 
-        <div id="DIV_ITEM_T" style="display: none;">
-            <label>item t</label>
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Brand, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                    @Html.ValidationMessageFor(m => m.Brand)
+                </div>
+            </div>
         </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Model_, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.Model_).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                    @Html.ValidationMessageFor(m => m.Model_)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Color, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.Color).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                    @Html.ValidationMessageFor(m => m.Color)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Others, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.Others).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                    @Html.ValidationMessageFor(m => m.Others)
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Description)
+                </div>
+            </div>
+        </div>
+
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.SerialNo, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.SerialNo)
+                </div>
+            </div>
+        </div>
+
 
         <div class="row">
             <div class="col-md-12">

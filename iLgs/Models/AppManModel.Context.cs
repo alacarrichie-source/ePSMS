@@ -89,6 +89,7 @@ namespace iLgs.Models
         public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<RpcPpe> RpcPpes { get; set; }
-        public virtual DbSet<PropertyCardVehicle> PropertyCardVehicles { get; set; }
+        public virtual DbSet<EquipmentField> EquipmentFields { get; set; }
+        public virtual DbSet<EquipmentFieldReference> EquipmentFieldReferences { get; set; }
     }
 }

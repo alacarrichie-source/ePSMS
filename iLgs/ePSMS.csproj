@@ -207,7 +207,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controllers\PropertyCardController.cs" />
+    <Compile Include="Controllers\PropertyCardPpeController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
     <Compile Include="Controllers\PropertiesController.cs" />
     <Compile Include="Controllers\RpceffoppeController.cs" />
@@ -218,6 +218,12 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\DepartmentUser.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\EquipmentField.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\EquipmentFieldReference.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\OrderItemUnitGroup.cs">
@@ -3634,13 +3640,13 @@
     <Content Include="Views\Items\EditorTemplates\_CategoryTemplate.cshtml" />
     <Content Include="Views\Codes\_AccountableOfficers.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_DateAssumptionTemplate.cshtml" />
-    <Content Include="Views\PropertyCard\Index.cshtml" />
-    <Content Include="Views\PropertyCard\EditorTemplates\_PropertyCardTemplate.cshtml" />
-    <Content Include="Views\PropertyCard\_MachineryEquipment.cshtml" />
+    <Content Include="Views\PropertyCardPpe\EditorTemplates\_CardTemplate.cshtml" />
+    <Content Include="Views\PropertyCardPpe\_MachineryEquipment.cshtml" />
     <Content Include="Views\RpcPpe\Index.cshtml" />
     <Content Include="Views\RpcPpe\EditorTemplates\_RpcTemplate.cshtml" />
     <Content Include="Views\RpcPpe\_Item.cshtml" />
     <Content Include="Views\RpcPpe\EditorTemplates\_ItemTemplate.cshtml" />
+    <Content Include="Views\PropertyCardPpe\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3746,7 +3752,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

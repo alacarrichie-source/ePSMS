@@ -725,6 +725,13 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle }), JsonRequestBehavior.AllowGet);
         }
 
+        [Authorize]
+        public JsonResult GetItemsByTypeCode(string typeCode, string text)
+        {
+            var model = _itemCodeService.GetItemsByTypeCode(typeCode, text);
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle }), JsonRequestBehavior.AllowGet);
+        }
+
 
         public JsonResult GetPsNo(string itemCode, string itemName)
         {
