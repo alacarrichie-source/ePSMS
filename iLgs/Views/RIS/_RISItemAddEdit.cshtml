@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.RisItemVM
+﻿@model iLgs.Models.RisItemEntryVM
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
@@ -9,6 +9,7 @@
     @Html.HiddenFor(model => model.RisId)
     @Html.HiddenFor(model => model.PsNo)
     @Html.HiddenFor(model => model.PsType)
+    @Html.HiddenFor(model => model.ItemType)
     @Html.HiddenFor(model => model.ItemCode)
     @Html.HiddenFor(model => model.GridRisItemExtns)
 
@@ -25,8 +26,8 @@
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                        .Placeholder("Select Item Code")
-                        .DataTextField("Code")
+                        .Placeholder("Select Item")
+                        .DataTextField("Description")
                         .DataValueField("Id")
                         .ValuePrimitive(true)
                         .Filter(FilterType.Contains)
@@ -43,7 +44,7 @@
                             c.Add().Field("ItemNo").Title("Item No.").Width("10%");
                             c.Add().Field("Code").Title("Code").Width("10%");
                             c.Add().Field("MainDesc").Title("Group").Width("40%");
-                            c.Add().Field("Description").Title("Type").Width("40%");                            
+                            c.Add().Field("Description").Title("Item").Width("40%");
                         })
                         .Suggest(true)
                         .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
@@ -55,22 +56,202 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.ItemType, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(m => m.PsTypeDesc, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.ItemType).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                    
+                    @(Html.Kendo().TextBoxFor(m => m.PsTypeDesc).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                    
                 </div>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.ItemName, htmlAttributes: new { @class = "col-md-12" })
+        <div id="DIV_ITEM_M">
+            <div class="row">
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.ItemName).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.ItemName)
+                    @Html.LabelFor(m => m.RisItemMedicine.GenericName, "Generic Name", htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemMedicine.GenericName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemMedicine.GenericName)
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.RisItemMedicine.DosageStrength, "Dosage Strength", htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemMedicine.DosageStrength).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemMedicine.DosageStrength)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.RisItemMedicine.DosageForm, "Dosage From", htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemMedicine.DosageForm).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemMedicine.DosageForm)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.RisItemMedicine.Others, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemMedicine.Others).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemMedicine.Others)
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div id="DIV_ITEM_B" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>BUILDING AND OTHER STRUCTURES</h1>
+                </div>
+            </div>
+        </div>
+
+        <div id="DIV_ITEM_E" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>MACHINERY AND OTHER EQUIPMENTS</h1>
+                </div>
+            </div>
+        </div>
+
+        <div id="DIV_ITEM_F" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>FOOD SUPPLIES</h1>
+                </div>
+            </div>
+        </div>
+
+        <div id="DIV_ITEM_D" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    <h4>LAND IMPROVEMENTS</h4>
+                </div>
+            </div>
+        </div>
+
+        <div id="DIV_ITEM_I" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    <h4>INFRASTRUCTURE</h4>
+                </div>
+            </div>
+        </div>
+
+        <div id="DIV_ITEM_L" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    <h4>LAND</h4>
+                </div>
+            </div>
+        </div>
+
+        <div id="DIV_ITEM_T" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.RisItemVehicle.Make, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemVehicle.Make).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemVehicle.Make)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.RisItemVehicle.Series, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemVehicle.Series).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemVehicle.Series)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.RisItemVehicle.YearModel, "Year Model", htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemVehicle.YearModel).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemVehicle.YearModel)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.RisItemVehicle.PlateNo, "Plate No", htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemVehicle.PlateNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemVehicle.PlateNo)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.RisItemVehicle.BodyNo, "Body No", htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemVehicle.BodyNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemVehicle.BodyNo)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.RisItemVehicle.EngineNo, "Engine No", htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemVehicle.EngineNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemVehicle.EngineNo)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.RisItemVehicle.ChassisNo, "Chassis No", htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemVehicle.ChassisNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemVehicle.ChassisNo)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.RisItemVehicle.Color, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.RisItemVehicle.Color).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.RisItemVehicle.Color)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="DIV_ITEM_U" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>FURNITURE, FIXTURE AND BOOKS</h1>
+                </div>
+            </div>
+        </div>
+
+        <div id="DIV_ITEM_Z" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>OTHER PROPERTY, PLANT AND PPE</h1>
+                </div>
+            </div>
+        </div>
+
 
         <div class="row">
             <div class="col-md-12">
@@ -83,45 +264,6 @@
         </div>
 
         <br />
-        <div class="row">
-            <div class="col-md-12">
-                @(Html.Kendo().Grid<iLgs.Models.RisItemExtnVM>()
-                    .Name("gridItemExtn")
-                    .Columns(col =>
-                    {
-                        col.Bound(c => c.ItemNo).Width(50);
-                        col.Bound(c => c.ItemKey).Width(70);
-                        col.Bound(c => c.ItemValue).Width(120);
-                        col.Bound(c => c.Sequence).Width(50);
-                    })
-                    .Editable(editable => editable.Mode(GridEditMode.InCell))
-                    .Sortable()
-                    .NoRecords()
-                    .Navigatable()
-                    .Scrollable(s => s.Height(130))
-                    .DataSource(dataSource => dataSource
-                        .Ajax()
-                        .Batch(true)
-                        .Sort(s => s.Add(a => a.ItemNo))
-                        .ServerOperation(true)
-                        .Model(model =>
-                        {
-                            model.Id(p => p.Id);
-                            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-                            model.Field(p => p.ItemNo).Editable(false);
-                            model.Field(p => p.ItemKey).Editable(false);                            
-                        })
-                        .Read(read => read.Action("_RISItemExtnBatchRead", "RIS").Data("DataRisItemExtnGrid"))
-                    )
-                    .Selectable(s => s.Mode(GridSelectionMode.Single))
-                    .Events(e => e.Save("onSaveGridItemExtn").DataBound("onDataBoundGridItemExtn"))
-                    .AutoBind(false)
-                )
-            </div>
-        </div>
-
-        <br />
-
         <div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.OtherDesc, htmlAttributes: new { @class = "col-md-12" })
@@ -156,7 +298,7 @@
                             c.Add().Field("Description").Title("Unit").Width("100%");
 
                         })
-                        .Suggest(true)                        
+                        .Suggest(true)
                     )
                     @Html.ValidationMessageFor(m => m.Unit)
                 </div>
@@ -183,7 +325,7 @@
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.Remarks).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
-            </div>            
+            </div>
         </div>
 
         <br />
@@ -203,29 +345,31 @@
 <script type="text/javascript">
     $("#btnSave").click(function (e) {
         e.preventDefault();
-        var grid = $("#gridItemExtn").data("kendoGrid");
+        //var grid = $("#gridItemExtn").data("kendoGrid");
 
-        // Get all data items (rows) in the Grid
-        var dataItems = grid.dataItems();
+        //// Get all data items (rows) in the Grid
+        //var dataItems = grid.dataItems();
 
-        // Create an array to store the row values
-        var rowValues = [];
+        //// Create an array to store the row values
+        //var rowValues = [];
 
-        // Iterate over each data item (row) and extract the values
-        for (var i = 0; i < dataItems.length; i++) {
-            var row = dataItems[i];
-            rowValues.push(row);
-        }
-        
-        $("#GridRisItemExtns").val(JSON.stringify(rowValues)).trigger("change");
+        //// Iterate over each data item (row) and extract the values
+        //for (var i = 0; i < dataItems.length; i++) {
+        //    var row = dataItems[i];
+        //    rowValues.push(row);
+        //}
+
+        //$("#GridRisItemExtns").val(JSON.stringify(rowValues)).trigger("change");
+
 
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            var data = $("#form").serialize();
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("_RISItemSave", "RIS")',
-                data: $("#form").serialize(),
+                data: data,
                 beforeSend: function () {
                     window.kendo.ui.progress($("#form"), true);
                 },

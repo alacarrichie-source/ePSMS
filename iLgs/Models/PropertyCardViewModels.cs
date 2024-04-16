@@ -5,12 +5,12 @@ using System.Linq;
 using System.Web;
 
 namespace iLgs.Models
-{    
+{        
     public class PropertyCardVM
     {                
         public System.Guid Id { get; set; }
 
-        [Display(Name = "Item Code")]
+        [Display(Name = "Item")]
         public Nullable<System.Guid> ItemCodeId { get; set; }
         public string Fund { get; set; }
         public string Description { get; set; }
@@ -37,7 +37,7 @@ namespace iLgs.Models
 
         // Transients
 
-        [Display(Name = "PPE")]
+        [Display(Name = "Item")]
         public string Item { get; set; }
 
         [Display(Name = "Item Code")]
@@ -47,7 +47,9 @@ namespace iLgs.Models
         public string ItemType { get; set; }
 
         public string ItemTypeCode { get; set; }
-                
+
+        //public ICollection<EquipmentFieldReference> EquipmentFieldReferences { get; set; }
+
     }
 
 
@@ -80,25 +82,28 @@ namespace iLgs.Models
     //    public EquipmentFieldVM EquipmentField { get; set; }
     //}
 
-    //public class PropertyCardVehicleVM
-    //{
-    //    public System.Guid CardId { get; set; }
-    //    public string Type { get; set; }
-    //    public string Make { get; set; }
-    //    public string Series { get; set; }
-    //    public Nullable<int> YearModel { get; set; }
-    //    public string PlateNo { get; set; }
-    //    public string BodyNo { get; set; }
-    //    public string Color { get; set; }
-    //    public string EngineNo { get; set; }
-    //    public string ChasisNo { get; set; }
-
-    //    public virtual PropertyCard PropertyCard { get; set; }
-    //}
+    public class PropertyCardVehicleVM : PropertyCardVM
+    {
+        public string Type { get; set; }
+        public string Make { get; set; }
+        public string Series { get; set; }
+        [Display(Name = "Year Model")]
+        public Nullable<int> YearModel { get; set; }
+        [Display(Name = "Plate No.")]
+        public string PlateNo { get; set; }
+        [Display(Name = "Body No.")]
+        public string BodyNo { get; set; }
+        public string Color { get; set; }
+        [Display(Name = "Engine No.")]
+        public string EngineNo { get; set; }
+        [Display(Name = "Chassis No.")]
+        public string ChassisNo { get; set; }
+     
+    }
 
     public class PropertyCardPpeVM : PropertyCardVM
     {
-        public string Type { get; set; }
+        public string Type { get; set; }            
         public string Brand { get; set; }
         [Display(Name = "Model")]
         public string Model_ { get; set; }
@@ -161,7 +166,7 @@ namespace iLgs.Models
         public string Remarks { get; set; }
         public string Location { get; set; }
 
-        [Display(Name = "Issued To.")]
+        [Display(Name = "Issued To")]
         public string IssuedTo { get; set; }
 
         [Display(Name = "Accountable Officer")]

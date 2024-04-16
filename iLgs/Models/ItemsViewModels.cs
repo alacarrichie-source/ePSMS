@@ -75,6 +75,7 @@ namespace iLgs.Models
         // Transients
         public string MainDesc { get; set; }
         public string ItemType { get; set; }
+        public string ItemTypeDesc { get; set; }
         public string Account { get; set; }
         public string SubArticle { get; set; }
     }

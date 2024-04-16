@@ -157,13 +157,14 @@ namespace iLgs.Models
 
     public class OrderItemGroupVM
     {
-        public Guid? PsCodeId { get; set; }
+        public Guid? ItemCodeId { get; set; }
         public string StockNo { get; set; }
         public string StockName { get; set; }
         public string Description { get; set; }
         public string Brand { get; set; }
         public string Fund { get; set; }
         public string Unit { get; set; }
+        public string ItemTypeCode { get; set; }
     }
 
     public class OrderItemExtnVM

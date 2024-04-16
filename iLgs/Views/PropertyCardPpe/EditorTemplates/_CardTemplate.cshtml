@@ -9,6 +9,7 @@
     @*@Html.HiddenFor(model => model.PropNo)*@
     @Html.HiddenFor(model => model.ItemCode)
     @Html.HiddenFor(model => model.ItemTypeCode)
+    @Html.HiddenFor(model => model.Item)
     //@Html.HiddenFor(model => model.GridItems)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
@@ -54,8 +55,8 @@
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                        .Placeholder("Select Item Code")
-                        .DataTextField("Code")
+                        .Placeholder("Select Item")
+                        .DataTextField("Description")
                         .DataValueField("Id")
                         .ValuePrimitive(true)
                         .Filter(FilterType.Contains)
@@ -91,7 +92,7 @@
             </div>
         </div>*@
 
-        <div class="row">
+        @*<div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Item, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -99,7 +100,7 @@
                     @Html.ValidationMessageFor(m => m.Item)
                 </div>
             </div>
-        </div>
+        </div>*@
 
         @*<div id="DIV_ITEM_E">
             @Html.Partial("_MachineryEquipment")

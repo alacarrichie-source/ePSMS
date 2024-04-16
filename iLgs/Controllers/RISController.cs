@@ -26,6 +26,7 @@ namespace iLgs.Controllers
         private AppManEntities _db = new AppManEntities();
         private IRisIssuedService _risIssuedService;
         private IServiceAgent _sa;
+        private IRisItemService _risItemService;
         private IRisItemUnitGroupService _risItemUnitGroupService;
         private IRisItemUnitGroupDescriptionService _risItemUnitGroupDescriptionService;
         private IRisItemUnitGroupDescriptionItemService _risItemUnitGroupDescriptionItemService;
@@ -33,6 +34,7 @@ namespace iLgs.Controllers
         {
             _risIssuedService = new RisIssuedService(_db);
             _sa = new ServiceAgent(_db);
+            _risItemService = new RisItemService(_db);
             _risItemUnitGroupService = new RisItemUnitGroupService(_db);
             _risItemUnitGroupDescriptionService = new RisItemUnitGroupDescriptionService(_db);
             _risItemUnitGroupDescriptionItemService = new RisItemUnitGroupDescriptionItemService(_db);
@@ -262,10 +264,10 @@ namespace iLgs.Controllers
         }
         public async Task<ActionResult> _RISItemAddEdit(Guid risId, Guid? risItemId)
         {
-            var data = await _sa.RisItem.GetVmByIdAsync(risItemId);
+            var data = await _risItemService.GetEntryVmByIdAsync(risItemId);
             if (data == null)
             {
-                data = new RisItemVM()
+                data = new RisItemEntryVM()
                 {
                     Id = Guid.NewGuid(),
                     RisId = risId
@@ -276,7 +278,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RISItemSave(RisItemVM model)
+        public async Task<ActionResult> _RISItemSave(RisItemEntryVM model)
         {
             try
             {
@@ -311,8 +313,8 @@ namespace iLgs.Controllers
                         model = await _sa.RisItem.UpdateAsync(model, user, date);
                     }
 
-                    var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
-                    await _sa.RisItemExtn.SaveAsync(model.Id, risItemExtns, user, date);
+                    //var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
+                    //await _sa.RisItemExtn.SaveAsync(model.Id, risItemExtns, user, date);
                 }
             }
             catch (Exception e)
@@ -343,7 +345,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RISItemDestroy([DataSourceRequest]DataSourceRequest request, RisItemVM model)
+        public async Task<ActionResult> _RISItemDestroy([DataSourceRequest]DataSourceRequest request, RisItemEntryVM model)
         {
             try
             {
@@ -1005,5 +1007,13 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
         #endregion  
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public JsonResult GetDescription(RisItemEntryVM entry)
+        {
+            var description = _risItemService.GetDescription(entry);
+
+            return Json(new { Description = description }, JsonRequestBehavior.AllowGet);
+        }
     }
 }

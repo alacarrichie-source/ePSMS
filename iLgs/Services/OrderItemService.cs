@@ -34,6 +34,7 @@ namespace iLgs.Services
                     ItemCode = s.RequestItem.RisItem.ItemCode.Code,
                     ItemType = s.RequestItem.RisItem.ItemCode.Description,
                     PsType = s.RequestItem.RisItem.ItemCode.ItemType.Code,
+                    PsTypeDesc = s.RequestItem.RisItem.ItemCode.ItemType.Description,
                     PsNo = s.RequestItem.RisItem.PsNo,
                     Brand = s.Brand,
                     StockNo = s.StockNo,
@@ -63,6 +64,7 @@ namespace iLgs.Services
                     ItemCode = s.RequestItem.RisItem.ItemCode.Code,
                     ItemType = s.RequestItem.RisItem.ItemCode.Description,
                     PsType = s.RequestItem.RisItem.ItemCode.ItemType.Code,
+                    PsTypeDesc = s.RequestItem.RisItem.ItemCode.ItemType.Description,
                     PsNo = s.RequestItem.RisItem.PsNo,
                     Brand = s.Brand,
                     StockNo = s.StockNo,
@@ -109,10 +111,10 @@ namespace iLgs.Services
                 throw new RecordRelationshipException("Cound not find RIS item for this record!");
             }
             
-            if (!(await _codextnService.IsValidCodeDescAsync("BRANDS", model.Brand)))
-            {
-                throw new RecordRelationshipException("Brand is not valid!");
-            }
+            //if (!(await _codextnService.IsValidCodeDescAsync("BRANDS", model.Brand)))
+            //{
+            //    throw new RecordRelationshipException("Brand is not valid!");
+            //}
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -272,10 +274,10 @@ namespace iLgs.Services
                 throw new RecordRelationshipException("Cound not find RIS item for this record!");
             }
 
-            if (!(await _codextnService.IsValidCodeDescAsync("BRANDS", model.Brand)))
-            {
-                throw new RecordRelationshipException("Brand is not valid!");
-            }
+            //if (!(await _codextnService.IsValidCodeDescAsync("BRANDS", model.Brand)))
+            //{
+            //    throw new RecordRelationshipException("Brand is not valid!");
+            //}
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -303,34 +305,56 @@ namespace iLgs.Services
 
         private async ValueTask<string> StockNameAsync(OrderItemVM orderItem, Guid? risItemId) 
         {
-            
+
+            //var psType = orderItem.PsType;
+            //var itemExtns = await _db.Database.SqlQuery<RisItemExtnVM>("Exec RisItemExtnService_GetBatchInfo {0}, {1}", risItemId, psType).ToListAsync();
+            //var psCode = orderItem.ItemCode.ToString();
+
+            //string stockName = orderItem.Brand.Replace(" ", "").Trim();
+            //string itemName = orderItem.ItemName.Substring(0, 1) + orderItem.ItemName.Substring(2, 1);
+
+            //if (psType == "M")
+            //{
+            //    var df = itemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Form");
+            //    if (df != null)
+            //    {
+            //        stockName += df.ItemValue.Substring(0, 3);
+            //    }
+            //    var ds = itemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Strength");
+            //    if (ds != null)
+            //    {
+            //        stockName += ds.ItemValue.Replace(" ", "");
+            //    }
+
+            //    stockName += itemName;
+
+            //    if (orderItem.ItemType == "")
+            //    {
+            //        stockName += "*";
+            //    }
+
+            //    stockName += psCode;
+            //}
+
+            var stockName = orderItem.Brand.Replace(" ", "").Trim();
             var psType = orderItem.PsType;
-            var itemExtns = await _db.Database.SqlQuery<RisItemExtnVM>("Exec RisItemExtnService_GetBatchInfo {0}, {1}", risItemId, psType).ToListAsync();
             var psCode = orderItem.ItemCode.ToString();
-
-            string stockName = orderItem.Brand.Replace(" ", "").Trim();
-            string itemName = orderItem.ItemName.Substring(0, 1) + orderItem.ItemName.Substring(2, 1);
-
             if (psType == "M")
             {
-                var df = itemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Form");
-                if (df != null)
+                //var requestItem = await _db.RequestItems.Include(i => i.RisItem.RisItemMedicine).Where(w => w.Id == orderItem.RequestItemId).FirstOrDefaultAsync();
+                //var medicineItem = requestItem.RisItem.RisItemMedicine;
+                var medicineItem = await _db.RisItemMedicines.FindAsync(risItemId);
+                if (!string.IsNullOrWhiteSpace(medicineItem.DosageForm))
                 {
-                    stockName += df.ItemValue.Substring(0, 3);
-                }
-                var ds = itemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Strength");
-                if (ds != null)
-                {
-                    stockName += ds.ItemValue.Replace(" ", "");
+                    stockName += medicineItem.DosageForm.Substring(0, 3);
                 }
 
-                stockName += itemName;
-
-                if (orderItem.ItemType == "")
+                if (!string.IsNullOrWhiteSpace(medicineItem.DosageStrength))
                 {
-                    stockName += "*";
+                    stockName += medicineItem.DosageStrength.Replace(" ", "");
                 }
 
+                stockName += medicineItem.GenericName.Replace(" ", "");
                 stockName += psCode;
             }
             return stockName;

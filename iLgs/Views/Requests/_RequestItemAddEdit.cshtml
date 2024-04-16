@@ -37,14 +37,14 @@
             </div>
         </div>
 
-        <div class="row">
+        @*<div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.ItemName, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.ItemName).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
-        </div>
+        </div>*@
 
         <div class="row">
             <div class="col-md-12">
@@ -55,7 +55,7 @@
             </div>
         </div>
 
-        <br />
+        @*<br />
         <div class="row">
             <div class="col-md-12">
                 @(Html.Kendo().Grid<iLgs.Models.RisItemExtnVM>()
@@ -88,7 +88,7 @@
                     .AutoBind(true)
                 )
             </div>
-        </div>
+        </div>*@
 
         <br />
         <div class="row">
@@ -144,21 +144,21 @@
 <script type="text/javascript">
     $("#btnSave").click(function (e) {
         e.preventDefault();
-        var grid = $("#gridItemExtn").data("kendoGrid");
+        //var grid = $("#gridItemExtn").data("kendoGrid");
 
-        // Get all data items (rows) in the Grid
-        var dataItems = grid.dataItems();
+        //// Get all data items (rows) in the Grid
+        //var dataItems = grid.dataItems();
 
-        // Create an array to store the row values
-        var rowValues = [];
+        //// Create an array to store the row values
+        //var rowValues = [];
 
-        // Iterate over each data item (row) and extract the values
-        for (var i = 0; i < dataItems.length; i++) {
-            var row = dataItems[i];
-            rowValues.push(row);
-        }
+        //// Iterate over each data item (row) and extract the values
+        //for (var i = 0; i < dataItems.length; i++) {
+        //    var row = dataItems[i];
+        //    rowValues.push(row);
+        //}
 
-        $("#GridRequestItemExtns").val(JSON.stringify(rowValues)).trigger("change");
+        //$("#GridRequestItemExtns").val(JSON.stringify(rowValues)).trigger("change");
 
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {

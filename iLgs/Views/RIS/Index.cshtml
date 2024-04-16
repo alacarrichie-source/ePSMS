@@ -114,15 +114,14 @@
 <div id="windowcontainer"></div>
 
 <style>
-
-    .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {        
+    .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
         width: auto;
     }
 
     .k-window-content {
         overflow-x: hidden;
     }
-    
+
     .k-grid .k-grid-search {
         display: flex;
         margin-left: auto;
@@ -381,6 +380,9 @@
                     draggable: true,
                     modal: true,
                     visible: false,
+                    autoheight: true,
+                    //autoCenter: true, // Set autoCenter to true
+                    //position: { top: '50%' },
                     close: function () {
                         $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
                     },
@@ -402,6 +404,18 @@
         });
         mywindow.center();
         mywindow.open();
+        //setTimeout(resizeWindow(), 300);
+    }
+
+    function resizeWindow() {
+        var mywindow = $("#window").data("kendoWindow");
+        if (mywindow) {
+            mywindow.setOptions({
+                width: "800",
+                height: "auto"
+            });
+            mywindow.center(); // Optional: Center the window after resizing
+        }
     }
 
     function onChangeGridItems(e) {
@@ -535,20 +549,41 @@
         $("#ItemCodeId").val(dataItem.Id).trigger("change");
         $("#ItemCode").val(dataItem.Code).trigger("change");
         $("#PsType").val(dataItem.Type).trigger("change");
+        $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
         $("#ItemType").val(dataItem.Description).trigger("change");
 
-        RefreshGridItemExtn();
+        RefreshDivs(dataItem);        
+        
     }
 
-    function onDataBoundItemCode(e) {
-        RefreshGridItemExtn();
+
+    function RefreshDivs(dataItem) {
+        var itemType = dataItem.Type;
+
+        for (var i = 65; i <= 90; i++) { // ASCII codes for A to Z
+            var divId = "DIV_ITEM_" + String.fromCharCode(i);
+            $("#" + divId).hide();
+        }
+
+        $("#DIV_ITEM_" + itemType).show();
+
+        resizeWindow();
     }
 
-    function RefreshGridItemExtn()
-    {
-        $("#gridItemExtn").data("kendoGrid").dataSource.read();
+
+    function onDataBoundItemCode(e) {        
+        var comboBox = this;
+        var selectedValue = comboBox.value();
+        //alert(selectedValue);
+        //alert(this.data("kendoMultiColumnComboBox").value());
+
+        if (selectedValue !== null && selectedValue !== undefined && selectedValue != "") {
+            var dataItem = comboBox.dataItem();
+            RefreshDivs(dataItem);    
+        }         
     }
 
+    
     function onSaveChangesGridItemExtn(e) {
         var grid = e.sender;
         var itemValues = grid.dataSource.data().map(function (item) {
@@ -590,7 +625,7 @@
 
         for (var i = 0; i < gridData.length; i++) {
             var rowData = gridData[i];
-            
+
             if (rowData.ItemNo == 1) {
                 $("#ItemName").val(rowData.ItemValue).trigger('change');
             //} else {
@@ -788,14 +823,14 @@
     }
 
     function onClickBtnDeleteRisItem(e) { // not working
-        e.preventDefault();        
+        e.preventDefault();
         var subGridName = $(e.currentTarget).closest(".k-grid").attr("id");
         selectedGrid = $("#" + subGridName).data("kendoGrid");
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        //selectedGrid.removeRow(tr);        
+        //selectedGrid.removeRow(tr);
     }
 
 
@@ -835,10 +870,10 @@
         var parentRow = this.wrapper.closest("tr").prev();
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
         var parentModel = parentGrid.dataItem(parentRow);
-        
+
         if (parentModel.IsPosted != true) {
             $(".k-grid-add", grid).hide();
-        }        
+        }
     }
 
     function onEditGridIssuedItems(e) {
@@ -903,10 +938,10 @@
     var selectedUnitGroupId;
     var selectedUnitGroupDescriptionId = null;
     var selectedUnitGroupDescriptionItemId = null;
-    
+
     function onChangeGridItemUnitGroups(e) {
         var selectedData = this.dataItem(this.select());
-        selectedUnitGroupId = selectedData.Id;    
+        selectedUnitGroupId = selectedData.Id;
         selectedUnitGroupDescriptionId = null;
         selectedUnitGroupDescriptionItemId = null;
     }
@@ -961,10 +996,10 @@
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 $("#gridItemUnitGroupDescriptions_" + selectedUnitGroupId).data("kendoGrid").dataSource.read();
-            }       
+            }
         }
     }
-    
+
     function onChangeGridItemUnitGroupDescriptions(e) {
         var selectedData = this.dataItem(this.select());
         selectedUnitGroupDescriptionId = selectedData.Id;
@@ -1013,12 +1048,12 @@
     }
     // END RIS ITEM UNIT GROUP DESCRIPTIONS
 
-    // RIS UNIT GROUP DESCRIPTION ITEMS             
+    // RIS UNIT GROUP DESCRIPTION ITEMS
     function onGridItemUnitGroupDescriptionItemsRequestEnd(e) {
         e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                $("#gridItemUnitGroupDescriptionItems_" + selectedUnitGroupDescriptionId).data("kendoGrid").dataSource.read();                    
+                $("#gridItemUnitGroupDescriptionItems_" + selectedUnitGroupDescriptionId).data("kendoGrid").dataSource.read();
             }
         }
     }
@@ -1075,9 +1110,32 @@
     }
 
     function onChangeGridItemAvailable(arg) {
-        $("#GridItems").val(this.selectedKeyNames().join(",")).trigger("change");        
+        $("#GridItems").val(this.selectedKeyNames().join(",")).trigger("change");
     }
     // END RIS UNIT GROUP DESCRIPTION ITEMS
+
+    function UpdateDescription(e)
+    {
+        var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+        var data = $("#form").serialize();
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GetDescription", "RIS")',
+            data: data,
+            beforeSend: function () {
+                window.kendo.ui.progress($(document.body), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($(document.body), false);
+                $("#Description").val(result.Description).trigger("change");
+                disabled.attr('disabled', 'disabled')
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+            }
+        });
+    }
 </script>
 
 

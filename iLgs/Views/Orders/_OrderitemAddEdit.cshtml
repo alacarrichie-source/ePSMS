@@ -70,14 +70,14 @@
             </div>
         </div>
 
-        <div class="row">
+        @*<div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.ItemType, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.ItemType).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
-        </div>
+        </div>*@
 
         <div class="row">
             <div class="col-md-12">
@@ -101,6 +101,16 @@
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Brand, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(m => m.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Brand)
+                </div>
+            </div>
+        </div>
+
+        @*<div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Brand, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
                     @(Html.Kendo().ComboBoxFor(m => m.Brand)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .DataTextField("Description")
@@ -119,9 +129,9 @@
 
                 </div>
             </div>
-        </div>
+        </div>*@
 
-        <br />
+        @*<br />
         <div class="row">
             <div class="col-md-12">
                 @(Html.Kendo().Grid<iLgs.Models.RisItemExtnVM>()
@@ -153,7 +163,7 @@
                     .AutoBind(true)
                 )
             </div>
-        </div>
+        </div>*@
 
         <br />
         <div class="row">

@@ -10,7 +10,7 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
        
-        [Display(Name = "As At")]
+        [Display(Name = "As Of")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AsAt { get; set; }
 
@@ -55,7 +55,18 @@ namespace iLgs.Models
         public string Fund { get; set; }
         public string Article { get; set; }
         public string Description { get; set; }
+        public string Brand { get; set; }
 
+        [Display(Name = "Ref. No.")]
+        public string RefNo { get; set; }
+
+        [Display(Name = "Ref. Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> RefDate { get; set; }
+
+        [Display(Name = "Old Stock No.")]
+        public string OldStockNo { get; set; }
+        
         [Display(Name = "Stock No.")]
         public string StockNo { get; set; }
 

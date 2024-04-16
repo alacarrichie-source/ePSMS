@@ -193,13 +193,16 @@ namespace iLgs.Models
         [Display(Name = "Item Name")]
         public string ItemName { get; set; }
 
-        [Display(Name = "Category")]
+        [Display(Name = "Category Code")]
         public string PsType { get; set; } // Used as category
+
+        [Display(Name = "Category Name")]
+        public string PsTypeDesc { get; set; } // Used as category description
 
         [Display(Name = "Item Code")]
         public string ItemCode { get; set; } // Code of ItemCodeId
 
-        [Display(Name = "Item Type")]
+        [Display(Name = "Item")]
         public string ItemType { get; set; } // Description of ItemCodeId
 
         public string Unit { get; set; }
@@ -210,7 +213,7 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisId { get; set; }
-        [Display(Name = "Item No.")]
+        [Display(Name = "Item")]
         public Nullable<System.Guid> ItemCodeId { get; set; }        
 
         [Display(Name = "Qty Req.")]
@@ -231,6 +234,87 @@ namespace iLgs.Models
         // for reference in dropdown templates
         public string Department { get; set; }
         public bool IsPosted { get; set; }
+    }
+
+    [MetadataType(typeof(RisItemMedecine.Metadata))]
+    public partial class RisItemMedecine
+    {
+        internal sealed class Metadata
+        {
+            [Display(Name = "Generic Name")]
+            public string GenericName { get; set; }
+
+            [Display(Name = "Dosage Strength")]
+            public string DosageStrength { get; set; }
+
+            [Display(Name = "Dosage Form")]
+            public string DosageForm { get; set; }
+            public string Brand { get; set; }
+            public string Others { get; set; }
+        }
+    }
+
+    [MetadataType(typeof(RisItemVehicle.Metadata))]
+    public partial class RisItemVehicle
+    {
+        internal sealed class Metadata
+        {
+            public System.Guid RisItemId { get; set; }
+            public string Type { get; set; }
+            public string Make { get; set; }
+            public string Series { get; set; }
+
+            [Display(Name = "Year Model")]
+            public Nullable<int> YearModel { get; set; }
+
+            [Display(Name = "Plate No.")]
+            public string PlateNo { get; set; }
+
+            [Display(Name = "Body No.")]
+            public string BodyNo { get; set; }
+
+            public string Color { get; set; }
+
+            [Display(Name = "Engine No.")]
+            public string EngineNo { get; set; }
+
+            [Display(Name = "Chassis No.")]
+            public string ChassisNo { get; set; }         
+        }
+    }
+
+    [MetadataType(typeof(RisItemPpe.Metadata))]
+    public partial class RisItemPpe
+    {
+        internal sealed class Metadata
+        {
+            public System.Guid RisItemId { get; set; }
+            public string Type { get; set; }
+            public string Brand { get; set; }
+
+            [Display(Name = "Model")]
+            public string Model_ { get; set; }
+
+            [Display(Name = "Serial No.")]
+            public string SerialNo { get; set; }
+            public string Others { get; set; }
+            public string Color { get; set; }
+        }        
+    }
+
+    public class RisItemEntryVM : RisItemVM
+    {
+        public RisItemEntryVM()
+        {
+            this.RisItemMedicine = new RisItemMedicine();
+            this.RisItemVehicle = new RisItemVehicle();
+            this.RisItemPpe = new RisItemPpe();
+        }
+
+        public RisItemMedicine RisItemMedicine { get; set; }        
+        public RisItemVehicle RisItemVehicle { get; set; }
+        public RisItemPpe RisItemPpe { get; set; }
+        
     }
 
     public class RisItemExtnVM

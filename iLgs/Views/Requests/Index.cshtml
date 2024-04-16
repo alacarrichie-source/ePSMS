@@ -728,7 +728,7 @@
     function RequestItem(mode, recId) {
         var myTitle = (mode == "A") ? "Request Item - ADD" : "Request Item - EDIT";
         var width = 800;
-        var height = 570;
+        //var height = 570;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -746,7 +746,7 @@
         mywindow.setOptions({
             title: myTitle,
             width: width,
-            height: height
+            height: "auto"
         });
         mywindow.refresh({
             url: '@Url.Action("_RequestItemAddEdit", "Requests")',

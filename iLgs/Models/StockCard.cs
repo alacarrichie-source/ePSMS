@@ -12,33 +12,39 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class RisIssued
+    public partial class StockCard
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public RisIssued()
+        public StockCard()
         {
-            this.StockItemIssuances = new HashSet<StockItemIssuance>();
+            this.StockItems = new HashSet<StockItem>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> RisItemId { get; set; }
-        public Nullable<System.Guid> OrderItemId { get; set; }
-        public Nullable<System.DateTime> IssuedDate { get; set; }
-        public string IssuedBy { get; set; }
-        public string IssuedByDesignation { get; set; }
-        public Nullable<int> Qty { get; set; }
-        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<System.Guid> ItemCodeId { get; set; }
+        public string Fund { get; set; }
+        public string Description { get; set; }
+        public string Unit { get; set; }
+        public string StockNo { get; set; }
+        public string StockName { get; set; }
+        public Nullable<decimal> ReorderPoint { get; set; }
+        public string PrevStockNo { get; set; }
+        public Nullable<System.DateTime> AcqDate { get; set; }
+        public string AcqMode { get; set; }
         public Nullable<decimal> Amount { get; set; }
-        public string ReceivedBy { get; set; }
-        public string ReceivedByDesignation { get; set; }
-        public Nullable<System.DateTime> ReceivedDate { get; set; }
+        public string GenericName { get; set; }
+        public string DosageStrength { get; set; }
+        public string DosageForm { get; set; }
+        public string Brand { get; set; }
+        public string Others { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public string OtherDesc { get; set; }
     
-        public virtual RisItem RisItem { get; set; }
+        public virtual ItemCode ItemCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<StockItemIssuance> StockItemIssuances { get; set; }
+        public virtual ICollection<StockItem> StockItems { get; set; }
     }
 }

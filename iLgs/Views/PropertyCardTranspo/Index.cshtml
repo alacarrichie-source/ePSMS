@@ -1,9 +1,9 @@
 ﻿@{
-    ViewBag.Title = "Property Card - Equipment";
+    ViewBag.Title = "Property Card - Transportation Equipment";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-@(Html.Kendo().Grid<iLgs.Models.PropertyCardPpeVM>()
+@(Html.Kendo().Grid<iLgs.Models.PropertyCardVehicleVM>()
     .Name("grid")
     .Columns(col =>
     {
@@ -26,7 +26,7 @@
         t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintCard").HtmlAttributes(new { @class = "k-button", href = "" });
     })
     //.Editable(editable => editable.Mode(GridEditMode.InLine))
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardTemplate").Window(w => w.Width(800).Title("Property Card")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardTemplate").Window(w => w.Width(800).Title("Property Card - Transportation Equipment")))
     @*.ToolBar(toolbar =>
         {
         toolbar.Template(@<text>
@@ -62,10 +62,10 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
-        .Read(read => read.Action("Read", "PropertyCardPpe"))
-        .Create(create => create.Action("Create", "PropertyCardPpe"))
-        .Update(update => update.Action("Update", "PropertyCardPpe"))
-        .Destroy(destroy => destroy.Action("Destroy", "PropertyCardPpe"))
+        .Read(read => read.Action("Read", "PropertyCardTranspo"))
+        .Create(create => create.Action("Create", "PropertyCardTranspo"))
+        .Update(update => update.Action("Update", "PropertyCardTranspo"))
+        .Destroy(destroy => destroy.Action("Destroy", "PropertyCardTranspo"))
     )
     .Events(events => events
         .Change("onChangeGrid")
@@ -166,119 +166,15 @@
             //    a.Add(p => p.UnitCost).Sum();
             //})
             .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItems"))
-            .Read("ItemRead", "PropertyCardPpe", new { cardId = "#=Id#" })
-            .Create("ItemCreate", "PropertyCardPpe")
-            .Update("ItemUpdate", "PropertyCardPpe")
-            .Destroy("ItemDestroy", "PropertyCardPpe")
+            .Read("ItemRead", "PropertyCardTranspo", new { cardId = "#=Id#" })
+            .Create("ItemCreate", "PropertyCardTranspo")
+            .Update("ItemUpdate", "PropertyCardTranspo")
+            .Destroy("ItemDestroy", "PropertyCardTranspo")
         ).Events(e => e.Edit("onEditGridItems").Change("onChangeGridItems").DataBound("onDataBoundGridItems"))
         .ToClientTemplate()
     )
 }
 
-
-@helper RenderIssuance()
-{
-    @(Html.Kendo().Grid<iLgs.Models.RisIssuedVM>()
-    .Name("gridIssuance_#=Id#")
-    .Columns(col =>
-    {
-        col.Bound(c => c.Department).Width(70);
-        col.Bound(c => c.ReceivedBy).Width(70);
-        col.Bound(c => c.IssuedDate).Width(50);
-        col.Bound(c => c.UnitCost).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        col.Bound(c => c.Amount).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-    })
-    .Sortable()
-    .NoRecords()
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .Events(events => events.Error("error_handler")
-        )
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-        })
-        .Aggregates(a =>
-        {
-            a.Add(p => p.Qty).Sum();
-            a.Add(p => p.Amount).Sum();
-        })
-        //.Sort(s => s.Add(a => a.Department))
-        .Read(read => read.Action("_IssuanceRead", "Stocks", new { stockNo = "#=StockNo#" }))
-    )
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .ToClientTemplate())
-}
-
-<script id="IssuedItems" type="text/kendo-tmpl">
-    @(Html.Kendo().Grid<iLgs.Models.RisIssuedVM>()
-    .Name("gridIssuance_#=Id#")
-    .Columns(col =>
-    {
-        col.Bound(c => c.IssuedDate).Width(50).EditorTemplateName("_IssuedDateTemplate");
-        col.Bound(c => c.ReceivedBy).Width(70);
-        col.Bound(c => c.UnitCost).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_UnitCostTemplate");
-        col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_QtyTemplate");
-        col.Bound(c => c.Amount).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_AmountTemplate");
-        //col.Command(command =>
-        //{
-        //    command.Edit();
-        //    command.Destroy();
-        //    //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-        //}).Width(100);
-    })
-    //.ToolBar(t =>
-    //{
-    //    t.Create();
-    //})
-    .Sortable()
-    .NoRecords()
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .Events(events => events.Error("error_handler")
-        )
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-        })
-        .Aggregates(a =>
-        {
-            a.Add(p => p.Qty).Sum();
-            a.Add(p => p.Amount).Sum();
-        })
-        .Read(read => read.Action("_IssuanceRead", "Stocks", new { stockNo = "#=StockNo#" }))
-    //.Create(create => create.Action("_IssuanceCreate", "Stocks" ))
-    //.Update(update => update.Action("_IssuanceUpdate", "Stocks"))
-    //.Destroy(destroy => destroy.Action("_IssuanceDestroy", "Stocks"))
-    )
-    //.Events(events => events
-    //    .Change("onChangeGridIssuance")
-    //    .Edit("onEditGridIssuance")
-    //    .DataBound("onDataBoundGridIssuance")
-    //)
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .ToClientTemplate())
-</script>
-
-
-@*@(Html.Kendo().Tooltip()
-        .For("#itemBio")
-        .Filter("a")
-        .ContentHandler("getBio")
-    )*@
 
 <div id="windowcontainer"></div>
 
@@ -917,7 +813,7 @@
     function DataItemCode() {
         var text = $("#ItemCodeId").data("kendoMultiColumnComboBox").text();
         return {
-            typeCode: "E",
+            typeCode: "T",
             text: text
         };
     }
@@ -1018,7 +914,7 @@
 
     //var txtType = $("#EquipmentField_Type").data("kendoTextBox");
     //// Add onChange event handler
-    //txtType.bind("change", function () {        
+    //txtType.bind("change", function () {
     //    alert("TextBox value changed!");
     //});
 
@@ -1026,10 +922,10 @@
     {
         var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
         var data = $("#form").serialize();
-        
+
         $.ajax({
             type: "POST",
-            url: '@Url.Action("GetDescription", "PropertyCardPpe")',
+            url: '@Url.Action("GetDescription", "PropertyCardTranspo")',
             data: data,
             beforeSend: function () {
                 window.kendo.ui.progress($(document.body), true);

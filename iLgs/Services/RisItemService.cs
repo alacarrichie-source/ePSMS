@@ -14,21 +14,22 @@ namespace iLgs.Services
 {
     public class RisItemService : IRisItemService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RisItemVM> _vmExceptionService = new ExceptionService<RisItemVM>();
+        private readonly IExceptionService<RisItemEntryVM> _entryVmExceptionService = new ExceptionService<RisItemEntryVM>();
         private readonly IExceptionService<RisItem> _exceptionService = new ExceptionService<RisItem>();
 
         public RisItemService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;
         }
 
-        public ValueTask<RisItemVM> GetVmByIdAsync(Guid? id) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<RisItemEntryVM> GetVmByIdAsync(Guid? id) =>
+        _entryVmExceptionService.TryCatchAsync(async () =>
         {
-            var data = await db.RisItems.Where(w => w.Id == id)
-                .Select(s => new RisItemVM
+            var data = await _db.RisItems.Where(w => w.Id == id)
+                .Select(s => new RisItemEntryVM
                 {
                     Id = s.Id,
                     RisId = s.RisId,
@@ -36,6 +37,7 @@ namespace iLgs.Services
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.Description,
                     PsType = s.ItemCode.ItemType.Code,
+                    PsTypeDesc = s.ItemCode.ItemType.Description,
                     PsNo = s.PsNo,
                     PsNoDisplay = s.PsNoDisplay,
                     Unit = s.Unit,
@@ -52,18 +54,11 @@ namespace iLgs.Services
             return data;
         });
 
-        public ValueTask<RisItem> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<RisItemEntryVM> GetEntryVmByIdAsync(Guid? id) =>
+        _entryVmExceptionService.TryCatchAsync(async () =>
         {
-            var data = await db.RisItems.FindAsync(id);
-            return data;
-        });
-
-        public IQueryable<RisItemVM> GetByRisId(Guid? risId) =>
-        _vmExceptionService.TryCatch(() =>
-        {
-            var data = db.RisItems.Where(w => w.RisId == risId)
-                .Select(s => new RisItemVM
+            var data = await _db.RisItems.Where(w => w.Id == id)
+                .Select(s => new RisItemEntryVM
                 {
                     Id = s.Id,
                     RisId = s.RisId,
@@ -71,6 +66,46 @@ namespace iLgs.Services
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.Description,
                     PsType = s.ItemCode.ItemType.Code,
+                    PsTypeDesc = s.ItemCode.ItemType.Description,
+                    PsNo = s.PsNo,
+                    PsNoDisplay = s.PsNoDisplay,
+                    Unit = s.Unit,
+                    ItemName = s.ItemName,
+                    Description = s.Description,
+                    OtherDesc = s.OtherDesc,
+                    QtyRequest = s.QtyRequest,
+                    QtyIssue = s.QtyIssue,
+                    Remarks = s.Remarks,
+                    InsertedDt = s.InsertedDt,
+                    Department = s.RISs.Office,
+                    IsPosted = s.RISs.PostedDt != null,
+                    RisItemMedicine = s.RisItemMedicine,
+                    RisItemPpe = s.RisItemPpe,
+                    RisItemVehicle = s.RisItemVehicle
+                }).FirstOrDefaultAsync();
+            return data;
+        });
+
+        public ValueTask<RisItem> GetByIdAsync(Guid? id) =>
+        _exceptionService.TryCatchAsync(async () =>
+        {
+            var data = await _db.RisItems.FindAsync(id);
+            return data;
+        });
+
+        public IQueryable<RisItemEntryVM> GetByRisId(Guid? risId) =>
+        _entryVmExceptionService.TryCatch(() =>
+        {
+            var data = _db.RisItems.Where(w => w.RisId == risId)
+                .Select(s => new RisItemEntryVM
+                {
+                    Id = s.Id,
+                    RisId = s.RisId,
+                    ItemCodeId = s.ItemCodeId,
+                    ItemCode = s.ItemCode.Code,
+                    ItemType = s.ItemCode.Description,
+                    PsType = s.ItemCode.ItemType.Code,
+                    PsTypeDesc = s.ItemCode.ItemType.Description,
                     PsNo = s.PsNo,
                     PsNoDisplay = s.PsNoDisplay,
                     Unit = s.Unit,
@@ -87,8 +122,8 @@ namespace iLgs.Services
             return data;
         });
 
-        public ValueTask<RisItemVM> CreateAsync(RisItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<RisItemEntryVM> CreateAsync(RisItemEntryVM model, string user, DateTime date) =>
+        _entryVmExceptionService.TryCatchAsync(async () =>
         {
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -97,16 +132,16 @@ namespace iLgs.Services
             model.UpdatedDt = date;
 
             model.PsNo = PsNo(model);
-            model.PsNoDisplay = PsNoDisplay(model.ItemCode, model.ItemName);
+            model.PsNoDisplay = PsNoDisplay(model.ItemCode, model.Description);
 
-            RisItem entity = new RisItem()
+            var entity = new RisItem()
             {
                 Id = model.Id,
                 RisId = model.RisId,
                 ItemCodeId = model.ItemCodeId,
                 PsNo = model.PsNo,
                 PsNoDisplay = model.PsNoDisplay,
-                ItemName = model.ItemName,
+                ItemName = model.ItemType,
                 Unit = model.Unit,
                 Description = model.Description,
                 OtherDesc = model.OtherDesc,
@@ -116,53 +151,59 @@ namespace iLgs.Services
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
+                UpdatedDt = model.UpdatedDt                
             };
 
-            db.RisItems.Add(entity);
-            await db.SaveChangesAsync();
+            entity = SetItemEntity(entity, model);
+
+            _db.RisItems.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
 
-        public ValueTask<RisItemVM> DeleteAsync(RisItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<RisItemEntryVM> DeleteAsync(RisItemEntryVM model, string user, DateTime date) =>
+        _entryVmExceptionService.TryCatchAsync(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            RisItem entity = await db.RisItems.FindAsync(model.Id);
+            RisItem entity = await _db.RisItems.FindAsync(model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.RisItems.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.RisItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.RisItems.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.RisItems.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         });
 
-        public ValueTask<RisItemVM> UpdateAsync(RisItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<RisItemEntryVM> UpdateAsync(RisItemEntryVM model, string user, DateTime date) =>
+        _entryVmExceptionService.TryCatchAsync(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            RisItem entity = await db.RisItems.FindAsync(model.Id);
+            var entity = await _db.RisItems
+                .Include(i => i.RisItemVehicle)
+                .Include(i => i.RisItemPpe)
+                .Include(i => i.RisItemMedicine)
+                .Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
             model.PsNo = PsNo(model);
-            model.PsNoDisplay = PsNoDisplay(model.ItemCode, model.ItemName);
+            model.PsNoDisplay = PsNoDisplay(model.ItemCode, model.Description);
 
             entity.RisId = model.RisId;
             entity.ItemCodeId = model.ItemCodeId;
             entity.PsNo = model.PsNo;
             entity.PsNoDisplay = model.PsNoDisplay;
-            entity.ItemName = model.ItemName;
+            entity.ItemName = model.ItemType;
             entity.Unit = model.Unit;
             entity.Description = model.Description;
             entity.OtherDesc = model.OtherDesc;
@@ -172,9 +213,11 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.RisItems.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            entity = SetItemEntity(entity, model);
+
+            _db.RisItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             // cascade updates
             // PR, Description, Qty
@@ -184,94 +227,159 @@ namespace iLgs.Services
             return model;
         });
 
-        private string PsNo(RisItemVM model)
+        private RisItem SetItemEntity(RisItem entity, RisItemEntryVM model)
         {
-            var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
-            string psNo = model.ItemCode.Trim();
-            var itemType = db.ItemTypes.Where(w => w.Code == model.PsType).FirstOrDefault();
-            string itemValue = "";
-            for (var x = 1; x <= itemType.FormulaNo; x++)
+            entity.RisItemMedicine = null;
+            entity.RisItemVehicle = null;
+            entity.RisItemPpe = null;
+            if (model.PsType == "M")
             {
-                itemValue = risItemExtns.FirstOrDefault(f => f.ItemNo == x.ToString())?.ItemValue.Replace(" ", "").Trim();
-                if (string.IsNullOrWhiteSpace(itemValue))
+                entity.RisItemMedicine = model.RisItemMedicine;
+            }
+            else if (model.PsType == "T")
+            {
+                entity.RisItemVehicle = model.RisItemVehicle;
+            }
+            else if (model.PsType == "E")
+            {
+                entity.RisItemPpe = model.RisItemPpe;
+            }
+            return entity;
+        }
+
+        private string PsNo(RisItemEntryVM model)
+        {
+            string psNo = model.ItemCode.Trim();
+            if (model.PsType == "M")
+            {
+                var f = model.RisItemMedicine;
+                if (f.GenericName.Length >= 3)
                 {
-                    psNo += "XXX";
+                    psNo += f.GenericName.Substring(0, 1) + f.GenericName.Substring(2, 1);
                 }
                 else
                 {
-                    int itemCount = 0;
-                    if (model.PsType == "M")
-                    {
-                        var raItems = itemValue.Split('/');
-                        foreach (var raItem in raItems)
-                        {
-                            if (++itemCount > 1)
-                            {
-                                psNo += "/";
-                            }
-
-                            if (x == 1)
-                            {
-                                if (raItem.Length >= 3)
-                                {
-                                    psNo += raItem.Substring(0, 1) + raItem.Substring(2, 1);
-                                }
-                                else
-                                {
-                                    psNo += raItem.Substring(0, 1) + "X";
-                                }
-                            }
-                            else if (x == 2)
-                            {
-                                psNo += raItem;
-                            }
-                            else if (x == 3)
-                            {
-                                psNo += raItem.PadRight(3, 'X').Substring(0, 3);
-                            }
-                        }
-                    }
-                    else if (model.PsType == "L")
-                    {
-                        if (x == 1)
-                        {
-                            psNo += itemValue;
-                        }
-                        else if (x == 2)
-                        {
-                            psNo += itemValue.Substring(0, 1).ToUpper();
-                        }
-                        else if (x == 3)
-                        {
-                            psNo += itemValue.Substring(0, 1).ToUpper();
-                        }
-                        else if (x == 4)
-                        {
-                            psNo += itemValue.Substring(2, 2);
-                        }
-                        else if (x == 5)
-                        {
-                            psNo += itemValue.Replace(",", "");
-                        }
-                        else if (x == 6)
-                        {
-                            psNo += itemValue.Substring(0, 1).ToUpper();
-                        }
-                        else if (x == 7)
-                        {
-                            psNo += itemValue.Substring(itemValue.Length - 3);
-                        }
-                        else if (x == 8)
-                        {
-                            psNo += itemValue.Substring(0, 1).ToUpper();
-                        }
-                        else if (x == 9)
-                        {
-                            psNo += itemValue.Substring(2, 2);
-                        }
-                    }
+                    psNo += f.GenericName.Substring(0, 1) + "X";
+                }
+                if (!string.IsNullOrWhiteSpace(f.DosageStrength))
+                {
+                    psNo += f.DosageStrength.Replace(" ", "").Trim();
+                }
+                if (!string.IsNullOrWhiteSpace(f.DosageForm))
+                {
+                    psNo += f.DosageForm.PadRight(3, 'X').Substring(0, 3);
                 }
             }
+            else if (model.PsType == "T")
+            {
+                var f = model.RisItemVehicle;
+                if (f.Make.Length >= 3)
+                {
+                    psNo += f.Make.Substring(0, 1) + f.Make.Substring(2, 1);
+                } else
+                {
+                    psNo += f.Make.Substring(0, 1) + "X";
+                }
+
+                if (f.YearModel > 0)
+                {
+                    psNo += f.YearModel.ToString().Trim();
+                }
+
+                if (string.IsNullOrWhiteSpace(f.Series))
+                {
+                    psNo += "XXX";
+                } else
+                {
+                    psNo += f.Series.Substring(0, 3);
+                }
+            }
+            //var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
+            //string psNo = model.ItemCode.Trim();
+            //var itemType = _db.ItemTypes.Where(w => w.Code == model.PsType).FirstOrDefault();
+            //string itemValue = "";
+            //for (var x = 1; x <= itemType.FormulaNo; x++)
+            //{
+            //    itemValue = risItemExtns.FirstOrDefault(f => f.ItemNo == x.ToString())?.ItemValue.Replace(" ", "").Trim();
+            //    if (string.IsNullOrWhiteSpace(itemValue))
+            //    {
+            //        psNo += "XXX";
+            //    }
+            //    else
+            //    {
+            //        int itemCount = 0;
+            //        if (model.PsType == "M")
+            //        {
+            //            var raItems = itemValue.Split('/');
+            //            foreach (var raItem in raItems)
+            //            {
+            //                if (++itemCount > 1)
+            //                {
+            //                    psNo += "/";
+            //                }
+
+            //                if (x == 1)
+            //                {
+            //                    if (raItem.Length >= 3)
+            //                    {
+            //                        psNo += raItem.Substring(0, 1) + raItem.Substring(2, 1);
+            //                    }
+            //                    else
+            //                    {
+            //                        psNo += raItem.Substring(0, 1) + "X";
+            //                    }
+            //                }
+            //                else if (x == 2)
+            //                {
+            //                    psNo += raItem;
+            //                }
+            //                else if (x == 3)
+            //                {
+            //                    psNo += raItem.PadRight(3, 'X').Substring(0, 3);
+            //                }
+            //            }
+            //        }
+            //        else if (model.PsType == "L")
+            //        {
+            //            if (x == 1)
+            //            {
+            //                psNo += itemValue;
+            //            }
+            //            else if (x == 2)
+            //            {
+            //                psNo += itemValue.Substring(0, 1).ToUpper();
+            //            }
+            //            else if (x == 3)
+            //            {
+            //                psNo += itemValue.Substring(0, 1).ToUpper();
+            //            }
+            //            else if (x == 4)
+            //            {
+            //                psNo += itemValue.Substring(2, 2);
+            //            }
+            //            else if (x == 5)
+            //            {
+            //                psNo += itemValue.Replace(",", "");
+            //            }
+            //            else if (x == 6)
+            //            {
+            //                psNo += itemValue.Substring(0, 1).ToUpper();
+            //            }
+            //            else if (x == 7)
+            //            {
+            //                psNo += itemValue.Substring(itemValue.Length - 3);
+            //            }
+            //            else if (x == 8)
+            //            {
+            //                psNo += itemValue.Substring(0, 1).ToUpper();
+            //            }
+            //            else if (x == 9)
+            //            {
+            //                psNo += itemValue.Substring(2, 2);
+            //            }
+            //        }
+            //    }
+            //}
 
             //if (model.PsType == "M")
             //{
@@ -293,215 +401,54 @@ namespace iLgs.Services
 
         public string PsNoDisplay(string itemCode, string itemName)
         {
-            var raItems = itemName.Replace(" ", "").Split('/');
-            int itemCount = 0;
-            string psNoDisplay = "";
-            foreach (var raItem in raItems)
-            {
-                if (++itemCount > 1)
-                {
-                    psNoDisplay += "/";
-                }
-                if (raItem.Length >= 3)
-                {
-                    psNoDisplay += raItem.Substring(0, 1) + raItem.Substring(2, 1);
-                }
-                else
-                {
-                    psNoDisplay += raItem.Substring(0, 1) + "X";
-                }
-            }
-            return itemCode.Trim() + psNoDisplay; // model.ItemName.Substring(0, 1) + model.ItemName.Substring(2, 1);
+            //var raItems = itemName.Replace(" ", "").Split('/');
+            //int itemCount = 0;
+            //string psNoDisplay = "";
+            //foreach (var raItem in raItems)
+            //{
+            //    if (++itemCount > 1)
+            //    {
+            //        psNoDisplay += "/";
+            //    }
+            //    if (raItem.Length >= 3)
+            //    {
+            //        psNoDisplay += raItem.Substring(0, 1) + raItem.Substring(2, 1);
+            //    }
+            //    else
+            //    {
+            //        psNoDisplay += raItem.Substring(0, 1) + "X";
+            //    }
+            //}
+            //return itemCode.Trim() + psNoDisplay; // model.ItemName.Substring(0, 1) + model.ItemName.Substring(2, 1);
+
+            return itemCode.Trim() + itemName.Substring(0, 1) + itemName.Substring(2, 1);
         }
 
-        //#region EXCEPTIONS
-
-        //private delegate ValueTask NonReturningFunction();
-        //private delegate ValueTask<RisItemVM> ReturningVMFunction();
-        //private delegate ValueTask<RisItem> ReturningFunction();
-        //private delegate IQueryable<RisItemVM> ReturningQueryableVMFunction();
-        //private delegate IQueryable<RisItem> ReturningQueryableFunction();
-
-        //private async ValueTask TryCatch(NonReturningFunction nonReturningFunction)
-        //{
-        //    try
-        //    {
-        //        await nonReturningFunction();
-        //    }
-        //    catch (RecordNotFoundException notFoundException)
-        //    {
-        //        throw notFoundException;
-        //    }
-        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
-        //    {
-        //        throw recordAlreadyExistsException;
-        //    }
-        //    catch (InvalidValueException invalidValueException)
-        //    {
-        //        throw invalidValueException;
-        //    }
-        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
-        //    {
-        //        throw recordAlreadyPostedException;
-        //    }
-        //    catch (RecordRelationshipException recordRelationshipExistsException)
-        //    {
-        //        throw recordRelationshipExistsException;
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-        //    {
-        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
-
-        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
-        //    }
-        //    catch (DbUpdateException dbUpdateException)
-        //    {
-        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-        //private async ValueTask<RisItemVM> TryCatch(ReturningVMFunction returningVMFunction)
-        //{
-        //    try
-        //    {
-        //        return await returningVMFunction();
-        //    }
-        //    catch (RecordNotFoundException notFoundException)
-        //    {
-        //        throw notFoundException;
-        //    }
-        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
-        //    {
-        //        throw recordAlreadyExistsException;
-        //    }
-        //    catch (InvalidValueException invalidValueException)
-        //    {
-        //        throw invalidValueException;
-        //    }
-        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
-        //    {
-        //        throw recordAlreadyPostedException;
-        //    }
-        //    catch (RecordRelationshipException recordRelationshipExistsException)
-        //    {
-        //        throw recordRelationshipExistsException;
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-        //    {
-        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
-
-        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
-        //    }
-        //    catch (DbUpdateException dbUpdateException)
-        //    {
-        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-        //private async ValueTask<RisItem> TryCatch(ReturningFunction returningFunction)
-        //{
-        //    try
-        //    {
-        //        return await returningFunction();
-        //    }
-        //    catch (RecordNotFoundException notFoundException)
-        //    {
-        //        throw notFoundException;
-        //    }
-        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
-        //    {
-        //        throw recordAlreadyExistsException;
-        //    }
-        //    catch (InvalidValueException invalidValueException)
-        //    {
-        //        throw invalidValueException;
-        //    }
-        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
-        //    {
-        //        throw recordAlreadyPostedException;
-        //    }
-        //    catch (RecordRelationshipException recordRelationshipExistsException)
-        //    {
-        //        throw recordRelationshipExistsException;
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-        //    {
-        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
-
-        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
-        //    }
-        //    catch (DbUpdateException dbUpdateException)
-        //    {
-        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-        //private IQueryable<RisItemVM> TryCatch(ReturningQueryableVMFunction returningQueryableVMFunction)
-        //{
-        //    try
-        //    {
-        //        return returningQueryableVMFunction();
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-        //private IQueryable<RisItem> TryCatch(ReturningQueryableFunction returningQueryableFunction)
-        //{
-        //    try
-        //    {
-        //        return returningQueryableFunction();
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-        //#endregion
+        public string GetDescription(RisItemEntryVM entry)
+        {
+            string description = "";
+            if (entry.PsType == "T")
+            {
+                var f = entry.RisItemVehicle;
+                //description += string.IsNullOrWhiteSpace(f.Type) ? "" : f.Type.Trim();
+                description += string.IsNullOrWhiteSpace(f.Make) ? "" : f.Make.Trim();
+                description += string.IsNullOrWhiteSpace(f.Series) ? "" : " " + f.Series.Trim();
+                description += string.IsNullOrWhiteSpace(f.YearModel.ToString()) ? "" : " " + f.YearModel.ToString().Trim();
+                description += string.IsNullOrWhiteSpace(f.PlateNo) ? "" : " " + f.PlateNo.Trim();
+                description += string.IsNullOrWhiteSpace(f.BodyNo) ? "" : " " + f.BodyNo.Trim();
+                description += string.IsNullOrWhiteSpace(f.Color) ? "" : " " + f.Color.Trim();
+                description += string.IsNullOrWhiteSpace(f.EngineNo) ? "" : " " + f.EngineNo.Trim();
+                description += string.IsNullOrWhiteSpace(f.ChassisNo) ? "" : " " + f.ChassisNo.Trim();
+            }
+            else if (entry.PsType == "M")
+            {
+                var f = entry.RisItemMedicine;
+                description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
+                description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
+                description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
+                description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
+            }
+            return description;
+        }
     }
 }

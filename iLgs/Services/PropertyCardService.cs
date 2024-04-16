@@ -66,7 +66,7 @@ namespace iLgs.Services
                     ItemTypeCode = s.ItemCode.ItemType.Code,
                     Description = s.Description,
                     Fund = s.Fund,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt                   
                 });
             return data;
         });
@@ -84,7 +84,7 @@ namespace iLgs.Services
                     ItemTypeCode = s.ItemCode.ItemType.Code,
                     Description = s.Description,
                     Fund = s.Fund,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt                 
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -155,7 +155,7 @@ namespace iLgs.Services
 
             if (model.ItemCodeId == null)
             {
-                throw new InvalidValueException("PPE is Required!");
+                throw new InvalidValueException("Item is Required!");
             }
 
             if (string.IsNullOrWhiteSpace(model.Description))
@@ -174,8 +174,6 @@ namespace iLgs.Services
             entity.ItemCodeId = model.ItemCodeId;
             entity.Fund = model.Fund;
             entity.Description = model.Description;
-            entity.InsertedBy = model.InsertedBy;
-            entity.InsertedDt = model.InsertedDt;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 

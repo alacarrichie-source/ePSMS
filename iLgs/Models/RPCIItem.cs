@@ -20,6 +20,10 @@ namespace iLgs.Models
         public string Fund { get; set; }
         public string Article { get; set; }
         public string Description { get; set; }
+        public string Brand { get; set; }
+        public string RefNo { get; set; }
+        public Nullable<System.DateTime> RefDate { get; set; }
+        public string OldStockNo { get; set; }
         public string StockNo { get; set; }
         public string Unit { get; set; }
         public Nullable<decimal> UnitValue { get; set; }

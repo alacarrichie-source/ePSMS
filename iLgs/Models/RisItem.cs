@@ -21,7 +21,6 @@ namespace iLgs.Models
             this.RisItemExtns = new HashSet<RisItemExtn>();
             this.RisItemUnitGroupDescriptionItems = new HashSet<RisItemUnitGroupDescriptionItem>();
             this.RisIssueds = new HashSet<RisIssued>();
-            this.EquipmentFieldReferences = new HashSet<EquipmentFieldReference>();
         }
     
         public System.Guid Id { get; set; }
@@ -51,7 +50,8 @@ namespace iLgs.Models
         public virtual ICollection<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisIssued> RisIssueds { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<EquipmentFieldReference> EquipmentFieldReferences { get; set; }
+        public virtual RisItemMedicine RisItemMedicine { get; set; }
+        public virtual RisItemPpe RisItemPpe { get; set; }
+        public virtual RisItemVehicle RisItemVehicle { get; set; }
     }
 }

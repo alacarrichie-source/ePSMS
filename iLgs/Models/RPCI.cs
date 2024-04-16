@@ -21,7 +21,7 @@ namespace iLgs.Models
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.DateTime> AsAt { get; set; }
+        public Nullable<System.DateTime> AsOf { get; set; }
         public string Department { get; set; }
         public string AccountableOfficer { get; set; }
         public string Designation { get; set; }

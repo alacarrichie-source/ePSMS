@@ -12,15 +12,9 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class EquipmentField
+    public partial class RisItemPpe
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public EquipmentField()
-        {
-            this.EquipmentFieldReferences = new HashSet<EquipmentFieldReference>();
-        }
-    
-        public System.Guid Id { get; set; }
+        public System.Guid RisItemId { get; set; }
         public string Type { get; set; }
         public string Brand { get; set; }
         public string Model_ { get; set; }
@@ -28,7 +22,6 @@ namespace iLgs.Models
         public string Others { get; set; }
         public string Color { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<EquipmentFieldReference> EquipmentFieldReferences { get; set; }
+        public virtual RisItem RisItem { get; set; }
     }
 }

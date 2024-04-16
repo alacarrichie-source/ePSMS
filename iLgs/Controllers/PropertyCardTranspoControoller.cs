@@ -18,28 +18,28 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("PROPERTYCARDPPE")]
-    public class PropertyCardPpeController : Controller
+    [AppAuthorize("PROPERTYCARDTRANSPO")]
+    public class PropertyCardTranspoController : Controller
     {
-        private AppManEntities _db = new AppManEntities();        
-        private IPropertyCardPpeService _ppeCardService;
-        private IPropertyCardItemService _ppeItemService;
+        private AppManEntities _db = new AppManEntities();
+        private IPropertyCardVehicleService _cardService;
+        private IPropertyCardItemService _cardItemService;
 
-        public PropertyCardPpeController()
-        {          
-            _ppeCardService = new PropertyCardPpeService(_db);
-            _ppeItemService = new PropertyCardItemService(_db);
+        public PropertyCardTranspoController()
+        {
+            _cardService = new PropertyCardVehicleService(_db);
+            _cardItemService = new PropertyCardItemService(_db);
         }
 
-        // GET: EquipmentCard
+        // GET: Index
         public ActionResult Index()
         {
             return View();
         }
-        
+
         public ActionResult Read([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _ppeCardService.GetAll();
+            var data = _cardService.GetAll();
 
             var result = new JsonNetResult
             {
@@ -52,11 +52,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Create([DataSourceRequest] DataSourceRequest request, PropertyCardPpeVM model)
+        public async Task<ActionResult> Create([DataSourceRequest] DataSourceRequest request, PropertyCardVehicleVM model)
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ppe_card");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -68,7 +68,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _ppeCardService.CreateAsync(model, user, date);
+                    model = await _cardService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -87,11 +87,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Update([DataSourceRequest] DataSourceRequest request, PropertyCardPpeVM model)
+        public async Task<ActionResult> Update([DataSourceRequest] DataSourceRequest request, PropertyCardVehicleVM model)
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ppe_card");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -103,7 +103,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _ppeCardService.UpdateAsync(model, user, date);
+                    model = await _cardService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -123,11 +123,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, PropertyCardPpeVM model)
+        public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, PropertyCardVehicleVM model)
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ppe_card");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -138,7 +138,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _ppeCardService.DeleteAsync(model, user, date);
+                    model = await _cardService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -159,12 +159,12 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _CardAddEdit(Guid? cardId)
         {
-            var data = await _ppeCardService.GetVmByIdAsync(cardId);
+            var data = await _cardService.GetVmByIdAsync(cardId);
             if (data == null)
             {
-                data = new PropertyCardPpeVM()
+                data = new PropertyCardVehicleVM()
                 {
-                    Id = Guid.NewGuid()                    
+                    Id = Guid.NewGuid()
                 };
             }
             ViewData["cardId"] = cardId;
@@ -185,16 +185,16 @@ namespace iLgs.Controllers
         //}
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public JsonResult GetDescription(PropertyCardPpeVM fields)
+        public JsonResult GetDescription(PropertyCardVehicleVM fields)
         {
-            var description = _ppeCardService.GetDescription(fields);
+            var description = _cardService.GetDescription(fields);
 
             return Json(new { Description = description }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, Guid? cardId)
         {
-            var data = _ppeItemService.GetByCardId(cardId);
+            var data = _cardItemService.GetByCardId(cardId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -204,7 +204,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ppe_card");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -216,7 +216,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _ppeItemService.CreateAsync(model, user, date);
+                    model = await _cardItemService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -233,7 +233,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ppe_card");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -245,7 +245,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _ppeItemService.UpdateAsync(model, user, date);
+                    model = await _cardItemService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -269,7 +269,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ppe_card");
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -281,7 +281,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _ppeItemService.DeleteAsync(model, user, date);
+                    model = await _cardItemService.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
             }

@@ -78,18 +78,22 @@ namespace iLgs.Models
         public virtual DbSet<PsItem> PsItems { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<RPCEFFOPPEItem> RPCEFFOPPEItems { get; set; }
-        public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<RPCEFFOPPE> RPCEFFOPPEs { get; set; }
         public virtual DbSet<PsItemIssuance> PsItemIssuances { get; set; }
         public virtual DbSet<RisIssued> RisIssueds { get; set; }
         public virtual DbSet<PropertyCard> PropertyCards { get; set; }
         public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
-        public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
         public virtual DbSet<ItemType> ItemTypes { get; set; }
         public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
-        public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<RpcPpe> RpcPpes { get; set; }
-        public virtual DbSet<EquipmentField> EquipmentFields { get; set; }
-        public virtual DbSet<EquipmentFieldReference> EquipmentFieldReferences { get; set; }
+        public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
+        public virtual DbSet<StockCard> StockCards { get; set; }
+        public virtual DbSet<StockItem> StockItems { get; set; }
+        public virtual DbSet<StockItemIssuance> StockItemIssuances { get; set; }
+        public virtual DbSet<RisItemMedicine> RisItemMedicines { get; set; }
+        public virtual DbSet<RisItemPpe> RisItemPpes { get; set; }
+        public virtual DbSet<RisItemVehicle> RisItemVehicles { get; set; }
+        public virtual DbSet<RPCIItem> RPCIItems { get; set; }
+        public virtual DbSet<RPCI> RPCIs { get; set; }
     }
 }

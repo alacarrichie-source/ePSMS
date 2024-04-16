@@ -406,7 +406,7 @@
     function OrderItem(mode, recId) {
         var myTitle = (mode == "A") ? "Order Item - ADD" : "Order Item - EDIT";
         var width = 800;
-        var height = 670;
+        var height = 450;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -414,6 +414,7 @@
                     draggable: true,
                     modal: true,
                     visible: false,
+                    //autoheight: true,
                     close: function () {
                         $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
                     },
@@ -432,9 +433,9 @@
                 orderId: selectedId,
                 orderItemId: recId
             }
-        });
-        mywindow.center();
+        });        
         mywindow.open();
+        setTimeout(mywindow.center(), 200);
     }
 
     function onChangeGridItems(e) {
@@ -512,7 +513,7 @@
         var dataItem = this.dataItem(e.item.index());
 
         $("#PsType").val(dataItem.PsType).trigger("change");
-        $("#ItemType").val(dataItem.ItemType).trigger("change");
+        //$("#ItemType").val(dataItem.ItemType).trigger("change");
         $("#ItemCode").val(dataItem.ItemCode).trigger("change");
         $("#ItemName").val(dataItem.ItemName).trigger("change");
         $("#PsUnit").val(dataItem.Unit).trigger("change");
@@ -528,7 +529,7 @@
         $("#Qty").data("kendoNumericTextBox").trigger("change");
         $("#UnitCost").data("kendoNumericTextBox").trigger("change");
 
-        RefreshGridItemExtn();
+        //RefreshGridItemExtn();
     }
 
     //function onDataBoundRequestItemId(e) {
