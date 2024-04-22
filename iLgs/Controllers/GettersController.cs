@@ -51,6 +51,19 @@ namespace iLgs.Controllers
 
         }
 
+        public ActionResult GetAccountableOfficers(string location, string text)
+        {
+            location = string.IsNullOrWhiteSpace(location) ? "" : location;
+            var model = db.AccountableOfficers.Where(w => w.Codextn.Description == location).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Name = c.Name, Designation = c.Designation }), JsonRequestBehavior.AllowGet);
+
+        }
+
         public ActionResult GetUserNameList(string text)
         {
 

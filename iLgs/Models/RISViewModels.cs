@@ -336,12 +336,20 @@ namespace iLgs.Models
         // Transients
         public bool IsEnabled { get; set; }
     }
-
+    
     public class RisIssuedVM
     {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisItemId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
+
+        public string Location { get; set; }
+
+        [Display(Name = "Issued To")]
+        public string IssuedTo { get; set; }
+
+        [Display(Name = "Accountable Officer")]
+        public string Officer { get; set; }
 
         [Display(Name = "Issued Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
@@ -350,31 +358,18 @@ namespace iLgs.Models
         [Display(Name = "Issued By")]
         public string IssuedBy { get; set; }
 
-        [Display(Name = "Designation")]
-        public string IssuedByDesignation { get; set; }
-
         public Nullable<int> Qty { get; set; }
 
-        [Display(Name = "Unit Cost")]
-        public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> Amount { get; set; }
         
-        [Display(Name = "Issued To")]
-        public string ReceivedBy { get; set; }
-
-        [Display(Name = "Designation")]
-        public string ReceivedByDesignation { get; set; }
-
-        [Display(Name = "Received Date")]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> ReceivedDate { get; set; }
-
         public string InsertedBy { get; set; }
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }            
-        public string Department { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // transient
+        public Nullable<decimal> UnitCost { get; set; }
     }
 
     public class RisItemUnitGroupVM

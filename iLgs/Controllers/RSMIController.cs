@@ -129,16 +129,16 @@ namespace iLgs.Controllers
                                     RisItemId = s.RisItemId,
                                     Unit = s.RisItem.Unit,
                                     Qty = s.Qty,                                    
-                                    UnitCost = s.UnitCost,
                                     Amount = s.Amount
                                 }).ToList();
 
                             foreach (var risIssued in risIssueds)
                             {
-                                var orderItem = _db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode).Where(w => w.RequestItem.RisItem.Id == risIssued.RisItemId).FirstOrDefault();
+                                var orderItem = await _db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode).Where(w => w.RequestItem.RisItem.Id == risIssued.RisItemId).FirstOrDefaultAsync();
                                 var stockNo = orderItem?.StockNo;
                                 var itemName = orderItem?.StockName;
                                 var acctCode = orderItem?.RequestItem.RisItem.ItemCode.AccountCode;
+                                var unitCost = orderItem?.UnitCost;
                                 var rsmiItem = new RSMIItem()
                                 {
                                     Id = Guid.NewGuid(),
@@ -148,7 +148,7 @@ namespace iLgs.Controllers
                                     StockNo = stockNo,
                                     ItemName = itemName,
                                     Unit = risIssued.Unit,
-                                    UnitCost = risIssued.UnitCost,
+                                    UnitCost = unitCost,
                                     Qty = risIssued.Qty,
                                     Amount = risIssued.Amount,
                                     AccountCode = acctCode,
@@ -427,7 +427,7 @@ namespace iLgs.Controllers
                     Id = s.Id,
                     RisNo = s.RisNo,
                     StockNo = s.StockNo,
-                    RCC = s.RisNo,
+                    RCC = s.RCC,
                     ItemName = s.ItemName,
                     Qty = s.Qty,
                     Unit = s.Unit,

@@ -88,6 +88,7 @@
                                 c.Add().Field("Code").Title("Code").Width("30%");
                                 c.Add().Field("Description").Title("Description").Width("70%");
                             })
+                            .Events(e => { e.Select("onSelectOffice"); })
                             .Suggest(true)
                         )
                         @Html.ValidationMessageFor(model => model.Office)

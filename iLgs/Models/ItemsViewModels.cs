@@ -63,7 +63,7 @@ namespace iLgs.Models
         [Display(Name = "Item Code")]
         public string Code { get; set; }
         public string Description { get; set; }
-        [Display(Name = "In Request?")]
+        [Display(Name = "Is Article?")]
         public string ItemSw { get; set; }
         [Display(Name = "Account Code")]
         public string AccountCode { get; set; }

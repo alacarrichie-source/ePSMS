@@ -42,9 +42,9 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual OrderItem OrderItem { get; set; }
         public virtual PsStock PsStock { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsItemIssuance> PsItemIssuances { get; set; }
+        public virtual OrderItem OrderItem { get; set; }
     }
 }

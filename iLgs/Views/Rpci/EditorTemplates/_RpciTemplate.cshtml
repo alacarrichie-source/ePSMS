@@ -9,10 +9,10 @@
     
     <fieldset>
         <div class="row">
-            @Html.LabelFor(m => m.AsAt, htmlAttributes: new { @class = "col-md-12" })
+            @Html.LabelFor(m => m.AsOf, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
-                @(Html.Kendo().DatePickerFor(m => m.AsAt).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(m => m.AsAt)
+                @(Html.Kendo().DatePickerFor(m => m.AsOf).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.AsOf)
             </div>
         </div>
 

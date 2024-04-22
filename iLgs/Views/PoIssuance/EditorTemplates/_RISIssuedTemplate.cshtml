@@ -8,6 +8,8 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.RisItemId)
+    @Html.HiddenFor(model => model.OrderItemId)
+    @Html.HiddenFor(model => model.UnitCost)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -15,6 +17,76 @@
         </div>
     </div>
     <fieldset>
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.Location, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Location)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Location")
+                            .DataTextField("Description")
+                            .DataValueField("Description")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "DEPARTMENTS", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.Location)
+                </div>
+            </div>
+        </div>        
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.Officer, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Officer)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Officer")
+                            .DataTextField("Name")
+                            .DataValueField("Name")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetAccountableOfficers", "Getters").Data("DataAccountableOfficer");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Name").Title("Name").Width("50%");
+                                c.Add().Field("Designation").Title("Designation").Width("50%");
+                            })
+                            .CascadeFrom("Location")
+                            .Suggest(true)                            
+                    )
+                    @Html.ValidationMessageFor(model => model.Officer)
+                </div>
+            </div>
+        </div>        
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.IssuedTo, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().TextBoxFor(model => model.IssuedTo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.IssuedTo)
+                </div>
+            </div>
+        </div>        
+
         <div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.IssuedDate, htmlAttributes: new { @class = "col-md-12" })
@@ -26,21 +98,10 @@
         </div>        
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.UnitCost, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(model => model.UnitCost).Decimals(2).Enable(false)
-                        .Events(e => e.Change("onChangeQtyCost"))
-                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.UnitCost)
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
                 @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(0)
-                        .Events(e => e.Change("onChangeQtyCost"))
+                        .Events(e => e.Change("onChangeQty"))
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.Qty)
                 </div>
@@ -52,15 +113,6 @@
                 <div class="col-md-12">
                     @(Html.Kendo().NumericTextBoxFor(model => model.Amount).Decimals(2).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.Amount)
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(model => model.ReceivedBy, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.ReceivedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.ReceivedBy)
                 </div>
             </div>
         </div>        

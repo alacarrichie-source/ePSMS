@@ -130,7 +130,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_dAsAt {
+        public CrystalDecisions.Shared.IParameterField Parameter_uRpciId {
             get {
                 return this.DataDefinition.ParameterFields[0];
             }
@@ -138,7 +138,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_uRpciId {
+        public CrystalDecisions.Shared.IParameterField Parameter_LGU {
             get {
                 return this.DataDefinition.ParameterFields[1];
             }
@@ -146,7 +146,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_LGU {
+        public CrystalDecisions.Shared.IParameterField Parameter_dAsOf {
             get {
                 return this.DataDefinition.ParameterFields[2];
             }

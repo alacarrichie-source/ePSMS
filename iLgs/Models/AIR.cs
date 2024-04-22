@@ -17,8 +17,8 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public AIR()
         {
-            this.AIRItems = new HashSet<AIRItem>();
             this.AIRInvoices = new HashSet<AIRInvoice>();
+            this.AIRItems = new HashSet<AIRItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -43,10 +43,10 @@ namespace iLgs.Models
         public string PostedBy { get; set; }
         public Nullable<System.DateTime> PostedDt { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AIRItem> AIRItems { get; set; }
         public virtual Order Order { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIRInvoice> AIRInvoices { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AIRItem> AIRItems { get; set; }
     }
 }

@@ -657,15 +657,13 @@
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RisItemId" Type="uniqueidentifier" />
           <Property Name="OrderItemId" Type="uniqueidentifier" />
-          <Property Name="IssuedDate" Type="datetime" />
+          <Property Name="Location" Type="varchar" MaxLength="100" />
+          <Property Name="IssuedTo" Type="varchar" MaxLength="50" />
+          <Property Name="Officer" Type="varchar" MaxLength="50" />
+          <Property Name="IssuedDate" Type="date" />
           <Property Name="IssuedBy" Type="varchar" MaxLength="50" />
-          <Property Name="IssuedByDesignation" Type="varchar" MaxLength="50" />
           <Property Name="Qty" Type="int" />
-          <Property Name="UnitCost" Type="numeric" Precision="18" Scale="2" />
           <Property Name="Amount" Type="numeric" Precision="18" Scale="2" />
-          <Property Name="ReceivedBy" Type="varchar" MaxLength="50" />
-          <Property Name="ReceivedByDesignation" Type="varchar" MaxLength="50" />
-          <Property Name="ReceivedDate" Type="datetime" />
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
@@ -1915,6 +1913,18 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_RisIssueds_OrderItems">
+          <End Role="OrderItems" Type="Self.OrderItems" Multiplicity="0..1" />
+          <End Role="RisIssueds" Type="Self.RisIssueds" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RisIssueds">
+              <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_RisIssueds_RisItems">
           <End Role="RisItems" Type="Self.RisItems" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -2568,6 +2578,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RISs" EntitySet="RISs" />
             <End Role="Requests" EntitySet="Requests" />
           </AssociationSet>
+          <AssociationSet Name="FK_RisIssueds_OrderItems" Association="Self.FK_RisIssueds_OrderItems">
+            <End Role="OrderItems" EntitySet="OrderItems" />
+            <End Role="RisIssueds" EntitySet="RisIssueds" />
+          </AssociationSet>
           <AssociationSet Name="FK_RisIssueds_RisItems" Association="Self.FK_RisIssueds_RisItems">
             <End Role="RisItems" EntitySet="RisItems" />
             <End Role="RisIssueds" EntitySet="RisIssueds" />
@@ -2727,7 +2741,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </AssociationSet>
           <EntitySet Name="Suppliers" EntityType="AppManModel.Supplier" />
           <EntitySet Name="Sequences" EntityType="AppManModel.Sequence" />
-          <EntitySet Name="AIRItems" EntityType="AppManModel.AIRItem" />
           <EntitySet Name="Codextns" EntityType="AppManModel.Codextn" />
           <AssociationSet Name="FK_Codextn_Codextn" Association="AppManModel.FK_Codextn_Codextn">
             <End Role="CodeMast" EntitySet="CodeMasts" />
@@ -2741,32 +2754,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End EntitySet="Requests" Role="Request" />
           </AssociationSet>
           <EntitySet Name="AIRs" EntityType="AppManModel.AIR" />
-          <AssociationSet Name="FK_AIRItems_AIRs" Association="AppManModel.FK_AIRItems_AIRs">
-            <End Role="AIR" EntitySet="AIRs" />
-            <End Role="AIRItem" EntitySet="AIRItems" />
-          </AssociationSet>
           <EntitySet Name="PARs" EntityType="AppManModel.PAR" />
           <EntitySet Name="OrderItemExtns" EntityType="AppManModel.OrderItemExtn" />
           <EntitySet Name="ItemFields" EntityType="AppManModel.ItemField" />
           <EntitySet Name="PsStockExtns" EntityType="AppManModel.PsStockExtn" />
-          <EntitySet Name="OrderItems" EntityType="AppManModel.OrderItem" />
-          <AssociationSet Name="FK_AIRItems_OrderItems" Association="AppManModel.FK_AIRItems_OrderItems">
-            <End Role="OrderItem" EntitySet="OrderItems" />
-            <End Role="AIRItem" EntitySet="AIRItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_OrderItemExtns_OrderItems" Association="AppManModel.FK_OrderItemExtns_OrderItems">
-            <End Role="OrderItem" EntitySet="OrderItems" />
-            <End Role="OrderItemExtn" EntitySet="OrderItemExtns" />
-          </AssociationSet>
-          <EntitySet Name="PARItems" EntityType="AppManModel.PARItem" />
-          <AssociationSet Name="FK_PARItems_OrderItems" Association="AppManModel.FK_PARItems_OrderItems">
-            <End Role="OrderItem" EntitySet="OrderItems" />
-            <End Role="PARItem" EntitySet="PARItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_PARItems_PARs" Association="AppManModel.FK_PARItems_PARs">
-            <End Role="PAR" EntitySet="PARs" />
-            <End Role="PARItem" EntitySet="PARItems" />
-          </AssociationSet>
           <EntitySet Name="RSMIs" EntityType="AppManModel.RSMI" />
           <EntitySet Name="RSMIItems" EntityType="AppManModel.RSMIItem" />
           <AssociationSet Name="FK_RSMIItems_RSMI" Association="AppManModel.FK_RSMIItems_RSMI">
@@ -2800,10 +2791,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="OrderItemUnitGroups" EntityType="AppManModel.OrderItemUnitGroup" />
           <EntitySet Name="RequestItemUnitGroupDescriptionItems" EntityType="AppManModel.RequestItemUnitGroupDescriptionItem" />
           <EntitySet Name="RequestItemUnitGroupDescriptions" EntityType="AppManModel.RequestItemUnitGroupDescription" />
-          <AssociationSet Name="FK_OrderItemUnitGroupDescriptionItems_OrderItems" Association="AppManModel.FK_OrderItemUnitGroupDescriptionItems_OrderItems">
-            <End Role="OrderItem" EntitySet="OrderItems" />
-            <End Role="OrderItemUnitGroupDescriptionItem" EntitySet="OrderItemUnitGroupDescriptionItems" />
-          </AssociationSet>
           <AssociationSet Name="FK_OrderItemUnitGroupDescriptionItems_OrderItemUnitGroupDescriptions" Association="AppManModel.FK_OrderItemUnitGroupDescriptionItems_OrderItemUnitGroupDescriptions">
             <End Role="OrderItemUnitGroupDescription" EntitySet="OrderItemUnitGroupDescriptions" />
             <End Role="OrderItemUnitGroupDescriptionItem" EntitySet="OrderItemUnitGroupDescriptionItems" />
@@ -2831,19 +2818,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_RequestItemUnitGroupDescriptions_RisItemUnitGroupDescriptions" Association="AppManModel.FK_RequestItemUnitGroupDescriptions_RisItemUnitGroupDescriptions">
             <End Role="RisItemUnitGroupDescription" EntitySet="RisItemUnitGroupDescriptions" />
             <End Role="RequestItemUnitGroupDescription" EntitySet="RequestItemUnitGroupDescriptions" />
-          </AssociationSet>
-          <EntitySet Name="RequestItems" EntityType="AppManModel.RequestItem" />
-          <AssociationSet Name="FK_OrderItems_RequestItems" Association="AppManModel.FK_OrderItems_RequestItems">
-            <End Role="RequestItem" EntitySet="RequestItems" />
-            <End Role="OrderItem" EntitySet="OrderItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RequestItems_Requests" Association="AppManModel.FK_RequestItems_Requests">
-            <End Role="Request" EntitySet="Requests" />
-            <End Role="RequestItem" EntitySet="RequestItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RequestItemUnitGroupDescriptionItems_RequestItems2" Association="AppManModel.FK_RequestItemUnitGroupDescriptionItems_RequestItems2">
-            <End Role="RequestItem" EntitySet="RequestItems" />
-            <End Role="RequestItemUnitGroupDescriptionItem" EntitySet="RequestItemUnitGroupDescriptionItems" />
           </AssociationSet>
           <EntitySet Name="RisItemUnitGroups" EntityType="AppManModel.RisItemUnitGroup" />
           <AssociationSet Name="FK_RisItemUnitGroupDescriptions_RisItemUnitGroups" Association="AppManModel.FK_RisItemUnitGroupDescriptions_RisItemUnitGroups">
@@ -2890,10 +2864,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="Order" EntitySet="Orders" />
             <End Role="AIR" EntitySet="AIRs" />
           </AssociationSet>
-          <AssociationSet Name="FK_OrderItems_Orders" Association="AppManModel.FK_OrderItems_Orders">
-            <End Role="Order" EntitySet="Orders" />
-            <End Role="OrderItem" EntitySet="OrderItems" />
-          </AssociationSet>
           <AssociationSet Name="FK_OrderItemUnitGroups_Orders" Association="AppManModel.FK_OrderItemUnitGroups_Orders">
             <End Role="Order" EntitySet="Orders" />
             <End Role="OrderItemUnitGroup" EntitySet="OrderItemUnitGroups" />
@@ -2916,34 +2886,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="AIRInvoice" EntitySet="AIRInvoices" />
           </AssociationSet>
           <EntitySet Name="PsItems" EntityType="AppManModel.PsItem" />
-          <AssociationSet Name="FK_PsItems_OrderItems" Association="AppManModel.FK_PsItems_OrderItems">
-            <End Role="OrderItem" EntitySet="OrderItems" />
-            <End Role="PsItem" EntitySet="PsItems" />
-          </AssociationSet>
           <AssociationSet Name="FK_PsItems_PsStocks" Association="AppManModel.FK_PsItems_PsStocks">
             <End Role="PsStock" EntitySet="PsStocks" />
             <End Role="PsItem" EntitySet="PsItems" />
-          </AssociationSet>
-          <EntitySet Name="RisItems" EntityType="AppManModel.RisItem" />
-          <AssociationSet Name="FK_RisItems_ItemCodes" Association="AppManModel.FK_RisItems_ItemCodes">
-            <End Role="ItemCode" EntitySet="ItemCodes" />
-            <End Role="RisItem" EntitySet="RisItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RequestItems_RisItems" Association="AppManModel.FK_RequestItems_RisItems">
-            <End Role="RisItem" EntitySet="RisItems" />
-            <End Role="RequestItem" EntitySet="RequestItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RisItemExtns_RisItems" Association="AppManModel.FK_RisItemExtns_RisItems">
-            <End Role="RisItem" EntitySet="RisItems" />
-            <End Role="RisItemExtn" EntitySet="RisItemExtns" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RisItems_RIS" Association="AppManModel.FK_RisItems_RIS">
-            <End Role="RISs" EntitySet="RISses" />
-            <End Role="RisItem" EntitySet="RisItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RisItemUnitGroupDescriptionItems_RisItems" Association="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItems">
-            <End Role="RisItem" EntitySet="RisItems" />
-            <End Role="RisItemUnitGroupDescriptionItem" EntitySet="RisItemUnitGroupDescriptionItems" />
           </AssociationSet>
           <EntitySet Name="RPCEFFOPPEItems" EntityType="AppManModel.RPCEFFOPPEItem" />
           <EntitySet Name="RPCEFFOPPEs" EntityType="AppManModel.RPCEFFOPPE" />
@@ -2955,11 +2900,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_PsItemIssuances_PsItems" Association="AppManModel.FK_PsItemIssuances_PsItems">
             <End Role="PsItem" EntitySet="PsItems" />
             <End Role="PsItemIssuance" EntitySet="PsItemIssuances" />
-          </AssociationSet>
-          <EntitySet Name="RisIssueds" EntityType="AppManModel.RisIssued" />
-          <AssociationSet Name="FK_RisIssueds_RisItems" Association="AppManModel.FK_RisIssueds_RisItems">
-            <End Role="RisItem" EntitySet="RisItems" />
-            <End Role="RisIssued" EntitySet="RisIssueds" />
           </AssociationSet>
           <EntitySet Name="PropertyCards" EntityType="AppManModel.PropertyCard" />
           <EntitySet Name="AccountableOfficers" EntityType="AppManModel.AccountableOfficer" />
@@ -2997,19 +2937,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="ItemCode" EntitySet="ItemCodes" />
             <End Role="StockCard" EntitySet="StockCards" />
           </AssociationSet>
-          <AssociationSet Name="FK_StockItems_OrderItems" Association="AppManModel.FK_StockItems_OrderItems">
-            <End Role="OrderItem" EntitySet="OrderItems" />
-            <End Role="StockItem" EntitySet="StockItems" />
-          </AssociationSet>
           <AssociationSet Name="FK_StockItems_StockCards" Association="AppManModel.FK_StockItems_StockCards">
             <End Role="StockCard" EntitySet="StockCards" />
             <End Role="StockItem" EntitySet="StockItems" />
           </AssociationSet>
           <EntitySet Name="StockItemIssuances" EntityType="AppManModel.StockItemIssuance" />
-          <AssociationSet Name="FK_StockItemIssuances_RisIssueds" Association="AppManModel.FK_StockItemIssuances_RisIssueds">
-            <End Role="RisIssued" EntitySet="RisIssueds" />
-            <End Role="StockItemIssuance" EntitySet="StockItemIssuances" />
-          </AssociationSet>
           <AssociationSet Name="FK_StockItemIssuances_StockItems" Association="AppManModel.FK_StockItemIssuances_StockItems">
             <End Role="StockItem" EntitySet="StockItems" />
             <End Role="StockItemIssuance" EntitySet="StockItemIssuances" />
@@ -3017,6 +2949,90 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="RisItemMedicines" EntityType="AppManModel.RisItemMedicine" />
           <EntitySet Name="RisItemPpes" EntityType="AppManModel.RisItemPpe" />
           <EntitySet Name="RisItemVehicles" EntityType="AppManModel.RisItemVehicle" />
+          <EntitySet Name="RPCIItems" EntityType="AppManModel.RPCIItem" />
+          <EntitySet Name="RPCIs" EntityType="AppManModel.RPCI" />
+          <AssociationSet Name="FK_RPCIItems_RPCIs" Association="AppManModel.FK_RPCIItems_RPCIs">
+            <End Role="RPCI" EntitySet="RPCIs" />
+            <End Role="RPCIItem" EntitySet="RPCIItems" />
+          </AssociationSet>
+          <EntitySet Name="RisIssueds" EntityType="AppManModel.RisIssued" />
+          <AssociationSet Name="FK_StockItemIssuances_RisIssueds" Association="AppManModel.FK_StockItemIssuances_RisIssueds">
+            <End Role="RisIssued" EntitySet="RisIssueds" />
+            <End Role="StockItemIssuance" EntitySet="StockItemIssuances" />
+          </AssociationSet>
+          <EntitySet Name="AIRItems" EntityType="AppManModel.AIRItem" />
+          <EntitySet Name="OrderItems" EntityType="AppManModel.OrderItem" />
+          <EntitySet Name="PARItems" EntityType="AppManModel.PARItem" />
+          <EntitySet Name="RequestItems" EntityType="AppManModel.RequestItem" />
+          <EntitySet Name="RisItems" EntityType="AppManModel.RisItem" />
+          <AssociationSet Name="FK_AIRItems_AIRs" Association="AppManModel.FK_AIRItems_AIRs">
+            <End Role="AIR" EntitySet="AIRs" />
+            <End Role="AIRItem" EntitySet="AIRItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AIRItems_OrderItems" Association="AppManModel.FK_AIRItems_OrderItems">
+            <End Role="OrderItem" EntitySet="OrderItems" />
+            <End Role="AIRItem" EntitySet="AIRItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RisItems_ItemCodes" Association="AppManModel.FK_RisItems_ItemCodes">
+            <End Role="ItemCode" EntitySet="ItemCodes" />
+            <End Role="RisItem" EntitySet="RisItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_OrderItemExtns_OrderItems" Association="AppManModel.FK_OrderItemExtns_OrderItems">
+            <End Role="OrderItem" EntitySet="OrderItems" />
+            <End Role="OrderItemExtn" EntitySet="OrderItemExtns" />
+          </AssociationSet>
+          <AssociationSet Name="FK_OrderItems_Orders" Association="AppManModel.FK_OrderItems_Orders">
+            <End Role="Order" EntitySet="Orders" />
+            <End Role="OrderItem" EntitySet="OrderItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_OrderItems_RequestItems" Association="AppManModel.FK_OrderItems_RequestItems">
+            <End Role="RequestItem" EntitySet="RequestItems" />
+            <End Role="OrderItem" EntitySet="OrderItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_OrderItemUnitGroupDescriptionItems_OrderItems" Association="AppManModel.FK_OrderItemUnitGroupDescriptionItems_OrderItems">
+            <End Role="OrderItem" EntitySet="OrderItems" />
+            <End Role="OrderItemUnitGroupDescriptionItem" EntitySet="OrderItemUnitGroupDescriptionItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PARItems_OrderItems" Association="AppManModel.FK_PARItems_OrderItems">
+            <End Role="OrderItem" EntitySet="OrderItems" />
+            <End Role="PARItem" EntitySet="PARItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PsItems_OrderItems" Association="AppManModel.FK_PsItems_OrderItems">
+            <End Role="OrderItem" EntitySet="OrderItems" />
+            <End Role="PsItem" EntitySet="PsItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RisIssueds_OrderItems" Association="AppManModel.FK_RisIssueds_OrderItems">
+            <End Role="OrderItem" EntitySet="OrderItems" />
+            <End Role="RisIssued" EntitySet="RisIssueds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_StockItems_OrderItems" Association="AppManModel.FK_StockItems_OrderItems">
+            <End Role="OrderItem" EntitySet="OrderItems" />
+            <End Role="StockItem" EntitySet="StockItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PARItems_PARs" Association="AppManModel.FK_PARItems_PARs">
+            <End Role="PAR" EntitySet="PARs" />
+            <End Role="PARItem" EntitySet="PARItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RequestItems_Requests" Association="AppManModel.FK_RequestItems_Requests">
+            <End Role="Request" EntitySet="Requests" />
+            <End Role="RequestItem" EntitySet="RequestItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RequestItems_RisItems" Association="AppManModel.FK_RequestItems_RisItems">
+            <End Role="RisItem" EntitySet="RisItems" />
+            <End Role="RequestItem" EntitySet="RequestItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RequestItemUnitGroupDescriptionItems_RequestItems2" Association="AppManModel.FK_RequestItemUnitGroupDescriptionItems_RequestItems2">
+            <End Role="RequestItem" EntitySet="RequestItems" />
+            <End Role="RequestItemUnitGroupDescriptionItem" EntitySet="RequestItemUnitGroupDescriptionItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RisIssueds_RisItems" Association="AppManModel.FK_RisIssueds_RisItems">
+            <End Role="RisItem" EntitySet="RisItems" />
+            <End Role="RisIssued" EntitySet="RisIssueds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RisItemExtns_RisItems" Association="AppManModel.FK_RisItemExtns_RisItems">
+            <End Role="RisItem" EntitySet="RisItems" />
+            <End Role="RisItemExtn" EntitySet="RisItemExtns" />
+          </AssociationSet>
           <AssociationSet Name="FK_RisItemStocks_RisItems" Association="AppManModel.FK_RisItemStocks_RisItems">
             <End Role="RisItem" EntitySet="RisItems" />
             <End Role="RisItemMedicine" EntitySet="RisItemMedicines" />
@@ -3025,15 +3041,17 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RisItem" EntitySet="RisItems" />
             <End Role="RisItemPpe" EntitySet="RisItemPpes" />
           </AssociationSet>
+          <AssociationSet Name="FK_RisItems_RIS" Association="AppManModel.FK_RisItems_RIS">
+            <End Role="RISs" EntitySet="RISses" />
+            <End Role="RisItem" EntitySet="RisItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RisItemUnitGroupDescriptionItems_RisItems" Association="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItems">
+            <End Role="RisItem" EntitySet="RisItems" />
+            <End Role="RisItemUnitGroupDescriptionItem" EntitySet="RisItemUnitGroupDescriptionItems" />
+          </AssociationSet>
           <AssociationSet Name="FK_RisItemVehicles_RisItems" Association="AppManModel.FK_RisItemVehicles_RisItems">
             <End Role="RisItem" EntitySet="RisItems" />
             <End Role="RisItemVehicle" EntitySet="RisItemVehicles" />
-          </AssociationSet>
-          <EntitySet Name="RPCIItems" EntityType="AppManModel.RPCIItem" />
-          <EntitySet Name="RPCIs" EntityType="AppManModel.RPCI" />
-          <AssociationSet Name="FK_RPCIItems_RPCIs" Association="AppManModel.FK_RPCIItems_RPCIs">
-            <End Role="RPCI" EntitySet="RPCIs" />
-            <End Role="RPCIItem" EntitySet="RPCIItems" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -3462,21 +3480,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="KeyName" Type="String" Nullable="false" MaxLength="20" FixedLength="true" Unicode="false" />
           <Property Name="KeyValue" Type="String" MaxLength="20" FixedLength="true" Unicode="false" />
         </EntityType>
-        <EntityType Name="AIRItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="AirId" Type="Guid" />
-          <Property Name="OrderItemId" Type="Guid" />
-          <Property Name="Qty" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="AIR" Relationship="AppManModel.FK_AIRItems_AIRs" FromRole="AIRItem" ToRole="AIR" />
-          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_AIRItems_OrderItems" FromRole="AIRItem" ToRole="OrderItem" />
-        </EntityType>
         <EntityType Name="Codextn">
           <Key>
             <PropertyRef Name="Id" />
@@ -3550,9 +3553,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="RISs" Relationship="AppManModel.FK_Requests_RIS" FromRole="Request" ToRole="RISs" />
-          <NavigationProperty Name="RequestItems" Relationship="AppManModel.FK_RequestItems_Requests" FromRole="Request" ToRole="RequestItem" />
           <NavigationProperty Name="RequestItemUnitGroups" Relationship="AppManModel.FK_RequestItemUnitGroups_Requests" FromRole="Request" ToRole="RequestItemUnitGroup" />
           <NavigationProperty Name="Orders" Relationship="AppManModel.FK_Orders_Requests" FromRole="Request" ToRole="Order" />
+          <NavigationProperty Name="RequestItems" Relationship="AppManModel.FK_RequestItems_Requests" FromRole="Request" ToRole="RequestItem" />
         </EntityType>
         <EntityType Name="RISs">
           <Key>
@@ -3625,22 +3628,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="PostedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="AIRItems" Relationship="AppManModel.FK_AIRItems_AIRs" FromRole="AIR" ToRole="AIRItem" />
           <NavigationProperty Name="Order" Relationship="AppManModel.FK_AIRs_Orders" FromRole="AIR" ToRole="Order" />
           <NavigationProperty Name="AIRInvoices" Relationship="AppManModel.FK_AIRInvoices_AIRs" FromRole="AIR" ToRole="AIRInvoice" />
+          <NavigationProperty Name="AIRItems" Relationship="AppManModel.FK_AIRItems_AIRs" FromRole="AIR" ToRole="AIRItem" />
         </EntityType>
-        <Association Name="FK_AIRItems_AIRs">
-          <End Type="AppManModel.AIR" Role="AIR" Multiplicity="0..1" />
-          <End Type="AppManModel.AIRItem" Role="AIRItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AIR">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="AIRItem">
-              <PropertyRef Name="AirId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="PAR">
           <Key>
             <PropertyRef Name="Id" />
@@ -3661,8 +3652,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="PostedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="PARItems" Relationship="AppManModel.FK_PARItems_PARs" FromRole="PAR" ToRole="PARItem" />
           <NavigationProperty Name="Order" Relationship="AppManModel.FK_PARs_Orders" FromRole="PAR" ToRole="Order" />
+          <NavigationProperty Name="PARItems" Relationship="AppManModel.FK_PARItems_PARs" FromRole="PAR" ToRole="PARItem" />
         </EntityType>
         <EntityType Name="OrderItemExtn">
           <Key>
@@ -3710,104 +3701,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="PsStock" Relationship="AppManModel.FK_PsStockExtns_PsStocks" FromRole="PsStockExtn" ToRole="PsStock" />
         </EntityType>
-        <EntityType Name="OrderItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="OrderId" Type="Guid" />
-          <Property Name="RequestItemId" Type="Guid" />
-          <Property Name="StockNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="StockName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
-          <Property Name="Brand" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="EstimatedLife" Type="Decimal" Precision="8" Scale="2" />
-          <Property Name="Qty" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="UnitCost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="AIRItems" Relationship="AppManModel.FK_AIRItems_OrderItems" FromRole="OrderItem" ToRole="AIRItem" />
-          <NavigationProperty Name="OrderItemExtns" Relationship="AppManModel.FK_OrderItemExtns_OrderItems" FromRole="OrderItem" ToRole="OrderItemExtn" />
-          <NavigationProperty Name="PARItems" Relationship="AppManModel.FK_PARItems_OrderItems" FromRole="OrderItem" ToRole="PARItem" />
-          <Property Name="PriceRate" Type="Decimal" Precision="18" Scale="2" />
-          <NavigationProperty Name="OrderItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_OrderItemUnitGroupDescriptionItems_OrderItems" FromRole="OrderItem" ToRole="OrderItemUnitGroupDescriptionItem" />
-          <NavigationProperty Name="RequestItem" Relationship="AppManModel.FK_OrderItems_RequestItems" FromRole="OrderItem" ToRole="RequestItem" />
-          <NavigationProperty Name="Order" Relationship="AppManModel.FK_OrderItems_Orders" FromRole="OrderItem" ToRole="Order" />
-          <NavigationProperty Name="PsItems" Relationship="AppManModel.FK_PsItems_OrderItems" FromRole="OrderItem" ToRole="PsItem" />
-          <NavigationProperty Name="StockItems" Relationship="AppManModel.FK_StockItems_OrderItems" FromRole="OrderItem" ToRole="StockItem" />
-        </EntityType>
-        <Association Name="FK_AIRItems_OrderItems">
-          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
-          <End Type="AppManModel.AIRItem" Role="AIRItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="AIRItem">
-              <PropertyRef Name="OrderItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_OrderItemExtns_OrderItems">
-          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.OrderItemExtn" Role="OrderItemExtn" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="OrderItemExtn">
-              <PropertyRef Name="OrderItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityType Name="PARItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="ParId" Type="Guid" />
-          <Property Name="OrderItemId" Type="Guid" />
-          <Property Name="Qty" Type="Int32" />
-          <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="SerialNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PARItems_OrderItems" FromRole="PARItem" ToRole="OrderItem" />
-          <NavigationProperty Name="PAR" Relationship="AppManModel.FK_PARItems_PARs" FromRole="PARItem" ToRole="PAR" />
-        </EntityType>
-        <Association Name="FK_PARItems_OrderItems">
-          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
-          <End Type="AppManModel.PARItem" Role="PARItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PARItem">
-              <PropertyRef Name="OrderItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_PARItems_PARs">
-          <End Type="AppManModel.PAR" Role="PAR" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.PARItem" Role="PARItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PAR">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PARItem">
-              <PropertyRef Name="ParId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="RSMI">
           <Key>
             <PropertyRef Name="Id" />
@@ -4007,10 +3900,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="PsCodes" Relationship="AppManModel.FK_PsCodes_ItemCodes" FromRole="ItemCode" ToRole="PsCode" />
-          <NavigationProperty Name="RisItems" Relationship="AppManModel.FK_RisItems_ItemCodes" FromRole="ItemCode" ToRole="RisItem" />
           <NavigationProperty Name="PropertyCards" Relationship="AppManModel.FK_PropertyCards_ItemCodes" FromRole="ItemCode" ToRole="PropertyCard" />
           <NavigationProperty Name="ItemType" Relationship="AppManModel.FK_ItemCodes_ItemTypes" FromRole="ItemCode" ToRole="ItemType" />
           <NavigationProperty Name="StockCards" Relationship="AppManModel.FK_StockCards_ItemCodes" FromRole="ItemCode" ToRole="StockCard" />
+          <NavigationProperty Name="RisItems" Relationship="AppManModel.FK_RisItems_ItemCodes" FromRole="ItemCode" ToRole="RisItem" />
         </EntityType>
         <EntityType Name="OrderItemUnitGroupDescriptionItem">
           <Key>
@@ -4024,9 +3917,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_OrderItemUnitGroupDescriptionItems_OrderItems" FromRole="OrderItemUnitGroupDescriptionItem" ToRole="OrderItem" />
           <NavigationProperty Name="OrderItemUnitGroupDescription" Relationship="AppManModel.FK_OrderItemUnitGroupDescriptionItems_OrderItemUnitGroupDescriptions" FromRole="OrderItemUnitGroupDescriptionItem" ToRole="OrderItemUnitGroupDescription" />
           <NavigationProperty Name="RequestItemUnitGroupDescriptionItem" Relationship="AppManModel.FK_OrderItemUnitGroupDescriptionItems_RequestItemUnitGroupDescriptionItems" FromRole="OrderItemUnitGroupDescriptionItem" ToRole="RequestItemUnitGroupDescriptionItem" />
+          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_OrderItemUnitGroupDescriptionItems_OrderItems" FromRole="OrderItemUnitGroupDescriptionItem" ToRole="OrderItem" />
         </EntityType>
         <EntityType Name="OrderItemUnitGroupDescription">
           <Key>
@@ -4093,18 +3986,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="RisItemUnitGroupDescription" Relationship="AppManModel.FK_RequestItemUnitGroupDescriptions_RisItemUnitGroupDescriptions" FromRole="RequestItemUnitGroupDescription" ToRole="RisItemUnitGroupDescription" />
           <NavigationProperty Name="RequestItemUnitGroup" Relationship="AppManModel.FK_RequestItemUnitGroupDescriptions_RequestItemUnitGroups" FromRole="RequestItemUnitGroupDescription" ToRole="RequestItemUnitGroup" />
         </EntityType>
-        <Association Name="FK_OrderItemUnitGroupDescriptionItems_OrderItems">
-          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
-          <End Type="AppManModel.OrderItemUnitGroupDescriptionItem" Role="OrderItemUnitGroupDescriptionItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="OrderItemUnitGroupDescriptionItem">
-              <PropertyRef Name="OrderItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_OrderItemUnitGroupDescriptionItems_OrderItemUnitGroupDescriptions">
           <End Type="AppManModel.OrderItemUnitGroupDescription" Role="OrderItemUnitGroupDescription" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -4194,64 +4075,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="RequestItemUnitGroupDescription">
               <PropertyRef Name="RisItemUnitGroupDescriptionId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityType Name="RequestItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="RisItemId" Type="Guid" />
-          <Property Name="PrId" Type="Guid" />
-          <Property Name="Qty" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="UnitCost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="TotalCost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="PriceRate" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="OrderItems" Relationship="AppManModel.FK_OrderItems_RequestItems" FromRole="RequestItem" ToRole="OrderItem" />
-          <NavigationProperty Name="Request" Relationship="AppManModel.FK_RequestItems_Requests" FromRole="RequestItem" ToRole="Request" />
-          <NavigationProperty Name="RequestItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_RequestItemUnitGroupDescriptionItems_RequestItems2" FromRole="RequestItem" ToRole="RequestItemUnitGroupDescriptionItem" />
-          <NavigationProperty Name="RisItem" Relationship="AppManModel.FK_RequestItems_RisItems" FromRole="RequestItem" ToRole="RisItem" />
-        </EntityType>
-        <Association Name="FK_OrderItems_RequestItems">
-          <End Type="AppManModel.RequestItem" Role="RequestItem" Multiplicity="0..1" />
-          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RequestItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="OrderItem">
-              <PropertyRef Name="RequestItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RequestItems_Requests">
-          <End Type="AppManModel.Request" Role="Request" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RequestItem" Role="RequestItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Request">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RequestItem">
-              <PropertyRef Name="PrId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RequestItemUnitGroupDescriptionItems_RequestItems2">
-          <End Type="AppManModel.RequestItem" Role="RequestItem" Multiplicity="0..1" />
-          <End Type="AppManModel.RequestItemUnitGroupDescriptionItem" Role="RequestItemUnitGroupDescriptionItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RequestItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RequestItemUnitGroupDescriptionItem">
-              <PropertyRef Name="RequestItemId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -4477,11 +4300,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="AIRs" Relationship="AppManModel.FK_AIRs_Orders" FromRole="Order" ToRole="AIR" />
-          <NavigationProperty Name="OrderItems" Relationship="AppManModel.FK_OrderItems_Orders" FromRole="Order" ToRole="OrderItem" />
           <NavigationProperty Name="OrderItemUnitGroups" Relationship="AppManModel.FK_OrderItemUnitGroups_Orders" FromRole="Order" ToRole="OrderItemUnitGroup" />
           <NavigationProperty Name="Request" Relationship="AppManModel.FK_Orders_Requests" FromRole="Order" ToRole="Request" />
           <NavigationProperty Name="Supplier" Relationship="AppManModel.FK_Orders_Suppliers" FromRole="Order" ToRole="Supplier" />
           <NavigationProperty Name="PARs" Relationship="AppManModel.FK_PARs_Orders" FromRole="Order" ToRole="PAR" />
+          <NavigationProperty Name="OrderItems" Relationship="AppManModel.FK_OrderItems_Orders" FromRole="Order" ToRole="OrderItem" />
         </EntityType>
         <Association Name="FK_AIRs_Orders">
           <End Type="AppManModel.Order" Role="Order" Multiplicity="0..1" />
@@ -4491,20 +4314,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="AIR">
-              <PropertyRef Name="OrderId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_OrderItems_Orders">
-          <End Type="AppManModel.Order" Role="Order" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Order">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="OrderItem">
               <PropertyRef Name="OrderId" />
             </Dependent>
           </ReferentialConstraint>
@@ -4611,22 +4420,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PsItems_OrderItems" FromRole="PsItem" ToRole="OrderItem" />
           <NavigationProperty Name="PsStock" Relationship="AppManModel.FK_PsItems_PsStocks" FromRole="PsItem" ToRole="PsStock" />
           <NavigationProperty Name="PsItemIssuances" Relationship="AppManModel.FK_PsItemIssuances_PsItems" FromRole="PsItem" ToRole="PsItemIssuance" />
+          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PsItems_OrderItems" FromRole="PsItem" ToRole="OrderItem" />
         </EntityType>
-        <Association Name="FK_PsItems_OrderItems">
-          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
-          <End Type="AppManModel.PsItem" Role="PsItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsItem">
-              <PropertyRef Name="OrderItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_PsItems_PsStocks">
           <End Type="AppManModel.PsStock" Role="PsStock" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -4638,100 +4435,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="PsItem">
               <PropertyRef Name="PsStockId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityType Name="RisItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="RisId" Type="Guid" />
-          <Property Name="ItemCodeId" Type="Guid" />
-          <Property Name="PsNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="PsNoDisplay" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="ItemName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
-          <Property Name="OtherDesc" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="Unit" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="QtyRequest" Type="Int32" />
-          <Property Name="QtyIssue" Type="Int32" />
-          <Property Name="Remarks" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_RisItems_ItemCodes" FromRole="RisItem" ToRole="ItemCode" />
-          <NavigationProperty Name="RequestItems" Relationship="AppManModel.FK_RequestItems_RisItems" FromRole="RisItem" ToRole="RequestItem" />
-          <NavigationProperty Name="RisItemExtns" Relationship="AppManModel.FK_RisItemExtns_RisItems" FromRole="RisItem" ToRole="RisItemExtn" />
-          <NavigationProperty Name="RISs" Relationship="AppManModel.FK_RisItems_RIS" FromRole="RisItem" ToRole="RISs" />
-          <NavigationProperty Name="RisItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItems" FromRole="RisItem" ToRole="RisItemUnitGroupDescriptionItem" />
-          <NavigationProperty Name="RisIssueds" Relationship="AppManModel.FK_RisIssueds_RisItems" FromRole="RisItem" ToRole="RisIssued" />
-          <NavigationProperty Name="RisItemMedicine" Relationship="AppManModel.FK_RisItemStocks_RisItems" FromRole="RisItem" ToRole="RisItemMedicine" />
-          <NavigationProperty Name="RisItemPpe" Relationship="AppManModel.FK_RisItemPpe_RisItems" FromRole="RisItem" ToRole="RisItemPpe" />
-          <NavigationProperty Name="RisItemVehicle" Relationship="AppManModel.FK_RisItemVehicles_RisItems" FromRole="RisItem" ToRole="RisItemVehicle" />
-        </EntityType>
-        <Association Name="FK_RisItems_ItemCodes">
-          <End Type="AppManModel.ItemCode" Role="ItemCode" Multiplicity="0..1" />
-          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ItemCode">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RisItem">
-              <PropertyRef Name="ItemCodeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RequestItems_RisItems">
-          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="0..1" />
-          <End Type="AppManModel.RequestItem" Role="RequestItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RisItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RequestItem">
-              <PropertyRef Name="RisItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RisItemExtns_RisItems">
-          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RisItemExtn" Role="RisItemExtn" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RisItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RisItemExtn">
-              <PropertyRef Name="RisItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RisItems_RIS">
-          <End Type="AppManModel.RISs" Role="RISs" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RISs">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RisItem">
-              <PropertyRef Name="RisId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RisItemUnitGroupDescriptionItems_RisItems">
-          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="0..1" />
-          <End Type="AppManModel.RisItemUnitGroupDescriptionItem" Role="RisItemUnitGroupDescriptionItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RisItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RisItemUnitGroupDescriptionItem">
-              <PropertyRef Name="RisItemId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -4821,43 +4524,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="PsItemIssuance">
               <PropertyRef Name="PsItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityType Name="RisIssued">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="RisItemId" Type="Guid" />
-          <Property Name="OrderItemId" Type="Guid" />
-          <Property Name="IssuedDate" Type="DateTime" Precision="3" />
-          <Property Name="IssuedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="IssuedByDesignation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Qty" Type="Int32" />
-          <Property Name="UnitCost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="ReceivedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="ReceivedByDesignation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="ReceivedDate" Type="DateTime" Precision="3" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="RisItem" Relationship="AppManModel.FK_RisIssueds_RisItems" FromRole="RisIssued" ToRole="RisItem" />
-          <NavigationProperty Name="StockItemIssuances" Relationship="AppManModel.FK_StockItemIssuances_RisIssueds" FromRole="RisIssued" ToRole="StockItemIssuance" />
-        </EntityType>
-        <Association Name="FK_RisIssueds_RisItems">
-          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RisIssued" Role="RisIssued" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RisItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RisIssued">
-              <PropertyRef Name="RisItemId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -5144,9 +4810,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_StockItems_OrderItems" FromRole="StockItem" ToRole="OrderItem" />
           <NavigationProperty Name="StockCard" Relationship="AppManModel.FK_StockItems_StockCards" FromRole="StockItem" ToRole="StockCard" />
           <NavigationProperty Name="StockItemIssuances" Relationship="AppManModel.FK_StockItemIssuances_StockItems" FromRole="StockItem" ToRole="StockItemIssuance" />
+          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_StockItems_OrderItems" FromRole="StockItem" ToRole="OrderItem" />
         </EntityType>
         <Association Name="FK_StockCards_ItemCodes">
           <End Type="AppManModel.ItemCode" Role="ItemCode" Multiplicity="0..1" />
@@ -5157,18 +4823,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="StockCard">
               <PropertyRef Name="ItemCodeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_StockItems_OrderItems">
-          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
-          <End Type="AppManModel.StockItem" Role="StockItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OrderItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="StockItem">
-              <PropertyRef Name="OrderItemId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -5204,21 +4858,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="RisIssued" Relationship="AppManModel.FK_StockItemIssuances_RisIssueds" FromRole="StockItemIssuance" ToRole="RisIssued" />
           <NavigationProperty Name="StockItem" Relationship="AppManModel.FK_StockItemIssuances_StockItems" FromRole="StockItemIssuance" ToRole="StockItem" />
+          <NavigationProperty Name="RisIssued" Relationship="AppManModel.FK_StockItemIssuances_RisIssueds" FromRole="StockItemIssuance" ToRole="RisIssued" />
         </EntityType>
-        <Association Name="FK_StockItemIssuances_RisIssueds">
-          <End Type="AppManModel.RisIssued" Role="RisIssued" Multiplicity="0..1" />
-          <End Type="AppManModel.StockItemIssuance" Role="StockItemIssuance" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RisIssued">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="StockItemIssuance">
-              <PropertyRef Name="RisIssuedId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_StockItemIssuances_StockItems">
           <End Type="AppManModel.StockItem" Role="StockItem" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -5274,48 +4916,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="ChassisNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="RisItem" Relationship="AppManModel.FK_RisItemVehicles_RisItems" FromRole="RisItemVehicle" ToRole="RisItem" />
         </EntityType>
-        <Association Name="FK_RisItemStocks_RisItems">
-          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RisItemMedicine" Role="RisItemMedicine" Multiplicity="0..1" />
-          <ReferentialConstraint>
-            <Principal Role="RisItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RisItemMedicine">
-              <PropertyRef Name="RisItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RisItemPpe_RisItems">
-          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RisItemPpe" Role="RisItemPpe" Multiplicity="0..1" />
-          <ReferentialConstraint>
-            <Principal Role="RisItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RisItemPpe">
-              <PropertyRef Name="RisItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RisItemVehicles_RisItems">
-          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RisItemVehicle" Role="RisItemVehicle" Multiplicity="0..1" />
-          <ReferentialConstraint>
-            <Principal Role="RisItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RisItemVehicle">
-              <PropertyRef Name="RisItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="RPCIItem">
           <Key>
             <PropertyRef Name="Id" />
@@ -5376,6 +4976,438 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="RPCIItem">
               <PropertyRef Name="RpciId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="RisIssued">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RisItemId" Type="Guid" />
+          <Property Name="OrderItemId" Type="Guid" />
+          <Property Name="Location" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="IssuedTo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Officer" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="IssuedDate" Type="DateTime" Precision="0" />
+          <Property Name="IssuedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Qty" Type="Int32" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="StockItemIssuances" Relationship="AppManModel.FK_StockItemIssuances_RisIssueds" FromRole="RisIssued" ToRole="StockItemIssuance" />
+          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_RisIssueds_OrderItems" FromRole="RisIssued" ToRole="OrderItem" />
+          <NavigationProperty Name="RisItem" Relationship="AppManModel.FK_RisIssueds_RisItems" FromRole="RisIssued" ToRole="RisItem" />
+        </EntityType>
+        <Association Name="FK_StockItemIssuances_RisIssueds">
+          <End Type="AppManModel.RisIssued" Role="RisIssued" Multiplicity="0..1" />
+          <End Type="AppManModel.StockItemIssuance" Role="StockItemIssuance" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RisIssued">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="StockItemIssuance">
+              <PropertyRef Name="RisIssuedId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="AIRItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="AirId" Type="Guid" />
+          <Property Name="OrderItemId" Type="Guid" />
+          <Property Name="Qty" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AIR" Relationship="AppManModel.FK_AIRItems_AIRs" FromRole="AIRItem" ToRole="AIR" />
+          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_AIRItems_OrderItems" FromRole="AIRItem" ToRole="OrderItem" />
+        </EntityType>
+        <EntityType Name="OrderItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="OrderId" Type="Guid" />
+          <Property Name="RequestItemId" Type="Guid" />
+          <Property Name="StockNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="StockName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
+          <Property Name="Brand" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="EstimatedLife" Type="Decimal" Precision="8" Scale="2" />
+          <Property Name="Qty" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="UnitCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PriceRate" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AIRItems" Relationship="AppManModel.FK_AIRItems_OrderItems" FromRole="OrderItem" ToRole="AIRItem" />
+          <NavigationProperty Name="OrderItemExtns" Relationship="AppManModel.FK_OrderItemExtns_OrderItems" FromRole="OrderItem" ToRole="OrderItemExtn" />
+          <NavigationProperty Name="Order" Relationship="AppManModel.FK_OrderItems_Orders" FromRole="OrderItem" ToRole="Order" />
+          <NavigationProperty Name="RequestItem" Relationship="AppManModel.FK_OrderItems_RequestItems" FromRole="OrderItem" ToRole="RequestItem" />
+          <NavigationProperty Name="OrderItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_OrderItemUnitGroupDescriptionItems_OrderItems" FromRole="OrderItem" ToRole="OrderItemUnitGroupDescriptionItem" />
+          <NavigationProperty Name="PARItems" Relationship="AppManModel.FK_PARItems_OrderItems" FromRole="OrderItem" ToRole="PARItem" />
+          <NavigationProperty Name="PsItems" Relationship="AppManModel.FK_PsItems_OrderItems" FromRole="OrderItem" ToRole="PsItem" />
+          <NavigationProperty Name="RisIssueds" Relationship="AppManModel.FK_RisIssueds_OrderItems" FromRole="OrderItem" ToRole="RisIssued" />
+          <NavigationProperty Name="StockItems" Relationship="AppManModel.FK_StockItems_OrderItems" FromRole="OrderItem" ToRole="StockItem" />
+        </EntityType>
+        <EntityType Name="PARItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ParId" Type="Guid" />
+          <Property Name="OrderItemId" Type="Guid" />
+          <Property Name="Qty" Type="Int32" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="SerialNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PARItems_OrderItems" FromRole="PARItem" ToRole="OrderItem" />
+          <NavigationProperty Name="PAR" Relationship="AppManModel.FK_PARItems_PARs" FromRole="PARItem" ToRole="PAR" />
+        </EntityType>
+        <EntityType Name="RequestItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RisItemId" Type="Guid" />
+          <Property Name="PrId" Type="Guid" />
+          <Property Name="Qty" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="UnitCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="TotalCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PriceRate" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="OrderItems" Relationship="AppManModel.FK_OrderItems_RequestItems" FromRole="RequestItem" ToRole="OrderItem" />
+          <NavigationProperty Name="Request" Relationship="AppManModel.FK_RequestItems_Requests" FromRole="RequestItem" ToRole="Request" />
+          <NavigationProperty Name="RisItem" Relationship="AppManModel.FK_RequestItems_RisItems" FromRole="RequestItem" ToRole="RisItem" />
+          <NavigationProperty Name="RequestItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_RequestItemUnitGroupDescriptionItems_RequestItems2" FromRole="RequestItem" ToRole="RequestItemUnitGroupDescriptionItem" />
+        </EntityType>
+        <EntityType Name="RisItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RisId" Type="Guid" />
+          <Property Name="ItemCodeId" Type="Guid" />
+          <Property Name="PsNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PsNoDisplay" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ItemName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
+          <Property Name="OtherDesc" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="Unit" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="QtyRequest" Type="Int32" />
+          <Property Name="QtyIssue" Type="Int32" />
+          <Property Name="Remarks" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_RisItems_ItemCodes" FromRole="RisItem" ToRole="ItemCode" />
+          <NavigationProperty Name="RequestItems" Relationship="AppManModel.FK_RequestItems_RisItems" FromRole="RisItem" ToRole="RequestItem" />
+          <NavigationProperty Name="RisIssueds" Relationship="AppManModel.FK_RisIssueds_RisItems" FromRole="RisItem" ToRole="RisIssued" />
+          <NavigationProperty Name="RisItemExtns" Relationship="AppManModel.FK_RisItemExtns_RisItems" FromRole="RisItem" ToRole="RisItemExtn" />
+          <NavigationProperty Name="RisItemMedicine" Relationship="AppManModel.FK_RisItemStocks_RisItems" FromRole="RisItem" ToRole="RisItemMedicine" />
+          <NavigationProperty Name="RisItemPpe" Relationship="AppManModel.FK_RisItemPpe_RisItems" FromRole="RisItem" ToRole="RisItemPpe" />
+          <NavigationProperty Name="RISs" Relationship="AppManModel.FK_RisItems_RIS" FromRole="RisItem" ToRole="RISs" />
+          <NavigationProperty Name="RisItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItems" FromRole="RisItem" ToRole="RisItemUnitGroupDescriptionItem" />
+          <NavigationProperty Name="RisItemVehicle" Relationship="AppManModel.FK_RisItemVehicles_RisItems" FromRole="RisItem" ToRole="RisItemVehicle" />
+        </EntityType>
+        <Association Name="FK_AIRItems_AIRs">
+          <End Type="AppManModel.AIR" Role="AIR" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.AIRItem" Role="AIRItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AIR">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRItem">
+              <PropertyRef Name="AirId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AIRItems_OrderItems">
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
+          <End Type="AppManModel.AIRItem" Role="AIRItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AIRItem">
+              <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RisItems_ItemCodes">
+          <End Type="AppManModel.ItemCode" Role="ItemCode" Multiplicity="0..1" />
+          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ItemCode">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RisItem">
+              <PropertyRef Name="ItemCodeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_OrderItemExtns_OrderItems">
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.OrderItemExtn" Role="OrderItemExtn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="OrderItemExtn">
+              <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_OrderItems_Orders">
+          <End Type="AppManModel.Order" Role="Order" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Order">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="OrderItem">
+              <PropertyRef Name="OrderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_OrderItems_RequestItems">
+          <End Type="AppManModel.RequestItem" Role="RequestItem" Multiplicity="0..1" />
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RequestItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="OrderItem">
+              <PropertyRef Name="RequestItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_OrderItemUnitGroupDescriptionItems_OrderItems">
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
+          <End Type="AppManModel.OrderItemUnitGroupDescriptionItem" Role="OrderItemUnitGroupDescriptionItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="OrderItemUnitGroupDescriptionItem">
+              <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PARItems_OrderItems">
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
+          <End Type="AppManModel.PARItem" Role="PARItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PARItem">
+              <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PsItems_OrderItems">
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
+          <End Type="AppManModel.PsItem" Role="PsItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsItem">
+              <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RisIssueds_OrderItems">
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
+          <End Type="AppManModel.RisIssued" Role="RisIssued" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RisIssued">
+              <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_StockItems_OrderItems">
+          <End Type="AppManModel.OrderItem" Role="OrderItem" Multiplicity="0..1" />
+          <End Type="AppManModel.StockItem" Role="StockItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="StockItem">
+              <PropertyRef Name="OrderItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PARItems_PARs">
+          <End Type="AppManModel.PAR" Role="PAR" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.PARItem" Role="PARItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PAR">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PARItem">
+              <PropertyRef Name="ParId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RequestItems_Requests">
+          <End Type="AppManModel.Request" Role="Request" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RequestItem" Role="RequestItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Request">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RequestItem">
+              <PropertyRef Name="PrId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RequestItems_RisItems">
+          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="0..1" />
+          <End Type="AppManModel.RequestItem" Role="RequestItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RisItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RequestItem">
+              <PropertyRef Name="RisItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RequestItemUnitGroupDescriptionItems_RequestItems2">
+          <End Type="AppManModel.RequestItem" Role="RequestItem" Multiplicity="0..1" />
+          <End Type="AppManModel.RequestItemUnitGroupDescriptionItem" Role="RequestItemUnitGroupDescriptionItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RequestItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RequestItemUnitGroupDescriptionItem">
+              <PropertyRef Name="RequestItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RisIssueds_RisItems">
+          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RisIssued" Role="RisIssued" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RisItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RisIssued">
+              <PropertyRef Name="RisItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RisItemExtns_RisItems">
+          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RisItemExtn" Role="RisItemExtn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RisItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RisItemExtn">
+              <PropertyRef Name="RisItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RisItemStocks_RisItems">
+          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RisItemMedicine" Role="RisItemMedicine" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="RisItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RisItemMedicine">
+              <PropertyRef Name="RisItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RisItemPpe_RisItems">
+          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RisItemPpe" Role="RisItemPpe" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="RisItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RisItemPpe">
+              <PropertyRef Name="RisItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RisItems_RIS">
+          <End Type="AppManModel.RISs" Role="RISs" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RISs">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RisItem">
+              <PropertyRef Name="RisId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RisItemUnitGroupDescriptionItems_RisItems">
+          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="0..1" />
+          <End Type="AppManModel.RisItemUnitGroupDescriptionItem" Role="RisItemUnitGroupDescriptionItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RisItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RisItemUnitGroupDescriptionItem">
+              <PropertyRef Name="RisItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RisItemVehicles_RisItems">
+          <End Type="AppManModel.RisItem" Role="RisItem" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RisItemVehicle" Role="RisItemVehicle" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="RisItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RisItemVehicle">
+              <PropertyRef Name="RisItemId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -5673,20 +5705,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="AIRItems">
-            <EntityTypeMapping TypeName="AppManModel.AIRItem">
-              <MappingFragment StoreEntitySet="AIRItems">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Qty" ColumnName="Qty" />
-                <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
-                <ScalarProperty Name="AirId" ColumnName="AirId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Codextns">
             <EntityTypeMapping TypeName="AppManModel.Codextn">
               <MappingFragment StoreEntitySet="Codextn">
@@ -5871,44 +5889,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="ItemKey" ColumnName="ItemKey" />
                 <ScalarProperty Name="ItemNo" ColumnName="ItemNo" />
                 <ScalarProperty Name="PsStockId" ColumnName="PsStockId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="OrderItems">
-            <EntityTypeMapping TypeName="AppManModel.OrderItem">
-              <MappingFragment StoreEntitySet="OrderItems">
-                <ScalarProperty Name="PriceRate" ColumnName="PriceRate" />
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Amount" ColumnName="Amount" />
-                <ScalarProperty Name="UnitCost" ColumnName="UnitCost" />
-                <ScalarProperty Name="Qty" ColumnName="Qty" />
-                <ScalarProperty Name="EstimatedLife" ColumnName="EstimatedLife" />
-                <ScalarProperty Name="Brand" ColumnName="Brand" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="StockName" ColumnName="StockName" />
-                <ScalarProperty Name="StockNo" ColumnName="StockNo" />
-                <ScalarProperty Name="RequestItemId" ColumnName="RequestItemId" />
-                <ScalarProperty Name="OrderId" ColumnName="OrderId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="PARItems">
-            <EntityTypeMapping TypeName="AppManModel.PARItem">
-              <MappingFragment StoreEntitySet="PARItems">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="SerialNo" ColumnName="SerialNo" />
-                <ScalarProperty Name="Amount" ColumnName="Amount" />
-                <ScalarProperty Name="Qty" ColumnName="Qty" />
-                <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
-                <ScalarProperty Name="ParId" ColumnName="ParId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -6110,23 +6090,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="RequestItems">
-            <EntityTypeMapping TypeName="AppManModel.RequestItem">
-              <MappingFragment StoreEntitySet="RequestItems">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="PriceRate" ColumnName="PriceRate" />
-                <ScalarProperty Name="TotalCost" ColumnName="TotalCost" />
-                <ScalarProperty Name="UnitCost" ColumnName="UnitCost" />
-                <ScalarProperty Name="Qty" ColumnName="Qty" />
-                <ScalarProperty Name="PrId" ColumnName="PrId" />
-                <ScalarProperty Name="RisItemId" ColumnName="RisItemId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="RisItemUnitGroups">
             <EntityTypeMapping TypeName="AppManModel.RisItemUnitGroup">
               <MappingFragment StoreEntitySet="RisItemUnitGroups">
@@ -6264,28 +6227,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="RisItems">
-            <EntityTypeMapping TypeName="IsTypeOf(AppManModel.RisItem)">
-              <MappingFragment StoreEntitySet="RisItems">
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="RisId" ColumnName="RisId" />
-                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
-                <ScalarProperty Name="PsNo" ColumnName="PsNo" />
-                <ScalarProperty Name="PsNoDisplay" ColumnName="PsNoDisplay" />
-                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="OtherDesc" ColumnName="OtherDesc" />
-                <ScalarProperty Name="Unit" ColumnName="Unit" />
-                <ScalarProperty Name="QtyRequest" ColumnName="QtyRequest" />
-                <ScalarProperty Name="QtyIssue" ColumnName="QtyIssue" />
-                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="RPCEFFOPPEItems">
             <EntityTypeMapping TypeName="AppManModel.RPCEFFOPPEItem">
               <MappingFragment StoreEntitySet="RPCEFFOPPEItems">
@@ -6343,28 +6284,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="RisIssuedId" ColumnName="RisIssuedId" />
                 <ScalarProperty Name="PsItemId" ColumnName="PsItemId" />
                 <ScalarProperty Name="TranCode" ColumnName="TranCode" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="RisIssueds">
-            <EntityTypeMapping TypeName="AppManModel.RisIssued">
-              <MappingFragment StoreEntitySet="RisIssueds">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="ReceivedDate" ColumnName="ReceivedDate" />
-                <ScalarProperty Name="ReceivedByDesignation" ColumnName="ReceivedByDesignation" />
-                <ScalarProperty Name="ReceivedBy" ColumnName="ReceivedBy" />
-                <ScalarProperty Name="Amount" ColumnName="Amount" />
-                <ScalarProperty Name="UnitCost" ColumnName="UnitCost" />
-                <ScalarProperty Name="Qty" ColumnName="Qty" />
-                <ScalarProperty Name="IssuedByDesignation" ColumnName="IssuedByDesignation" />
-                <ScalarProperty Name="IssuedBy" ColumnName="IssuedBy" />
-                <ScalarProperty Name="IssuedDate" ColumnName="IssuedDate" />
-                <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
-                <ScalarProperty Name="RisItemId" ColumnName="RisItemId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -6687,6 +6606,117 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="AccountableOfficer" ColumnName="AccountableOfficer" />
                 <ScalarProperty Name="Department" ColumnName="Department" />
                 <ScalarProperty Name="AsOf" ColumnName="AsOf" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RisIssueds">
+            <EntityTypeMapping TypeName="AppManModel.RisIssued">
+              <MappingFragment StoreEntitySet="RisIssueds">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="IssuedBy" ColumnName="IssuedBy" />
+                <ScalarProperty Name="IssuedDate" ColumnName="IssuedDate" />
+                <ScalarProperty Name="Officer" ColumnName="Officer" />
+                <ScalarProperty Name="IssuedTo" ColumnName="IssuedTo" />
+                <ScalarProperty Name="Location" ColumnName="Location" />
+                <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
+                <ScalarProperty Name="RisItemId" ColumnName="RisItemId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AIRItems">
+            <EntityTypeMapping TypeName="AppManModel.AIRItem">
+              <MappingFragment StoreEntitySet="AIRItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
+                <ScalarProperty Name="AirId" ColumnName="AirId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="OrderItems">
+            <EntityTypeMapping TypeName="AppManModel.OrderItem">
+              <MappingFragment StoreEntitySet="OrderItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="PriceRate" ColumnName="PriceRate" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="UnitCost" ColumnName="UnitCost" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="EstimatedLife" ColumnName="EstimatedLife" />
+                <ScalarProperty Name="Brand" ColumnName="Brand" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="StockName" ColumnName="StockName" />
+                <ScalarProperty Name="StockNo" ColumnName="StockNo" />
+                <ScalarProperty Name="RequestItemId" ColumnName="RequestItemId" />
+                <ScalarProperty Name="OrderId" ColumnName="OrderId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PARItems">
+            <EntityTypeMapping TypeName="AppManModel.PARItem">
+              <MappingFragment StoreEntitySet="PARItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="SerialNo" ColumnName="SerialNo" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="OrderItemId" ColumnName="OrderItemId" />
+                <ScalarProperty Name="ParId" ColumnName="ParId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RequestItems">
+            <EntityTypeMapping TypeName="AppManModel.RequestItem">
+              <MappingFragment StoreEntitySet="RequestItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="PriceRate" ColumnName="PriceRate" />
+                <ScalarProperty Name="TotalCost" ColumnName="TotalCost" />
+                <ScalarProperty Name="UnitCost" ColumnName="UnitCost" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="PrId" ColumnName="PrId" />
+                <ScalarProperty Name="RisItemId" ColumnName="RisItemId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RisItems">
+            <EntityTypeMapping TypeName="AppManModel.RisItem">
+              <MappingFragment StoreEntitySet="RisItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="QtyIssue" ColumnName="QtyIssue" />
+                <ScalarProperty Name="QtyRequest" ColumnName="QtyRequest" />
+                <ScalarProperty Name="Unit" ColumnName="Unit" />
+                <ScalarProperty Name="OtherDesc" ColumnName="OtherDesc" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
+                <ScalarProperty Name="PsNoDisplay" ColumnName="PsNoDisplay" />
+                <ScalarProperty Name="PsNo" ColumnName="PsNo" />
+                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
+                <ScalarProperty Name="RisId" ColumnName="RisId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

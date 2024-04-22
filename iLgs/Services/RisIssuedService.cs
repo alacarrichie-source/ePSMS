@@ -31,17 +31,14 @@ namespace iLgs.Services
                     Id = s.Id,
                     RisItemId = s.RisItemId,
                     OrderItemId = s.OrderItemId,
+                    Location = s.Location,
+                    Officer = s.Officer,
+                    IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     IssuedBy = s.IssuedBy,
-                    IssuedByDesignation = s.IssuedByDesignation,
                     Qty = s.Qty,
-                    UnitCost = s.UnitCost,
                     Amount = s.Amount,
-                    ReceivedBy = s.ReceivedBy,
-                    ReceivedByDesignation = s.ReceivedByDesignation, 
-                    ReceivedDate = s.ReceivedDate,
-                    InsertedDt = s.InsertedDt,
-                    Department = s.RisItem.RISs.Office
+                    InsertedDt = s.InsertedDt                    
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -62,17 +59,14 @@ namespace iLgs.Services
                     Id = s.Id,
                     RisItemId = s.RisItemId,
                     OrderItemId = s.OrderItemId,
+                    Location = s.Location,
+                    Officer = s.Officer,
+                    IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     IssuedBy = s.IssuedBy,
-                    IssuedByDesignation = s.IssuedByDesignation,
                     Qty = s.Qty,
-                    UnitCost = s.UnitCost,
                     Amount = s.Amount,
-                    ReceivedBy = s.ReceivedBy,
-                    ReceivedByDesignation = s.ReceivedByDesignation,
-                    ReceivedDate = s.ReceivedDate,
-                    InsertedDt = s.InsertedDt,
-                    Department = s.RisItem.RISs.Office
+                    InsertedDt = s.InsertedDt                    
                 });
             return data;
         });
@@ -86,17 +80,14 @@ namespace iLgs.Services
                     Id = s.Id,
                     RisItemId = s.RisItemId,
                     OrderItemId = s.OrderItemId,
+                    Location = s.Location,
+                    Officer = s.Officer,
+                    IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     IssuedBy = s.IssuedBy,
-                    IssuedByDesignation = s.IssuedByDesignation,
                     Qty = s.Qty,
-                    UnitCost = s.UnitCost,
                     Amount = s.Amount,
-                    ReceivedBy = s.ReceivedBy,
-                    ReceivedByDesignation = s.ReceivedByDesignation,
-                    ReceivedDate = s.ReceivedDate,
-                    InsertedDt = s.InsertedDt,
-                    Department = s.RisItem.RISs.Office
+                    InsertedDt = s.InsertedDt                    
                 });
             return data;
         });
@@ -110,17 +101,15 @@ namespace iLgs.Services
                     Id = s.Id,
                     RisItemId = s.RisItemId,
                     OrderItemId = s.OrderItemId,
+                    Location = s.Location,
+                    Officer = s.Officer,
+                    IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     IssuedBy = s.IssuedBy,
-                    IssuedByDesignation = s.IssuedByDesignation,
                     Qty = s.Qty,
-                    UnitCost = s.UnitCost,
                     Amount = s.Amount,
-                    ReceivedBy = s.ReceivedBy,
-                    ReceivedByDesignation = s.ReceivedByDesignation,
-                    ReceivedDate = s.ReceivedDate,
-                    InsertedDt = s.InsertedDt,
-                    Department = s.RisItem.RISs.Office
+                    InsertedDt = s.InsertedDt
+                    //Department = s.RisItem.RISs.Office
                 });
             return data;
         });
@@ -155,13 +144,11 @@ namespace iLgs.Services
                 OrderItemId = model.OrderItemId,
                 IssuedDate = model.IssuedDate,
                 IssuedBy = model.IssuedBy,
-                IssuedByDesignation = model.IssuedByDesignation,
                 Qty = model.Qty,
-                UnitCost = model.UnitCost,
                 Amount = model.Amount,
-                ReceivedBy = model.ReceivedBy,
-                ReceivedByDesignation = model.ReceivedByDesignation,
-                ReceivedDate = model.ReceivedDate,
+                IssuedTo = model.IssuedTo,
+                Officer = model.Officer,
+                Location = model.Location,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -170,8 +157,8 @@ namespace iLgs.Services
 
             _db.RisIssueds.Add(entity);
             await _db.SaveChangesAsync();
-            await UpdateRisPsItems(model.RisItemId);
-            await UpdatePsItemIssuance(entity, user, date);
+            await UpdateRisStockItems(model.RisItemId);
+            await UpdateStockItemIssuance(entity, user, date);
             return model;
         });
 
@@ -195,11 +182,15 @@ namespace iLgs.Services
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
+
+            await DeleteStockItemIssuance(entity, user, date);
+
             _db.RisIssueds.Remove(entity);
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
-            await UpdateRisPsItems(model.RisItemId);
-            await DeletePsItemIssuance(entity, user, date);
+
+            await UpdateRisStockItems(model.RisItemId);
+            
             return model;
         });
 
@@ -229,33 +220,31 @@ namespace iLgs.Services
             entity.OrderItemId = model.OrderItemId;
             entity.IssuedDate = model.IssuedDate;
             entity.IssuedBy = model.IssuedBy;
-            entity.IssuedByDesignation = model.IssuedByDesignation;
             entity.Qty = model.Qty;
-            entity.UnitCost = model.UnitCost;
             entity.Amount = model.Amount;
-            entity.ReceivedBy = model.ReceivedBy;
-            entity.ReceivedByDesignation = model.ReceivedByDesignation;
-            entity.ReceivedDate = model.ReceivedDate;
+            entity.IssuedTo = model.IssuedTo;
+            entity.Officer = model.Officer;
+            entity.Location = model.Location;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
             _db.RisIssueds.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();                        
-            await UpdateRisPsItems(model.RisItemId);
-            await UpdatePsItemIssuance(entity, user, date);
+            await UpdateRisStockItems(model.RisItemId);
+            await UpdateStockItemIssuance(entity, user, date);
             return model;
         });
 
-        private async ValueTask UpdateRisPsItems(Guid? risItemId)
+        private async ValueTask UpdateRisStockItems(Guid? risItemId)
         {
             var qtyReceived = await _db.AIRItems.Where(w => w.OrderItem.RequestItem.RisItem.Id == risItemId).SumAsync(s => s.Qty) ?? 0;
             var qtyIssued = await _db.RisIssueds.Where(w => w.RisItemId == risItemId).SumAsync(s => s.Qty) ?? 0;
             var orderItems = await _db.OrderItems.Where(w => w.RequestItem.RisItem.Id == risItemId).ToListAsync();
             foreach (var orderItem in orderItems)
             {
-                var psItems = _db.PsItems.Where(w => w.OrderItemId == orderItem.Id);
-                await psItems.ForEachAsync(f => { f.QtyIss = qtyIssued; f.Qty = qtyReceived; f.QtyBal = qtyReceived - qtyIssued; });
+                var stockItems = _db.StockItems.Where(w => w.OrderItemId == orderItem.Id);
+                await stockItems.ForEachAsync(f => { f.QtyIss = (int?)qtyIssued; f.Qty = (int?)qtyReceived; f.QtyBal = (int)qtyReceived - qtyIssued; });
             }
             var risItem = await _db.RisItems.FindAsync(risItemId);
             risItem.QtyIssue = qtyIssued;
@@ -265,51 +254,54 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();            
         }
 
-        private async ValueTask UpdatePsItemIssuance(RisIssued risIssued, string user, DateTime? date)
+        private async ValueTask UpdateStockItemIssuance(RisIssued risIssued, string user, DateTime? date)
         {
-            var psItemIssuance = await _db.PsItemIssuances.FindAsync(risIssued.Id);
-            if (psItemIssuance == null)
+            var orderItem = await _db.OrderItems.FindAsync(risIssued.OrderItemId);
+            var stockItemIssuance = await _db.StockItemIssuances.FirstOrDefaultAsync(f => f.RisIssuedId == risIssued.Id);
+            if (stockItemIssuance == null)
             {
-                var psItem = await _db.PsItems.Where(w => w.OrderItemId == risIssued.OrderItemId).FirstOrDefaultAsync();
-                psItemIssuance = new PsItemIssuance()
+                var stockItem = await _db.StockItems.Where(w => w.OrderItemId == risIssued.OrderItemId).FirstOrDefaultAsync();
+                stockItemIssuance = new StockItemIssuance()
                 {
                     Id = Guid.NewGuid(),
-                    TranCode = "I",
-                    PsItemId = psItem.Id,
+                    StockItemId = stockItem.Id,
                     RisIssuedId = risIssued.Id,
-                    IssuedDate = risIssued.ReceivedDate,
-                    IssuedTo = risIssued.ReceivedBy,
+                    Location = risIssued.Location,
+                    IssuedTo = risIssued.IssuedTo,
+                    Officer = risIssued.Officer,
+                    IssuedDate = risIssued.IssuedDate,
+                    IssuedBy = risIssued.IssuedBy,                    
                     Qty = risIssued.Qty,
-                    UnitCost = risIssued.UnitCost,
-                    //SourceId = model.SourceId,
+                    Amount = risIssued.Qty * orderItem.UnitCost,
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
                     UpdatedDt = date
                 };
-                _db.PsItemIssuances.Add(psItemIssuance);
-                _db.Entry(psItemIssuance).State = EntityState.Added;
+                _db.StockItemIssuances.Add(stockItemIssuance);
+                _db.Entry(stockItemIssuance).State = EntityState.Added;
             }
             else
             {
 
-                psItemIssuance.IssuedDate = risIssued.ReceivedDate;
-                psItemIssuance.IssuedTo = risIssued.ReceivedBy;
-                psItemIssuance.Qty = risIssued.Qty;
-                psItemIssuance.UnitCost = risIssued.UnitCost;
-                //psItemIssuance.SourceId = model.SourceId;
-                psItemIssuance.UpdatedBy = user;
-                psItemIssuance.UpdatedDt = date;
-                _db.PsItemIssuances.Attach(psItemIssuance);
-                _db.Entry(psItemIssuance).State = EntityState.Modified;
+                stockItemIssuance.IssuedDate = risIssued.IssuedDate;
+                stockItemIssuance.IssuedTo = risIssued.IssuedTo;
+                stockItemIssuance.Qty = risIssued.Qty;
+                stockItemIssuance.Amount = risIssued.Amount;
+                stockItemIssuance.Location = risIssued.Location;
+                stockItemIssuance.Officer = risIssued.Officer;
+                stockItemIssuance.UpdatedBy = user;
+                stockItemIssuance.UpdatedDt = date;
+                _db.StockItemIssuances.Attach(stockItemIssuance);
+                _db.Entry(stockItemIssuance).State = EntityState.Modified;
             }
 
             await _db.SaveChangesAsync();
         }
 
-        private async ValueTask DeletePsItemIssuance(RisIssued model, string user, DateTime? date)
+        private async ValueTask DeleteStockItemIssuance(RisIssued model, string user, DateTime? date)
         {
-            var entity = await _db.PsItemIssuances.FindAsync(model.Id);
+            var entity = await _db.StockItemIssuances.FirstOrDefaultAsync(f => f.RisIssuedId == model.Id);
             if (entity == null)
             {
                 return;
@@ -318,11 +310,11 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            _db.PsItemIssuances.Attach(entity);
+            _db.StockItemIssuances.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            _db.PsItemIssuances.Remove(entity);
+            _db.StockItemIssuances.Remove(entity);
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();            
         }

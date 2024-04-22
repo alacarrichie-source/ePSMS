@@ -137,6 +137,16 @@
 
         <div class="row">
             <div class="col-md-12">
+                @Html.LabelFor(m => m.Amount, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.Amount).Decimals(2).Spinners(false).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Amount)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
                 @Html.LabelFor(m => m.Remarks, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.Remarks).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))

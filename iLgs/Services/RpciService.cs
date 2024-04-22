@@ -14,7 +14,7 @@ namespace iLgs.Services
     {
         IQueryable<RPCI_VM> GetAll();
         ValueTask<RPCI> GetByIdAsync(Guid? id);
-        ValueTask<RPCI_VM> GetByAsAtAsync(DateTime? asAt);
+        ValueTask<RPCI_VM> GetByAsOfAsync(DateTime? AsOf);
         ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date);
         ValueTask<RPCI_VM> CreateAsync(RPCI_VM model, string user, DateTime date);
         ValueTask<RPCI_VM> UpdateAsync(RPCI_VM model, string user, DateTime date);
@@ -42,14 +42,14 @@ namespace iLgs.Services
             return data;
         });
 
-        public ValueTask<RPCI_VM> GetByAsAtAsync(DateTime? asAt) =>
+        public ValueTask<RPCI_VM> GetByAsOfAsync(DateTime? AsOf) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
-            var data = await _db.RPCIs.Where(w => w.AsAt == asAt)
+            var data = await _db.RPCIs.Where(w => w.AsOf == AsOf)
                 .Select(s => new RPCI_VM
                 {
                     Id = s.Id,
-                    AsAt = s.AsAt,
+                    AsOf = s.AsOf,
                     Department = s.Department,
                     AccountableOfficer = s.AccountableOfficer,
                     Designation = s.Designation,
@@ -71,7 +71,7 @@ namespace iLgs.Services
                 .Select(s => new RPCI_VM
                 {
                     Id = s.Id,
-                    AsAt = s.AsAt,
+                    AsOf = s.AsOf,
                     Department = s.Department,
                     AccountableOfficer = s.AccountableOfficer,
                     Designation = s.Designation,
@@ -90,15 +90,15 @@ namespace iLgs.Services
         _vmExceptionService.TryCatchAsync(async () =>
         {
 
-            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}", model.AsAt, model.Department, user);
-            model = await GetByAsAtAsync(model.AsAt);
+            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}", model.AsOf, model.Department, user);
+            model = await GetByAsOfAsync(model.AsOf);
             return model;
         });
 
         public ValueTask<RPCI_VM> CreateAsync(RPCI_VM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {            
-            var notPosted = await _orderService.GetNotPostedAsync((DateTime)model.AsAt);
+            var notPosted = await _orderService.GetNotPostedAsync((DateTime)model.AsOf);
             if (notPosted > 0)
             {
                 throw new RecordRelationshipException(string.Format("The system found {0} that are not yet posted as of date specified! Please post before proceeding..."));
@@ -113,7 +113,7 @@ namespace iLgs.Services
             var entity = new RPCI()
             {
                 Id = model.Id,
-                AsAt = model.AsAt,
+                AsOf = model.AsOf,
                 Department = model.Department,
                 AccountableOfficer = model.AccountableOfficer, 
                 Designation = model.Designation,
@@ -175,7 +175,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            entity.AsAt = model.AsAt;
+            entity.AsOf = model.AsOf;
             entity.Department = model.Department;
             entity.AccountableOfficer = model.AccountableOfficer;
             entity.Designation = model.Designation;

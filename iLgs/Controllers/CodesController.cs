@@ -539,7 +539,7 @@ namespace iLgs.Controllers
                 {
                     if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "ADD")))
                     {
-                        ModelState.AddModelError("Access Error", "Access Denied!");
+                        ModelState.AddModelError("AddError", "Access Denied!");
                     }
                 }
 
@@ -561,7 +561,7 @@ namespace iLgs.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("", e.Message);
+                    ModelState.AddModelError("AddError", e.Message);
                 }
 
             }
@@ -581,7 +581,7 @@ namespace iLgs.Controllers
                 {
                     if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "EDIT")))
                     {
-                        ModelState.AddModelError("Access Error", "Access Denied!");
+                        ModelState.AddModelError("UpdateError", "Access Denied!");
                     }
                 }
 
@@ -603,7 +603,7 @@ namespace iLgs.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("", e.Message);
+                    ModelState.AddModelError("UpdateError", e.Message);
                 }
             }
 
@@ -621,7 +621,7 @@ namespace iLgs.Controllers
                 {
                     if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "DELETE")))
                     {
-                        ModelState.AddModelError("Access Error", "Access Denied!");
+                        ModelState.AddModelError("DeleteError", "Access Denied!");
                     }
                 }
 

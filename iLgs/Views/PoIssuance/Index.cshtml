@@ -14,10 +14,10 @@
         col.Bound(c => c.PrNo).Width(50);
         col.Bound(c => c.RisNo).Width(50);
         col.Bound(c => c.StockNo).Width(100);
-        col.Bound(c => c.StockName).Width(150);
+        //col.Bound(c => c.StockName).Width(150);
         col.Bound(c => c.ItemName).Width(100);
         col.Bound(c => c.Description).Width(100);
-        col.Bound(c => c.Brand).Width(70);
+        //col.Bound(c => c.Brand).Width(70);
         col.Bound(c => c.UnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")                
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
         col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
@@ -350,9 +350,9 @@
             this.select(row);
             selectedItemId = null;
             e.model.set("RisItemId", selectedRisItemId);
-            //e.model.set("UnitCost", selectedUnitCost);
         } else {
             selectedItemId = e.model.get("Id");
+            e.model.set("UnitCost", selectedUnitCost);
             var rowitem = selectedGrid.dataSource.get(selectedItemId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
@@ -397,13 +397,25 @@
         }
     }
 
-    function onChangeQtyCost(e) {
+    function onChangeQty(e) {
         e.preventDefault();
         var qty = $("#Qty").data("kendoNumericTextBox").value();
-        var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();
+        var unitCost = $("#UnitCost").val();
         $("#Amount").data("kendoNumericTextBox").value(qty * unitCost);
         $("#Amount").data("kendoNumericTextBox").trigger("change");
     }
+
+    function DataAccountableOfficer() {
+        var text = $("#Officer").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#Officer").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            location: $("#Location").val(),
+            text: text
+        };
+    }
+
 </script>
 
 

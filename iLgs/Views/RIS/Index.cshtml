@@ -543,6 +543,15 @@
         model.set('ReceivedByDesignation', $('#ReceivedByDesignation').val());
     }
 
+    function onSelectOffice(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#FPP").val(dataItem.Code).trigger("change");
+
+        var model = $("#grid").data().kendoGrid.editable.options.model;
+        model.set('FPP', $('#FPP').val());
+    }
+
     function onSelectItemCode(e) {
         var dataItem = this.dataItem(e.item.index());
 
@@ -1135,7 +1144,7 @@
                 alert(req.responseText);
             }
         });
-    }
+    }    
 </script>
 
 

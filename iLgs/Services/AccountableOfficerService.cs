@@ -49,7 +49,7 @@ namespace iLgs.Services
         public ValueTask<AccountableOfficerVM> CreateAsync(AccountableOfficerVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
-            if (_db.AccountableOfficers.Any(a => a.DeptId == model.DeptId && a.Name == a.Name && model.Designation == model.Designation))
+            if (_db.AccountableOfficers.Any(a => a.DeptId == model.DeptId && a.Name == model.Name && model.Designation == model.Designation))
             {
                 throw new RecordAlreadyExistsException("Name/Designation already exists in this Department");
             }

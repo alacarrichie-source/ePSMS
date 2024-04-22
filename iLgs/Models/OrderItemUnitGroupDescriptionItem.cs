@@ -23,8 +23,8 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual OrderItem OrderItem { get; set; }
         public virtual OrderItemUnitGroupDescription OrderItemUnitGroupDescription { get; set; }
         public virtual RequestItemUnitGroupDescriptionItem RequestItemUnitGroupDescriptionItem { get; set; }
+        public virtual OrderItem OrderItem { get; set; }
     }
 }

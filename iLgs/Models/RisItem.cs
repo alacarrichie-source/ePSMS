@@ -18,9 +18,9 @@ namespace iLgs.Models
         public RisItem()
         {
             this.RequestItems = new HashSet<RequestItem>();
+            this.RisIssueds = new HashSet<RisIssued>();
             this.RisItemExtns = new HashSet<RisItemExtn>();
             this.RisItemUnitGroupDescriptionItems = new HashSet<RisItemUnitGroupDescriptionItem>();
-            this.RisIssueds = new HashSet<RisIssued>();
         }
     
         public System.Guid Id { get; set; }
@@ -44,14 +44,14 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RequestItem> RequestItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RisIssued> RisIssueds { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItemExtn> RisItemExtns { get; set; }
+        public virtual RisItemMedicine RisItemMedicine { get; set; }
+        public virtual RisItemPpe RisItemPpe { get; set; }
         public virtual RISs RISs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RisIssued> RisIssueds { get; set; }
-        public virtual RisItemMedicine RisItemMedicine { get; set; }
-        public virtual RisItemPpe RisItemPpe { get; set; }
         public virtual RisItemVehicle RisItemVehicle { get; set; }
     }
 }

@@ -303,7 +303,7 @@ namespace iLgs.Controllers
         //{
         //    return RpciRpt(asAt, "");
         //}
-        public ActionResult RpciRpt(DateTime? asAt, Guid? id)
+        public ActionResult RpciRpt(DateTime? asOf, Guid? id)
         {
             //var rpci = _db.RPCIs.Find(id);
             string stringname = _db.Database.Connection.ConnectionString.ToString();
@@ -333,7 +333,7 @@ namespace iLgs.Controllers
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
             rpt.SetParameterValue("LGU", lgu);
-            rpt.SetParameterValue("@dAsAt", asAt);
+            rpt.SetParameterValue("@dAsOf", asOf);
             rpt.SetParameterValue("@uRpciId", id == null ? null : id.ToString());
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);

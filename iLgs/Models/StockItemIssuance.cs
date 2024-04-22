@@ -29,7 +29,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         public string UpdatedBy { get; set; }
     
-        public virtual RisIssued RisIssued { get; set; }
         public virtual StockItem StockItem { get; set; }
+        public virtual RisIssued RisIssued { get; set; }
     }
 }

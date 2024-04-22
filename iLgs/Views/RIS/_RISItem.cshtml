@@ -77,14 +77,17 @@
         //col.Bound(c => c.IssuedBy).Width(70);
         //col.Bound(c => c.IssuedByDesignation).Width(50);
         col.Bound(c => c.IssuedDate).Width(50);
+        col.Bound(c => c.Location).Width(70);
+        col.Bound(c => c.Officer).Width(70);
+        col.Bound(c => c.IssuedTo).Width(70);
         //col.Bound(c => c.ReceivedBy).Width(70);
         //col.Bound(c => c.ReceivedByDesignation).Width(50);
         //col.Bound(c => c.ReceivedDate).Width(50);
         col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        col.Bound(c => c.UnitCost).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        //col.Bound(c => c.UnitCost).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+        //        .HeaderHtmlAttributes(new { style = "text-align:right;" });
         col.Bound(c => c.Amount).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -110,7 +113,7 @@
         {
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-            model.Field(p => p.Department).DefaultValue("#=Department#");
+            model.Field(p => p.Location).DefaultValue("#=Department#");
         })
         .Aggregates(a => {
             a.Add(p => p.Qty).Sum();

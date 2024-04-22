@@ -12,7 +12,7 @@ namespace iLgs.Models
        
         [Display(Name = "As Of")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> AsAt { get; set; }
+        public Nullable<System.DateTime> AsOf { get; set; }
 
         public string Department { get; set; }
 

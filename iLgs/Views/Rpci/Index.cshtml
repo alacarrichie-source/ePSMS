@@ -9,7 +9,7 @@
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
-        col.Bound(c => c.AsAt).Width(70);
+        col.Bound(c => c.AsOf).Width(70);
         col.Bound(c => c.Department).Width(70);
         col.Bound(c => c.AccountableOfficer).Width(70);
         col.Bound(c => c.Designation).Width(70);
@@ -31,7 +31,7 @@
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpciTemplate").Window(w => w.Width(500).Title("RPCI")))
     .Search(s =>
     {
-        s.Field(o => o.AsAt, "contains");
+        s.Field(o => o.AsOf, "contains");
         s.Field(o => o.Department, "contains");
         s.Field(o => o.AccountableOfficer, "contains");
     })
@@ -230,7 +230,7 @@
 
     var selectedGrid = null;
     var selectedId = null;
-    var selectedAsAt = null;
+    var selectedAsOf = null;
     var selecteItemId = null;
     var postedBy = null;
     
@@ -239,7 +239,7 @@
         var grid = $("#grid");
 
         selectedId = selectedData.Id;
-        selectedAsAt = selectedData.AsAt;
+        selectedAsOf = selectedData.AsOf;
         selectedItemId = null;
         postedBy = selectedData.PostedBy;
     
@@ -286,7 +286,7 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedId = null;
-            selectedAsAt = null;
+            selectedAsOf = null;
             e.container.find("[id=EditDiv]").toggle(false);
 
             //var popupWindow = e.container.data("kendoWindow");
@@ -303,10 +303,10 @@
 
         } else {
             selectedId = e.model.get("Id");
-            selectedAsAt = e.model.get("AsAt"); 
+            selectedAsOf = e.model.get("AsOf"); 
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));            
-            $("#AsAt").data("kendoDatePicker").enable(false);
+            $("#AsOf").data("kendoDatePicker").enable(false);
             $("#Department").data("kendoMultiColumnComboBox").enable(false);
             e.container.find("[id=EditDiv]").toggle(true);
         }        
@@ -536,8 +536,8 @@
 
     $(".k-grid-btnPrintPO").click(function (e) {
         e.preventDefault();
-        var asAt = selectedAsAt;
-        var url = '@Url.Action("RpciRpt", "Rpci")?asAt=' + asAt + "&id=null";
+        var asOf = selectedAsOf;
+        var url = '@Url.Action("RpciRpt", "Rpci")?asOf=' + asOf + "&id=null";
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
