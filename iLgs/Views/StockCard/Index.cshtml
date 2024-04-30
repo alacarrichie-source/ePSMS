@@ -3,27 +3,37 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-@(Html.Kendo().Grid<iLgs.Models.StockCardVM>()
+@(Html.Kendo().Grid<iLgs.Models.PsCardVM>()
     .Name("grid")
     .Columns(col =>
     {
-        col.Bound(c => c.Fund).Width(70); 
+        col.Bound(c => c.Fund).Width(70);
         col.Bound(c => c.Item).Width(100);
-        col.Bound(c => c.StockNo).Width(70);
-        col.Bound(c => c.StockName).Width(70);
-        col.Bound(c => c.Description).Width(150);        
+        col.Bound(c => c.SubAccount).Width(100);
+        col.Bound(c => c.PsNo).Width(70);
+        col.Bound(c => c.PsName).Width(70);
+        col.Bound(c => c.Description).Width(150);
         col.Command(command =>
         {
-            command.Edit();
-            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            //command.Edit();
+            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEdit");
+            command.Destroy();
         }).Width(100);
     })
-    .ToolBar(t =>
+    //.ToolBar(t =>
+    //{
+    //    t.Create();
+    //    t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintCard").HtmlAttributes(new { @class = "k-button", href = "" });
+    //})
+    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardTemplate").Window(w => w.Width(800).Title("Stock Card")))
+    .ToolBar(toolbar =>
     {
-        t.Create();
-        t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintCard").HtmlAttributes(new { @class = "k-button", href = "" });
+    toolbar.Template(@<text>
+            @(Html.Kendo().Button().Name("btnAdd_").Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAdd")))
+            @(Html.Kendo().Button().Name("btnPrintCard").Content("Print").Icon("k-icon k-i-print").Events(e => e.Click("onClickBtnPrint")))
+        </text>);
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardTemplate").Window(w => w.Width(800).Title("Stock Card")))    
     .Pageable(pager => pager
         .Input(false)
         .Numeric(true)
@@ -52,8 +62,8 @@
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
         .Read(read => read.Action("Read", "StockCard"))
-        .Create(create => create.Action("Create", "StockCard"))
-        .Update(update => update.Action("Update", "StockCard"))
+        //.Create(create => create.Action("Create", "StockCard"))
+        //.Update(update => update.Action("Update", "StockCard"))
         .Destroy(destroy => destroy.Action("Destroy", "StockCard"))
     )
     .Events(events => events
@@ -96,16 +106,14 @@
 
 @helper RenderPars()
 {
-    @(Html.Kendo().Grid<iLgs.Models.StockItemVM>()
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemVM>()
         .Name("gridItems_#=Id#")
         .Columns(columns =>
         {
-            columns.Bound(f => f.RefDate).Width(50);
-            columns.Bound(f => f.RefNo).Width(50);
-            columns.Bound(f => f.RefType).Width(50);
-            columns.Bound(f => f.UnitCost).Width(50)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(f => f.PoDate).Width(50);
+            columns.Bound(f => f.PoNo).Width(50);
+            columns.Bound(f => f.AirNo).Width(50);
+            columns.Bound(f => f.AirDate).Width(50);                
             columns.Group(group => group.Title("Quantity")
                 .Columns(info =>
                 {
@@ -169,7 +177,7 @@
 
 
 <script id="IssuedItems" type="text/kendo-tmpl">
-    @(Html.Kendo().Grid<iLgs.Models.StockItemIssuanceVM>()
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemIssuanceVM>()
     .Name("gridIssuance_#=Id#")
     .Columns(col =>
     {
@@ -211,7 +219,7 @@
             a.Add(p => p.Qty).Sum();
             a.Add(p => p.Amount).Sum();
         })
-        .Read(read => read.Action("IssuanceRead", "StockCard", new { stockItemId = "#=Id#" }))
+        .Read(read => read.Action("IssuanceRead", "StockCard", new { cardItemId = "#=Id#" }))
         .Create(create => create.Action("IssuanceCreate", "StockCard"))
         .Update(update => update.Action("IssuanceUpdate", "StockCard"))
         .Destroy(destroy => destroy.Action("IssuanceDestroy", "StockCard"))
@@ -516,6 +524,13 @@
         .clickable-image:hover {
             opacity: 1; /* Increase the opacity when hovering */
         }
+
+    #span_ {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: fit-content;
+    }
 </style>
 
 
@@ -591,7 +606,7 @@
     var selectedGrid = null;
     var selectedId = null;
     var selecteItemId = null;
-    var selectedStockNo = null;    
+    var selectedStockNo = null;
 
     //function onGridDeleteClick(e) {
     //    e.preventDefault();
@@ -606,6 +621,35 @@
 
 
     // GRID STOCKS
+
+    function onClickBtnPrint(e) {
+        e.preventDefault();
+        var url = '@Url.Action("StockCardRpt", "StockCard")?stockNo=' + selectedStockNo;
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    }
 
     $(".k-grid-btnPrintCard").click(function (e) {
         e.preventDefault();
@@ -655,7 +699,7 @@
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         selectedId = selectedData.Id;
-        selectedStockNo = selectedData.StockNo
+        selectedStockNo = selectedData.PsNo
         selectedItemId = null;
 
         var items = $("#grid").data("kendoGrid"),
@@ -772,17 +816,17 @@
     // CARD ADD EDIT
     function onClickBtnAdd(e) {
         e.preventDefault();
-        PropertyCardPpe("A", null);
+        StockCard("A", null);
     }
 
     function onClickBtnEdit(e) {
         e.preventDefault();
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        PropertyCardPpe("E", dataItem.Id);
+        StockCard("E", dataItem.Id);
     }
 
-    function PropertyCardPpe(mode, recId) {
-        var myTitle = (mode == "A") ? "Property Card - ADD" : "Property Card - EDIT";
+    function StockCard(mode, recId) {
+        var myTitle = (mode == "A") ? "Stock Card - ADD" : "Stock Card - EDIT";
         var width = 800;
         var height = 650;
         $("#windowcontainer").append("<div id='window'></div>");
@@ -792,6 +836,7 @@
                     draggable: true,
                     modal: true,
                     visible: false,
+                    autoheight: true,
                     close: function () {
                         $("#grid").data("kendoGrid").dataSource.read();
                     },
@@ -801,17 +846,35 @@
                 }).data("kendoWindow");
         mywindow.setOptions({
             title: myTitle,
-            width: width,
-            height: height
+            width: width
+            //height: height
         });
         mywindow.refresh({
-            url: '@Url.Action("_CardAddEdit", "PropertyCardPpe")',
+            url: '@Url.Action("_StockCardAddEdit", "StockCard")',
             data: {
                 cardId: selectedId
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
             }
         });
-        mywindow.center();
+        //mywindow.center();
         mywindow.open();
+        //resizeWindow();
+    }
+
+    function resizeWindow() {
+        var mywindow = $("#window").data("kendoWindow");
+        if (mywindow) {
+            mywindow.setOptions({
+                width: "800",
+                height: "auto"
+            });
+            mywindow.center(); // Optional: Center the window after resizing
+        }
     }
     //
 
@@ -832,22 +895,38 @@
         $("#ItemCode").val(dataItem.Code).trigger("change");
         $("#Item").val(dataItem.Description).trigger("change");
         $("#ItemTypeCode").val(dataItem.Type).trigger("change");
+        $("#ItemType").val(dataItem.TypeDesc).trigger("change");
+        $("#SubAccount").val(dataItem.MainDesc).trigger("change");
+        $("#SubAccountCode").val(dataItem.MainDescCode).trigger("change");
 
-        //RefreshGridItemExtn();
 
-        //var itemType = dataItem.Type;
-
-        //for (var i = 65; i <= 90; i++) { // ASCII codes for A to Z
-        //    var divId = "DIV_ITEM_" + String.fromCharCode(i);
-        //    $("#" + divId).hide();
-        //}
-
-        //$("#DIV_ITEM_" + itemType).show();
+        RefreshDivs(dataItem);
     }
+
+    function RefreshDivs(dataItem) {
+        var itemType = dataItem.Type;
+
+        for (var i = 65; i <= 90; i++) { // ASCII codes for A to Z
+            var divId = "DIV_ITEM_" + String.fromCharCode(i);
+            $("#" + divId).hide();
+        }
+
+        $("#DIV_ITEM_" + itemType).show();
+
+        resizeWindow();
+    }
+
 
     function onDataBoundItemCode(e) {
-        RefreshGridItemExtn();
+        var comboBox = this;
+        var selectedValue = comboBox.value();
+
+        if (selectedValue !== null && selectedValue !== undefined && selectedValue != "") {
+            var dataItem = comboBox.dataItem();
+            RefreshDivs(dataItem);
+        }
     }
+
 
     function RefreshGridItemExtn() {
         $("#gridItemExtn").data("kendoGrid").dataSource.read();
@@ -925,7 +1004,7 @@
     //    alert("TextBox value changed!");
     //});
 
-    function UpdateDescription(e)
+    @*function UpdateDescription(e)
     {
         var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
         var data = $("#form").serialize();
@@ -946,7 +1025,7 @@
                 alert(req.responseText);
             }
         });
-    }
+    }*@
 
     // END CARD TEMPLATE
 
@@ -976,7 +1055,7 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedIssuedId = null;
-            e.model.set("StockItemId", selectedItemId);
+            e.model.set("CardItemId", selectedItemId);
         } else {
             selectedIssuedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedIssuedId);
@@ -1009,6 +1088,30 @@
         }
     }
     // END GRID ISSUANCE
+
+    function UpdateDescription(e)
+    {
+        var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+        var data = $("#form").serialize();
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GetDescription", "StockCard")',
+            data: data,
+            beforeSend: function () {
+                window.kendo.ui.progress($(document.body), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($(document.body), false);
+                $("#Description").val(result.Description).trigger("change");
+                $("#PsNo").val(result.StockNo).trigger("change");
+                disabled.attr('disabled', 'disabled')
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+            }
+        });
+    }
 
 </script>
 

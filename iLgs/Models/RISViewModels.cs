@@ -306,15 +306,21 @@ namespace iLgs.Models
     {
         public RisItemEntryVM()
         {
-            this.RisItemMedicine = new RisItemMedicine();
-            this.RisItemVehicle = new RisItemVehicle();
-            this.RisItemPpe = new RisItemPpe();
+            this.Id = Guid.NewGuid();
+            this.FieldsPpe = new FieldsPpe() { Id = this.Id };
+            this.FieldsVehicle = new FieldsVehicle() { Id = this.Id };
+            this.FieldsMedicine = new FieldsMedicine() { Id = this.Id };
+            this.FieldsOther = new FieldsOther() { Id = this.Id };
         }
 
-        public RisItemMedicine RisItemMedicine { get; set; }        
-        public RisItemVehicle RisItemVehicle { get; set; }
-        public RisItemPpe RisItemPpe { get; set; }
-        
+        public FieldsPpe FieldsPpe { get; set; }
+        public FieldsVehicle FieldsVehicle { get; set; }
+        public FieldsMedicine FieldsMedicine { get; set; }
+        public FieldsOther FieldsOther { get; set; }
+
+        [Display(Name = "Sub-account")]
+        public string SubAccount { get; set; }
+        public string SubAccountCode { get; set; }
     }
 
     public class RisItemExtnVM

@@ -42,20 +42,8 @@ namespace iLgs.Services
 
         public async Task<ItemTypeVM> CreateAsync(ItemTypeVM model, string user, DateTime date)
         {
-            if (string.IsNullOrWhiteSpace(model.Code))
-            {
-                throw new InvalidValueException("Code is Required!");
-            }
 
-            if (string.IsNullOrWhiteSpace(model.Description))
-            {
-                throw new InvalidValueException("Description is Required!");
-            }
-
-            if (model.FormulaNo == null || model.FormulaNo == 0)
-            {
-                throw new InvalidValueException("Formula Field No. is Required!");
-            }
+            ValidateRequired(model);
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -83,7 +71,7 @@ namespace iLgs.Services
             return model;
         }
 
-        public async Task<ItemTypeVM> UpdateAsync(ItemTypeVM model, string user, DateTime date)
+        private void ValidateRequired(ItemTypeVM model)
         {
             if (string.IsNullOrWhiteSpace(model.Code))
             {
@@ -95,10 +83,20 @@ namespace iLgs.Services
                 throw new InvalidValueException("Description is Required!");
             }
 
-            if (model.FormulaNo == null || model.FormulaNo == 0)
+            if (string.IsNullOrWhiteSpace(model.Category))
             {
-                throw new InvalidValueException("Formula Field No. is Required!");
+                throw new InvalidValueException("Category is Required!");
             }
+
+            if (string.IsNullOrWhiteSpace(model.GroupCode))
+            {
+                throw new InvalidValueException("Group Code is Required!");
+            }
+        }
+
+        public async Task<ItemTypeVM> UpdateAsync(ItemTypeVM model, string user, DateTime date)
+        {
+            ValidateRequired(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;

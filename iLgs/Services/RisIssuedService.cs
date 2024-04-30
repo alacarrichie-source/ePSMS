@@ -243,7 +243,7 @@ namespace iLgs.Services
             var orderItems = await _db.OrderItems.Where(w => w.RequestItem.RisItem.Id == risItemId).ToListAsync();
             foreach (var orderItem in orderItems)
             {
-                var stockItems = _db.StockItems.Where(w => w.OrderItemId == orderItem.Id);
+                var stockItems = _db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id);
                 await stockItems.ForEachAsync(f => { f.QtyIss = (int?)qtyIssued; f.Qty = (int?)qtyReceived; f.QtyBal = (int)qtyReceived - qtyIssued; });
             }
             var risItem = await _db.RisItems.FindAsync(risItemId);
@@ -257,42 +257,40 @@ namespace iLgs.Services
         private async ValueTask UpdateStockItemIssuance(RisIssued risIssued, string user, DateTime? date)
         {
             var orderItem = await _db.OrderItems.FindAsync(risIssued.OrderItemId);
-            var stockItemIssuance = await _db.StockItemIssuances.FirstOrDefaultAsync(f => f.RisIssuedId == risIssued.Id);
+            var stockItemIssuance = await _db.PsCardItemIssuances.FirstOrDefaultAsync(f => f.RefIssuedId == risIssued.Id);
             if (stockItemIssuance == null)
             {
-                var stockItem = await _db.StockItems.Where(w => w.OrderItemId == risIssued.OrderItemId).FirstOrDefaultAsync();
-                stockItemIssuance = new StockItemIssuance()
+                var stockItem = await _db.PsCardItems.Where(w => w.OrderItemId == risIssued.OrderItemId).FirstOrDefaultAsync();
+                stockItemIssuance = new PsCardItemIssuance()
                 {
                     Id = Guid.NewGuid(),
-                    StockItemId = stockItem.Id,
-                    RisIssuedId = risIssued.Id,
-                    Location = risIssued.Location,
-                    IssuedTo = risIssued.IssuedTo,
+                    PsCardItemId = stockItem.Id,
+                    RefIssuedId = risIssued.Id,
+                    Location = risIssued.Location,                    
                     Officer = risIssued.Officer,
+                    IssuedTo = risIssued.IssuedTo,
                     IssuedDate = risIssued.IssuedDate,
-                    IssuedBy = risIssued.IssuedBy,                    
                     Qty = risIssued.Qty,
-                    Amount = risIssued.Qty * orderItem.UnitCost,
+                    Amount = risIssued.Amount,
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
                     UpdatedDt = date
                 };
-                _db.StockItemIssuances.Add(stockItemIssuance);
+                _db.PsCardItemIssuances.Add(stockItemIssuance);
                 _db.Entry(stockItemIssuance).State = EntityState.Added;
             }
             else
             {
-
-                stockItemIssuance.IssuedDate = risIssued.IssuedDate;
-                stockItemIssuance.IssuedTo = risIssued.IssuedTo;
-                stockItemIssuance.Qty = risIssued.Qty;
-                stockItemIssuance.Amount = risIssued.Amount;
                 stockItemIssuance.Location = risIssued.Location;
                 stockItemIssuance.Officer = risIssued.Officer;
+                stockItemIssuance.IssuedTo = risIssued.IssuedTo;
+                stockItemIssuance.IssuedDate = risIssued.IssuedDate;
+                stockItemIssuance.Qty = risIssued.Qty;
+                stockItemIssuance.Amount = risIssued.Amount;
                 stockItemIssuance.UpdatedBy = user;
                 stockItemIssuance.UpdatedDt = date;
-                _db.StockItemIssuances.Attach(stockItemIssuance);
+                _db.PsCardItemIssuances.Attach(stockItemIssuance);
                 _db.Entry(stockItemIssuance).State = EntityState.Modified;
             }
 
@@ -301,7 +299,7 @@ namespace iLgs.Services
 
         private async ValueTask DeleteStockItemIssuance(RisIssued model, string user, DateTime? date)
         {
-            var entity = await _db.StockItemIssuances.FirstOrDefaultAsync(f => f.RisIssuedId == model.Id);
+            var entity = await _db.PsCardItemIssuances.FirstOrDefaultAsync(f => f.RefIssuedId == model.Id);
             if (entity == null)
             {
                 return;
@@ -310,11 +308,11 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            _db.StockItemIssuances.Attach(entity);
+            _db.PsCardItemIssuances.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            _db.StockItemIssuances.Remove(entity);
+            _db.PsCardItemIssuances.Remove(entity);
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();            
         }

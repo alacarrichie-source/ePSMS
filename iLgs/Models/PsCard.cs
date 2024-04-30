@@ -12,35 +12,38 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class RisIssued
+    public partial class PsCard
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public RisIssued()
+        public PsCard()
         {
-            this.StockItemIssuances = new HashSet<StockItemIssuance>();
-            this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
+            this.PsCardItems = new HashSet<PsCardItem>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> RisItemId { get; set; }
-        public Nullable<System.Guid> OrderItemId { get; set; }
-        public string Location { get; set; }
-        public string IssuedTo { get; set; }
-        public string Officer { get; set; }
-        public Nullable<System.DateTime> IssuedDate { get; set; }
-        public string IssuedBy { get; set; }
-        public Nullable<int> Qty { get; set; }
+        public Nullable<System.Guid> ItemCodeId { get; set; }
+        public string SubAccountCode { get; set; }
+        public string Fund { get; set; }
+        public string Description { get; set; }
+        public string Unit { get; set; }
+        public string PsType { get; set; }
+        public string PsNo { get; set; }
+        public string PsName { get; set; }
+        public string PrevPsNo { get; set; }
+        public Nullable<System.DateTime> AcqDate { get; set; }
+        public string AcqMode { get; set; }
         public Nullable<decimal> Amount { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        public virtual FieldsMedicine FieldsMedicine { get; set; }
+        public virtual FieldsOther FieldsOther { get; set; }
+        public virtual FieldsPpe FieldsPpe { get; set; }
+        public virtual FieldsVehicle FieldsVehicle { get; set; }
+        public virtual ItemCode ItemCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<StockItemIssuance> StockItemIssuances { get; set; }
-        public virtual OrderItem OrderItem { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances { get; set; }
-        public virtual RisItem RisItem { get; set; }
+        public virtual ICollection<PsCardItem> PsCardItems { get; set; }
     }
 }

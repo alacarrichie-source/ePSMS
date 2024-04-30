@@ -215,6 +215,7 @@
     <Compile Include="Controllers\RpciController.cs" />
     <Compile Include="Controllers\RpcPpeController.cs" />
     <Compile Include="Controllers\StockCardController.cs" />
+    <Compile Include="Controllers\_StockCardController.cs" />
     <Compile Include="Controllers\StocksController.cs" />
     <Compile Include="Models\AccountableOfficer.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -252,7 +253,20 @@
     <Compile Include="Models\DepartmentUser.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\CategoryEnum.cs" />
     <Compile Include="Models\ErrorLog.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsMedicine.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsOther.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsPpe.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsVehicle.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\ItemCode.cs">
@@ -314,6 +328,16 @@
     </Compile>
     <Compile Include="Models\PropertyCardViewModels.cs" />
     <Compile Include="Models\PropertyViewModels.cs" />
+    <Compile Include="Models\PsCard.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemIssuance.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardViewModels.cs" />
     <Compile Include="Models\PsCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -470,6 +494,9 @@
     <Compile Include="Services\PropertyCardVehicleService.cs" />
     <Compile Include="Services\PropertyItemService.cs" />
     <Compile Include="Services\PropertyService.cs" />
+    <Compile Include="Services\PsCardItemIssuanceService.cs" />
+    <Compile Include="Services\PsCardItemService.cs" />
+    <Compile Include="Services\PsCardService.cs" />
     <Compile Include="Services\PsItemIssuanceService.cs" />
     <Compile Include="Services\RequestItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\RequestItemUnitGroupDescriptionService.cs" />
@@ -1255,6 +1282,7 @@
     <Content Include="Content\Sidebar\src\scss\_theme-carbon.scss" />
     <Content Include="Content\Sidebar\src\scss\_theme-default.scss" />
     <Content Include="Content\Sidebar\src\scss\_toggle.scss" />
+    <Content Include="Department-Codes %2897%29.xls" />
     <None Include="Properties\PublishProfiles\ePsms %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
@@ -3675,6 +3703,8 @@
     <Content Include="Views\StockCard\Index.cshtml" />
     <Content Include="Views\StockCard\EditorTemplates\_CardTemplate.cshtml" />
     <Content Include="Views\StockCard\EditorTemplates\_CardItemTemplate.cshtml" />
+    <Content Include="Views\Codes\Location.cshtml" />
+    <Content Include="Views\StockCard\_StockCardAddEdit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3685,6 +3715,7 @@
     <Folder Include="Views\Issuances\" />
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
+    <Folder Include="Views\PsCard\" />
     <Folder Include="Views\Query\" />
     <Folder Include="Views\Sequence\" />
   </ItemGroup>
@@ -3780,7 +3811,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -14,6 +14,12 @@ namespace iLgs.Models
     
     public partial class PARItem
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public PARItem()
+        {
+            this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
+        }
+    
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> ParId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
@@ -27,5 +33,7 @@ namespace iLgs.Models
     
         public virtual OrderItem OrderItem { get; set; }
         public virtual PAR PAR { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances { get; set; }
     }
 }

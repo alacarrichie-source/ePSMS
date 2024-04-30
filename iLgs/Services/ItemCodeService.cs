@@ -15,6 +15,7 @@ namespace iLgs.Services
     {
         private readonly AppManEntities db = new AppManEntities();
         private readonly IExceptionService<ItemCodeVM> _VmExceptionService = new ExceptionService<ItemCodeVM>();
+        private readonly IExceptionService<ItemCode> _ExceptionService = new ExceptionService<ItemCode>();
 
         public ItemCodeService(AppManEntities db)
         {
@@ -55,13 +56,13 @@ namespace iLgs.Services
                     InsertedDt = s.InsertedDt
                 }).AsQueryable();
             return data;
-        }            
-
-        public async Task<ItemCode> GetByIdAsync(Guid id)
-        {
-            var data = await db.ItemCodes.FindAsync(id);                
-            return data;
         }
+
+        public ValueTask<ItemCode> GetByIdAsync(Guid id) => _ExceptionService.TryCatch(async () =>
+        {
+            var data = await db.ItemCodes.FindAsync(id);
+            return data;
+        });
 
         public IQueryable<ItemCodeVM> GetItems(string item) => _VmExceptionService.TryCatch(() =>
         {
@@ -81,7 +82,7 @@ namespace iLgs.Services
             return data;
         });
 
-        public async Task<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date)
+        public ValueTask<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
             //if (!string.IsNullOrWhiteSpace(model.ItemSw) && !(model.ItemSw == "Y" && model.ItemSw == "N"))
             //{
@@ -117,9 +118,11 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
-        
-        public async Task<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date)
+          
+        });
+
+        public ValueTask<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+
         {
             //if (!string.IsNullOrWhiteSpace(model.ItemSw) && !(model.ItemSw == "Y" && model.ItemSw == "N"))
             //{
@@ -139,8 +142,8 @@ namespace iLgs.Services
             entity.ItemNoIndex = model.ItemNoIndex;
             entity.Code = model.Code;
             entity.Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim();
-            entity.ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper();
-            entity.AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper();
+            entity.ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper().Trim();
+            entity.AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper().Trim();
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
@@ -149,9 +152,9 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        public async Task<ItemCodeVM> DeleteAsync(ItemCodeVM model, string user, DateTime date)
+        public ValueTask<ItemCodeVM> DeleteAsync(ItemCodeVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -170,7 +173,7 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
 
         private string GetItemCode(Guid? itemTypeId, string itemNo, string description)
@@ -182,7 +185,7 @@ namespace iLgs.Services
             {
                 return itemType.Code + "*" + itemCode;
             }
-            return itemType.Code + itemCode;
+            return itemType.Code + itemType.GroupCode + itemCode;
         }
 
         private string ItemNoIndex(string itemNo)

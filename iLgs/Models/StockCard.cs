@@ -36,15 +36,14 @@ namespace iLgs.Models
         public string DosageStrength { get; set; }
         public string DosageForm { get; set; }
         public string Brand { get; set; }
-        public string Others { get; set; }
+        public string Model_ { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        public string OtherDesc { get; set; }
     
-        public virtual ItemCode ItemCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<StockItem> StockItems { get; set; }
+        public virtual ItemCode ItemCode { get; set; }
     }
 }

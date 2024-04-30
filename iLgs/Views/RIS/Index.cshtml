@@ -392,17 +392,22 @@
                 }).data("kendoWindow");
         mywindow.setOptions({
             title: myTitle,
-            width: width,
-            height: height
+            width: width
+            //height: height
         });
         mywindow.refresh({
             url: '@Url.Action("_RISItemAddEdit", "RIS")',
             data: {
                 risId: selectedId,
                 risItemId: recId
+            },
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
             }
         });
-        mywindow.center();
+        //mywindow.center();
         mywindow.open();
         //setTimeout(resizeWindow(), 300);
     }
@@ -560,9 +565,11 @@
         $("#PsType").val(dataItem.Type).trigger("change");
         $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
         $("#ItemType").val(dataItem.Description).trigger("change");
+        $("#SubAccount").val(dataItem.MainDesc).trigger("change");
+        $("#SubAccountCode").val(dataItem.MainDescCode).trigger("change");
 
-        RefreshDivs(dataItem);        
-        
+        RefreshDivs(dataItem);
+
     }
 
 
@@ -580,7 +587,7 @@
     }
 
 
-    function onDataBoundItemCode(e) {        
+    function onDataBoundItemCode(e) {
         var comboBox = this;
         var selectedValue = comboBox.value();
         //alert(selectedValue);
@@ -588,11 +595,11 @@
 
         if (selectedValue !== null && selectedValue !== undefined && selectedValue != "") {
             var dataItem = comboBox.dataItem();
-            RefreshDivs(dataItem);    
-        }         
+            RefreshDivs(dataItem);
+        }
     }
 
-    
+
     function onSaveChangesGridItemExtn(e) {
         var grid = e.sender;
         var itemValues = grid.dataSource.data().map(function (item) {
@@ -1144,7 +1151,8 @@
                 alert(req.responseText);
             }
         });
-    }    
+        
+    }
 </script>
 
 

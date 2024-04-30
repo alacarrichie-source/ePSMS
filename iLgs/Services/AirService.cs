@@ -134,7 +134,7 @@ namespace iLgs.Services
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
 
-            await UpdatePsItem(airId, user, date, true);
+            await UpdatePsItem(entity, user, date, true);
 
         });
 
@@ -155,12 +155,12 @@ namespace iLgs.Services
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
 
-            await UpdatePsItem(airId, user, date, false);
+            await UpdatePsItem(entity, user, date, false);
         });
 
-        private ValueTask UpdatePsItem(Guid airId, string user, DateTime date, bool post) => _VmExceptionService.TryCatch(async () =>
+        private ValueTask UpdatePsItem(AIR entity, string user, DateTime date, bool post) => _VmExceptionService.TryCatch(async () =>
         {
-            var orderItemIdList = await db.AIRItems.Where(w => w.AirId == airId).GroupBy(g => g.OrderItemId)
+            var orderItemIdList = await db.AIRItems.Where(w => w.AirId == entity.Id).GroupBy(g => g.OrderItemId)
                 .Select(s => s.Key).ToListAsync();
             foreach (var orderItemId in orderItemIdList)
             {
@@ -169,15 +169,17 @@ namespace iLgs.Services
                 {
                     qtyAccepted = db.AIRItems.Where(w => w.OrderItemId == orderItemId).Sum(s => s.Qty);
                 }
-                var psItem = await db.PsItems.Where(w => w.OrderItemId == orderItemId).FirstOrDefaultAsync();
-                if (psItem != null)
+                var psCardItem = await db.PsCardItems.Where(w => w.OrderItemId == orderItemId).FirstOrDefaultAsync();
+                if (psCardItem != null)
                 {
-                    psItem.Qty = qtyAccepted;
-                    psItem.QtyBal = qtyAccepted - psItem.QtyIss;
-                    psItem.UpdatedBy = user;
-                    psItem.UpdatedDt = date;
-                    db.PsItems.Attach(psItem);
-                    db.Entry(psItem).State = EntityState.Modified;
+                    psCardItem.AirNo = entity.AIRNo;
+                    psCardItem.AirDate = entity.AIRDate;
+                    psCardItem.Qty = (int)qtyAccepted;
+                    psCardItem.QtyBal = (int)qtyAccepted - psCardItem.QtyIss;
+                    psCardItem.UpdatedBy = user;
+                    psCardItem.UpdatedDt = date;
+                    db.PsCardItems.Attach(psCardItem);
+                    db.Entry(psCardItem).State = EntityState.Modified;
                     await db.SaveChangesAsync();
                 }
             }

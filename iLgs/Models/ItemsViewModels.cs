@@ -78,6 +78,7 @@ namespace iLgs.Models
         public string ItemTypeDesc { get; set; }
         public string Account { get; set; }
         public string SubArticle { get; set; }
+        public string MainDescCode { get; set; }
     }
    
     public class ItemFieldVM

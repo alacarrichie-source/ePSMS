@@ -336,27 +336,39 @@ namespace iLgs.Services
             //    stockName += psCode;
             //}
 
-            var stockName = orderItem.Brand.Replace(" ", "").Trim();
-            var psType = orderItem.PsType;
-            var psCode = orderItem.ItemCode.ToString();
-            if (psType == "M")
+            string stockName = "";
+            
+            
+            if (Enum.TryParse(orderItem.PsType, out Category category))
             {
-                //var requestItem = await _db.RequestItems.Include(i => i.RisItem.RisItemMedicine).Where(w => w.Id == orderItem.RequestItemId).FirstOrDefaultAsync();
-                //var medicineItem = requestItem.RisItem.RisItemMedicine;
-                var medicineItem = await _db.RisItemMedicines.FindAsync(risItemId);
-                if (!string.IsNullOrWhiteSpace(medicineItem.DosageForm))
+                if (category == Category.T)
                 {
-                    stockName += medicineItem.DosageForm.Substring(0, 3);
+                 
                 }
-
-                if (!string.IsNullOrWhiteSpace(medicineItem.DosageStrength))
+                else if (category == Category.D)
                 {
-                    stockName += medicineItem.DosageStrength.Replace(" ", "");
-                }
+                    stockName = orderItem.Brand.Replace(" ", "").Trim();
+                    var fieldsMedicine = await _db.FieldsMedicines.FindAsync(risItemId);
 
-                stockName += medicineItem.GenericName.Replace(" ", "");
-                stockName += psCode;
+                    if (!string.IsNullOrWhiteSpace(fieldsMedicine.DosageForm))
+                    {
+                        stockName += fieldsMedicine.DosageForm.Substring(0, 3);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(fieldsMedicine.DosageStrength))
+                    {
+                        stockName += fieldsMedicine.DosageStrength.Replace(" ", "");
+                    }
+
+                    stockName += fieldsMedicine.GenericName.Replace(" ", "");
+                    stockName += orderItem.ItemCode.ToString(); ;
+                }
+                else if (category == Category.U)
+                {
+                    
+                }
             }
+
             return stockName;
         }
 

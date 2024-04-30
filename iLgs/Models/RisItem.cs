@@ -26,6 +26,7 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisId { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
+        public string SubAccountCode { get; set; }
         public string PsNo { get; set; }
         public string PsNoDisplay { get; set; }
         public string ItemName { get; set; }
@@ -40,6 +41,10 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        public virtual FieldsMedicine FieldsMedicine { get; set; }
+        public virtual FieldsOther FieldsOther { get; set; }
+        public virtual FieldsPpe FieldsPpe { get; set; }
+        public virtual FieldsVehicle FieldsVehicle { get; set; }
         public virtual ItemCode ItemCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RequestItem> RequestItems { get; set; }

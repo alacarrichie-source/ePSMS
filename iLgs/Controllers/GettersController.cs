@@ -51,10 +51,10 @@ namespace iLgs.Controllers
 
         }
 
-        public ActionResult GetAccountableOfficers(string location, string text)
+        public ActionResult GetAccountableOfficers(string department, string text)
         {
-            location = string.IsNullOrWhiteSpace(location) ? "" : location;
-            var model = db.AccountableOfficers.Where(w => w.Codextn.Description == location).AsQueryable();
+            department = string.IsNullOrWhiteSpace(department) ? "" : department;
+            var model = db.AccountableOfficers.Where(w => w.Codextn.Description == department).AsQueryable();
             if (!string.IsNullOrWhiteSpace(text))
             {
                 model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text));

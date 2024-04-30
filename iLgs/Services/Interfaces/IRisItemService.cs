@@ -15,6 +15,7 @@ namespace iLgs.Services.Interfaces
         ValueTask<RisItemEntryVM> GetEntryVmByIdAsync(Guid? id);
         string PsNoDisplay(string itemCode, string itemName);
         string GetDescription(RisItemEntryVM entry);
+        string GetPsDescription(PsCardVM entry);
 
         ValueTask<RisItemEntryVM> CreateAsync(RisItemEntryVM model, string user, DateTime date);
         ValueTask<RisItemEntryVM> UpdateAsync(RisItemEntryVM model, string user, DateTime date);

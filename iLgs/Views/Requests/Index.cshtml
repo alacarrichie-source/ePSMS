@@ -745,19 +745,35 @@
                 }).data("kendoWindow");
         mywindow.setOptions({
             title: myTitle,
-            width: width,
-            height: "auto"
+            width: width
+            //height: "auto"
         });
         mywindow.refresh({
             url: '@Url.Action("_RequestItemAddEdit", "Requests")',
             data: {
                 prId: selectedId,
                 requestItemId: recId
+            },
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
             }
         });
-        mywindow.center();
+        //mywindow.center();
         mywindow.open();
 
+    }
+
+    function resizeWindow() {
+        var mywindow = $("#window").data("kendoWindow");
+        if (mywindow) {
+            mywindow.setOptions({
+                width: "800",
+                height: "auto"
+            });
+            mywindow.center(); // Optional: Center the window after resizing
+        }
     }
 
     function DataRisId() {

@@ -11,6 +11,8 @@ using System.Data.SqlClient;
 using System.Data.Entity.Infrastructure;
 using iLgs.Services.Items;
 using System.Web.Http.ModelBinding;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace iLgs.Services
 {
@@ -393,10 +395,10 @@ namespace iLgs.Services
 
             entity.PostedBy = user;
             entity.PostedDt = date;
-
+            
             db.Orders.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            //await db.SaveChangesAsync();
 
             var orderItemGroups = await db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}", orderId).ToListAsync();
             // create stock for each group
@@ -412,190 +414,102 @@ namespace iLgs.Services
                         && w.Description == oig.Description
                         //&& w.Brand == oig.Brand
                         && w.RequestItem.RisItem.RISs.Fund == oig.Fund).ToListAsync();
+
                 foreach (var orderItem in orderItemList)
-                {
-                    if (oig.ItemTypeCode == "M")
+                {                    
+                    var psCard = await db.PsCards.Include(i => i.PsCardItems).Where(w => w.PsNo == oig.StockNo && w.Fund == oig.Fund && w.Unit == oig.Unit).FirstOrDefaultAsync();
+                    if (psCard == null)
                     {
-                        var risItemMedicine = await db.RisItemMedicines.FindAsync(orderItem.RequestItem.RisItemId);
-                        var stockCard = await db.StockCards.Include(i => i.StockItems).Where(w => w.StockNo == oig.StockNo && w.Fund == oig.Fund && w.Unit == oig.Unit).FirstOrDefaultAsync();
-                        bool isNew = false;
-                        if (stockCard == null)
+                        var psCardId = Guid.NewGuid();
+                        psCard = new PsCard()
                         {
-                            stockCard = new StockCard()
-                            {
-                                Id = Guid.NewGuid(),
-                                ItemCodeId = oig.ItemCodeId,
-                                Fund = oig.Fund,
-                                Description = oig.Description,
-                                Unit = oig.Unit,
-                                StockNo = oig.StockNo,
-                                StockName = oig.StockName,
-                                GenericName = risItemMedicine.GenericName,
-                                DosageStrength = risItemMedicine.DosageStrength,
-                                DosageForm = risItemMedicine.DosageForm,
-                                Brand = risItemMedicine.Brand,
-                                Others = risItemMedicine.Others,
-                                OtherDesc = orderItem.RequestItem.RisItem.OtherDesc,
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                            };
-                            isNew = true;
-                        }
-                        var stockItem = new StockItem()
-                        {
-                            Id = Guid.NewGuid(),
-                            CardId = stockCard.Id,
-                            OrderItemId = orderItem.Id,
-                            RefDate = orderItem.Order.PoDate,
-                            RefNo = orderItem.Order.PoNo,
-                            RefType = "PO",
-                            Qty = (int)orderItem.Qty,
-                            QtyIss = 0,
-                            QtyBal = (int)orderItem.Qty,
-                            UnitCost = orderItem.UnitCost,
+                            Id = psCardId,
+                            ItemCodeId = oig.ItemCodeId,
+                            Fund = oig.Fund,
+                            Description = oig.Description,
+                            Unit = oig.Unit,
+                            PsType = oig.ItemTypeCode,
+                            PsNo = oig.StockNo,
+                            PsName = oig.StockName,
                             Amount = orderItem.Amount,
+                            SubAccountCode = orderItem.RequestItem.RisItem.SubAccountCode,
                             InsertedBy = user,
                             InsertedDt = date,
                             UpdatedBy = user,
                             UpdatedDt = date
                         };
 
-                        stockCard.StockItems.Add(stockItem);
-                        if (isNew)
+
+                        FieldsMedicine fieldsMedicine = null;
+                        FieldsVehicle fieldsVehicle = null;
+                        FieldsOther fieldsOther = null;
+
+                        if (Enum.TryParse(oig.ItemTypeCode, out Category category))
                         {
-                            db.StockCards.Add(stockCard);
-                        }
-                    }
-                    else if (oig.ItemTypeCode == "T")
-                    {
-                        var risVehicle = await db.RisItemVehicles.FindAsync(orderItem.RequestItem.RisItemId);
-                        var propertyCardVehicle = await db.PropertyCards.OfType<PropertyCardVehicle>().Where(w => w.PropNo == oig.StockNo && w.Fund == oig.Fund && w.Description == oig.Description).FirstOrDefaultAsync();
-                        if (propertyCardVehicle == null)
-                        {
-                            propertyCardVehicle = new PropertyCardVehicle()
+                            if (category == Category.D)
                             {
+                                var risFieldsMedicine = await db.FieldsMedicines.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsMedicine != null)
+                                {
+                                    //fieldsMedicine = risFieldsMedicine;
+                                    //fieldsMedicine.Id = psCardId;
+                                    //psCard.FieldsMedicine = risFieldsMedicine;                                    
+                                    fieldsMedicine = new FieldsMedicine()
+                                    {
+                                        Id = psCardId,
+                                        GenericName = risFieldsMedicine.GenericName,
+                                        DosageForm = risFieldsMedicine.DosageForm,
+                                        DosageStrength  = risFieldsMedicine.DosageStrength,
+                                        Brand = orderItem.Brand
+                                    };
+
+                                    psCard.FieldsMedicine = fieldsMedicine;
+                                }
+                            }
+                            else if (category == Category.T)
+                            {
+                                fieldsVehicle = await db.FieldsVehicles.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (fieldsVehicle != null)
+                                {
+                                    fieldsVehicle.Id = psCardId;
+                                    psCard.FieldsVehicle = fieldsVehicle;
+                                }
+                            }
+                        }
+
+                        var psCardItem = await db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
+                        if (psCardItem == null)
+                        {
+                            psCardItem = new PsCardItem()
+                            {
+                                //PsCard = psCard,
                                 Id = Guid.NewGuid(),
-                                ItemCodeId = oig.ItemCodeId,
-                                Fund = oig.Fund,
-                                Description = oig.Description,
-                                Type = risVehicle.Type,
-                                Make = risVehicle.Make,
-                                Series = risVehicle.Series,
-                                YearModel = risVehicle.YearModel,
-                                PlateNo = risVehicle.PlateNo,
-                                BodyNo = risVehicle.BodyNo,
-                                EngineNo = risVehicle.EngineNo,
-                                Color = risVehicle.Color,
-                                ChassisNo = risVehicle.ChassisNo,
+                                PsCardId = psCard.Id,
+                                OrderItemId = orderItem.Id,
+                                PoDate = orderItem.Order.PoDate,
+                                PoNo = orderItem.Order.PoNo,
+                                //AirDate,
+                                //AirNo,
+                                //AirIssueDate,
+                                Qty = (int)orderItem.Qty,
+                                QtyIss = 0,
+                                QtyBal = (int)orderItem.Qty,
+                                UnitCost = orderItem.UnitCost,
+                                Amount = orderItem.Amount,
+                                TranType = "I",
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,
                                 UpdatedDt = date
-                            };                                                        
+                            };
+                            psCard.PsCardItems.Add(psCardItem);
+
                         }
 
-                        db.PropertyCards.Add(propertyCardVehicle);                        
-                    }
-
-                    await db.SaveChangesAsync();
-                }
-
-
-
-                //// find group in stocks
-                //PsStock psStock = await db.PsStocks.Where(w => w.PsId == oig.PsCodeId && w.StockNo == oig.StockNo && w.Fund == oig.Fund && w.UnitMeas == oig.Unit).FirstOrDefaultAsync();
-                //if (psStock == null)
-                //{
-                //    psStock = new PsStock
-                //    {
-                //        Id = Guid.NewGuid(),
-                //        PsId = oig.PsCodeId,
-                //        StockNo = oig.StockNo,
-                //        StockName = oig.StockName,
-                //        Description = oig.Description,                        
-                //        Brand = oig.Brand,
-                //        Fund = oig.Fund,
-                //        UnitMeas = oig.Unit,
-                //        InsertedBy = user,
-                //        InsertedDt = date,
-                //        UpdatedBy = user,
-                //        UpdatedDt = date
-                //    };
-
-                //    db.PsStocks.Add(psStock);
-                //    await db.SaveChangesAsync();
-                //}
-
-                //// Post the OrderItems under the stocks having the same PsCodeId
-                //var orderItemList = await db.OrderItems
-                //    .Include(i => i.Order)
-                //    .Include(i => i.RequestItem.RisItem.RISs)
-                //    .Include(i => i.OrderItemExtns)
-                //    .Where(w => w.OrderId == orderId 
-                //        && w.StockNo == oig.StockNo
-                //        && w.StockName == oig.StockName
-                //        && w.Description == oig.Description
-                //        && w.Brand == oig.Brand
-                //        && w.RequestItem.RisItem.RISs.Fund == oig.Fund).ToListAsync();
-                //foreach (var orderItem in orderItemList)
-                //{
-                //    var qty = db.AIRItems.Where(w => w.OrderItemId == orderItem.Id).Sum(s => s.Qty) ?? 0;
-                //    var risItemId = db.OrderItems.Where(w => w.Id == orderItem.Id).FirstOrDefault()?.RequestItem?.RisItem.Id;
-                //    int qtyIss = 0;
-                //    if (risItemId != null)
-                //    {
-                //        qtyIss = db.RisIssueds.Where(w => w.RisItemId == risItemId && w.RisItem.RISs.PostedDt != null).Sum(s => s.Qty) ?? 0;
-                //    }
-                //    var psItem = new PsItem()
-                //    {
-                //        Id = Guid.NewGuid(),
-                //        PsStockId = psStock.Id,
-                //        Office = orderItem.RequestItem.RisItem.RISs.Office,
-                //        OrderItemId = orderItem.Id,
-                //        RefNo = orderItem.Order.PoNo,
-                //        RefDate = orderItem.Order.PoDate,
-                //        RefType = "PO",
-                //        QtyPo = orderItem.Qty,
-                //        Qty = qty,
-                //        QtyIss = qtyIss,
-                //        QtyBal = qty - qtyIss,
-                //        UnitMeas = orderItem.RequestItem.RisItem.Unit,
-                //        UnitCost = orderItem.UnitCost,
-                //        InsertedBy = user,
-                //        InsertedDt = date,
-                //        UpdatedBy = user,
-                //        UpdatedDt = date
-                //    };
-                //    db.PsItems.Add(psItem);
-                //}
-                //await db.SaveChangesAsync();
-
-                //// search PsStockExtns for Field Descripsiotn
-                //if (!db.PsStockExtns.Any(a => a.PsStockId == psStock.Id))
-                //{
-                //    // get first orderItemExtn from orderItemList
-                //    var orderItemExtns = orderItemList.FirstOrDefault().OrderItemExtns;
-                //    foreach (var orderItemExtn in orderItemExtns)
-                //    {
-                //        var psStockExtn = new PsStockExtn()
-                //        {
-                //            Id = Guid.NewGuid(),
-                //            PsStockId = psStock.Id,
-                //            ItemNo = orderItemExtn.ItemNo,
-                //            ItemKey = orderItemExtn.ItemKey,
-                //            ItemValue = orderItemExtn.ItemValue,
-                //            Sequence = orderItemExtn.Sequence,
-                //            InsertedBy = user,
-                //            InsertedDt = date,
-                //            UpdatedBy = user,
-                //            UpdatedDt = date
-                //        };
-                //        db.PsStockExtns.Add(psStockExtn);
-                //    }
-                //    await db.SaveChangesAsync();
-                //}
+                        db.PsCards.Add(psCard);
+                        await db.SaveChangesAsync();
+                    }                    
+                }                
             }
         });
 
@@ -621,82 +535,52 @@ namespace iLgs.Services
 
             /*
                 * Delete the following records onUnpost:
-                //* PsItem             
-                //* PsStocks, PsStockExtns --> if no PsItem
-                * StockItem, StockCards
-                * PropertyCardItems (PropertyCardPpe, PropertyCardVehicles, PropertyCardEtc..), PropertyCards
+                //* PsCardItems, Fields...
+                //* PsCards --> if no PsItem                
             */
             var orderItems = db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode.ItemType).Where(w => w.OrderId == orderId).ToList();
 
             foreach (var orderItem in orderItems)
             {
-                if (orderItem.RequestItem.RisItem.ItemCode.ItemType.Code == "M")
+
+                if (Enum.TryParse(orderItem.RequestItem.RisItem.ItemCode.ItemType.Code, out Category category))
                 {
-                    var stockItems = db.StockItems.Where(w => w.OrderItemId == orderItem.Id);
-                    if (stockItems.Any())
+                    if (category == Category.D)
                     {
-                        var stockCardId = stockItems.FirstOrDefault().CardId;
-                        // log updates
-                        await stockItems.ForEachAsync(f =>
+                        var psCardItems = db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id);
+                        if (psCardItems.Any())
                         {
-                            f.UpdatedBy = user;
-                            f.UpdatedDt = date;
-                        });
-                        await db.SaveChangesAsync();
-
-                        // delete all stockitems
-                        db.StockItems.RemoveRange(stockItems);
-                        await db.SaveChangesAsync();
-
-                        if (!db.StockItems.Any(a => a.CardId == stockCardId)) // no other  order item is using this item
-                        {
-                            var stockCard = await db.StockCards.FindAsync(stockCardId);
-                            stockCard.UpdatedBy = user;
-                            stockCard.UpdatedDt = date;
-
-                            db.StockCards.Attach(stockCard);
-                            db.Entry(stockCard).State = EntityState.Modified;
+                            var psCardId = psCardItems.FirstOrDefault().PsCardId;
+                            // log updates
+                            await psCardItems.ForEachAsync(f =>
+                            {
+                                f.UpdatedBy = user;
+                                f.UpdatedDt = date;
+                            });
                             await db.SaveChangesAsync();
 
-                            // delete stock during unpost if not used by other order item
-                            db.StockCards.Remove(stockCard);
-                            db.Entry(stockCard).State = EntityState.Deleted;
+                            // delete all stockitems
+                            db.PsCardItems.RemoveRange(psCardItems);
                             await db.SaveChangesAsync();
+
+                            if (!db.PsCardItems.Any(a => a.PsCardId == psCardId)) // no other  order item is using this item
+                            {
+                                var psCard = await db.PsCards.Where(w => w.Id == psCardId).FirstOrDefaultAsync();
+                                psCard.UpdatedBy = user;
+                                psCard.UpdatedDt = date;
+
+                                db.PsCards.Attach(psCard);
+                                db.Entry(psCard).State = EntityState.Modified;
+                                await db.SaveChangesAsync();
+
+                                // delete stock during unpost if not used by other order item
+                                db.PsCards.Remove(psCard);
+                                db.Entry(psCard).State = EntityState.Deleted;
+                                await db.SaveChangesAsync();
+                            }
                         }
                     }
-                }
-
-                //var psItems = db.PsItems.Where(w => w.OrderItemId == orderItem.Id);
-                //if (psItems.Count() > 0)
-                //{
-                //    var psStockId = psItems.FirstOrDefault().PsStockId;
-                //    await psItems.ForEachAsync(f =>
-                //    {
-                //        f.UpdatedBy = user;
-                //        f.UpdatedDt = date;
-                //    });
-                //    await db.SaveChangesAsync();
-
-                //    // delete each orderitem in stock psItems
-                //    db.PsItems.RemoveRange(psItems);
-                //    await db.SaveChangesAsync();
-
-                //    if (!db.PsItems.Any(a => a.PsStockId == psStockId)) // no other order item is using this item
-                //    {
-                //        var psStockEntity = await db.PsStocks.FindAsync(psStockId);
-                //        psStockEntity.UpdatedBy = user;
-                //        psStockEntity.UpdatedDt = date;
-
-                //        db.PsStocks.Attach(psStockEntity);
-                //        db.Entry(psStockEntity).State = EntityState.Modified;
-                //        await db.SaveChangesAsync();
-
-                //        // delete stock during unpost if not used by other order item
-                //        db.PsStocks.Remove(psStockEntity);
-                //        db.Entry(psStockEntity).State = EntityState.Deleted;
-                //        await db.SaveChangesAsync();
-                //    }
-                //}
+                }                
             }
         });
 

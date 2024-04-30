@@ -19,17 +19,15 @@ using System.Web.Mvc;
 namespace iLgs.Controllers
 {
     [AppAuthorize("STOCKCARD")]
-    public class StockCardController : Controller
+    public class _StockCardController : Controller
     {
         private AppManEntities _db = new AppManEntities();
-        private ICodextnService _codextnService;
         private IPsCardService _cardService;
         private IPsCardItemService _cardItemService;
         private IPsCardItemIssuanceService _cardItemIssuanceService;
 
-        public StockCardController()
+        public _StockCardController()
         {
-            _codextnService = new CodextnService(_db);
             _cardService = new PsCardService(_db);
             _cardItemService = new PsCardItemService(_db);
             _cardItemIssuanceService = new PsCardItemIssuanceService(_db);
@@ -161,95 +159,14 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _StockCardAddEdit(Guid? cardId)
-        {
-            var data = await _cardService.GetVmByIdAsync(cardId);
-            if (data == null)
-            {
-                data = new PsCardVM();
-                //{
-                //    Id = Guid.NewGuid()                    
-                //};
-            }
-            return PartialView(data);
-        }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _StockCardSave(PsCardVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "stock_card");
-                Access access = await accessTask;                
-
-                if (model != null && ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    var entity = await _cardService.GetByIdAsync(model.Id);
-
-                    if (entity == null)
-                    {
-                        if (access.AllowAdd)
-                        {
-                            model = await  _cardService.CreateAsync(model, user, date);
-                        }
-                        else
-                        {
-                            ModelState.AddModelError("AddError", "Access Denied!");
-                        }
-                    }
-                    else
-                    {
-                        if (access.AllowEdit)
-                        {
-                            model = await _cardService.UpdateAsync(model, user, date);
-                        }
-                        else
-                        {
-                            ModelState.AddModelError("UpdateError", "Access Denied!");
-                        }
-                    }
-                    
-                }
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
-            }
-
-            var query = from state in ModelState.Values
-                        from error in state.Errors
-                        select error.ErrorMessage;
-
-            var errorList = query.ToList();
-            if (errorList.Count() > 0)
-            {
-                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-            }
-
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        }
-
-
+        
         [AcceptVerbs(HttpVerbs.Post)]
         public JsonResult GetDescription(PsCardVM fields)
         {
             var description = _cardService.GetDescription(fields);
-            var stockNo = _cardService.GetStockNo(fields);
 
-            return Json(new { Description = description, StockNo = stockNo }, JsonRequestBehavior.AllowGet);
+            return Json(new { Description = description }, JsonRequestBehavior.AllowGet);
         }
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public JsonResult GetStockNo(PsCardVM model)
-        //{
-        //    var stockNo = _cardService.GenerateStockNo(model);
-
-        //    return Json(new { StockNo = stockNo}, JsonRequestBehavior.AllowGet);
-        //}
 
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, Guid? cardId)
         {
@@ -467,48 +384,7 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }        
-
-        #region PRINTOUTS
-        public ActionResult StockCardRpt(string stockNo)
-        {
-            string stringname = _db.Database.Connection.ConnectionString.ToString();
-            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
-
-            string un = decoder.UserID;
-            string pw = decoder.Password;
-            string svr = decoder.DataSource;
-            string db_ = decoder.InitialCatalog;
-
-            ReportClass rpt = new ReportClass();
-            rpt.FileName = Server.MapPath(Url.Content("~/Reports/StockCard.rpt"));
-            rpt.SetDatabaseLogon(un, pw, svr, db_);
-
-            rpt.Load();
-            rpt.Refresh();
-
-            foreach (Table table in rpt.Database.Tables)
-            {
-                var logonInfo = table.LogOnInfo;
-                logonInfo.ConnectionInfo.ServerName = svr;
-                logonInfo.ConnectionInfo.DatabaseName = db_;
-                logonInfo.ConnectionInfo.UserID = un;
-                logonInfo.ConnectionInfo.Password = pw;
-                table.ApplyLogOnInfo(logonInfo);
-            }
-
-            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
-            var imagePath = _codextnService.GetByMastCode("DIRS").Where(w => w.Code == "IMAGE-ITEMS").FirstOrDefault().Description;
-
-            rpt.SetParameterValue("@cStockNo", stockNo);
-            rpt.SetParameterValue("ImagePath", imagePath);
-            rpt.SetParameterValue("LGU", lgu);
-
-            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
-            rpt.Close();
-            rpt.Dispose();
-            return File(stream, "application/pdf");
         }
-        #endregion
+
     }
 }

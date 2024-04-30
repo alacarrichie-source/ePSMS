@@ -219,6 +219,7 @@
     var selectedRisItemId = null;
     var selectedItemId = null;
     var selectedUnitCost = null;
+    var selectedDepartment = null;
 
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
@@ -228,6 +229,7 @@
         selectedRisItemId = selectedData.RisItemId;
         selectedUnitCost = selectedData.UnitCost;
         selectedItemId = null;
+        selectedDepartment = selectedData.Department;
     }
 
     function onDataBoundGrid(e) {
@@ -411,7 +413,7 @@
             text = $("#Officer").data("kendoMultiColumnComboBox").value();
         }
         return {
-            location: $("#Location").val(),
+            department: selectedDepartment,
             text: text
         };
     }

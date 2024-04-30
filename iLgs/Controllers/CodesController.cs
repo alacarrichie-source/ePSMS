@@ -35,6 +35,15 @@ namespace iLgs.Controllers
             return View();
         }
 
+        public async Task<ActionResult> Location()
+        {
+            var code = "Locations";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Location of Items";
+            return View(codeMast);
+        }
+
         public async Task<ActionResult> Department()
         {
             var code = "Departments";

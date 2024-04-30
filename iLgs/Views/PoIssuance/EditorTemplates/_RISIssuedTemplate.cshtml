@@ -19,36 +19,6 @@
     <fieldset>
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.Location, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Location)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Location")
-                            .DataTextField("Description")
-                            .DataValueField("Description")
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "DEPARTMENTS", addAll = false });
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Code").Title("Code").Width("30%");
-                                c.Add().Field("Description").Title("Description").Width("70%");
-                            })
-                            .Suggest(true)
-                    )
-                    @Html.ValidationMessageFor(model => model.Location)
-                </div>
-            </div>
-        </div>        
-
-        <div class="row">
-            <div class="col-md-12">
                 @Html.LabelFor(model => model.Officer, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.Officer)
@@ -70,13 +40,46 @@
                                 c.Add().Field("Name").Title("Name").Width("50%");
                                 c.Add().Field("Designation").Title("Designation").Width("50%");
                             })
-                            .CascadeFrom("Location")
-                            .Suggest(true)                            
+                            .Suggest(true)
                     )
                     @Html.ValidationMessageFor(model => model.Officer)
                 </div>
             </div>
+        </div>
+
+        
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.Location, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Location)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Location")
+                            .DataTextField("Description")
+                            .DataValueField("Description")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.Location)
+                </div>
+            </div>
         </div>        
+
+        
         <div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.IssuedTo, htmlAttributes: new { @class = "col-md-12" })

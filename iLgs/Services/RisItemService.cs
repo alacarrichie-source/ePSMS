@@ -40,6 +40,8 @@ namespace iLgs.Services
                     PsTypeDesc = s.ItemCode.ItemType.Description,
                     PsNo = s.PsNo,
                     PsNoDisplay = s.PsNoDisplay,
+                    SubAccountCode = s.SubAccountCode,
+                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.ItemNo == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
                     Unit = s.Unit,
                     ItemName = s.ItemName,
                     Description = s.Description,
@@ -69,6 +71,8 @@ namespace iLgs.Services
                     PsTypeDesc = s.ItemCode.ItemType.Description,
                     PsNo = s.PsNo,
                     PsNoDisplay = s.PsNoDisplay,
+                    SubAccountCode = s.SubAccountCode,
+                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.ItemNo == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
                     Unit = s.Unit,
                     ItemName = s.ItemName,
                     Description = s.Description,
@@ -79,9 +83,10 @@ namespace iLgs.Services
                     InsertedDt = s.InsertedDt,
                     Department = s.RISs.Office,
                     IsPosted = s.RISs.PostedDt != null,
-                    RisItemMedicine = s.RisItemMedicine,
-                    RisItemPpe = s.RisItemPpe,
-                    RisItemVehicle = s.RisItemVehicle
+                    FieldsMedicine = s.FieldsMedicine,
+                    FieldsPpe = s.FieldsPpe,
+                    FieldsVehicle = s.FieldsVehicle,
+                    FieldsOther = s.FieldsOther                    
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -108,6 +113,8 @@ namespace iLgs.Services
                     PsTypeDesc = s.ItemCode.ItemType.Description,
                     PsNo = s.PsNo,
                     PsNoDisplay = s.PsNoDisplay,
+                    SubAccountCode = s.SubAccountCode,
+                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.ItemNo == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
                     Unit = s.Unit,
                     ItemName = s.ItemName,
                     Description = s.Description,
@@ -143,6 +150,7 @@ namespace iLgs.Services
                 PsNoDisplay = model.PsNoDisplay,
                 ItemName = model.ItemType,
                 Unit = model.Unit,
+                SubAccountCode = model.SubAccountCode,
                 Description = model.Description,
                 OtherDesc = model.OtherDesc,
                 QtyRequest = model.QtyRequest,
@@ -168,7 +176,12 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            RisItem entity = await _db.RisItems.FindAsync(model.Id);
+            var entity = await _db.RisItems
+                .Include(i => i.FieldsMedicine)
+                .Include(i => i.FieldsOther)
+                .Include(i => i.FieldsVehicle)
+                .Include(i => i.FieldsPpe)
+                .Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -191,9 +204,10 @@ namespace iLgs.Services
             model.UpdatedDt = date;
 
             var entity = await _db.RisItems
-                .Include(i => i.RisItemVehicle)
-                .Include(i => i.RisItemPpe)
-                .Include(i => i.RisItemMedicine)
+                .Include(i => i.FieldsMedicine)
+                .Include(i => i.FieldsOther)
+                .Include(i => i.FieldsVehicle)
+                .Include(i => i.FieldsPpe)
                 .Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
             model.PsNo = PsNo(model);
@@ -204,6 +218,7 @@ namespace iLgs.Services
             entity.PsNo = model.PsNo;
             entity.PsNoDisplay = model.PsNoDisplay;
             entity.ItemName = model.ItemType;
+            entity.SubAccountCode = model.SubAccountCode;
             entity.Unit = model.Unit;
             entity.Description = model.Description;
             entity.OtherDesc = model.OtherDesc;
@@ -229,175 +244,88 @@ namespace iLgs.Services
 
         private RisItem SetItemEntity(RisItem entity, RisItemEntryVM model)
         {
-            entity.RisItemMedicine = null;
-            entity.RisItemVehicle = null;
-            entity.RisItemPpe = null;
-            if (model.PsType == "M")
+            entity.FieldsMedicine = null;
+            entity.FieldsVehicle = null;
+            entity.FieldsOther = null;
+            
+            if (Enum.TryParse(model.PsType, out Category category))
             {
-                entity.RisItemMedicine = model.RisItemMedicine;
+                if (category == Category.T)
+                {
+                    model.FieldsVehicle.Id = entity.Id;
+                    entity.FieldsVehicle = model.FieldsVehicle;
+                }
+                else if (category == Category.D)
+                {
+                    model.FieldsMedicine.Id = entity.Id;
+                    entity.FieldsMedicine = model.FieldsMedicine;
+                }
+                else if (category == Category.U)
+                {
+                    model.FieldsPpe.Id = entity.Id;
+                    entity.FieldsPpe = model.FieldsPpe;
+                }
             }
-            else if (model.PsType == "T")
-            {
-                entity.RisItemVehicle = model.RisItemVehicle;
-            }
-            else if (model.PsType == "E")
-            {
-                entity.RisItemPpe = model.RisItemPpe;
-            }
+
             return entity;
         }
 
         private string PsNo(RisItemEntryVM model)
         {
             string psNo = model.ItemCode.Trim();
-            if (model.PsType == "M")
+            if (Enum.TryParse(model.PsType, out Category category))
             {
-                var f = model.RisItemMedicine;
-                if (f.GenericName.Length >= 3)
+                if (category == Category.D)
                 {
-                    psNo += f.GenericName.Substring(0, 1) + f.GenericName.Substring(2, 1);
+                    var f = model.FieldsMedicine;
+                    if (f.GenericName.Length >= 3)
+                    {
+                        psNo += f.GenericName.Substring(0, 1) + f.GenericName.Substring(2, 1);
+                    }
+                    else
+                    {
+                        psNo += f.GenericName.Substring(0, 1) + "X";
+                    }
+                    if (!string.IsNullOrWhiteSpace(f.DosageStrength))
+                    {
+                        psNo += f.DosageStrength.Replace(" ", "").Trim();
+                    }
+                    if (!string.IsNullOrWhiteSpace(f.DosageForm))
+                    {
+                        psNo += f.DosageForm.PadRight(3, 'X').Substring(0, 3);
+                    }
                 }
-                else
+                else if (category == Category.T)
                 {
-                    psNo += f.GenericName.Substring(0, 1) + "X";
-                }
-                if (!string.IsNullOrWhiteSpace(f.DosageStrength))
-                {
-                    psNo += f.DosageStrength.Replace(" ", "").Trim();
-                }
-                if (!string.IsNullOrWhiteSpace(f.DosageForm))
-                {
-                    psNo += f.DosageForm.PadRight(3, 'X').Substring(0, 3);
+                    var f = model.FieldsVehicle;
+                    if (f.Make.Length >= 3)
+                    {
+                        psNo += f.Make.Substring(0, 1) + f.Make.Substring(2, 1);
+                    }
+                    else
+                    {
+                        psNo += f.Make.Substring(0, 1) + "X";
+                    }
+
+                    if (f.YearModel > 0)
+                    {
+                        psNo += f.YearModel.ToString().Trim();
+                    }
+
+                    if (string.IsNullOrWhiteSpace(f.Series))
+                    {
+                        psNo += "XXX";
+                    }
+                    else
+                    {
+                        psNo += f.Series.Substring(0, 3);
+                    }
                 }
             }
-            else if (model.PsType == "T")
-            {
-                var f = model.RisItemVehicle;
-                if (f.Make.Length >= 3)
-                {
-                    psNo += f.Make.Substring(0, 1) + f.Make.Substring(2, 1);
-                } else
-                {
-                    psNo += f.Make.Substring(0, 1) + "X";
-                }
-
-                if (f.YearModel > 0)
-                {
-                    psNo += f.YearModel.ToString().Trim();
-                }
-
-                if (string.IsNullOrWhiteSpace(f.Series))
-                {
-                    psNo += "XXX";
-                } else
-                {
-                    psNo += f.Series.Substring(0, 3);
-                }
-            }
-            //var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
-            //string psNo = model.ItemCode.Trim();
-            //var itemType = _db.ItemTypes.Where(w => w.Code == model.PsType).FirstOrDefault();
-            //string itemValue = "";
-            //for (var x = 1; x <= itemType.FormulaNo; x++)
-            //{
-            //    itemValue = risItemExtns.FirstOrDefault(f => f.ItemNo == x.ToString())?.ItemValue.Replace(" ", "").Trim();
-            //    if (string.IsNullOrWhiteSpace(itemValue))
-            //    {
-            //        psNo += "XXX";
-            //    }
-            //    else
-            //    {
-            //        int itemCount = 0;
-            //        if (model.PsType == "M")
-            //        {
-            //            var raItems = itemValue.Split('/');
-            //            foreach (var raItem in raItems)
-            //            {
-            //                if (++itemCount > 1)
-            //                {
-            //                    psNo += "/";
-            //                }
-
-            //                if (x == 1)
-            //                {
-            //                    if (raItem.Length >= 3)
-            //                    {
-            //                        psNo += raItem.Substring(0, 1) + raItem.Substring(2, 1);
-            //                    }
-            //                    else
-            //                    {
-            //                        psNo += raItem.Substring(0, 1) + "X";
-            //                    }
-            //                }
-            //                else if (x == 2)
-            //                {
-            //                    psNo += raItem;
-            //                }
-            //                else if (x == 3)
-            //                {
-            //                    psNo += raItem.PadRight(3, 'X').Substring(0, 3);
-            //                }
-            //            }
-            //        }
-            //        else if (model.PsType == "L")
-            //        {
-            //            if (x == 1)
-            //            {
-            //                psNo += itemValue;
-            //            }
-            //            else if (x == 2)
-            //            {
-            //                psNo += itemValue.Substring(0, 1).ToUpper();
-            //            }
-            //            else if (x == 3)
-            //            {
-            //                psNo += itemValue.Substring(0, 1).ToUpper();
-            //            }
-            //            else if (x == 4)
-            //            {
-            //                psNo += itemValue.Substring(2, 2);
-            //            }
-            //            else if (x == 5)
-            //            {
-            //                psNo += itemValue.Replace(",", "");
-            //            }
-            //            else if (x == 6)
-            //            {
-            //                psNo += itemValue.Substring(0, 1).ToUpper();
-            //            }
-            //            else if (x == 7)
-            //            {
-            //                psNo += itemValue.Substring(itemValue.Length - 3);
-            //            }
-            //            else if (x == 8)
-            //            {
-            //                psNo += itemValue.Substring(0, 1).ToUpper();
-            //            }
-            //            else if (x == 9)
-            //            {
-            //                psNo += itemValue.Substring(2, 2);
-            //            }
-            //        }
-            //    }
-            //}
-
-            //if (model.PsType == "M")
-            //{
-            //    var ds = risItemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Strength");
-            //    if (ds != null)
-            //    {
-            //        psNo += ds.ItemValue.Replace(" ", "");
-            //    }
-
-            //    var df = risItemExtns.FirstOrDefault(f => f.ItemKey == "Dosage Form");
-            //    if (df != null)
-            //    {
-            //        psNo += df.ItemValue.Substring(0, 3);
-            //    }
-            //}
-
+            
             return psNo;
-        }
+        }        
+
 
         public string PsNoDisplay(string itemCode, string itemName)
         {
@@ -427,27 +355,61 @@ namespace iLgs.Services
         public string GetDescription(RisItemEntryVM entry)
         {
             string description = "";
-            if (entry.PsType == "T")
+            if (Enum.TryParse(entry.PsType, out Category category))
             {
-                var f = entry.RisItemVehicle;
-                //description += string.IsNullOrWhiteSpace(f.Type) ? "" : f.Type.Trim();
-                description += string.IsNullOrWhiteSpace(f.Make) ? "" : f.Make.Trim();
-                description += string.IsNullOrWhiteSpace(f.Series) ? "" : " " + f.Series.Trim();
-                description += string.IsNullOrWhiteSpace(f.YearModel.ToString()) ? "" : " " + f.YearModel.ToString().Trim();
-                description += string.IsNullOrWhiteSpace(f.PlateNo) ? "" : " " + f.PlateNo.Trim();
-                description += string.IsNullOrWhiteSpace(f.BodyNo) ? "" : " " + f.BodyNo.Trim();
-                description += string.IsNullOrWhiteSpace(f.Color) ? "" : " " + f.Color.Trim();
-                description += string.IsNullOrWhiteSpace(f.EngineNo) ? "" : " " + f.EngineNo.Trim();
-                description += string.IsNullOrWhiteSpace(f.ChassisNo) ? "" : " " + f.ChassisNo.Trim();
+                if (category == Category.T)
+                {
+                    description = GetVehicleDescription(entry.FieldsVehicle);
+                }
+                else if (category == Category.D)
+                {
+                    description = GetMedicineDescription(entry.FieldsMedicine);
+                    
+                }
             }
-            else if (entry.PsType == "M")
+            return description;
+        }
+
+        public string GetPsDescription(PsCardVM entry)
+        {
+            string description = "";
+            if (Enum.TryParse(entry.PsType, out Category category))
             {
-                var f = entry.RisItemMedicine;
-                description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
-                description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
-                description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
-                description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
+                if (category == Category.T)
+                {
+                    description = GetVehicleDescription(entry.FieldsVehicle);
+                }
+                else if (category == Category.D)
+                {
+                    description = GetMedicineDescription(entry.FieldsMedicine);
+
+                }
             }
+            return description;
+        }
+
+        private string GetVehicleDescription(FieldsVehicle f)
+        {
+            string description = "";
+            description += string.IsNullOrWhiteSpace(f.Type) ? "" : f.Type.Trim();
+            description += string.IsNullOrWhiteSpace(f.Make) ? "" : " " + f.Make.Trim();
+            description += string.IsNullOrWhiteSpace(f.Series) ? "" : " " + f.Series.Trim();
+            description += string.IsNullOrWhiteSpace(f.YearModel.ToString()) ? "" : " " + f.YearModel.ToString().Trim();
+            description += string.IsNullOrWhiteSpace(f.PlateNo) ? "" : " " + f.PlateNo.Trim();
+            description += string.IsNullOrWhiteSpace(f.BodyNo) ? "" : " " + f.BodyNo.Trim();
+            description += string.IsNullOrWhiteSpace(f.Color) ? "" : " " + f.Color.Trim();
+            description += string.IsNullOrWhiteSpace(f.EngineNo) ? "" : " " + f.EngineNo.Trim();
+            description += string.IsNullOrWhiteSpace(f.ChassisNo) ? "" : " " + f.ChassisNo.Trim();
+            return description;
+        }
+
+        private string GetMedicineDescription(FieldsMedicine f)
+        {
+            string description = "";
+            description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
+            description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
+            description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
+            description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
             return description;
         }
     }

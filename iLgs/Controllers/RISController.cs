@@ -269,7 +269,6 @@ namespace iLgs.Controllers
             {
                 data = new RisItemEntryVM()
                 {
-                    Id = Guid.NewGuid(),
                     RisId = risId
                 };
             }
