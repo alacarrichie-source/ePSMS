@@ -32,7 +32,7 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
         public virtual RequestItemUnitGroupDescription RequestItemUnitGroupDescription { get; set; }
-        public virtual RisItemUnitGroupDescriptionItem RisItemUnitGroupDescriptionItem { get; set; }
         public virtual RequestItem RequestItem { get; set; }
+        public virtual RisItemUnitGroupDescriptionItem RisItemUnitGroupDescriptionItem { get; set; }
     }
 }

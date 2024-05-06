@@ -14,8 +14,15 @@ namespace iLgs.Models
     
     public partial class AccountableOfficer
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public AccountableOfficer()
+        {
+            this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
+            this.RisIssueds = new HashSet<RisIssued>();
+        }
+    
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> DeptId { get; set; }
+        public Nullable<System.Guid> LocationId { get; set; }
         public string Name { get; set; }
         public string Designation { get; set; }
         public Nullable<System.DateTime> DateAssumption { get; set; }
@@ -25,5 +32,9 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual Codextn Codextn { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RisIssued> RisIssueds { get; set; }
     }
 }

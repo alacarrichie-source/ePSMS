@@ -60,7 +60,19 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text));
             }
 
-            return Json(model.Select(c => new { Name = c.Name, Designation = c.Designation }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, Name = c.Name, Designation = c.Designation }), JsonRequestBehavior.AllowGet);
+
+        }
+
+        public ActionResult GetAccountableOfficersByDeptId(Guid? deptId, string text)
+        {
+            var model = db.AccountableOfficers.Where(w => w.LocationId == deptId).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Name = c.Name, Designation = c.Designation }), JsonRequestBehavior.AllowGet);
 
         }
 
@@ -130,7 +142,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Description.Contains(text));
             }
 
-            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCodeList(string mastCode, bool addAll, string text)
@@ -142,7 +154,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
             }
 
-            var retModel = model.Select(c => new GetCodeListVM { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }).ToList();
+            var retModel = model.Select(c => new GetCodeListVM { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }).ToList();
             if (addAll)
             {
                 retModel.Insert(0, new GetCodeListVM { Code = "ALL", Description = "ALL", Desc2 = "", Desc3 = "" });
@@ -164,18 +176,18 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Name = c.Name, Address = c.Address, TIN = c.TIN }), JsonRequestBehavior.AllowGet);            
         }
 
-        public JsonResult GetPsCode(string text)
-        {
+        //public JsonResult GetPsCode(string text)
+        //{
 
-            var model = db.PsCodes.AsQueryable();
+        //    var model = db.PsCodes.AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(text))
-            {
-                model = model.Where(p => p.Id.ToString() == text || p.ItemName.Contains(text) || p.ItemDescription.Contains(text) || p.PsNo.Contains(text));
-            }
+        //    if (!string.IsNullOrWhiteSpace(text))
+        //    {
+        //        model = model.Where(p => p.Id.ToString() == text || p.ItemName.Contains(text) || p.ItemDescription.Contains(text) || p.PsNo.Contains(text));
+        //    }
 
-            return Json(model.Select(c => new { Id = c.Id, Code = c.PsNo, Name = c.ItemName, Description = c.ItemDescription, Unit = c.UnitMeas, Type = c.PsType }), JsonRequestBehavior.AllowGet);
-        }
+        //    return Json(model.Select(c => new { Id = c.Id, Code = c.PsNo, Name = c.ItemName, Description = c.ItemDescription, Unit = c.UnitMeas, Type = c.PsType }), JsonRequestBehavior.AllowGet);
+        //}
 
         public JsonResult GetPrNos(string text)
         {
@@ -410,15 +422,15 @@ namespace iLgs.Controllers
         public JsonResult GetDepartments(string text)
         {
 
-            //var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc2 == "");
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS");
+            //var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS");
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS" && (w.Desc3 != null || w.Desc3 != ""));
 
             if (!string.IsNullOrEmpty(text))
             {
                 model = model.Where(p => p.Description.Contains(text));
             }
 
-            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetSections(string department, string text)
@@ -522,6 +534,7 @@ namespace iLgs.Controllers
 
     public class GetCodeListVM
     {
+        public Guid Id { get; set; }
         public string Code { get; set; }
         public string Description { get; set; }
         public string Desc2 { get; set; }

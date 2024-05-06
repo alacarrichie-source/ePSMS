@@ -12,7 +12,7 @@ namespace iLgs.Services
 {
     public interface IAccountableOfficerService
     {
-        IQueryable<AccountableOfficerVM> GetAllByDeptId(Guid? deptId);
+        IQueryable<AccountableOfficerVM> GetAllByLocationId(Guid? deptId);
         ValueTask<AccountableOfficerVM> CreateAsync(AccountableOfficerVM model, string user, DateTime date);
         ValueTask<AccountableOfficerVM> UpdateAsync(AccountableOfficerVM model, string user, DateTime date);
         ValueTask<AccountableOfficerVM> DeleteAsync(AccountableOfficerVM model, string user, DateTime date);
@@ -30,14 +30,14 @@ namespace iLgs.Services
             _db = db;
         }
 
-        public IQueryable<AccountableOfficerVM> GetAllByDeptId(Guid? deptId) =>
+        public IQueryable<AccountableOfficerVM> GetAllByLocationId(Guid? locationId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.AccountableOfficers.Where(w => w.DeptId == deptId)
+            var data = _db.AccountableOfficers.Where(w => w.LocationId == locationId)
                 .Select(s => new AccountableOfficerVM
                 {
                     Id = s.Id,
-                    DeptId = s.DeptId,
+                    LocationId = s.LocationId,
                     Name = s.Name,
                     Designation = s.Designation,
                     DateAssumption = s.DateAssumption
@@ -49,7 +49,7 @@ namespace iLgs.Services
         public ValueTask<AccountableOfficerVM> CreateAsync(AccountableOfficerVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
-            if (_db.AccountableOfficers.Any(a => a.DeptId == model.DeptId && a.Name == model.Name && model.Designation == model.Designation))
+            if (_db.AccountableOfficers.Any(a => a.LocationId == model.LocationId && a.Name == model.Name && a.Designation == model.Designation && a.DateAssumption ==  model.DateAssumption))
             {
                 throw new RecordAlreadyExistsException("Name/Designation already exists in this Department");
             }
@@ -73,7 +73,7 @@ namespace iLgs.Services
             AccountableOfficer entity = new AccountableOfficer()
             {
                 Id = model.Id,
-                DeptId = model.DeptId,
+                LocationId = model.LocationId,
                 Name = model.Name,
                 Designation = model.Designation,
                 DateAssumption = model.DateAssumption,
@@ -122,7 +122,8 @@ namespace iLgs.Services
                 throw new RecordNotFoundException(model.Id);
             }
 
-            if (_db.AccountableOfficers.Any(a => a.DeptId == model.Id && a.Name == model.Name && a.Designation == model.Designation && a.Id != model.Id))
+            if (_db.AccountableOfficers.Any(a => a.LocationId == model.LocationId && a.Name == model.Name && a.Designation == model.Designation 
+                && a.DateAssumption == model.DateAssumption && a.Id != model.Id))
             {
                 throw new RecordAlreadyExistsException("Name/Designation already exist in this department!");
             }
@@ -132,7 +133,7 @@ namespace iLgs.Services
 
             AccountableOfficer entity = await _db.AccountableOfficers.FindAsync(model.Id);
 
-            entity.DeptId = model.DeptId;
+            entity.LocationId = model.LocationId;
             entity.Name = model.Name;
             entity.Designation = model.Designation;
             entity.DateAssumption = model.DateAssumption;

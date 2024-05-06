@@ -1,7 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
-using iLgs.Services.Items;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -14,14 +13,12 @@ namespace iLgs.Services
     public class AirService : IAirService
     {
         private readonly AppManEntities db = new AppManEntities();
-        private IItemService itemService;
         private readonly IExceptionService<AIR_VM> _VmExceptionService = new ExceptionService<AIR_VM>();
         private readonly IExceptionService<AIR> _ExceptionService = new ExceptionService<AIR>();
 
         public AirService(AppManEntities db)
         {
-            this.db = db;
-            this.itemService = new ItemService(db);
+            this.db = db;            
         }
 
         public IQueryable<AIR_VM> GetAll() => _VmExceptionService.TryCatch(() =>

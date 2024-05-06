@@ -551,7 +551,7 @@
     function onSelectOffice(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#FPP").val(dataItem.Code).trigger("change");
+        $("#FPP").val(dataItem.Desc4).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('FPP', $('#FPP').val());

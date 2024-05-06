@@ -92,7 +92,7 @@ namespace iLgs.Models
     public class AccountableOfficerVM
     {
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> DeptId { get; set; }
+        public Nullable<System.Guid> LocationId { get; set; }
         public string Name { get; set; }
         public string Designation { get; set; }
 

@@ -10,10 +10,10 @@ namespace iLgs.Models
     {
         public PsCardVM()
         {
-            this.FieldsMedicine = new FieldsMedicine();
-            this.FieldsOther = new FieldsOther();
-            this.FieldsPpe = new FieldsPpe();
-            this.FieldsVehicle = new FieldsVehicle();
+            this.FieldsMedicine = new FieldsMedicine() { Id = this.Id };
+            this.FieldsOther = new FieldsOther() { Id = this.Id };
+            this.FieldsPpe = new FieldsPpe() { Id = this.Id };  
+            this.FieldsVehicle = new FieldsVehicle() { Id = this.Id };
         }
 
         public System.Guid Id { get; set; }
@@ -36,12 +36,13 @@ namespace iLgs.Models
         [Display(Name = "Prev. Stock/Prop. No.")]
         public string PrevPsNo { get; set; }
 
-        [Display(Name = "Acq. Date")]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> AcqDate { get; set; }
+        //[Display(Name = "Acq. Date")]
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        //public Nullable<System.DateTime> AcqDate { get; set; }
 
-        [Display(Name = "Acq. Mode")]
-        public string AcqMode { get; set; }
+        //[Display(Name = "Acq. Mode")]
+        //public string AcqMode { get; set; }
+
         public Nullable<decimal> Amount { get; set; }
         //public string Brand { get; set; }
 
@@ -51,7 +52,6 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-
         public FieldsMedicine FieldsMedicine { get; set; }
         public FieldsOther FieldsOther { get; set; }
         public FieldsPpe FieldsPpe { get; set; }
@@ -79,24 +79,30 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderItemId { get; set; }
 
         [Display(Name = "PO Date")]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> PoDate { get; set; }
 
         [Display(Name = "PO No.")]        
         public string PoNo { get; set; }
 
         [Display(Name = "AIR Date")]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
+
         public Nullable<System.DateTime> AirDate { get; set; }
 
         [Display(Name = "AIR No.")]
         public string AirNo { get; set; }
 
         [Display(Name = "Issuance Date")]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        ///[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AirIssueDate { get; set; }
         public Nullable<int> Qty { get; set; }
+
+        [Display(Name = "Qty. Iss.")]
         public Nullable<int> QtyIss { get; set; }
+        [Display(Name = "Qty. Bal.")]
         public Nullable<int> QtyBal { get; set; }
 
         [Display(Name = "Transaction Type")]
@@ -107,10 +113,19 @@ namespace iLgs.Models
         public Nullable<decimal> Amount { get; set; }
         public Nullable<int> Days { get; set; }
         public string Remarks { get; set; }
+
+        [Display(Name = "Office")]
+        public Nullable<System.Guid> DeptId { get; set; }        
+        
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }        
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+        
+        // Transients
+        [Display(Name = "Office")]
+        public string Department { get; set; }
+        
     }
 
     public class PsCardItemIssuanceVM
@@ -118,20 +133,30 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
         public Nullable<System.Guid> RefIssuedId { get; set; }
-        public string Location { get; set; }
+
+        [Display(Name = "Location")]
+        public Nullable<System.Guid> LocationId { get; set; }
+
+        [Display(Name = "Officer")]
+        public Nullable<System.Guid> OfficerId { get; set; }
 
         [Display(Name = "Issued To")]
         public string IssuedTo { get; set; }
-        public string Officer { get; set; }
-
+        
         [Display(Name = "Issued Date")]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> IssuedDate { get; set; }
         public Nullable<int> Qty { get; set; }
         public Nullable<decimal> Amount { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }        
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // Transients
+        public string Location { get; set; }
+        public string Officer { get; set; }
+        public Nullable<decimal> UnitCost { get; set; }
     }
 }

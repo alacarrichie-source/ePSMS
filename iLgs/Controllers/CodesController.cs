@@ -532,7 +532,7 @@ namespace iLgs.Controllers
 
         public ActionResult _AccountableOfficerRead([DataSourceRequest] DataSourceRequest request, Guid deptId)
         {
-            var data = _accountableOfficerService.GetAllByDeptId(deptId);
+            var data = _accountableOfficerService.GetAllByLocationId(deptId);
 
             return Json(data.ToDataSourceResult(request));
         }

@@ -12,8 +12,8 @@
     {
         columns.Bound(o => o.Code).Width(70).Title(Model.CodeHdg ?? "Code");
         columns.Bound(o => o.Description).Width(300).Title(Model.Desc1Hdg ?? "Description");
-        //columns.Bound(o => o.Desc2).Width(100).Title(Model.Desc2Hdg ?? "Desc2");
-        //columns.Bound(o => o.Desc3).Width(70).Title(Model.Desc3Hdg ?? "Desc3");
+        columns.Bound(o => o.Desc2).Width(100).Title(Model.Desc2Hdg ?? "Desc2");
+        columns.Bound(o => o.Desc3).Width(70).Title(Model.Desc3Hdg ?? "Desc3");
         //columns.Bound(o => o.Desc4).Width(70).Title(Model.Desc4Hdg ?? "Desc4");
         //columns.Bound(o => o.Desc5).Width(70).Title(Model.Desc5Hdg ?? "Desc5");
         columns.Command(command =>
@@ -49,7 +49,7 @@
     .Sortable()
     .Editable()
     //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodextnGenTemplate").Window(w => w.Width(500).Title(ViewData["code"] + " Item")))
-    //.ClientDetailTemplateId("Details")
+    .ClientDetailTemplateId("Details")
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)

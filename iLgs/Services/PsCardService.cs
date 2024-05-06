@@ -58,8 +58,8 @@ namespace iLgs.Services
                     PsNo = s.PsNo,
                     PsName = s.PsName,
                     PrevPsNo = s.PrevPsNo,
-                    AcqDate = s.AcqDate,
-                    AcqMode = s.AcqMode,
+                    //AcqDate = s.AcqDate,
+                    //AcqMode = s.AcqMode,
                     Amount = s.Amount,
                     FieldsMedicine = s.FieldsMedicine,
                     FieldsOther = s.FieldsOther,
@@ -91,8 +91,8 @@ namespace iLgs.Services
                     PsNo = s.PsNo,
                     PsName = s.PsName,
                     PrevPsNo = s.PrevPsNo,
-                    AcqDate = s.AcqDate,
-                    AcqMode = s.AcqMode,
+                    //AcqDate = s.AcqDate,
+                    //AcqMode = s.AcqMode,
                     Amount = s.Amount,
                     FieldsMedicine = s.FieldsMedicine,
                     FieldsOther = s.FieldsOther,
@@ -123,8 +123,8 @@ namespace iLgs.Services
                     PsNo = s.PsNo,
                     PsName = s.PsName,
                     PrevPsNo = s.PrevPsNo,
-                    AcqDate = s.AcqDate,
-                    AcqMode = s.AcqMode,
+                    //AcqDate = s.AcqDate,
+                    //AcqMode = s.AcqMode,
                     Amount = s.Amount,
                     FieldsMedicine = s.FieldsMedicine,
                     FieldsOther = s.FieldsOther,
@@ -137,7 +137,12 @@ namespace iLgs.Services
 
         public ValueTask<PsCard> GetByIdAsync(Guid id) => _exceptionService.TryCatch(async () =>
         {
-            return await _db.PsCards.FindAsync(id);
+            return await _db.PsCards
+                .Include(i => i.FieldsMedicine)
+                .Include(i => i.FieldsOther)
+                .Include(i => i.FieldsVehicle)
+                .Include(i => i.FieldsPpe)
+                .FirstOrDefaultAsync(f => f.Id == id);            
         });
 
         public async ValueTask<bool> GetAnyPsNoAsync(Guid id, string psNo)
@@ -185,14 +190,16 @@ namespace iLgs.Services
                 PsNo = model.PsNo,
                 PsName = model.PsName,
                 PrevPsNo = model.PrevPsNo,
-                AcqDate = model.AcqDate,
-                AcqMode = model.AcqMode,
+                //AcqDate = model.AcqDate,
+                //AcqMode = model.AcqMode,
                 Amount = model.Amount,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
                 UpdatedDt = model.UpdatedDt
             };
+
+            entity = SetItemEntity(entity, model);
 
             _db.PsCards.Add(entity);
             await _db.SaveChangesAsync();
@@ -202,7 +209,7 @@ namespace iLgs.Services
 
         public ValueTask<PsCardVM> UpdateAsync(PsCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            var entity = _db.PsCards.Find(model.Id);
+            var entity = await GetByIdAsync(model.Id);
             if (entity == null)
             {
                 throw new RecordNotFoundException(model.Id);
@@ -235,11 +242,13 @@ namespace iLgs.Services
             entity.PsNo = model.PsNo;
             entity.PsName = model.PsName;
             entity.PrevPsNo = model.PrevPsNo;
-            entity.AcqDate = model.AcqDate;
-            entity.AcqMode = model.AcqMode;
+            //entity.AcqDate = model.AcqDate;
+            //entity.AcqMode = model.AcqMode;
             entity.Amount = model.Amount;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
+
+            entity = SetItemEntity(entity, model);
 
             _db.PsCards.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
@@ -253,7 +262,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCards.FindAsync(model.Id);
+            var entity = await GetByIdAsync(model.Id);
 
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
@@ -277,18 +286,21 @@ namespace iLgs.Services
             entity.FieldsVehicle = null;
 
             Category category;
-            if (Enum.TryParse(entity.PsType, out category))
+            if (Enum.TryParse(model.ItemTypeCode, out category))
             {
                 if (category == Category.T)
                 {
+                    model.FieldsVehicle.Id = entity.Id;
                     entity.FieldsVehicle = model.FieldsVehicle;
                 }
                 else if (category == Category.D)
                 {
+                    model.FieldsMedicine.Id = entity.Id;
                     entity.FieldsMedicine = model.FieldsMedicine;
                 }
                 else if (category == Category.U)
                 {
+                    model.FieldsPpe.Id = entity.Id;
                     entity.FieldsPpe = model.FieldsPpe;
                 }
             }

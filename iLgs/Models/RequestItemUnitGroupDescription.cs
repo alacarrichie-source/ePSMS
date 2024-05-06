@@ -33,7 +33,7 @@ namespace iLgs.Models
         public virtual ICollection<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RequestItemUnitGroupDescriptionItem> RequestItemUnitGroupDescriptionItems { get; set; }
-        public virtual RisItemUnitGroupDescription RisItemUnitGroupDescription { get; set; }
         public virtual RequestItemUnitGroup RequestItemUnitGroup { get; set; }
+        public virtual RisItemUnitGroupDescription RisItemUnitGroupDescription { get; set; }
     }
 }

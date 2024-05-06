@@ -1,0 +1,23 @@
+﻿@(Html.Kendo().MultiColumnComboBox()
+        .Name("LocationId")
+        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+        .Placeholder("Select Location")
+        .DataTextField("Description")
+        .DataValueField("Id")
+        .ValuePrimitive(true)
+        .Filter(FilterType.Contains)
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+            })
+            .ServerFiltering(true);
+        })
+        .Columns(c =>
+        {
+            c.Add().Field("Code").Title("Code").Width("30%");
+            c.Add().Field("Description").Title("Description").Width("70%");
+        })
+        .Suggest(true)
+)

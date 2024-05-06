@@ -18,7 +18,10 @@ namespace iLgs.Models
         public Codextn()
         {
             this.DepartmentUsers = new HashSet<DepartmentUser>();
+            this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
+            this.PsCardItems = new HashSet<PsCardItem>();
             this.AccountableOfficers = new HashSet<AccountableOfficer>();
+            this.RisIssueds = new HashSet<RisIssued>();
         }
     
         public System.Guid Id { get; set; }
@@ -38,6 +41,12 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<DepartmentUser> DepartmentUsers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItem> PsCardItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AccountableOfficer> AccountableOfficers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RisIssued> RisIssueds { get; set; }
     }
 }

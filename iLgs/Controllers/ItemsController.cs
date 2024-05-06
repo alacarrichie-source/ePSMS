@@ -25,7 +25,6 @@ namespace iLgs.Controllers
         private IItemTypeService _itemTypeService;
         private IItemCodeService _itemCodeService;
         private IItemFieldService _itemFieldService;
-        private IPsCodeService _psCodeService;
         private ICodextnService _codextnService;
         private IDirectoryService _directoryService;
         private IRisIssuedService _risIssuedService;
@@ -35,7 +34,6 @@ namespace iLgs.Controllers
             _itemTypeService = new ItemTypeService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _itemFieldService = new ItemFieldService(_db);
-            _psCodeService = new PsCodeService(_db);
             _codextnService = new CodextnService(_db);
             _directoryService = new DirectoryService(_db);
             _risIssuedService = new RisIssuedService(_db);
@@ -47,132 +45,7 @@ namespace iLgs.Controllers
             return View();
         }
         
-
-        public ActionResult PsCode()
-        {
-            return View();
-        }
-
-        public ActionResult PsCodeRead([DataSourceRequest] DataSourceRequest request)
-        {
-            var data = _psCodeService.GetAllItems();
-
-            var result = new JsonNetResult
-            {
-                Data = data.ToDataSourceResult(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
-
-            return result;
-        }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> PsCodeCreate([DataSourceRequest] DataSourceRequest request, PsCodeVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pscodes");
-                Access access = await accessTask;
-                if (!access.AllowAdd)
-                {
-                    ModelState.AddModelError("AddError", "Add Access Denied!");
-                }
-
-                if (model != null && ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    model = await _psCodeService.CreateAsync(model, user, date);
-                }
-            }
-            catch (Exception e)
-            {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
-            }
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> PsCodeUpdate([DataSourceRequest] DataSourceRequest request, PsCodeVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pscodes");
-                Access access = await accessTask;
-                if (!access.AllowEdit)
-                {
-                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
-                }
-
-                if (ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    model = await _psCodeService.UpdateAsync(model, user, date);
-                }
-            }
-            catch (Exception e)
-            {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> PsCodeDestroy([DataSourceRequest]DataSourceRequest request, PsCodeVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pscodes");
-                Access access = await accessTask;
-                if (!access.AllowDelete)
-                {
-                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
-                }
-                else
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    model = await _psCodeService.DeleteAsync(model, user, date);
-                }
-            }
-            catch (Exception e)
-            {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
+        
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request)
         {
             var data = _itemTypeService.GetAll();
@@ -558,19 +431,7 @@ namespace iLgs.Controllers
             return _directoryService.GetItemImageDirectory();
         }
 
-        public ActionResult ItemMainRead([DataSourceRequest] DataSourceRequest request)
-        {
-            var data = _psCodeService.GetAll();
-            var result = new JsonNetResult
-            {
-                Data = data.ToDataSourceResult(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
-
-            return result;
-        }
-
+        
         [Authorize]
         public ActionResult GetItemByCategoryRead([DataSourceRequest] DataSourceRequest request, string category)
         {
@@ -619,68 +480,7 @@ namespace iLgs.Controllers
         //    return result;
         //}
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _QueryOrderItemSelectionSave([DataSourceRequest] DataSourceRequest request, QueryOrderItemsVM searchModel)
-        {
-            try
-            {
-                var gridIdList = searchModel.SelectedIds.Split(',');
-                foreach (var gridId in gridIdList)
-                {
-                    var orderItemId = Guid.Parse(gridId);
-                    var data = await _db.OrderItems.Where(w => w.Id == orderItemId)
-                        .Select(s => new QueryOrderItemsVM
-                        {
-                            PoDate = s.Order.PoDate,
-                            PoNo = s.Order.PoNo,
-                            Qty = s.Qty
-                        }).FirstOrDefaultAsync();
-
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    var entity = new PsItem
-                    {
-                        Id = Guid.NewGuid(),
-                        PsStockId = searchModel.PsStockId,
-                        RefNo = data.PoNo,
-                        RefDate = data.PoDate,
-                        RefType = "",
-                        Qty = data.Qty,
-                        QtyIss = 0,
-                        QtyBal = data.Qty,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
-
-                    _db.PsItems.Add(entity);
-                    await _db.SaveChangesAsync();
-                }
-
-                if (Request.IsAjaxRequest())
-                {
-                    var query = from state in ModelState.Values
-                                from error in state.Errors
-                                select error.ErrorMessage;
-
-                    var errorList = query.ToList();
-                    if (errorList.Count() > 0)
-                    {
-                        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
-            }
-
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        }
-
+        
         #region ISSUED
         public ActionResult _RISIssuedRead([DataSourceRequest] DataSourceRequest request, string poNo, string stockNo)
         {
@@ -731,13 +531,7 @@ namespace iLgs.Controllers
             var model = _itemCodeService.GetItemsByTypeCode(typeCode, text);
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode }), JsonRequestBehavior.AllowGet);
         }        
-
-        public JsonResult GetPsNo(string itemCode, string itemName)
-        {
-
-            var psNo = _psCodeService.PsNo(itemCode, itemName);
-            return Json(new { Errors = "", PsNo = psNo}, JsonRequestBehavior.AllowGet);
-        }
+        
         #endregion
 
         public async Task<ActionResult> ItemCodeRpt(Guid itemTypeId)

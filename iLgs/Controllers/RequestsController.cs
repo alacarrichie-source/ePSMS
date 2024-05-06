@@ -26,7 +26,7 @@ namespace iLgs.Controllers
         private IOrderService _orderService;
         private IRequestService _requestService;
         private IRequestItemService _requestItemService;
-        private IRisItemExtnService _risItemExtnService;
+        //private IRisItemExtnService _risItemExtnService;
         private ICodextnService _codextnService;
         private IRequestItemUnitGroupService _unitGroupService;
         private IRequestItemUnitGroupDescriptionService _unitGroupDescriptionService;
@@ -37,7 +37,7 @@ namespace iLgs.Controllers
             _orderService = new OrderService(_db);
             _requestService = new RequestService(_db);
             _requestItemService = new RequestItemService(_db);
-            _risItemExtnService = new RisItemExtnService(_db);
+            //_risItemExtnService = new RisItemExtnService(_db);
             _codextnService = new CodextnService(_db);
             _unitGroupService = new RequestItemUnitGroupService(_db);
             _unitGroupDescriptionService = new RequestItemUnitGroupDescriptionService(_db);
@@ -395,22 +395,22 @@ namespace iLgs.Controllers
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
-        #region REQUEST ITEM EXTNS
+        //#region REQUEST ITEM EXTNS
 
-        public ActionResult _RequestItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? requestItemId, string psType)
-        {
-            var data = _risItemExtnService.GetBatchInfo(requestItemId, psType);
-            var result = new JsonNetResult
-            {
-                Data = data.ToDataSourceResult(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
+        //public ActionResult _RequestItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? requestItemId, string psType)
+        //{
+        //    var data = _risItemExtnService.GetBatchInfo(requestItemId, psType);
+        //    var result = new JsonNetResult
+        //    {
+        //        Data = data.ToDataSourceResult(request),
+        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+        //    };
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        #endregion
+        //#endregion
 
         #region UNIT GROUP
         public ActionResult _UnitGroup(Guid requestId)

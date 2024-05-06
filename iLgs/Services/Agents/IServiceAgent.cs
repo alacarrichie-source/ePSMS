@@ -10,12 +10,10 @@ namespace iLgs.Agents.Services
     {
         IRisService Ris { get; }
         IRisItemService RisItem { get; }
-        IRisItemExtnService RisItemExtn { get; }
-        ICodextnService Codextn { get; }
-        IPsCodeService PsCode { get; }
-
+        //IRisItemExtnService RisItemExtn { get; }
+        ICodextnService Codextn { get; }        
         IAirService Air { get; }
-
+         
         IAirInvoiceService AirInvoice { get; }
     }
 }

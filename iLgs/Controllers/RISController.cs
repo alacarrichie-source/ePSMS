@@ -756,19 +756,19 @@ namespace iLgs.Controllers
 
         #endregion
 
-        [Authorize]
-        public ActionResult _RISItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId, string psType)
-        {
-            var data = _sa.RisItemExtn.GetBatchInfo(risItemId, psType);
-            var result = new JsonNetResult
-            {
-                Data = data.ToDataSourceResult(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
+        //[Authorize]
+        //public ActionResult _RISItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId, string psType)
+        //{
+        //    var data = _sa.RisItemExtn.GetBatchInfo(risItemId, psType);
+        //    var result = new JsonNetResult
+        //    {
+        //        Data = data.ToDataSourceResult(request),
+        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+        //    };
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public async Task<ActionResult> RISRpt(string risNo)
         {
@@ -866,18 +866,18 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult RequisitionRead([DataSourceRequest] DataSourceRequest request)
-        {
-            var data = _sa.PsCode.GetAll();
-            var result = new JsonNetResult
-            {
-                Data = data.ToDataSourceResult(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
+        //public ActionResult RequisitionRead([DataSourceRequest] DataSourceRequest request)
+        //{
+        //    var data = _sa.PsCode.GetAll();
+        //    var result = new JsonNetResult
+        //    {
+        //        Data = data.ToDataSourceResult(request),
+        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+        //    };
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public ActionResult Cart(List<PsCodeVM> cartItems)
         {

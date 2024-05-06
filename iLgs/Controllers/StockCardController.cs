@@ -243,13 +243,83 @@ namespace iLgs.Controllers
             return Json(new { Description = description, StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public JsonResult GetStockNo(PsCardVM model)
-        //{
-        //    var stockNo = _cardService.GenerateStockNo(model);
+        public ActionResult _StockCardItem(Guid cardId)
+        {
+            ViewData["cardId"] = cardId;
+            return PartialView();
+        }
 
-        //    return Json(new { StockNo = stockNo}, JsonRequestBehavior.AllowGet);
-        //}
+        public async Task<ActionResult> _StockCardItemAddEdit(Guid cardId, Guid? cardItemId)
+        {
+            var data = await _cardItemService.GetByIdAsync(cardItemId);
+            if (data == null)
+            {
+                data = new PsCardItemVM()
+                {
+                    Id = Guid.NewGuid(),
+                    PsCardId = cardId                    
+                };
+            }
+            
+            ViewData["cardItemId"] = cardItemId;
+            return PartialView(data);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _CardItemSave(PsCardItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+                
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    var entity = await _cardItemService.GetByIdAsync(model.Id);
+
+                    if (entity == null)
+                    {
+                        model = await _cardItemService.CreateAsync(model, user, date);
+                    }
+                    else
+                    {
+                        model = await _cardItemService.UpdateAsync(model, user, date);
+                    }                    
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
 
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, Guid? cardId)
         {
@@ -405,7 +475,7 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
-                    ModelState.AddModelError("UpdateError", "Access Denied!");
+                    ModelState.AddModelError("Access", "Access Denied!");
                 }
 
                 if (ModelState.IsValid)
@@ -425,7 +495,7 @@ namespace iLgs.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("UpdateError", e.Message);
+                    ModelState.AddModelError("", e.Message);
                 }
             }
 

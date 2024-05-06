@@ -38,13 +38,16 @@ namespace iLgs.Services
                     Id = s.Id,
                     PsCardItemId = s.PsCardItemId,
                     RefIssuedId = s.RefIssuedId,
-                    Location = s.Location,
-                    Officer = s.Officer,
                     IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     Qty = s.Qty,
                     Amount = s.Amount,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    LocationId = s.LocationId,
+                    OfficerId = s.OfficerId,
+                    Location = s.Codextn.Description,
+                    Officer = s.AccountableOfficer.Name,
+                    UnitCost = s.PsCardItem.UnitCost
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -57,13 +60,16 @@ namespace iLgs.Services
                     Id = s.Id,
                     PsCardItemId = s.PsCardItemId,
                     RefIssuedId = s.RefIssuedId,
-                    Location = s.Location,
-                    Officer = s.Officer,
                     IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     Qty = s.Qty,
                     Amount = s.Amount,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    LocationId = s.LocationId,
+                    OfficerId = s.OfficerId,
+                    Location = s.Codextn.Description,
+                    Officer = s.AccountableOfficer.Name,
+                    UnitCost = s.PsCardItem.UnitCost
                 });
             return data;
         });
@@ -71,6 +77,14 @@ namespace iLgs.Services
 
         public ValueTask<PsCardItemIssuanceVM> CreateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            var totalQtyIssued = _db.PsCardItems.Find(model.PsCardItemId)?.Qty ?? 0;
+            var qtyIssued = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == model.PsCardItemId).Sum(s => s.Qty) ?? 0;
+            var qtyBalance = totalQtyIssued - qtyIssued;
+            if (model.Qty > qtyBalance)
+            {
+                throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
+            }
+
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
@@ -84,8 +98,6 @@ namespace iLgs.Services
                 Id = model.Id,
                 PsCardItemId = model.PsCardItemId,
                 RefIssuedId = model.RefIssuedId,
-                Location = model.Location,
-                Officer = model.Officer,
                 IssuedTo = model.IssuedTo,
                 IssuedDate = model.IssuedDate,
                 Qty = model.Qty,
@@ -93,7 +105,9 @@ namespace iLgs.Services
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
+                UpdatedDt = model.UpdatedDt,
+                LocationId = model.LocationId,
+                OfficerId = model.OfficerId                
             };
 
             _db.PsCardItemIssuances.Add(entity);
@@ -106,6 +120,14 @@ namespace iLgs.Services
 
         public ValueTask<PsCardItemIssuanceVM> UpdateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            var totalQtyIssued = _db.PsCardItems.Find(model.PsCardItemId)?.Qty ?? 0;
+            var qtyIssued = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.Id).Sum(s => s.Qty) ?? 0;
+            var qtyBalance = totalQtyIssued - qtyIssued;
+            if (model.Qty > qtyBalance)
+            {
+                throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
+            }
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -117,8 +139,8 @@ namespace iLgs.Services
 
             entity.PsCardItemId = model.PsCardItemId;
             entity.RefIssuedId = model.RefIssuedId;
-            entity.Location = model.Location;
-            entity.Officer = model.Officer;
+            entity.LocationId = model.LocationId;
+            entity.OfficerId = model.OfficerId;
             entity.IssuedTo = model.IssuedTo;
             entity.IssuedDate = model.IssuedDate;
             entity.Qty = model.Qty;

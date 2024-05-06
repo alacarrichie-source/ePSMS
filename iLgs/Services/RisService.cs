@@ -121,55 +121,55 @@ namespace iLgs.Services
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();            
 
-            // crate psCode foreach item (problem in unpost, sequence number will rumble)
-            var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
-            foreach (var risItem in risItemList)
-            {
-                if (!db.PsCodes.Any(a => a.PsType == risItem.ItemCode.ItemType.Code && a.PsNo == risItem.PsNoDisplay && a.ItemName == risItem.ItemName))
-                {
-                    var psCode = new PsCode()
-                    {
-                        Id = Guid.NewGuid(),
-                        ItemCodeId = risItem.ItemCodeId,
-                        PsNo = risItem.PsNoDisplay, //NextPsNo(risItem.ItemCode.ItemType.Code),
-                        PsType = risItem.ItemCode.ItemType.Code,
-                        ItemName = risItem.ItemName,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
+            //// crate psCode foreach item (problem in unpost, sequence number will rumble)
+            //var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
+            //foreach (var risItem in risItemList)
+            //{
+            //    if (!db.PsCodes.Any(a => a.PsType == risItem.ItemCode.ItemType.Code && a.PsNo == risItem.PsNoDisplay && a.ItemName == risItem.ItemName))
+            //    {
+            //        var psCode = new PsCode()
+            //        {
+            //            Id = Guid.NewGuid(),
+            //            ItemCodeId = risItem.ItemCodeId,
+            //            PsNo = risItem.PsNoDisplay, //NextPsNo(risItem.ItemCode.ItemType.Code),
+            //            PsType = risItem.ItemCode.ItemType.Code,
+            //            ItemName = risItem.ItemName,
+            //            InsertedBy = user,
+            //            InsertedDt = date,
+            //            UpdatedBy = user,
+            //            UpdatedDt = date
+            //        };
 
-                    db.PsCodes.Add(psCode);
-                    await db.SaveChangesAsync();
-                }
-            }
+            //        db.PsCodes.Add(psCode);
+            //        await db.SaveChangesAsync();
+            //    }
+            //}
         });
 
-        private string NextPsNo(string psType)
-        {
-            string keyName = psType;
-            // yyyy-mm-9999
-            // 123456789012
+        //private string NextPsNo(string psType)
+        //{
+        //    string keyName = psType;
+        //    // yyyy-mm-9999
+        //    // 123456789012
 
-            var rec = db.PsCodes.Where(w => w.PsType == psType).OrderByDescending(o => o.PsNo).FirstOrDefault();
-            if (rec == null)
-            {
-                return keyName + "0001";
-            }
-            else
-            {
-                string sequence = "";
-                foreach (char c in rec.PsNo)
-                {
-                    if (char.IsDigit(c))
-                    {
-                        sequence += c;
-                    }
-                }
-                return keyName + sequence.PadLeft(4, '0');
-            }
-        }
+        //    var rec = db.PsCodes.Where(w => w.PsType == psType).OrderByDescending(o => o.PsNo).FirstOrDefault();
+        //    if (rec == null)
+        //    {
+        //        return keyName + "0001";
+        //    }
+        //    else
+        //    {
+        //        string sequence = "";
+        //        foreach (char c in rec.PsNo)
+        //        {
+        //            if (char.IsDigit(c))
+        //            {
+        //                sequence += c;
+        //            }
+        //        }
+        //        return keyName + sequence.PadLeft(4, '0');
+        //    }
+        //}
 
         public ValueTask UnpostAsync(Guid risId, string user, DateTime date) =>
         _risExceptionService.TryCatchAsync(async () =>
@@ -187,19 +187,18 @@ namespace iLgs.Services
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
 
-            // delete un-used psCode foreach item (problem in unpost, sequence number will rumble)
-            var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
-            foreach (var risItem in risItemList)
-            {
-                var psCode = await db.PsCodes.Where(w => w.PsNo == risItem.PsNoDisplay && w.ItemName == risItem.ItemName && !w.PsStocks.Any()).FirstOrDefaultAsync();
-                if (psCode != null)
-                {
-                    db.PsCodes.Remove(psCode);
-                    db.Entry(psCode).State = EntityState.Deleted;
-                    await db.SaveChangesAsync();
-                }
-            }
-            
+            //// delete un-used psCode foreach item (problem in unpost, sequence number will rumble)
+            //var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
+            //foreach (var risItem in risItemList)
+            //{
+            //    var psCode = await db.PsCodes.Where(w => w.PsNo == risItem.PsNoDisplay && w.ItemName == risItem.ItemName && !w.PsStocks.Any()).FirstOrDefaultAsync();
+            //    if (psCode != null)
+            //    {
+            //        db.PsCodes.Remove(psCode);
+            //        db.Entry(psCode).State = EntityState.Deleted;
+            //        await db.SaveChangesAsync();
+            //    }
+            //}            
         });
 
         public ValueTask<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date) =>

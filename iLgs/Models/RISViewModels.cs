@@ -349,14 +349,16 @@ namespace iLgs.Models
         public Nullable<System.Guid> RisItemId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
 
-        public string Location { get; set; }
+        [Display(Name = "Location")]
+        public Nullable<System.Guid> LocationId { get; set; }
+
+        [Display(Name = "Officer")]
+        public Nullable<System.Guid> OfficerId { get; set; }
+
 
         [Display(Name = "Issued To")]
         public string IssuedTo { get; set; }
-
-        [Display(Name = "Accountable Officer")]
-        public string Officer { get; set; }
-
+        
         [Display(Name = "Issued Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> IssuedDate { get; set; }
@@ -376,6 +378,9 @@ namespace iLgs.Models
 
         // transient
         public Nullable<decimal> UnitCost { get; set; }
+        public string Location { get; set; }
+        public string Officer { get; set; }
+
     }
 
     public class RisItemUnitGroupVM

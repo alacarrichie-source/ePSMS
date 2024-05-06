@@ -51,14 +51,10 @@ namespace iLgs.Models
         public virtual DbSet<PAR> PARs { get; set; }
         public virtual DbSet<OrderItemExtn> OrderItemExtns { get; set; }
         public virtual DbSet<ItemField> ItemFields { get; set; }
-        public virtual DbSet<PsStockExtn> PsStockExtns { get; set; }
         public virtual DbSet<RSMI> RSMIs { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<RSMIRecap> RSMIRecaps { get; set; }
         public virtual DbSet<DepartmentUser> DepartmentUsers { get; set; }
-        public virtual DbSet<RisItemExtn> RisItemExtns { get; set; }
-        public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
-        public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
@@ -66,41 +62,31 @@ namespace iLgs.Models
         public virtual DbSet<RequestItemUnitGroupDescription> RequestItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<RisItemUnitGroup> RisItemUnitGroups { get; set; }
         public virtual DbSet<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
-        public virtual DbSet<PsCode> PsCodes { get; set; }
-        public virtual DbSet<PsStock> PsStocks { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<AIRInvoice> AIRInvoices { get; set; }
-        public virtual DbSet<PsItem> PsItems { get; set; }
         public virtual DbSet<RPCEFFOPPEItem> RPCEFFOPPEItems { get; set; }
         public virtual DbSet<RPCEFFOPPE> RPCEFFOPPEs { get; set; }
-        public virtual DbSet<PsItemIssuance> PsItemIssuances { get; set; }
-        public virtual DbSet<PropertyCard> PropertyCards { get; set; }
-        public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
         public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
         public virtual DbSet<RpcPpe> RpcPpes { get; set; }
-        public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
-        public virtual DbSet<StockItem> StockItems { get; set; }
-        public virtual DbSet<StockItemIssuance> StockItemIssuances { get; set; }
-        public virtual DbSet<RisItemMedicine> RisItemMedicines { get; set; }
-        public virtual DbSet<RisItemPpe> RisItemPpes { get; set; }
-        public virtual DbSet<RisItemVehicle> RisItemVehicles { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
-        public virtual DbSet<RisIssued> RisIssueds { get; set; }
         public virtual DbSet<AIRItem> AIRItems { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
         public virtual DbSet<PARItem> PARItems { get; set; }
         public virtual DbSet<RequestItem> RequestItems { get; set; }
-        public virtual DbSet<StockCard> StockCards { get; set; }
-        public virtual DbSet<PsCardItem> PsCardItems { get; set; }
-        public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual DbSet<FieldsMedicine> FieldsMedicines { get; set; }
         public virtual DbSet<FieldsOther> FieldsOthers { get; set; }
         public virtual DbSet<FieldsPpe> FieldsPpes { get; set; }
         public virtual DbSet<FieldsVehicle> FieldsVehicles { get; set; }
         public virtual DbSet<ItemCode> ItemCodes { get; set; }
         public virtual DbSet<ItemType> ItemTypes { get; set; }
-        public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<PsCard> PsCards { get; set; }
+        public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
+        public virtual DbSet<PsCardItem> PsCardItems { get; set; }
+        public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
+        public virtual DbSet<RisItem> RisItems { get; set; }
+        public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
+        public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
+        public virtual DbSet<RisIssued> RisIssueds { get; set; }
     }
 }

@@ -92,12 +92,33 @@
                             .Suggest(true)
                         )
                         @Html.ValidationMessageFor(model => model.Office)
+                        @*@(Html.Kendo().MultiColumnComboBoxFor(m => m.Office)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Office")
+                            .DataTextField("Description")
+                            .DataValueField("Description")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Suggest(true)
+                        )*@
                     </div>
                 </div>
                 <div class="col-md-6">
                     @Html.LabelFor(model => model.Division, htmlAttributes: new { @class = "col-md-12" })
                     <div class="col-md-12">
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.Division)
+                        @*@(Html.Kendo().MultiColumnComboBoxFor(m => m.Division)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Division")
                             .DataTextField("Description")
@@ -118,7 +139,8 @@
                             })
                             .Suggest(true)
                             .CascadeFrom("Office")
-                        )
+                        )*@
+                        @(Html.Kendo().TextBoxFor(model => model.Division).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                         @Html.ValidationMessageFor(model => model.Division)
                     </div>
                 </div>

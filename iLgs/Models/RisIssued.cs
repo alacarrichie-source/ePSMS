@@ -17,16 +17,15 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public RisIssued()
         {
-            this.StockItemIssuances = new HashSet<StockItemIssuance>();
             this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
         }
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisItemId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
-        public string Location { get; set; }
+        public Nullable<System.Guid> LocationId { get; set; }
+        public Nullable<System.Guid> OfficerId { get; set; }
         public string IssuedTo { get; set; }
-        public string Officer { get; set; }
         public Nullable<System.DateTime> IssuedDate { get; set; }
         public string IssuedBy { get; set; }
         public Nullable<int> Qty { get; set; }
@@ -36,8 +35,8 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<StockItemIssuance> StockItemIssuances { get; set; }
+        public virtual AccountableOfficer AccountableOfficer { get; set; }
+        public virtual Codextn Codextn { get; set; }
         public virtual OrderItem OrderItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances { get; set; }

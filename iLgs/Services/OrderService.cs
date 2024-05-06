@@ -9,7 +9,6 @@ using System.Data.Entity;
 using iLgs.Exceptions;
 using System.Data.SqlClient;
 using System.Data.Entity.Infrastructure;
-using iLgs.Services.Items;
 using System.Web.Http.ModelBinding;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -22,12 +21,10 @@ namespace iLgs.Services
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<OrderVM> _orderVmExceptionService = new ExceptionService<OrderVM>();
         private readonly IExceptionService<Order> _orderExceptionService = new ExceptionService<Order>();
-        private IItemService itemService;
 
         public OrderService(AppManEntities db)
         {
             this.db = db;
-            this.itemService = new ItemService(db);
         }
 
         public IQueryable<OrderVM> GetAll() => _orderVmExceptionService.TryCatch(() =>
@@ -162,7 +159,7 @@ namespace iLgs.Services
             };
 
             // include items during add, PR Items not yet in Order Items
-            var requestItems = db.RequestItems.Include(i => i.RisItem.RisItemExtns)
+            var requestItems = db.RequestItems.Include(i => i.RisItem)
                 .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToList();
             foreach (var requestItem in requestItems)
             {
@@ -182,22 +179,22 @@ namespace iLgs.Services
                     UpdatedDt = date
                 };
 
-                foreach (var risItemExtn in requestItem.RisItem.RisItemExtns)
-                {
-                    OrderItemExtn orderItemExtn = new OrderItemExtn()
-                    {
-                        Id = Guid.NewGuid(),
-                        OrderItemId = orderItem.Id,
-                        ItemKey = risItemExtn.ItemKey,
-                        ItemValue = risItemExtn.ItemValue,
-                        Sequence = risItemExtn.Sequence,
-                        InsertedBy = user,
-                        InsertedDt = date,
-                        UpdatedBy = user,
-                        UpdatedDt = date
-                    };
-                    orderItem.OrderItemExtns.Add(orderItemExtn);
-                }
+                //foreach (var risItemExtn in requestItem.RisItem.RisItemExtns)
+                //{
+                //    OrderItemExtn orderItemExtn = new OrderItemExtn()
+                //    {
+                //        Id = Guid.NewGuid(),
+                //        OrderItemId = orderItem.Id,
+                //        ItemKey = risItemExtn.ItemKey,
+                //        ItemValue = risItemExtn.ItemValue,
+                //        Sequence = risItemExtn.Sequence,
+                //        InsertedBy = user,
+                //        InsertedDt = date,
+                //        UpdatedBy = user,
+                //        UpdatedDt = date
+                //    };
+                //    orderItem.OrderItemExtns.Add(orderItemExtn);
+                //}
 
                 entity.OrderItems.Add(orderItem);
             }
@@ -286,7 +283,7 @@ namespace iLgs.Services
                 await db.SaveChangesAsync();
 
                 // include items during add, PR Items not yet in Order Items
-                var prItemList = db.RequestItems.Include(i => i.RisItem.RisItemExtns)
+                var prItemList = db.RequestItems.Include(i => i.RisItem)
                     .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToList();
                 foreach (var prItem in prItemList)
                 {
@@ -305,22 +302,22 @@ namespace iLgs.Services
                         UpdatedDt = date
                     };
 
-                    foreach (var prItemExtn in prItem.RisItem.RisItemExtns)
-                    {
-                        OrderItemExtn orderItemExtn = new OrderItemExtn()
-                        {
-                            Id = Guid.NewGuid(),
-                            OrderItemId = orderItem.Id,
-                            ItemKey = prItemExtn.ItemKey,
-                            ItemValue = prItemExtn.ItemValue,
-                            Sequence = prItemExtn.Sequence,
-                            InsertedBy = user,
-                            InsertedDt = date,
-                            UpdatedBy = user,
-                            UpdatedDt = date
-                        };
-                        orderItem.OrderItemExtns.Add(orderItemExtn);
-                    }
+                    //foreach (var prItemExtn in prItem.RisItem.RisItemExtns)
+                    //{
+                    //    OrderItemExtn orderItemExtn = new OrderItemExtn()
+                    //    {
+                    //        Id = Guid.NewGuid(),
+                    //        OrderItemId = orderItem.Id,
+                    //        ItemKey = prItemExtn.ItemKey,
+                    //        ItemValue = prItemExtn.ItemValue,
+                    //        Sequence = prItemExtn.Sequence,
+                    //        InsertedBy = user,
+                    //        InsertedDt = date,
+                    //        UpdatedBy = user,
+                    //        UpdatedDt = date
+                    //    };
+                    //    orderItem.OrderItemExtns.Add(orderItemExtn);
+                    //}
 
                     entity.OrderItems.Add(orderItem);
                 }

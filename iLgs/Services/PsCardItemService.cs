@@ -51,7 +51,9 @@ namespace iLgs.Services
                     Amount = s.Amount,
                     Days = s.Days,
                     Remarks = s.Remarks,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    DeptId = s.DeptId,
+                    Department = s.Codextn.Description
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -77,7 +79,9 @@ namespace iLgs.Services
                     Amount = s.Amount,
                     Days = s.Days,
                     Remarks = s.Remarks,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    DeptId = s.DeptId,
+                    Department = s.Codextn.Description
                 });
             return data;
         });
@@ -109,6 +113,7 @@ namespace iLgs.Services
                 UnitCost = model.UnitCost,
                 Remarks = model.Remarks,
                 Amount = model.Amount,
+                DeptId = model.DeptId,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -147,6 +152,7 @@ namespace iLgs.Services
             entity.UnitCost = model.UnitCost;
             entity.Remarks = model.Remarks;
             entity.Amount = model.Amount;
+            entity.DeptId = model.DeptId;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

@@ -179,13 +179,14 @@ namespace iLgs.Services
         private string GetItemCode(Guid? itemTypeId, string itemNo, string description)
         {
             var itemType = db.ItemTypes.Find(itemTypeId);
-            string exemptionPattern = @"[-.]+|\[.*?\]|\(.*?\)";
-            string itemCode = Regex.Replace(itemNo, exemptionPattern, "");
-            if (string.IsNullOrWhiteSpace(description))
-            {
-                return itemType.Code + "*" + itemCode;
-            }
-            return itemType.Code + itemType.GroupCode + itemCode;
+            //string exemptionPattern = @"[-.]+|\[.*?\]|\(.*?\)";
+            //string itemCode = Regex.Replace(itemNo, exemptionPattern, "");
+            //if (string.IsNullOrWhiteSpace(description))
+            //{
+            //    return itemType.Code + "*" + itemCode;
+            //}
+            //return itemType.Code + itemType.GroupCode + itemCode;
+            return itemType.Code + itemType.GroupCode + itemNo;
         }
 
         private string ItemNoIndex(string itemNo)

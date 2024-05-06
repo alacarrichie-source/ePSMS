@@ -216,7 +216,6 @@
     <Compile Include="Controllers\RpcPpeController.cs" />
     <Compile Include="Controllers\StockCardController.cs" />
     <Compile Include="Controllers\_StockCardController.cs" />
-    <Compile Include="Controllers\StocksController.cs" />
     <Compile Include="Models\AccountableOfficer.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -314,18 +313,6 @@
     <Compile Include="Models\PARItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\PropertyCard.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PropertyCardItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PropertyCardPpe.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PropertyCardVehicle.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\PropertyCardViewModels.cs" />
     <Compile Include="Models\PropertyViewModels.cs" />
     <Compile Include="Models\PsCard.cs">
@@ -338,21 +325,6 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardViewModels.cs" />
-    <Compile Include="Models\PsCode.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PsItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PsItemIssuance.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PsStock.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\PsStockExtn.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\Request.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -374,15 +346,6 @@
     <Compile Include="Models\RisItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\RisItemExtn.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\RisItemMedicine.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\RisItemPpe.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\RisItemUnitGroup.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -390,9 +353,6 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RisItemUnitGroupDescriptionItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\RisItemVehicle.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RISs.cs">
@@ -429,16 +389,7 @@
     <Compile Include="Models\Sequence.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\StockCard.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\StockCardViewModels.cs" />
-    <Compile Include="Models\StockItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\StockItemIssuance.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\Supplier.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -501,7 +452,6 @@
     <Compile Include="Services\RequestItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\RequestItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\RequestItemUnitGroupService.cs" />
-    <Compile Include="Services\RisItemStocksService.cs" />
     <Compile Include="Services\RisItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\RisItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\RisItemUnitGroupService.cs" />
@@ -513,7 +463,6 @@
     <Compile Include="Services\RpcPpeService.cs" />
     <Compile Include="Services\StockItemIssuanceService.cs" />
     <Compile Include="Services\StockItemService.cs" />
-    <Compile Include="Services\StockCardService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
     <Compile Include="Services\Agents\IServiceAgent.cs" />
@@ -3705,6 +3654,11 @@
     <Content Include="Views\StockCard\EditorTemplates\_CardItemTemplate.cshtml" />
     <Content Include="Views\Codes\Location.cshtml" />
     <Content Include="Views\StockCard\_StockCardAddEdit.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_LocationTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_PoDateTemplate.cshtml" />
+    <Content Include="Views\StockCard\EditorTemplates\_CardItemIssuanceTemplate.cshtml" />
+    <Content Include="Views\StockCard\_StockCardItemAddEdit.cshtml" />
+    <Content Include="Views\StockCard\_StockCardItem.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

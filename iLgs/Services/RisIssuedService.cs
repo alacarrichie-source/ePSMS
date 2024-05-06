@@ -30,15 +30,17 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     RisItemId = s.RisItemId,
-                    OrderItemId = s.OrderItemId,
-                    Location = s.Location,
-                    Officer = s.Officer,
+                    OrderItemId = s.OrderItemId,                    
                     IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     IssuedBy = s.IssuedBy,
                     Qty = s.Qty,
                     Amount = s.Amount,
-                    InsertedDt = s.InsertedDt                    
+                    InsertedDt = s.InsertedDt,
+                    LocationId = s.LocationId,
+                    OfficerId = s.OfficerId,
+                    Location = s.Codextn.Description,
+                    Officer = s.AccountableOfficer.Name
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -59,14 +61,16 @@ namespace iLgs.Services
                     Id = s.Id,
                     RisItemId = s.RisItemId,
                     OrderItemId = s.OrderItemId,
-                    Location = s.Location,
-                    Officer = s.Officer,
                     IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     IssuedBy = s.IssuedBy,
                     Qty = s.Qty,
                     Amount = s.Amount,
-                    InsertedDt = s.InsertedDt                    
+                    InsertedDt = s.InsertedDt,
+                    LocationId = s.LocationId,
+                    OfficerId = s.OfficerId,
+                    Location = s.Codextn.Description,
+                    Officer = s.AccountableOfficer.Name
                 });
             return data;
         });
@@ -80,14 +84,16 @@ namespace iLgs.Services
                     Id = s.Id,
                     RisItemId = s.RisItemId,
                     OrderItemId = s.OrderItemId,
-                    Location = s.Location,
-                    Officer = s.Officer,
                     IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     IssuedBy = s.IssuedBy,
                     Qty = s.Qty,
                     Amount = s.Amount,
-                    InsertedDt = s.InsertedDt                    
+                    InsertedDt = s.InsertedDt,
+                    LocationId = s.LocationId,
+                    OfficerId = s.OfficerId,
+                    Location = s.Codextn.Description,
+                    Officer = s.AccountableOfficer.Name
                 });
             return data;
         });
@@ -101,15 +107,16 @@ namespace iLgs.Services
                     Id = s.Id,
                     RisItemId = s.RisItemId,
                     OrderItemId = s.OrderItemId,
-                    Location = s.Location,
-                    Officer = s.Officer,
                     IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     IssuedBy = s.IssuedBy,
                     Qty = s.Qty,
                     Amount = s.Amount,
-                    InsertedDt = s.InsertedDt
-                    //Department = s.RisItem.RISs.Office
+                    InsertedDt = s.InsertedDt,
+                    LocationId = s.LocationId,
+                    OfficerId = s.OfficerId,
+                    Location = s.Codextn.Description,
+                    Officer = s.AccountableOfficer.Name
                 });
             return data;
         });
@@ -147,8 +154,8 @@ namespace iLgs.Services
                 Qty = model.Qty,
                 Amount = model.Amount,
                 IssuedTo = model.IssuedTo,
-                Officer = model.Officer,
-                Location = model.Location,
+                OfficerId = model.OfficerId,
+                LocationId = model.LocationId,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -223,8 +230,8 @@ namespace iLgs.Services
             entity.Qty = model.Qty;
             entity.Amount = model.Amount;
             entity.IssuedTo = model.IssuedTo;
-            entity.Officer = model.Officer;
-            entity.Location = model.Location;
+            entity.OfficerId = model.OfficerId;
+            entity.LocationId = model.LocationId;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
@@ -266,8 +273,8 @@ namespace iLgs.Services
                     Id = Guid.NewGuid(),
                     PsCardItemId = stockItem.Id,
                     RefIssuedId = risIssued.Id,
-                    Location = risIssued.Location,                    
-                    Officer = risIssued.Officer,
+                    LocationId = risIssued.LocationId,                    
+                    OfficerId = risIssued.OfficerId,
                     IssuedTo = risIssued.IssuedTo,
                     IssuedDate = risIssued.IssuedDate,
                     Qty = risIssued.Qty,
@@ -282,8 +289,8 @@ namespace iLgs.Services
             }
             else
             {
-                stockItemIssuance.Location = risIssued.Location;
-                stockItemIssuance.Officer = risIssued.Officer;
+                stockItemIssuance.LocationId = risIssued.LocationId;
+                stockItemIssuance.OfficerId = risIssued.OfficerId;
                 stockItemIssuance.IssuedTo = risIssued.IssuedTo;
                 stockItemIssuance.IssuedDate = risIssued.IssuedDate;
                 stockItemIssuance.Qty = risIssued.Qty;
