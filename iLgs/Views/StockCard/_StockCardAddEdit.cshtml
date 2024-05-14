@@ -10,6 +10,7 @@
     @Html.HiddenFor(model => model.ItemTypeCode)
     @Html.HiddenFor(model => model.Item)
     @Html.HiddenFor(model => model.SubAccountCode)
+    @Html.HiddenFor(model => model.CardCategory)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -71,8 +72,8 @@
                         {
                             c.Add().Field("ItemNo").Title("Item No.").Width("10%");
                             c.Add().Field("Code").Title("Code").Width("10%");
-                            c.Add().Field("MainDesc").Title("Group").Width("60%");
-                            c.Add().Field("Description").Title("Article").Width("20%");
+                            c.Add().Field("MainDesc").Title("Group").Width("40%");
+                            c.Add().Field("Description").Title("Article").Width("40%");
                         })
                         .Suggest(true)
                         .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
@@ -312,16 +313,15 @@
 
         <br />
 
-        @*<div class="row">
+        <div class="row">
+            <div class="col-md-12">
+                @*@Html.LabelFor(m => m.FromDonation, htmlAttributes: new { @class = "col-md-12" })*@
                 <div class="col-md-12">
-                    @Html.LabelFor(m => m.OtherDesc, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(m => m.OtherDesc)
-                    </div>
+                    @(Html.Kendo().CheckBoxFor(m => m.FromDonation).Events(e => e.Change("UpdateDescription")))
+                    @Html.ValidationMessageFor(m => m.FromDonation)
                 </div>
-            </div>*@
-
+            </div>
+        </div>
 
         <div class="row">
             <div class="col-md-12">
@@ -354,24 +354,24 @@
         </div>
 
         @*<div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.AcqDate, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(m => m.AcqDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.AcqDate)
+                    @Html.LabelFor(m => m.AcqDate, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().DatePickerFor(m => m.AcqDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.AcqDate)
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.AcqMode, htmlAttributes: new { @class = "col-md-12" })
+            <div class="row">
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.AcqMode).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.AcqMode)
+                    @Html.LabelFor(m => m.AcqMode, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.AcqMode).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.AcqMode)
+                    </div>
                 </div>
-            </div>
-        </div>*@
+            </div>*@
 
         <br />
         <div class="row">
@@ -415,27 +415,28 @@
                 url: '@Url.Action("_StockCardSave", "StockCard")',
                 data: data,
                 beforeSend: function () {
-                window.kendo.ui.progress($("#form"), true);
+                    window.kendo.ui.progress($("#form"), true);
                 },
                 success: function (result) {
-                window.kendo.ui.progress($("#form"), false);
-                if (result.Errors == "") {
-                $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
-                }
-                else {
-                alert(result.Errors);
-                }
+                    window.kendo.ui.progress($("#form"), false);
+                    if (result.Errors == "") {
+                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                    }
+                    else {
+                        alert(result.Errors);
+                    }
+                    selectedId = result.Id;
                 },
                 error: function (req, status, errorObj) {
-                alert(req.responseText);
-                }
+                    alert(req.responseText);
+                    }
                 });
                 disabled.attr('disabled', 'disabled');
-                }
-                });
+            }
+        });
 
-                $("#btnCancel").click(function (e) {
-                e.preventDefault();
-                $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+        $("#btnCancel").click(function (e) {
+            e.preventDefault();
+            $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
         });
 </script>

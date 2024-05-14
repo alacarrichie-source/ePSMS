@@ -16,7 +16,7 @@ using System.Web.Mvc;
 namespace iLgs.Controllers
 {
     [AppAuthorize("POISSUANCE")]
-    public class PoIssuanceController : Controller
+    public class PoIssuanceController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
         private IPoIssuanceService _orderIssuanceService;
@@ -74,7 +74,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -110,7 +110,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -146,7 +146,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "ris");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {

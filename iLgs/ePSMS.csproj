@@ -243,6 +243,7 @@
     <Compile Include="Models\AspNetUsers_View.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\CategoryDictionary.cs" />
     <Compile Include="Models\CodeMast.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -325,6 +326,9 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardViewModels.cs" />
+    <Compile Include="Models\PsCode.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Request.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -3659,6 +3663,7 @@
     <Content Include="Views\StockCard\EditorTemplates\_CardItemIssuanceTemplate.cshtml" />
     <Content Include="Views\StockCard\_StockCardItemAddEdit.cshtml" />
     <Content Include="Views\StockCard\_StockCardItem.cshtml" />
+    <Content Include="Views\Rpci\EditorTemplates\_RpciItemTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3736,14 +3741,14 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Rpceffoppe.cs</LastGenOutput>
     </Content>
-    <EmbeddedResource Include="Reports\ItemCode.rpt">
+    <Content Include="Reports\ItemCode.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>ItemCode.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Reports\RpcPpe.rpt">
+    </Content>
+    <Content Include="Reports\RpcPpe.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RpcPpe.cs</LastGenOutput>
-    </EmbeddedResource>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
@@ -3765,7 +3770,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

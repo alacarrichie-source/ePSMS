@@ -19,7 +19,7 @@ using System.Web.Mvc;
 namespace iLgs.Controllers
 {
     [AppAuthorize("ITEMS")]
-    public class ItemsController : Controller
+    public class ItemsController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
         private IItemTypeService _itemTypeService;
@@ -42,7 +42,7 @@ namespace iLgs.Controllers
         // GET: Codes
         public ActionResult Index()
         {
-            return View();
+            return View();        
         }
         
         
@@ -65,7 +65,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -100,7 +100,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -136,7 +136,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -192,7 +192,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -228,7 +228,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -267,7 +267,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -322,7 +322,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -357,7 +357,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -396,7 +396,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -538,7 +538,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "items");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
                 Access access = await accessTask;
                 if (access == null)
                 {

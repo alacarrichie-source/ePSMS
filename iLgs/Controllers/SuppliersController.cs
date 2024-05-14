@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 
 namespace iLgs.Controllers
 {
-    public class SuppliersController : Controller
+    public class SuppliersController : BaseController
     {
         private AppManEntities db = new AppManEntities();
         // GET: Suppliers
@@ -42,7 +42,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "suppliers");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "suppliers");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -78,7 +78,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "suppliers");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "suppliers");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -112,7 +112,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "suppliers");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "suppliers");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {

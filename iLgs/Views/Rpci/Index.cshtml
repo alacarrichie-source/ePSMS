@@ -11,9 +11,9 @@
     {
         col.Bound(c => c.AsOf).Width(70);
         col.Bound(c => c.Department).Width(70);
-        col.Bound(c => c.AccountableOfficer).Width(70);
-        col.Bound(c => c.Designation).Width(70);
-        col.Bound(c => c.AssumptionDt).Width(70);
+        col.Bound(c => c.CertifiedCorrectBy).Width(70);
+        col.Bound(c => c.PostedBy).Width(70);
+        col.Bound(c => c.PostedDt).Width(70);
         col.Command(command =>
         {
             command.Edit();
@@ -32,8 +32,7 @@
     .Search(s =>
     {
         s.Field(o => o.AsOf, "contains");
-        s.Field(o => o.Department, "contains");
-        s.Field(o => o.AccountableOfficer, "contains");
+        s.Field(o => o.Department, "contains");        
     })
     .Pageable(pager => pager
         .Input(false)
@@ -170,7 +169,7 @@
                 //current tab logic - just let it go
                 //tsIndex = idx;
                 if (idx == 0) {
-                    ts.contentHolder(idx).load("../Rpci/_RpciItem?rpciId=" + selectedId);                
+                    ts.contentHolder(idx).load("../Rpci/_RpciItem?rpciId=" + selectedId);
                 }
             }
             else {
@@ -233,7 +232,7 @@
     var selectedAsOf = null;
     var selecteItemId = null;
     var postedBy = null;
-    
+
     function onChangeGrid(e) {
         var selectedData = this.dataItem(this.select());
         var grid = $("#grid");
@@ -242,9 +241,9 @@
         selectedAsOf = selectedData.AsOf;
         selectedItemId = null;
         postedBy = selectedData.PostedBy;
-    
+
         if (postedBy) {
-            $(".k-grid-btnUnpostPO", grid).show();        
+            $(".k-grid-btnUnpostPO", grid).show();
             $(".k-grid-btnPostPO", grid).hide();
         } else {
             $(".k-grid-btnUnpostPO", grid).hide();
@@ -299,17 +298,17 @@
             //setTimeout(function () {
             //    // Recenter the pop-up window
             //    popupWindow.center();
-            //}, 300); // Adjust the delay (in milliseconds) based on your needs        
+            //}, 300); // Adjust the delay (in milliseconds) based on your needs
 
         } else {
             selectedId = e.model.get("Id");
-            selectedAsOf = e.model.get("AsOf"); 
+            selectedAsOf = e.model.get("AsOf");
             var rowitem = selectedGrid.dataSource.get(selectedId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));            
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
             $("#AsOf").data("kendoDatePicker").enable(false);
             $("#Department").data("kendoMultiColumnComboBox").enable(false);
             e.container.find("[id=EditDiv]").toggle(true);
-        }        
+        }
     }
 
     function onGridDeleteClick(e) {
@@ -360,70 +359,7 @@
             }
         }
     }
-    @*function onClickBtnAddOrderItem(e) {
-        e.preventDefault();
 
-        // the master row for this detail
-        var parentRow = this.wrapper.closest("tr").prev();
-        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        parentGrid.select(parentRow);
-
-        OrderItem("A", null);
-    }
-
-    function onClickBtnEditOrderItem(e) {
-        e.preventDefault();
-
-        // the master row for this detail
-        var parentRow = this.wrapper.closest("tr").prev();
-        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        //var parentModel = parentGrid.dataItem(parentRow);
-        parentGrid.select(parentRow);
-
-        // the current row for this detail
-        selectedGrid = this;
-        var tr = $(e.currentTarget).closest("tr");
-        var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
-        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        OrderItem("E", dataItem.Id);
-    }
-
-    function OrderItem(mode, recId) {
-        var myTitle = (mode == "A") ? "Order Item - ADD" : "Order Item - EDIT";
-        var width = 800;
-        var height = 670;
-        $("#windowcontainer").append("<div id='window'></div>");
-        var mywindow = $("#window")
-                .kendoWindow({
-                    actions: ["Minimize", "Close"],
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    close: function () {
-                        $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
-                    },
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
-        mywindow.setOptions({
-            title: myTitle,
-            width: width,
-            height: height
-        });
-        mywindow.refresh({
-            url: '@Url.Action("_OrderItemAddEdit", "Orders")',
-            data: {
-                orderId: selectedId,
-                orderItemId: recId
-            }
-        });
-        mywindow.center();
-        mywindow.open();
-    }*@
 
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
@@ -431,6 +367,7 @@
     }
 
     function onDataBoundGridItems(e) {
+        e.preventDefault();
         if (selecteItemId) {
             var dataItem = this.dataSource.get(selecteItemId);
             if (dataItem) {
@@ -439,26 +376,42 @@
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-        }        
+        }
     }
 
     function onEditGridItems(e) {
         e.preventDefault();
-        selectedGrid = e.sender;
+        //selectedGrid = e.sender;
+        //if (e.model.isNew()) {
+        //    var row = e.sender.tbody.find("tr:first");
+        //    this.select(row);
+        //    selecteItemId = null;
+        //    e.model.set("RpciId", selectedId);
+        //} else {
+        //    selecteItemId = e.model.get("Id");
+        //    var rowitem = selectedGrid.dataSource.get(selecteItemId);
+        //    selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        //}
+         selectedGrid = e.sender;
+
+        //the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-            selecteItemId = null;
-            e.model.set("RpciId", selectedId);
+            selectedItemId = null;            
+            e.model.set("RpciId", parentModel.Id);            
         } else {
-            selecteItemId = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selecteItemId);
+            selectedItemId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedItemId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            //$("#Code").attr("readonly", "readonly");
-
         }
     }
-    
+
     function onGridItemsRequestEnd(e) {
         e.preventDefault();
         if (!e.response.Errors) {
@@ -467,6 +420,19 @@
             }
         }
     }
+
+    function onRemoveGridItems(e) { // triggers after confirm
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        //the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+    }
+
+    // end grid items
 
     $(".k-grid-btnPostPO").click(function (e) {
         e.preventDefault();
@@ -563,7 +529,38 @@
         mywindow.center();
         mywindow.open();
     });
-    
+
+    // rpci item template
+    // Card TEMPLATE
+    function DataItemCode() {
+        var text = $("#ItemCodeId").data("kendoMultiColumnComboBox").text();
+        return {
+            category: "S",
+            text: text
+        };
+    }
+
+    function onSelectItemCode(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#ItemType").val(dataItem.Type).trigger("change");
+        //$("#SubAccount").val(dataItem.MainDesc).trigger("change");
+        //$("#SubAccountCode").val(dataItem.MainDescCode).trigger("change");
+        
+    }
+
+    function DataOfficerId() {
+        var text = $("#OfficerId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#OfficerId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            deptId: $("#LocationId").val(),
+            text: text
+        };
+    }
+    // end rpci item template
+
 </script>
 
 

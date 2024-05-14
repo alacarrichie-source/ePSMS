@@ -30,8 +30,8 @@ namespace iLgs.Models
     
         public virtual Codextn Codextn { get; set; }
         public virtual PARItem PARItem { get; set; }
-        public virtual PsCardItem PsCardItem { get; set; }
         public virtual AccountableOfficer AccountableOfficer { get; set; }
         public virtual RisIssued RisIssued { get; set; }
+        public virtual PsCardItem PsCardItem { get; set; }
     }
 }

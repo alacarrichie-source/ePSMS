@@ -22,30 +22,30 @@ namespace iLgs.Controllers
     [AppAuthorize("users")]
     public class UsersController : BaseController
     {
-        private static string sysCode = "PSMS";
-        private static string sysAdmin = "PSMS_ADMIN";
+        //private static string sysCode = "PSMS";
+        //private static string sysAdmin = "PSMS_ADMIN";
 
         private AppManEntities db = new AppManEntities();
 
-        HttpClient client;
+        //HttpClient client;
 
-        //The URL of the WEB API Service
-        //string url = "http://localhost:60143/api/EmployeeInfoAPI";
+        ////The URL of the WEB API Service
+        ////string url = "http://localhost:60143/api/EmployeeInfoAPI";
 
-        //string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
+        ////string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
 
-        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
+        //string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
 
-        //The HttpClient Class, this will be used for performing 
-        //HTTP Operations, GET, POST, PUT, DELETE
-        //Set the base address and the Header Formatter
-        public UsersController()
-        {
-            client = new HttpClient();
-            client.BaseAddress = new Uri(iLgsApiUrl);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        }
+        ////The HttpClient Class, this will be used for performing 
+        ////HTTP Operations, GET, POST, PUT, DELETE
+        ////Set the base address and the Header Formatter
+        //public UsersController()
+        //{
+        //    client = new HttpClient();
+        //    client.BaseAddress = new Uri(iLgsApiUrl);
+        //    client.DefaultRequestHeaders.Accept.Clear();
+        //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        //}
 
         // GET: Users
         public ActionResult Index()
@@ -138,7 +138,7 @@ namespace iLgs.Controllers
         {
 
             string userId = User.Identity.GetUserId();
-            Task<bool> task = new HomeController().GetUserInRole(userId, "admin");
+            Task<bool> task = GetUserInRole(userId, "admin");
             var isAdmin = await task;
 
             //var data = db.AspNetUsers.Include(i => i.UserInfo).ToList();
@@ -288,8 +288,8 @@ namespace iLgs.Controllers
             try
             {
                 string userId = User.Identity.GetUserId();
-                var admin = await new HomeController().GetUserInRole(userId, "admin");
-                var sysadmin = await new HomeController().GetUserInRole(userId, sysAdmin);
+                var admin = await GetUserInRole(userId, "admin");
+                var sysadmin = await GetUserInRole(userId, sysAdmin);
                 if (!(admin || sysadmin))
                 {
                     ModelState.AddModelError("Access", "Access Denied! Only iLGS admins & Super Admins can delete users...");
@@ -496,8 +496,8 @@ namespace iLgs.Controllers
             ViewData["sysCode"] = sysCode;
             ViewData["parentId"] = parentId;
 
-            ViewData["superAdmin"] = await new HomeController().GetUserInRole(adminId, "admin");
-            UserProfile adminProfile = await new HomeController().GetUserProfile(adminId);
+            ViewData["superAdmin"] = await GetUserInRole(adminId, "admin");
+            UserProfile adminProfile = await GetUserProfile(adminId);
             var department = string.IsNullOrEmpty(adminProfile.Department) ? "" : adminProfile.Department;
             ViewData["department"] = department;
 

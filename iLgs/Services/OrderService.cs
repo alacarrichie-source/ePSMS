@@ -424,8 +424,8 @@ namespace iLgs.Services
                             ItemCodeId = oig.ItemCodeId,
                             Fund = oig.Fund,
                             Description = oig.Description,
-                            Unit = oig.Unit,
-                            PsType = oig.ItemTypeCode,
+                            //Unit = oig.Unit,
+                            //PsType = oig.ItemTypeCode,
                             PsNo = oig.StockNo,
                             PsName = oig.StockName,
                             Amount = orderItem.Amount,
@@ -473,24 +473,24 @@ namespace iLgs.Services
                                 }
                             }
                         }
+                        var office = orderItem.RequestItem.RisItem.RISs.Office;
+                        var deptId = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description.Trim() == office).FirstOrDefault()?.Id;
 
                         var psCardItem = await db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
                         if (psCardItem == null)
                         {
                             psCardItem = new PsCardItem()
                             {
-                                //PsCard = psCard,
                                 Id = Guid.NewGuid(),
                                 PsCardId = psCard.Id,
                                 OrderItemId = orderItem.Id,
                                 PoDate = orderItem.Order.PoDate,
                                 PoNo = orderItem.Order.PoNo,
-                                //AirDate,
-                                //AirNo,
-                                //AirIssueDate,
+                                DeptId = deptId,
                                 Qty = (int)orderItem.Qty,
                                 QtyIss = 0,
                                 QtyBal = (int)orderItem.Qty,
+                                Unit = orderItem.RequestItem.RisItem.Unit,
                                 UnitCost = orderItem.UnitCost,
                                 Amount = orderItem.Amount,
                                 TranType = "I",
@@ -711,13 +711,19 @@ namespace iLgs.Services
                 }
             }
 
-            var orderItems = await db.OrderItems.Where(w => w.OrderId == entity.Id).ToListAsync();
+            var orderItems = await db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode.ItemType).Where(w => w.OrderId == entity.Id).ToListAsync();        
             foreach (var orderItem in orderItems)
             {
-                if (string.IsNullOrWhiteSpace(orderItem.Brand))
+                if (Enum.TryParse(orderItem.RequestItem.RisItem.ItemCode.ItemType.Code, out Category category))
                 {
-                    throw new RequiredFieldException(nameof(orderItem.Brand));
-                }
+                    if (category == Category.D || category == Category.M)
+                    {
+                        if (string.IsNullOrWhiteSpace(orderItem.Brand))
+                        {
+                            throw new RequiredFieldException(nameof(orderItem.Brand));
+                        }
+                    }
+                }                
             }
         }
 

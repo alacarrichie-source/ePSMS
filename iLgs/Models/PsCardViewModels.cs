@@ -24,12 +24,12 @@ namespace iLgs.Models
         public string Description { get; set; }
         public string Unit { get; set; }
 
-        [Display(Name = "Type")]
-        public string PsType { get; set; }
+        [Display(Name = "Card Category")]
+        public string CardCategory { get; set; } // P or S only, to identify where the item belongs.
 
         [Display(Name = "Stock/Prop. No.")]
         public string PsNo { get; set; }
-
+        
         [Display(Name = "Stock/Prop. Name")]
         public string PsName { get; set; }
 
@@ -42,6 +42,9 @@ namespace iLgs.Models
 
         //[Display(Name = "Acq. Mode")]
         //public string AcqMode { get; set; }
+
+        [Display(Name = "From Donation")]
+        public Nullable<bool> FromDonation { get; set; }
 
         public Nullable<decimal> Amount { get; set; }
         //public string Brand { get; set; }
@@ -69,7 +72,7 @@ namespace iLgs.Models
 
         [Display(Name = "Sub-acount")]
         public string SubAccount { get; set; }
-        public string SubAccountCode { get; set; }
+        public string SubAccountCode { get; set; }        
     }
 
     public class PsCardItemVM
@@ -107,6 +110,8 @@ namespace iLgs.Models
 
         [Display(Name = "Transaction Type")]
         public string TranType { get; set; }
+
+        public string Unit { get; set; }
 
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }

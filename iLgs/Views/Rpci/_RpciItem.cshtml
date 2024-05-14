@@ -2,9 +2,11 @@
         .Name("gridItems_" + @ViewData["rpciId"])
         .Columns(col =>
         {
-            col.Bound(c => c.ItemType).Width(50);
             col.Bound(c => c.Fund).Width(50);
             col.Bound(c => c.Article).Width(70);
+            col.Bound(c => c.RefNo).Width(50);
+            col.Bound(c => c.RefDate).Width(50);
+            col.Bound(c => c.Location).Width(50);            
             col.Bound(c => c.Description).Width(150);
             col.Bound(c => c.StockNo).Width(70);
             col.Bound(c => c.Unit).Width(50);
@@ -12,13 +14,7 @@
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.QtyBalance).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.QtyOnHand).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.QtyShortOver).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });           
             col.Bound(c => c.ValueShortOver).Width(100).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -35,6 +31,7 @@
             @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["orderId"]).Content("Add Order Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddOrderItem")))
             </text>);
         })*@
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpciItemTemplate").Window(w => w.Width(800).Title("RPCI Item")))
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -60,8 +57,6 @@
             .Aggregates(a =>
             {
                 a.Add(p => p.QtyBalance).Sum();
-                a.Add(p => p.QtyOnHand).Sum();
-                a.Add(p => p.QtyShortOver).Sum();
                 a.Add(p => p.ValueShortOver).Sum();
             })
             //.Sort(s =>
@@ -76,6 +71,7 @@
             .Change("onChangeGridItems")
             .Edit("onEditGridItems")
             .DataBound("onDataBoundGridItems")
+            .Remove("onRemoveGridItems")
         )
         .AutoBind(true)
 )

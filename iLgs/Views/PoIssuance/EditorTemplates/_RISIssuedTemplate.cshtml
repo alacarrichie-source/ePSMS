@@ -10,46 +10,16 @@
     @Html.HiddenFor(model => model.RisItemId)
     @Html.HiddenFor(model => model.OrderItemId)
     @Html.HiddenFor(model => model.UnitCost)
+    @Html.HiddenFor(model => model.Location)
+    @Html.HiddenFor(model => model.Officer)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
             <ul class="errors"></ul>
         </div>
     </div>
-    <fieldset>
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(model => model.Officer, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Officer)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Officer")
-                            .DataTextField("Name")
-                            .DataValueField("Name")
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetAccountableOfficers", "Getters").Data("DataAccountableOfficer");
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Name").Title("Name").Width("50%");
-                                c.Add().Field("Designation").Title("Designation").Width("50%");
-                            })
-                            .Suggest(true)
-                    )
-                    @Html.ValidationMessageFor(model => model.Officer)
-                </div>
-            </div>
-        </div>
-
-        
-
-        <div class="row">
+    <fieldset>        
+        @*<div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.Location, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -79,6 +49,98 @@
             </div>
         </div>        
 
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.Officer, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Officer)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Officer")
+                            .DataTextField("Name")
+                            .DataValueField("Name")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetAccountableOfficers", "Getters").Data("DataAccountableOfficer");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Name").Title("Name").Width("50%");
+                                c.Add().Field("Designation").Title("Designation").Width("50%");
+                            })
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.Officer)
+                </div>
+            </div>
+        </div>*@
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Location")
+                            .DataTextField("Description")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.LocationId)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.OfficerId, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.OfficerId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Officer")
+                            .DataTextField("Name")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetAccountableOfficersByDeptId", "Getters").Data("DataOfficerId");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Name").Title("Name").Width("40%");
+                                c.Add().Field("Designation").Title("Designation").Width("60%");
+                            })
+                            .CascadeFrom("LocationId")
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.OfficerId)
+                </div>
+            </div>
+        </div>
         
         <div class="row">
             <div class="col-md-12">

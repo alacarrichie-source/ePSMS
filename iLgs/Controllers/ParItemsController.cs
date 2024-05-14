@@ -15,7 +15,7 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
-    public class ParItemsController : Controller
+    public class ParItemsController : BaseController
     {
         private AppManEntities db = new AppManEntities();
         private IParService parService;
@@ -53,7 +53,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -113,7 +113,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {

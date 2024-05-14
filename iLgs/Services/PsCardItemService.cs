@@ -47,6 +47,7 @@ namespace iLgs.Services
                     QtyIss = s.QtyIss,
                     QtyBal = s.QtyBal,
                     TranType = s.TranType,
+                    Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
                     Days = s.Days,
@@ -75,6 +76,7 @@ namespace iLgs.Services
                     QtyIss = s.QtyIss,
                     QtyBal = s.QtyBal,
                     TranType = s.TranType,
+                    Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
                     Days = s.Days,
@@ -110,6 +112,7 @@ namespace iLgs.Services
                 QtyBal = model.QtyBal,
                 Days = model.Days,
                 TranType = model.TranType,
+                Unit = model.Unit,
                 UnitCost = model.UnitCost,
                 Remarks = model.Remarks,
                 Amount = model.Amount,
@@ -147,8 +150,9 @@ namespace iLgs.Services
             entity.Qty = model.Qty;
             entity.QtyIss = model.QtyIss;
             entity.QtyBal = model.QtyBal;
-            entity.Days = model.Days;
+            entity.Days = model.Days;            
             entity.TranType = model.TranType;
+            entity.Unit = model.Unit;
             entity.UnitCost = model.UnitCost;
             entity.Remarks = model.Remarks;
             entity.Amount = model.Amount;

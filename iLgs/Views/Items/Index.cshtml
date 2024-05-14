@@ -357,11 +357,25 @@
         }
     }
 
+    //function onGridItemsRequestEnd(e) {
+    //    e.preventDefault();
+    //    if (!e.response.Errors) {
+    //        if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+    //            $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
+    //        }
+    //    }
+    //}
+
     function onGridItemsRequestEnd(e) {
         e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
+            }            
+            if (e.type == "create") {
+                var responseData = e.response;
+                var newRecord = responseData.Data[0];
+                selectedItemId = newRecord.Id;
             }
         }
     }
@@ -424,6 +438,17 @@
 
         //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         //AIRItem("E", dataItem.Id);
+    }
+
+    function onRemoveGridItems(e) { // triggers after confirm
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        //the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
     }
     //
 

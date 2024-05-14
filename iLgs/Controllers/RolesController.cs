@@ -19,28 +19,28 @@ using iLgs.Utilities;
 namespace iLgs.Controllers
 {
     [AppAuthorize("roles")]
-    public class RolesController : Controller
+    public class RolesController : BaseController
     {
         private AppManEntities db = new AppManEntities();
-        HttpClient client;
+        //HttpClient client;
 
-        //The URL of the WEB API Service
-        //string url = "http://localhost:60143/api/EmployeeInfoAPI";
+        ////The URL of the WEB API Service
+        ////string url = "http://localhost:60143/api/EmployeeInfoAPI";
 
-        //string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
+        ////string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
 
-        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
+        //string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
 
-        //The HttpClient Class, this will be used for performing 
-        //HTTP Operations, GET, POST, PUT, DELETE
-        //Set the base address and the Header Formatter
-        public RolesController()
-        {
-            client = new HttpClient();
-            client.BaseAddress = new Uri(iLgsApiUrl);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        }
+        ////The HttpClient Class, this will be used for performing 
+        ////HTTP Operations, GET, POST, PUT, DELETE
+        ////Set the base address and the Header Formatter
+        //public RolesController()
+        //{
+        //    client = new HttpClient();
+        //    client.BaseAddress = new Uri(iLgsApiUrl);
+        //    client.DefaultRequestHeaders.Accept.Clear();
+        //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        //}
 
         // GET: Menu
         public ActionResult Index()

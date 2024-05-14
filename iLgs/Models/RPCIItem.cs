@@ -32,11 +32,19 @@ namespace iLgs.Models
         public Nullable<int> QtyShortOver { get; set; }
         public Nullable<decimal> ValueShortOver { get; set; }
         public string Remarks { get; set; }
+        public string AirNo { get; set; }
+        public Nullable<System.DateTime> AirDate { get; set; }
+        public Nullable<System.Guid> LocationId { get; set; }
+        public Nullable<System.Guid> OfficerId { get; set; }
+        public string Model_ { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public Nullable<decimal> Amount { get; set; }
     
+        public virtual AccountableOfficer AccountableOfficer { get; set; }
+        public virtual Codextn Codextn { get; set; }
         public virtual RPCI RPCI { get; set; }
     }
 }

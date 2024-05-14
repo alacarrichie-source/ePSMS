@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 namespace iLgs.Controllers
 {
     [Authorize]
-    public class QueryController : Controller
+    public class QueryController : BaseController
     {
         private AppManEntities db = new AppManEntities();
 

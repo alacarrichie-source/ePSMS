@@ -143,57 +143,43 @@ namespace iLgs.Controllers
                     //    return View(model);
                     //}
 
-                    var allMenu = await new MenuController().GetMainMenu(user.Id);
+                    //var allMenu = await new MenuController().GetMainMenu(user.Id);
 
-                    bool isLocalhost = false;
+                    //bool isLocalhost = false;
 
-                    string host = HttpContext.Request.Url.Host;
-                    Console.WriteLine("Host = " + host);
-                    if (host == "localhost" || host == "127.0.0.1" || host == "::1")
-                    {
-                        isLocalhost = true;
-                    }
+                    //string host = HttpContext.Request.Url.Host;
+                    //Console.WriteLine("Host = " + host);
+                    //if (host == "localhost" || host == "127.0.0.1" || host == "::1")
+                    //{
+                    //    isLocalhost = true;
+                    //}
 
-                    if (isLocalhost)
-                    {
-                        Session["WebsiteName"] = string.Empty;
-                    }
-                    else
-                    {
-                        string url = HttpContext.Request.Url.ToString();
-                        Uri uri = new Uri(url);
-                        string path = uri.AbsolutePath;
-                        string websiteName = path.Trim('/');
-                        //Session["WebHost"] = url + ":" + path + ":" + websiteName;
-                        //Session["WebsiteName"] = websiteName;
-
-                        foreach (var menu in allMenu)
-                        {
-                            if (!isLocalhost)
-                            {                                
-                                menu.Controller = websiteName + "/" + menu.Controller;
-                                Console.WriteLine(menu.Controller);
-                            }
-                        }
-                    }
+                    //if (isLocalhost)
+                    //{
+                    //    Session["WebsiteName"] = string.Empty;
+                    //}
+                    //else
+                    //{
+                    //    string url = HttpContext.Request.Url.ToString();
+                    //    Uri uri = new Uri(url);
+                    //    string path = uri.AbsolutePath;
+                    //    string websiteName = path.Trim('/');
+                    
+                    //    foreach (var menu in allMenu)
+                    //    {
+                    //        if (!isLocalhost)
+                    //        {                                
+                    //            menu.Controller = websiteName + "/" + menu.Controller;
+                    //            Console.WriteLine(menu.Controller);
+                    //        }
+                    //    }
+                    //}
                                        
+                    //var menuTreeList = new List<TreeViewItemModel>();
+                    //var menus = allMenu.Where(w => w.ParentId == 0);
 
-                    //string url = HttpContext.Request.Url.ToString();
-                    //Uri uri = new Uri(url);
-                    //string path = uri.AbsolutePath;
-                    //string websiteName = path.Trim('/');
-                    //Session["WebHost"] = url + ":" + path + ":" + websiteName;                    
-                    //Session["WebsiteName"] = websiteName;
-                    //Session["MainMenu"] = allMenu;
-
-
-                    var menuTreeList = new List<TreeViewItemModel>();
-                    var menus = allMenu.Where(w => w.ParentId == 0);
-
-                    menuTreeList = GetMenuTree(allMenu, menus);
-                    //Session["MainMenuTree"] = menuTreeList;
-
-                    HttpContext.Session.Add("MainMenuTree", menuTreeList);
+                    //menuTreeList = GetMenuTree(allMenu, menus);
+                    //HttpContext.Session.Add("MainMenuTree", menuTreeList);
 
                     return RedirectToLocal(returnUrl);
                 case SignInStatus.LockedOut:

@@ -21,7 +21,7 @@ using iLgs.Exceptions;
 namespace iLgs.Controllers
 {
     [AppAuthorize("RPCI")]
-    public class RpciController : Controller
+    public class RpciController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
         private IRpciService _rpciService;
@@ -59,7 +59,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -96,7 +96,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -132,7 +132,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -200,7 +200,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -229,7 +229,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -265,7 +265,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpci");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpci");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {

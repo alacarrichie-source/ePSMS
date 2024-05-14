@@ -33,6 +33,7 @@ namespace iLgs.Models
         public Nullable<int> QtyBal { get; set; }
         public string TranType { get; set; }
         public Nullable<int> Days { get; set; }
+        public string Unit { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> Amount { get; set; }
         public string Remarks { get; set; }

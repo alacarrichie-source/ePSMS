@@ -16,7 +16,7 @@ using iLgs.Services;
 namespace iLgs.Controllers
 {
     [AppAuthorize("CODES")]
-    public class CodesController : Controller
+    public class CodesController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
         private ICodextnService _codextnService;
@@ -40,7 +40,7 @@ namespace iLgs.Controllers
             var code = "Locations";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
-            ViewData["title"] = "Location of Items";
+            ViewData["title"] = "Locations";
             return View(codeMast);
         }
 
@@ -49,7 +49,7 @@ namespace iLgs.Controllers
             var code = "Departments";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
-            ViewData["title"] = "Department & Sections";
+            ViewData["title"] = "Departments";
             return View(codeMast);
         }
 
@@ -138,7 +138,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -184,7 +184,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -234,7 +234,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -278,7 +278,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -320,7 +320,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -360,7 +360,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -406,7 +406,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -448,7 +448,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -488,7 +488,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -542,7 +542,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -584,7 +584,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -624,7 +624,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {

@@ -21,7 +21,7 @@ using iLgs.Exceptions;
 namespace iLgs.Controllers
 {
     [AppAuthorize("ORDERS")]
-    public class OrdersController : Controller
+    public class OrdersController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
         private IOrderService _orderService;
@@ -69,7 +69,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -125,7 +125,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -161,7 +161,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -221,7 +221,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -289,7 +289,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -322,7 +322,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -357,7 +357,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -408,7 +408,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "order");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "order");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -444,7 +444,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "order");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "order");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -495,7 +495,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "order");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "order");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -541,7 +541,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "order");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "order");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -577,7 +577,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "order");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "order");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -615,7 +615,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -670,7 +670,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "orders");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {

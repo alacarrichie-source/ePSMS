@@ -432,6 +432,14 @@
         };
     }
 
+    //function DataRequestedBy() {
+    //    var text = $("#RequestedBy").data("kendoMultiColumnComboBox").text();
+    //    return {
+    //        department: $("#Department").val(),
+    //        text: text
+    //    };
+    //}
+
     function DataRequestedBy() {
         var text = $("#RequestedBy").data("kendoMultiColumnComboBox").text();
         return {
@@ -443,7 +451,7 @@
     function onSelectRequestedBy(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#RequestedDesig").val(dataItem.Desc2).trigger("change");
+        $("#RequestedDesig").val(dataItem.Designation).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('RequestedDesig', $('#RequestedDesig').val());
@@ -461,13 +469,14 @@
     function DataApprovedBy() {
         var text = $("#ApprovedBy").data("kendoMultiColumnComboBox").text();
         return {
+            department: $("#Department").val(),
             text: text
         };
     }
 
     function onSelectApprovedBy(e) {
         var dataItem = this.dataItem(e.item.index());
-        $("#ApprovedDesig").val(dataItem.Desc2).trigger("change");
+        $("#ApprovedDesig").val(dataItem.Designation).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('ApprovedDesig', $('#ApprovedDesig').val());
@@ -999,7 +1008,7 @@
     function onEditGridItemUnitGroupDescriptionItems(e) {
         e.preventDefault();
         selectedGrid = e.sender;
-         
+
         // the master row for this detail
         var parentRow = this.wrapper.closest("tr").prev();
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");

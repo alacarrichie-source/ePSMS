@@ -19,7 +19,7 @@ using System.Web.Mvc;
 namespace iLgs.Controllers
 {
     [AppAuthorize("STOCKCARD")]
-    public class _StockCardController : Controller
+    public class _StockCardController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
         private IPsCardService _cardService;
@@ -58,7 +58,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -93,7 +93,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -129,7 +129,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -180,7 +180,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -209,7 +209,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -245,7 +245,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -289,7 +289,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -318,7 +318,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -354,7 +354,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {

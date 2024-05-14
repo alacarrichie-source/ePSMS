@@ -18,6 +18,7 @@ namespace iLgs.Models
         public AccountableOfficer()
         {
             this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
+            this.RPCIItems = new HashSet<RPCIItem>();
             this.RisIssueds = new HashSet<RisIssued>();
         }
     
@@ -34,6 +35,8 @@ namespace iLgs.Models
         public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RPCIItem> RPCIItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisIssued> RisIssueds { get; set; }
     }

@@ -56,7 +56,7 @@
 //        {
 //            try
 //            {
-//                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
+//                Task<Access> accessTask = Access(User.Identity.GetUserId(), "vehicle_card");
 //                Access access = await accessTask;
 //                if (!access.AllowAdd)
 //                {
@@ -91,7 +91,7 @@
 //        {
 //            try
 //            {
-//                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
+//                Task<Access> accessTask = Access(User.Identity.GetUserId(), "vehicle_card");
 //                Access access = await accessTask;
 //                if (!access.AllowEdit)
 //                {
@@ -127,7 +127,7 @@
 //        {
 //            try
 //            {
-//                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
+//                Task<Access> accessTask = Access(User.Identity.GetUserId(), "vehicle_card");
 //                Access access = await accessTask;
 //                if (!access.AllowDelete)
 //                {
@@ -204,7 +204,7 @@
 //        {
 //            try
 //            {
-//                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
+//                Task<Access> accessTask = Access(User.Identity.GetUserId(), "vehicle_card");
 //                Access access = await accessTask;
 //                if (!access.AllowAdd)
 //                {
@@ -233,7 +233,7 @@
 //        {
 //            try
 //            {
-//                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
+//                Task<Access> accessTask = Access(User.Identity.GetUserId(), "vehicle_card");
 //                Access access = await accessTask;
 //                if (!access.AllowEdit)
 //                {
@@ -269,7 +269,7 @@
 //        {
 //            try
 //            {
-//                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "vehicle_card");
+//                Task<Access> accessTask = Access(User.Identity.GetUserId(), "vehicle_card");
 //                Access access = await accessTask;
 //                if (!access.AllowDelete)
 //                {

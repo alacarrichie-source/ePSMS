@@ -19,7 +19,7 @@ using System.Web.Mvc;
 namespace iLgs.Controllers
 {
     [AppAuthorize("PARS")]
-    public class PARsController : Controller
+    public class PARsController : BaseController
     {
         private AppManEntities db = new AppManEntities();
         private IParService service;
@@ -67,7 +67,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -101,7 +101,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -138,7 +138,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -257,7 +257,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -325,7 +325,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -374,7 +374,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -418,7 +418,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "report_par");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_par");
                 Access access = await accessTask;
                 if (access == null)
                 {
@@ -510,7 +510,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -557,7 +557,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -617,7 +617,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "pars");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {

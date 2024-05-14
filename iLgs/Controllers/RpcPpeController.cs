@@ -21,7 +21,7 @@ using iLgs.Exceptions;
 namespace iLgs.Controllers
 {
     [AppAuthorize("RPCPPE")]
-    public class RpcPpeController : Controller
+    public class RpcPpeController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
         private IRpcPpeService _rpcService;
@@ -59,7 +59,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpcppe");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -97,7 +97,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpcppe");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -133,7 +133,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpcppe");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -201,7 +201,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpcppe");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -230,7 +230,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpcppe");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -266,7 +266,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "rpcppe");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {

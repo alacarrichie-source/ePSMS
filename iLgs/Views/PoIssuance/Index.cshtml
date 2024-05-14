@@ -418,6 +418,17 @@
         };
     }
 
+    function DataOfficerId() {
+        var text = $("#OfficerId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#OfficerId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            deptId: $("#LocationId").val(),
+            text: text
+        };
+    }
+
 </script>
 
 

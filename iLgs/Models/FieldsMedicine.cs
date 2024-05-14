@@ -21,7 +21,7 @@ namespace iLgs.Models
         public string Others { get; set; }
         public string Brand { get; set; }
     
-        public virtual PsCard PsCard { get; set; }
         public virtual RisItem RisItem { get; set; }
+        public virtual PsCard PsCard { get; set; }
     }
 }

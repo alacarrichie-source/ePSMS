@@ -165,6 +165,7 @@ namespace iLgs.Models
         public string Fund { get; set; }
         public string Unit { get; set; }
         public string ItemTypeCode { get; set; }
+        public string ItemCategory { get; set; }
     }
 
     public class OrderItemExtnVM

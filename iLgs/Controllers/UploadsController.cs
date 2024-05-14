@@ -18,7 +18,7 @@ using iLgs.Services;
 
 namespace iLgs.Controllers
 {
-    public class UploadsController : Controller
+    public class UploadsController : BaseController
     {
         private AppManEntities db = new AppManEntities();
         private IDirectoryService directoryService;
@@ -55,7 +55,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "uploads");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "uploads");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -103,7 +103,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "uploads");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "uploads");
                 Access access = await accessTask;
 
                 if (!access.AllowEdit)
@@ -144,7 +144,7 @@ namespace iLgs.Controllers
             try
             {
 
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "faas_records");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "faas_records");
                 Access access = await accessTask;
 
                 if (!access.AllowEdit)
@@ -262,7 +262,7 @@ namespace iLgs.Controllers
             try
             {
 
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "uploads");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "uploads");
                 Access access = await accessTask;
 
                 if (!access.AllowEdit)

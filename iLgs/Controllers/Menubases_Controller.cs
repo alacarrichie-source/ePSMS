@@ -222,15 +222,65 @@ namespace iLgs.Controllers
         {
             var access = db.MenuAccesses.Include(i => i.MenuAccessActions)
                 .Where(w => w.Menubase.SysCode == sysCode && w.MenuId == menuId && w.UserId == userId && w.IsAllowed == true)
-                .Select(s => new Access { 
+                .Select(s => new Access
+                {
                     IsAdmin = false,
                     IsAllowed = s.IsAllowed == true ? true : false,
                     Actions = s.MenuAccessActions.Where(w => w.IsAllowed == true).ToList()
                 })
                 .SingleOrDefault();
+            if (access == null)
+            {
+                return new Access();
+            }
             return access;
         }
 
+        //// GET: api/Menubases_/accessRights/82814eba-0738-4edd-a11f-66c8112e20de/BILLING/RPTAS
+        //[Route("api/Menubases_/menuAccessRights/{userId}/{menuId}/{sysCode}")]
+        //public Access GetAccessRights(string userId, string menuId, string sysCode)
+        //{
+        //    var access = db.MenuAccesses.Include(i => i.MenuAccessActions)
+        //        .Where(w => w.Menubase.SysCode == sysCode && w.Menubase.MenuId == menuId && w.UserId == userId && w.IsAllowed == true)
+        //        .Select(s => new Access
+        //        {
+        //            IsAdmin = false,
+        //            IsAllowed = s.IsAllowed == true ? true : false,
+        //            Actions = s.MenuAccessActions.Where(w => w.IsAllowed == true).ToList()
+        //        })
+        //        .SingleOrDefault();
+        //    if (access == null)
+        //    {
+        //        return new Access();
+        //    }
+        //    return access;
+        //}
+
+        // GET: api/Menubases_/accessRights/82814eba-0738-4edd-a11f-66c8112e20de/BILLING/RPTAS
+        [Route("api/Menubases_/menuAccessRights/{userId}/{menuId}/{sysCode}")]
+        public Access GetAccessRights(string userId, string menuId, string sysCode)
+        {
+            var access = db.MenuAccesses//.Include(i => i.MenuAccessActions).Include(i => i.Menubase.MenuActions)
+                .Where(w => w.Menubase.SysCode == sysCode && w.Menubase.MenuId == menuId && w.UserId == userId && w.IsAllowed == true)
+                .Select(s => new Access
+                {
+                    IsAdmin = false,
+                    IsAllowed = s.IsAllowed == true ? true : false,
+                    AllowAdd = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "ADD").Any(),
+                    AllowEdit = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "EDIT").Any(),
+                    AllowDelete = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "DELETE").Any(),
+                    AllowPrint = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "PRINT").Any(),
+                    AllowPost = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "POST").Any(),
+                    AllowUnpost = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "UNPOST").Any(),
+                    Actions = s.MenuAccessActions.Where(y => y.IsAllowed == true).ToList()
+                })
+                .SingleOrDefault();
+            if (access == null)
+            {
+                return new Access();
+            }
+            return access;
+        }
 
         // GET: api/Menubases/5
         [ResponseType(typeof(Menubase))]
@@ -244,8 +294,6 @@ namespace iLgs.Controllers
 
             return Ok(menubase);
         }
-
-
 
         // GET: api/Menubases/5/RPTONLINE
         [ResponseType(typeof(Menubase))]

@@ -16,147 +16,271 @@ using System.Data.SqlClient;
 using System.Text;
 using System.IO;
 using System.Security.Claims;
+using iLgs.Controllers;
+using Kendo.Mvc.UI;
 
 namespace iLgs.Utilities
-{    
+{
     public abstract class BaseController : Controller
     {
-        //private static string sysCode = "APPMAN";
-        //private static string sysAdmin = "APPMAN_ADMIN";
-        
-        //HttpClient client;
+        protected static string sysCode = "PSMS";
+        protected static string sysAdmin = "PSMS_ADMIN";
 
-        ////The URL of the WEB API Service
-        ////string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
-        //string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
+        private bool InitMenu { get; set; }
 
-        //public BaseController()
+        protected HttpClient client;
+
+        //The URL of the WEB API Service
+        //string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
+        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
+
+        //The HttpClient Class, this will be used for performing 
+        //HTTP Operations, GET, POST, PUT, DELETE
+        //Set the base address and the Header Formatter
+        public BaseController()
+        {
+            client = new HttpClient();
+            client.BaseAddress = new Uri(iLgsApiUrl);
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            this.InitMenu = true;
+        }
+
+        //protected override void OnAuthorization(AuthorizationContext filterContext)
         //{
-        //    client = new HttpClient();
-        //    client.BaseAddress = new Uri(iLgsApiUrl);
-        //    client.DefaultRequestHeaders.Accept.Clear();
-        //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        //    string userId = User.Identity.GetUserId();
-        //    ViewBag.ShowMenu = false;
-        //    ViewBag.IsAdmin = false;
-        //    IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
-        //    if (userId != null)
-        //    {
-        //        ViewBag.ShowMenu = true;
-        //        var isAdmin = GetUserInRole(userId, "admin").Result;
-        //        var isSysAdmin = GetUserInRole(userId, sysAdmin).Result;
-        //        if (isAdmin || isSysAdmin)
-        //        {
-        //            ViewBag.IsAdmin = true;
-        //            if (isAdmin)
-        //            {
-        //                model = GetAdminMenu().Result;
-        //            }
-        //            else
-        //            {
-        //                model = GetAdminMenu2(userId).Result;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            model = GetUserMenu(userId).Result;
-        //        }
-        //    }
-        //    ViewData["MainMenu"] = model;
-
+        //    base.OnAuthorization(filterContext);            
         //}
 
-        //public static class ExtensionMethods
-        //{
-        //    public static string GetUserId(this ClaimsPrincipal User)
-        //    {
-        //        return User.Identity.GetUserId();
-        //    }
-        //}
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            ViewData["MenuTreeList"] = null;
+            if (User != null && User.Identity.IsAuthenticated)
+            {                
+                string userId = User.Identity.GetUserId();
+                
 
-        //public async Task<IQueryable<Menubase>> GetAdminMenu2(string userId)
-        //{
-        //    IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
-        //    UserProfile userProfile = await GetUserProfile(userId);
-        //    if (userProfile != null)
-        //    {
-
-        //        HttpResponseMessage responseMessage = await client.GetAsync("menubases_/adminMenu/" + sysCode + "/" + userProfile.Department);
-        //        if (responseMessage.IsSuccessStatusCode)
-        //        {
-        //            var responseData = responseMessage.Content.ReadAsStringAsync().Result;
-        //            if (responseData != "[]")
-        //            {
-        //                model = JsonConvert.DeserializeObject<List<Menubase>>(responseData).AsQueryable();
-        //            }
-        //        }
-
-        //    }
-        //    return model;
-        //}
-
-        //public async Task<IQueryable<Menubase>> GetAdminMenu()
-        //{
-        //    IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
-        //    HttpResponseMessage responseMessage = await client.GetAsync("menubases_/" + sysCode);
-        //    if (responseMessage.IsSuccessStatusCode)
-        //    {
-        //        var responseData = responseMessage.Content.ReadAsStringAsync().Result;
-        //        if (responseData != "[]")
-        //        {
-        //            model = JsonConvert.DeserializeObject<List<Menubase>>(responseData).AsQueryable();
-        //        }
-        //    }
-        //    return model;
-
-        //}
-
-        //public async Task<bool> GetUserInRole(string id, string role)
-        //{
-        //    bool retVal = false;
-        //    HttpResponseMessage responseMessage = await client.GetAsync("roles_/" + id + "/" + role).ConfigureAwait(false);
-        //    if (responseMessage.IsSuccessStatusCode)
-        //    {
-        //        var responseData = responseMessage.Content.ReadAsStringAsync().Result;
-        //        var aspNetUser = JsonConvert.DeserializeObject<IEnumerable<AspNetUser>>(responseData);
-
-        //        retVal = aspNetUser.Count() > 0;
-        //    }
-
-        //    return retVal;
-        //}
+                var allMenu = Task.Run(async () => await GetMainMenu(User.Identity.GetUserId())).Result;
 
 
-        //public async Task<IQueryable<Menubase>> GetUserMenu(string userId)
-        //{
-        //    IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
-        //    HttpResponseMessage responseMessage = await client.GetAsync("menubases_/usermenu/" + userId + "/" + sysCode);
-        //    if (responseMessage.IsSuccessStatusCode)
-        //    {
-        //        var responseData = responseMessage.Content.ReadAsStringAsync().Result;
-        //        if (responseData != "[]")
-        //        {
-        //            model = JsonConvert.DeserializeObject<List<Menubase>>(responseData).AsQueryable();
-        //        }
-        //    }
-        //    return model;
-        //}
+                bool isLocalhost = false;
 
-        //public async Task<UserProfile> GetUserProfile(string id)
-        //{
-        //    HttpResponseMessage responseMessage = client.GetAsync("Users_/Profile/" + id).Result;
-        //    if (responseMessage.IsSuccessStatusCode)
-        //    {
-        //        var responseData = await responseMessage.Content.ReadAsStringAsync();
-        //        UserProfile model = JsonConvert.DeserializeObject<UserProfile>(responseData);
-        //        return model;
-        //    }
-        //    else
-        //    {
-        //        return new UserProfile();
-        //    }
-        //}
+                string host = HttpContext.Request.Url.Host;
+                Console.WriteLine("Host = " + host);
+                if (host == "localhost" || host == "127.0.0.1" || host == "::1")
+                {
+                    isLocalhost = true;
+                }
+
+                if (isLocalhost)
+                {
+                    Session["WebsiteName"] = string.Empty;
+                }
+                else
+                {
+                    string url = HttpContext.Request.Url.ToString();
+                    Uri uri = new Uri(url);
+                    string path = uri.AbsolutePath;
+                    string websiteName = path.Trim('/');
+
+                    foreach (var menu in allMenu)
+                    {
+                        if (!isLocalhost)
+                        {
+                            menu.Controller = websiteName + "/" + menu.Controller;
+                            Console.WriteLine(menu.Controller);
+                        }
+                    }
+                }
+
+                var menuTreeList = new List<TreeViewItemModel>();
+                var menus = allMenu.Where(w => w.ParentId == 0);
+
+                menuTreeList = GetMenuTree(allMenu, menus);
+
+                ViewData["MenuTreeList"] = menuTreeList;
+            }
+
+            base.OnActionExecuting(filterContext);
+        }
+
+        protected List<TreeViewItemModel> GetMenuTree(IQueryable<Menubase> allMenus, IQueryable<Menubase> menus)
+        {
+            var menuTree = new List<TreeViewItemModel>();
+
+            foreach (var menu in menus)
+            {
+                var children = allMenus.Where(w => w.ParentId == menu.ChildId).OrderBy(o => o.Description);
+                var hasChildren = children.Any();
+                var items = new List<TreeViewItemModel>();
+                
+                if (hasChildren)
+                {
+                    items = GetMenuTree(allMenus, children);
+                }
+                
+
+                var node = new TreeViewItemModel()
+                {
+                    Id = menu.ChildId.ToString(),
+                    Expanded = false,
+                    Text = menu.Description,
+                    HasChildren = hasChildren,
+                    Url = hasChildren ? null : "/" + menu.Controller.Trim() + "/" + menu.Action.Trim(),
+                    Items = items                
+                };
+
+                menuTree.Add(node);
+            }
+
+            return menuTree;
+        }
+
+        protected async Task<IQueryable<Menubase>> GetMainMenu(string userId)
+        {
+            ViewBag.ShowMenu = false;
+            ViewBag.IsAdmin = false;
+            IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
+            if (userId != null)
+            {
+                var admin = await GetUserInRole(userId, "admin");
+                var sysadmin = await GetUserInRole(userId, sysAdmin);
+
+                ViewBag.ShowMenu = true;
+                if (admin || sysadmin)
+                {
+                    ViewBag.IsAdmin = true;
+                    if (admin)
+                    {
+                        model = await GetAdminMenu();
+                    }
+                    else
+                    {
+                        model = await GetAdminMenu2(userId);
+                    }
+                }
+                else
+                {
+                    model = await GetUserMenu(userId);
+                }
+            }
+            return model;
+        }
+
+        protected async Task<UserProfile> GetUserProfile(string id)
+        {
+            HttpResponseMessage responseMessage = client.GetAsync("Users_/Profile/" + id).Result;
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var responseData = await responseMessage.Content.ReadAsStringAsync();
+                UserProfile model = JsonConvert.DeserializeObject<UserProfile>(responseData);
+                return model;
+            }
+            else
+            {
+                return new UserProfile();
+            }
+        }
+
+        protected async Task<IQueryable<Menubase>> GetAdminMenu2(string userId)
+        {
+            IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
+            UserProfile userProfile = await GetUserProfile(userId);
+            if (userProfile != null)
+            {
+
+                HttpResponseMessage responseMessage = await client.GetAsync("menubases_/adminMenu/" + sysCode + "/" + userProfile.Department);
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    var responseData = responseMessage.Content.ReadAsStringAsync().Result;
+                    if (responseData != "[]")
+                    {
+                        model = JsonConvert.DeserializeObject<List<Menubase>>(responseData).AsQueryable();
+                    }
+                }
+
+            }
+            return model;
+        }
+
+        protected async Task<IQueryable<Menubase>> GetAdminMenu()
+        {
+            IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
+            HttpResponseMessage responseMessage = await client.GetAsync("menubases_/" + sysCode);
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var responseData = responseMessage.Content.ReadAsStringAsync().Result;
+                if (responseData != "[]")
+                {
+                    model = JsonConvert.DeserializeObject<List<Menubase>>(responseData).AsQueryable();
+                }
+            }
+            return model;
+        }
+
+        protected async Task<bool> GetUserInRole(string id, string role)
+        {
+            bool retVal = false;
+            HttpResponseMessage responseMessage = await client.GetAsync("roles_/" + id + "/" + role).ConfigureAwait(false);
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var responseData = responseMessage.Content.ReadAsStringAsync().Result;
+                var aspNetUser = JsonConvert.DeserializeObject<IEnumerable<AspNetUser>>(responseData);
+
+                retVal = aspNetUser.Count() > 0;
+            }
+
+            return retVal;
+        }
+
+
+        protected async Task<IQueryable<Menubase>> GetUserMenu(string userId)
+        {
+            IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
+            HttpResponseMessage responseMessage = await client.GetAsync("menubases_/usermenu/" + userId + "/" + sysCode);
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var responseData = responseMessage.Content.ReadAsStringAsync().Result;
+                if (responseData != "[]")
+                {
+                    model = JsonConvert.DeserializeObject<List<Menubase>>(responseData).AsQueryable();
+                }
+            }
+            return model;
+        }
+
+        protected async Task<Access> Access(string userId, string menuId)
+        {
+            if (await GetUserInRole(userId, "admin") || await GetUserInRole(userId, sysAdmin))
+            {
+                return new Access()
+                {
+                    IsAdmin = true,
+                    IsAllowed = true,
+                    AllowAdd = true,
+                    AllowEdit = true,
+                    AllowDelete = true,
+                    AllowPost = true,
+                    AllowUnpost = true,
+                    AllowPrint = true,
+                    Actions = new List<MenuAccessAction>()
+                };
+            }
+            else
+            {
+                HttpResponseMessage responseMessage = client.GetAsync("menubases_/menuAccessRights/" + userId + "/" + menuId + "/" + sysCode).Result;
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    var responseData = responseMessage.Content.ReadAsStringAsync().Result;
+                    Access model = JsonConvert.DeserializeObject<Access>(responseData);
+
+                    return model;
+                }
+                else
+                {
+                    return new Access();
+                }
+            }
+        }
 
         protected override JsonResult Json(object data, string contentType,
             Encoding contentEncoding, JsonRequestBehavior behavior)
@@ -168,6 +292,15 @@ namespace iLgs.Utilities
                 ContentEncoding = contentEncoding,
                 JsonRequestBehavior = behavior
             };
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                client.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 
@@ -211,6 +344,7 @@ namespace iLgs.Utilities
             }
         }
     }
+    
 
     /*
         Now by having your controllers inheriting from BaseController, they will start using JSON.NET to do JSON serialization. 

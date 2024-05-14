@@ -14,13 +14,8 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AsOf { get; set; }
 
-        public string Department { get; set; }
-
-        [Display(Name = "Accountable Officer")]
-        public string AccountableOfficer { get; set; }
-        public string Designation { get; set; }
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> AssumptionDt { get; set; }
+        [Display(Name = "Department")]
+        public Nullable<System.Guid> DeptId { get; set; }
 
         [Display(Name = "Certified correct by")]
         public string CertifiedCorrectBy { get; set; }
@@ -40,9 +35,10 @@ namespace iLgs.Models
 
         [Display(Name = "Posted Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> PostedDt { get; set; }      
-        
+        public Nullable<System.DateTime> PostedDt { get; set; }
+
         // Transients
+        public string Department { get; set; }        
     }
 
     public class RPCIItemVM
@@ -57,10 +53,10 @@ namespace iLgs.Models
         public string Description { get; set; }
         public string Brand { get; set; }
 
-        [Display(Name = "Ref. No.")]
+        [Display(Name = "PO No.")]
         public string RefNo { get; set; }
 
-        [Display(Name = "Ref. Date")]
+        [Display(Name = "PO Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> RefDate { get; set; }
 
@@ -88,10 +84,34 @@ namespace iLgs.Models
         public Nullable<decimal> ValueShortOver { get; set; }
 
         public string Remarks { get; set; }
+
+        [Display(Name = "AIR No.")]
+        public string AirNo { get; set; }
+
+        [Display(Name = "AIR Date")]
+        public Nullable<System.DateTime> AirDate { get; set; }
+
+        [Display(Name = "Location")]
+        public Nullable<System.Guid> LocationId { get; set; }
+
+        [Display(Name = "Officer")]
+        public Nullable<System.Guid> OfficerId { get; set; }
+
+        [Display(Name = "Model")]
+        public string Model_ { get; set; }
+
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }        
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // Transients
+        public string Location { get; set; }
+        public string Officer { get; set; }
+        public string Designation { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [Display(Name = "Assumption Date")]
+        public Nullable<System.DateTime> AssumptionDt { get; set; }
     }
 
     public class RPCEFFOPPE_VM

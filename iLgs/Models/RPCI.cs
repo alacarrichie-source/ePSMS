@@ -22,10 +22,7 @@ namespace iLgs.Models
     
         public System.Guid Id { get; set; }
         public Nullable<System.DateTime> AsOf { get; set; }
-        public string Department { get; set; }
-        public string AccountableOfficer { get; set; }
-        public string Designation { get; set; }
-        public Nullable<System.DateTime> AssumptionDt { get; set; }
+        public Nullable<System.Guid> DeptId { get; set; }
         public string CertifiedCorrectBy { get; set; }
         public string ApprovedBy { get; set; }
         public string VerifiedBy { get; set; }
@@ -36,6 +33,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public System.DateTime UpdatedDt { get; set; }
     
+        public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCIItem> RPCIItems { get; set; }
     }

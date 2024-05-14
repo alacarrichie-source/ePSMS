@@ -14,28 +14,28 @@ using Kendo.Mvc.UI;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
-
+using iLgs.Utilities;
 
 namespace iLgs.Controllers
 {
-    public class SysCodesController : Controller
+    public class SysCodesController : BaseController
     {
 
         private AppManEntities db = new AppManEntities();
 
-        HttpClient client;
-        //The URL of the WEB API Service
-        //string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
-        string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
+        //HttpClient client;
+        ////The URL of the WEB API Service
+        ////string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
+        //string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
 
 
-        public SysCodesController()
-        {
-            client = new HttpClient();
-            client.BaseAddress = new Uri(iLgsApiUrl);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        }
+        //public SysCodesController()
+        //{
+        //    client = new HttpClient();
+        //    client.BaseAddress = new Uri(iLgsApiUrl);
+        //    client.DefaultRequestHeaders.Accept.Clear();
+        //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        //}
 
         //// GET: SysCodes
         //public ActionResult Index()

@@ -22,7 +22,7 @@ using iLgs.Agents.Services;
 namespace iLgs.Controllers
 {
     [AppAuthorize("AIRS")]
-    public class AIRsController : Controller
+    public class AIRsController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
         private IAirService airService;
@@ -66,7 +66,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -126,7 +126,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -187,7 +187,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -238,7 +238,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -281,7 +281,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -317,7 +317,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -353,7 +353,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -414,7 +414,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -463,7 +463,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -494,7 +494,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -525,7 +525,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -556,7 +556,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "report_air");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_air");
                 Access access = await accessTask;
                 if (access == null)
                 {
@@ -648,7 +648,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -695,7 +695,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "airs");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {

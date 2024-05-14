@@ -48,10 +48,14 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     RpciId = s.RpciId,
-                    Article = s.Article,
                     ItemType = s.ItemType,
                     Fund = s.Fund,
+                    Article = s.Article,                                        
                     Description = s.Description,
+                    Brand = s.Brand,
+                    RefNo = s.RefNo,
+                    RefDate = s.RefDate,
+                    OldStockNo = s.OldStockNo,
                     StockNo = s.StockNo,
                     Unit = s.Unit,
                     UnitValue = s.UnitValue,
@@ -60,6 +64,13 @@ namespace iLgs.Services
                     QtyShortOver = s.QtyShortOver,
                     ValueShortOver = s.ValueShortOver,
                     Remarks = s.Remarks,
+                    AirNo = s.AirNo,
+                    AirDate = s.AirDate,
+                    LocationId = s.LocationId,
+                    OfficerId = s.OfficerId,
+                    Model_ = s.Model_,
+                    Location = s.Codextn.Description,
+                    Officer = s.AccountableOfficer.Name,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -79,10 +90,14 @@ namespace iLgs.Services
             {
                 Id = model.Id,
                 RpciId = model.RpciId,
-                Article = model.Article,
-                ItemType = model.ItemType,
+                ItemType = model.ItemType,                
                 Fund = model.Fund,
+                Article = model.Article,
                 Description = model.Description,
+                Brand = model.Brand,
+                RefNo = model.RefNo,
+                RefDate = model.RefDate,        
+                OldStockNo = model.OldStockNo,
                 StockNo = model.StockNo,
                 Unit = model.Unit,
                 UnitValue = model.UnitValue,
@@ -91,6 +106,11 @@ namespace iLgs.Services
                 QtyShortOver = model.QtyShortOver,
                 ValueShortOver = model.ValueShortOver,
                 Remarks = model.Remarks,
+                AirNo = model.AirNo,
+                AirDate = model.AirDate,
+                LocationId = model.LocationId,
+                OfficerId = model.OfficerId,
+                Model_ = model.Model_,                
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -100,6 +120,49 @@ namespace iLgs.Services
             _db.RPCIItems.Add(entity);
             await _db.SaveChangesAsync();
 
+            return model;
+        });        
+
+        public ValueTask<RPCIItemVM> UpdateAsync(RPCIItemVM model, string user, DateTime date) =>
+        _vmExceptionService.TryCatchAsync(async () =>
+        {
+            var entity = await _db.RPCIItems.FindAsync(model.Id);
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(model.Id);
+            }
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            entity.RpciId = model.RpciId;            
+            entity.ItemType = model.ItemType;
+            entity.Fund = model.Fund;
+            entity.Article = model.Article;
+            entity.Description = model.Description;
+            entity.Brand = model.Brand;
+            entity.RefNo = model.RefNo;
+            entity.RefDate = model.RefDate;
+            entity.OldStockNo = model.OldStockNo;
+            entity.StockNo = model.StockNo;
+            entity.Unit = model.Unit;
+            entity.UnitValue = model.UnitValue;
+            entity.QtyBalance = model.QtyBalance;
+            entity.QtyOnHand = model.QtyOnHand;
+            entity.QtyShortOver = model.QtyShortOver;
+            entity.ValueShortOver = model.ValueShortOver;
+            entity.Remarks = model.Remarks;
+            entity.AirNo = model.AirNo;
+            entity.AirDate = model.AirDate;
+            entity.LocationId = model.LocationId;
+            entity.OfficerId = model.OfficerId;
+            entity.Model_ = model.Model_;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            _db.RPCIItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
             return model;
         });
 
@@ -127,40 +190,6 @@ namespace iLgs.Services
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
 
-            return model;
-        });
-
-        public ValueTask<RPCIItemVM> UpdateAsync(RPCIItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
-        {
-            var entity = await _db.RPCIItems.FindAsync(model.Id);
-            if (entity == null)
-            {
-                throw new RecordNotFoundException(model.Id);
-            }
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            entity.RpciId = model.RpciId;
-            entity.Article = model.Article;
-            entity.ItemType = model.ItemType;
-            entity.Fund = model.Fund;
-            entity.Description = model.Description;
-            entity.StockNo = model.StockNo;
-            entity.Unit = model.Unit;
-            entity.UnitValue = model.UnitValue;
-            entity.QtyBalance = model.QtyBalance;
-            entity.QtyOnHand = model.QtyOnHand;
-            entity.QtyShortOver = model.QtyShortOver;
-            entity.ValueShortOver = model.ValueShortOver;
-            entity.Remarks = model.Remarks;
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            _db.RPCIItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
             return model;
         });
     }

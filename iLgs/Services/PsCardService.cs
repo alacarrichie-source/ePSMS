@@ -49,23 +49,23 @@ namespace iLgs.Services
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
+                    //ItemTypeCategory = s.ItemCode.ItemType.Category,
+                    CardCategory = s.CardCategory,
                     Description = s.Description,
                     SubAccountCode = s.SubAccountCode,
-                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.ItemNo == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
+                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
                     Fund = s.Fund,
-                    Unit = s.Unit,
-                    PsType = s.PsType,
+                    Unit = s.Unit,                    
                     PsNo = s.PsNo,
                     PsName = s.PsName,
                     PrevPsNo = s.PrevPsNo,
-                    //AcqDate = s.AcqDate,
-                    //AcqMode = s.AcqMode,
                     Amount = s.Amount,
+                    FromDonation = s.FromDonation,
                     FieldsMedicine = s.FieldsMedicine,
                     FieldsOther = s.FieldsOther,
                     FieldsPpe = s.FieldsPpe,
                     FieldsVehicle = s.FieldsVehicle,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt                    
                 });
             return data;
         });
@@ -82,23 +82,23 @@ namespace iLgs.Services
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
+                    //ItemTypeCategory = s.ItemCode.ItemType.Category,
+                    CardCategory = s.CardCategory,
                     Description = s.Description,
                     SubAccountCode = s.SubAccountCode,
-                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.ItemNo == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
+                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
                     Fund = s.Fund,
                     Unit = s.Unit,
-                    PsType = s.PsType,
                     PsNo = s.PsNo,
                     PsName = s.PsName,
                     PrevPsNo = s.PrevPsNo,
-                    //AcqDate = s.AcqDate,
-                    //AcqMode = s.AcqMode,
+                    FromDonation = s.FromDonation,
                     Amount = s.Amount,
                     FieldsMedicine = s.FieldsMedicine,
                     FieldsOther = s.FieldsOther,
                     FieldsPpe = s.FieldsPpe,
                     FieldsVehicle = s.FieldsVehicle,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt                    
                 });
             return data;
         });
@@ -114,17 +114,17 @@ namespace iLgs.Services
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
+                    //ItemTypeCategory = s.ItemCode.ItemType.Category,
+                    CardCategory = s.CardCategory,
                     Description = s.Description,
                     SubAccountCode = s.SubAccountCode,
-                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.ItemNo == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
+                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
                     Fund = s.Fund,
-                    Unit = s.Unit,
-                    PsType = s.PsType,
+                    Unit = s.Unit,                    
                     PsNo = s.PsNo,
                     PsName = s.PsName,
                     PrevPsNo = s.PrevPsNo,
-                    //AcqDate = s.AcqDate,
-                    //AcqMode = s.AcqMode,
+                    FromDonation = s.FromDonation,
                     Amount = s.Amount,
                     FieldsMedicine = s.FieldsMedicine,
                     FieldsOther = s.FieldsOther,
@@ -186,12 +186,11 @@ namespace iLgs.Services
                 Fund = model.Fund,
                 Description = model.Description,
                 Unit = model.Unit,
-                PsType = model.PsType,
+                CardCategory = model.CardCategory,
                 PsNo = model.PsNo,
                 PsName = model.PsName,
                 PrevPsNo = model.PrevPsNo,
-                //AcqDate = model.AcqDate,
-                //AcqMode = model.AcqMode,
+                FromDonation = model.FromDonation,
                 Amount = model.Amount,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
@@ -238,12 +237,11 @@ namespace iLgs.Services
             entity.Fund = model.Fund;
             entity.Description = model.Description;
             entity.Unit = model.Unit;
-            entity.PsType = model.PsType;
+            entity.CardCategory = model.CardCategory;
             entity.PsNo = model.PsNo;
             entity.PsName = model.PsName;
             entity.PrevPsNo = model.PrevPsNo;
-            //entity.AcqDate = model.AcqDate;
-            //entity.AcqMode = model.AcqMode;
+            entity.FromDonation = model.FromDonation;
             entity.Amount = model.Amount;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
@@ -285,8 +283,7 @@ namespace iLgs.Services
             entity.FieldsPpe = null;
             entity.FieldsVehicle = null;
 
-            Category category;
-            if (Enum.TryParse(model.ItemTypeCode, out category))
+            if (Enum.TryParse(model.ItemTypeCode, out Category category))
             {
                 if (category == Category.T)
                 {
@@ -341,6 +338,10 @@ namespace iLgs.Services
         public string GetStockNo(PsCardVM model)
         {
             string stockNo = model.ItemCode.Trim();
+            if (model.FromDonation == true)
+            {
+                stockNo = "FD" + stockNo;
+            }
             if (Enum.TryParse(model.ItemTypeCode, out Category category))
             {
                 if (category == Category.D)

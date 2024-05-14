@@ -373,7 +373,7 @@ namespace iLgs.Services
         public string GetPsDescription(PsCardVM entry)
         {
             string description = "";
-            if (Enum.TryParse(entry.PsType, out Category category))
+            if (Enum.TryParse(entry.ItemTypeCode, out Category category))
             {
                 if (category == Category.T)
                 {

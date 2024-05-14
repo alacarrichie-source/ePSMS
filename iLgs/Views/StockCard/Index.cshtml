@@ -7,11 +7,11 @@
     .Name("grid")
     .Columns(col =>
     {
-        col.Bound(c => c.Fund).Width(70);
+        col.Bound(c => c.Fund).Width(40);
         col.Bound(c => c.Item).Width(100);
         col.Bound(c => c.SubAccount).Width(100);
-        col.Bound(c => c.PsNo).Width(70);
-        col.Bound(c => c.PsName).Width(70);
+        col.Bound(c => c.PsNo).Width(100);
+        //col.Bound(c => c.PsName).Width(70);
         col.Bound(c => c.Description).Width(150);
         col.Command(command =>
         {
@@ -19,7 +19,7 @@
             command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEdit");
             //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
             command.Destroy();
-        }).Width(100);
+        }).Width(70);
     })
     //.ToolBar(t =>
     //{
@@ -59,6 +59,7 @@
         .Model(model =>
         {
             model.Id(p => p.Id);
+            model.Field(p => p.CardCategory).DefaultValue("S").Editable(true);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
         .Read(read => read.Action("Read", "StockCard"))
@@ -963,7 +964,7 @@
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
             }
-        } else {            
+        } else {
             //var row = e.sender.tbody.find("tr:first");
             //this.select(row);
 
@@ -977,9 +978,9 @@
             });
         }
     }
-    
+
     function onRemoveGridItems(e) { // triggers after confirm
-        //e.preventDefault();
+        e.preventDefault();
         selectedGrid = e.sender;
 
         //the master row for this detail
@@ -1174,7 +1175,7 @@
                         grid.expandRow(row);
                     }
                 });
-            }            
+            }
         }
     }
 
@@ -1223,6 +1224,38 @@
             text: text
         };
     }
+
+    // CARD ITEM TEMPLATE
+    //// Get the Kendo NumericTextBox element by its ID
+    //var qty = $("#Qty").data("kendoNumericTextBox");
+    //var qtyIss = $("#QtyBal").data("kendoNumericTextBox");
+    //var qtyBal = $("#QtyBal").data("kendoNumericTextBox");
+
+    //// Attach focus event handler
+    //qty.input.on("focus", function () {
+    //    // Select the value inside the NumericTextBox
+    //    this.select();
+    //});
+    //qtyIss.input.on("focus", function () {
+    //    // Select the value inside the NumericTextBox
+    //    this.select();
+    //});
+    //qtyBal.input.on("focus", function () {
+    //    // Select the value inside the NumericTextBox
+    //    this.select();
+    //});
+
+    function UpdateBalance(e)
+    {
+        var qty = $("#Qty").data("kendoNumericTextBox").value();
+        var qtyIss = $("#QtyIss").data("kendoNumericTextBox").value();
+
+        var balance = qty- qtyIss;
+
+        $("#QtyBal").data("kendoNumericTextBox").value(balance);
+        $("#QtyBal").data("kendoNumericTextBox").trigger("change");
+    }
+    // END CARD ITEM TEMPLATE
 
 </script>
 

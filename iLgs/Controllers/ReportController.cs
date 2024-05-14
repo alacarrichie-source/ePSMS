@@ -10,10 +10,11 @@ using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
 using System.Data.SqlClient;
 using System.IO;
+using iLgs.Utilities;
 
 namespace iLgs.Controllers
 {
-    public class ReportController : Controller
+    public class ReportController : BaseController
     {
         private AppManEntities db = new AppManEntities();
 
@@ -21,7 +22,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "report_user_access");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_user_access");
                 Access access = await accessTask;
                 if (access == null)
                 {
@@ -44,7 +45,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "report_user_access");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_user_access");
                 Access access = await accessTask;
                 if (access == null)
                 {
@@ -148,7 +149,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "report_user_roles");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_user_roles");
                 Access access = await accessTask;
                 if (access == null)
                 {
@@ -171,7 +172,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = new HomeController().Access(User.Identity.GetUserId(), "report_user_roles");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_user_roles");
                 Access access = await accessTask;
                 if (access == null)
                 {

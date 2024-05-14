@@ -51,10 +51,23 @@ namespace iLgs.Controllers
 
         }
 
+        public ActionResult GetSignatories(string department, string text)
+        {
+            department = string.IsNullOrWhiteSpace(department) ? "" : department.Trim();
+            var model = db.AccountableOfficers.Where(w => w.Codextn.CodeMast.Code == "DEPARTMENTS" && w.Codextn.Description == department && w.LocationId == w.Codextn.Id).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Name = c.Name, Designation = c.Designation }), JsonRequestBehavior.AllowGet);
+
+        }
+
         public ActionResult GetAccountableOfficers(string department, string text)
         {
-            department = string.IsNullOrWhiteSpace(department) ? "" : department;
-            var model = db.AccountableOfficers.Where(w => w.Codextn.Description == department).AsQueryable();
+            department = string.IsNullOrWhiteSpace(department) ? "" : department.Trim();
+            var model = db.AccountableOfficers.Where(w => w.Codextn.CodeMast.Code == "LOCATIONS" && w.Codextn.Description == department && w.LocationId == w.Codextn.Id).AsQueryable();
             if (!string.IsNullOrWhiteSpace(text))
             {
                 model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text));
@@ -157,7 +170,7 @@ namespace iLgs.Controllers
             var retModel = model.Select(c => new GetCodeListVM { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }).ToList();
             if (addAll)
             {
-                retModel.Insert(0, new GetCodeListVM { Code = "ALL", Description = "ALL", Desc2 = "", Desc3 = "" });
+                retModel.Insert(0, new GetCodeListVM { Id = Guid.Empty, Code = "ALL", Description = "ALL", Desc2 = "", Desc3 = "" });
             }
 
             return Json(retModel, JsonRequestBehavior.AllowGet);
@@ -422,15 +435,27 @@ namespace iLgs.Controllers
         public JsonResult GetDepartments(string text)
         {
 
-            //var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS");
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS" && (w.Desc3 != null || w.Desc3 != ""));
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS");
+            
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetLocations(string text)
+        {
+
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS");
 
             if (!string.IsNullOrEmpty(text))
             {
                 model = model.Where(p => p.Description.Contains(text));
             }
 
-            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetSections(string department, string text)

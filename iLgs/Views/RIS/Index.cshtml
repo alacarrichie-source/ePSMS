@@ -502,7 +502,7 @@
     function onSelectRequestedBy(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#RequestedByDesignation").val(dataItem.Desc2).trigger("change");
+        $("#RequestedByDesignation").val(dataItem.Designation).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('RequestedByDesignation', $('#RequestedByDesignation').val());
@@ -518,15 +518,20 @@
     }
 
     function DataApprovedBy() {
-        var text = $("#ApprovedBy").data("kendoMultiColumnComboBox").text();
+        //var text = $("#ApprovedBy").data("kendoMultiColumnComboBox").text();
+        //return {
+        //    text: text
+        //};
+        var text = $("#RequestedBy").data("kendoMultiColumnComboBox").text();
         return {
+            department: $("#Office").val(),
             text: text
         };
     }
 
     function onSelectApprovedBy(e) {
         var dataItem = this.dataItem(e.item.index());
-        $("#ApprovedByDesignation").val(dataItem.Desc2).trigger("change");
+        $("#ApprovedByDesignation").val(dataItem.Designation).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('ApprovedByDesignation', $('#ApprovedByDesignation').val());
@@ -542,7 +547,7 @@
 
     function onSelectReceivedBy(e) {
         var dataItem = this.dataItem(e.item.index());
-        $("#ReceivedByDesignation").val(dataItem.Desc2).trigger("change");
+        $("#ReceivedByDesignation").val(dataItem.Designation).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('ReceivedByDesignation', $('#ReceivedByDesignation').val());
@@ -551,7 +556,7 @@
     function onSelectOffice(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#FPP").val(dataItem.Desc4).trigger("change");
+        $("#FPP").val(dataItem.Code).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('FPP', $('#FPP').val());
@@ -1151,7 +1156,7 @@
                 alert(req.responseText);
             }
         });
-        
+
     }
 </script>
 

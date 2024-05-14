@@ -50,10 +50,8 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     AsOf = s.AsOf,
-                    Department = s.Department,
-                    AccountableOfficer = s.AccountableOfficer,
-                    Designation = s.Designation,
-                    AssumptionDt = s.AssumptionDt,
+                    DeptId = s.DeptId,
+                    Department = s.Codextn.Description,
                     CertifiedCorrectBy = s.CertifiedCorrectBy,
                     ApprovedBy = s.ApprovedBy,
                     VerifiedBy = s.VerifiedBy,
@@ -72,10 +70,8 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     AsOf = s.AsOf,
-                    Department = s.Department,
-                    AccountableOfficer = s.AccountableOfficer,
-                    Designation = s.Designation,
-                    AssumptionDt = s.AssumptionDt,
+                    DeptId = s.DeptId,
+                    Department = s.Codextn.Description,
                     CertifiedCorrectBy = s.CertifiedCorrectBy,
                     ApprovedBy = s.ApprovedBy,
                     VerifiedBy = s.VerifiedBy,
@@ -90,7 +86,7 @@ namespace iLgs.Services
         _vmExceptionService.TryCatchAsync(async () =>
         {
 
-            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}", model.AsOf, model.Department, user);
+            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}", model.AsOf, model.DeptId, user);
             model = await GetByAsOfAsync(model.AsOf);
             return model;
         });
@@ -114,10 +110,7 @@ namespace iLgs.Services
             {
                 Id = model.Id,
                 AsOf = model.AsOf,
-                Department = model.Department,
-                AccountableOfficer = model.AccountableOfficer, 
-                Designation = model.Designation,
-                AssumptionDt = model.AssumptionDt,
+                DeptId = model.DeptId,
                 CertifiedCorrectBy = model.CertifiedCorrectBy,
                 ApprovedBy = model.ApprovedBy,
                 VerifiedBy = model.VerifiedBy,
@@ -176,10 +169,7 @@ namespace iLgs.Services
             model.UpdatedDt = date;
 
             entity.AsOf = model.AsOf;
-            entity.Department = model.Department;
-            entity.AccountableOfficer = model.AccountableOfficer;
-            entity.Designation = model.Designation;
-            entity.AssumptionDt = model.AssumptionDt;
+            entity.DeptId = model.DeptId;
             entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
             entity.ApprovedBy = model.ApprovedBy;
             entity.VerifiedBy = model.VerifiedBy;

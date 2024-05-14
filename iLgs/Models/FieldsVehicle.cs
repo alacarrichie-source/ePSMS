@@ -25,7 +25,7 @@ namespace iLgs.Models
         public string EngineNo { get; set; }
         public string ChassisNo { get; set; }
     
-        public virtual PsCard PsCard { get; set; }
         public virtual RisItem RisItem { get; set; }
+        public virtual PsCard PsCard { get; set; }
     }
 }

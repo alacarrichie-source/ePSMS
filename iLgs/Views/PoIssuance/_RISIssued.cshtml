@@ -2,16 +2,16 @@
     .Name("gridIssuedItems_" + @ViewData["OrderItemId"])
     .Columns(col =>
     {
+        col.Bound(c => c.Location).Width(70);
         col.Bound(c => c.Officer).Width(70);
-        col.Bound(c => c.Location).Width(70);        
         col.Bound(c => c.IssuedTo).Width(70);
         col.Bound(c => c.IssuedDate).Width(70);
         col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });        
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
         col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });        
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
         col.Command(command =>
         {
             command.Edit();

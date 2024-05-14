@@ -17,13 +17,14 @@
         </div>
 
         <div class="row">
-            @Html.LabelFor(m => m.Department, htmlAttributes: new { @class = "col-md-12" })
+            @Html.LabelFor(m => m.DeptId, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
-                @(Html.Kendo().MultiColumnComboBoxFor(m => m.Department)
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                     .Placeholder("Select Department")
                     .DataTextField("Description")
-                    .DataValueField("Description")
+                    .DataValueField("Id")
+                    .ValuePrimitive(true)
                     .Filter(FilterType.Contains)
                     .DataSource(source =>
                     {
@@ -40,12 +41,12 @@
                     })
                     .Suggest(true)
                 )
-                @Html.ValidationMessageFor(model => model.Department)
+                @Html.ValidationMessageFor(model => model.DeptId)
             </div>            
         </div>
 
         <div id="EditDiv">
-            <div class="row">
+            @*<div class="row">
                 @Html.LabelFor(m => m.AccountableOfficer, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.AccountableOfficer).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -67,7 +68,7 @@
                     @(Html.Kendo().DatePickerFor(m => m.AssumptionDt).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.AssumptionDt)
                 </div>
-            </div>
+            </div>*@
 
             <div class="row">
                 @Html.LabelFor(m => m.CertifiedCorrectBy, htmlAttributes: new { @class = "col-md-12" })

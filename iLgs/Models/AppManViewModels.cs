@@ -133,53 +133,71 @@ namespace iLgs.Models
 
     public class Access
     {
+        public Access()
+        {
+            IsAdmin = false;
+            IsAllowed = false;
+            AllowAdd = false;
+            AllowEdit = false;
+            AllowDelete = false;
+            AllowPost = false;
+            AllowUnpost = false;
+            AllowPrint = false;            
+        }
         public bool IsAdmin { get; set; }
         public bool IsAllowed { get; set; }
-        public bool AllowAdd
-        {
-            get
-            {
-                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "ADD");
-            }
-        }
-        public bool AllowEdit
-        {
-            get
-            {
-                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "EDIT");
-            }
-        }
+        public bool AllowAdd { get; set; }
+        public bool AllowEdit { get; set; }
+        public bool AllowDelete { get; set; }
+        public bool AllowPost { get; set; }
+        public bool AllowUnpost { get; set; }
+        public bool AllowPrint { get; set; }
 
-        public bool AllowDelete
-        {
-            get
-            {
-                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "DELETE");
-            }
-        }
+        //public bool AllowAdd
+        //{
+        //    get
+        //    {
+        //        return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction?.ActionCode == "ADD");
+        //    }
+        //}
+        //public bool AllowEdit
+        //{
+        //    get
+        //    {
+        //        return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction?.ActionCode == "EDIT");
+        //    }
+        //}
 
-        public bool AllowPost
-        {
-            get
-            {
-                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "POST");
-            }
-        }
-        public bool AllowUnpost
-        {
-            get
-            {
-                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "UNPOST");
-            }
-        }
+        //public bool AllowDelete
+        //{
+        //    get
+        //    {
+        //        return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction?.ActionCode == "DELETE");
+        //    }
+        //}
 
-        public bool AllowPrint
-        {
-            get
-            {
-                return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction.ActionCode == "PRINT");
-            }
-        }
+        //public bool AllowPost
+        //{
+        //    get
+        //    {
+        //        return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction?.ActionCode == "POST");
+        //    }
+        //}
+        //public bool AllowUnpost
+        //{
+        //    get
+        //    {
+        //        return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction?.ActionCode == "UNPOST");
+        //    }
+        //}
+
+        //public bool AllowPrint
+        //{
+        //    get
+        //    {
+        //        return IsAdmin || Actions.Any(w => w.IsAllowed == true && w.MenuAction?.ActionCode == "PRINT");
+        //    }
+        //}
 
         public List<MenuAccessAction> Actions { get; set; }
     }    
