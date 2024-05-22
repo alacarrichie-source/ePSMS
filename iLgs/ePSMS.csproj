@@ -207,6 +207,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PropertyCardPpeController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
     <Compile Include="Controllers\PropertiesController.cs" />
@@ -648,7 +649,6 @@
     <Compile Include="Services\ExceptionService.cs" />
     <Compile Include="Services\GmailEmailService.cs" />
     <Compile Include="Services\Interfaces\IAirInvoiceService.cs" />
-    <Compile Include="Services\Interfaces\IAirItemService.cs" />
     <Compile Include="Services\Interfaces\IAirService.cs" />
     <Compile Include="Services\Interfaces\ICodextnService.cs" />
     <Compile Include="Services\Interfaces\IDirectoryService.cs" />
@@ -3664,6 +3664,13 @@
     <Content Include="Views\StockCard\_StockCardItemAddEdit.cshtml" />
     <Content Include="Views\StockCard\_StockCardItem.cshtml" />
     <Content Include="Views\Rpci\EditorTemplates\_RpciItemTemplate.cshtml" />
+    <Content Include="Views\PoIssuance\_GeneratePAR.cshtml" />
+    <Content Include="Views\PropertyCard\Index.cshtml" />
+    <Content Include="Views\PropertyCard\_PropertyCardItemAddEdit.cshtml" />
+    <Content Include="Views\PropertyCard\_PropertyCardItem.cshtml" />
+    <Content Include="Views\PropertyCard\_PropertyCardAddEdit.cshtml" />
+    <Content Include="Views\PropertyCard\EditorTemplates\_CardItemTemplate.cshtml" />
+    <Content Include="Views\PropertyCard\EditorTemplates\_CardItemIssuanceTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3749,6 +3756,10 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RpcPpe.cs</LastGenOutput>
     </Content>
+    <EmbeddedResource Include="Reports\PropertyCard.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>PropertyCard.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
@@ -3770,7 +3781,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

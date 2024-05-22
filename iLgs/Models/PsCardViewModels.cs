@@ -149,11 +149,25 @@ namespace iLgs.Models
         public string IssuedTo { get; set; }
         
         [Display(Name = "Issued Date")]
-        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> IssuedDate { get; set; }
         public Nullable<int> Qty { get; set; }
         public Nullable<decimal> Amount { get; set; }
+
+        [Display(Name = "Ref. No.")]
+        public string RefNo { get; set; }
+
+        [Display(Name = "Ref. Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> RefDate { get; set; }
+
+        [Display(Name = "Ref. Type")]
+        public string RefType { get; set; }
+
+        [Display(Name = "Property No.")]
+        public string PropNo { get; set; }
+
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

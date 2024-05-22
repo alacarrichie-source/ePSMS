@@ -1,4 +1,5 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions.PARs;
+using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Interfaces;
 using iLgs.Utilities;
@@ -19,13 +20,13 @@ namespace iLgs.Controllers
     public class PoIssuanceController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
-        private IPoIssuanceService _orderIssuanceService;
-        private IRisIssuedService _risIssuedService;
+        private IPoIssuanceService _poIssuanceService;
+        private IRisIssuedService _risIssuedService;        
 
         public PoIssuanceController()
         {
-            _orderIssuanceService = new PoIssuanceService(_db);
-            _risIssuedService = new RisIssuedService(_db);
+            _poIssuanceService = new PoIssuanceService(_db);
+            _risIssuedService = new RisIssuedService(_db);            
         }
 
         // GET: PoIssuance
@@ -37,7 +38,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> IssuanceRead([DataSourceRequest] DataSourceRequest request)
         {
             var userId = User.Identity.GetUserId();
-            var data = await _orderIssuanceService.GetAllPostedPoWithPostedAir(userId);
+            var data = await _poIssuanceService.GetAllPostedAirAsync(userId);
 
             var result = new JsonNetResult
             {
@@ -74,7 +75,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -110,7 +111,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -146,7 +147,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -174,6 +175,161 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> _GeneratePAR(Guid airItemId, Guid? orderItemId, string refType)
+        {
+            ViewData["orderItemId"] = orderItemId;
+
+            var data = await _poIssuanceService.GetOrderItemByAirItemIdAsync(airItemId);
+            var model = new RisIssuedVM()
+            {
+                Id = airItemId,
+                OrderItemId = orderItemId,
+                Qty = data.Balance,
+                RefDate = DateTime.Now,
+                RefType = refType
+            };
+
+            return PartialView(model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> GeneratePAR(RisIssuedVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _poIssuanceService.GeneratePAR(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PostIssuance(Guid risIssuedId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _poIssuanceService.PostAsync(risIssuedId, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> UnpostIssuance(Guid risIssuedId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _poIssuanceService.UnpostAsync(risIssuedId, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
     }
 }

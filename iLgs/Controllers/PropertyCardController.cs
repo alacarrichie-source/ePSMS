@@ -18,17 +18,17 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("STOCKCARD")]
-    public class StockCardController : BaseController
+    [AppAuthorize("PROPERTYCARD")]
+    public class PropertyCardController : BaseController
     {
-        private readonly string _cardCategory = "S";
+        private readonly string _cardCategory = "P";
         private AppManEntities _db = new AppManEntities();
         private ICodextnService _codextnService;
         private IPsCardService _cardService;
         private IPsCardItemService _cardItemService;
         private IPsCardItemIssuanceService _cardItemIssuanceService;
 
-        public StockCardController()
+        public PropertyCardController()
         {
             _codextnService = new CodextnService(_db);
             _cardService = new PsCardService(_db, _cardCategory);
@@ -61,7 +61,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -96,7 +96,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -132,7 +132,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -162,7 +162,7 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _StockCardAddEdit(Guid? cardId)
+        public async Task<ActionResult> _PropertyCardAddEdit(Guid? cardId)
         {
             var data = await _cardService.GetVmByIdAsync(cardId);
             if (data == null)
@@ -176,12 +176,12 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _StockCardSave(PsCardVM model)
+        public async Task<ActionResult> _PropertyCardSave(PsCardVM model)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
-                Access access = await accessTask;                
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
 
                 if (model != null && ModelState.IsValid)
                 {
@@ -194,7 +194,7 @@ namespace iLgs.Controllers
                     {
                         if (access.AllowAdd)
                         {
-                            model = await  _cardService.CreateAsync(model, user, date);
+                            model = await _cardService.CreateAsync(model, user, date);
                         }
                         else
                         {
@@ -212,7 +212,7 @@ namespace iLgs.Controllers
                             ModelState.AddModelError("UpdateError", "Access Denied!");
                         }
                     }
-                    
+
                 }
             }
             catch (Exception e)
@@ -231,7 +231,7 @@ namespace iLgs.Controllers
                 return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
             }
 
-            return Json(new { Errors = "", Id = model.Id}, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
         }
 
 
@@ -244,13 +244,13 @@ namespace iLgs.Controllers
             return Json(new { Description = description, StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult _StockCardItem(Guid cardId)
+        public ActionResult _PropertyCardItem(Guid cardId)
         {
             ViewData["cardId"] = cardId;
             return PartialView();
         }
 
-        public async Task<ActionResult> _StockCardItemAddEdit(Guid cardId, Guid? cardItemId)
+        public async Task<ActionResult> _PropertyCardItemAddEdit(Guid cardId, Guid? cardItemId)
         {
             var data = await _cardItemService.GetByIdAsync(cardItemId);
             if (data == null)
@@ -261,7 +261,7 @@ namespace iLgs.Controllers
                     PsCardId = cardId
                 };
             }
-            
+
             ViewData["cardItemId"] = cardItemId;
             return PartialView(data);
         }
@@ -271,13 +271,13 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                
+
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -292,7 +292,7 @@ namespace iLgs.Controllers
                     else
                     {
                         model = await _cardItemService.UpdateAsync(model, user, date);
-                    }                    
+                    }
                 }
             }
             catch (Exception e)
@@ -334,7 +334,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -363,7 +363,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -399,7 +399,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -443,7 +443,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -472,7 +472,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -508,7 +508,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -538,7 +538,7 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }        
+        }
 
         #region PRINTOUTS
         public ActionResult StockCardRpt(string stockNo)

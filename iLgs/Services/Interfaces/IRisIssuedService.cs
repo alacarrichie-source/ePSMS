@@ -17,6 +17,6 @@ namespace iLgs.Services.Interfaces
 
         ValueTask<RisIssuedVM> CreateAsync(RisIssuedVM model, string user, DateTime date);
         ValueTask<RisIssuedVM> UpdateAsync(RisIssuedVM model, string user, DateTime date);
-        ValueTask<RisIssuedVM> DeleteAsync(RisIssuedVM model, string user, DateTime date);
+        ValueTask<RisIssuedVM> DeleteAsync(RisIssuedVM model, string user, DateTime date);        
     }
 }

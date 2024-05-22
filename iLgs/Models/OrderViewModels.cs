@@ -166,6 +166,8 @@ namespace iLgs.Models
         public string Unit { get; set; }
         public string ItemTypeCode { get; set; }
         public string ItemCategory { get; set; }
+        public string CardCategory { get; set; }
+        public string Remarks { get; set; }
     }
 
     public class OrderItemExtnVM
@@ -193,6 +195,7 @@ namespace iLgs.Models
     public class PoIssuanceVM
     {
         public System.Guid Id { get; set; }
+        public System.Guid? OrderItemId { get; set; }
         public System.Guid? RisItemId { get; set; }
 
         [Display(Name = "PO No.")]
@@ -210,6 +213,10 @@ namespace iLgs.Models
         [Display(Name = "PO Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> PoDate { get; set; }
+
+        [Display(Name = "AIR Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> AirDate { get; set; }
 
         [Display(Name = "Department")]
         public string Department { get; set; }
@@ -239,6 +246,7 @@ namespace iLgs.Models
 
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
+        public bool IsProperty { get; set; }
     }
 
     public class OrderItemUnitGroupVM

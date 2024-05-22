@@ -26,10 +26,19 @@ namespace iLgs.Models
         public Nullable<System.Guid> LocationId { get; set; }
         public Nullable<System.Guid> OfficerId { get; set; }
         public string IssuedTo { get; set; }
+        public string IssuedToPosition { get; set; }
         public Nullable<System.DateTime> IssuedDate { get; set; }
         public string IssuedBy { get; set; }
+        public string IssuedByPosition { get; set; }
+        public Nullable<System.DateTime> IssuedByDate { get; set; }
         public Nullable<int> Qty { get; set; }
         public Nullable<decimal> Amount { get; set; }
+        public string RefNo { get; set; }
+        public Nullable<System.DateTime> RefDate { get; set; }
+        public string RefType { get; set; }
+        public string PostedBy { get; set; }
+        public Nullable<System.DateTime> PostedDt { get; set; }
+        public string PropNo { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

@@ -12,7 +12,8 @@
     </div>
     
     @Html.HiddenFor(model => model.Id)
-    
+    @Html.HiddenFor(model => model.AirId)
+
     <fieldset>
 
         <div class="row">
@@ -42,7 +43,7 @@
                             c.Add().Field("UnitCost").Title("Type").Width("15%");
 
                         })
-                        .Suggest(true)
+                        .Suggest(true).Enable(false)
                         .Events(e => { e.Select("onSelectOrderItemId"); })
                 )
                 @Html.ValidationMessageFor(m => m.OrderItemId)
@@ -78,7 +79,35 @@
                 )
                 @Html.ValidationMessageFor(model => model.Qty)
             </div>
-        </div>        
+        </div>
+        
+        <div class="row">
+            @Html.LabelFor(m => m.Remarks, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.Remarks)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Remarks")
+                            .DataTextField("Description")
+                            .DataValueField("Description")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "PS-REMARKS", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {                                
+                                c.Add().Field("Description").Title("Description").Width("100%");
+                            })
+                            .Suggest(true)
+                )
+                @Html.ValidationMessageFor(model => model.Remarks)
+            </div>
+        </div>
 
     </fieldset>
 }

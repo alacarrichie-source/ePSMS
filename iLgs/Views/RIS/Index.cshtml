@@ -32,8 +32,8 @@
         t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintRIS").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostRIS").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostRIS").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Issue").IconClass("k-icon k-i-unlock").Name("btnIssueRIS").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Remove Issuance").IconClass("k-icon k-i-unlock").Name("btnRemoveIssueRIS").HtmlAttributes(new { @class = "k-button", href = "" });
+        //t.Custom().Text("Issue").IconClass("k-icon k-i-unlock").Name("btnIssueRIS").HtmlAttributes(new { @class = "k-button", href = "" });
+        //t.Custom().Text("Remove Issuance").IconClass("k-icon k-i-unlock").Name("btnRemoveIssueRIS").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RISTemplate").Window(w => w.Width(800).Title("Requisition and Issue Slip")))
@@ -248,13 +248,13 @@
             $(".k-grid-btnPostRIS", grid).show();
         }
 
-        if (issuedBy) {
-            $(".k-grid-btnRemoveIssueRIS", grid).show();
-            $(".k-grid-btnIssueRIS", grid).hide();
-        } else {
-            $(".k-grid-btnRemoveIssueRIS", grid).hide();
-            $(".k-grid-btnIssueRIS", grid).show();
-        }
+        //if (issuedBy) {
+        //    $(".k-grid-btnRemoveIssueRIS", grid).show();
+        //    $(".k-grid-btnIssueRIS", grid).hide();
+        //} else {
+        //    $(".k-grid-btnRemoveIssueRIS", grid).hide();
+        //    $(".k-grid-btnIssueRIS", grid).show();
+        //}
     }
 
     function onDataBoundGrid(e) {
@@ -282,8 +282,8 @@
             $(".k-grid-btnPrintRIS", grid).hide();
             $(".k-grid-btnPostRIS", grid).hide();
             $(".k-grid-btnUnpostRIS", grid).hide();
-            $(".k-grid-btnRemoveIssueRIS", grid).hide();
-            $(".k-grid-btnIssueRIS", grid).hide();
+            //$(".k-grid-btnRemoveIssueRIS", grid).hide();
+            //$(".k-grid-btnIssueRIS", grid).hide();
         }
 
         //alert('x');

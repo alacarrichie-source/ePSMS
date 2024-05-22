@@ -32,15 +32,23 @@ namespace iLgs.Services
         private readonly IExceptionService<PsCardVM> _vmExceptionService = new ExceptionService<PsCardVM>();
         private readonly IExceptionService<PsCard> _exceptionService = new ExceptionService<PsCard>();
 
+        private readonly string _cardCategory = "";
+
         public PsCardService(AppManEntities db)
         {
+            _db = db;            
+        }
+
+        public PsCardService(AppManEntities db, string cardCategory)
+        {            
+            _cardCategory = cardCategory;
             _db = db;
         }
 
-  
+
         public IQueryable<PsCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.PsCards
+            var data = _db.PsCards.AsNoTracking()
                 .Select(s => new PsCardVM
                 {
                     Id = s.Id,
@@ -67,13 +75,23 @@ namespace iLgs.Services
                     FieldsVehicle = s.FieldsVehicle,
                     InsertedDt = s.InsertedDt                    
                 });
-            return data;
+            
+            return GetAllByCategory(data);
         });
+
+        private IQueryable<PsCardVM> GetAllByCategory(IQueryable<PsCardVM> data)
+        {
+            if (!string.IsNullOrEmpty(_cardCategory))
+            {
+                data = data.Where(w => w.CardCategory == _cardCategory);
+            }
+            return data;
+        }
 
         
         public IQueryable<PsCardVM> GetAllByItemCodeId(Guid? itemCodeId) => _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.PsCards.Where(w => w.ItemCodeId == itemCodeId)
+            var data = _db.PsCards.Where(w => w.ItemCodeId == itemCodeId).AsNoTracking()
                 .Select(s => new PsCardVM
                 {
                     Id = s.Id,
@@ -100,12 +118,12 @@ namespace iLgs.Services
                     FieldsVehicle = s.FieldsVehicle,
                     InsertedDt = s.InsertedDt                    
                 });
-            return data;
+            return GetAllByCategory(data);
         });
 
         public ValueTask<PsCardVM> GetVmByIdAsync(Guid? id) => _vmExceptionService.TryCatch(async () =>
         {
-            var data = await _db.PsCards.Where(w => w.Id == id)
+            var data = await _db.PsCards.Where(w => w.Id == id).AsNoTracking()
                 .Select(s => new PsCardVM
                 {
                     Id = s.Id,
@@ -137,7 +155,7 @@ namespace iLgs.Services
 
         public ValueTask<PsCard> GetByIdAsync(Guid id) => _exceptionService.TryCatch(async () =>
         {
-            return await _db.PsCards
+            return await _db.PsCards.AsNoTracking()
                 .Include(i => i.FieldsMedicine)
                 .Include(i => i.FieldsOther)
                 .Include(i => i.FieldsVehicle)

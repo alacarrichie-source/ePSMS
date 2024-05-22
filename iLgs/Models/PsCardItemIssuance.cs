@@ -23,15 +23,19 @@ namespace iLgs.Models
         public Nullable<System.DateTime> IssuedDate { get; set; }
         public Nullable<int> Qty { get; set; }
         public Nullable<decimal> Amount { get; set; }
+        public string RefNo { get; set; }
+        public Nullable<System.DateTime> RefDate { get; set; }
+        public string RefType { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public string PropNo { get; set; }
     
+        public virtual AccountableOfficer AccountableOfficer { get; set; }
         public virtual Codextn Codextn { get; set; }
         public virtual PARItem PARItem { get; set; }
-        public virtual AccountableOfficer AccountableOfficer { get; set; }
-        public virtual RisIssued RisIssued { get; set; }
         public virtual PsCardItem PsCardItem { get; set; }
+        public virtual RisIssued RisIssued { get; set; }
     }
 }

@@ -47,7 +47,11 @@ namespace iLgs.Services
                     OfficerId = s.OfficerId,
                     Location = s.Codextn.Description,
                     Officer = s.AccountableOfficer.Name,
-                    UnitCost = s.PsCardItem.UnitCost
+                    UnitCost = s.PsCardItem.UnitCost,
+                    RefNo = s.RefNo,
+                    RefDate = s.RefDate,
+                    RefType = s.RefType,
+                    PropNo = s.PropNo
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -69,7 +73,11 @@ namespace iLgs.Services
                     OfficerId = s.OfficerId,
                     Location = s.Codextn.Description,
                     Officer = s.AccountableOfficer.Name,
-                    UnitCost = s.PsCardItem.UnitCost
+                    UnitCost = s.PsCardItem.UnitCost,
+                    RefNo = s.RefNo,
+                    RefDate = s.RefDate,
+                    RefType = s.RefType,
+                    PropNo = s.PropNo
                 });
             return data;
         });
@@ -107,7 +115,11 @@ namespace iLgs.Services
                 UpdatedBy = model.UpdatedBy,
                 UpdatedDt = model.UpdatedDt,
                 LocationId = model.LocationId,
-                OfficerId = model.OfficerId                
+                OfficerId = model.OfficerId,
+                RefNo = model.RefNo,
+                RefDate = model.RefDate,
+                RefType = model.RefType,
+                PropNo = model.PropNo
             };
 
             _db.PsCardItemIssuances.Add(entity);
@@ -145,8 +157,12 @@ namespace iLgs.Services
             entity.IssuedDate = model.IssuedDate;
             entity.Qty = model.Qty;
             entity.Amount = entity.PsCardItem.UnitCost * model.Qty;
+            entity.RefNo = model.RefNo;
+            entity.RefDate = model.RefDate;
+            entity.RefType = model.RefType;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
+            entity.PropNo = model.PropNo;
 
             _db.PsCardItemIssuances.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;

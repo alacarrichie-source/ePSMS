@@ -10,11 +10,13 @@
         col.Bound(c => c.Qty).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
             .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
             .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        //col.Command(command =>
-        //{
-        //    command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
-        //    //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-        //}).Width(172);
+        col.Bound(c => c.Remarks).Width(70);
+        col.Command(command =>
+        {
+            command.Edit();
+            //command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
+            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+        }).Width(100);
     })
     //.ToolBar(t =>
     //{
@@ -35,7 +37,7 @@
     //.Scrollable(s => s.Height(180))
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
-    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRItemTemplate").Window(w => w.Width(500).Title("Acceptance and Inspection Item")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRItemTemplate").Window(w => w.Width(500).Title("Acceptance and Inspection Item")))
     .DataSource(dataSource => dataSource
         .Ajax()
         .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
@@ -54,12 +56,12 @@
         })
         .Read(read => read.Action("_AIRItemRead", "AIRs", new { airId = @ViewData["airId"] }))
     //.Create(create => create.Action("_AIRItemCreate", "AIRs"))
-    //.Update(update => update.Action("_AIRItemUpdate", "AIRs"))
+    .Update(update => update.Action("_AIRItemUpdate", "AIRs"))
     //.Destroy(destroy => destroy.Action("_AIRItemDestroy", "AIRs"))
     )
     .Events(events => events
         .Change("onChangeGridItems")
-        //.Edit("onEditGridItems")
+        .Edit("onEditGridItems")
         .DataBound("onDataBoundGridItems")
     )
     .AutoBind(true)

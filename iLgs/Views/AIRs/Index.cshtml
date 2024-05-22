@@ -368,7 +368,6 @@
     function Entry(mode, airId) {
         var myTitle = (mode == "A") ? "Acceptance & Inspection - ADD" : "Acceptance & Inspection - EDIT";
         var width = "50%";
-        var height = "77%";
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -385,17 +384,22 @@
                 }).data("kendoWindow");
         mywindow.setOptions({
             title: myTitle,
-            width: width,
-            height: height
+            width: width
         });
 
         mywindow.refresh({
             url: '@Url.Action("_AIRAddEdit", "AIRs")',
             data: {
                 airId: airId
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
             }
         });
-        mywindow.center().open();
+        mywindow.open();
     }
 
     // Grid Item
@@ -509,7 +513,7 @@
     function onClickBtnEditItem(e) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         // the master row for this detail
         var parentRow = this.wrapper.closest("tr").prev();
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
@@ -524,14 +528,13 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        
+
         AIRItem("E", dataItem.Id);
     }
 
     function AIRItem(mode, recId) {
         var myTitle = (mode == "A") ? "AIR Item - ADD" : "AIR Item - EDIT";
         var width = 800;
-        var height = 500;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -548,17 +551,21 @@
                 }).data("kendoWindow");
         mywindow.setOptions({
             title: myTitle,
-            width: width,
-            height: height
+            width: width            
         });
         mywindow.refresh({
             url: '@Url.Action("_AIRItemAddEdit", "AIRs")',
             data: {
                 airId: selectedId,
                 airItemId: recId
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
             }
         });
-        mywindow.center();
         mywindow.open();
     }
 
@@ -671,11 +678,11 @@
     }
 
     function onEditGridInvoice(e) {
-        e.preventDefault();        
+        e.preventDefault();
         selectedGrid = e.sender;
 
-        var validator = $("#formAir").kendoValidator().data("kendoValidator");        
-        
+        var validator = $("#formAir").kendoValidator().data("kendoValidator");
+
         if (!validator.validate()) {
 
             // Get all the invalid input elements.
@@ -700,7 +707,7 @@
         }
     }
 
-    function SaveRecords(e, closeWindow) {        
+    function SaveRecords(e, closeWindow) {
         var disabled = $("#formAir").find(':input:disabled').removeAttr('disabled');
         $.ajax({
             type: "POST",
@@ -716,11 +723,11 @@
                     $("#formAir input[name=AIRNo]").val(result.Model.AIRNo).trigger("change");
                     if (closeWindow) {
                         $("#btnCancelSelection").closest(".k-window-content").data("kendoWindow").close();
-                    } else {                        
-                        if (e.model.isNew()) {                            
+                    } else {
+                        if (e.model.isNew()) {
                             selectedId = result.Model.Id;
 
-                            e.model.set("AirId", selectedId);                            
+                            e.model.set("AirId", selectedId);
 
                             var row = e.sender.tbody.find("tr:first");
                             if (row) {

@@ -352,13 +352,16 @@ namespace iLgs.Models
         [Display(Name = "Location")]
         public Nullable<System.Guid> LocationId { get; set; }
 
-        [Display(Name = "Officer")]
+        [Display(Name = "Accountable Officer")]
         public Nullable<System.Guid> OfficerId { get; set; }
 
 
         [Display(Name = "Issued To")]
         public string IssuedTo { get; set; }
-        
+
+        [Display(Name = "Issued To Position")]
+        public string IssuedToPosition { get; set; }
+
         [Display(Name = "Issued Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> IssuedDate { get; set; }
@@ -366,10 +369,36 @@ namespace iLgs.Models
         [Display(Name = "Issued By")]
         public string IssuedBy { get; set; }
 
+        [Display(Name = "Issued By Position")]
+        public string IssuedByPosition { get; set; }
+
+        [Display(Name = "Issued By Date")]
+        public Nullable<System.DateTime> IssuedByDate { get; set; }
+
         public Nullable<int> Qty { get; set; }
 
         public Nullable<decimal> Amount { get; set; }
-        
+
+        [Display(Name = "Ref. No.")]
+        public string RefNo { get; set; }
+
+        [Display(Name = "Ref. Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> RefDate { get; set; }
+
+        [Display(Name = "Ref. Type")]
+        public string RefType { get; set; }
+
+        [Display(Name = "Posted By")]
+        public string PostedBy { get; set; }
+
+        [Display(Name = "Posted Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PostedDt { get; set; }
+
+        [Display(Name = "Property No.")]
+        public string PropNo { get; set; }
+
         public string InsertedBy { get; set; }
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
@@ -379,6 +408,11 @@ namespace iLgs.Models
         // transient
         public Nullable<decimal> UnitCost { get; set; }
         public string Location { get; set; }
+
+        [Display(Name = "Location Code")]
+        public string LocationCode { get; set; } // for PAR/ICS Generation (used in _GeneratePAR.cshtml)
+
+        [Display(Name = "Accountable Officer")]
         public string Officer { get; set; }
 
     }
