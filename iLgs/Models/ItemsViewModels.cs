@@ -79,6 +79,7 @@ namespace iLgs.Models
         public string Account { get; set; }
         public string SubArticle { get; set; }
         public string MainDescCode { get; set; }
+        public int? FieldGroupNo { get; set; }
     }
    
     public class ItemFieldVM
@@ -99,10 +100,10 @@ namespace iLgs.Models
         [Display(Name = "Type Code")]
         public string Code { get; set; }
         public string Description { get; set; }
-        [Display(Name = "Formula Fields")]
+        [Display(Name = "Field Group No.")]
         public int? FormulaNo { get; set; }
         public string Category { get; set; }
-        [Display(Name = "Group Code")]
+        [Display(Name = "Account Group Code")]
         public string GroupCode { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }

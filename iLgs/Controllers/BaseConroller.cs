@@ -78,9 +78,14 @@ namespace iLgs.Utilities
                 else
                 {
                     string url = HttpContext.Request.Url.ToString();
+
                     Uri uri = new Uri(url);
                     string path = uri.AbsolutePath;
-                    string websiteName = path.Trim('/');
+                    //string websiteName = path.Trim('/');                    
+
+                    // Extract the first segment of the path
+                    string websiteName = uri.Segments.Length > 1 ? uri.Segments[1].Trim('/') : string.Empty;
+
 
                     foreach (var menu in allMenu)
                     {

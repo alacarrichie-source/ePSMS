@@ -57,6 +57,7 @@ namespace iLgs.Services
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
+                    FieldGroupNo = s.ItemCode.ItemType.FormulaNo,
                     //ItemTypeCategory = s.ItemCode.ItemType.Category,
                     CardCategory = s.CardCategory,
                     Description = s.Description,
@@ -100,6 +101,7 @@ namespace iLgs.Services
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
+                    FieldGroupNo = s.ItemCode.ItemType.FormulaNo,
                     //ItemTypeCategory = s.ItemCode.ItemType.Category,
                     CardCategory = s.CardCategory,
                     Description = s.Description,
@@ -132,6 +134,7 @@ namespace iLgs.Services
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
+                    FieldGroupNo = s.ItemCode.ItemType.FormulaNo,
                     //ItemTypeCategory = s.ItemCode.ItemType.Category,
                     CardCategory = s.CardCategory,
                     Description = s.Description,
@@ -173,11 +176,11 @@ namespace iLgs.Services
             return await _db.PsCards.Where(w => w.PsNo == psNo).FirstOrDefaultAsync();
         });
 
-        public ValueTask<PsCardVM> CreateAsync(PsCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        private void ValidateField(PsCardVM model)
         {
             if (model.ItemCodeId == null)
             {
-                throw new InvalidValueException("PPE is Required!");
+                throw new InvalidValueException("Article is Required!");
             }
 
             if (string.IsNullOrWhiteSpace(model.Description))
@@ -189,6 +192,21 @@ namespace iLgs.Services
             {
                 throw new InvalidValueException("Fund is Required!");
             }
+
+            if (string.IsNullOrWhiteSpace(model.PsNo))
+            {
+                throw new InvalidValueException("Stock/Prop No. is Required!");
+            }
+        }
+
+        public ValueTask<PsCardVM> CreateAsync(PsCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        {
+            ValidateField(model);
+
+            if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.CardCategory == "S"))
+            {
+                throw new RecordAlreadyExistsException(string.Format("Stock/Property No. {0} already exists!", model.PsNo));
+            }            
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -232,19 +250,11 @@ namespace iLgs.Services
                 throw new RecordNotFoundException(model.Id);
             }
 
-            if (model.ItemCodeId == null)
-            {
-                throw new InvalidValueException("Item is Required!");
-            }
+            ValidateField(model);
 
-            if (string.IsNullOrWhiteSpace(model.Description))
+            if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.CardCategory == "S" && a.Id != model.Id))
             {
-                throw new InvalidValueException("Description is Required!");
-            }
-
-            if (string.IsNullOrWhiteSpace(model.Fund))
-            {
-                throw new InvalidValueException("Fund is Required!");
+                throw new RecordAlreadyExistsException(string.Format("Stock/Property No. {0} already exists!", model.PsNo));
             }
 
             model.UpdatedBy = user;
@@ -343,14 +353,29 @@ namespace iLgs.Services
 
         public string GetDescription(PsCardVM fields)
         {
-            var f = fields.FieldsMedicine;
             string description = "";
-            description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
-            description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
-            description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
-            description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : " (" + f.Brand.Trim() + ")";
-            return description;
+            if (Enum.TryParse(fields.ItemTypeCode, out Category category))
+            {
+                if (category == Category.D)
+                {
+                    var f = fields.FieldsMedicine;
+                    description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
+                    description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
+                    description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
+                    description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
+                    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : " (" + f.Brand.Trim() + ")";
+                }
+                else if (category == Category.W || category == Category.O || category == Category.M)
+                {
+                    var f = fields.FieldsOther;
+                    description += string.IsNullOrWhiteSpace(f.Dimension) ? "" : f.Dimension.Trim();
+                    description += string.IsNullOrWhiteSpace(f.Size) ? "" : f.Size.Trim();
+                    description += string.IsNullOrWhiteSpace(f.Capacity) ? "" : f.Capacity.Trim();
+                    description += string.IsNullOrWhiteSpace(f.Color) ? "" : f.Color.Trim();
+                }
+            }
+                
+            return description ?? "";
         }
 
         public string GetStockNo(PsCardVM model)
@@ -365,56 +390,129 @@ namespace iLgs.Services
                 if (category == Category.D)
                 {
                     var f = model.FieldsMedicine;
-                    if (f.GenericName.Length >= 3)
+                    if (f != null)
                     {
-                        stockNo += f.GenericName.Substring(0, 1) + f.GenericName.Substring(2, 1);
+                        if (!string.IsNullOrWhiteSpace(f.GenericName))
+                        {
+                            if (f.GenericName.Length >= 3)
+                            {
+                                stockNo += f.GenericName.Substring(0, 1) + f.GenericName.Substring(2, 1);
+                            }
+                            else
+                            {
+                                stockNo += f.GenericName.Substring(0, 1) + "X";
+                            }
+                        }
+                        if (!string.IsNullOrWhiteSpace(f.DosageStrength))
+                        {
+                            stockNo += f.DosageStrength.Replace(" ", "").Trim();
+                        }
+                        if (!string.IsNullOrWhiteSpace(f.DosageForm))
+                        {
+                            stockNo += f.DosageForm.PadRight(3, 'X').Substring(0, 3);
+                        }
+                        if (!string.IsNullOrWhiteSpace(f.Brand))
+                        {
+                            stockNo += f.Brand.Replace(" ", "").Trim();
+                        }
                     }
-                    else
+                }
+                else if (category == Category.W || category == Category.O || category == Category.M)
+                {
+                    var f = model.FieldsOther;
+                    if (f != null)
                     {
-                        stockNo += f.GenericName.Substring(0, 1) + "X";
-                    }
-                    if (!string.IsNullOrWhiteSpace(f.DosageStrength))
-                    {
-                        stockNo += f.DosageStrength.Replace(" ", "").Trim();
-                    }
-                    if (!string.IsNullOrWhiteSpace(f.DosageForm))
-                    {
-                        stockNo += f.DosageForm.PadRight(3, 'X').Substring(0, 3);
-                    }
-                    if (!string.IsNullOrWhiteSpace(f.Brand))
-                    {
-                        stockNo += f.Brand.Replace(" ", "").Trim();
+                        if (!string.IsNullOrWhiteSpace(f.Dimension))
+                        {
+                            var str = f.Dimension.Replace(" ", "").Trim();
+                            if (str.Length >= 3)
+                            {
+                                stockNo += str.Substring(0, 3);
+                            }
+                            else
+                            {
+                                stockNo += str.Substring(0, str.Length);
+                            }
+                        }
+                        else if (!string.IsNullOrWhiteSpace(f.Size))
+                        {
+                            var str = f.Size.Replace(" ", "").Trim();
+                            if (str.Length >= 3)
+                            {
+                                stockNo += str.Substring(0, 3);
+                            }
+                            else
+                            {
+                                stockNo += str.Substring(0, str.Length);
+                            }
+                        }
+                        else if (!string.IsNullOrWhiteSpace(f.Capacity))
+                        {
+                            var str = f.Capacity.Replace(" ", "").Trim();
+                            if (str.Length >= 3)
+                            {
+                                stockNo += str.Substring(0, 3);
+                            }
+                            else
+                            {
+                                stockNo += str.Substring(0, str.Length);
+                            }
+                        }
+                        else if (!string.IsNullOrWhiteSpace(f.Color))
+                        {
+                            var str = f.Color.Replace(" ", "").Trim();
+                            if (str.Length >= 3)
+                            {
+                                stockNo += str.Substring(0, 3);
+                            }
+                            else
+                            {
+                                stockNo += str.Substring(0, str.Length);
+                            }
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(f.Brand))
+                        {
+                            stockNo += f.Brand.Replace(" ", "").Trim();
+                        }
+                        else if (!string.IsNullOrWhiteSpace(f.Model_))
+                        {
+                            stockNo += f.Model_.Replace(" ", "").Trim();
+                        }
                     }
                 }
                 else if (category == Category.T)
                 {
                     var f = model.FieldsVehicle;
-                    if (f.Make.Length >= 3)
+                    if (f != null)
                     {
-                        stockNo += f.Make.Substring(0, 1) + f.Make.Substring(2, 1);
-                    }
-                    else
-                    {
-                        stockNo += f.Make.Substring(0, 1) + "X";
-                    }
+                        if (f.Make.Length >= 3)
+                        {
+                            stockNo += f.Make.Substring(0, 1) + f.Make.Substring(2, 1);
+                        }
+                        else
+                        {
+                            stockNo += f.Make.Substring(0, 1) + "X";
+                        }
 
-                    if (f.YearModel > 0)
-                    {
-                        stockNo += f.YearModel.ToString().Trim();
-                    }
+                        if (f.YearModel > 0)
+                        {
+                            stockNo += f.YearModel.ToString().Trim();
+                        }
 
-                    if (string.IsNullOrWhiteSpace(f.Series))
-                    {
-                        stockNo += "XXX";
-                    }
-                    else
-                    {
-                        stockNo += f.Series.Substring(0, 3);
+                        if (string.IsNullOrWhiteSpace(f.Series))
+                        {
+                            stockNo += "XXX";
+                        }
+                        else
+                        {
+                            stockNo += f.Series.Substring(0, 3);
+                        }
                     }
                 }
             }
 
-            return stockNo;
+            return stockNo ?? "";
         }
 
         //public string GetStockName(PsCardVM model)

@@ -155,14 +155,17 @@
 
 <script type="text/x-kendo-template" id="validationMessageTemplate">
     # if (messages.length) { #
-    <li>
+    @*<li>
         #=field#
         <ul>
             # for (var i = 0; i < messages.length; ++i) { #
             <li>#= messages[i] #</li>
             # } #
         </ul>
-    </li>
+    </li>*@
+        # for (var i = 0; i < messages.length; ++i) { #
+        <li>#= messages[i] #</li>
+        # } #
     # } #
 </script>
 
@@ -518,11 +521,11 @@
             this.select(row);
             selectedItemId = null;
             e.model.set("RisItemId", selectedRisItemId);
-            $("#div_reference").hide();
+            //$("#div_reference").hide();
         } else {
-            if (!e.model.get("RefNo")) {
-                $("#div_reference").hide();
-            }
+            //if (!e.model.get("RefNo")) {
+            //    $("#div_reference").hide();
+            //}
             selectedItemId = e.model.get("Id");
             e.model.set("UnitCost", selectedUnitCost);
             var rowitem = selectedGrid.dataSource.get(selectedItemId);

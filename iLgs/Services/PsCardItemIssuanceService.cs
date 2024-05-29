@@ -82,9 +82,35 @@ namespace iLgs.Services
             return data;
         });
 
+        private async ValueTask ValidateFieldsAsync(PsCardItemIssuanceVM model)
+        {
+            if (model.LocationId == null)
+            {
+                throw new InvalidValueException("Location is required!");
+            }
+
+            if (model.IssuedDate == null)
+            {
+                throw new InvalidValueException("Issued Date is required!");
+            }
+
+            if (model.Qty == 0)
+            {
+                throw new InvalidValueException("Quantity is required!");
+            }
+
+            var rsmiDate = await _db.RSMIs.MaxAsync(m => m.Date);
+            if (rsmiDate != null && rsmiDate > model.IssuedDate)
+            {
+                throw new InvalidValueException(string.Format("Date issued must be after the last RSMI date on {0}", rsmiDate.Value.ToShortDateString()));
+            }
+        }
+
 
         public ValueTask<PsCardItemIssuanceVM> CreateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            await ValidateFieldsAsync(model);
+
             var totalQtyIssued = _db.PsCardItems.Find(model.PsCardItemId)?.Qty ?? 0;
             var qtyIssued = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == model.PsCardItemId).Sum(s => s.Qty) ?? 0;
             var qtyBalance = totalQtyIssued - qtyIssued;
@@ -132,6 +158,8 @@ namespace iLgs.Services
 
         public ValueTask<PsCardItemIssuanceVM> UpdateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            await ValidateFieldsAsync(model);
+
             var totalQtyIssued = _db.PsCardItems.Find(model.PsCardItemId)?.Qty ?? 0;
             var qtyIssued = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.Id).Sum(s => s.Qty) ?? 0;
             var qtyBalance = totalQtyIssued - qtyIssued;

@@ -178,11 +178,11 @@ namespace iLgs.Controllers
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> _StockCardSave(PsCardVM model)
         {
+            string errorKey = "";
             try
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
                 Access access = await accessTask;                
-
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -198,7 +198,8 @@ namespace iLgs.Controllers
                         }
                         else
                         {
-                            ModelState.AddModelError("AddError", "Access Denied!");
+                            errorKey = "AddError";
+                            ModelState.AddModelError(errorKey, "Access Denied!");
                         }
                     }
                     else
@@ -209,7 +210,8 @@ namespace iLgs.Controllers
                         }
                         else
                         {
-                            ModelState.AddModelError("UpdateError", "Access Denied!");
+                            errorKey = "UpdateError";
+                            ModelState.AddModelError(errorKey, "Access Denied!");
                         }
                     }
                     
@@ -217,8 +219,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError(errorKey, "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError(errorKey, e.Message);
+                }
             }
 
             var query = from state in ModelState.Values
@@ -351,8 +360,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("AddError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("AddError", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -405,8 +421,8 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else 
+                //if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
@@ -460,8 +476,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -491,7 +514,7 @@ namespace iLgs.Controllers
             {
                 if (e.GetType().Name == "ServiceException")
                 {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
                          "please contact tech support with this message: " + e.Message);
                 }
                 else
@@ -514,9 +537,10 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else 
+                //if (ModelState.IsValid)
                 {
+                    ModelState.Clear();
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 

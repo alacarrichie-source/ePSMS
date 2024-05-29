@@ -350,6 +350,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderItemId { get; set; }
 
         [Display(Name = "Location")]
+        [Required]
         public Nullable<System.Guid> LocationId { get; set; }
 
         [Display(Name = "Accountable Officer")]
@@ -363,6 +364,7 @@ namespace iLgs.Models
         public string IssuedToPosition { get; set; }
 
         [Display(Name = "Issued Date")]
+        [Required]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> IssuedDate { get; set; }
 
@@ -375,6 +377,7 @@ namespace iLgs.Models
         [Display(Name = "Issued By Date")]
         public Nullable<System.DateTime> IssuedByDate { get; set; }
 
+        [Required]
         public Nullable<int> Qty { get; set; }
 
         public Nullable<decimal> Amount { get; set; }

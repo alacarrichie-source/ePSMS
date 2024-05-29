@@ -155,21 +155,41 @@ namespace iLgs.Services
             return data;
         });
 
+        private async ValueTask ValidateFieldsAsync(RisIssuedVM model)
+        {
+            if (model.LocationId == null)
+            {
+                throw new InvalidValueException("Location is required!");
+            }
+
+            if (model.IssuedDate == null)
+            {
+                throw new InvalidValueException("Issued Date is required!");
+            }
+
+            if (model.Qty == 0)
+            {
+                throw new InvalidValueException("Quantity is required!");
+            }            
+
+            var rsmiDate = await _db.RSMIs.MaxAsync(m => m.Date);
+            if (rsmiDate != null && rsmiDate > model.IssuedDate)
+            {
+                throw new InvalidValueException(string.Format("Date issued must be after the last RSMI date on {0}", rsmiDate.Value.ToShortDateString()));
+            }
+        }
+
         public ValueTask<RisIssuedVM> CreateAsync(RisIssuedVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
-            var totalQtyIssued = _db.RisItems.Find(model.RisItemId)?.QtyRequest ?? 0;
-            var qtyIssued = _db.RisIssueds.Where(w => w.RisItemId == model.RisItemId).Sum(s => s.Qty) ?? 0;
+            await ValidateFieldsAsync(model);
+
+            var totalQtyIssued = (await _db.RisItems.FindAsync(model.RisItemId))?.QtyRequest ?? 0;
+            var qtyIssued = await _db.RisIssueds.Where(w => w.RisItemId == model.RisItemId).SumAsync(s => s.Qty) ?? 0;
             var qtyBalance = totalQtyIssued - qtyIssued;
             if (model.Qty > qtyBalance)
             {
                 throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
-            }
-
-            var rsmiDate = _db.RSMIs.Max(m => m.Date);
-            if (rsmiDate != null && rsmiDate > model.IssuedDate)
-            {
-                throw new InvalidValueException(string.Format("Date issued must be after the last RSMI date on {0}", rsmiDate.Value.ToShortDateString()));
             }
 
             model.Id = Guid.NewGuid();
@@ -213,9 +233,7 @@ namespace iLgs.Services
             _db.RisItems.Attach(risItem);
             _db.Entry(risItem).State = EntityState.Modified;
 
-            await _db.SaveChangesAsync();
-            //await UpdateRisStockItems(model.RisItemId);
-            //await UpdateStockItemIssuance(entity, user, date);
+            await _db.SaveChangesAsync();            
             return model;
         });
 
@@ -265,6 +283,8 @@ namespace iLgs.Services
                 throw new RecordRelationshipException("Record is already posted, Cannot update!");
             }
 
+            await ValidateFieldsAsync(model);
+
             var totalQtyIssued = _db.RisItems.Find(model.RisItemId)?.QtyRequest ?? 0;
             var qtyIssued = _db.RisIssueds.Where(w => w.RisItemId == model.RisItemId && w.Id != model.Id).Sum(s => s.Qty) ?? 0;
             var qtyBalance = totalQtyIssued - qtyIssued;
@@ -272,13 +292,7 @@ namespace iLgs.Services
             {
                 throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
             }
-
-            var rsmiDate = _db.RSMIs.Max(m => m.Date);
-            if (rsmiDate != null && rsmiDate >= model.IssuedDate)
-            {
-                throw new InvalidValueException(string.Format("Date issued must be after the last RSMI date on {0}", rsmiDate.Value.ToShortDateString()));
-            }
-
+           
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -313,9 +327,6 @@ namespace iLgs.Services
             _db.Entry(risItem).State = EntityState.Modified;
 
             await _db.SaveChangesAsync();
-
-            //await UpdateRisStockItems(model.RisItemId);
-            //await UpdateStockItemIssuance(entity, user, date);
             return model;
         });
 

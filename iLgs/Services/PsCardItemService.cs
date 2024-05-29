@@ -88,6 +88,29 @@ namespace iLgs.Services
             return data;
         });
 
+        private void ValidateFields(PsCardItemVM model)
+        {
+            //if (string.IsNullOrWhiteSpace(model.PoNo))
+            //{
+            //    throw new InvalidValueException("PO No. is Required!");
+            //}
+
+            //if (model.PoDate == null)
+            //{
+            //    throw new InvalidValueException("PO Date is Required!");
+
+            //}
+
+            if (model.Qty == null || model.Qty == 0)
+            {
+                throw new InvalidValueException("Quantity is Required!");
+            }
+
+            if (model.DeptId == null)
+            {
+                throw new InvalidValueException("Office/Department is Required!");
+            }
+        }
 
         public ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {

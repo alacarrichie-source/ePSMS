@@ -11,6 +11,7 @@
     @Html.HiddenFor(model => model.Item)
     @Html.HiddenFor(model => model.SubAccountCode)
     @Html.HiddenFor(model => model.CardCategory)
+    @Html.HiddenFor(model => model.FieldGroupNo)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -72,8 +73,12 @@
                         {
                             c.Add().Field("ItemNo").Title("Item No.").Width("10%");
                             c.Add().Field("Code").Title("Code").Width("10%");
-                            c.Add().Field("MainDesc").Title("Group").Width("40%");
+                            c.Add().Field("MainDesc").Title("Sub-Account").Width("40%");
                             c.Add().Field("Description").Title("Article").Width("40%");
+                            //c.Add().Field("MainDesc").Title("Group").Width("40%")
+                            //        .Template("<span class=\"k-textarea k-readonly \" ><textarea data-role=\"textarea\" disabled=\"disabled\" readonly=\"readonly\" aria-disabled=\"true\" class=\"!k-overflow-y-auto k-input-inner\">#: data.MainDesc #</textarea></span>");
+                            //c.Add().Field("Description").Title("Article").Width("40%")
+                            //    .Template("<span class=\"k-textarea k-readonly \"><textarea data-role=\"textarea\" disabled=\"disabled\" readonly=\"readonly\" aria-disabled=\"true\" class=\"!k-overflow-y-auto k-input-inner\">#: data.Description #</textarea></span>");
                         })
                         .Suggest(true)
                         .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
@@ -101,8 +106,87 @@
             </div>
         </div>
 
+        <div id="DIV_ITEM_1" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>FIELD GROUP 1</h1>
+                </div>
+            </div>
+        </div>
 
-        <div id="DIV_ITEM_D">
+        <div id="DIV_ITEM_2" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>FIELD GROUP 2</h1>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="DIV_ITEM_3" style="display:none">
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.FieldsOther.Dimension, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.FieldsOther.Dimension).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.FieldsOther.Dimension)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.FieldsOther.Size, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.FieldsOther.Size).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.FieldsOther.Size)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.FieldsOther.Capacity, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.FieldsOther.Capacity).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.FieldsOther.Capacity)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.FieldsOther.Color, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.FieldsOther.Color).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.FieldsOther.Color)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.FieldsOther.Brand, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.FieldsOther.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.FieldsOther.Brand)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.FieldsOther.Model_, "Model", htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.FieldsOther.Model_).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+                        @Html.ValidationMessageFor(m => m.FieldsOther.Model_)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="DIV_ITEM_4">
             <div class="row">
                 <div class="col-md-12">
                     @Html.LabelFor(m => m.FieldsMedicine.GenericName, "Generic Name", htmlAttributes: new { @class = "col-md-12" })
@@ -155,55 +239,8 @@
             </div>
         </div>
 
-        <div id="DIV_ITEM_B" style="display:none">
-            <div class="row">
-                <div class="col-md-12">
-                    <h1>BUILDING AND OTHER STRUCTURES</h1>
-                </div>
-            </div>
-        </div>
-
-        <div id="DIV_ITEM_E" style="display:none">
-            <div class="row">
-                <div class="col-md-12">
-                    <h1>MACHINERY AND OTHER EQUIPMENTS</h1>
-                </div>
-            </div>
-        </div>
-
-        <div id="DIV_ITEM_F" style="display:none">
-            <div class="row">
-                <div class="col-md-12">
-                    <h1>FOOD SUPPLIES</h1>
-                </div>
-            </div>
-        </div>
-
-        <div id="DIV_ITEM_D" style="display:none">
-            <div class="row">
-                <div class="col-md-12">
-                    <h4>LAND IMPROVEMENTS</h4>
-                </div>
-            </div>
-        </div>
-
-        <div id="DIV_ITEM_I" style="display:none">
-            <div class="row">
-                <div class="col-md-12">
-                    <h4>INFRASTRUCTURE</h4>
-                </div>
-            </div>
-        </div>
-
-        <div id="DIV_ITEM_L" style="display:none">
-            <div class="row">
-                <div class="col-md-12">
-                    <h4>LAND</h4>
-                </div>
-            </div>
-        </div>
-
-        <div id="DIV_ITEM_T" style="display:none">
+        
+        <div id="DIV_ITEM_5" style="display:none">
             <div class="row">
                 <div class="col-md-12">
                     @Html.LabelFor(m => m.FieldsVehicle.Make, htmlAttributes: new { @class = "col-md-12" })
@@ -284,19 +321,12 @@
                 </div>
             </div>
         </div>
+                
 
-        <div id="DIV_ITEM_U" style="display:none">
+        <div id="DIV_ITEM_6" style="display:none">
             <div class="row">
                 <div class="col-md-12">
-                    <h1>FURNITURE, FIXTURE AND BOOKS</h1>
-                </div>
-            </div>
-        </div>
-
-        <div id="DIV_ITEM_Z" style="display:none">
-            <div class="row">
-                <div class="col-md-12">
-                    <h1>OTHER PROPERTY, PLANT AND PPE</h1>
+                    <h1>FIELD GROUP 6</h1>
                 </div>
             </div>
         </div>
@@ -322,6 +352,7 @@
                 </div>
             </div>
         </div>
+        <br />
 
         <div class="row">
             <div class="col-md-12">

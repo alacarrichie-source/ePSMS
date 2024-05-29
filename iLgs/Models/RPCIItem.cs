@@ -27,6 +27,7 @@ namespace iLgs.Models
         public string StockNo { get; set; }
         public string Unit { get; set; }
         public Nullable<decimal> UnitValue { get; set; }
+        public Nullable<decimal> Amount { get; set; }
         public Nullable<int> QtyBalance { get; set; }
         public Nullable<int> QtyOnHand { get; set; }
         public Nullable<int> QtyShortOver { get; set; }
@@ -41,7 +42,6 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        public Nullable<decimal> Amount { get; set; }
     
         public virtual AccountableOfficer AccountableOfficer { get; set; }
         public virtual Codextn Codextn { get; set; }

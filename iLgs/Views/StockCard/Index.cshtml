@@ -4,15 +4,16 @@
 }
 
 @(Html.Kendo().Grid<iLgs.Models.PsCardVM>()
+    .HtmlAttributes(new { @class = "max-grid" })
     .Name("grid")
     .Columns(col =>
     {
         col.Bound(c => c.Fund).Width(40);
-        col.Bound(c => c.Item).Width(100);
-        col.Bound(c => c.SubAccount).Width(100);
         col.Bound(c => c.PsNo).Width(100);
+        col.Bound(c => c.Item).Width(100);
+        col.Bound(c => c.SubAccount).Width(70);        
         //col.Bound(c => c.PsName).Width(70);
-        col.Bound(c => c.Description).Width(150);
+        col.Bound(c => c.Description).Width(200);
         col.Command(command =>
         {
             //command.Edit();            
@@ -104,7 +105,7 @@
     .Columns(col =>
     {
         col.Bound(c => c.Location).Width(100);
-        col.Bound(c => c.Officer).Width(100);
+        //col.Bound(c => c.Officer).Width(100);
         col.Bound(c => c.IssuedTo).Width(50);
         col.Bound(c => c.IssuedDate).Width(50).EditorTemplateName("_IssuedDateTemplate");
         col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
@@ -124,7 +125,7 @@
     {
         t.Create();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemIssuanceTemplate").Window(w => w.Width(800).Title("Card Item Issuance")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemIssuanceTemplate").Window(w => w.Width(500).Title("Card Item Issuance")))
     .Sortable()
     .NoRecords()
     .DataSource(dataSource => dataSource
@@ -163,6 +164,10 @@
 <style>
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
         width: auto;
+    }
+
+    .k-window-content {
+        overflow-x: hidden;
     }
 
     .k-grid .k-grid-search {
@@ -378,7 +383,7 @@
         flex: 1;
     }*/
 
-    #grid .k-grid-content {
+    /*#grid .k-grid-content {
         overflow-y: auto;
         height: calc(100vh - 230px) !important;
     }
@@ -386,7 +391,7 @@
     #gridStocks .k-grid-content {
         overflow-y: auto;
         height: calc(100vh - 195px) !important;
-    }
+    }*/
 
     .item-photo {
         display: inline-block;
@@ -460,16 +465,20 @@
 
 <script type="text/x-kendo-template" id="validationMessageTemplate">
     # if (messages.length) { #
-    <li>
-        #=field#
-        <ul>
-            # for (var i = 0; i < messages.length; ++i) { #
-            <li>#= messages[i] #</li>
-            # } #
-        </ul>
-    </li>
+    @*<li>
+            #=field#
+            <ul>
+                # for (var i = 0; i < messages.length; ++i) { #
+                <li>#= messages[i] #</li>
+                # } #
+            </ul>
+        </li>*@
+        # for (var i = 0; i < messages.length; ++i) { #
+        <li>#= messages[i] #</li>
+        # } #
     # } #
 </script>
+
 
 
 <script type="text/javascript">
@@ -801,18 +810,20 @@
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
         $("#SubAccountCode").val(dataItem.MainDescCode).trigger("change");
 
+        UpdateDescription(e);
+
         RefreshDivs(dataItem);
     }
 
     function RefreshDivs(dataItem) {
-        var itemType = dataItem.Type;
+        var fieldGroupNo = dataItem.FieldGroupNo;
 
-        for (var i = 65; i <= 90; i++) { // ASCII codes for A to Z
-            var divId = "DIV_ITEM_" + String.fromCharCode(i);
+        for (var i = 1; i <= 10; i++) { // FIELD GROUP
+            var divId = "DIV_ITEM_" + i; //String.fromCharCode(i);
             $("#" + divId).hide();
         }
 
-        $("#DIV_ITEM_" + itemType).show();
+        $("#DIV_ITEM_" + fieldGroupNo).show();
 
         resizeWindow();
     }
@@ -979,8 +990,8 @@
         }
     }
 
-    function onRemoveGridItems(e) { // triggers after confirm
-        e.preventDefault();
+    function onRemoveGridItems(e) { 
+        //e.preventDefault(); not deleteng when code is actie 
         selectedGrid = e.sender;
 
         //the master row for this detail
