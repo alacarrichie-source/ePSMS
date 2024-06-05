@@ -8,29 +8,44 @@
             columns.Bound(f => f.AirDate).Width(50);
             columns.Bound(f => f.Unit).Width(50);
             columns.Bound(f => f.UnitCost).Width(50)
-                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")                
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Group(group => group.Title("Quantity")
+            columns.Group(group => group.Title("Receipt Quantity")
                 .Columns(info =>
                 {
                     info.Bound(f => f.Qty)
-                      .Width(50).Title("Receipt")
+                      .Width(50).Title("Originating Department")
                       .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                       .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                       .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                    info.Bound(f => f.QtyIss)
-                        .Width(50).Title("Issue")
-                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                    info.Bound(f => f.QtyBal)
-                        .Width(50).Title("Balance")
+                    info.Bound(f => f.TransferIn)
+                        .Width(50).Title("Transfer-In")
                         .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                         .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                         .HeaderHtmlAttributes(new { style = "text-align:right;" });
                 }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
             );
-            columns.Bound(f => f.Department).Width(100);
+            columns.Group(group => group.Title("Released Quantity")
+                .Columns(info =>
+                {
+                    info.Bound(f => f.QtyIss)
+                        .Width(50).Title("Issue")
+                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    info.Bound(f => f.TransferOut)
+                        .Width(50).Title("Transfer-Out")
+                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            );
+            columns.Bound(f => f.QtyBal).Width(50)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            columns.Bound(f => f.Department).Width(70);
+            columns.Bound(f => f.LocCode).Width(50);
             columns.Bound(f => f.Remarks).Width(50);
             columns.Command(commands =>
             {
@@ -67,11 +82,13 @@
             .Aggregates(a =>
             {
                 a.Add(p => p.Qty).Sum();
+                a.Add(p => p.TransferIn).Sum();
                 a.Add(p => p.QtyIss).Sum();
+                a.Add(p => p.TransferOut).Sum();
                 a.Add(p => p.QtyBal).Sum();
                 a.Add(p => p.Amount).Sum();
             })
-            .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItems"))
+            .Events(events => events.Error("GridItemError").RequestEnd("onRequestEndGridItems"))
             .Read("ItemRead", "StockCard", new { cardId = @ViewData["cardId"] })
             .Create("ItemCreate", "StockCard")
             .Update("ItemUpdate", "StockCard")

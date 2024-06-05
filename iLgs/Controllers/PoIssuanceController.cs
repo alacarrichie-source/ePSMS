@@ -21,12 +21,14 @@ namespace iLgs.Controllers
     {
         private AppManEntities _db = new AppManEntities();
         private IPoIssuanceService _poIssuanceService;
-        private IRisIssuedService _risIssuedService;        
+        private IPsCardItemIssuanceService _psCardItemIssuanceService;
+        //private IRisIssuedService _risIssuedService;        
 
         public PoIssuanceController()
         {
             _poIssuanceService = new PoIssuanceService(_db);
-            _risIssuedService = new RisIssuedService(_db);            
+            _psCardItemIssuanceService = new PsCardItemIssuanceService(_db);
+            //_risIssuedService = new RisIssuedService(_db);            
         }
 
         // GET: PoIssuance
@@ -38,7 +40,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> IssuanceRead([DataSourceRequest] DataSourceRequest request)
         {
             var userId = User.Identity.GetUserId();
-            var data = await _poIssuanceService.GetAllPostedAirAsync(userId);
+            var data = await _poIssuanceService.GetAllAsync(userId);
 
             var result = new JsonNetResult
             {
@@ -49,7 +51,7 @@ namespace iLgs.Controllers
             return result;
         }
 
-        public ActionResult _RISIssued(Guid? orderItemId, Guid? risItemId, decimal? unitCost)
+        public ActionResult _Issuance(Guid? orderItemId, Guid? risItemId, decimal? unitCost)
         {
             ViewData["OrderItemId"] = orderItemId;
             ViewData["RisItemId"] = risItemId;
@@ -57,9 +59,9 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public ActionResult _RISIssuedRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId)
+        public ActionResult _IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
         {
-            var data = _risIssuedService.GetByRisItemId(risItemId);
+            var data = _psCardItemIssuanceService.GetByCardItemId(cardItemId);
 
             var result = new JsonNetResult
             {
@@ -71,7 +73,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RISIssuedCreate([DataSourceRequest] DataSourceRequest request, RisIssuedVM model)
+        public async Task<ActionResult> _IssuanceCreate([DataSourceRequest] DataSourceRequest request, PsCardItemIssuanceVM model)
         {
             try
             {
@@ -87,7 +89,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _risIssuedService.CreateAsync(model, user, date);
+                    model = await _psCardItemIssuanceService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -107,7 +109,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RISIssuedUpdate([DataSourceRequest] DataSourceRequest request, RisIssuedVM model)
+        public async Task<ActionResult> _IssuanceUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemIssuanceVM model)
         {
             try
             {
@@ -123,7 +125,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _risIssuedService.UpdateAsync(model, user, date);
+                    model = await _psCardItemIssuanceService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -143,7 +145,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _RISIssuedDestroy([DataSourceRequest]DataSourceRequest request, RisIssuedVM model)
+        public async Task<ActionResult> _IssuanceDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemIssuanceVM model)
         {
             try
             {
@@ -158,7 +160,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _risIssuedService.DeleteAsync(model, user, date);
+                    model = await _psCardItemIssuanceService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -177,25 +179,71 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _GeneratePAR(Guid airItemId, Guid? orderItemId, string refType)
-        {
-            ViewData["orderItemId"] = orderItemId;
+        //public async Task<ActionResult> _GeneratePAR(Guid airItemId, Guid? orderItemId, string refType)
+        //{
+        //    ViewData["orderItemId"] = orderItemId;
 
-            var data = await _poIssuanceService.GetOrderItemByAirItemIdAsync(airItemId);
-            var model = new RisIssuedVM()
-            {
-                Id = airItemId,
-                OrderItemId = orderItemId,
-                Qty = data.Balance,
-                RefDate = DateTime.Now,
-                RefType = refType
-            };
+        //    var data = await _poIssuanceService.GetOrderItemByAirItemIdAsync(airItemId);
+        //    var model = new RisIssuedVM()
+        //    {
+        //        Id = airItemId,
+        //        OrderItemId = orderItemId,
+        //        Qty = data.Balance,
+        //        RefDate = DateTime.Now,
+        //        RefType = refType
+        //    };
 
-            return PartialView(model);
-        }
+        //    return PartialView(model);
+        //}
+
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> GeneratePAR(RisIssuedVM model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+        //        Access access = await accessTask;
+        //        if (!access.AllowPost)
+        //        {
+        //            ModelState.AddModelError("Access", "Access Denied!");
+        //        }
+
+        //        if (ModelState.IsValid)
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
+
+        //            await _poIssuanceService.GeneratePAR(model, user, date);
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        if (e.GetType().Name == "ServiceException")
+        //        {
+        //            ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+        //                 "please contact tech support with this message: " + e.Message);
+        //        }
+        //        else
+        //        {
+        //            ModelState.AddModelError("", e.Message);
+        //        }
+        //    }
+
+        //    var query = from state in ModelState.Values
+        //                from error in state.Errors
+        //                select error.ErrorMessage;
+
+        //    var errorList = query.ToList();
+        //    if (errorList.Count() > 0)
+        //    {
+        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+        //    }
+
+        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        //}
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> GeneratePAR(RisIssuedVM model)
+        public async Task<ActionResult> PostIssuance(Guid psCardItemIssuanceId)
         {
             try
             {
@@ -203,7 +251,7 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
-                    ModelState.AddModelError("Access", "Access Denied!");
+                    ModelState.AddModelError("UpdateError", "Access Denied!");
                 }
 
                 if (ModelState.IsValid)
@@ -211,7 +259,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _poIssuanceService.GeneratePAR(model, user, date);
+                    await _poIssuanceService.PostAsync(psCardItemIssuanceId, user, date);
                 }
             }
             catch (Exception e)
@@ -223,7 +271,7 @@ namespace iLgs.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("", e.Message);
+                    ModelState.AddModelError("UpdateError", e.Message);
                 }
             }
 
@@ -237,57 +285,11 @@ namespace iLgs.Controllers
                 return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
             }
 
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> PostIssuance(Guid risIssuedId)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
-                Access access = await accessTask;
-                if (!access.AllowPost)
-                {
-                    ModelState.AddModelError("Access", "Access Denied!");
-                }
-
-                if (ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    await _poIssuanceService.PostAsync(risIssuedId, user, date);
-                }
-            }
-            catch (Exception e)
-            {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
-            }
-
-            var query = from state in ModelState.Values
-                        from error in state.Errors
-                        select error.ErrorMessage;
-
-            var errorList = query.ToList();
-            if (errorList.Count() > 0)
-            {
-                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-            }
-
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "UpdateError" }, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
-        public async Task<ActionResult> UnpostIssuance(Guid risIssuedId)
+        public async Task<ActionResult> UnpostIssuance(Guid psCardItemIssuanceId)
         {
             try
             {
@@ -295,7 +297,7 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
-                    ModelState.AddModelError("Access", "Access Denied!");
+                    ModelState.AddModelError("UpdateError", "Access Denied!");
                 }
 
                 if (ModelState.IsValid)
@@ -303,19 +305,19 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _poIssuanceService.UnpostAsync(risIssuedId, user, date);
+                    await _poIssuanceService.UnpostAsync(psCardItemIssuanceId, user, date);
                 }
             }
             catch (Exception e)
             {
                 if (e.GetType().Name == "ServiceException")
                 {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
                          "please contact tech support with this message: " + e.Message);
                 }
                 else
                 {
-                    ModelState.AddModelError("", e.Message);
+                    ModelState.AddModelError("UpdateError", e.Message);
                 }
             }
 

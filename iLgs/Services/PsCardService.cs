@@ -22,7 +22,9 @@ namespace iLgs.Services
         ValueTask<PsCardVM> UpdateAsync(PsCardVM model, string user, DateTime date);
         ValueTask<PsCardVM> DeleteAsync(PsCardVM model, string user, DateTime date);
         string GetDescription(PsCardVM fields);
+        string GetRisDescription(RisItemEntryVM fields);
         string GetStockNo(PsCardVM model);
+        string GetRisStockNo(RisItemEntryVM fields);
     }
 
     public class PsCardService : IPsCardService
@@ -36,11 +38,11 @@ namespace iLgs.Services
 
         public PsCardService(AppManEntities db)
         {
-            _db = db;            
+            _db = db;
         }
 
         public PsCardService(AppManEntities db, string cardCategory)
-        {            
+        {
             _cardCategory = cardCategory;
             _db = db;
         }
@@ -64,7 +66,7 @@ namespace iLgs.Services
                     SubAccountCode = s.SubAccountCode,
                     SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
                     Fund = s.Fund,
-                    Unit = s.Unit,                    
+                    Unit = s.Unit,
                     PsNo = s.PsNo,
                     PsName = s.PsName,
                     PrevPsNo = s.PrevPsNo,
@@ -74,9 +76,9 @@ namespace iLgs.Services
                     FieldsOther = s.FieldsOther,
                     FieldsPpe = s.FieldsPpe,
                     FieldsVehicle = s.FieldsVehicle,
-                    InsertedDt = s.InsertedDt                    
+                    InsertedDt = s.InsertedDt
                 });
-            
+
             return GetAllByCategory(data);
         });
 
@@ -89,7 +91,7 @@ namespace iLgs.Services
             return data;
         }
 
-        
+
         public IQueryable<PsCardVM> GetAllByItemCodeId(Guid? itemCodeId) => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.PsCards.Where(w => w.ItemCodeId == itemCodeId).AsNoTracking()
@@ -118,7 +120,7 @@ namespace iLgs.Services
                     FieldsOther = s.FieldsOther,
                     FieldsPpe = s.FieldsPpe,
                     FieldsVehicle = s.FieldsVehicle,
-                    InsertedDt = s.InsertedDt                    
+                    InsertedDt = s.InsertedDt
                 });
             return GetAllByCategory(data);
         });
@@ -141,7 +143,7 @@ namespace iLgs.Services
                     SubAccountCode = s.SubAccountCode,
                     SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
                     Fund = s.Fund,
-                    Unit = s.Unit,                    
+                    Unit = s.Unit,
                     PsNo = s.PsNo,
                     PsName = s.PsName,
                     PrevPsNo = s.PrevPsNo,
@@ -163,7 +165,7 @@ namespace iLgs.Services
                 .Include(i => i.FieldsOther)
                 .Include(i => i.FieldsVehicle)
                 .Include(i => i.FieldsPpe)
-                .FirstOrDefaultAsync(f => f.Id == id);            
+                .FirstOrDefaultAsync(f => f.Id == id);
         });
 
         public async ValueTask<bool> GetAnyPsNoAsync(Guid id, string psNo)
@@ -206,7 +208,7 @@ namespace iLgs.Services
             if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.CardCategory == "S"))
             {
                 throw new RecordAlreadyExistsException(string.Format("Stock/Property No. {0} already exists!", model.PsNo));
-            }            
+            }
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -329,10 +331,9 @@ namespace iLgs.Services
                     entity.FieldsPpe = model.FieldsPpe;
                 }
             }
-            
+
             return entity;
         }
-
 
         private string NextPropertyNo(string psNo)
         {
@@ -358,24 +359,83 @@ namespace iLgs.Services
             {
                 if (category == Category.D)
                 {
-                    var f = fields.FieldsMedicine;
-                    description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
-                    description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
-                    description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
-                    description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
-                    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : " (" + f.Brand.Trim() + ")";
+                    description = GetMedicineDescription(fields.FieldsMedicine);
                 }
-                else if (category == Category.W || category == Category.O || category == Category.M)
+                else if (category == Category.O || category == Category.M)
                 {
-                    var f = fields.FieldsOther;
-                    description += string.IsNullOrWhiteSpace(f.Dimension) ? "" : f.Dimension.Trim();
-                    description += string.IsNullOrWhiteSpace(f.Size) ? "" : f.Size.Trim();
-                    description += string.IsNullOrWhiteSpace(f.Capacity) ? "" : f.Capacity.Trim();
-                    description += string.IsNullOrWhiteSpace(f.Color) ? "" : f.Color.Trim();
+                    description = GetOtherDescription(fields.FieldsOther);
+                }
+                else if (category == Category.T)
+                {
+                    description = GetVehicleDescription(fields.FieldsVehicle);
+                }
+                else if (category == Category.W)
+                {
+                    description = "Please see attachment.";
                 }
             }
-                
             return description ?? "";
+        }
+
+        public string GetRisDescription(RisItemEntryVM fields)
+        {
+            string description = "";
+            if (Enum.TryParse(fields.PsType, out Category category))
+            {
+                if (category == Category.D)
+                {
+                    description = GetMedicineDescription(fields.FieldsMedicine);
+                }
+                else if (category == Category.O || category == Category.M)
+                {
+                    description = GetOtherDescription(fields.FieldsOther);
+                }
+                else if (category == Category.T)
+                {
+                    description = GetVehicleDescription(fields.FieldsVehicle);
+                }
+                //else if (category == Category.W)
+                //{
+                //    description = "Please see attachement.";
+                //}
+            }
+            return description ?? "";
+        }
+
+        private string GetOtherDescription(FieldsOther f)
+        {
+            string description = "";
+            description += string.IsNullOrWhiteSpace(f.Dimension) ? "" : f.Dimension.Trim();
+            description += string.IsNullOrWhiteSpace(f.Size) ? "" : f.Size.Trim();
+            description += string.IsNullOrWhiteSpace(f.Capacity) ? "" : f.Capacity.Trim();
+            description += string.IsNullOrWhiteSpace(f.Color) ? "" : f.Color.Trim();
+            return description;
+        }
+
+        private string GetVehicleDescription(FieldsVehicle f)
+        {
+            string description = "";
+            description += string.IsNullOrWhiteSpace(f.Type) ? "" : f.Type.Trim();
+            description += string.IsNullOrWhiteSpace(f.Make) ? "" : " " + f.Make.Trim();
+            description += string.IsNullOrWhiteSpace(f.Series) ? "" : " " + f.Series.Trim();
+            description += string.IsNullOrWhiteSpace(f.YearModel.ToString()) ? "" : " " + f.YearModel.ToString().Trim();
+            description += string.IsNullOrWhiteSpace(f.PlateNo) ? "" : " " + f.PlateNo.Trim();
+            description += string.IsNullOrWhiteSpace(f.BodyNo) ? "" : " " + f.BodyNo.Trim();
+            description += string.IsNullOrWhiteSpace(f.Color) ? "" : " " + f.Color.Trim();
+            description += string.IsNullOrWhiteSpace(f.EngineNo) ? "" : " " + f.EngineNo.Trim();
+            description += string.IsNullOrWhiteSpace(f.ChassisNo) ? "" : " " + f.ChassisNo.Trim();
+            return description;
+        }
+
+        private string GetMedicineDescription(FieldsMedicine f)
+        {
+            string description = "";
+            description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
+            description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
+            description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
+            description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
+            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : " (" + f.Brand.Trim() + ")";
+            return description;
         }
 
         public string GetStockNo(PsCardVM model)
@@ -389,169 +449,180 @@ namespace iLgs.Services
             {
                 if (category == Category.D)
                 {
-                    var f = model.FieldsMedicine;
-                    if (f != null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(f.GenericName))
-                        {
-                            if (f.GenericName.Length >= 3)
-                            {
-                                stockNo += f.GenericName.Substring(0, 1) + f.GenericName.Substring(2, 1);
-                            }
-                            else
-                            {
-                                stockNo += f.GenericName.Substring(0, 1) + "X";
-                            }
-                        }
-                        if (!string.IsNullOrWhiteSpace(f.DosageStrength))
-                        {
-                            stockNo += f.DosageStrength.Replace(" ", "").Trim();
-                        }
-                        if (!string.IsNullOrWhiteSpace(f.DosageForm))
-                        {
-                            stockNo += f.DosageForm.PadRight(3, 'X').Substring(0, 3);
-                        }
-                        if (!string.IsNullOrWhiteSpace(f.Brand))
-                        {
-                            stockNo += f.Brand.Replace(" ", "").Trim();
-                        }
-                    }
+                    stockNo += GetMedicinePsNo(model.FieldsMedicine);
                 }
-                else if (category == Category.W || category == Category.O || category == Category.M)
+                else if (category == Category.O || category == Category.M)
                 {
-                    var f = model.FieldsOther;
-                    if (f != null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(f.Dimension))
-                        {
-                            var str = f.Dimension.Replace(" ", "").Trim();
-                            if (str.Length >= 3)
-                            {
-                                stockNo += str.Substring(0, 3);
-                            }
-                            else
-                            {
-                                stockNo += str.Substring(0, str.Length);
-                            }
-                        }
-                        else if (!string.IsNullOrWhiteSpace(f.Size))
-                        {
-                            var str = f.Size.Replace(" ", "").Trim();
-                            if (str.Length >= 3)
-                            {
-                                stockNo += str.Substring(0, 3);
-                            }
-                            else
-                            {
-                                stockNo += str.Substring(0, str.Length);
-                            }
-                        }
-                        else if (!string.IsNullOrWhiteSpace(f.Capacity))
-                        {
-                            var str = f.Capacity.Replace(" ", "").Trim();
-                            if (str.Length >= 3)
-                            {
-                                stockNo += str.Substring(0, 3);
-                            }
-                            else
-                            {
-                                stockNo += str.Substring(0, str.Length);
-                            }
-                        }
-                        else if (!string.IsNullOrWhiteSpace(f.Color))
-                        {
-                            var str = f.Color.Replace(" ", "").Trim();
-                            if (str.Length >= 3)
-                            {
-                                stockNo += str.Substring(0, 3);
-                            }
-                            else
-                            {
-                                stockNo += str.Substring(0, str.Length);
-                            }
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(f.Brand))
-                        {
-                            stockNo += f.Brand.Replace(" ", "").Trim();
-                        }
-                        else if (!string.IsNullOrWhiteSpace(f.Model_))
-                        {
-                            stockNo += f.Model_.Replace(" ", "").Trim();
-                        }
-                    }
+                    stockNo += GetOtherPsNo(model.FieldsOther);
                 }
                 else if (category == Category.T)
                 {
-                    var f = model.FieldsVehicle;
-                    if (f != null)
-                    {
-                        if (f.Make.Length >= 3)
-                        {
-                            stockNo += f.Make.Substring(0, 1) + f.Make.Substring(2, 1);
-                        }
-                        else
-                        {
-                            stockNo += f.Make.Substring(0, 1) + "X";
-                        }
-
-                        if (f.YearModel > 0)
-                        {
-                            stockNo += f.YearModel.ToString().Trim();
-                        }
-
-                        if (string.IsNullOrWhiteSpace(f.Series))
-                        {
-                            stockNo += "XXX";
-                        }
-                        else
-                        {
-                            stockNo += f.Series.Substring(0, 3);
-                        }
-                    }
+                    stockNo += GetVehiclePsNo(model.FieldsVehicle);
                 }
             }
-
             return stockNo ?? "";
         }
 
-        //public string GetStockName(PsCardVM model)
-        //{
-            
-        //    string stockName = "";
+        public string GetRisStockNo(RisItemEntryVM model)
+        {
+            string stockNo = model.ItemCode.Trim();
+            if (Enum.TryParse(model.PsType, out Category category))
+            {
+                if (category == Category.D)
+                {
+                    stockNo += GetMedicinePsNo(model.FieldsMedicine);
+                }
+                else if (category == Category.O || category == Category.M)
+                {
+                    stockNo += GetOtherPsNo(model.FieldsOther);
+                }
+                else if (category == Category.T)
+                {
+                    stockNo += GetVehiclePsNo(model.FieldsVehicle);
+                }
+            }
+            return stockNo ?? "";
+        }
 
-        //    if (Enum.TryParse(model.ItemTypeCode, out Category category))
-        //    {
-        //        if (category == Category.T)
-        //        {
+        private string GetVehiclePsNo(FieldsVehicle f)
+        {
+            string stockNo = "";
+            if (f == null)
+            {
+                return stockNo;
+            }
 
-        //        }
-        //        else if (category == Category.D)
-        //        {
-        //            stockName = orderItem.Brand.Replace(" ", "").Trim();
-        //            var fieldsMedicine = await _db.FieldsMedicines.FindAsync(risItemId);
+            if (!string.IsNullOrWhiteSpace(f.Make))
+            {
+                if (f.Make.Length >= 3)
+                {
+                    stockNo += f.Make.Substring(0, 1) + f.Make.Substring(2, 1);
+                }
+                else
+                {
+                    stockNo += f.Make.Substring(0, 1) + "X";
+                }
+            }
 
-        //            if (!string.IsNullOrWhiteSpace(fieldsMedicine.DosageForm))
-        //            {
-        //                stockName += fieldsMedicine.DosageForm.Substring(0, 3);
-        //            }
+            if (f.YearModel > 0)
+            {
+                stockNo += f.YearModel.ToString().Trim();
+            }
 
-        //            if (!string.IsNullOrWhiteSpace(fieldsMedicine.DosageStrength))
-        //            {
-        //                stockName += fieldsMedicine.DosageStrength.Replace(" ", "");
-        //            }
+            if (string.IsNullOrWhiteSpace(f.Series))
+            {
+                stockNo += "XXX";
+            }
+            else
+            {
+                stockNo += f.Series.Substring(0, 3);
+            }
 
-        //            stockName += fieldsMedicine.GenericName.Replace(" ", "");
-        //            stockName += orderItem.ItemCode.ToString(); ;
-        //        }
-        //        else if (category == Category.U)
-        //        {
+            return stockNo;
+        }
 
-        //        }
-        //    }
+        private string GetOtherPsNo(FieldsOther f)
+        {
+            string stockNo = "";
+            if (f == null)
+            {
+                return stockNo;
+            }
 
-        //    return stockName;
-        //}
+            if (!string.IsNullOrWhiteSpace(f.Dimension))
+            {
+                var str = f.Dimension.Replace(" ", "").Trim();
+                if (str.Length >= 3)
+                {
+                    stockNo += "/" + str.Substring(0, 3);
+                }
+                else
+                {
+                    stockNo += "/" + str.Substring(0, str.Length);
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(f.Size))
+            {
+                var str = f.Size.Replace(" ", "").Trim();
+                if (str.Length >= 3)
+                {
+                    stockNo += "/" + str.Substring(0, 3);
+                }
+                else
+                {
+                    stockNo += "/" + str.Substring(0, str.Length);
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(f.Capacity))
+            {
+                var str = f.Capacity.Replace(" ", "").Trim();
+                if (str.Length >= 3)
+                {
+                    stockNo += "/" + str.Substring(0, 3);
+                }
+                else
+                {
+                    stockNo += "/" + str.Substring(0, str.Length);
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(f.Color))
+            {
+                var str = f.Color.Replace(" ", "").Trim();
+                if (str.Length >= 3)
+                {
+                    stockNo += "/" + str.Substring(0, 3);
+                }
+                else
+                {
+                    stockNo += "/" + str.Substring(0, str.Length);
+                }
+            }
 
+            if (!string.IsNullOrWhiteSpace(f.Brand))
+            {
+                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+            }
+            else if (!string.IsNullOrWhiteSpace(f.Model_))
+            {
+                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+            }
+
+            return stockNo;
+        }
+
+        private string GetMedicinePsNo(FieldsMedicine f)
+        {
+            string stockNo = "";
+            if (f == null)
+            {
+                return stockNo;
+            }
+
+            if (!string.IsNullOrWhiteSpace(f.GenericName))
+            {
+                if (f.GenericName.Length >= 3)
+                {
+                    stockNo += "/" + f.GenericName.Substring(0, 1) + f.GenericName.Substring(2, 1);
+                }
+                else
+                {
+                    stockNo += "/" + f.GenericName.Substring(0, 1) + "X";
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(f.DosageStrength))
+            {
+                stockNo += "/" + f.DosageStrength.Replace(" ", "").Trim();
+            }
+            if (!string.IsNullOrWhiteSpace(f.DosageForm))
+            {
+                stockNo += "/" + f.DosageForm.PadRight(3, 'X').Substring(0, 3);
+            }
+            if (!string.IsNullOrWhiteSpace(f.Brand))
+            {
+                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+            }
+
+            return stockNo;
+        }
     }
 }

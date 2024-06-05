@@ -362,12 +362,12 @@ namespace iLgs.Controllers
             {
                 if (e.GetType().Name == "ServiceException")
                 {
-                    ModelState.AddModelError("AddError", "Unable to save changes, Try again, and if the problem persists " +
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
                          "please contact tech support with this message: " + e.Message);
                 }
                 else
                 {
-                    ModelState.AddModelError("AddError", e.Message);
+                    ModelState.AddModelError("", e.Message);
                 }
             }
 
@@ -383,7 +383,7 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
-                    ModelState.AddModelError("UpdateError", "Access Denied!");
+                    ModelState.AddModelError("Access", "Access Denied!");
                 }
 
                 if (ModelState.IsValid)
@@ -398,12 +398,12 @@ namespace iLgs.Controllers
             {
                 if (e.GetType().Name == "ServiceException")
                 {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
                          "please contact tech support with this message: " + e.Message);
                 }
                 else
                 {
-                    ModelState.AddModelError("UpdateError", e.Message);
+                    ModelState.AddModelError("", e.Message);
                 }
             }
 

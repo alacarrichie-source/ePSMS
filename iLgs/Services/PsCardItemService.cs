@@ -32,7 +32,7 @@ namespace iLgs.Services
 
         public ValueTask<PsCardItemVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
         {
-            var data = await _db.PsCardItems.Where(w => w.Id == id)
+            var data = await _db.PsCardItems.Where(w => w.Id == id).AsNoTracking()
                 .Select(s => new PsCardItemVM
                 {
                     Id = s.Id,
@@ -46,6 +46,8 @@ namespace iLgs.Services
                     Qty = s.Qty,
                     QtyIss = s.QtyIss,
                     QtyBal = s.QtyBal,
+                    TransferIn = s.TransferIn,
+                    TransferOut = s.TransferOut,
                     TranType = s.TranType,
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
@@ -54,14 +56,19 @@ namespace iLgs.Services
                     Remarks = s.Remarks,
                     InsertedDt = s.InsertedDt,
                     DeptId = s.DeptId,
-                    Department = s.Codextn.Description
+                    LocationId = s.LocationId,
+                    Department = s.Codextn.Description,
+                    Description = s.Description,
+                    DeptDisplay = s.DeptDisplay,
+                    LocCode = s.Codextn1.Code,
+                    Location = s.Codextn1.Description
                 }).FirstOrDefaultAsync();
             return data;
         });
 
         public IQueryable<PsCardItemVM> GetByCardId(Guid? cardId) => _VmExceptionService.TryCatch(() =>
         {
-            var data = _db.PsCardItems.Where(w => w.PsCardId == cardId)
+            var data = _db.PsCardItems.Where(w => w.PsCardId == cardId).AsNoTracking()
                 .Select(s => new PsCardItemVM
                 {
                     Id = s.Id,
@@ -75,6 +82,8 @@ namespace iLgs.Services
                     Qty = s.Qty,
                     QtyIss = s.QtyIss,
                     QtyBal = s.QtyBal,
+                    TransferIn = s.TransferIn,
+                    TransferOut = s.TransferOut,
                     TranType = s.TranType,
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
@@ -83,43 +92,39 @@ namespace iLgs.Services
                     Remarks = s.Remarks,
                     InsertedDt = s.InsertedDt,
                     DeptId = s.DeptId,
-                    Department = s.Codextn.Description
+                    LocationId = s.LocationId,
+                    Department = s.Codextn.Description,
+                    Description = s.Description,
+                    DeptDisplay = s.DeptDisplay,
+                    LocCode = s.Codextn1.Code,
+                    Location = s.Codextn1.Description
                 });
             return data;
         });
 
         private void ValidateFields(PsCardItemVM model)
         {
-            //if (string.IsNullOrWhiteSpace(model.PoNo))
-            //{
-            //    throw new InvalidValueException("PO No. is Required!");
-            //}
-
-            //if (model.PoDate == null)
-            //{
-            //    throw new InvalidValueException("PO Date is Required!");
-
-            //}
-
-            if (model.Qty == null || model.Qty == 0)
+            if (!model.Qty.HasValue && !model.TransferIn.HasValue)
             {
-                throw new InvalidValueException("Quantity is Required!");
+                throw new InvalidValueException("Quantity or Transfer-In is Required!");
             }
 
             if (model.DeptId == null)
             {
                 throw new InvalidValueException("Office/Department is Required!");
-            }
+            }            
         }
-
+        
         public ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            ValidateFields(model);
+
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
-
+            
             var entity = new PsCardItem
             {
                 Id = model.Id,
@@ -133,6 +138,8 @@ namespace iLgs.Services
                 Qty = model.Qty,
                 QtyIss = model.QtyIss,
                 QtyBal = model.QtyBal,
+                TransferIn = model.TransferIn,
+                TransferOut = model.TransferOut,
                 Days = model.Days,
                 TranType = model.TranType,
                 Unit = model.Unit,
@@ -140,10 +147,13 @@ namespace iLgs.Services
                 Remarks = model.Remarks,
                 Amount = model.Amount,
                 DeptId = model.DeptId,
+                LocationId = model.LocationId,
+                Description = model.Description,           
+                DeptDisplay = model.DeptDisplay,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
+                UpdatedDt = model.UpdatedDt    
             };
 
             _db.PsCardItems.Add(entity);
@@ -154,6 +164,8 @@ namespace iLgs.Services
 
         public ValueTask<PsCardItemVM> UpdateAsync(PsCardItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            ValidateFields(model);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -173,6 +185,8 @@ namespace iLgs.Services
             entity.Qty = model.Qty;
             entity.QtyIss = model.QtyIss;
             entity.QtyBal = model.QtyBal;
+            entity.TransferIn = model.TransferIn;
+            entity.TransferOut = model.TransferOut;
             entity.Days = model.Days;            
             entity.TranType = model.TranType;
             entity.Unit = model.Unit;
@@ -180,6 +194,9 @@ namespace iLgs.Services
             entity.Remarks = model.Remarks;
             entity.Amount = model.Amount;
             entity.DeptId = model.DeptId;
+            entity.LocationId = model.LocationId;
+            entity.Description = model.Description;
+            entity.DeptDisplay = model.DeptDisplay;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

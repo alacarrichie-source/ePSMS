@@ -186,7 +186,7 @@ namespace iLgs.Services
             //    return itemType.Code + "*" + itemCode;
             //}
             //return itemType.Code + itemType.GroupCode + itemCode;
-            return itemType.Code + itemType.GroupCode + itemNo;
+            return itemType.Code + itemType.GroupCode + "-" + itemNo;
         }
 
         private string ItemNoIndex(string itemNo)

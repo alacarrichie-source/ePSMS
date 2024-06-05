@@ -345,9 +345,6 @@
     <Compile Include="Models\RequestItemUnitGroupDescriptionItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\RisIssued.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\RisItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>

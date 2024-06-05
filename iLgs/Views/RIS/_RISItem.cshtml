@@ -39,7 +39,7 @@
         .Resizable(r => r.Columns(true))
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Sortable()
-        .ClientDetailTemplateId("IssuedItems")
+        //.ClientDetailTemplateId("IssuedItems")
         .DataSource(dataSource => dataSource
             .Ajax()
             .Events(events => events.Error("error_handler").RequestEnd("onGridItemsRequestEnd"))
@@ -69,7 +69,7 @@
 )
 
 
-<script id="IssuedItems" type="text/kendo-tmpl">
+@*<script id="IssuedItems" type="text/kendo-tmpl">
     @(Html.Kendo().Grid<iLgs.Models.RisIssuedVM>()
     .Name("gridIssuedItems_#=Id#")
     .Columns(col =>
@@ -98,12 +98,10 @@
         }).Width(150);
     })
     .ToolBar(t => {
-        t.Create();
-        //t.Custom().Text("Add Issuance").IconClass("k-icon k-i-add").Name("btnAddItemIssue_").HtmlAttributes(new { @class = "k-button", href = "", id = "btnAddItemIssue_" });
+        t.Create();        
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RISIssuedItemTemplate").Window(w => w.Width(550)))
-    .Sortable()
-    //.Scrollable()
+    .Sortable()    
     .NoRecords()
     .DataSource(dataSource => dataSource
         .Ajax()
@@ -125,25 +123,9 @@
         .Destroy(destroy => destroy.Action("_RISIssuedDestroy", "RIS"))
     )
     .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .Events(e => e.Edit("onEditGridIssuedItems").DataBound("onDataBoundGridIssuedItems"))
-    @*.Events(events => events.Edit(@<text>
-        function(e) {
-        e.preventDefault();
-        // the master row for this detail
-        var parentRow = this.wrapper.closest("tr").prev();
-        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        var parentModel = parentGrid.dataItem(parentRow);
-
-        parentGrid.select(parentRow);
-        
-        e.model.set("RisItemId", parentModel.Id);
-
-        alert(parentModel.Department);
-        e.model.set("Department", parentModel.Department);
-            }
-    </text>))*@
+    .Events(e => e.Edit("onEditGridIssuedItems").DataBound("onDataBoundGridIssuedItems"))    
     .ToClientTemplate())
-</script>
+</script>*@
 
 <script type="text/javascript">
     function onSelectIssuedItemIssuedBy(e) {

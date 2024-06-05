@@ -7,9 +7,10 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardItemId)
-    @Html.HiddenFor(model => model.RefIssuedId)
-    @Html.HiddenFor(model => model.Location)
-    @Html.HiddenFor(model => model.Officer)
+    @Html.HiddenFor(model => model.IssuedTo)
+    @*@Html.HiddenFor(model => model.RefIssuedId)*@
+    @*@Html.HiddenFor(model => model.Location)
+    @Html.HiddenFor(model => model.Officer)*@
     @Html.HiddenFor(model => model.UnitCost)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
@@ -21,10 +22,18 @@
     <fieldset>
 
         <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-12" })
+            <div class="row">
+                <div class="col-md-offset-1">
+                    @(Html.Kendo().RadioButtonFor(m => m.IssuedToSw).Value(1).Label("Issue to Department").HtmlAttributes(new { @onchange = "onChangeOpt();" }))
+                </div>
+            </div>            
+        </div>        
+        <div id="OptDept">
+            <div class="row">
                 <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                    @Html.Label("", htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Location")
                             .DataTextField("Description")
@@ -45,54 +54,26 @@
                                 c.Add().Field("Description").Title("Description").Width("70%");
                             })
                             .Suggest(true)
-                    )
-                    @Html.ValidationMessageFor(model => model.LocationId)
+                        )
+                        @Html.ValidationMessageFor(model => model.DeptId)
+                    </div>
                 </div>
             </div>
         </div>
 
-        @*<div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(model => model.OfficerId, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.OfficerId)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Officer")
-                            .DataTextField("Name")
-                            .DataValueField("Id")
-                            .ValuePrimitive(true)
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetAccountableOfficersByDeptId", "Getters").Data("DataOfficerId");
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Name").Title("Name").Width("40%");
-                                c.Add().Field("Designation").Title("Designation").Width("60%");
-                            })
-                            .CascadeFrom("LocationId")
-                            .Suggest(true)
-                    )
-                    @Html.ValidationMessageFor(model => model.OfficerId)
-                </div>
-            </div>
-        </div>*@
-
+        <br />
         <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.IssuedTo, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.IssuedTo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IssuedTo)
+            <div class="row">
+                <div class="col-md-offset-1">
+                    @(Html.Kendo().RadioButtonFor(m => m.IssuedToSw).Value(2).Label("Issue to Stakeholders")
+                        .HtmlAttributes(new { onchange = "onChangeOpt();" })
+                    )
                 </div>
-            </div>
+            </div>            
         </div>
 
+        <br />
+        
         <div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.IssuedDate, htmlAttributes: new { @class = "col-md-12" })
@@ -102,7 +83,6 @@
                 </div>
             </div>
         </div>
-
 
         <div class="row">
             <div class="col-md-12">
@@ -115,7 +95,6 @@
                 </div>
             </div>
         </div>
-
 
         <div class="row">
             <div class="col-md-12">

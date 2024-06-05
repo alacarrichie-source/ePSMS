@@ -104,7 +104,7 @@
     .Name("gridIssuance_#=Id#")
     .Columns(col =>
     {
-        col.Bound(c => c.Location).Width(100);
+        col.Bound(c => c.Department).Width(100);
         //col.Bound(c => c.Officer).Width(100);
         col.Bound(c => c.IssuedTo).Width(50);
         col.Bound(c => c.IssuedDate).Width(50).EditorTemplateName("_IssuedDateTemplate");
@@ -137,6 +137,7 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);            
             model.Field(p => p.Amount).Editable(false);
+            model.Field(p => p.IssuedToSw).DefaultValue(1);
         })
         .Aggregates(a =>
         {
@@ -460,6 +461,7 @@
         margin-right: 0;
         width: fit-content;
     }
+    
 </style>
 
 
@@ -481,7 +483,8 @@
 
 
 
-<script type="text/javascript">
+<script type="text/javascript">    
+
     function GridError(args) {
         if (args.errors) {
             var validationError = true;
@@ -497,7 +500,33 @@
                 $('#ErrorContent').removeClass('hidden');
                 selectedGrid.one("dataBinding", function (e) {
                     e.preventDefault();
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
 
+    function GridItemError(args) {
+        if (args.errors) {
+            var selectedGrid = $("#gridItems_" + selectedId).data("kendoGrid");
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
                     var errors = selectedGrid.editable.element.find(".errors");
                     errors.empty();
                     $.each(args.errors, function (propertyName) {
@@ -990,8 +1019,8 @@
         }
     }
 
-    function onRemoveGridItems(e) { 
-        //e.preventDefault(); not deleteng when code is actie 
+    function onRemoveGridItems(e) {
+        //e.preventDefault(); not deleteng when code is actie
         selectedGrid = e.sender;
 
         //the master row for this detail
@@ -1260,11 +1289,36 @@
     {
         var qty = $("#Qty").data("kendoNumericTextBox").value();
         var qtyIss = $("#QtyIss").data("kendoNumericTextBox").value();
+        var transferIn = $("#TransferIn").data("kendoNumericTextBox").value();
+        var transferOut = $("#TransferOut").data("kendoNumericTextBox").value();
 
-        var balance = qty- qtyIss;
+        var balance = (qty + transferIn) - (qtyIss + transferOut);
 
         $("#QtyBal").data("kendoNumericTextBox").value(balance);
         $("#QtyBal").data("kendoNumericTextBox").trigger("change");
+    }
+
+    function onSelectDeptId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#DeptDisplay").val(dataItem.Description).trigger("change");
+    }
+
+    function onSelectLocationId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#Location").val(dataItem.Description).trigger("change");
+    }
+
+    function onChangeOpt(e) {
+        var opt1 = $("[id='IssuedToSw_1']").is(":checked");
+        var opt2 = $("[id='IssuedToSw_2']").is(":checked");
+        //if (opt1 == true) {
+        //    $("#OptDept").removeClass("hidden");
+        //}
+        //if (opt2 == true) {
+        //    $("#OptDept").addClass("hidden");
+        //}
     }
     // END CARD ITEM TEMPLATE
 

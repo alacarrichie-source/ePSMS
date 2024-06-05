@@ -85,20 +85,18 @@ namespace iLgs.Models
         public int? FieldGroupNo { get; set; }
     }
 
-    public class PsCardItemVM
+    public class PsCardItemVM : IValidatableObject
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
 
         [Display(Name = "PO Date")]
-        //[Required]
         //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> PoDate { get; set; }
 
         [Display(Name = "PO No.")]
-        //[Required]
         public string PoNo { get; set; }
 
         [Display(Name = "AIR Date")]
@@ -111,10 +109,10 @@ namespace iLgs.Models
         public string AirNo { get; set; }
 
         [Display(Name = "Issuance Date")]
-        ///[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AirIssueDate { get; set; }
-        [Required]
+
+        //[Required]
         public Nullable<int> Qty { get; set; }
 
         [Display(Name = "Qty. Iss.")]
@@ -122,8 +120,16 @@ namespace iLgs.Models
         [Display(Name = "Qty. Bal.")]
         public Nullable<int> QtyBal { get; set; }
 
+        [Display(Name = "Transfer-In")]
+        public Nullable<int> TransferIn { get; set; }
+
+        [Display(Name = "Transfer-Out")]
+        public Nullable<int> TransferOut { get; set; }
+
         [Display(Name = "Transaction Type")]
         public string TranType { get; set; }
+
+        public string Description { get; set; }
 
         [Required]
         public string Unit { get; set; }
@@ -136,31 +142,59 @@ namespace iLgs.Models
 
         [Display(Name = "Department/Office")]
         [Required]
-        public Nullable<System.Guid> DeptId { get; set; }        
-        
+        public Nullable<System.Guid> DeptId { get; set; }
+
+        [Display(Name = "Location")]
+        public Nullable<System.Guid> LocationId { get; set; }
+
+        [Display(Name = "Department Display")]
+        public string DeptDisplay { get; set; }
+
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         
         // Transients
-        [Display(Name = "Department/Office")]
+        [Display(Name = "Department")]
         public string Department { get; set; }
-        
+
+        [Display(Name = "Location")]
+        public string LocCode { get; set; }
+
+        [Display(Name = "Location")]
+        public string Location { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (!Qty.HasValue && !TransferIn.HasValue)
+            {
+                if (!Qty.HasValue)
+                {
+                    yield return new ValidationResult(
+                        "Either Qty or Transfer-In must be provided.",
+                        new[] { nameof(Qty) }
+                    );
+                } else
+                {
+                    yield return new ValidationResult(
+                        "Either Qty or Transfer-In must be provided.",
+                        new[] { nameof(TransferIn) }
+                    );
+                }
+            }
+        }
+
     }
 
     public class PsCardItemIssuanceVM
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
-        public Nullable<System.Guid> RefIssuedId { get; set; }
-
-        [Display(Name = "Location")]
-        [Required]
-        public Nullable<System.Guid> LocationId { get; set; }
-
-        [Display(Name = "Officer")]
-        public Nullable<System.Guid> OfficerId { get; set; }
+        
+        [Display(Name = "Department")]
+        //[Required]
+        public Nullable<System.Guid> DeptId { get; set; }
 
         [Display(Name = "Issued To")]
         public string IssuedTo { get; set; }
@@ -168,34 +202,28 @@ namespace iLgs.Models
         [Display(Name = "Issued Date")]
         [Required]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> IssuedDate { get; set; }
 
         [Required]
         public Nullable<int> Qty { get; set; }
         public Nullable<decimal> Amount { get; set; }
 
-        [Display(Name = "Ref. No.")]
-        public string RefNo { get; set; }
-
-        [Display(Name = "Ref. Date")]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> RefDate { get; set; }
-
-        [Display(Name = "Ref. Type")]
-        public string RefType { get; set; }
-
-        [Display(Name = "Property No.")]
-        public string PropNo { get; set; }
-
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
+        [Display(Name = "Posted by")]
+        public string PostedBy { get; set; }
+
+        [Display(Name = "Posted date")]
+        public Nullable<System.DateTime> PostedDt { get; set; }
+
         // Transients
-        public string Location { get; set; }
-        public string Officer { get; set; }
+        public string Department { get; set; }
+
+        [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
+        public int? IssuedToSw { get; set; }
     }
 }

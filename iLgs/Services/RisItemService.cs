@@ -19,10 +19,12 @@ namespace iLgs.Services
         private readonly IExceptionService<RisItemVM> _vmExceptionService = new ExceptionService<RisItemVM>();
         private readonly IExceptionService<RisItemEntryVM> _entryVmExceptionService = new ExceptionService<RisItemEntryVM>();
         private readonly IExceptionService<RisItem> _exceptionService = new ExceptionService<RisItem>();
+        private IPsCardService _cardService;
 
         public RisItemService(AppManEntities db)
         {
             _db = db;
+            _cardService = new PsCardService(_db);
         }
 
         public ValueTask<RisItemEntryVM> GetVmByIdAsync(Guid? id) =>
@@ -270,61 +272,66 @@ namespace iLgs.Services
             return entity;
         }
 
-        private string PsNo(RisItemEntryVM model)
+        private string PsNo(RisItemEntryVM fields)
         {
-            string psNo = model.ItemCode.Trim();
-            if (Enum.TryParse(model.PsType, out Category category))
-            {
-                if (category == Category.D)
-                {
-                    var f = model.FieldsMedicine;
-                    if (f.GenericName.Length >= 3)
-                    {
-                        psNo += f.GenericName.Substring(0, 1) + f.GenericName.Substring(2, 1);
-                    }
-                    else
-                    {
-                        psNo += f.GenericName.Substring(0, 1) + "X";
-                    }
-                    if (!string.IsNullOrWhiteSpace(f.DosageStrength))
-                    {
-                        psNo += f.DosageStrength.Replace(" ", "").Trim();
-                    }
-                    if (!string.IsNullOrWhiteSpace(f.DosageForm))
-                    {
-                        psNo += f.DosageForm.PadRight(3, 'X').Substring(0, 3);
-                    }
-                }
-                else if (category == Category.T)
-                {
-                    var f = model.FieldsVehicle;
-                    if (f.Make.Length >= 3)
-                    {
-                        psNo += f.Make.Substring(0, 1) + f.Make.Substring(2, 1);
-                    }
-                    else
-                    {
-                        psNo += f.Make.Substring(0, 1) + "X";
-                    }
+            return _cardService.GetRisStockNo(fields);
+        }
 
-                    if (f.YearModel > 0)
-                    {
-                        psNo += f.YearModel.ToString().Trim();
-                    }
+        //private string PsNo(RisItemEntryVM model)
+        //{
+        //    string psNo = model.ItemCode.Trim();
+        //    if (Enum.TryParse(model.PsType, out Category category))
+        //    {
+        //        if (category == Category.D)
+        //        {
+        //            var f = model.FieldsMedicine;
+        //            if (f.GenericName.Length >= 3)
+        //            {
+        //                psNo += f.GenericName.Substring(0, 1) + f.GenericName.Substring(2, 1);
+        //            }
+        //            else
+        //            {
+        //                psNo += f.GenericName.Substring(0, 1) + "X";
+        //            }
+        //            if (!string.IsNullOrWhiteSpace(f.DosageStrength))
+        //            {
+        //                psNo += f.DosageStrength.Replace(" ", "").Trim();
+        //            }
+        //            if (!string.IsNullOrWhiteSpace(f.DosageForm))
+        //            {
+        //                psNo += f.DosageForm.PadRight(3, 'X').Substring(0, 3);
+        //            }
+        //        }
+        //        else if (category == Category.T)
+        //        {
+        //            var f = model.FieldsVehicle;
+        //            if (f.Make.Length >= 3)
+        //            {
+        //                psNo += f.Make.Substring(0, 1) + f.Make.Substring(2, 1);
+        //            }
+        //            else
+        //            {
+        //                psNo += f.Make.Substring(0, 1) + "X";
+        //            }
 
-                    if (string.IsNullOrWhiteSpace(f.Series))
-                    {
-                        psNo += "XXX";
-                    }
-                    else
-                    {
-                        psNo += f.Series.Substring(0, 3);
-                    }
-                }
-            }
+        //            if (f.YearModel > 0)
+        //            {
+        //                psNo += f.YearModel.ToString().Trim();
+        //            }
+
+        //            if (string.IsNullOrWhiteSpace(f.Series))
+        //            {
+        //                psNo += "XXX";
+        //            }
+        //            else
+        //            {
+        //                psNo += f.Series.Substring(0, 3);
+        //            }
+        //        }
+        //    }
             
-            return psNo;
-        }        
+        //    return psNo;
+        //}        
 
 
         public string PsNoDisplay(string itemCode, string itemName)
@@ -353,64 +360,51 @@ namespace iLgs.Services
         }
 
         public string GetDescription(RisItemEntryVM entry)
-        {
-            string description = "";
-            if (Enum.TryParse(entry.PsType, out Category category))
-            {
-                if (category == Category.T)
-                {
-                    description = GetVehicleDescription(entry.FieldsVehicle);
-                }
-                else if (category == Category.D)
-                {
-                    description = GetMedicineDescription(entry.FieldsMedicine);
-                    
-                }
-            }
-            return description;
+        {            
+            return _cardService.GetRisDescription(entry);
         }
 
-        public string GetPsDescription(PsCardVM entry)
-        {
-            string description = "";
-            if (Enum.TryParse(entry.ItemTypeCode, out Category category))
-            {
-                if (category == Category.T)
-                {
-                    description = GetVehicleDescription(entry.FieldsVehicle);
-                }
-                else if (category == Category.D)
-                {
-                    description = GetMedicineDescription(entry.FieldsMedicine);
+        //public string GetPsDescription(PsCardVM entry)
+        //{
+        //    string description = "";
+        //    if (Enum.TryParse(entry.ItemTypeCode, out Category category))
+        //    {
+        //        if (category == Category.T)
+        //        {
+        //            description = GetVehicleDescription(entry.FieldsVehicle);
+        //        }
+        //        else if (category == Category.D)
+        //        {
+        //            description = GetMedicineDescription(entry.FieldsMedicine);
 
-                }
-            }
-            return description;
-        }
+        //        }
+        //    }
+        //    return description;
+        //}
 
-        private string GetVehicleDescription(FieldsVehicle f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Type) ? "" : f.Type.Trim();
-            description += string.IsNullOrWhiteSpace(f.Make) ? "" : " " + f.Make.Trim();
-            description += string.IsNullOrWhiteSpace(f.Series) ? "" : " " + f.Series.Trim();
-            description += string.IsNullOrWhiteSpace(f.YearModel.ToString()) ? "" : " " + f.YearModel.ToString().Trim();
-            description += string.IsNullOrWhiteSpace(f.PlateNo) ? "" : " " + f.PlateNo.Trim();
-            description += string.IsNullOrWhiteSpace(f.BodyNo) ? "" : " " + f.BodyNo.Trim();
-            description += string.IsNullOrWhiteSpace(f.Color) ? "" : " " + f.Color.Trim();
-            description += string.IsNullOrWhiteSpace(f.EngineNo) ? "" : " " + f.EngineNo.Trim();
-            description += string.IsNullOrWhiteSpace(f.ChassisNo) ? "" : " " + f.ChassisNo.Trim();
-            return description;
-        }
+        //private string GetVehicleDescription(FieldsVehicle f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Type) ? "" : f.Type.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Make) ? "" : " " + f.Make.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Series) ? "" : " " + f.Series.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.YearModel.ToString()) ? "" : " " + f.YearModel.ToString().Trim();
+        //    description += string.IsNullOrWhiteSpace(f.PlateNo) ? "" : " " + f.PlateNo.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.BodyNo) ? "" : " " + f.BodyNo.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Color) ? "" : " " + f.Color.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.EngineNo) ? "" : " " + f.EngineNo.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.ChassisNo) ? "" : " " + f.ChassisNo.Trim();
+        //    return description;
+        //}
 
-        private string GetMedicineDescription(FieldsMedicine f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
-            description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
-            description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
-            description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
-            return description;
-        }
+        //private string GetMedicineDescription(FieldsMedicine f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
+        //    return description;
+        //}
     }
 }

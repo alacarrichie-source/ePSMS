@@ -63,6 +63,15 @@ namespace iLgs.Models
         }
     }
 
+    public class RISListDto
+    {
+        public string RisNo { get; set; }
+        public DateTime? Date { get; set; }
+        public string Fund { get; set; }
+        public string RCC { get; set; }
+        public string Department { get; set; }
+    }
+
     public class RSMIItemVM 
     {
         public System.Guid Id { get; set; }

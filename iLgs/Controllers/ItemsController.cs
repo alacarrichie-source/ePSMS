@@ -27,7 +27,7 @@ namespace iLgs.Controllers
         private IItemFieldService _itemFieldService;
         private ICodextnService _codextnService;
         private IDirectoryService _directoryService;
-        private IRisIssuedService _risIssuedService;
+        //private IRisIssuedService _risIssuedService;
 
         public ItemsController()
         {
@@ -36,7 +36,7 @@ namespace iLgs.Controllers
             _itemFieldService = new ItemFieldService(_db);
             _codextnService = new CodextnService(_db);
             _directoryService = new DirectoryService(_db);
-            _risIssuedService = new RisIssuedService(_db);
+            //_risIssuedService = new RisIssuedService(_db);
         }
 
         // GET: Codes
@@ -482,18 +482,18 @@ namespace iLgs.Controllers
 
         
         #region ISSUED
-        public ActionResult _RISIssuedRead([DataSourceRequest] DataSourceRequest request, string poNo, string stockNo)
-        {
-            var data = _risIssuedService.GetByPoNoStockNo(poNo, stockNo);
+        //public ActionResult _RISIssuedRead([DataSourceRequest] DataSourceRequest request, string poNo, string stockNo)
+        //{
+        //    var data = _risIssuedService.GetByPoNoStockNo(poNo, stockNo);
 
-            var result = new JsonNetResult
-            {
-                Data = data.ToDataSourceResult(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
-            return result;
-        }
+        //    var result = new JsonNetResult
+        //    {
+        //        Data = data.ToDataSourceResult(request),
+        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+        //    };
+        //    return result;
+        //}
         #endregion
 
         

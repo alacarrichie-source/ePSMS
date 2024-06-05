@@ -18,6 +18,8 @@ namespace iLgs.Services
         ValueTask<PsCardItemIssuanceVM> CreateAsync(PsCardItemIssuanceVM model, string user, DateTime date);
         ValueTask<PsCardItemIssuanceVM> UpdateAsync(PsCardItemIssuanceVM model, string user, DateTime date);
         ValueTask<PsCardItemIssuanceVM> DeleteAsync(PsCardItemIssuanceVM model, string user, DateTime date);
+        ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
+        ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
     }
 
     public class PsCardItemIssuanceService : IPsCardItemIssuanceService
@@ -32,63 +34,50 @@ namespace iLgs.Services
 
         public ValueTask<PsCardItemIssuanceVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
         {
-            var data = await _db.PsCardItemIssuances.Where(w => w.Id == id)
+            var data = await _db.PsCardItemIssuances.Where(w => w.Id == id).AsNoTracking()
                 .Select(s => new PsCardItemIssuanceVM
                 {
                     Id = s.Id,
                     PsCardItemId = s.PsCardItemId,
-                    RefIssuedId = s.RefIssuedId,
                     IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     Qty = s.Qty,
                     Amount = s.Amount,
                     InsertedDt = s.InsertedDt,
-                    LocationId = s.LocationId,
-                    OfficerId = s.OfficerId,
-                    Location = s.Codextn.Description,
-                    Officer = s.AccountableOfficer.Name,
+                    DeptId = s.DeptId,
+                    Department = s.Codextn.Description,
                     UnitCost = s.PsCardItem.UnitCost,
-                    RefNo = s.RefNo,
-                    RefDate = s.RefDate,
-                    RefType = s.RefType,
-                    PropNo = s.PropNo
+                    PostedBy = s.PostedBy,
+                    PostedDt = s.PostedDt,
+                    IssuedToSw = s.DeptId == null ? 2 : 1
                 }).FirstOrDefaultAsync();
             return data;
         });
 
         public IQueryable<PsCardItemIssuanceVM> GetByCardItemId(Guid? PsCardItemId) => _VmExceptionService.TryCatch(() =>
         {
-            var data = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == PsCardItemId)
+            var data = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == PsCardItemId).AsNoTracking()
                 .Select(s => new PsCardItemIssuanceVM
                 {
                     Id = s.Id,
                     PsCardItemId = s.PsCardItemId,
-                    RefIssuedId = s.RefIssuedId,
                     IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
                     Qty = s.Qty,
                     Amount = s.Amount,
                     InsertedDt = s.InsertedDt,
-                    LocationId = s.LocationId,
-                    OfficerId = s.OfficerId,
-                    Location = s.Codextn.Description,
-                    Officer = s.AccountableOfficer.Name,
+                    DeptId = s.DeptId,
+                    Department = s.Codextn.Description,
                     UnitCost = s.PsCardItem.UnitCost,
-                    RefNo = s.RefNo,
-                    RefDate = s.RefDate,
-                    RefType = s.RefType,
-                    PropNo = s.PropNo
+                    PostedBy = s.PostedBy,
+                    PostedDt = s.PostedDt,
+                    IssuedToSw = s.DeptId == null ? 2 : 1
                 });
             return data;
         });
 
         private async ValueTask ValidateFieldsAsync(PsCardItemIssuanceVM model)
         {
-            if (model.LocationId == null)
-            {
-                throw new InvalidValueException("Location is required!");
-            }
-
             if (model.IssuedDate == null)
             {
                 throw new InvalidValueException("Issued Date is required!");
@@ -97,6 +86,11 @@ namespace iLgs.Services
             if (model.Qty == 0)
             {
                 throw new InvalidValueException("Quantity is required!");
+            }
+
+            if (model.IssuedToSw == 1 && model.DeptId == null)
+            {
+                throw new InvalidValueException("Department is Required!");
             }
 
             var rsmiDate = await _db.RSMIs.MaxAsync(m => m.Date);
@@ -109,6 +103,15 @@ namespace iLgs.Services
 
         public ValueTask<PsCardItemIssuanceVM> CreateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            if (model.IssuedToSw == 1)
+            {
+                model.IssuedTo = "";
+            }
+            else
+            {
+                model.DeptId = null;
+            }
+
             await ValidateFieldsAsync(model);
 
             var totalQtyIssued = _db.PsCardItems.Find(model.PsCardItemId)?.Qty ?? 0;
@@ -123,7 +126,7 @@ namespace iLgs.Services
             model.InsertedBy = user;
             model.UpdatedBy = user;
             model.InsertedDt = date;
-            model.UpdatedDt = date;
+            model.UpdatedDt = date;            
 
             var cardItem = await _db.PsCardItems.FindAsync(model.PsCardItemId);
 
@@ -131,7 +134,6 @@ namespace iLgs.Services
             {
                 Id = model.Id,
                 PsCardItemId = model.PsCardItemId,
-                RefIssuedId = model.RefIssuedId,
                 IssuedTo = model.IssuedTo,
                 IssuedDate = model.IssuedDate,
                 Qty = model.Qty,
@@ -140,12 +142,7 @@ namespace iLgs.Services
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
                 UpdatedDt = model.UpdatedDt,
-                LocationId = model.LocationId,
-                OfficerId = model.OfficerId,
-                RefNo = model.RefNo,
-                RefDate = model.RefDate,
-                RefType = model.RefType,
-                PropNo = model.PropNo
+                DeptId = model.DeptId
             };
 
             _db.PsCardItemIssuances.Add(entity);
@@ -154,10 +151,20 @@ namespace iLgs.Services
             await UpdatePsItems(model.PsCardItemId, user, date);
 
             return model;
-        });        
+        });
 
         public ValueTask<PsCardItemIssuanceVM> UpdateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            if (model.IssuedToSw == 1)
+            {
+                model.IssuedTo = "";
+            }
+            else
+            {
+                model.DeptId = null;
+                model.IssuedTo = "Stakeholders";
+            }
+
             await ValidateFieldsAsync(model);
 
             var totalQtyIssued = _db.PsCardItems.Find(model.PsCardItemId)?.Qty ?? 0;
@@ -178,19 +185,13 @@ namespace iLgs.Services
             }
 
             entity.PsCardItemId = model.PsCardItemId;
-            entity.RefIssuedId = model.RefIssuedId;
-            entity.LocationId = model.LocationId;
-            entity.OfficerId = model.OfficerId;
+            entity.DeptId = model.DeptId;
             entity.IssuedTo = model.IssuedTo;
             entity.IssuedDate = model.IssuedDate;
             entity.Qty = model.Qty;
             entity.Amount = entity.PsCardItem.UnitCost * model.Qty;
-            entity.RefNo = model.RefNo;
-            entity.RefDate = model.RefDate;
-            entity.RefType = model.RefType;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
-            entity.PropNo = model.PropNo;
 
             _db.PsCardItemIssuances.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
@@ -224,13 +225,15 @@ namespace iLgs.Services
             return model;
         });
 
-        public async Task UpdatePsItems(Guid? cardItemId, string user, DateTime date)
+        private async Task UpdatePsItems(Guid? cardItemId, string user, DateTime date)
         {
             var entity = await _db.PsCardItems.Include(i => i.PsCardItemIssuances).Where(w => w.Id == cardItemId).FirstOrDefaultAsync();
             var qtyIss = entity.PsCardItemIssuances.Sum(s => s.Qty);
+            var qty = entity.Qty ?? 0 + entity.TransferIn ?? 0;
+            var transferOut = entity.TransferOut ?? 0;
 
             entity.QtyIss = qtyIss;
-            entity.QtyBal = entity.Qty - qtyIss;
+            entity.QtyBal = qty - qtyIss - transferOut;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
@@ -239,5 +242,38 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
         }
 
+        public ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        {
+            var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(psCardItemIssuanceId);
+            }
+
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+
+            _db.PsCardItemIssuances.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+        });
+
+        public ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        {
+            var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(psCardItemIssuanceId);
+            }
+
+            entity.PostedBy = null;
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.PsCardItemIssuances.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+        });
     }
 }
