@@ -105,6 +105,11 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // Transient
+
+        public DateTime? Date { get; set; }
+        public string Fund { get; set; }
     }
 
     public class RSMIRecapVM

@@ -21,14 +21,14 @@ namespace iLgs.Controllers
     {
         private AppManEntities _db = new AppManEntities();
         private IPoIssuanceService _poIssuanceService;
+        private IPsCardItemService _psCardItemService;
         private IPsCardItemIssuanceService _psCardItemIssuanceService;
-        //private IRisIssuedService _risIssuedService;        
-
+        
         public PoIssuanceController()
         {
             _poIssuanceService = new PoIssuanceService(_db);
-            _psCardItemIssuanceService = new PsCardItemIssuanceService(_db);
-            //_risIssuedService = new RisIssuedService(_db);            
+            _psCardItemService = new PsCardItemService(_db);
+            _psCardItemIssuanceService = new PsCardItemIssuanceService(_db);            
         }
 
         // GET: PoIssuance
@@ -51,10 +51,9 @@ namespace iLgs.Controllers
             return result;
         }
 
-        public ActionResult _Issuance(Guid? orderItemId, Guid? risItemId, decimal? unitCost)
+        public ActionResult _Issuance(Guid? cardItemId, decimal? unitCost)
         {
-            ViewData["OrderItemId"] = orderItemId;
-            ViewData["RisItemId"] = risItemId;
+            ViewData["CardItemId"] = cardItemId;
             ViewData["UnitCost"] = unitCost;
             return PartialView();
         }
@@ -179,6 +178,14 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
+        public async Task<ActionResult> _Transfer(Guid? cardItemId)
+        {
+            ViewData["cardItemId"] = cardItemId;
+            var model =  await _psCardItemService.GetByIdAsync(cardItemId);            
+
+            return PartialView(model);
+        }
+
         //public async Task<ActionResult> _GeneratePAR(Guid airItemId, Guid? orderItemId, string refType)
         //{
         //    ViewData["orderItemId"] = orderItemId;
@@ -285,7 +292,7 @@ namespace iLgs.Controllers
                 return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
             }
 
-            return Json(new { Errors = "UpdateError" }, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]

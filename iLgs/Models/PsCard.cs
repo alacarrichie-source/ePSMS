@@ -18,6 +18,7 @@ namespace iLgs.Models
         public PsCard()
         {
             this.PsCardItems = new HashSet<PsCardItem>();
+            this.AllFields = new HashSet<AllField>();
         }
     
         public System.Guid Id { get; set; }
@@ -43,8 +44,10 @@ namespace iLgs.Models
         public virtual FieldsOther FieldsOther { get; set; }
         public virtual FieldsPpe FieldsPpe { get; set; }
         public virtual FieldsVehicle FieldsVehicle { get; set; }
-        public virtual ItemCode ItemCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItem> PsCardItems { get; set; }
+        public virtual ItemCode ItemCode { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AllField> AllFields { get; set; }
     }
 }

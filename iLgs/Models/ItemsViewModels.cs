@@ -63,8 +63,18 @@ namespace iLgs.Models
         [Display(Name = "Item Code")]
         public string Code { get; set; }
         public string Description { get; set; }
-        [Display(Name = "Is Article?")]
+        [Display(Name = "Article (Y/N)")]
         public string ItemSw { get; set; }
+
+        [Display(Name = "Consumable (Y/N)")]
+        public string IsConsumable { get; set; }
+
+        [Display(Name = "Incorporated (Y/N)")]
+        public string IsIncorporated { get; set; }
+
+        [Display(Name = "For Distribution (Y/N/O)")]
+        public string ForDistribution { get; set; }
+
         [Display(Name = "Account Code")]
         public string AccountCode { get; set; }
         public string InsertedBy { get; set; }
@@ -80,6 +90,9 @@ namespace iLgs.Models
         public string SubArticle { get; set; }
         public string MainDescCode { get; set; }
         public int? FieldGroupNo { get; set; }
+
+        [Display(Name = "Is Article?")]
+        public bool? ItemSwUI { get; set; }
     }
    
     public class ItemFieldVM

@@ -230,6 +230,12 @@ namespace iLgs.Models
         [Display(Name = "Qty Iss")]
         public int? QtyIss { get; set; }
 
+        [Display(Name = "Transfer-In")]
+        public Nullable<int> TransferIn { get; set; }
+
+        [Display(Name = "Transfer-Out")]
+        public Nullable<int> TransferOut { get; set; }
+
         [Display(Name = "Balance")]
         public int? Balance { get; set; }
 
@@ -247,6 +253,8 @@ namespace iLgs.Models
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
         public bool IsProperty { get; set; }
+        public bool IsWithPar { get; set; }
+        public bool IsWithIcs { get; set; }
     }
 
     public class OrderItemUnitGroupVM

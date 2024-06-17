@@ -84,113 +84,109 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
 
-                    ////var risList = _db.RisIssueds.Where(w => w.IssuedDate >= model.DateFrom && w.IssuedDate <= model.DateTo)
-                    ////                .AsNoTracking()
-                    ////                .GroupBy(g => new { g.RisItem.RISs.RisNo, g.IssuedDate, g.RisItem.RISs.Fund, g.RisItem.RISs.FPP })
-                    ////                .Select(s => new { RisNo = s.Key.RisNo, Date = s.Key.IssuedDate, Fund = s.Key.Fund, RCC = s.Key.FPP}).ToList();
+                    var rsmiItemList = _db.PsCardItemIssuances.AsNoTracking()
+                        .Where(w => w.IssuedDate >= model.DateFrom && w.IssuedDate <= model.DateTo)
+                        .Select(s => new RSMIItemVM
+                        {
+                            RisNo = s.PsCardItem.OrderItem.RequestItem.RisItem.RISs.RisNo,
+                            Date = s.IssuedDate,
+                            Fund = s.PsCardItem.PsCard.Fund,
+                            RCC = s.PsCardItem.Codextn.Code,
+                            //s.PsCardItem.Codextn.Description,
+                            StockNo = s.PsCardItem.PsCard.PsNo,
+                            ItemName = s.PsCardItem.PsCard.ItemCode.ItemType.Code == "W" ? s.PsCardItem.Description : s.PsCardItem.PsCard.Description,
+                            Unit = s.PsCardItem.Unit,
+                            UnitCost = s.PsCardItem.UnitCost,
+                            Qty = s.Qty,
+                            Amount = s.Amount,
+                            AccountCode = s.PsCardItem.PsCard.ItemCode.AccountCode
+                        }).ToList();
 
-                    //var risList = await _db.Database.SqlQuery<RISListDto>("Exec RIS_GetIssueds {0}, {1}", model.DateFrom, model.DateTo).ToListAsync();
+                    if (!rsmiItemList.Any())
+                    {
+                        ModelState.AddModelError("Period", "No Issuances found on period entered.");
+                    }
+                    else
+                    {
+                        var rsmiDateList = rsmiItemList.GroupBy(g => new { g.Date, g.Fund, g.RCC })
+                            .Select(s => new { s.Key.Date, s.Key.Fund, s.Key.RCC }).ToList();
+                        foreach(var rsmiDate in rsmiDateList)
+                        {
+                            var serialNo = NextSerialNo(rsmiDate.Date);
+                            var entity = new RSMI()
+                            {
+                                Id = Guid.NewGuid(),
+                                Date = rsmiDate.Date,
+                                Fund = rsmiDate.Fund,
+                                SerialNo = serialNo,
+                                Custodian = model.Custodian,
+                                PostedBy = model.PostedBy,
+                                PostedDt = model.PostedDt,
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date
+                            };
 
-                    //// revise lines below
+                            var itemIssuedList = rsmiItemList
+                                .Where(w => w.Fund == rsmiDate.Fund && w.Date == rsmiDate.Date).ToList();
 
-                    //if (!risList.Any())
-                    //{
-                    //    ModelState.AddModelError("Period", "No RIS Issuances found on period entered.");
-                    //}
-                    //else
-                    //{
-                    //    foreach (var ris in risList)
-                    //    {
-                    //        var serialNo = NextSerialNo(ris.Date);
-                    //        var entity = new RSMI()
-                    //        {
-                    //            Id = Guid.NewGuid(),
-                    //            Date = ris.Date,
-                    //            Fund = ris.Fund,
-                    //            SerialNo = serialNo,
-                    //            Custodian = model.Custodian,
-                    //            PostedBy = model.PostedBy,
-                    //            PostedDt = model.PostedDt,
-                    //            InsertedBy = user,
-                    //            InsertedDt = date,
-                    //            UpdatedBy = user,
-                    //            UpdatedDt = date
-                    //        };
+                            foreach (var itemIssued in itemIssuedList)
+                            {                                
+                                var rsmiItem = new RSMIItem()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    RsmiId = entity.Id,
+                                    RisNo = itemIssued.RisNo,
+                                    RCC = itemIssued.RCC,
+                                    StockNo = itemIssued.StockNo,
+                                    ItemName = itemIssued.ItemName,
+                                    Unit = itemIssued.Unit,
+                                    UnitCost = itemIssued.UnitCost,
+                                    Qty = itemIssued.Qty,
+                                    Amount = itemIssued.Amount,
+                                    AccountCode = itemIssued.AccountCode,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                entity.RSMIItems.Add(rsmiItem);
+                            }
 
-                    //        var risIssueds = _db.RisIssueds
-                    //            .Where(w => w.RisItem.RISs.RisNo == ris.RisNo && w.RisItem.RISs.Fund == ris.Fund && w.IssuedDate == ris.Date)
-                    //            .AsNoTracking()
-                    //            .Select(s => new
-                    //            {
-                    //                RisItemId = s.RisItemId,
-                    //                Unit = s.RisItem.Unit,
-                    //                Qty = s.Qty,
-                    //                Amount = s.Amount
-                    //            }).ToList();
+                            var recapList = entity.RSMIItems.GroupBy(g => new { g.StockNo, g.AccountCode, g.UnitCost })
+                                .Select(s => new
+                                {
+                                    StockNo = s.Key.StockNo,
+                                    AccountCode = s.Key.AccountCode,
+                                    UnitCost = s.Key.UnitCost,
+                                    Qty = s.Sum(f => f.Qty),
+                                    TotalCost = s.Sum(f => f.Amount)
+                                }).ToList();
 
-                    //        foreach (var risIssued in risIssueds)
-                    //        {
-                    //            var orderItem = await _db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode).Where(w => w.RequestItem.RisItem.Id == risIssued.RisItemId).FirstOrDefaultAsync();
-                    //            var stockNo = orderItem?.StockNo;
-                    //            var itemName = orderItem?.StockName;
-                    //            var acctCode = orderItem?.RequestItem.RisItem.ItemCode.AccountCode;
-                    //            var unitCost = orderItem?.UnitCost;
-                    //            var rsmiItem = new RSMIItem()
-                    //            {
-                    //                Id = Guid.NewGuid(),
-                    //                RsmiId = entity.Id,
-                    //                RisNo = ris.RisNo,
-                    //                RCC = ris.RCC,
-                    //                StockNo = stockNo,
-                    //                ItemName = itemName,
-                    //                Unit = risIssued.Unit,
-                    //                UnitCost = unitCost,
-                    //                Qty = risIssued.Qty,
-                    //                Amount = risIssued.Amount,
-                    //                AccountCode = acctCode,
-                    //                InsertedBy = user,
-                    //                InsertedDt = date,
-                    //                UpdatedBy = user,
-                    //                UpdatedDt = date
-                    //            };
-                    //            entity.RSMIItems.Add(rsmiItem);
-                    //        }
+                            foreach (var recap in recapList)
+                            {
+                                var rsmiRecap = new RSMIRecap()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    RsmiId = entity.Id,
+                                    StockNo = recap.StockNo,
+                                    Qty = recap.Qty,
+                                    UnitCost = recap.UnitCost,
+                                    TotalCost = recap.TotalCost,
+                                    AccountCode = recap.AccountCode,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                entity.RSMIRecaps.Add(rsmiRecap);
+                            }
 
-                    //        var recapList = entity.RSMIItems.GroupBy(g => new { g.StockNo, g.AccountCode, g.UnitCost })
-                    //            .Select(s => new
-                    //            {
-                    //                StockNo = s.Key.StockNo,
-                    //                AccountCode = s.Key.AccountCode,
-                    //                UnitCost = s.Key.UnitCost,
-                    //                Qty = s.Sum(f => f.Qty),
-                    //                TotalCost = s.Sum(f => f.Amount)
-                    //            }).ToList();
-
-
-                    //        foreach (var recap in recapList)
-                    //        {
-                    //            var rsmiRecap = new RSMIRecap()
-                    //            {
-                    //                Id = Guid.NewGuid(),
-                    //                RsmiId = entity.Id,
-                    //                StockNo = recap.StockNo,
-                    //                Qty = recap.Qty,
-                    //                UnitCost = recap.UnitCost,
-                    //                TotalCost = recap.TotalCost,
-                    //                AccountCode = recap.AccountCode,
-                    //                InsertedBy = user,
-                    //                InsertedDt = date,
-                    //                UpdatedBy = user,
-                    //                UpdatedDt = date
-                    //            };
-                    //            entity.RSMIRecaps.Add(rsmiRecap);
-                    //        }
-
-                    //        _db.RSMIs.Add(entity);
-                    //        await _db.SaveChangesAsync();
-                    //    }
-                    //}
-
+                            _db.RSMIs.Add(entity);
+                            await _db.SaveChangesAsync();
+                        }
+                    }                    
                 }
             }
             catch (Exception e)

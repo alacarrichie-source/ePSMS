@@ -24,7 +24,7 @@ namespace iLgs.Services
 
         public IQueryable<ItemCodeVM> GetAll()
         {
-            var data = db.ItemCodes
+            var data = db.ItemCodes.AsNoTracking()
                 .Select(s => new ItemCodeVM
                 {
                     Id = s.Id,                    
@@ -34,6 +34,10 @@ namespace iLgs.Services
                     Code = s.Code,
                     Description = s.Description,     
                     ItemSw = s.ItemSw,
+                    IsConsumable = s.IsConsumable,
+                    IsIncorporated = s.IsIncorporated,
+                    ForDistribution = s.ForDistribution,
+                    //ItemSwUI = s.ItemSw == "Y" ? true : false,
                     AccountCode = s.AccountCode,
                     InsertedDt = s.InsertedDt
                 });
@@ -42,7 +46,7 @@ namespace iLgs.Services
 
         public IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId)
         {            
-            var data = db.ItemCodes.Where(w => w.ItemTypeId == itemTypeId).ToList()
+            var data = db.ItemCodes.Where(w => w.ItemTypeId == itemTypeId).AsNoTracking().ToList()
                 .Select(s => new ItemCodeVM
                 {
                     Id = s.Id,
@@ -52,6 +56,10 @@ namespace iLgs.Services
                     Code = s.Code,
                     Description = s.Description.PadLeft(s.ItemNo.Count(c => c == '.') * 20, ' '),
                     ItemSw = s.ItemSw,
+                    IsConsumable = s.IsConsumable,
+                    IsIncorporated = s.IsIncorporated,
+                    ForDistribution = s.ForDistribution,
+                    //ItemSwUI = s.ItemSw == "Y" ? true : false,
                     AccountCode = s.AccountCode,
                     InsertedDt = s.InsertedDt
                 }).AsQueryable();
@@ -82,12 +90,33 @@ namespace iLgs.Services
             return data;
         });
 
+        private void ValidateFields(ItemCodeVM model)
+        {
+            if (!string.IsNullOrWhiteSpace(model.ItemSw) && !(model.ItemSw == "Y" || model.ItemSw == "N" || model.ItemSw == ""))
+            {
+                throw new InvalidValueException("Invalid Article value!");
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.IsConsumable) && !(model.IsConsumable == "Y" || model.IsConsumable == "N" || model.IsConsumable == ""))
+            {
+                throw new InvalidValueException("Invalid Consumable value!");
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.IsIncorporated) && !(model.IsIncorporated == "Y" || model.IsIncorporated == "N" || model.IsIncorporated == ""))
+            {
+                throw new InvalidValueException("Invalid Incorporated value!");
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.ForDistribution) && !(model.ForDistribution == "Y" || model.ForDistribution == "N" || model.ForDistribution == "O" || model.ForDistribution == ""))
+            {
+                throw new InvalidValueException("Invalid For Distribution value!");
+            }
+        }
+
         public ValueTask<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
-            //if (!string.IsNullOrWhiteSpace(model.ItemSw) && !(model.ItemSw == "Y" && model.ItemSw == "N"))
-            //{
-            //    throw new InvalidValueException("Valid value for Is Item is Y or N.");
-            //}
+            ValidateFields(model);
+
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
@@ -97,6 +126,7 @@ namespace iLgs.Services
             model.Id = Guid.NewGuid();
             model.Code = GetItemCode(model.ItemTypeId, model.ItemNo, model.Description);
             model.ItemNoIndex = ItemNoIndex(model.ItemNo);
+            //model.ItemSw = model.ItemSwUI == true? "Y" : "";
 
             ItemCode entity = new ItemCode()
             {
@@ -107,6 +137,9 @@ namespace iLgs.Services
                 Code = model.Code,
                 Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim(),
                 ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper(),
+                IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.ToUpper(),
+                IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.ToUpper(),
+                ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.ToUpper(),
                 AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper(),
                 InsertedBy = user,
                 InsertedDt = date,
@@ -124,10 +157,7 @@ namespace iLgs.Services
         public ValueTask<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
 
         {
-            //if (!string.IsNullOrWhiteSpace(model.ItemSw) && !(model.ItemSw == "Y" && model.ItemSw == "N"))
-            //{
-            //    throw new InvalidValueException("Valid value for Is Item is Y or N.");
-            //}
+            ValidateFields(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -136,6 +166,7 @@ namespace iLgs.Services
 
             model.Code = GetItemCode(model.ItemTypeId, model.ItemNo, model.Description);
             model.ItemNoIndex = ItemNoIndex(model.ItemNo);
+            //model.ItemSw = model.ItemSwUI == true ? "Y" : "";
 
             entity.ItemTypeId = model.ItemTypeId;
             entity.ItemNo = model.ItemNo.Trim();
@@ -143,6 +174,9 @@ namespace iLgs.Services
             entity.Code = model.Code;
             entity.Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim();
             entity.ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper().Trim();
+            entity.IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.ToUpper();
+            entity.IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.ToUpper();
+            entity.ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.ToUpper();
             entity.AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper().Trim();
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;

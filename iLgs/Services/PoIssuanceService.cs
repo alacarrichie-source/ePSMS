@@ -13,6 +13,7 @@ namespace iLgs.Services.Interfaces
 {
     public class PoIssuanceService : IPoIssuanceService
     {
+        private decimal _parPrice = 50000;
         private readonly AppManEntities _db = new AppManEntities();
         private IUserService _userService;
         private readonly IExceptionService<RisIssuedVM> _vmExceptionService = new ExceptionService<RisIssuedVM>();
@@ -42,10 +43,15 @@ namespace iLgs.Services.Interfaces
                     RisNo = s.OrderItem.RequestItem.RisItem.RISs.RisNo,
                     Qty = s.Qty,
                     QtyIss = s.QtyIss,
+                    TransferIn = s.TransferIn,
+                    TransferOut = s.TransferOut,
                     Balance = s.QtyBal,
                     UnitCost = s.UnitCost,
                     StockNo = s.PsCard.PsNo,
-                    ItemName = s.PsCard.Description
+                    ItemName = s.PsCard.ItemCode.Description,
+                    Description = s.PsCard.ItemCode.ItemType.Code == "W" ? s.Description : s.PsCard.Description,
+                    IsWithPar = s.UnitCost >= _parPrice,
+                    IsWithIcs = s.UnitCost < _parPrice
                 }).AsQueryable();           
             return data;
         }
@@ -67,10 +73,13 @@ namespace iLgs.Services.Interfaces
                     RisNo = s.OrderItem.RequestItem.RisItem.RISs.RisNo,
                     Qty = s.Qty,
                     QtyIss = s.QtyIss,
+                    TransferIn = s.TransferIn,
+                    TransferOut = s.TransferOut,
                     Balance = s.QtyBal,
                     UnitCost = s.UnitCost,
                     StockNo = s.PsCard.PsNo,
-                    ItemName = s.PsCard.Description
+                    ItemName = s.PsCard.ItemCode.Description,
+                    Description = s.PsCard.ItemCode.ItemType.Code == "W" ? s.Description : s.PsCard.Description
                 }).FirstOrDefaultAsync();
             return data;
         }

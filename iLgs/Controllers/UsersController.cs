@@ -583,7 +583,8 @@ namespace iLgs.Controllers
                 var rec = db.MenuAccessActions.Where(w => w.MenuAccess.Id == accessId && w.MenuAccess.UserId == userId && w.ActionId == actionId).FirstOrDefault();
 
                 if (rec == null)
-                {                    
+                {               
+                    //MenuAccess menuAccess = db.MenuAccesses.Where(w => w.UserId == userId && w.MenuId == )
 
                     MenuAccessAction action = new MenuAccessAction()
                     {

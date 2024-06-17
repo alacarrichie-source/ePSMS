@@ -17,9 +17,9 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public ItemCode()
         {
-            this.RisItems = new HashSet<RisItem>();
-            this.PsCodes = new HashSet<PsCode>();
             this.PsCards = new HashSet<PsCard>();
+            this.PsCodes = new HashSet<PsCode>();
+            this.RisItems = new HashSet<RisItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -30,6 +30,9 @@ namespace iLgs.Models
         public string Description { get; set; }
         public string ItemSw { get; set; }
         public string AccountCode { get; set; }
+        public string IsConsumable { get; set; }
+        public string IsIncorporated { get; set; }
+        public string ForDistribution { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
@@ -37,10 +40,10 @@ namespace iLgs.Models
     
         public virtual ItemType ItemType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RisItem> RisItems { get; set; }
+        public virtual ICollection<PsCard> PsCards { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCode> PsCodes { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCard> PsCards { get; set; }
+        public virtual ICollection<RisItem> RisItems { get; set; }
     }
 }

@@ -229,6 +229,10 @@
     <Compile Include="Models\AIRItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AllField.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AllFieldsViewModels.cs" />
     <Compile Include="Models\AspNetRole.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -3602,8 +3606,8 @@
     <Content Include="Views\AIRs\EditorTemplates\_InvoiceDateTemplate.cshtml" />
     <Content Include="Views\RIS\EditorTemplates\_RISIssuedItemTemplate.cshtml" />
     <Content Include="Views\PoIssuance\Index.cshtml" />
-    <Content Include="Views\PoIssuance\_RISIssued.cshtml" />
-    <Content Include="Views\PoIssuance\EditorTemplates\_RISIssuedTemplate.cshtml" />
+    <Content Include="Views\PoIssuance\_Issuance.cshtml" />
+    <Content Include="Views\PoIssuance\EditorTemplates\_IssuanceTemplate.cshtml" />
     <Content Include="Views\Codes\Department.cshtml" />
     <Content Include="Views\Codes\EditorTemplates\_DepartmentUserTemplate.cshtml" />
     <Content Include="Views\Codes\_DepartmentUsers.cshtml" />
@@ -3669,6 +3673,8 @@
     <Content Include="Views\PropertyCard\_PropertyCardAddEdit.cshtml" />
     <Content Include="Views\PropertyCard\EditorTemplates\_CardItemTemplate.cshtml" />
     <Content Include="Views\PropertyCard\EditorTemplates\_CardItemIssuanceTemplate.cshtml" />
+    <Content Include="Views\Items\EditorTemplates\_ItemSwTemplate.cshtml" />
+    <Content Include="Views\PoIssuance\_Transfer.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

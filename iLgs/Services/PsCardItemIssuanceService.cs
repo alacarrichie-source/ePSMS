@@ -99,8 +99,7 @@ namespace iLgs.Services
                 throw new InvalidValueException(string.Format("Date issued must be after the last RSMI date on {0}", rsmiDate.Value.ToShortDateString()));
             }
         }
-
-
+        
         public ValueTask<PsCardItemIssuanceVM> CreateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
             if (model.IssuedToSw == 1)
@@ -165,7 +164,16 @@ namespace iLgs.Services
                 model.IssuedTo = "Stakeholders";
             }
 
-            await ValidateFieldsAsync(model);
+            var entity = await _db.PsCardItemIssuances.Include(i => i.PsCardItem).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(model.Id);
+            }
+
+            if (entity.PostedDt != null)
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
 
             var totalQtyIssued = _db.PsCardItems.Find(model.PsCardItemId)?.Qty ?? 0;
             var qtyIssued = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.Id).Sum(s => s.Qty) ?? 0;
@@ -176,13 +184,7 @@ namespace iLgs.Services
             }
 
             model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            var entity = await _db.PsCardItemIssuances.Include(i => i.PsCardItem).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-            if (entity == null)
-            {
-                throw new RecordNotFoundException(model.Id);
-            }
+            model.UpdatedDt = date;            
 
             entity.PsCardItemId = model.PsCardItemId;
             entity.DeptId = model.DeptId;
@@ -204,11 +206,16 @@ namespace iLgs.Services
 
         public ValueTask<PsCardItemIssuanceVM> DeleteAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
             var entity = await _db.PsCardItemIssuances.FindAsync(model.Id);
 
+            if (entity.PostedDt != null)
+            {
+                throw new RecordAlreadyPostedException("Record Already Posted, cannot delete!");
+            }
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+            
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

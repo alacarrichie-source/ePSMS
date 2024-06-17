@@ -87,8 +87,8 @@
         items.Add().Text("Items")
             .Selected(true)
             .LoadContentFrom("_ItemCodes", "Items", new { itemTypeId = "#=Id#" });
-        items.Add().Text("Fields")            
-            .LoadContentFrom("_ItemFields", "Items", new { itemTypeId = "#=Id#" });
+        //items.Add().Text("Fields")            
+        //    .LoadContentFrom("_ItemFields", "Items", new { itemTypeId = "#=Id#" });
     }).ToClientTemplate())
 </script>
 
@@ -330,7 +330,7 @@
     // Grid Item Codes
     function GridItemError(args) {
         if (args.errors) {
-            var selectedGrid = $("#gridItems_" + selectedId);
+            var selectedGrid = $("#gridItems_" + selectedId).data("kendoGrid");
             var validationError = true;
             $.each(args.errors, function (propertyName) {
                 if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
@@ -440,7 +440,7 @@
     }
 
     function onRemoveGridItems(e) { // triggers after confirm
-        e.preventDefault();
+        //e.preventDefault();
         selectedGrid = e.sender;
 
         //the master row for this detail

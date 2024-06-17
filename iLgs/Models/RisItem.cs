@@ -19,6 +19,7 @@ namespace iLgs.Models
         {
             this.RequestItems = new HashSet<RequestItem>();
             this.RisItemUnitGroupDescriptionItems = new HashSet<RisItemUnitGroupDescriptionItem>();
+            this.AllFields = new HashSet<AllField>();
         }
     
         public System.Guid Id { get; set; }
@@ -43,11 +44,13 @@ namespace iLgs.Models
         public virtual FieldsOther FieldsOther { get; set; }
         public virtual FieldsPpe FieldsPpe { get; set; }
         public virtual FieldsVehicle FieldsVehicle { get; set; }
-        public virtual ItemCode ItemCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RequestItem> RequestItems { get; set; }
         public virtual RISs RISs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
+        public virtual ItemCode ItemCode { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AllField> AllFields { get; set; }
     }
 }

@@ -11,30 +11,55 @@
         col.Bound(c => c.Department).Width(100);
         col.Bound(c => c.PoDate).Width(50);
         col.Bound(c => c.PoNo).Width(50);
-        col.Bound(c => c.PrNo).Width(50);
-        col.Bound(c => c.RisNo).Width(50);
+        //col.Bound(c => c.PrNo).Width(50);
+        //col.Bound(c => c.RisNo).Width(50);
         col.Bound(c => c.AirNo).Width(50);
         col.Bound(c => c.StockNo).Width(100);
-        //col.Bound(c => c.StockName).Width(150);
         col.Bound(c => c.ItemName).Width(100);
         col.Bound(c => c.Description).Width(100);
-        //col.Bound(c => c.Brand).Width(70);
-        col.Bound(c => c.UnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        col.Bound(c => c.QtyIss).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        col.Bound(c => c.Balance).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Group(group => group.Title("Receipt Quantity")
+                .Columns(info =>
+                {
+                    info.Bound(f => f.Qty)
+                      .Width(50).Title("Originating Department")
+                      .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                      .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                      .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    info.Bound(f => f.TransferIn)
+                        .Width(50).Title("Transfer-In")
+                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            );
+        col.Group(group => group.Title("Released Quantity")
+            .Columns(info =>
+            {
+                info.Bound(f => f.QtyIss)
+                    .Width(50).Title("Issue")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                info.Bound(f => f.TransferOut)
+                    .Width(50).Title("Transfer-Out")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        );
+        col.Bound(f => f.Balance).Width(50)
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Bound(f => f.UnitCost).Width(50)
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
     })
     .ToolBar(t =>
     {
-        t.Custom().Text("Generate PARs").IconClass("k-icon k-i-add").Name("btnAddPars").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Generate ICS").IconClass("k-icon k-i-add").Name("btnAddIcs").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Transfer").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
+        //t.Custom().Text("Generate PARs").IconClass("k-icon k-i-add").Name("btnAddPars").HtmlAttributes(new { @class = "k-button", href = "" });
+        //t.Custom().Text("Generate ICS").IconClass("k-icon k-i-add").Name("btnAddIcs").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
     .Search(s =>
@@ -75,6 +100,8 @@
         {
             a.Add(p => p.Qty).Sum();
             a.Add(p => p.QtyIss).Sum();
+            a.Add(p => p.TransferIn).Sum();
+            a.Add(p => p.TransferOut).Sum();
             a.Add(p => p.Balance).Sum();
         })
         .Read(read => read.Action("IssuanceRead", "PoIssuance"))
@@ -103,7 +130,7 @@
             {
                 items.Add().Text("Issued Items")
                     .Selected(true)
-                    .LoadContentFrom("_RISIssued", "PoIssuance", new { OrderItemId = "#=OrderItemId#", RisItemId = "#=RisItemId#", UnitCost = "#=UnitCost#" });
+                    .LoadContentFrom("_Issuance", "PoIssuance", new { CardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
             }).ToClientTemplate())
 </script>
 
@@ -233,9 +260,7 @@
     }
 
     var selectedGrid = null;
-    var selectedId = null; // airItemId
-    var selectedOrderItemId = null;
-    var selectedRisItemId = null;
+    var selectedId = null;
     var selectedItemId = null;
     var selectedUnitCost = null;
     var selectedDepartment = null;
@@ -245,12 +270,22 @@
         var grid = $("#grid");
 
         selectedId = selectedData.Id;
-        selectedOrderItemId = selectedData.OrderItemId;
-        selectedRisItemId = selectedData.RisItemId;
         selectedUnitCost = selectedData.UnitCost;
         selectedItemId = null;
         selectedDepartment = selectedData.Department;
         postedBy = null;
+
+        //if (selectedData.IsWithPar == true) {
+        //    $(".k-grid-btnAddPars", grid).show();
+        //} else {
+        //    $(".k-grid-btnAddPars", grid).hide();
+        //}
+
+        //if (selectedData.IsWithIcs == true) {
+        //    $(".k-grid-btnAddIcs", grid).show();
+        //} else {
+        //    $(".k-grid-btnAddIcs", grid).hide();
+        //}
     }
 
     function onDataBoundGrid(e) {
@@ -272,6 +307,15 @@
                 this.select(e.masterRow);
             });
         }
+
+
+        //var trs = this.tbody.find('tr').each(function () {
+        //    var item = grid.dataItem($(this));
+        //    if (item.PostedBy) {
+        //        $(this).find('.k-grid-Issue').hide();
+        //        $(".k-grid-btnAddPars").hide()
+        //    }
+        //});
     }
 
     function onRequestEnd(e) {
@@ -294,6 +338,58 @@
         }
     }
 
+    $(".k-grid-btnTransfer").click(function (e) {
+        e.preventDefault();
+        var myTitle = "Transfer";
+        var width = 800;
+       
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    close: function () {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width,
+            
+        });
+        mywindow.refresh({
+           url: '@Url.Action("_Transfer", "PoIssuance")',
+            data: {
+                cardItemId: selectedId
+            }
+            //// Specify a callback function to execute after content is loaded
+            //complete: function () {
+            //    // Resize the window to fit its content
+            //    mywindow.resize();
+            //    mywindow.center();
+            //}
+        });        
+        mywindow.center();
+        mywindow.open();        
+    });    
+
+    function resizeWindow() {
+        var mywindow = $("#window").data("kendoWindow");
+        if (mywindow) {
+            mywindow.setOptions({
+                width: "800",
+                height: "auto"
+            });
+            mywindow.center(); // Optional: Center the window after resizing
+        }
+    }
+
     $(".k-grid-btnAddPars").click(function (e) {
         e.preventDefault();
         GeneratePar("PAR");
@@ -304,7 +400,7 @@
         GeneratePar("ICS");
     });
 
-    function GeneratePar(refType) {
+    @*function GeneratePar(refType) {
         var myTitle = refType == "PAR" ? "Generate PAR" : "Generate ICS";
         var width = 500;
 
@@ -316,7 +412,7 @@
                 modal: true,
                 visible: false,
                 close: function () {
-                    $("#gridIssuedItems_" + selectedOrderItemId).data("kendoGrid").dataSource.read();
+                    $("#gridIssuedItems_" + selectedId).data("kendoGrid").dataSource.read();
                 },
                 deactivate: function () {
                     this.destroy();
@@ -341,7 +437,7 @@
             }
         });
         mywindow.open();
-    }
+    }*@
 
     function onSelectLocationId(e) {
         var dataItem = this.dataItem(e.item.index());
@@ -353,9 +449,8 @@
 
     function onGridItemClickAdd(e) {
         e.preventDefault();
-        var orderItemId = $(e.sender.element).data("orderitemid");
-
-        selectedGrid = $("#gridIssuedItems_" + orderItemId).data("kendoGrid");
+        var cardItemId = $(e.sender.element).data("carditemid");
+        selectedGrid = $("#gridIssuedItems_" + cardItemId).data("kendoGrid");
         if (selectedGrid) {
             selectedGrid.addRow();
         }
@@ -363,30 +458,25 @@
 
     function onGridItemClickPost(e) {
         e.preventDefault();
-        var orderItemId = $(e.sender.element).data("orderitemid");
+        var cardItemId = $(e.sender.element).data("carditemid");
 
-        selectedGrid = $("#gridIssuedItems_" + orderItemId).data("kendoGrid");        
+        selectedGrid = $("#gridIssuedItems_" + cardItemId).data("kendoGrid");
         var selectedRow = selectedGrid.select();
         var dataItem = selectedGrid.dataItem(selectedRow);
-        var postedBy = dataItem.PostedBy;        
-        
+        var postedBy = dataItem.PostedBy;
+
         if (postedBy) {
             alert("Record is already posted by " + postedBy);
         }
         else {
-            var msg = "";
-            if (dataItem.RefType) {
-                msg = "Post " + dataItem.RefType + " No. " + dataItem.RefNo + "?";
-            } else {
-                msg = "Post selected record?";
-            }
+            var msg = "Post selected record?";
 
             if (confirm(msg)) {
                 var popupNotification = $("#popupNotification").data("kendoNotification");
                 $.ajax({
                     type: "POST",
                     url: '@Url.Action("PostIssuance", "PoIssuance")',
-                    data: { risIssuedId: dataItem.Id },
+                    data: { psCardItemIssuanceId: dataItem.Id },
                     async: true,
                     beforeSend: function () {
                         window.kendo.ui.progress($(document.body), true);
@@ -414,24 +504,18 @@
 
     function onGridItemClickUnPost(e) {
         e.preventDefault();
-        var orderItemId = $(e.sender.element).data("orderitemid");
+        var cardItemId = $(e.sender.element).data("carditemid");
 
-        selectedGrid = $("#gridIssuedItems_" + orderItemId).data("kendoGrid");
+        selectedGrid = $("#gridIssuedItems_" + cardItemId).data("kendoGrid");
         var selectedRow = selectedGrid.select();
-        var dataItem = selectedGrid.dataItem(selectedRow);        
-        var msg = "";
-
-        if (dataItem.RefType) {
-            msg = "Unpost " + dataItem.RefType + " No. " + dataItem.RefNo + "?";
-        } else {
-            msg = "Unpost selected record?";
-        }
+        var dataItem = selectedGrid.dataItem(selectedRow);
+        var msg = "Unpost selected record?";
 
         if (confirm(msg)) {
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("UnpostIssuance", "PoIssuance")',
-                data: { risIssuedId: selectedItemId },
+                data: { psCardItemIssuanceId: dataItem.Id },
                 async: true,
                 beforeSend: function () {
                     window.kendo.ui.progress($(document.body), true);
@@ -455,7 +539,7 @@
     var postedBy = null;
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
-        var orderItemId = selectedData.OrderItemId;
+        var cardItemId = selectedData.PsCardItemId;
 
         // the master row for this detail
         //var parentRow = this.wrapper.closest("tr").prev();
@@ -464,14 +548,14 @@
         //var orderItemId = parentModel.OrderItemId;
 
         selectedItemId = selectedData.Id;
-        postedBy = selectedData.PostedBy
-        if (postedBy) {
-            $("#btnUnpost_" + orderItemId).show();
-            $("#btnPost_" + orderItemId).hide();
-        } else {
-            $("#btnUnpost_" + orderItemId).hide();
-            $("#btnPost_" + orderItemId).show();
-        }                
+        //postedBy = selectedData.PostedBy
+        //if (postedBy) {
+        //    $("#btnUnpost_" + cardItemId).show();
+        //    $("#btnPost_" + cardItemId).hide();
+        //} else {
+        //    $("#btnUnpost_" + cardItemId).hide();
+        //    $("#btnPost_" + cardItemId).show();
+        //}
     }
 
     function onDataBoundGridItems(e) {
@@ -489,19 +573,19 @@
         var parentRow = this.wrapper.closest("tr").prev();
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
         var parentModel = parentGrid.dataItem(parentRow);
-        var orderItemId = parentModel.OrderItemId;
-        
-        if (parentModel.IsProperty)  {
-            $("#btnAddItem_" + orderItemId).show();
-        } else {
-            $("#btnAddItem_" + orderItemId).hide();
-        }
-        
-        var grid = $("#gridIssuedItems_" + orderItemId);
-        if (this.dataSource.data().length == 0) {
-            $("#btnUnpost_" + orderItemId).hide();
-            $("#btnPost_" + orderItemId).hide();
-        }
+        var cardItemId = parentModel.Id;
+
+        //if (parentModel.IsProperty)  {
+        //    $("#btnAddItem_" + cardItemId).show();
+        //} else {
+        //    $("#btnAddItem_" + cardItemId).hide();
+        //}
+
+        //var grid = $("#gridIssuedItems_" + cardItemId);
+        //if (this.dataSource.data().length == 0) {
+        //    $("#btnUnpost_" + cardItemId).hide();
+        //    $("#btnPost_" + cardItemId).hide();
+        //}
     }
 
     function onEditGridItems(e) {
@@ -520,14 +604,10 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedItemId = null;
-            e.model.set("RisItemId", selectedRisItemId);
-            //$("#div_reference").hide();
+            e.model.set("PsCardItemId", parentModel.Id);
         } else {
-            //if (!e.model.get("RefNo")) {
-            //    $("#div_reference").hide();
-            //}
             selectedItemId = e.model.get("Id");
-            e.model.set("UnitCost", selectedUnitCost);
+            e.model.set("UnitCost", parentModel.UnitCost);
             var rowitem = selectedGrid.dataSource.get(selectedItemId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
@@ -560,7 +640,7 @@
                     // Additional actions to be performed after the read operation.
 
                     // Find the row with the specified Id.
-                    var dataItem = grid.dataSource.get(selectedOrderItemId);
+                    var dataItem = grid.dataSource.get(selectedId);
 
                     // If the row is found, expand it.
                     if (dataItem) {
@@ -600,6 +680,50 @@
             deptId: $("#LocationId").val(),
             text: text
         };
+    }
+
+    function changeAmount(e) {
+        var qty = $("#Qty").data("kendoNumericTextBox").value();
+        var unitCost = $("#UnitCost").val();
+        var amount = qty * unitCost;
+
+        $("#Amount").data("kendoNumericTextBox").value(amount);
+        $("#Amount").data("kendoNumericTextBox").trigger("change");
+    }
+
+    function onSelectDeptId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#DeptDisplay").val(dataItem.Description).trigger("change");
+    }
+
+    function onSelectLocationId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#Location").val(dataItem.Description).trigger("change");
+    }
+
+    function onChangeOpt(e) {
+        var opt1 = $("[id='IssuedToSw_1']").is(":checked");
+        var opt2 = $("[id='IssuedToSw_2']").is(":checked");
+        //if (opt1 == true) {
+        //    $("#OptDept").removeClass("hidden");
+        //}
+        //if (opt2 == true) {
+        //    $("#OptDept").addClass("hidden");
+        //}
+    }
+
+    function UpdateBalance(e) {
+        var qty = $("#Qty").data("kendoNumericTextBox").value();
+        var qtyIss = $("#QtyIss").data("kendoNumericTextBox").value();
+        var transferIn = $("#TransferIn").data("kendoNumericTextBox").value();
+        var transferOut = $("#TransferOut").data("kendoNumericTextBox").value();
+
+        var balance = (qty + transferIn) - (qtyIss + transferOut);
+
+        $("#QtyBal").data("kendoNumericTextBox").value(balance);
+        $("#QtyBal").data("kendoNumericTextBox").trigger("change");
     }
 
 </script>

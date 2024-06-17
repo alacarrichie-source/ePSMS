@@ -83,7 +83,8 @@ namespace iLgs.Controllers
                     UpdatedDt = s.UpdatedDt,
                     IsAllowed = s.MenuAccesses.Any(a => a.MenuId == s.ChildId && a.UserId == userId && a.IsAllowed == true),
                     Result = db.Menubases.Where(w => w.ParentId == s.ChildId).Any() ? "Submenu" : "Command",
-                    AccessId = s.MenuAccesses.FirstOrDefault().Id 
+                    //AccessId = s.MenuAccesses.FirstOrDefault().Id 
+                    AccessId = s.MenuAccesses.FirstOrDefault(f => f.UserId == userId).Id
                 });
                 
             return menu;
