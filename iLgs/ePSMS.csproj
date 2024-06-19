@@ -229,9 +229,6 @@
     <Compile Include="Models\AIRItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\AllField.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AllFieldsViewModels.cs" />
     <Compile Include="Models\AspNetRole.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -262,13 +259,52 @@
     <Compile Include="Models\ErrorLog.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\FieldsAccountableForm.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsAgricultural.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsAnimal.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsConstruction.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsFurniture.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsLand.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsMachinery.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsMedical.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\FieldsMedicine.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsMilitarySuuply.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsNonAccountableForm.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsOfficeSupply.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\FieldsOther.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\FieldsPpe.cs">
+    <Compile Include="Models\FieldsOtherSupplyMaterial.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsRepair.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\FieldsTransportation.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\FieldsVehicle.cs">
@@ -439,6 +475,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Services\AccountableOfficerService.cs" />
+    <Compile Include="Services\AllFieldService.cs" />
     <Compile Include="Services\CardItemExtnService.cs" />
     <Compile Include="Services\DepartmentUserService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />

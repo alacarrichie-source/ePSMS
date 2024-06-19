@@ -12,17 +12,13 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class FieldsPpe
+    public partial class FieldsTransportation
     {
         public System.Guid Id { get; set; }
-        public string Type { get; set; }
         public string Brand { get; set; }
         public string Model_ { get; set; }
-        public string SerialNo { get; set; }
-        public string Color { get; set; }
-        public string Others { get; set; }
     
-        public virtual RisItem RisItem { get; set; }
         public virtual PsCard PsCard { get; set; }
+        public virtual RisItem RisItem { get; set; }
     }
 }

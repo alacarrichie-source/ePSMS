@@ -53,7 +53,24 @@ namespace iLgs.Services
                     Remarks = s.Remarks,
                     InsertedDt = s.InsertedDt,
                     Department = s.RISs.Office,
-                    IsPosted = s.RISs.PostedDt != null
+                    IsPosted = s.RISs.PostedDt != null,
+                    FieldsAccountableForm = s.FieldsAccountableForm,
+                    FieldsAgricultural = s.FieldsAgricultural,
+                    FieldsAnimal = s.FieldsAnimal,
+                    FieldsFurniture = s.FieldsFurniture,
+                    FieldsLand = s.FieldsLand,
+                    FieldsMachinery = s.FieldsMachinery,
+                    FieldsMedical = s.FieldsMedical,
+                    FieldsMedicine = s.FieldsMedicine,
+                    FieldsMilitarySuuply = s.FieldsMilitarySuuply,
+                    FieldsNonAccountableForm = s.FieldsNonAccountableForm,
+                    FieldsOfficeSupply = s.FieldsOfficeSupply,
+                    FieldsOther = s.FieldsOther,
+                    FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
+                    FieldsRepair = s.FieldsRepair,
+                    FieldsTransportation = s.FieldsTransportation,
+                    FieldsVehicle = s.FieldsVehicle,
+                    FieldsConstruction = s.FieldsConstruction,
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -85,10 +102,23 @@ namespace iLgs.Services
                     InsertedDt = s.InsertedDt,
                     Department = s.RISs.Office,
                     IsPosted = s.RISs.PostedDt != null,
+                    FieldsAccountableForm = s.FieldsAccountableForm,
+                    FieldsAgricultural = s.FieldsAgricultural,
+                    FieldsAnimal = s.FieldsAnimal,
+                    FieldsFurniture = s.FieldsFurniture,
+                    FieldsLand = s.FieldsLand,
+                    FieldsMachinery = s.FieldsMachinery,
+                    FieldsMedical = s.FieldsMedical,
                     FieldsMedicine = s.FieldsMedicine,
-                    FieldsPpe = s.FieldsPpe,
+                    FieldsMilitarySuuply = s.FieldsMilitarySuuply,
+                    FieldsNonAccountableForm = s.FieldsNonAccountableForm,
+                    FieldsOfficeSupply = s.FieldsOfficeSupply,
+                    FieldsOther = s.FieldsOther,
+                    FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
+                    FieldsRepair = s.FieldsRepair,
+                    FieldsTransportation = s.FieldsTransportation,
                     FieldsVehicle = s.FieldsVehicle,
-                    FieldsOther = s.FieldsOther                    
+                    FieldsConstruction = s.FieldsConstruction,
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -126,7 +156,24 @@ namespace iLgs.Services
                     Remarks = s.Remarks,
                     InsertedDt = s.InsertedDt,
                     Department = s.RISs.Office,
-                    IsPosted = s.RISs.PostedDt != null
+                    IsPosted = s.RISs.PostedDt != null,
+                    FieldsAccountableForm = s.FieldsAccountableForm,
+                    FieldsAgricultural = s.FieldsAgricultural,
+                    FieldsAnimal = s.FieldsAnimal,
+                    FieldsFurniture = s.FieldsFurniture,
+                    FieldsLand = s.FieldsLand,
+                    FieldsMachinery = s.FieldsMachinery,
+                    FieldsMedical = s.FieldsMedical,
+                    FieldsMedicine = s.FieldsMedicine,
+                    FieldsMilitarySuuply = s.FieldsMilitarySuuply,
+                    FieldsNonAccountableForm = s.FieldsNonAccountableForm,
+                    FieldsOfficeSupply = s.FieldsOfficeSupply,
+                    FieldsOther = s.FieldsOther,
+                    FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
+                    FieldsRepair = s.FieldsRepair,
+                    FieldsTransportation = s.FieldsTransportation,
+                    FieldsVehicle = s.FieldsVehicle,
+                    FieldsConstruction = s.FieldsConstruction,
                 });
             return data;
         });
@@ -176,13 +223,26 @@ namespace iLgs.Services
         _entryVmExceptionService.TryCatchAsync(async () =>
         {
             model.UpdatedBy = user;
-            model.UpdatedDt = date;
+            model.UpdatedDt = date;            
 
             var entity = await _db.RisItems
+                .Include(i => i.FieldsAccountableForm)
+                .Include(i => i.FieldsAgricultural)
+                .Include(i => i.FieldsAnimal)
+                .Include(i => i.FieldsFurniture)
+                .Include(i => i.FieldsLand)
+                .Include(i => i.FieldsMachinery)
+                .Include(i => i.FieldsMedical)
                 .Include(i => i.FieldsMedicine)
+                .Include(i => i.FieldsMilitarySuuply)
+                .Include(i => i.FieldsNonAccountableForm)
+                .Include(i => i.FieldsOfficeSupply)
                 .Include(i => i.FieldsOther)
+                .Include(i => i.FieldsOtherSupplyMaterial)
+                .Include(i => i.FieldsRepair)
+                .Include(i => i.FieldsTransportation)
                 .Include(i => i.FieldsVehicle)
-                .Include(i => i.FieldsPpe)
+                .Include(i => i.FieldsConstruction)
                 .Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
             entity.UpdatedBy = model.UpdatedBy;
@@ -206,10 +266,23 @@ namespace iLgs.Services
             model.UpdatedDt = date;
 
             var entity = await _db.RisItems
+                .Include(i => i.FieldsAccountableForm)
+                .Include(i => i.FieldsAgricultural)
+                .Include(i => i.FieldsAnimal)
+                .Include(i => i.FieldsFurniture)
+                .Include(i => i.FieldsLand)
+                .Include(i => i.FieldsMachinery)
+                .Include(i => i.FieldsMedical)
                 .Include(i => i.FieldsMedicine)
+                .Include(i => i.FieldsMilitarySuuply)
+                .Include(i => i.FieldsNonAccountableForm)
+                .Include(i => i.FieldsOfficeSupply)
                 .Include(i => i.FieldsOther)
+                .Include(i => i.FieldsOtherSupplyMaterial)
+                .Include(i => i.FieldsRepair)
+                .Include(i => i.FieldsTransportation)
                 .Include(i => i.FieldsVehicle)
-                .Include(i => i.FieldsPpe)
+                .Include(i => i.FieldsConstruction)
                 .Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
             model.PsNo = PsNo(model);
@@ -246,27 +319,107 @@ namespace iLgs.Services
 
         private RisItem SetItemEntity(RisItem entity, RisItemEntryVM model)
         {
+            entity.FieldsAccountableForm = null;
+            entity.FieldsAgricultural = null;
+            entity.FieldsAnimal = null;
+            entity.FieldsFurniture = null;
+            entity.FieldsLand = null;
+            entity.FieldsMachinery = null;
+            entity.FieldsMedical = null;
             entity.FieldsMedicine = null;
-            entity.FieldsVehicle = null;
+            entity.FieldsMilitarySuuply = null;
+            entity.FieldsNonAccountableForm = null;
+            entity.FieldsOfficeSupply = null;
             entity.FieldsOther = null;
-            
+            entity.FieldsOtherSupplyMaterial = null;
+            entity.FieldsRepair = null;
+            entity.FieldsTransportation = null;
+            entity.FieldsVehicle = null;
+            entity.FieldsConstruction = null;            
+
             if (Enum.TryParse(model.PsType, out Category category))
             {
-                if (category == Category.T)
+                if (category == Category.A)
                 {
-                    model.FieldsVehicle.Id = entity.Id;
-                    entity.FieldsVehicle = model.FieldsVehicle;
+                    model.FieldsAccountableForm.Id = entity.Id;
+                    entity.FieldsAccountableForm = model.FieldsAccountableForm;
                 }
-                else if (category == Category.D)
+                else if (category == Category.B)
+                {
+
+                }
+                else if (category == Category.C)
+                {
+
+                }
+                else  if (category == Category.D)
                 {
                     model.FieldsMedicine.Id = entity.Id;
                     entity.FieldsMedicine = model.FieldsMedicine;
                 }
+                else if (category == Category.E)
+                {
+                    model.FieldsMachinery.Id = entity.Id;
+                    entity.FieldsMachinery = model.FieldsMachinery;
+                }
+                else if (category == Category.F) // food supplies
+                {
+                    
+                }
+                else if (category == Category.G) 
+                {
+                    model.FieldsAgricultural.Id = entity.Id;
+                    entity.FieldsAgricultural = model.FieldsAgricultural;
+                }
+                else if (category == Category.I)
+                {
+                    
+                }                                
+                else if (category == Category.L)
+                {
+                    model.FieldsLand.Id = entity.Id;
+                    entity.FieldsLand = model.FieldsLand;
+                }
+                else if (category == Category.M)
+                {
+                    model.FieldsMedical.Id = entity.Id;
+                    entity.FieldsMedical = model.FieldsMedical;
+                }
+                else if (category == Category.N)
+                {
+                    model.FieldsNonAccountableForm.Id = entity.Id;
+                    entity.FieldsNonAccountableForm = model.FieldsNonAccountableForm;
+                }
+                else if (category == Category.O)
+                {
+                    model.FieldsOfficeSupply.Id = entity.Id;
+                    entity.FieldsOfficeSupply = model.FieldsOfficeSupply;
+                }
+                else if (category == Category.P)
+                {
+                    model.FieldsMilitarySuuply.Id = entity.Id;
+                    entity.FieldsMilitarySuuply = model.FieldsMilitarySuuply;
+                }
+                else if (category == Category.R)
+                {
+                    model.FieldsRepair.Id = entity.Id;
+                    entity.FieldsRepair = model.FieldsRepair;
+                }
+                else if (category == Category.S)
+                {
+                    model.FieldsRepair.Id = entity.Id;
+                    entity.FieldsRepair = model.FieldsRepair;
+                }
+                else if (category == Category.T)
+                {
+                    model.FieldsTransportation.Id = entity.Id;
+                    entity.FieldsTransportation = model.FieldsTransportation;
+                }
                 else if (category == Category.U)
                 {
-                    model.FieldsPpe.Id = entity.Id;
-                    entity.FieldsPpe = model.FieldsPpe;
-                }
+                    model.FieldsFurniture.Id = entity.Id;
+                    entity.FieldsFurniture = model.FieldsFurniture;
+                }                
             }
 
             return entity;

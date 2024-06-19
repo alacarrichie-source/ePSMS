@@ -15,14 +15,10 @@ namespace iLgs.Models
     public partial class FieldsOther
     {
         public System.Guid Id { get; set; }
-        public string Dimension { get; set; }
-        public string Size { get; set; }
-        public string Capacity { get; set; }
-        public string Color { get; set; }
         public string Brand { get; set; }
         public string Model_ { get; set; }
     
-        public virtual RisItem RisItem { get; set; }
         public virtual PsCard PsCard { get; set; }
+        public virtual RisItem RisItem { get; set; }
     }
 }

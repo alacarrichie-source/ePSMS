@@ -18,10 +18,11 @@ namespace iLgs.Models
         public string GenericName { get; set; }
         public string DosageStrength { get; set; }
         public string DosageForm { get; set; }
+        public string DosageVolume { get; set; }
         public string Others { get; set; }
         public string Brand { get; set; }
     
-        public virtual RisItem RisItem { get; set; }
         public virtual PsCard PsCard { get; set; }
+        public virtual RisItem RisItem { get; set; }
     }
 }

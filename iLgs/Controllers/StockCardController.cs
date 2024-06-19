@@ -26,14 +26,14 @@ namespace iLgs.Controllers
         private ICodextnService _codextnService;
         private IPsCardService _cardService;
         private IPsCardItemService _cardItemService;
-        private IPsCardItemIssuanceService _cardItemIssuanceService;
+        private IPsCardItemIssuanceService _cardItemIssuanceService;        
 
         public StockCardController()
         {
             _codextnService = new CodextnService(_db);
             _cardService = new PsCardService(_db, _cardCategory);
             _cardItemService = new PsCardItemService(_db);
-            _cardItemIssuanceService = new PsCardItemIssuanceService(_db);
+            _cardItemIssuanceService = new PsCardItemIssuanceService(_db);            
         }
 
         // GET: Index

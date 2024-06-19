@@ -154,7 +154,11 @@ namespace iLgs.Services
 
                 foreach (var orderItem in orderItemList)
                 {
-                    var psCard = await db.PsCards.Include(i => i.PsCardItems).Where(w => w.PsNo == oig.StockNo && w.Fund == oig.Fund && w.Unit == oig.Unit).FirstOrDefaultAsync();
+                    var psCard = await db.PsCards.Include(i => i.PsCardItems).AsNoTracking()
+                        .Where(w => w.PsNo == oig.StockNo && w.Fund == oig.Fund 
+                            && w.FromDonation != true
+                            //&& w.Unit == oig.Unit
+                        ).FirstOrDefaultAsync();
                     if (psCard == null)
                     {
                         var psCardId = Guid.NewGuid();
@@ -163,7 +167,8 @@ namespace iLgs.Services
                             Id = psCardId,
                             ItemCodeId = oig.ItemCodeId,
                             Fund = oig.Fund,
-                            Description = oig.Description,                            
+                            //Description = oig.Description,                            
+                            Description = "Please see attachment.",
                             PsNo = oig.StockNo,
                             PsName = oig.StockName,
                             Amount = orderItem.Amount,
@@ -175,13 +180,56 @@ namespace iLgs.Services
                             UpdatedDt = date
                         };
 
+                        FieldsAccountableForm fieldsAccountableForm = null;
+                        FieldsAgricultural fieldsAgricultural = null;
+                        FieldsAnimal fieldsAnimal = null;
+                        FieldsFurniture fieldsFurniture = null;
+                        FieldsLand fieldsLand = null;
+                        FieldsMachinery fieldsMachinery = null;
+                        FieldsMedical fieldsMedical = null;
                         FieldsMedicine fieldsMedicine = null;
-                        FieldsVehicle fieldsVehicle = null;
+                        FieldsMilitarySuuply fieldsMilitarySuuply = null;
+                        FieldsNonAccountableForm fieldsNonAccountableForm = null;
+                        FieldsOfficeSupply fieldsOfficeSupply = null;
                         FieldsOther fieldsOther = null;
+                        FieldsOtherSupplyMaterial fieldsOtherSupplyMaterial = null;
+                        FieldsRepair fieldsRepair = null;
+                        FieldsTransportation fieldsTransportation = null;
+                        FieldsVehicle fieldsVehicle = null;
+                        FieldsConstruction fieldsConstruction = null;
+
 
                         if (Enum.TryParse(oig.ItemTypeCode, out Category category))
                         {
-                            if (category == Category.D)
+                            if (category == Category.A)
+                            {
+                                var risFieldsAccountableForm = await db.FieldsAccountableForms.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsAccountableForm != null)
+                                {
+                                    fieldsAccountableForm = new FieldsAccountableForm()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsAccountableForm.Brand,
+                                        Model_ = risFieldsAccountableForm.Model_
+                                    };
+                                    psCard.FieldsAccountableForm = fieldsAccountableForm;
+                                }
+                            }
+                            else if (category == Category.C)
+                            {
+                                var risFieldsConstruction = await db.FieldsConstructions.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsConstruction != null)
+                                {
+                                    fieldsConstruction = new FieldsConstruction()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsConstruction.Brand,
+                                        Model_ = risFieldsConstruction.Model_
+                                    };
+                                    psCard.FieldsConstruction = fieldsConstruction;
+                                }
+                            }
+                            else if (category == Category.D)
                             {
                                 var risFieldsMedicine = await db.FieldsMedicines.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
                                 if (risFieldsMedicine != null)
@@ -192,19 +240,202 @@ namespace iLgs.Services
                                         GenericName = risFieldsMedicine.GenericName,
                                         DosageForm = risFieldsMedicine.DosageForm,
                                         DosageStrength = risFieldsMedicine.DosageStrength,
+                                        DosageVolume = risFieldsMedicine.DosageVolume,
                                         Brand = orderItem.Brand
                                     };
 
                                     psCard.FieldsMedicine = fieldsMedicine;
                                 }
                             }
+                            else if (category == Category.E)
+                            {
+                                var risFieldsMachinery = await db.FieldsMachineries.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsMachinery != null)
+                                {
+                                    fieldsMachinery = new FieldsMachinery()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsMachinery.Brand,
+                                        Model_ = risFieldsMachinery.Model_
+                                    };
+                                    psCard.FieldsMachinery = fieldsMachinery;
+                                }
+                            }
+                            else if (category == Category.G)
+                            {
+                                var risFieldsAgricultural = await db.FieldsAgriculturals.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsAgricultural != null)
+                                {
+                                    fieldsAgricultural = new FieldsAgricultural()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsAgricultural.Brand,
+                                        Model_ = risFieldsAgricultural.Model_
+                                    };
+                                    psCard.FieldsAgricultural = fieldsAgricultural;
+                                }
+                            }
+                            else if (category == Category.L)
+                            {
+                                var risFieldsLand = await db.FieldsLands.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsLand != null)
+                                {
+                                    fieldsLand = new FieldsLand()
+                                    {
+                                        Id = psCardId,
+                                        Area = risFieldsLand.Area
+                                    };
+                                    psCard.FieldsLand = fieldsLand;
+                                }
+                            }
+                            else if (category == Category.M)
+                            {
+                                var risFieldsMedical = await db.FieldsMedicals.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsMedical != null)
+                                {
+                                    fieldsMedical = new FieldsMedical()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsMedical.Brand,
+                                        Model_ = risFieldsMedical.Model_
+                                    };
+                                    psCard.FieldsMedical = fieldsMedical;
+                                }
+                            }
+                            else if (category == Category.N)
+                            {
+                                var risFieldsNonAccountableForm = await db.FieldsNonAccountableForms.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsNonAccountableForm != null)
+                                {
+                                    fieldsNonAccountableForm = new FieldsNonAccountableForm()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsNonAccountableForm.Brand,
+                                        Model_ = risFieldsNonAccountableForm.Model_
+                                    };
+                                    psCard.FieldsNonAccountableForm = fieldsNonAccountableForm;
+                                }
+                            }
+                            else if (category == Category.O)
+                            {
+                                var risFieldsOfficeSupply = await db.FieldsOfficeSupplies.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsOfficeSupply != null)
+                                {
+                                    fieldsOfficeSupply = new FieldsOfficeSupply()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsOfficeSupply.Brand,
+                                        Model_ = risFieldsOfficeSupply.Model_
+                                    };
+                                    psCard.FieldsOfficeSupply = fieldsOfficeSupply;
+                                }
+                            }
+                            else if (category == Category.P)
+                            {
+                                var risFieldsMilitarySuuply = await db.FieldsMilitarySuuplies.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsMilitarySuuply != null)
+                                {
+                                    fieldsMilitarySuuply = new FieldsMilitarySuuply()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsMilitarySuuply.Brand,
+                                        Model_ = risFieldsMilitarySuuply.Model_
+                                    };
+                                    psCard.FieldsMilitarySuuply = fieldsMilitarySuuply;
+                                }
+                            }
+                            else if (category == Category.R)
+                            {
+                                var risFieldsRepair = await db.FieldsRepairs.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsRepair != null)
+                                {
+                                    fieldsRepair = new FieldsRepair()
+                                    {
+                                        Id = psCardId,
+                                        SerialNo = risFieldsRepair.SerialNo,
+                                        PropertyNo = risFieldsRepair.PropertyNo,
+                                        PlateNo = risFieldsRepair.PlateNo,
+                                        BodyNo = risFieldsRepair.BodyNo,
+                                        MVFileNo = risFieldsRepair.MVFileNo,
+                                        Brand = risFieldsRepair.Brand,
+                                        Model_ = risFieldsRepair.Model_
+                                    };
+                                    psCard.FieldsRepair = fieldsRepair;
+                                }
+                            }
                             else if (category == Category.T)
                             {
-                                fieldsVehicle = await db.FieldsVehicles.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (fieldsVehicle != null)
+                                var risFieldsTransportation = await db.FieldsTransportations.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsTransportation != null)
                                 {
-                                    fieldsVehicle.Id = psCardId;
-                                    psCard.FieldsVehicle = fieldsVehicle;
+                                    fieldsTransportation = new FieldsTransportation()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsTransportation.Brand,
+                                        Model_ = risFieldsTransportation.Model_
+                                    };
+                                    psCard.FieldsTransportation = fieldsTransportation;
+                                }
+                            }
+                            else if (category == Category.U)
+                            {
+                                var risFieldsFurniture = await db.FieldsFurnitures.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsFurniture != null)
+                                {
+                                    fieldsFurniture = new FieldsFurniture()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsFurniture.Brand,
+                                        Model_ = risFieldsFurniture.Model_,
+                                        Dimension = risFieldsFurniture.Dimension,
+                                        Size = risFieldsFurniture.Brand,
+                                        Weight = risFieldsFurniture.Weight,
+                                        Capacity = risFieldsFurniture.Capacity,
+                                        Color = risFieldsFurniture.Color
+                                    };
+                                    psCard.FieldsFurniture = fieldsFurniture;
+                                }
+                            }
+                            else if (category == Category.V)
+                            {
+                                var risFieldsAnimal = await db.FieldsAnimals.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsAnimal != null)
+                                {
+                                    fieldsAnimal = new FieldsAnimal()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsAnimal.Brand,
+                                        Model_ = risFieldsAnimal.Model_
+                                    };
+                                    psCard.FieldsAnimal = fieldsAnimal;
+                                }
+                            }
+                            else if (category == Category.X)
+                            {
+                                var risFieldsOtherSupplyMaterial = await db.FieldsOtherSupplyMaterials.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsOtherSupplyMaterial != null)
+                                {
+                                    fieldsOtherSupplyMaterial = new FieldsOtherSupplyMaterial()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsOtherSupplyMaterial.Brand,
+                                        Model_ = risFieldsOtherSupplyMaterial.Model_
+                                    };
+                                    psCard.FieldsOtherSupplyMaterial = fieldsOtherSupplyMaterial;
+                                }
+                            }
+                            else if (category == Category.Z)
+                            {
+                                var risFieldsOther = await db.FieldsOthers.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                                if (risFieldsOther != null)
+                                {
+                                    fieldsOther = new FieldsOther()
+                                    {
+                                        Id = psCardId,
+                                        Brand = risFieldsOther.Brand,
+                                        Model_ = risFieldsOther.Model_
+                                    };
+                                    psCard.FieldsOther = fieldsOther;
                                 }
                             }
                         }
@@ -235,7 +466,8 @@ namespace iLgs.Services
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,
-                                UpdatedDt = date
+                                UpdatedDt = date,
+                                Description = oig.Description
                             };
                             psCard.PsCardItems.Add(psCardItem);
 

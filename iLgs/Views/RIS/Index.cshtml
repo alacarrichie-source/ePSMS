@@ -581,8 +581,8 @@
     function RefreshDivs(dataItem) {
         var itemType = dataItem.Type;
 
-        for (var i = 65; i <= 90; i++) { // ASCII codes for A to Z
-            var divId = "DIV_ITEM_" + String.fromCharCode(i);
+        for (var i = 1; i <= 26; i++) {
+            var divId = "DIV_ITEM_" + String.fromCharCode(64 + i);
             $("#" + divId).hide();
         }
 

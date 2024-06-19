@@ -10,10 +10,23 @@ namespace iLgs.Models
     {
         public PsCardVM()
         {
+            this.FieldsAccountableForm = new FieldsAccountableForm() { Id = this.Id };
+            this.FieldsAgricultural = new FieldsAgricultural() { Id = this.Id };
+            this.FieldsAnimal = new FieldsAnimal() { Id = this.Id };
+            this.FieldsFurniture = new FieldsFurniture() { Id = this.Id };
+            this.FieldsLand = new FieldsLand() { Id = this.Id };
+            this.FieldsMachinery = new FieldsMachinery() { Id = this.Id };
+            this.FieldsMedical = new FieldsMedical() { Id = this.Id };
             this.FieldsMedicine = new FieldsMedicine() { Id = this.Id };
+            this.FieldsMilitarySuuply = new FieldsMilitarySuuply() { Id = this.Id };
+            this.FieldsNonAccountableForm = new FieldsNonAccountableForm() { Id = this.Id };
+            this.FieldsOfficeSupply = new FieldsOfficeSupply() { Id = this.Id };
             this.FieldsOther = new FieldsOther() { Id = this.Id };
-            this.FieldsPpe = new FieldsPpe() { Id = this.Id };  
+            this.FieldsOtherSupplyMaterial = new FieldsOtherSupplyMaterial() { Id = this.Id };
+            this.FieldsRepair = new FieldsRepair() { Id = this.Id };
+            this.FieldsTransportation = new FieldsTransportation() { Id = this.Id };
             this.FieldsVehicle = new FieldsVehicle() { Id = this.Id };
+            this.FieldsConstruction = new FieldsConstruction() { Id = this.Id };            
         }
 
         public System.Guid Id { get; set; }
@@ -62,10 +75,24 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        public FieldsAccountableForm FieldsAccountableForm { get; set; }
+        public FieldsAgricultural FieldsAgricultural { get; set; }
+        public FieldsAnimal FieldsAnimal { get; set; }
+        public FieldsFurniture FieldsFurniture { get; set; }
+        public FieldsLand FieldsLand { get; set; }
+        public FieldsMachinery FieldsMachinery { get; set; }
+        public FieldsMedical FieldsMedical { get; set; }
         public FieldsMedicine FieldsMedicine { get; set; }
+        public FieldsMilitarySuuply FieldsMilitarySuuply { get; set; }
+        public FieldsNonAccountableForm FieldsNonAccountableForm { get; set; }
+        public FieldsOfficeSupply FieldsOfficeSupply { get; set; }
         public FieldsOther FieldsOther { get; set; }
-        public FieldsPpe FieldsPpe { get; set; }
+        public FieldsOtherSupplyMaterial FieldsOtherSupplyMaterial { get; set; }
+        public FieldsRepair FieldsRepair { get; set; }
+        public FieldsTransportation FieldsTransportation { get; set; }
         public FieldsVehicle FieldsVehicle { get; set; }
+        public FieldsConstruction FieldsConstruction { get; set; }
 
         // Transients
 

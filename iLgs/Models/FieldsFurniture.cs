@@ -12,18 +12,16 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class FieldsVehicle
+    public partial class FieldsFurniture
     {
         public System.Guid Id { get; set; }
-        public string Type { get; set; }
-        public string Make { get; set; }
-        public string Series { get; set; }
-        public Nullable<int> YearModel { get; set; }
-        public string PlateNo { get; set; }
-        public string BodyNo { get; set; }
+        public string Brand { get; set; }
+        public string Model_ { get; set; }
+        public string Dimension { get; set; }
+        public string Size { get; set; }
+        public string Weight { get; set; }
+        public string Capacity { get; set; }
         public string Color { get; set; }
-        public string EngineNo { get; set; }
-        public string ChassisNo { get; set; }
     
         public virtual PsCard PsCard { get; set; }
         public virtual RisItem RisItem { get; set; }
