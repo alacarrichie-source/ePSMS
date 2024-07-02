@@ -22,19 +22,19 @@ namespace iLgs.Controllers
     public class PARsController : BaseController
     {
         private AppManEntities db = new AppManEntities();
-        private IParService service;
-        private IOrderService orderService;
-        private IOrderItemService orderItemService;
-        private IRisService risService;
-        private ICodextnService codextnService;
+        private IParService _service;
+        private IOrderService _orderService;
+        private IOrderItemService _orderItemService;
+        private IRisService _risService;
+        private ICodextnService _codextnService;
 
         public PARsController()
         {
-            this.service = new ParService(db);
-            this.orderService = new OrderService(db);
-            this.orderItemService = new OrderItemService(db);
-            this.risService = new RisService(db);
-            this.codextnService = new CodextnService(db);
+            _service = new ParService(db);
+            _orderService = new OrderService(db);
+            _orderItemService = new OrderItemService(db);
+            _risService = new RisService(db);
+            _codextnService = new CodextnService(db);
         }
 
         // GET: PARs
@@ -51,7 +51,7 @@ namespace iLgs.Controllers
 
         public ActionResult Read([DataSourceRequest] DataSourceRequest request)
         {
-            var data = service.GetAll();
+            var data = _service.GetAll();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -74,7 +74,7 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("", "Add Access Denied!");
                 }
 
-                if (await service.GetByParNoAsync(model.ParNo) != null)
+                if (await _service.GetByParNoAsync(model.ParNo) != null)
                 {
                     ModelState.AddModelError("PAR No.", "PAR number already exists!");
                 }
@@ -84,13 +84,20 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await service.CreateAsync(model, user, date);
+                    model = await _service.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -107,11 +114,11 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Update Access Denied!");
                 }
-                else if (await service.IsPostedAsync(model.Id))
+                else if (await _service.IsPostedAsync(model.Id))
                 {
                     ModelState.AddModelError("PAR No.", "PAR Number already Posted, cannot update!");
                 }
-                else if (await service.IsAnyParNoAsync(model.Id, model.ParNo))
+                else if (await _service.IsAnyParNoAsync(model.Id, model.ParNo))
                 {
                     ModelState.AddModelError("PAR No.", "PAR number already exists!");
                 }
@@ -121,13 +128,20 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await service.UpdateAsync(model, user, date);
+                    model = await _service.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -144,7 +158,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await service.IsPostedAsync(model.Id))
+                else if (await _service.IsPostedAsync(model.Id))
                 {
                     ModelState.AddModelError("DeleteError", "PR Number already Posted, cannot delete!");
                 }
@@ -153,13 +167,20 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await service.DeleteAsync(model, user, date);
+                    model = await _service.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -167,7 +188,7 @@ namespace iLgs.Controllers
 
         public ActionResult OrdersRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = orderService.GetAllParOrders();
+            var data = _orderService.GetAllParOrders();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -180,7 +201,7 @@ namespace iLgs.Controllers
 
         public ActionResult OrderItemsRead([DataSourceRequest] DataSourceRequest request, Guid? poId)
         {
-            var data = orderItemService.GetByPoId(poId);
+            var data = _orderItemService.GetByPoId(poId);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -200,7 +221,7 @@ namespace iLgs.Controllers
 
         public ActionResult _PARItemRead([DataSourceRequest] DataSourceRequest request, Guid? orderItemId)
         {
-            var data = service.GetAcknowledgedOrderItems(orderItemId);
+            var data = _service.GetAcknowledgedOrderItems(orderItemId);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -224,7 +245,7 @@ namespace iLgs.Controllers
             }
             else
             {
-                data = await service.GetAcknowledgedOrderItemByItemId(parItemIdx);
+                data = await _service.GetAcknowledgedOrderItemByItemId(parItemIdx);
                 if (data == null)
                 {
                     data = new PARAcknowledgementVM()
@@ -263,7 +284,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await service.IsPostedAsync(model.ParId))
+                else if (await _service.IsPostedAsync(model.ParId))
                 {
                     ModelState.AddModelError("PAR No.", "PAR Number already Posted, cannot update!");
                 }
@@ -274,7 +295,7 @@ namespace iLgs.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    var remariningQty = await service.GetRemainingQty(model.OrderItemId, model.ParItemId);
+                    var remariningQty = await _service.GetRemainingQty(model.OrderItemId, model.ParItemId);
                     if (remariningQty != null)
                     {
                         if (remariningQty < model.Qty)
@@ -289,22 +310,29 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = await service.GetByIdAsync(model.ParId);
+                    var entity = await _service.GetByIdAsync(model.ParId);
 
                     if (entity == null)
                     {                        
-                        model = await service.CreateAcknowledgementAsync(model, user, date);                        
+                        model = await _service.CreateAcknowledgementAsync(model, user, date);                        
                     }
                     else
                     {
-                        model = await service.UpdateAcknowledgementAsync(model, user, date);
+                        model = await _service.UpdateAcknowledgementAsync(model, user, date);
                     }                    
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message.ToString());
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             var query = from state in ModelState.Values
@@ -331,7 +359,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await service.IsPostedAsync(model.ParId))
+                else if (await _service.IsPostedAsync(model.ParId))
                 {
                     ModelState.AddModelError("PAR No.", "PAR Number already Posted, cannot update!");
                 }
@@ -347,13 +375,20 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
         
-                    model = await service.UpdateAcknowledgementAsync(model, user, date);                    
+                    model = await _service.UpdateAcknowledgementAsync(model, user, date);                    
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message.ToString());
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             var query = from state in ModelState.Values
@@ -380,7 +415,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await service.IsPostedAsync(model.ParId))
+                else if (await _service.IsPostedAsync(model.ParId))
                 {
                     ModelState.AddModelError("DeleteError", "PO Number already Posted, cannot delete!");
                 }
@@ -390,13 +425,20 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await service.DeleteAcknowledgementAsync(model, user, date);                    
+                    model = await _service.DeleteAcknowledgementAsync(model, user, date);                    
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message.ToString());
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -405,7 +447,7 @@ namespace iLgs.Controllers
         [AcceptVerbs(HttpVerbs.Get)]
         public async Task<JsonResult> GetAmount(Guid orderItemId, int qty)
         {
-            var orderItem = await orderItemService.GetByIdAsync(orderItemId);
+            var orderItem = await _orderItemService.GetByIdAsync(orderItemId);
             if (orderItem != null)
             {
                 return Json(new { Errors = "", Amount = orderItem.UnitCost * qty }, JsonRequestBehavior.AllowGet);
@@ -494,7 +536,7 @@ namespace iLgs.Controllers
                 }
             }
 
-            var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
             rpt.SetParameterValue("@cParNo", parNo);
             rpt.SetParameterValue("LGU", lgu);
@@ -516,11 +558,11 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await service.GetByIdAsync(parId) == null)
+                else if (await _service.GetByIdAsync(parId) == null)
                 {
                     ModelState.AddModelError("PAR", "Invalid PAR Id");
                 }
-                else if (await service.IsPostedAsync(parId))
+                else if (await _service.IsPostedAsync(parId))
                 {
                     ModelState.AddModelError("PAR No.", "PAR Number already Posted, cannot post again!");
                 }
@@ -530,13 +572,20 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await service.PostAsync(parId, user, date);
+                    await _service.PostAsync(parId, user, date);
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             var query = from state in ModelState.Values
@@ -563,11 +612,11 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await service.GetByIdAsync(parId) == null)
+                else if (await _service.GetByIdAsync(parId) == null)
                 {
                     ModelState.AddModelError("PAR", "Invalid PAR Id");
                 }
-                else if (!(await service.IsPostedAsync(parId)))
+                else if (!(await _service.IsPostedAsync(parId)))
                 {
                     ModelState.AddModelError("PAR No.", "PAR Number not yet posted, cannot unpost!");
                 }
@@ -577,13 +626,20 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await service.UnpostAsync(parId, user, date);
+                    await _service.UnpostAsync(parId, user, date);
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             var query = from state in ModelState.Values
@@ -629,7 +685,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await service.GeneratePAR(model, user, date);
+                    await _service.GeneratePAR(model, user, date);
                 }
             }
             catch (ParsAlreadyExistsException e)
@@ -638,8 +694,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             var query = from state in ModelState.Values

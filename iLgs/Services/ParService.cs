@@ -9,18 +9,44 @@ using System.Threading.Tasks;
 
 namespace iLgs.Services
 {
+    public interface IParService
+    {
+        IQueryable<PAR_VM> GetAll();
+        IQueryable<PsCardItemVM> GetAllAsync();
+        IQueryable<PARAcknowledgementVM> GetAcknowledgedOrderItems(Guid? orderItemId);
+        Task<PARAcknowledgementVM> GetAcknowledgedOrderItemByItemId(Guid? parItemId);
+        Task<Models.PAR> GetByIdAsync(Guid parId);
+        Task<Models.PAR> GetByParNoAsync(string parNo);
+        Task<int?> GetRemainingQty(Guid? orderItemId, Guid? parItemId);
+        Task<bool> IsAnyParNoAsync(Guid parId, string parNo);
+        Task<bool> IsPostedAsync(Guid parId);
+
+        Task<PAR_VM> CreateAsync(PAR_VM model, string user, DateTime date);
+        Task<PAR_VM> UpdateAsync(PAR_VM model, string user, DateTime date);
+        Task<PAR_VM> DeleteAsync(PAR_VM model, string user, DateTime date);
+
+        Task PostAsync(Guid parId, string user, DateTime date);
+        Task UnpostAsync(Guid parId, string user, DateTime date);
+        Task GeneratePAR(GenerateParVM model, string user, DateTime date);
+
+        Task<PARAcknowledgementVM> CreateAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date);
+        Task<PARAcknowledgementVM> UpdateAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date);
+        Task<PARAcknowledgementVM> DeleteAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date);
+    }
+
     public class ParService : IParService
     {
-        private readonly AppManEntities db = new AppManEntities();
-        
+        private readonly AppManEntities _db = new AppManEntities();
+        private decimal _parPrice = 50000;
+
         public ParService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;
         }
 
         public IQueryable<PAR_VM> GetAll()
         {
-            var data = db.PARs
+            var data = _db.PARs
                 .Select(s => new PAR_VM
                 {
                     Id = s.Id,
@@ -42,9 +68,80 @@ namespace iLgs.Services
                 .AsQueryable();
             return data;
         }
+
+        public IQueryable<PsCardItemVM> GetAllAsync()
+        {
+            var data = _db.PsCardItems.AsNoTracking()            
+                .Where(w => w.OrderItem.OrderItemUnitGroupDescriptionItems
+                    .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
+                    || w.UnitCost >= _parPrice)
+                .Select(s => new PsCardItemVM
+                {
+                    Id = s.Id,
+                    PsCardId = s.PsCardId,
+                    OrderItemId = s.OrderItemId,
+                    PoNo = s.PoNo,
+                    PoDate = s.PoDate,
+                    AirDate = s.AirDate,
+                    AirNo = s.AirNo,
+                    AirIssueDate = s.AirIssueDate,
+                    Qty = s.Qty,
+                    QtyIss = s.QtyIss,
+                    QtyBal = s.QtyBal,
+                    TransferIn = s.TransferIn,
+                    TransferOut = s.TransferOut,
+                    TranType = s.TranType,
+                    Unit = s.Unit,
+                    UnitCost = s.UnitCost,
+                    Amount = s.Amount,
+                    Days = s.Days,
+                    Remarks = s.Remarks,
+                    InsertedDt = s.InsertedDt,
+                    DeptId = s.DeptId,
+                    LocationId = s.LocationId,
+                    Department = s.Codextn.Description,
+                    Article = s.PsCard.ItemCode.Description,
+                    Description = s.Description,
+                    DeptDisplay = s.DeptDisplay,
+                    LocCode = s.Codextn1.Code,
+                    Location = s.Codextn1.Description,
+                    StockNo = s.PsCard.PsNo,
+                    ParBalance = s.QtyBal - (s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    IcsBalance = s.QtyBal - (s.IcsParItems.Where(w => w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                    RemBalance = s.QtyBal,
+                    OrderItemUnitGroupDescriptionItem = s.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemId)
+                   
+                    //Id = s.Id,
+                    //PoNo = s.PoNo,
+                    //PoDate = s.PoDate,
+                    //OrderItemId = s.OrderItemId,
+                    //AirNo = s.AirNo,
+                    //AirDate = s.AirDate,
+                    //Department = s.Codextn.Description,
+                    //PrNo = s.OrderItem.RequestItem.Request.PrNo,
+                    //RisNo = s.OrderItem.RequestItem.RisItem.RISs.RisNo,
+                    //Qty = s.Qty,
+                    //QtyIss = s.QtyIss,
+                    //TransferIn = s.TransferIn,
+                    //TransferOut = s.TransferOut,
+                    //Balance = s.QtyBal,
+                    //UnitCost = s.UnitCost,
+                    //Unit = s.Unit,
+                    //StockNo = s.PsCard.PsNo,
+                    //ItemName = s.PsCard.ItemCode.Description,                    
+                    //Description = s.Description,
+                    //IsWithPar = s.UnitCost >= _parPrice,
+                    //IsWithIcs = s.UnitCost < _parPrice,
+                    //ParBalance = s.Qty - (s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    //IcsBalance = s.Qty - (s.IcsParItems.Where(w => w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0)
+                }).AsQueryable();
+            return data;
+        }
+
+
         public IQueryable<PARAcknowledgementVM> GetAcknowledgedOrderItems(Guid? orderItemId)
         {
-            var data = db.PARItems
+            var data = _db.PARItems
                 .Where(w => w.OrderItemId == orderItemId)
                 .Select(s => new PARAcknowledgementVM
                 {
@@ -75,7 +172,7 @@ namespace iLgs.Services
 
         public async Task<PARAcknowledgementVM> GetAcknowledgedOrderItemByItemId(Guid? parItemId)
         {
-            var data = await db.PARItems
+            var data = await _db.PARItems
                 .Where(w => w.Id == parItemId)
                 .Select(s => new PARAcknowledgementVM
                 {
@@ -106,17 +203,17 @@ namespace iLgs.Services
 
         public async Task<PAR> GetByIdAsync(Guid parId)
         {
-            return await db.PARs.FindAsync(parId);
+            return await _db.PARs.FindAsync(parId);
         }
 
         public async Task<PAR> GetByParNoAsync(string parNo)
         {
-            return await db.PARs.Where(w => w.ParNo == parNo).FirstOrDefaultAsync();
+            return await _db.PARs.Where(w => w.ParNo == parNo).FirstOrDefaultAsync();
         }
 
         public async Task<int?> GetRemainingQty(Guid? orderItemId, Guid? parItemId)
         {
-            var orderItem = await db.OrderItems.Where(w => w.Id == orderItemId)
+            var orderItem = await _db.OrderItems.Where(w => w.Id == orderItemId)
                 .Select(s => new { Remaining = s.Qty - s.PARItems.Where(w => w.Id != parItemId).Sum(x => x.Qty) }).FirstOrDefaultAsync();
             if (orderItem == null)
             {
@@ -127,11 +224,11 @@ namespace iLgs.Services
 
         public async Task<bool> IsAnyParNoAsync(Guid parId, string parNo)
         {
-            return await db.PARs.AnyAsync(a => a.Id != parId && a.ParNo == parNo);
+            return await _db.PARs.AnyAsync(a => a.Id != parId && a.ParNo == parNo);
         }
         public async Task<bool> IsPostedAsync(Guid parId)
         {
-            var entity = await db.PARs.FindAsync(parId);
+            var entity = await _db.PARs.FindAsync(parId);
             if (entity != null)
             {
                 return !string.IsNullOrWhiteSpace(entity.PostedBy);
@@ -171,7 +268,7 @@ namespace iLgs.Services
             };
             
             // include items during add, ORDER Items not yet in PAR Items
-            var orderItems = await db.OrderItems
+            var orderItems = await _db.OrderItems
                 .Where(w => w.OrderId == model.OrderId && !w.PARItems.Any()).ToListAsync();
             foreach (var orderItem in orderItems)
             {
@@ -190,8 +287,8 @@ namespace iLgs.Services
                 entity.PARItems.Add(parItem);
             }
 
-            db.PARs.Add(entity);
-            await db.SaveChangesAsync();
+            _db.PARs.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -201,23 +298,23 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await db.PARs.FindAsync(model.Id);
+            var entity = await _db.PARs.FindAsync(model.Id);
 
             // if there's a change of item
             if (entity.OrderId != model.OrderId)
             {
-                var items = db.PARItems.Where(w => w.ParId == model.Id);
+                var items = _db.PARItems.Where(w => w.ParId == model.Id);
                 await items.ForEachAsync(f => {
                     f.UpdatedBy = model.UpdatedBy;
                     f.UpdatedDt = model.UpdatedDt;
                 });
-                await db.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
-                db.PARItems.RemoveRange(items);
-                await db.SaveChangesAsync();
+                _db.PARItems.RemoveRange(items);
+                await _db.SaveChangesAsync();
 
                 // include items during add, ORDER Items not yet in PAR Items
-                var orderItems = await db.OrderItems
+                var orderItems = await _db.OrderItems
                     .Where(w => w.OrderId == model.OrderId && !w.PARItems.Any()).ToListAsync();
                 foreach (var orderItem in orderItems)
                 {
@@ -248,9 +345,9 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.PARs.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.PARs.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -261,56 +358,56 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await db.PARs.FindAsync(model.Id);
+            var entity = await _db.PARs.FindAsync(model.Id);
 
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            db.PARs.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.PARs.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.PARs.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.PARs.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         }
 
         public async Task PostAsync(Guid orderId, string user, DateTime date)
         {
-            var entity = await db.PARs.FindAsync(orderId);
+            var entity = await _db.PARs.FindAsync(orderId);
             entity.PostedBy = user;
             entity.PostedDt = date;
 
-            db.PARs.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.PARs.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
         }
 
         public async Task UnpostAsync(Guid orderId, string user, DateTime date)
         {
-            var entity = await db.PARs.FindAsync(orderId);
+            var entity = await _db.PARs.FindAsync(orderId);
 
             entity.PostedBy = null;
             entity.PostedDt = null;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            db.PARs.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.PARs.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
         }
 
         public async Task GeneratePAR(GenerateParVM model, string user, DateTime date)
         {
-            var orderItem = await db.OrderItems.FindAsync(model.OrderItemId);
+            var orderItem = await _db.OrderItems.FindAsync(model.OrderItemId);
             if (orderItem == null)
             {
                 throw new RecordNotFoundException((Guid)model.OrderItemId);
             }
 
-            if (db.PARItems.Any(a => a.OrderItemId == model.OrderItemId))
+            if (_db.PARItems.Any(a => a.OrderItemId == model.OrderItemId))
             {
                 throw new ParsAlreadyExistsException();
             }
@@ -337,9 +434,9 @@ namespace iLgs.Services
                     PostedBy = "",
                     PostedDt = null
                 };
-                db.PARs.Add(par);
-                db.Entry(par).State = EntityState.Added;
-                await db.SaveChangesAsync();
+                _db.PARs.Add(par);
+                _db.Entry(par).State = EntityState.Added;
+                await _db.SaveChangesAsync();
 
                 var parItem = new PARItem()
                 {
@@ -354,9 +451,9 @@ namespace iLgs.Services
                     UpdatedBy = user,
                     UpdatedDt = date
                 };
-                db.PARItems.Add(parItem);
-                db.Entry(parItem).State = EntityState.Added;
-                await db.SaveChangesAsync();
+                _db.PARItems.Add(parItem);
+                _db.Entry(parItem).State = EntityState.Added;
+                await _db.SaveChangesAsync();
             }
 
             //var entity = await db.PARs.FindAsync(orderId);
@@ -413,8 +510,8 @@ namespace iLgs.Services
 
             entity.PARItems.Add(parItem);
 
-            db.PARs.Add(entity);
-            await db.SaveChangesAsync();
+            _db.PARs.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -423,7 +520,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await db.PARs.Where(w => w.Id == model.ParId).FirstOrDefaultAsync();
+            var entity = await _db.PARs.Where(w => w.Id == model.ParId).FirstOrDefaultAsync();
             
             entity.ParNo = model.ParNo;
             entity.ParDate = model.ParDate;
@@ -436,7 +533,7 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            var parItem = await db.PARItems.FirstOrDefaultAsync(f => f.Id == model.ParItemId);
+            var parItem = await _db.PARItems.FirstOrDefaultAsync(f => f.Id == model.ParItemId);
             if (parItem != null)
             {
                 parItem.Qty = model.Qty;
@@ -445,13 +542,13 @@ namespace iLgs.Services
                 parItem.UpdatedBy = model.UpdatedBy;
                 parItem.UpdatedDt = model.UpdatedDt;
 
-                db.PARItems.Attach(parItem);
-                db.Entry(parItem).State = EntityState.Modified;
+                _db.PARItems.Attach(parItem);
+                _db.Entry(parItem).State = EntityState.Modified;
             }
 
-            db.PARs.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.PARs.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -460,32 +557,32 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            PARItem entity = await db.PARItems.FindAsync(model.ParItemId);
+            PARItem entity = await _db.PARItems.FindAsync(model.ParItemId);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.PARItems.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.PARItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.PARItems.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.PARItems.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
-            var par = await db.PARs.Where(w => w.Id == model.ParId && !w.PARItems.Any()).FirstOrDefaultAsync();
+            var par = await _db.PARs.Where(w => w.Id == model.ParId && !w.PARItems.Any()).FirstOrDefaultAsync();
             if (par != null)
             {
                 par.UpdatedBy = model.UpdatedBy;
                 par.UpdatedDt = model.UpdatedDt;
 
-                db.PARs.Attach(par);
-                db.Entry(par).State = EntityState.Modified;
-                await db.SaveChangesAsync();
+                _db.PARs.Attach(par);
+                _db.Entry(par).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
 
-                db.PARs.Remove(par);
-                db.Entry(par).State = EntityState.Deleted;
-                await db.SaveChangesAsync();
+                _db.PARs.Remove(par);
+                _db.Entry(par).State = EntityState.Deleted;
+                await _db.SaveChangesAsync();
             }
 
             return model;
@@ -502,7 +599,7 @@ namespace iLgs.Services
             // yyyy-mm-9999
             // 123456789012
 
-            var data = db.PARs.Where(w => w.ParDate.Value.Year == parDate.Year).OrderByDescending(o => o.ParNo).FirstOrDefault();
+            var data = _db.PARs.Where(w => w.ParDate.Value.Year == parDate.Year).OrderByDescending(o => o.ParNo).FirstOrDefault();
             if (data == null)
             {
                 return keyName + "-" + "0001";

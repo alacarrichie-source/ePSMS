@@ -151,6 +151,11 @@ namespace iLgs.Services
         public ValueTask<AIRInvoiceVM> DeleteAsync(AIRInvoiceVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
+            if (await IsPostedAsync(model.AirId))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -190,7 +195,11 @@ namespace iLgs.Services
             }
         }
         private async Task ValidateOnCreate(AIRInvoiceVM model)
-        {            
+        {
+            if (await IsPostedAsync(model.AirId))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
 
             if (await db.AIRInvoices.AnyAsync(a => a.InvoiceNo == model.InvoiceNo && a.AirId == model.AirId))
             {
@@ -199,11 +208,22 @@ namespace iLgs.Services
         }
 
         private async Task ValidateOnUpdate(AIRInvoiceVM model)
-        {            
+        {
+            if (await IsPostedAsync(model.AirId))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
+
             if (await db.AIRInvoices.AnyAsync(a => a.InvoiceNo == model.InvoiceNo && a.Id != model.Id))
             {
                 throw new RecordAlreadyExistsException(string.Format("Invoice Number {0} already exists", model.InvoiceNo));
             }
+        }
+
+        private async ValueTask<bool> IsPostedAsync(Guid? airId)
+        {
+            var entity = await db.AIRs.FindAsync(airId);
+            return !string.IsNullOrWhiteSpace(entity.PostedBy);
         }
 
         //private static void Validate(params (dynamic Rule, string Parameter)[] validations)

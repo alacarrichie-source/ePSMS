@@ -17,12 +17,14 @@ namespace iLgs.Services
         private readonly IExceptionService<OrderItemVM> _VmExceptionService = new ExceptionService<OrderItemVM>();
         private ICodextnService _codextnService;
         private IAllFieldService _allFieldService;
+        private IOrderItemUnitGroupDescriptionItemService _orderItemUnitGroupDescriptionItemService;
         
         public OrderItemService(AppManEntities db)
         {
             this._db = db;
             _codextnService = new CodextnService(db);
             _allFieldService = new AllFieldService(db);
+            _orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(db);
         }
 
         public ValueTask<OrderItemVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
@@ -264,8 +266,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
-            await orderItemUnitGroupDescriptionItemService.DeleteEmptyGroupsAsync(model.Id);            
+            var orderItemGroupDescriptionItem = await _orderItemUnitGroupDescriptionItemService.DeleteEmptyGroupsAsync(model.Id);            
 
             OrderItem entity = await _db.OrderItems.FindAsync(model.Id);
 

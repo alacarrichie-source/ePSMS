@@ -19,7 +19,7 @@ namespace iLgs.Services
 
         public AirService(AppManEntities db)
         {
-            this.db = db;            
+            this.db = db;
         }
 
         public IQueryable<AIR_VM> GetAll() => _VmExceptionService.TryCatch(() =>
@@ -156,9 +156,9 @@ namespace iLgs.Services
                 foreach (var orderItem in orderItemList)
                 {
                     var psCard = await db.PsCards.Include(i => i.PsCardItems).AsNoTracking()
-                        .Where(w => w.PsNo == oig.StockNo && w.Fund == oig.Fund 
+                        .Where(w => w.PsNo == oig.StockNo && w.Fund == oig.Fund
                             && w.FromDonation != true
-                            //&& w.Unit == oig.Unit
+                        //&& w.Unit == oig.Unit
                         ).FirstOrDefaultAsync();
                     if (psCard == null)
                     {
@@ -496,6 +496,11 @@ namespace iLgs.Services
                 throw new RecordRelationshipException("Items were already issued cannot unpost!");
             }
 
+            if (await db.IcsParItems.AsNoTracking().AnyAsync(a => a.PsCardItem.OrderItemId == entity.OrderId))
+            {
+                throw new RecordRelationshipException("PAR/ICS already issued cannot unpost!");
+            }
+
             /*
                 * Delete the following records onUnpost:
                 * PsCardItems, Fields...
@@ -506,42 +511,36 @@ namespace iLgs.Services
 
             foreach (var orderItem in orderItems)
             {
-                if (Enum.TryParse(orderItem.RequestItem.RisItem.ItemCode.ItemType.Code, out Category category))
+                var psCardItems = db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id);
+                if (psCardItems.Any())
                 {
-                    if (category == Category.D)
+                    var psCardId = psCardItems.FirstOrDefault().PsCardId;
+                    // log updates
+                    await psCardItems.ForEachAsync(f =>
                     {
-                        var psCardItems = db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id);
-                        if (psCardItems.Any())
-                        {
-                            var psCardId = psCardItems.FirstOrDefault().PsCardId;
-                            // log updates
-                            await psCardItems.ForEachAsync(f =>
-                            {
-                                f.UpdatedBy = user;
-                                f.UpdatedDt = date;
-                            });
-                            await db.SaveChangesAsync();
+                        f.UpdatedBy = user;
+                        f.UpdatedDt = date;
+                    });
+                    await db.SaveChangesAsync();
 
-                            // delete all stockitems
-                            db.PsCardItems.RemoveRange(psCardItems);
-                            await db.SaveChangesAsync();
+                    // delete all stockitems
+                    db.PsCardItems.RemoveRange(psCardItems);
+                    await db.SaveChangesAsync();
 
-                            if (!db.PsCardItems.Any(a => a.PsCardId == psCardId)) // no other  order item is using this item
-                            {
-                                var psCard = await db.PsCards.Where(w => w.Id == psCardId).FirstOrDefaultAsync();
-                                psCard.UpdatedBy = user;
-                                psCard.UpdatedDt = date;
+                    if (!db.PsCardItems.Any(a => a.PsCardId == psCardId)) // no other  order item is using this item
+                    {
+                        var psCard = await db.PsCards.Where(w => w.Id == psCardId).FirstOrDefaultAsync();
+                        psCard.UpdatedBy = user;
+                        psCard.UpdatedDt = date;
 
-                                db.PsCards.Attach(psCard);
-                                db.Entry(psCard).State = EntityState.Modified;
-                                await db.SaveChangesAsync();
+                        db.PsCards.Attach(psCard);
+                        db.Entry(psCard).State = EntityState.Modified;
+                        await db.SaveChangesAsync();
 
-                                // delete stock during unpost if not used by other order item
-                                db.PsCards.Remove(psCard);
-                                db.Entry(psCard).State = EntityState.Deleted;
-                                await db.SaveChangesAsync();
-                            }
-                        }
+                        // delete stock during unpost if not used by other order item
+                        db.PsCards.Remove(psCard);
+                        db.Entry(psCard).State = EntityState.Deleted;
+                        await db.SaveChangesAsync();
                     }
                 }
             }
@@ -554,7 +553,7 @@ namespace iLgs.Services
             db.AIRs.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
-            
+
         });
 
         private ValueTask UpdatePsItem(AIR entity, string user, DateTime date, bool post) => _VmExceptionService.TryCatch(async () =>
@@ -593,7 +592,7 @@ namespace iLgs.Services
             return await UpdateAsync(model, user, date);
         });
 
-        public async ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date) 
+        public async ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date)
         {
             await ValidateOnCreate(model);
 
@@ -656,7 +655,7 @@ namespace iLgs.Services
             return model;
         }
 
-        public async ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date) 
+        public async ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date)
         {
             await ValidateOnUpdate(model);
 
@@ -745,7 +744,7 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-        });        
+        });
 
         private string NextAirNo(DateTime date)
         {
@@ -789,6 +788,11 @@ namespace iLgs.Services
             {
                 throw new RecordAlreadyExistsException(string.Format("AIR Number {0} already exists", model.AIRNo));
             }
+
+            if (await IsPostedAsync(model.Id))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update");
+            }
         }
 
         private async ValueTask ValidateOnDelete(AIR_VM model)
@@ -796,7 +800,12 @@ namespace iLgs.Services
             if (await db.AIRs.FindAsync(model.Id) == null)
             {
                 throw new RecordNotFoundException(model.Id);
-            }            
-        }        
+            }
+
+            if (await IsPostedAsync(model.Id))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot delete!");
+            }
+        }
     }
 }

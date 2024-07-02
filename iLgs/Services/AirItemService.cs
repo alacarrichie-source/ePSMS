@@ -72,6 +72,11 @@ namespace iLgs.Services
 
         public ValueTask<AIRItemVM> CreateAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
         {
+            if (await IsPostedAsync(model.AirId))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
+
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
@@ -101,6 +106,11 @@ namespace iLgs.Services
 
         public ValueTask<AIRItemVM> DeleteAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
         {
+            if (await IsPostedAsync(model.AirId))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot delete!");
+            }
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -122,6 +132,11 @@ namespace iLgs.Services
 
         public ValueTask<AIRItemVM> UpdateAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
         {
+            if (await IsPostedAsync(model.AirId))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
+
             if (string.IsNullOrWhiteSpace(model.Remarks))
             {
                 throw new InvalidValueException("Remarks Field is Required!");
@@ -145,5 +160,11 @@ namespace iLgs.Services
 
             return model;
         });
+
+        private async ValueTask<bool> IsPostedAsync(Guid? airId)
+        {
+            var entity = await _db.AIRs.FindAsync(airId);
+            return !string.IsNullOrWhiteSpace(entity.PostedBy);
+        }
     }
 }

@@ -88,7 +88,7 @@ namespace iLgs.Services
                 throw new InvalidValueException("Quantity is required!");
             }
 
-            if (model.IssuedToSw == 1 && model.DeptId == null)
+            if (model.IssuedToSw == 1 && (model.DeptId == null || model.DeptId == Guid.Empty))
             {
                 throw new InvalidValueException("Department is Required!");
             }
@@ -109,6 +109,7 @@ namespace iLgs.Services
             else
             {
                 model.DeptId = null;
+                model.IssuedTo = "Stakeholders";
             }
 
             await ValidateFieldsAsync(model);
@@ -163,6 +164,8 @@ namespace iLgs.Services
                 model.DeptId = null;
                 model.IssuedTo = "Stakeholders";
             }
+
+            await ValidateFieldsAsync(model);
 
             var entity = await _db.PsCardItemIssuances.Include(i => i.PsCardItem).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
             if (entity == null)

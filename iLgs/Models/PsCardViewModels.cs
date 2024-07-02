@@ -186,8 +186,10 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        
+
         // Transients
+        public string Article { get; set; }
+
         [Display(Name = "Department")]
         public string Department { get; set; }
 
@@ -202,6 +204,8 @@ namespace iLgs.Models
         public string StockNo { get; set; }
         [Display(Name = "Remaining Balance")]
         public Nullable<int> RemBalance { get; set; }
+
+        public OrderItemUnitGroupDescriptionItem OrderItemUnitGroupDescriptionItem { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

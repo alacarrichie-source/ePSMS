@@ -282,6 +282,7 @@ namespace iLgs.Services
                         Qty = prItem.Qty,
                         UnitCost = prItem.UnitCost,
                         Amount = prItem.TotalCost,
+                        PriceRate = prItem.PriceRate,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,

@@ -168,8 +168,9 @@ namespace iLgs.Services
                         await _db.SaveChangesAsync();
                     }
                 }
+                return unitGroupDescriptionItems.FirstOrDefault();
             }
-            return unitGroupDescriptionItems.FirstOrDefault();
+            return new OrderItemUnitGroupDescriptionItem();            
         });
 
         public ValueTask<OrderItemUnitGroupDescriptionItemVM> UpdateAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date) =>
