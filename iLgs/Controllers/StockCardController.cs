@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Controllers
 {
@@ -26,14 +27,16 @@ namespace iLgs.Controllers
         private ICodextnService _codextnService;
         private IPsCardService _cardService;
         private IPsCardItemService _cardItemService;
-        private IPsCardItemIssuanceService _cardItemIssuanceService;        
+        private IPsCardItemIssuanceService _cardItemIssuanceService;
+        private IAllFieldService _allFieldService;
 
         public StockCardController()
         {
             _codextnService = new CodextnService(_db);
-            _cardService = new PsCardService(_db, _cardCategory);
+            _cardService = new PsCardService(_db);
             _cardItemService = new PsCardItemService(_db);
-            _cardItemIssuanceService = new PsCardItemIssuanceService(_db);            
+            _cardItemIssuanceService = new PsCardItemIssuanceService(_db);
+            _allFieldService = new AllFieldService(_db);
         }
 
         // GET: Index
@@ -242,7 +245,6 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "", Id = model.Id}, JsonRequestBehavior.AllowGet);
         }
-
 
         [AcceptVerbs(HttpVerbs.Post)]
         public JsonResult GetDescription(PsCardVM fields)
@@ -562,7 +564,46 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }        
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] PsCardVM model)
+        {
+            if (model.Id != Guid.Empty)
+            {
+                //model = await _cardService.GetVmByIdAsync(model.Id);
+                var allField = await _allFieldService.GetByIdAsync(model.Id);
+                if (allField != null)
+                {
+                    model.AllField = allField;
+                }
+            }
+            string partialView = "";
+            if (Enum.TryParse(model.ItemTypeCode, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    partialView = "_FieldLand";
+                }
+                else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
+                    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
+                    || c == CatOtherSupplies())
+                {
+                    partialView = "_FieldBrand";
+                }
+                else if (c == CatDrugs())
+                {
+                    partialView = "_FieldDrugs";
+                }
+                else if (c == CatRepairs())
+                {
+                    partialView = "_FieldSerial";
+                }
+            }
+            return PartialView(partialView, model);
+        }
+        
 
         #region PRINTOUTS
         public ActionResult StockCardRpt(string stockNo)

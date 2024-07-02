@@ -28,7 +28,7 @@ namespace iLgs.Models
         public string PostedBy { get; set; }
         public Nullable<System.DateTime> PostedDt { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
         public virtual PsCardItem PsCardItem { get; set; }
+        public virtual Codextn Codextn { get; set; }
     }
 }

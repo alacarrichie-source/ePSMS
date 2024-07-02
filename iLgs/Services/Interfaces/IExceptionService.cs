@@ -15,6 +15,7 @@ namespace iLgs.Services.Interfaces
         ValueTask<T> TryCatch(Func<ValueTask<T>> returningFunction);
         ValueTask<T> TryCatchAsync(Func<ValueTask<T>> returningFunctionAsync);
         IQueryable<T> TryCatch(Func<IQueryable<T>> returningQueryableFunction);
+        List<T> TryCatch(Func<List<T>> returningQueryableFunction);
         //ValueTask<T> TryCatch(Func<IQueryable<PsStock>> p);
     }
 }

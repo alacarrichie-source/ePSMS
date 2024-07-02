@@ -10,17 +10,18 @@
     {
         col.Bound(c => c.Fund).Width(40);
         col.Bound(c => c.PsNo).Width(100);
-        col.Bound(c => c.Item).Width(100);
-        col.Bound(c => c.SubAccount).Width(70);        
+        col.Bound(c => c.ItemType).Width(100);
+        col.Bound(c => c.SubAccount).Width(100);
+        col.Bound(c => c.Item).Width(100).Title("Articles");
         //col.Bound(c => c.PsName).Width(70);
-        col.Bound(c => c.Description).Width(200);
+        col.Bound(c => c.Description).Width(100);
         col.Command(command =>
         {
-            //command.Edit();            
+            //command.Edit();
             command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEdit");
             //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
             command.Destroy();
-        }).Width(70);
+        }).Width(100);
     })
     //.ToolBar(t =>
     //{
@@ -31,9 +32,9 @@
     .ToolBar(toolbar =>
     {
     toolbar.Template(@<text>
-            @(Html.Kendo().Button().Name("btnAdd_").Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAdd")))
-            @(Html.Kendo().Button().Name("btnPrintCard").Content("Print").Icon("k-icon k-i-print").Events(e => e.Click("onClickBtnPrint")))
-        </text>);
+        @(Html.Kendo().Button().Name("btnAdd_").Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAdd")))
+        @(Html.Kendo().Button().Name("btnPrintCard").Content("Print").Icon("k-icon k-i-print").Events(e => e.Click("onClickBtnPrint")))
+    </text>);
     })
     .Pageable(pager => pager
         .Input(false)
@@ -92,7 +93,7 @@
         {
             items.Add().Text("Items")
             .Selected(true)
-            .LoadContentFrom("_StockCardItem", "StockCard", new { cardId = "#=Id#" });            
+            .LoadContentFrom("_StockCardItem", "StockCard", new { cardId = "#=Id#" });
         })
        .ToClientTemplate()
     )
@@ -117,7 +118,7 @@
         col.Command(command =>
         {
             command.Edit();
-            command.Destroy();            
+            command.Destroy();
             //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridIssuanceDeleteClick").SendDataKeys(true);
         }).Width(100);
     })
@@ -135,7 +136,7 @@
         .Model(model =>
         {
             model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);            
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
             model.Field(p => p.Amount).Editable(false);
             model.Field(p => p.IssuedToSw).DefaultValue(1);
         })
@@ -461,7 +462,12 @@
         margin-right: 0;
         width: fit-content;
     }
-    
+
+    .k-multicolumncombobox .k-grid td {
+        white-space: normal !important;
+        word-wrap: break-word;
+        word-break: break-all;
+    }
 </style>
 
 
@@ -475,15 +481,18 @@
                 # } #
             </ul>
         </li>*@
-        # for (var i = 0; i < messages.length; ++i) { #
-        <li>#= messages[i] #</li>
-        # } #
+    # for (var i = 0; i < messages.length; ++i) { #
+    <li>#= messages[i] #</li>
+    # } #
     # } #
 </script>
 
 
 
-<script type="text/javascript">    
+<script type="text/javascript">
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    }
 
     function GridError(args) {
         if (args.errors) {
@@ -833,6 +842,7 @@
 
         $("#ItemCodeId").val(dataItem.Id).trigger("change");
         $("#ItemCode").val(dataItem.Code).trigger("change");
+        $("#ItemNo").val(dataItem.ItemNo).trigger("change");
         $("#Item").val(dataItem.Description).trigger("change");
         $("#ItemTypeCode").val(dataItem.Type).trigger("change");
         $("#ItemType").val(dataItem.TypeDesc).trigger("change");
@@ -845,16 +855,31 @@
     }
 
     function RefreshDivs(dataItem) {
-        var itemType = dataItem.Type;
-        
-        for (var i = 1; i <= 26; i++) { 
-            var divId = "DIV_ITEM_" + String.fromCharCode(64 + i);
-            $("#" + divId).hide();
-        }
+        //var selectedValue = this.value();
+        var fieldsContainer = $('#DIV_ALLFIELDS');
 
-        $("#DIV_ITEM_" + itemType).show();
+        fieldsContainer.empty(); // Clear existing content
 
-        resizeWindow();
+        var url = '@Url.Action("LoadFields", "StockCard")';
+        var data = $("#form").serialize();
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: data,
+            //contentType: "application/json; charset=utf-8",
+            success: function(data) {
+                fieldsContainer.html(data);
+                resizeWindow();
+            }
+        });
+
+        //for (var i = 1; i <= 26; i++) {
+        //    var divId = "DIV_ITEM_" + String.fromCharCode(64 + i);
+        //    $("#" + divId).hide();
+        //}
+
+        //$("#DIV_ITEM_" + itemType).show();        
     }
 
     function onDataBoundItemCode(e) {

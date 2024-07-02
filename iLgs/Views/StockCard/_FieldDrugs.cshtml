@@ -1,0 +1,65 @@
+﻿@model iLgs.Models.PsCardVM
+@Html.HiddenFor(model => model.AllField.Id)
+
+<div class="row">
+    <div class="col-md-12">
+        @Html.LabelFor(m => m.AllField.GenericName, "Generic Name", htmlAttributes: new { @class = "col-md-12" })
+        <div class="col-md-12">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.GenericName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.GenericName)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        @Html.LabelFor(m => m.AllField.DosageStrength, "Dosage Strength", htmlAttributes: new { @class = "col-md-12" })
+        <div class="col-md-12">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.DosageStrength).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.DosageStrength)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        @Html.LabelFor(m => m.AllField.DosageForm, "Dosage Form", htmlAttributes: new { @class = "col-md-12" })
+        <div class="col-md-12">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.DosageForm).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.DosageForm)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        @Html.LabelFor(m => m.AllField.DosageVolume, "Dosage Volume", htmlAttributes: new { @class = "col-md-12" })
+        <div class="col-md-12">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.DosageVolume).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))            
+            @Html.ValidationMessageFor(m => m.AllField.DosageVolume)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        @Html.LabelFor(m => m.AllField.Multipliers, "Multipliers ('s)", htmlAttributes: new { @class = "col-md-12" })
+        <div class="col-md-12">
+            @*@(Html.Kendo().TextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))*@
+            @(Html.Kendo().MaskedTextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription"))
+                .Mask("999999999")  // Adjust the number of 0s to fit your requirement -->
+                .PromptChar(" "))            
+            @Html.ValidationMessageFor(m => m.AllField.Multipliers)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        @Html.LabelFor(m => m.AllField.Brand, htmlAttributes: new { @class = "col-md-12" })
+        <div class="col-md-12">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.Brand)
+        </div>
+    </div>
+</div>

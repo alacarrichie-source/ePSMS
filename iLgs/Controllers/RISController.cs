@@ -17,6 +17,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Controllers
 {
@@ -24,20 +25,21 @@ namespace iLgs.Controllers
     public class RISController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
-        //private IRisIssuedService _risIssuedService;
         private IServiceAgent _sa;
         private IRisItemService _risItemService;
         private IRisItemUnitGroupService _risItemUnitGroupService;
         private IRisItemUnitGroupDescriptionService _risItemUnitGroupDescriptionService;
         private IRisItemUnitGroupDescriptionItemService _risItemUnitGroupDescriptionItemService;
+        private IAllFieldService _allFieldService;
+
         public RISController()
         {
-            //_risIssuedService = new RisIssuedService(_db);
             _sa = new ServiceAgent(_db);
             _risItemService = new RisItemService(_db);
             _risItemUnitGroupService = new RisItemUnitGroupService(_db);
             _risItemUnitGroupDescriptionService = new RisItemUnitGroupDescriptionService(_db);
             _risItemUnitGroupDescriptionItemService = new RisItemUnitGroupDescriptionItemService(_db);
+            _allFieldService = new AllFieldService(_db);
         }
 
         // GET: RIS
@@ -755,6 +757,43 @@ namespace iLgs.Controllers
         }
 
         #endregion
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] RisItemEntryVM model)
+        {
+            if (model.Id != Guid.Empty)
+            {
+                var allField = await _allFieldService.GetByIdAsync(model.Id);
+                if (allField != null)
+                {
+                    model.AllField = allField;
+                }
+            }
+            string partialView = "";
+            if (Enum.TryParse(model.PsType, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    partialView = "_FieldLand";
+                }
+                else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
+                    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
+                    || c == CatOtherSupplies())
+                {
+                    partialView = "_FieldBrand";
+                }
+                else if (c == CatDrugs())
+                {
+                    partialView = "_FieldDrugs";
+                }
+                else if (c == CatRepairs())
+                {
+                    partialView = "_FieldSerial";
+                }
+            }
+            return PartialView(partialView, model);
+        }
 
         //[Authorize]
         //public ActionResult _RISItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId, string psType)

@@ -50,7 +50,7 @@ namespace iLgs.Services
                     Id = s.Id,
                     UnitGroupDescriptionId = s.UnitGroupDescriptionId,
                     RisItemId = s.RisItemId,
-                    PsNo = s.RisItem.PsNo,
+                    PsNo = s.RisItem.PsNoDisplay,
                     ItemName = s.RisItem.ItemName,
                     Description = s.RisItem.Description,
                     Unit = s.RisItem.Unit,
@@ -67,7 +67,7 @@ namespace iLgs.Services
             .Select(s => new RisItemUnitGroupAvailableVM
             {
                 Id = s.Id,
-                PsNo = s.PsNo,
+                PsNo = s.PsNoDisplay,
                 ItemName = s.ItemName,
                 Description = s.Description,
                 Unit = s.Unit,

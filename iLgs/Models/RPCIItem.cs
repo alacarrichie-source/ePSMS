@@ -44,7 +44,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual AccountableOfficer AccountableOfficer { get; set; }
-        public virtual Codextn Codextn { get; set; }
         public virtual RPCI RPCI { get; set; }
+        public virtual Codextn Codextn { get; set; }
     }
 }

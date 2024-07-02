@@ -12,6 +12,7 @@ using System.Data.Entity.Infrastructure;
 using System.Web.Http.ModelBinding;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Services
 {
@@ -21,10 +22,12 @@ namespace iLgs.Services
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<OrderVM> _orderVmExceptionService = new ExceptionService<OrderVM>();
         private readonly IExceptionService<Order> _orderExceptionService = new ExceptionService<Order>();
+        private IAllFieldService _allFieldService;
 
         public OrderService(AppManEntities db)
         {
             this.db = db;
+            _allFieldService = new AllFieldService(db);
         }
 
         public IQueryable<OrderVM> GetAll() => _orderVmExceptionService.TryCatch(() =>
@@ -178,24 +181,7 @@ namespace iLgs.Services
                     UpdatedBy = user,
                     UpdatedDt = date
                 };
-
-                //foreach (var risItemExtn in requestItem.RisItem.RisItemExtns)
-                //{
-                //    OrderItemExtn orderItemExtn = new OrderItemExtn()
-                //    {
-                //        Id = Guid.NewGuid(),
-                //        OrderItemId = orderItem.Id,
-                //        ItemKey = risItemExtn.ItemKey,
-                //        ItemValue = risItemExtn.ItemValue,
-                //        Sequence = risItemExtn.Sequence,
-                //        InsertedBy = user,
-                //        InsertedDt = date,
-                //        UpdatedBy = user,
-                //        UpdatedDt = date
-                //    };
-                //    orderItem.OrderItemExtns.Add(orderItemExtn);
-                //}
-
+                
                 entity.OrderItems.Add(orderItem);
             }
 
@@ -300,24 +286,7 @@ namespace iLgs.Services
                         InsertedDt = date,
                         UpdatedBy = user,
                         UpdatedDt = date
-                    };
-
-                    //foreach (var prItemExtn in prItem.RisItem.RisItemExtns)
-                    //{
-                    //    OrderItemExtn orderItemExtn = new OrderItemExtn()
-                    //    {
-                    //        Id = Guid.NewGuid(),
-                    //        OrderItemId = orderItem.Id,
-                    //        ItemKey = prItemExtn.ItemKey,
-                    //        ItemValue = prItemExtn.ItemValue,
-                    //        Sequence = prItemExtn.Sequence,
-                    //        InsertedBy = user,
-                    //        InsertedDt = date,
-                    //        UpdatedBy = user,
-                    //        UpdatedDt = date
-                    //    };
-                    //    orderItem.OrderItemExtns.Add(orderItemExtn);
-                    //}
+                    };                    
 
                     entity.OrderItems.Add(orderItem);
                 }
@@ -382,7 +351,7 @@ namespace iLgs.Services
         public ValueTask PostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
             //var entity = await db.Orders.FindAsync(orderId);
-            var entity = await db.Orders.Include(i => i.Request.RISs).Where(w => w.Id == orderId).FirstOrDefaultAsync();
+            var entity = await db.Orders.Include(i => i.Request.RISs.RisItems).Where(w => w.Id == orderId).FirstOrDefaultAsync();
             if (entity == null)
             {
                 throw new RecordNotFoundException(orderId);
@@ -572,7 +541,7 @@ namespace iLgs.Services
                 throw new RecordRelationshipException("PO Number already with PAR, cannot delete!");
             }
         }
-
+        
         private async ValueTask ValidateOnPost(Order entity)
         {
             if (!string.IsNullOrWhiteSpace(entity.PostedBy))
@@ -602,16 +571,18 @@ namespace iLgs.Services
             var orderItems = await db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode.ItemType).Where(w => w.OrderId == entity.Id).ToListAsync();        
             foreach (var orderItem in orderItems)
             {
-                if (Enum.TryParse(orderItem.RequestItem.RisItem.ItemCode.ItemType.Code, out Category category))
+                if (Enum.TryParse(orderItem.RequestItem.RisItem.ItemCode.ItemType.Code, out Category c))
                 {
-                    if (category == Category.D || category == Category.M)
+                    if (string.IsNullOrWhiteSpace(orderItem.Brand) && _allFieldService.IsBrandRequired(c))
                     {
-                        if (string.IsNullOrWhiteSpace(orderItem.Brand))
-                        {
-                            throw new RequiredFieldException(nameof(orderItem.Brand));
-                        }
-                    }
-                }                
+                        throw new RequiredFieldException(nameof(orderItem.Brand), orderItem.RequestItem.RisItem.ItemName);
+                        //throw new InvalidValueException($"Brand is required for {orderItem.RequestItem.RisItem.ItemName}");
+                    }                    
+                }        
+                if (string.IsNullOrWhiteSpace(orderItem.StockNo))
+                {
+                    throw new InvalidValueException("All items must have a valid Stock No.");
+                }
             }
         }
 

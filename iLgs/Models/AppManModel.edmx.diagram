@@ -30,10 +30,10 @@
         <AssociationConnector Association="AppManModel.FK_MenuActionAccess_MenuAccess" />
         <AssociationConnector Association="AppManModel.FK_MenuActionAccess_MenuActionAccess" />
         <AssociationConnector Association="AppManModel.FK_MenuActions_MenuActions" />
-        <EntityTypeShape EntityType="AppManModel.Codextn" Width="1.5" PointX="15" PointY="1.125" />
-        <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
         <EntityTypeShape EntityType="AppManModel.DepartmentUser" Width="1.5" PointX="15" PointY="5.875" />
         <AssociationConnector Association="AppManModel.FK_DepartmentUsers_AspNetUsers" />
+        <EntityTypeShape EntityType="AppManModel.Codextn" Width="1.5" PointX="15" PointY="12.625" />
+        <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
         <AssociationConnector Association="AppManModel.FK_DepartmentUsers_Codextn" />
         </Diagram>
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="97" >
@@ -118,7 +118,6 @@
         <EntityTypeShape EntityType="AppManModel.FieldsLand" Width="1.5" PointX="3" PointY="41.75" />
         <EntityTypeShape EntityType="AppManModel.FieldsMachinery" Width="1.5" PointX="3" PointY="54.75" />
         <EntityTypeShape EntityType="AppManModel.FieldsMedical" Width="1.5" PointX="3" PointY="39" />
-        <EntityTypeShape EntityType="AppManModel.FieldsMedicine" Width="1.5" PointX="3" PointY="35.5" />
         <EntityTypeShape EntityType="AppManModel.FieldsMilitarySuuply" Width="1.5" PointX="3" PointY="15.5" />
         <EntityTypeShape EntityType="AppManModel.FieldsNonAccountableForm" Width="1.5" PointX="3" PointY="60.25" />
         <EntityTypeShape EntityType="AppManModel.FieldsOfficeSupply" Width="1.5" PointX="3" PointY="23.625" />
@@ -138,7 +137,6 @@
         <AssociationConnector Association="AppManModel.FK_FieldsLands_PsCards" />
         <AssociationConnector Association="AppManModel.FK_FieldsMachineries_PsCards" />
         <AssociationConnector Association="AppManModel.FK_FieldsMedicals_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsMedicines_PsCards" />
         <AssociationConnector Association="AppManModel.FK_FieldsMilitarySuuplies_PsCards" />
         <AssociationConnector Association="AppManModel.FK_FieldsNonAccountableForms_PsCards" />
         <AssociationConnector Association="AppManModel.FK_FieldsOfficeSupplies_PsCards" />
@@ -148,6 +146,10 @@
         <AssociationConnector Association="AppManModel.FK_FieldsTransportations_PsCards" />
         <AssociationConnector Association="AppManModel.FK_FieldsVehicles_PsCards" />
         <AssociationConnector Association="AppManModel.FK_PsCardItems_PsCards" />
+        <EntityTypeShape EntityType="AppManModel.FieldsMedicine" Width="1.5" PointX="3" PointY="34.125" />
+        <AssociationConnector Association="AppManModel.FK_FieldsMedicines_PsCards" />
+        <EntityTypeShape EntityType="AppManModel.AllField" Width="1.5" PointX="3" PointY="66.375" />
+        <AssociationConnector Association="AppManModel.FK_AllFields_PsCards" />
         </Diagram>
       <Diagram DiagramId="f737fa97db2e49e58b437ce4983844bf" Name="RIS" >
         <EntityTypeShape EntityType="AppManModel.RISs" Width="1.5" PointX="0.75" PointY="3.875" />
@@ -157,6 +159,11 @@
         <EntityTypeShape EntityType="AppManModel.RisItem" Width="1.5" PointX="3" PointY="3" />
         <AssociationConnector Association="AppManModel.FK_RisItems_RIS" />
         <AssociationConnector Association="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItems" />
+      </Diagram>
+      <Diagram DiagramId="fbc3eecf83604e868f53056709be554c" Name="ICS-PAR" >
+        <EntityTypeShape EntityType="AppManModel.IcsPar" Width="1.5" PointX="0.75" PointY="4.375" />
+        <EntityTypeShape EntityType="AppManModel.IcsParItem" Width="1.5" PointX="3" PointY="1.375" />
+        <AssociationConnector Association="AppManModel.FK_IcsParItems_IcsPars" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

@@ -43,7 +43,6 @@ namespace iLgs.Models
         public virtual DbSet<MenuAction> MenuActions { get; set; }
         public virtual DbSet<Supplier> Suppliers { get; set; }
         public virtual DbSet<Sequence> Sequences { get; set; }
-        public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
         public virtual DbSet<Request> Requests { get; set; }
         public virtual DbSet<RISs> RISses { get; set; }
@@ -87,7 +86,6 @@ namespace iLgs.Models
         public virtual DbSet<FieldsLand> FieldsLands { get; set; }
         public virtual DbSet<FieldsMachinery> FieldsMachineries { get; set; }
         public virtual DbSet<FieldsMedical> FieldsMedicals { get; set; }
-        public virtual DbSet<FieldsMedicine> FieldsMedicines { get; set; }
         public virtual DbSet<FieldsMilitarySuuply> FieldsMilitarySuuplies { get; set; }
         public virtual DbSet<FieldsNonAccountableForm> FieldsNonAccountableForms { get; set; }
         public virtual DbSet<FieldsOfficeSupply> FieldsOfficeSupplies { get; set; }
@@ -101,5 +99,10 @@ namespace iLgs.Models
         public virtual DbSet<PsCard> PsCards { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
+        public virtual DbSet<IcsPar> IcsPars { get; set; }
+        public virtual DbSet<FieldsMedicine> FieldsMedicines { get; set; }
+        public virtual DbSet<Codextn> Codextns { get; set; }
+        public virtual DbSet<IcsParItem> IcsParItems { get; set; }
+        public virtual DbSet<AllField> AllFields { get; set; }
     }
 }

@@ -13,7 +13,7 @@ namespace iLgs.Services.Interfaces
         ValueTask<RisItem> GetByIdAsync(Guid? id);
         ValueTask<RisItemEntryVM> GetVmByIdAsync(Guid? id);
         ValueTask<RisItemEntryVM> GetEntryVmByIdAsync(Guid? id);
-        string PsNoDisplay(string itemCode, string itemName);
+        string PsNoDisplay(RisItemEntryVM model);
         string GetDescription(RisItemEntryVM entry);
         //string GetPsDescription(PsCardVM entry);
 

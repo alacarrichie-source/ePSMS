@@ -10,23 +10,24 @@ namespace iLgs.Models
     {
         public PsCardVM()
         {
-            this.FieldsAccountableForm = new FieldsAccountableForm() { Id = this.Id };
-            this.FieldsAgricultural = new FieldsAgricultural() { Id = this.Id };
-            this.FieldsAnimal = new FieldsAnimal() { Id = this.Id };
-            this.FieldsFurniture = new FieldsFurniture() { Id = this.Id };
-            this.FieldsLand = new FieldsLand() { Id = this.Id };
-            this.FieldsMachinery = new FieldsMachinery() { Id = this.Id };
-            this.FieldsMedical = new FieldsMedical() { Id = this.Id };
-            this.FieldsMedicine = new FieldsMedicine() { Id = this.Id };
-            this.FieldsMilitarySuuply = new FieldsMilitarySuuply() { Id = this.Id };
-            this.FieldsNonAccountableForm = new FieldsNonAccountableForm() { Id = this.Id };
-            this.FieldsOfficeSupply = new FieldsOfficeSupply() { Id = this.Id };
-            this.FieldsOther = new FieldsOther() { Id = this.Id };
-            this.FieldsOtherSupplyMaterial = new FieldsOtherSupplyMaterial() { Id = this.Id };
-            this.FieldsRepair = new FieldsRepair() { Id = this.Id };
-            this.FieldsTransportation = new FieldsTransportation() { Id = this.Id };
-            this.FieldsVehicle = new FieldsVehicle() { Id = this.Id };
-            this.FieldsConstruction = new FieldsConstruction() { Id = this.Id };            
+            //this.FieldsAccountableForm = new FieldsAccountableForm() { Id = this.Id };
+            //this.FieldsAgricultural = new FieldsAgricultural() { Id = this.Id };
+            //this.FieldsAnimal = new FieldsAnimal() { Id = this.Id };
+            //this.FieldsFurniture = new FieldsFurniture() { Id = this.Id };
+            //this.FieldsLand = new FieldsLand() { Id = this.Id };
+            //this.FieldsMachinery = new FieldsMachinery() { Id = this.Id };
+            //this.FieldsMedical = new FieldsMedical() { Id = this.Id };
+            //this.FieldsMedicine = new FieldsMedicine() { Id = this.Id };
+            //this.FieldsMilitarySuuply = new FieldsMilitarySuuply() { Id = this.Id };
+            //this.FieldsNonAccountableForm = new FieldsNonAccountableForm() { Id = this.Id };
+            //this.FieldsOfficeSupply = new FieldsOfficeSupply() { Id = this.Id };
+            //this.FieldsOther = new FieldsOther() { Id = this.Id };
+            //this.FieldsOtherSupplyMaterial = new FieldsOtherSupplyMaterial() { Id = this.Id };
+            //this.FieldsRepair = new FieldsRepair() { Id = this.Id };
+            //this.FieldsTransportation = new FieldsTransportation() { Id = this.Id };
+            //this.FieldsVehicle = new FieldsVehicle() { Id = this.Id };
+            //this.FieldsConstruction = new FieldsConstruction() { Id = this.Id };
+            this.AllField = new AllField() { Id = this.Id };
         }
 
         public System.Guid Id { get; set; }
@@ -40,20 +41,21 @@ namespace iLgs.Models
 
         [Required]
         [MaxLength(900)]
+        [Display(Name = "Item Description")]
         public string Description { get; set; }
         public string Unit { get; set; }
 
         [Display(Name = "Card Category")]
         public string CardCategory { get; set; } // P or S only, to identify where the item belongs.
 
-        [Display(Name = "Stock/Prop. No.")]
+        [Display(Name = "Stock/Property No.")]
         [Required]
         public string PsNo { get; set; }
         
-        [Display(Name = "Stock/Prop. Name")]
+        [Display(Name = "Stock/Property Name")]
         public string PsName { get; set; }
 
-        [Display(Name = "Prev. Stock/Prop. No.")]
+        [Display(Name = "Prev. Stock/Property No.")]
         public string PrevPsNo { get; set; }
 
         //[Display(Name = "Acq. Date")]
@@ -76,28 +78,30 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
-        public FieldsAccountableForm FieldsAccountableForm { get; set; }
-        public FieldsAgricultural FieldsAgricultural { get; set; }
-        public FieldsAnimal FieldsAnimal { get; set; }
-        public FieldsFurniture FieldsFurniture { get; set; }
-        public FieldsLand FieldsLand { get; set; }
-        public FieldsMachinery FieldsMachinery { get; set; }
-        public FieldsMedical FieldsMedical { get; set; }
-        public FieldsMedicine FieldsMedicine { get; set; }
-        public FieldsMilitarySuuply FieldsMilitarySuuply { get; set; }
-        public FieldsNonAccountableForm FieldsNonAccountableForm { get; set; }
-        public FieldsOfficeSupply FieldsOfficeSupply { get; set; }
-        public FieldsOther FieldsOther { get; set; }
-        public FieldsOtherSupplyMaterial FieldsOtherSupplyMaterial { get; set; }
-        public FieldsRepair FieldsRepair { get; set; }
-        public FieldsTransportation FieldsTransportation { get; set; }
-        public FieldsVehicle FieldsVehicle { get; set; }
-        public FieldsConstruction FieldsConstruction { get; set; }
+        //public FieldsAccountableForm FieldsAccountableForm { get; set; }
+        //public FieldsAgricultural FieldsAgricultural { get; set; }
+        //public FieldsAnimal FieldsAnimal { get; set; }
+        //public FieldsFurniture FieldsFurniture { get; set; }
+        //public FieldsLand FieldsLand { get; set; }
+        //public FieldsMachinery FieldsMachinery { get; set; }
+        //public FieldsMedical FieldsMedical { get; set; }
+        //public FieldsMedicine FieldsMedicine { get; set; }
+        //public FieldsMilitarySuuply FieldsMilitarySuuply { get; set; }
+        //public FieldsNonAccountableForm FieldsNonAccountableForm { get; set; }
+        //public FieldsOfficeSupply FieldsOfficeSupply { get; set; }
+        //public FieldsOther FieldsOther { get; set; }
+        //public FieldsOtherSupplyMaterial FieldsOtherSupplyMaterial { get; set; }
+        //public FieldsRepair FieldsRepair { get; set; }
+        //public FieldsTransportation FieldsTransportation { get; set; }
+        //public FieldsVehicle FieldsVehicle { get; set; }
+        //public FieldsConstruction FieldsConstruction { get; set; }
+        public AllField AllField { get; set; }
 
         // Transients
 
         [Display(Name = "Article")]
         public string Item { get; set; }
+        public string ItemNo { get; set; }
         public string ItemCode { get; set; }
 
         [Display(Name = "Account")]
@@ -159,9 +163,10 @@ namespace iLgs.Models
         public string Description { get; set; }
 
         [Required]
+        [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
 
-        [Display(Name = "Unit Cost")]
+        [Display(Name = "PO Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> Amount { get; set; }
         public Nullable<int> Days { get; set; }
@@ -191,6 +196,12 @@ namespace iLgs.Models
 
         [Display(Name = "Location")]
         public string Location { get; set; }
+
+        public int? ParBalance { get; set; } = 0;
+        public int? IcsBalance { get; set; } = 0;
+        public string StockNo { get; set; }
+        [Display(Name = "Remaining Balance")]
+        public Nullable<int> RemBalance { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

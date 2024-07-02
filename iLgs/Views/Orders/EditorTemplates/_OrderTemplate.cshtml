@@ -61,7 +61,7 @@
                             })
                             .Columns(c =>
                             {
-                                c.Add().Field("PrNo").Title("P.R. No.").Width("30%");
+                                c.Add().Field("PrNo").Title("PR No.").Width("30%");
                                 c.Add().Template("#= kendo.toString(new Date(parseInt(PrDate.substr(6))), 'MM/dd/yyyy') #").Title("Date").Width("30%");
                                 c.Add().Field("Department").Title("Department").Width("40%");
                             })
@@ -120,12 +120,9 @@
                             })
                             .Columns(c =>
                             {
-                                c.Add().Field("Name").Title("Name").Width("40%")
-                                    .Template("<span class=\"k-textarea k-readonly \" ><textarea data-role=\"textarea\" disabled=\"disabled\" readonly=\"readonly\" aria-disabled=\"true\" class=\"!k-overflow-y-auto k-input-inner\">#: data.Name #</textarea></span>");
-                                c.Add().Field("Address").Title("Address").Width("45%")
-                                    .Template("<span class=\"k-textarea k-readonly \"><textarea data-role=\"textarea\" disabled=\"disabled\" readonly=\"readonly\" aria-disabled=\"true\" class=\"!k-overflow-y-auto k-input-inner\">#: data.Address #</textarea></span>");
-                                c.Add().Field("TIN").Title("TIN").Width("15%")
-                                    .Template("<span class=\"k-state-default\">#: data.TIN #</span>");
+                                c.Add().Field("Name").Title("Name").Width("40%").Template("#= columnTemplate(data.Name) #");
+                                c.Add().Field("Name").Title("Name").Width("45%").Template("#= columnTemplate(data.Address) #");
+                                c.Add().Field("Name").Title("Name").Width("15%").Template("#= columnTemplate(data.TIN) #");                                
                             })
                             .MinLength(3)
                             .Suggest(true)

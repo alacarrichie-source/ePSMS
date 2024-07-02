@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Services
 {
@@ -21,10 +22,11 @@ namespace iLgs.Services
         ValueTask<PsCardVM> CreateAsync(PsCardVM model, string user, DateTime date);
         ValueTask<PsCardVM> UpdateAsync(PsCardVM model, string user, DateTime date);
         ValueTask<PsCardVM> DeleteAsync(PsCardVM model, string user, DateTime date);
-        string GetDescription(PsCardVM model);
-        string GetRisDescription(RisItemEntryVM model);
+        string GetDescription(PsCardVM model);        
         string GetStockNo(PsCardVM model);
-        string GetRisStockNo(RisItemEntryVM model);
+
+        //string GetRisDescription(RisItemEntryVM model);
+        //string GetRisStockNo(RisItemEntryVM model);
     }
 
     public class PsCardService : IPsCardService
@@ -33,19 +35,12 @@ namespace iLgs.Services
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<PsCardVM> _vmExceptionService = new ExceptionService<PsCardVM>();
         private readonly IExceptionService<PsCard> _exceptionService = new ExceptionService<PsCard>();
-        private readonly string _cardCategory = "";
-
+        private IAllFieldService _allFieldService;
         public PsCardService(AppManEntities db)
         {
             _db = db;
+            _allFieldService = new AllFieldService(db);
         }
-
-        public PsCardService(AppManEntities db, string cardCategory)
-        {
-            _cardCategory = cardCategory;
-            _db = db;
-        }
-
 
         public IQueryable<PsCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
         {
@@ -55,6 +50,7 @@ namespace iLgs.Services
                     Id = s.Id,
                     ItemCodeId = s.ItemCodeId,
                     Item = s.ItemCode.Description,
+                    ItemNo = s.ItemCode.ItemNo,
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
@@ -70,38 +66,38 @@ namespace iLgs.Services
                     PrevPsNo = s.PrevPsNo,
                     Amount = s.Amount,
                     FromDonation = s.FromDonation,
-                    FieldsAccountableForm = s.FieldsAccountableForm,
-                    FieldsAgricultural = s.FieldsAgricultural,
-                    FieldsAnimal = s.FieldsAnimal,
-                    FieldsFurniture = s.FieldsFurniture,
-                    FieldsLand = s.FieldsLand,
-                    FieldsMachinery = s.FieldsMachinery,
-                    FieldsMedical = s.FieldsMedical,
-                    FieldsMedicine = s.FieldsMedicine,
-                    FieldsMilitarySuuply = s.FieldsMilitarySuuply,
-                    FieldsNonAccountableForm = s.FieldsNonAccountableForm,
-                    FieldsOfficeSupply = s.FieldsOfficeSupply,
-                    FieldsOther = s.FieldsOther,
-                    FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
-                    FieldsRepair = s.FieldsRepair,
-                    FieldsTransportation = s.FieldsTransportation,
-                    FieldsVehicle = s.FieldsVehicle,
-                    FieldsConstruction = s.FieldsConstruction,
+                    //FieldsAccountableForm = s.FieldsAccountableForm,
+                    //FieldsAgricultural = s.FieldsAgricultural,
+                    //FieldsAnimal = s.FieldsAnimal,
+                    //FieldsFurniture = s.FieldsFurniture,
+                    //FieldsLand = s.FieldsLand,
+                    //FieldsMachinery = s.FieldsMachinery,
+                    //FieldsMedical = s.FieldsMedical,
+                    //FieldsMedicine = s.FieldsMedicine,
+                    //FieldsMilitarySuuply = s.FieldsMilitarySuuply,
+                    //FieldsNonAccountableForm = s.FieldsNonAccountableForm,
+                    //FieldsOfficeSupply = s.FieldsOfficeSupply,
+                    //FieldsOther = s.FieldsOther,
+                    //FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
+                    //FieldsRepair = s.FieldsRepair,
+                    //FieldsTransportation = s.FieldsTransportation,
+                    //FieldsVehicle = s.FieldsVehicle,
+                    //FieldsConstruction = s.FieldsConstruction,
+                    AllField = s.AllField,
                     InsertedDt = s.InsertedDt
                 });
-
-            return GetAllByCategory(data);
+            return data;
+            //return GetAllByCategory(data);
         });
 
-        private IQueryable<PsCardVM> GetAllByCategory(IQueryable<PsCardVM> data)
-        {
-            if (!string.IsNullOrEmpty(_cardCategory))
-            {
-                data = data.Where(w => w.CardCategory == _cardCategory);
-            }
-            return data;
-        }
-
+        //private IQueryable<PsCardVM> GetAllByCategory(IQueryable<PsCardVM> data)
+        //{
+        //    if (!string.IsNullOrEmpty(_cardCategory))
+        //    {
+        //        data = data.Where(w => w.CardCategory == _cardCategory);
+        //    }
+        //    return data;
+        //}
 
         public IQueryable<PsCardVM> GetAllByItemCodeId(Guid? itemCodeId) => _vmExceptionService.TryCatch(() =>
         {
@@ -111,6 +107,7 @@ namespace iLgs.Services
                     Id = s.Id,
                     ItemCodeId = s.ItemCodeId,
                     Item = s.ItemCode.Description,
+                    ItemNo = s.ItemCode.ItemNo,
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
@@ -126,26 +123,28 @@ namespace iLgs.Services
                     PrevPsNo = s.PrevPsNo,
                     FromDonation = s.FromDonation,
                     Amount = s.Amount,
-                    FieldsAccountableForm = s.FieldsAccountableForm,
-                    FieldsAgricultural = s.FieldsAgricultural,
-                    FieldsAnimal = s.FieldsAnimal,
-                    FieldsFurniture = s.FieldsFurniture,
-                    FieldsLand = s.FieldsLand,
-                    FieldsMachinery = s.FieldsMachinery,
-                    FieldsMedical = s.FieldsMedical,
-                    FieldsMedicine = s.FieldsMedicine,
-                    FieldsMilitarySuuply = s.FieldsMilitarySuuply,
-                    FieldsNonAccountableForm = s.FieldsNonAccountableForm,
-                    FieldsOfficeSupply = s.FieldsOfficeSupply,
-                    FieldsOther = s.FieldsOther,
-                    FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
-                    FieldsRepair = s.FieldsRepair,
-                    FieldsTransportation = s.FieldsTransportation,
-                    FieldsVehicle = s.FieldsVehicle,
-                    FieldsConstruction = s.FieldsConstruction,
+                    //FieldsAccountableForm = s.FieldsAccountableForm,
+                    //FieldsAgricultural = s.FieldsAgricultural,
+                    //FieldsAnimal = s.FieldsAnimal,
+                    //FieldsFurniture = s.FieldsFurniture,
+                    //FieldsLand = s.FieldsLand,
+                    //FieldsMachinery = s.FieldsMachinery,
+                    //FieldsMedical = s.FieldsMedical,
+                    //FieldsMedicine = s.FieldsMedicine,
+                    //FieldsMilitarySuuply = s.FieldsMilitarySuuply,
+                    //FieldsNonAccountableForm = s.FieldsNonAccountableForm,
+                    //FieldsOfficeSupply = s.FieldsOfficeSupply,
+                    //FieldsOther = s.FieldsOther,
+                    //FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
+                    //FieldsRepair = s.FieldsRepair,
+                    //FieldsTransportation = s.FieldsTransportation,
+                    //FieldsVehicle = s.FieldsVehicle,
+                    //FieldsConstruction = s.FieldsConstruction,
+                    AllField = s.AllField,
                     InsertedDt = s.InsertedDt
                 });
-            return GetAllByCategory(data);
+            //return GetAllByCategory(data);
+            return data;
         });
 
         public ValueTask<PsCardVM> GetVmByIdAsync(Guid? id) => _vmExceptionService.TryCatch(async () =>
@@ -156,6 +155,7 @@ namespace iLgs.Services
                     Id = s.Id,
                     ItemCodeId = s.ItemCodeId,
                     Item = s.ItemCode.Description,
+                    ItemNo = s.ItemCode.ItemNo,
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
@@ -171,23 +171,24 @@ namespace iLgs.Services
                     PrevPsNo = s.PrevPsNo,
                     FromDonation = s.FromDonation,
                     Amount = s.Amount,
-                    FieldsAccountableForm = s.FieldsAccountableForm,
-                    FieldsAgricultural = s.FieldsAgricultural,
-                    FieldsAnimal = s.FieldsAnimal,
-                    FieldsFurniture = s.FieldsFurniture,
-                    FieldsLand = s.FieldsLand,
-                    FieldsMachinery = s.FieldsMachinery,
-                    FieldsMedical = s.FieldsMedical,
-                    FieldsMedicine = s.FieldsMedicine,
-                    FieldsMilitarySuuply = s.FieldsMilitarySuuply,
-                    FieldsNonAccountableForm = s.FieldsNonAccountableForm,
-                    FieldsOfficeSupply = s.FieldsOfficeSupply,
-                    FieldsOther = s.FieldsOther,
-                    FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
-                    FieldsRepair = s.FieldsRepair,
-                    FieldsTransportation = s.FieldsTransportation,
-                    FieldsVehicle = s.FieldsVehicle,
-                    FieldsConstruction = s.FieldsConstruction,
+                    //FieldsAccountableForm = s.FieldsAccountableForm,
+                    //FieldsAgricultural = s.FieldsAgricultural,
+                    //FieldsAnimal = s.FieldsAnimal,
+                    //FieldsFurniture = s.FieldsFurniture,
+                    //FieldsLand = s.FieldsLand,
+                    //FieldsMachinery = s.FieldsMachinery,
+                    //FieldsMedical = s.FieldsMedical,
+                    //FieldsMedicine = s.FieldsMedicine,
+                    //FieldsMilitarySuuply = s.FieldsMilitarySuuply,
+                    //FieldsNonAccountableForm = s.FieldsNonAccountableForm,
+                    //FieldsOfficeSupply = s.FieldsOfficeSupply,
+                    //FieldsOther = s.FieldsOther,
+                    //FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
+                    //FieldsRepair = s.FieldsRepair,
+                    //FieldsTransportation = s.FieldsTransportation,
+                    //FieldsVehicle = s.FieldsVehicle,
+                    //FieldsConstruction = s.FieldsConstruction,
+                    AllField = s.AllField,
                     InsertedDt = s.InsertedDt
                 }).FirstOrDefaultAsync();
             return data;
@@ -196,23 +197,24 @@ namespace iLgs.Services
         public ValueTask<PsCard> GetByIdAsync(Guid id) => _exceptionService.TryCatch(async () =>
         {
             return await _db.PsCards
-                .Include(i => i.FieldsAccountableForm)
-                .Include(i => i.FieldsAgricultural)
-                .Include(i => i.FieldsAnimal)
-                .Include(i => i.FieldsFurniture)
-                .Include(i => i.FieldsLand)
-                .Include(i => i.FieldsMachinery)
-                .Include(i => i.FieldsMedical)
-                .Include(i => i.FieldsMedicine)
-                .Include(i => i.FieldsMilitarySuuply)
-                .Include(i => i.FieldsNonAccountableForm)
-                .Include(i => i.FieldsOfficeSupply)
-                .Include(i => i.FieldsOther)
-                .Include(i => i.FieldsOtherSupplyMaterial)
-                .Include(i => i.FieldsRepair)
-                .Include(i => i.FieldsTransportation)
-                .Include(i => i.FieldsVehicle)
-                .Include(i => i.FieldsConstruction)
+                .Include(i => i.AllField)
+                //.Include(i => i.FieldsAccountableForm)
+                //.Include(i => i.FieldsAgricultural)
+                //.Include(i => i.FieldsAnimal)
+                //.Include(i => i.FieldsFurniture)
+                //.Include(i => i.FieldsLand)
+                //.Include(i => i.FieldsMachinery)
+                //.Include(i => i.FieldsMedical)
+                //.Include(i => i.FieldsMedicine)
+                //.Include(i => i.FieldsMilitarySuuply)
+                //.Include(i => i.FieldsNonAccountableForm)
+                //.Include(i => i.FieldsOfficeSupply)
+                //.Include(i => i.FieldsOther)
+                //.Include(i => i.FieldsOtherSupplyMaterial)
+                //.Include(i => i.FieldsRepair)
+                //.Include(i => i.FieldsTransportation)
+                //.Include(i => i.FieldsVehicle)
+                //.Include(i => i.FieldsConstruction)
                 .FirstOrDefaultAsync(f => f.Id == id);
         });
 
@@ -307,7 +309,7 @@ namespace iLgs.Services
         public ValueTask<PsCardVM> CreateAsync(PsCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateField(model);
-
+            _allFieldService.ValidatePsCardAllField(model);
             var itemCode = await _db.ItemCodes.FindAsync(model.ItemCodeId);
             //ValidateAllFieldModel(model.AllField, itemCode);
 
@@ -342,7 +344,14 @@ namespace iLgs.Services
                 UpdatedDt = model.UpdatedDt
             };
 
-            entity = SetItemEntity(entity, model);
+            model.AllField.Id = model.Id;
+            model.AllField.InsertedBy = user;
+            model.AllField.InsertedDt = date;
+            model.AllField.UpdatedBy = user;
+            model.AllField.UpdatedDt = date;
+            entity.AllField = model.AllField;
+
+            //entity = SetItemEntity(entity, model);
 
             _db.PsCards.Add(entity);
             await _db.SaveChangesAsync();
@@ -359,6 +368,7 @@ namespace iLgs.Services
             }
 
             ValidateField(model);
+            _allFieldService.ValidatePsCardAllField(model);
 
             if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Id != model.Id))
             {
@@ -382,7 +392,12 @@ namespace iLgs.Services
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            entity = SetItemEntity(entity, model);
+            model.AllField.Id = model.Id;
+            model.AllField.UpdatedBy = user;
+            model.AllField.UpdatedDt = date;
+            entity.AllField = model.AllField;
+
+            //entity = SetItemEntity(entity, model);
 
             _db.PsCards.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
@@ -412,1159 +427,231 @@ namespace iLgs.Services
             return model;
         });
 
-        private PsCard SetItemEntity(PsCard entity, PsCardVM model)
-        {
-            entity.FieldsAccountableForm = null;
-            entity.FieldsAgricultural = null;
-            entity.FieldsAnimal = null;
-            entity.FieldsFurniture = null;
-            entity.FieldsLand = null;
-            entity.FieldsMachinery = null;
-            entity.FieldsMedical = null;
-            entity.FieldsMedicine = null;
-            entity.FieldsMilitarySuuply = null;
-            entity.FieldsNonAccountableForm = null;
-            entity.FieldsOfficeSupply = null;
-            entity.FieldsOther = null;
-            entity.FieldsOtherSupplyMaterial = null;
-            entity.FieldsRepair = null;
-            entity.FieldsTransportation = null;
-            entity.FieldsVehicle = null;
-            entity.FieldsConstruction = null;
-
-            if (Enum.TryParse(model.ItemTypeCode, out Category category))
-            {
-                if (category == Category.A)
-                {
-                    model.FieldsAccountableForm.Id = entity.Id;
-                    entity.FieldsAccountableForm = model.FieldsAccountableForm;
-                }
-                else if (category == Category.B)
-                {
-
-                }
-                else if (category == Category.C)
-                {
-                    model.FieldsConstruction.Id = entity.Id;
-                    entity.FieldsConstruction = model.FieldsConstruction;
-                }
-                else if (category == Category.D)
-                {
-                    model.FieldsMedicine.Id = entity.Id;
-                    entity.FieldsMedicine = model.FieldsMedicine;
-                }
-                else if (category == Category.E)
-                {
-                    model.FieldsMachinery.Id = entity.Id;
-                    entity.FieldsMachinery = model.FieldsMachinery;
-                }
-                else if (category == Category.F) // food supplies
-                {
-
-                }
-                else if (category == Category.G)
-                {
-                    model.FieldsAgricultural.Id = entity.Id;
-                    entity.FieldsAgricultural = model.FieldsAgricultural;
-                }
-                else if (category == Category.I)
-                {
-
-                }
-                else if (category == Category.L)
-                {
-                    model.FieldsLand.Id = entity.Id;
-                    entity.FieldsLand = model.FieldsLand;
-                }
-                else if (category == Category.M)
-                {
-                    model.FieldsMedical.Id = entity.Id;
-                    entity.FieldsMedical = model.FieldsMedical;
-                }
-                else if (category == Category.N)
-                {
-                    model.FieldsNonAccountableForm.Id = entity.Id;
-                    entity.FieldsNonAccountableForm = model.FieldsNonAccountableForm;
-                }
-                else if (category == Category.O)
-                {
-                    model.FieldsOfficeSupply.Id = entity.Id;
-                    entity.FieldsOfficeSupply = model.FieldsOfficeSupply;
-                }
-                else if (category == Category.P)
-                {
-                    model.FieldsMilitarySuuply.Id = entity.Id;
-                    entity.FieldsMilitarySuuply = model.FieldsMilitarySuuply;
-                }
-                else if (category == Category.R)
-                {
-                    model.FieldsRepair.Id = entity.Id;
-                    entity.FieldsRepair = model.FieldsRepair;
-                }
-                else if (category == Category.S)
-                {
-                    model.FieldsRepair.Id = entity.Id;
-                    entity.FieldsRepair = model.FieldsRepair;
-                }
-                else if (category == Category.T)
-                {
-                    model.FieldsTransportation.Id = entity.Id;
-                    entity.FieldsTransportation = model.FieldsTransportation;
-                }
-                else if (category == Category.U)
-                {
-                    model.FieldsFurniture.Id = entity.Id;
-                    entity.FieldsFurniture = model.FieldsFurniture;
-                }
-            }
-
-            return entity;
-        }
-
-
-        public string GetStockNo(PsCardVM model)
-        {
-            string stockNo = model.ItemCode.Trim();
-            if (model.FromDonation == true)
-            {
-                stockNo = "FD" + stockNo;
-            }
-            if (Enum.TryParse(model.ItemTypeCode, out Category category))
-            {
-                if (category == Category.A)
-                {
-                    stockNo += GetAccountableFormPsNo(model.FieldsAccountableForm);
-                }
-                else if (category == Category.B)
-                {
-                   
-                }
-                else if (category == Category.C)
-                {
-                    stockNo += GetConstructionPsNo(model.FieldsConstruction);
-                }
-                else if (category == Category.D)
-                {
-                    stockNo += GetMedicinePsNo(model.FieldsMedicine);
-                }
-                else if (category == Category.E)
-                {
-                    stockNo += GetMachineryPsNo(model.FieldsMachinery);
-                }
-                else if (category == Category.F)
-                {
-                    
-                }
-                else if (category == Category.G)
-                {
-                    stockNo += GetAgriculturalPsNo(model.FieldsAgricultural);
-                }
-                else if (category == Category.I)
-                {
-                    
-                }
-                else if (category == Category.L)
-                {
-                    stockNo += GetLandPsNo(model.FieldsLand);
-                }
-                else if (category == Category.M)
-                {
-                    stockNo += GetMedicalPsNo(model.FieldsMedical);
-                }
-                else if (category == Category.N)
-                {
-                    stockNo += GetNonAccountableFormPsNo(model.FieldsNonAccountableForm);
-                }
-                else if (category == Category.O)
-                {
-                    stockNo += GetOfficeSupplyPsNo(model.FieldsOfficeSupply);
-                }
-                else if (category == Category.P)
-                {
-                    stockNo += GetMilitarySupplyPsNo(model.FieldsMilitarySuuply);
-                }
-                else if (category == Category.R)
-                {
-                    stockNo += GetRepairPsNo(model.FieldsRepair);
-                }
-                else if (category == Category.S)
-                {
-                    
-                }
-                else if (category == Category.T)
-                {
-                    stockNo += GetTransportationPsNo(model.FieldsTransportation);
-                }
-                else if (category == Category.U)
-                {
-                    stockNo += GetFurniturePsNo(model.FieldsFurniture);
-                }
-                else if (category == Category.V)
-                {
-                    stockNo += GetAnimalPsNo(model.FieldsAnimal);
-                }
-                else if (category == Category.W)
-                {
-                    
-                }
-                else if (category == Category.X)
-                {
-                    stockNo += GetOtherSupplyMaterialPsNo(model.FieldsOtherSupplyMaterial);
-                }
-                else if (category == Category.Y)
-                {
-                    
-                }
-                else if (category == Category.Z)
-                {
-                    stockNo += GetOtherPropertyPsNo(model.FieldsOther);
-                }
-            }
-            return stockNo ?? "";
-        }
-
-        public string GetRisStockNo(RisItemEntryVM model)
-        {
-            string stockNo = model.ItemCode.Trim();
-            if (Enum.TryParse(model.PsType, out Category category))
-            {
-                if (category == Category.A)
-                {
-                    stockNo += GetAccountableFormPsNo(model.FieldsAccountableForm);
-                }
-                else if (category == Category.B)
-                {
-
-                }
-                else if (category == Category.C)
-                {
-                    stockNo += GetConstructionPsNo(model.FieldsConstruction);
-                }
-                else if (category == Category.D)
-                {
-                    stockNo += GetMedicinePsNo(model.FieldsMedicine);
-                }
-                else if (category == Category.E)
-                {
-                    stockNo += GetMachineryPsNo(model.FieldsMachinery);
-                }
-                else if (category == Category.F)
-                {
-
-                }
-                else if (category == Category.G)
-                {
-                    stockNo += GetAgriculturalPsNo(model.FieldsAgricultural);
-                }
-                else if (category == Category.I)
-                {
-
-                }
-                else if (category == Category.L)
-                {
-                    stockNo += GetLandPsNo(model.FieldsLand);
-                }
-                else if (category == Category.M)
-                {
-                    stockNo += GetMedicalPsNo(model.FieldsMedical);
-                }
-                else if (category == Category.N)
-                {
-                    stockNo += GetNonAccountableFormPsNo(model.FieldsNonAccountableForm);
-                }
-                else if (category == Category.O)
-                {
-                    stockNo += GetOfficeSupplyPsNo(model.FieldsOfficeSupply);
-                }
-                else if (category == Category.P)
-                {
-                    stockNo += GetMilitarySupplyPsNo(model.FieldsMilitarySuuply);
-                }
-                else if (category == Category.R)
-                {
-                    stockNo += GetRepairPsNo(model.FieldsRepair);
-                }
-                else if (category == Category.S)
-                {
-
-                }
-                else if (category == Category.T)
-                {
-                    stockNo += GetTransportationPsNo(model.FieldsTransportation);
-                }
-                else if (category == Category.U)
-                {
-                    stockNo += GetFurniturePsNo(model.FieldsFurniture);
-                }
-                else if (category == Category.V)
-                {
-                    stockNo += GetAnimalPsNo(model.FieldsAnimal);
-                }
-                else if (category == Category.W)
-                {
-
-                }
-                else if (category == Category.X)
-                {
-                    stockNo += GetOtherSupplyMaterialPsNo(model.FieldsOtherSupplyMaterial);
-                }
-                else if (category == Category.Y)
-                {
-                    
-                }
-                else if (category == Category.Z)
-                {
-                    stockNo += GetOtherPropertyPsNo(model.FieldsOther);
-                }
-            }
-            return stockNo ?? "";
-        }
-
-        private string GetAccountableFormPsNo(FieldsAccountableForm f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetMachineryPsNo(FieldsMachinery f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetAgriculturalPsNo(FieldsAgricultural f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetMedicalPsNo(FieldsMedical f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetNonAccountableFormPsNo(FieldsNonAccountableForm f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetOfficeSupplyPsNo(FieldsOfficeSupply f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetMilitarySupplyPsNo(FieldsMilitarySuuply f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetTransportationPsNo(FieldsTransportation f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetAnimalPsNo(FieldsAnimal f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetOtherSupplyMaterialPsNo(FieldsOtherSupplyMaterial f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetConstructionPsNo(FieldsConstruction f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetOtherPropertyPsNo(FieldsOther f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            if (string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/XXX";
-            }
-            else
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetFurniturePsNo(FieldsFurniture f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (!string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.Dimension))
-            {
-                stockNo += "/" + f.Dimension.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.Size))
-            {
-                stockNo += "/" + f.Size.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.Capacity))
-            {
-                stockNo += "/" + f.Capacity.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.Color))
-            {
-                stockNo += "/" + f.Color.Replace(" ", "").Trim();
-            }
-            return stockNo;
-        }
-
-        private string GetMedicinePsNo(FieldsMedicine f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (!string.IsNullOrWhiteSpace(f.GenericName))
-            {
-                if (f.GenericName.Length >= 3)
-                {
-                    stockNo += "/" + f.GenericName.Substring(0, 1) + f.GenericName.Substring(2, 1);
-                }
-                else
-                {
-                    stockNo += "/" + f.GenericName.Substring(0, 1) + "X";
-                }
-            }
-            if (!string.IsNullOrWhiteSpace(f.DosageStrength))
-            {
-                stockNo += "/" + f.DosageStrength.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.DosageForm))
-            {
-                stockNo += "/" + f.DosageForm.PadRight(3, 'X').Substring(0, 3);
-            }
-            if (!string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-        private string GetLandPsNo(FieldsLand f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (f.Area > 0)
-            {
-                stockNo += "/" + f.Area.ToString().Trim() + "Sqm";
-            }
-
-            return stockNo;
-        }
-
-        private string GetRepairPsNo(FieldsRepair f)
-        {
-            string stockNo = "";
-            if (f == null)
-            {
-                return stockNo;
-            }
-
-            if (!string.IsNullOrWhiteSpace(f.SerialNo))
-            {
-                stockNo += "/" + f.SerialNo.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.PropertyNo))
-            {
-                stockNo += "/" + f.PropertyNo.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.PlateNo))
-            {
-                stockNo += "/" + f.PlateNo.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.BodyNo))
-            {
-                stockNo += "/" + f.BodyNo.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.MVFileNo))
-            {
-                stockNo += "/" + f.MVFileNo.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.Brand))
-            {
-                stockNo += "/" + f.Brand.Replace(" ", "").Trim();
-            }
-            if (!string.IsNullOrWhiteSpace(f.Model_))
-            {
-                stockNo += "/" + f.Model_.Replace(" ", "").Trim();
-            }
-
-            return stockNo;
-        }
-
-
-        //private string NextPropertyNo(string psNo)
+        //private PsCard SetItemEntity(PsCard entity, PsCardVM model)
         //{
-        //    string keyName = psNo;
+        //    entity.FieldsAccountableForm = null;
+        //    entity.FieldsAgricultural = null;
+        //    entity.FieldsAnimal = null;
+        //    entity.FieldsFurniture = null;
+        //    entity.FieldsLand = null;
+        //    entity.FieldsMachinery = null;
+        //    entity.FieldsMedical = null;
+        //    entity.FieldsMedicine = null;
+        //    entity.FieldsMilitarySuuply = null;
+        //    entity.FieldsNonAccountableForm = null;
+        //    entity.FieldsOfficeSupply = null;
+        //    entity.FieldsOther = null;
+        //    entity.FieldsOtherSupplyMaterial = null;
+        //    entity.FieldsRepair = null;
+        //    entity.FieldsTransportation = null;
+        //    entity.FieldsVehicle = null;
+        //    entity.FieldsConstruction = null;
 
-        //    var data = _db.PsCards.Where(w => w.PsNo == psNo)
-        //        .OrderByDescending(o => o.PsNo).FirstOrDefault();
-        //    if (data == null)
-        //    {
-        //        return keyName + "-" + "001";
-        //    }
-        //    else
-        //    {
-        //        var sequence = (int.Parse(data.PsNo.Split('-')[1]) + 1).ToString();
-        //        return keyName + "-" + sequence.PadLeft(3, '0');
-        //    }
-        //}
-
-        public string GetDescription(PsCardVM fields)
-        {
-            string description = "Please see attachment.";
-            //if (Enum.TryParse(fields.ItemTypeCode, out Category category))
-            //{
-            //    if (category == Category.D)
-            //    {
-            //        description = GetMedicineDescription(fields.FieldsMedicine);
-            //    }
-            //    else if (category == Category.O || category == Category.M)
-            //    {
-            //        description = GetOtherDescription(fields.FieldsOther);
-            //    }
-            //    else if (category == Category.T)
-            //    {
-            //        description = GetVehicleDescription(fields.FieldsVehicle);
-            //    }
-            //    else if (category == Category.W)
-            //    {
-            //        description = "Please see attachment.";
-            //    }
-            //}
-            return description ?? "";
-        }
-
-        public string GetRisDescription(RisItemEntryVM model)
-        {
-            string description = "";
-            if (Enum.TryParse(model.PsType, out Category category))
-            {
-                if (category == Category.A)
-                {
-                    description += GetAccountableFormDescription(model.FieldsAccountableForm);
-                }
-                else if (category == Category.B)
-                {
-
-                }
-                else if (category == Category.C)
-                {
-                    description += GetConstructionPsNo(model.FieldsConstruction);
-                }
-                else if (category == Category.D)
-                {
-                    description += GetMedicineDescription(model.FieldsMedicine);
-                }
-                else if (category == Category.E)
-                {
-                    description += GetMachineryDescription(model.FieldsMachinery);
-                }
-                else if (category == Category.F)
-                {
-
-                }
-                else if (category == Category.G)
-                {
-                    description += GetAgriculturalDescription(model.FieldsAgricultural);
-                }
-                else if (category == Category.I)
-                {
-
-                }
-                else if (category == Category.L)
-                {
-                    description += GetLandDescription(model.FieldsLand);
-                }
-                else if (category == Category.M)
-                {
-                    description += GetMedicalDescription(model.FieldsMedical);
-                }
-                else if (category == Category.N)
-                {
-                    description += GetNonAccountableFormDescription(model.FieldsNonAccountableForm);
-                }
-                else if (category == Category.O)
-                {
-                    description += GetOfficeSupplyDescription(model.FieldsOfficeSupply);
-                }
-                else if (category == Category.P)
-                {
-                    description += GetMilitarySupplyDescription(model.FieldsMilitarySuuply);
-                }
-                else if (category == Category.R)
-                {
-                    description += GetRepairDescription(model.FieldsRepair);
-                }
-                else if (category == Category.S)
-                {
-
-                }
-                else if (category == Category.T)
-                {
-                    description += GetTransportationDescription(model.FieldsTransportation);
-                }
-                else if (category == Category.U)
-                {
-                    description += GetFurnitureDescription(model.FieldsFurniture);
-                }
-                else if (category == Category.V)
-                {
-                    description += GetAnimalDescription(model.FieldsAnimal);
-                }
-                else if (category == Category.W)
-                {
-
-                }
-                else if (category == Category.X)
-                {
-                    description += GetOtherSupplyMaterialDescription(model.FieldsOtherSupplyMaterial);
-                }
-                else if (category == Category.Y)
-                {
-                    
-                }
-                else if (category == Category.Z)
-                {
-                    description += GetOtherPropertyDescription(model.FieldsOther);
-                }
-
-            }
-            return description ?? "";
-        }
-
-        private string GetMedicineDescription(FieldsMedicine f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
-            description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
-            description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
-            description += string.IsNullOrWhiteSpace(f.DosageVolume) ? "" : " " + f.DosageVolume.Trim();
-            description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : " (" + f.Brand.Trim() + ")";
-            return description;
-        }
-
-        private string GeFurnitureDescription(FieldsFurniture f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            description += string.IsNullOrWhiteSpace(f.Dimension) ? "" : f.Dimension.Trim();
-            description += string.IsNullOrWhiteSpace(f.Size) ? "" : f.Size.Trim();
-            description += string.IsNullOrWhiteSpace(f.Capacity) ? "" : f.Capacity.Trim();
-            description += string.IsNullOrWhiteSpace(f.Color) ? "" : f.Color.Trim();
-            return description;
-        }
-
-        private string GetLandDescription(FieldsLand f)
-        {
-            string description = "";
-            description += f.Area == null ? "" : f.Area.ToString().Trim() + "Sqm";
-            return description;
-        }
-
-        private string GetRepairDescription(FieldsRepair f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.SerialNo) ? "" : f.SerialNo.Trim();
-            description += string.IsNullOrWhiteSpace(f.PropertyNo) ? "" : f.PropertyNo.Trim();
-            description += string.IsNullOrWhiteSpace(f.PlateNo) ? "" : f.PlateNo.Trim();
-            description += string.IsNullOrWhiteSpace(f.BodyNo) ? "" : f.BodyNo.Trim();
-            description += string.IsNullOrWhiteSpace(f.MVFileNo) ? "" : f.MVFileNo.Trim();
-            return description;
-        }
-
-        private string GetAccountableFormDescription(FieldsAccountableForm f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetMachineryDescription(FieldsMachinery f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetAgriculturalDescription(FieldsAgricultural f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetMedicalDescription(FieldsMedical f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetNonAccountableFormDescription(FieldsNonAccountableForm f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetOfficeSupplyDescription(FieldsOfficeSupply f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetMilitarySupplyDescription(FieldsMilitarySuuply f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetTransportationDescription(FieldsTransportation f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetFurnitureDescription(FieldsFurniture f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetAnimalDescription(FieldsAnimal f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetOtherSupplyMaterialDescription(FieldsOtherSupplyMaterial f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetConstructionDescription(FieldsConstruction f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        private string GetOtherPropertyDescription(FieldsOther f)
-        {
-            string description = "";
-            description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
-            description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
-            return description;
-        }
-
-        //private string GetMedicineDescription(FieldsMedicine f)
-        //{
-        //    string description = "";
-        //    description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : " (" + f.Brand.Trim() + ")";
-        //    return description;
-        //}
-
-        //private string GetOtherDescription(FieldsOther f)
-        //{
-        //    string description = "";
-        //    description += string.IsNullOrWhiteSpace(f.Dimension) ? "" : f.Dimension.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.Size) ? "" : f.Size.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.Capacity) ? "" : f.Capacity.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.Color) ? "" : f.Color.Trim();
-        //    return description;
-        //}
-
-        //private string GetVehicleDescription(FieldsVehicle f)
-        //{
-        //    string description = "";
-        //    description += string.IsNullOrWhiteSpace(f.Type) ? "" : f.Type.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.Make) ? "" : " " + f.Make.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.Series) ? "" : " " + f.Series.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.YearModel.ToString()) ? "" : " " + f.YearModel.ToString().Trim();
-        //    description += string.IsNullOrWhiteSpace(f.PlateNo) ? "" : " " + f.PlateNo.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.BodyNo) ? "" : " " + f.BodyNo.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.Color) ? "" : " " + f.Color.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.EngineNo) ? "" : " " + f.EngineNo.Trim();
-        //    description += string.IsNullOrWhiteSpace(f.ChassisNo) ? "" : " " + f.ChassisNo.Trim();
-        //    return description;
-        //}
-
-
-        //public string GetStockNo(PsCardVM model)
-        //{
-        //    string stockNo = model.ItemCode.Trim();
-        //    if (model.FromDonation == true)
-        //    {
-        //        stockNo = "FD" + stockNo;
-        //    }
         //    if (Enum.TryParse(model.ItemTypeCode, out Category category))
         //    {
-        //        if (category == Category.D)
+        //        if (category == Category.A)
         //        {
-        //            stockNo += GetMedicinePsNo(model.FieldsMedicine);
+        //            model.FieldsAccountableForm.Id = entity.Id;
+        //            entity.FieldsAccountableForm = model.FieldsAccountableForm;
         //        }
-        //        else if (category == Category.O || category == Category.M)
+        //        else if (category == Category.B)
         //        {
-        //            stockNo += GetOtherPsNo(model.FieldsOther);
+
+        //        }
+        //        else if (category == Category.C)
+        //        {
+        //            model.FieldsConstruction.Id = entity.Id;
+        //            entity.FieldsConstruction = model.FieldsConstruction;
+        //        }
+        //        else if (category == Category.D)
+        //        {
+        //            model.FieldsMedicine.Id = entity.Id;
+        //            entity.FieldsMedicine = model.FieldsMedicine;
+        //        }
+        //        else if (category == Category.E)
+        //        {
+        //            model.FieldsMachinery.Id = entity.Id;
+        //            entity.FieldsMachinery = model.FieldsMachinery;
+        //        }
+        //        else if (category == Category.F) // food supplies
+        //        {
+
+        //        }
+        //        else if (category == Category.G)
+        //        {
+        //            model.FieldsAgricultural.Id = entity.Id;
+        //            entity.FieldsAgricultural = model.FieldsAgricultural;
+        //        }
+        //        else if (category == Category.I)
+        //        {
+
+        //        }
+        //        else if (category == Category.L)
+        //        {
+        //            model.FieldsLand.Id = entity.Id;
+        //            entity.FieldsLand = model.FieldsLand;
+        //        }
+        //        else if (category == Category.M)
+        //        {
+        //            model.FieldsMedical.Id = entity.Id;
+        //            entity.FieldsMedical = model.FieldsMedical;
+        //        }
+        //        else if (category == Category.N)
+        //        {
+        //            model.FieldsNonAccountableForm.Id = entity.Id;
+        //            entity.FieldsNonAccountableForm = model.FieldsNonAccountableForm;
+        //        }
+        //        else if (category == Category.O)
+        //        {
+        //            model.FieldsOfficeSupply.Id = entity.Id;
+        //            entity.FieldsOfficeSupply = model.FieldsOfficeSupply;
+        //        }
+        //        else if (category == Category.P)
+        //        {
+        //            model.FieldsMilitarySuuply.Id = entity.Id;
+        //            entity.FieldsMilitarySuuply = model.FieldsMilitarySuuply;
+        //        }
+        //        else if (category == Category.R)
+        //        {
+        //            model.FieldsRepair.Id = entity.Id;
+        //            entity.FieldsRepair = model.FieldsRepair;
+        //        }
+        //        else if (category == Category.S)
+        //        {
+        //            model.FieldsRepair.Id = entity.Id;
+        //            entity.FieldsRepair = model.FieldsRepair;
         //        }
         //        else if (category == Category.T)
         //        {
-        //            stockNo += GetVehiclePsNo(model.FieldsVehicle);
+        //            model.FieldsTransportation.Id = entity.Id;
+        //            entity.FieldsTransportation = model.FieldsTransportation;
+        //        }
+        //        else if (category == Category.U)
+        //        {
+        //            model.FieldsFurniture.Id = entity.Id;
+        //            entity.FieldsFurniture = model.FieldsFurniture;
+        //        }
+        //        else if (category == Category.V)
+        //        {
+        //            model.FieldsAnimal.Id = entity.Id;
+        //            entity.FieldsAnimal = model.FieldsAnimal;
+        //        }
+        //        else if (category == Category.X)
+        //        {
+        //            model.FieldsOtherSupplyMaterial.Id = entity.Id;
+        //            entity.FieldsOtherSupplyMaterial = model.FieldsOtherSupplyMaterial;
+        //        }
+        //        else if (category == Category.Z)
+        //        {
+        //            model.FieldsOther.Id = entity.Id;
+        //            entity.FieldsOther = model.FieldsOther;
         //        }
         //    }
-        //    return stockNo ?? "";
+
+        //    return entity;
         //}
+        public string GetStockNo(PsCardVM model) => _allFieldService.GetCardStockNo(model);
+                
+        public string GetDescription(PsCardVM fields) => "Please see attachment.";        
 
         //public string GetRisStockNo(RisItemEntryVM model)
         //{
         //    string stockNo = model.ItemCode.Trim();
         //    if (Enum.TryParse(model.PsType, out Category category))
         //    {
-        //        if (category == Category.D)
+        //        if (category == Category.A)
+        //        {
+        //            stockNo += GetAccountableFormPsNo(model.FieldsAccountableForm);
+        //        }
+        //        else if (category == Category.B)
+        //        {
+
+        //        }
+        //        else if (category == Category.C)
+        //        {
+        //            stockNo += GetConstructionPsNo(model.FieldsConstruction);
+        //        }
+        //        else if (category == Category.D)
         //        {
         //            stockNo += GetMedicinePsNo(model.FieldsMedicine);
         //        }
-        //        else if (category == Category.O || category == Category.M)
+        //        else if (category == Category.E)
         //        {
-        //            stockNo += GetOtherPsNo(model.FieldsOther);
+        //            stockNo += GetMachineryPsNo(model.FieldsMachinery);
+        //        }
+        //        else if (category == Category.F)
+        //        {
+
+        //        }
+        //        else if (category == Category.G)
+        //        {
+        //            stockNo += GetAgriculturalPsNo(model.FieldsAgricultural);
+        //        }
+        //        else if (category == Category.I)
+        //        {
+
+        //        }
+        //        else if (category == Category.L)
+        //        {
+        //            stockNo += GetLandPsNo(model.FieldsLand);
+        //        }
+        //        else if (category == Category.M)
+        //        {
+        //            stockNo += GetMedicalPsNo(model.FieldsMedical);
+        //        }
+        //        else if (category == Category.N)
+        //        {
+        //            stockNo += GetNonAccountableFormPsNo(model.FieldsNonAccountableForm);
+        //        }
+        //        else if (category == Category.O)
+        //        {
+        //            stockNo += GetOfficeSupplyPsNo(model.FieldsOfficeSupply);
+        //        }
+        //        else if (category == Category.P)
+        //        {
+        //            stockNo += GetMilitarySupplyPsNo(model.FieldsMilitarySuuply);
+        //        }
+        //        else if (category == Category.R)
+        //        {
+        //            stockNo += GetRepairPsNo(model.FieldsRepair);
+        //        }
+        //        else if (category == Category.S)
+        //        {
+
         //        }
         //        else if (category == Category.T)
         //        {
-        //            stockNo += GetVehiclePsNo(model.FieldsVehicle);
+        //            stockNo += GetTransportationPsNo(model.FieldsTransportation);
+        //        }
+        //        else if (category == Category.U)
+        //        {
+        //            stockNo += GetFurniturePsNo(model.FieldsFurniture);
+        //        }
+        //        else if (category == Category.V)
+        //        {
+        //            stockNo += GetAnimalPsNo(model.FieldsAnimal);
+        //        }
+        //        else if (category == Category.W)
+        //        {
+
+        //        }
+        //        else if (category == Category.X)
+        //        {
+        //            stockNo += GetOtherSupplyMaterialPsNo(model.FieldsOtherSupplyMaterial);
+        //        }
+        //        else if (category == Category.Y)
+        //        {
+                    
+        //        }
+        //        else if (category == Category.Z)
+        //        {
+        //            stockNo += GetOtherPropertyPsNo(model.FieldsOther);
         //        }
         //    }
         //    return stockNo ?? "";
         //}
 
-        //private string GetVehiclePsNo(FieldsVehicle f)
+        //private string GetAccountableFormPsNo(FieldsAccountableForm f)
         //{
         //    string stockNo = "";
         //    if (f == null)
@@ -1572,36 +659,28 @@ namespace iLgs.Services
         //        return stockNo;
         //    }
 
-        //    if (!string.IsNullOrWhiteSpace(f.Make))
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
         //    {
-        //        if (f.Make.Length >= 3)
-        //        {
-        //            stockNo += f.Make.Substring(0, 1) + f.Make.Substring(2, 1);
-        //        }
-        //        else
-        //        {
-        //            stockNo += f.Make.Substring(0, 1) + "X";
-        //        }
-        //    }
-
-        //    if (f.YearModel > 0)
-        //    {
-        //        stockNo += f.YearModel.ToString().Trim();
-        //    }
-
-        //    if (string.IsNullOrWhiteSpace(f.Series))
-        //    {
-        //        stockNo += "XXX";
+        //        stockNo += "/XXX";
         //    }
         //    else
         //    {
-        //        stockNo += f.Series.Substring(0, 3);
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
         //    }
 
         //    return stockNo;
         //}
 
-        //private string GetOtherPsNo(FieldsOther f)
+        //private string GetMachineryPsNo(FieldsMachinery f)
         //{
         //    string stockNo = "";
         //    if (f == null)
@@ -1609,64 +688,349 @@ namespace iLgs.Services
         //        return stockNo;
         //    }
 
-        //    if (!string.IsNullOrWhiteSpace(f.Dimension))
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
         //    {
-        //        var str = f.Dimension.Replace(" ", "").Trim();
-        //        if (str.Length >= 3)
-        //        {
-        //            stockNo += "/" + str.Substring(0, 3);
-        //        }
-        //        else
-        //        {
-        //            stockNo += "/" + str.Substring(0, str.Length);
-        //        }
+        //        stockNo += "/XXX";
         //    }
-        //    else if (!string.IsNullOrWhiteSpace(f.Size))
+        //    else
         //    {
-        //        var str = f.Size.Replace(" ", "").Trim();
-        //        if (str.Length >= 3)
-        //        {
-        //            stockNo += "/" + str.Substring(0, 3);
-        //        }
-        //        else
-        //        {
-        //            stockNo += "/" + str.Substring(0, str.Length);
-        //        }
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
         //    }
-        //    else if (!string.IsNullOrWhiteSpace(f.Capacity))
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
         //    {
-        //        var str = f.Capacity.Replace(" ", "").Trim();
-        //        if (str.Length >= 3)
-        //        {
-        //            stockNo += "/" + str.Substring(0, 3);
-        //        }
-        //        else
-        //        {
-        //            stockNo += "/" + str.Substring(0, str.Length);
-        //        }
+        //        stockNo += "/XXX";
         //    }
-        //    else if (!string.IsNullOrWhiteSpace(f.Color))
+        //    else
         //    {
-        //        var str = f.Color.Replace(" ", "").Trim();
-        //        if (str.Length >= 3)
-        //        {
-        //            stockNo += "/" + str.Substring(0, 3);
-        //        }
-        //        else
-        //        {
-        //            stockNo += "/" + str.Substring(0, str.Length);
-        //        }
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetAgriculturalPsNo(FieldsAgricultural f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetMedicalPsNo(FieldsMedical f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetNonAccountableFormPsNo(FieldsNonAccountableForm f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetOfficeSupplyPsNo(FieldsOfficeSupply f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetMilitarySupplyPsNo(FieldsMilitarySuuply f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetTransportationPsNo(FieldsTransportation f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetAnimalPsNo(FieldsAnimal f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetOtherSupplyMaterialPsNo(FieldsOtherSupplyMaterial f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetConstructionPsNo(FieldsConstruction f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetOtherPropertyPsNo(FieldsOther f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Brand))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/XXX";
+        //    }
+        //    else
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetFurniturePsNo(FieldsFurniture f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
         //    }
 
         //    if (!string.IsNullOrWhiteSpace(f.Brand))
         //    {
         //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
         //    }
-        //    else if (!string.IsNullOrWhiteSpace(f.Model_))
+        //    if (!string.IsNullOrWhiteSpace(f.Model_))
         //    {
         //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
         //    }
-
+        //    if (!string.IsNullOrWhiteSpace(f.Dimension))
+        //    {
+        //        stockNo += "/" + f.Dimension.Replace(" ", "").Trim();
+        //    }
+        //    if (!string.IsNullOrWhiteSpace(f.Size))
+        //    {
+        //        stockNo += "/" + f.Size.Replace(" ", "").Trim();
+        //    }
+        //    if (!string.IsNullOrWhiteSpace(f.Capacity))
+        //    {
+        //        stockNo += "/" + f.Capacity.Replace(" ", "").Trim();
+        //    }
+        //    if (!string.IsNullOrWhiteSpace(f.Color))
+        //    {
+        //        stockNo += "/" + f.Color.Replace(" ", "").Trim();
+        //    }
         //    return stockNo;
         //}
 
@@ -1697,12 +1061,329 @@ namespace iLgs.Services
         //    {
         //        stockNo += "/" + f.DosageForm.PadRight(3, 'X').Substring(0, 3);
         //    }
+
+        //    //if (!string.IsNullOrWhiteSpace(f.Others))
+        //    //{
+        //    //    stockNo += "/" + f.Others.Replace(" ", "").Trim();
+        //    //}
+
         //    if (!string.IsNullOrWhiteSpace(f.Brand))
         //    {
         //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
         //    }
+        //    else
+        //    {
+        //        stockNo += "/xx";
+        //    }
+
+        //    if (f.Multipliers.HasValue)
+        //    {
+        //        stockNo += "/" + f.Multipliers.ToString().Trim() + "'s";
+        //    }
+            
 
         //    return stockNo;
         //}
+
+        //private string GetLandPsNo(FieldsLand f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (f.Area > 0)
+        //    {
+        //        stockNo += "/" + f.Area.ToString().Trim() + "Sqm";
+        //    }
+
+        //    return stockNo;
+        //}
+
+        //private string GetRepairPsNo(FieldsRepair f)
+        //{
+        //    string stockNo = "";
+        //    if (f == null)
+        //    {
+        //        return stockNo;
+        //    }
+
+        //    if (!string.IsNullOrWhiteSpace(f.SerialNo))
+        //    {
+        //        stockNo += "/" + f.SerialNo.Replace(" ", "").Trim();
+        //    }
+        //    if (!string.IsNullOrWhiteSpace(f.PropertyNo))
+        //    {
+        //        stockNo += "/" + f.PropertyNo.Replace(" ", "").Trim();
+        //    }
+        //    if (!string.IsNullOrWhiteSpace(f.PlateNo))
+        //    {
+        //        stockNo += "/" + f.PlateNo.Replace(" ", "").Trim();
+        //    }
+        //    if (!string.IsNullOrWhiteSpace(f.BodyNo))
+        //    {
+        //        stockNo += "/" + f.BodyNo.Replace(" ", "").Trim();
+        //    }
+        //    if (!string.IsNullOrWhiteSpace(f.MVFileNo))
+        //    {
+        //        stockNo += "/" + f.MVFileNo.Replace(" ", "").Trim();
+        //    }
+        //    if (!string.IsNullOrWhiteSpace(f.Brand))
+        //    {
+        //        stockNo += "/" + f.Brand.Replace(" ", "").Trim();
+        //    }
+        //    if (!string.IsNullOrWhiteSpace(f.Model_))
+        //    {
+        //        stockNo += "/" + f.Model_.Replace(" ", "").Trim();
+        //    }
+
+        //    return stockNo;
+        //}
+               
+        //public string GetRisDescription(RisItemEntryVM model)
+        //{
+        //    string description = "";
+        //    if (Enum.TryParse(model.PsType, out Category category))
+        //    {
+        //        if (category == Category.A)
+        //        {
+        //            description += GetAccountableFormDescription(model.FieldsAccountableForm);
+        //        }
+        //        else if (category == Category.B)
+        //        {
+
+        //        }
+        //        else if (category == Category.C)
+        //        {
+        //            description += GetConstructionPsNo(model.FieldsConstruction);
+        //        }
+        //        else if (category == Category.D)
+        //        {
+        //            description += GetMedicineDescription(model.FieldsMedicine);
+        //        }
+        //        else if (category == Category.E)
+        //        {
+        //            description += GetMachineryDescription(model.FieldsMachinery);
+        //        }
+        //        else if (category == Category.F)
+        //        {
+
+        //        }
+        //        else if (category == Category.G)
+        //        {
+        //            description += GetAgriculturalDescription(model.FieldsAgricultural);
+        //        }
+        //        else if (category == Category.I)
+        //        {
+
+        //        }
+        //        else if (category == Category.L)
+        //        {
+        //            description += GetLandDescription(model.FieldsLand);
+        //        }
+        //        else if (category == Category.M)
+        //        {
+        //            description += GetMedicalDescription(model.FieldsMedical);
+        //        }
+        //        else if (category == Category.N)
+        //        {
+        //            description += GetNonAccountableFormDescription(model.FieldsNonAccountableForm);
+        //        }
+        //        else if (category == Category.O)
+        //        {
+        //            description += GetOfficeSupplyDescription(model.FieldsOfficeSupply);
+        //        }
+        //        else if (category == Category.P)
+        //        {
+        //            description += GetMilitarySupplyDescription(model.FieldsMilitarySuuply);
+        //        }
+        //        else if (category == Category.R)
+        //        {
+        //            description += GetRepairDescription(model.FieldsRepair);
+        //        }
+        //        else if (category == Category.S)
+        //        {
+
+        //        }
+        //        else if (category == Category.T)
+        //        {
+        //            description += GetTransportationDescription(model.FieldsTransportation);
+        //        }
+        //        else if (category == Category.U)
+        //        {
+        //            description += GetFurnitureDescription(model.FieldsFurniture);
+        //        }
+        //        else if (category == Category.V)
+        //        {
+        //            description += GetAnimalDescription(model.FieldsAnimal);
+        //        }
+        //        else if (category == Category.W)
+        //        {
+
+        //        }
+        //        else if (category == Category.X)
+        //        {
+        //            description += GetOtherSupplyMaterialDescription(model.FieldsOtherSupplyMaterial);
+        //        }
+        //        else if (category == Category.Y)
+        //        {
+                    
+        //        }
+        //        else if (category == Category.Z)
+        //        {
+        //            description += GetOtherPropertyDescription(model.FieldsOther);
+        //        }
+
+        //    }
+        //    return description ?? "";
+        //}
+
+        //private string GetMedicineDescription(FieldsMedicine f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.GenericName) ? "" : f.GenericName.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.DosageStrength) ? "" : " " + f.DosageStrength.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.DosageForm) ? "" : " " + f.DosageForm.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.DosageVolume) ? "" : " " + f.DosageVolume.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Others) ? "" : " " + f.Others.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : " (" + f.Brand.Trim() + ")";
+        //    return description;
+        //}
+
+        //private string GeFurnitureDescription(FieldsFurniture f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Dimension) ? "" : f.Dimension.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Size) ? "" : f.Size.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Capacity) ? "" : f.Capacity.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Color) ? "" : f.Color.Trim();
+        //    return description;
+        //}
+
+        //private string GetLandDescription(FieldsLand f)
+        //{
+        //    string description = "";
+        //    description += f.Area == null ? "" : f.Area.ToString().Trim() + "Sqm";
+        //    return description;
+        //}
+
+        //private string GetRepairDescription(FieldsRepair f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.SerialNo) ? "" : f.SerialNo.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.PropertyNo) ? "" : f.PropertyNo.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.PlateNo) ? "" : f.PlateNo.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.BodyNo) ? "" : f.BodyNo.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.MVFileNo) ? "" : f.MVFileNo.Trim();
+        //    return description;
+        //}
+
+        //private string GetAccountableFormDescription(FieldsAccountableForm f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetMachineryDescription(FieldsMachinery f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetAgriculturalDescription(FieldsAgricultural f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetMedicalDescription(FieldsMedical f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetNonAccountableFormDescription(FieldsNonAccountableForm f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetOfficeSupplyDescription(FieldsOfficeSupply f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetMilitarySupplyDescription(FieldsMilitarySuuply f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetTransportationDescription(FieldsTransportation f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetFurnitureDescription(FieldsFurniture f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetAnimalDescription(FieldsAnimal f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetOtherSupplyMaterialDescription(FieldsOtherSupplyMaterial f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetConstructionDescription(FieldsConstruction f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+
+        //private string GetOtherPropertyDescription(FieldsOther f)
+        //{
+        //    string description = "";
+        //    description += string.IsNullOrWhiteSpace(f.Brand) ? "" : f.Brand.Trim();
+        //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
+        //    return description;
+        //}
+        
     }
 }

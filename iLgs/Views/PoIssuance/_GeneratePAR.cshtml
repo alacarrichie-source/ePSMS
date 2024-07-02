@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.RisIssuedVM
+﻿@model iLgs.Models.GenerateIcsParVM
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
@@ -11,17 +11,17 @@
         </div>
     </div>
 
-    @Html.HiddenFor(model => model.Id)
-    @Html.HiddenFor(model => model.OrderItemId)
+    //@Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.PsCardItemId)
     @Html.HiddenFor(model => model.RefType)   
 
     <fieldset>
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.RefDate, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(model => model.Date, "Reference Date", htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(model => model.RefDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.RefDate)
+                    @(Html.Kendo().DatePickerFor(model => model.Date).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.Date)
                 </div>
             </div>
         </div>
@@ -60,7 +60,7 @@
                                 c.Add().Field("Code").Title("Code").Width("30%");
                                 c.Add().Field("Description").Title("Description").Width("70%");
                             })
-                            .Events(e => e.Select("onSelectLocationId"))
+                            .Events(e => e.Select("onSelectGenerateParLocationId"))
                             .Suggest(true)
                     )
                     @Html.ValidationMessageFor(model => model.LocationId)

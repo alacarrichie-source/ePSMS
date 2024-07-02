@@ -252,9 +252,14 @@ namespace iLgs.Models
 
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
+        [Display(Name = "Unit of Measurement")]
+        public string Unit { get; set; }
         public bool IsProperty { get; set; }
         public bool IsWithPar { get; set; }
         public bool IsWithIcs { get; set; }
+
+        public int? ParBalance { get; set; }
+        public int? IcsBalance { get; set; }
     }
 
     public class OrderItemUnitGroupVM

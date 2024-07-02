@@ -1,320 +1,498 @@
-﻿//using iLgs.Exceptions;
-//using iLgs.Models;
-//using iLgs.Services.Interfaces;
-//using System;
-//using System.Collections.Generic;
-//using System.Data.Entity;
-//using System.Linq;
-//using System.Threading.Tasks;
-//using System.Web;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
+using iLgs.Services.Interfaces;
+using System;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using static iLgs.Models.CategoryEnum;
 
-//namespace iLgs.Services
-//{
-//    public interface IAllFieldService
-//    {
-//        IQueryable<AllField> GetAllByPsCardId(Guid? psCardId);
-//        IQueryable<AllField> GetAllByRisItemId(Guid? risItemId);
-//        ValueTask<AllField> GetByIdAsync(Guid id);
-//        ValueTask<AllField> CreatePsCardFieldsAsync(AllField model, string user, DateTime date);
-//        ValueTask<AllField> CreateRisFieldsAsync(AllField model, string user, DateTime date);
-//        ValueTask<AllField> UpdatePsCardFieldsAsync(AllField model, string user, DateTime date);
-//        ValueTask<AllField> UpdateRisFieldsAsync(AllField model, string user, DateTime date);
-//        ValueTask<AllField> DeleteAsync(AllField model, string user, DateTime date);
-//        string GetDescription(AllField allFields);
-//        string GetDescription(PsCardVM psCardVM);
-//        string GetRisDescription(AllField allFields);
-//        string GetStockNo(AllField allFields);
-//        string GetRisStockNo(AllField allFields);
-//    }
+namespace iLgs.Services
+{
+    public interface IAllFieldService
+    {
+        IQueryable<AllField> GetAllByPsCardId(Guid? psCardId);
+        IQueryable<AllField> GetAllByRisItemId(Guid? risItemId);
+        ValueTask<AllField> GetByIdAsync(Guid id);
+        ValueTask<AllField> CreatePsCardFieldsAsync(PsCardVM model, string user, DateTime date);
+        ValueTask<AllField> CreateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date);
+        ValueTask<AllField> UpdatePsCardFieldsAsync(PsCardVM model, string user, DateTime date);
+        ValueTask<AllField> UpdateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date);
+        ValueTask<AllField> DeleteAsync(AllField model, string user, DateTime date);
+        //string GetDescription(AllField allFields);
+        //string GetDescription(PsCardVM psCardVM);
+        string GetRisDescription(RisItemEntryVM model);
+        string GetCardStockNo(PsCardVM model);
+        string GetRisStockNo(RisItemEntryVM model);
+        void ValidatePsCardAllField(PsCardVM model);
+        string GetStockNo(AllField af, string itemTypeCode);
+        bool IsBrandRequired(Category c);
+    }
 
-//    public class AllFieldService : IAllFieldService
-//    {
-//        private readonly AppManEntities _db = new AppManEntities();
-//        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-//        private readonly IExceptionService<AllField> _exceptionService = new ExceptionService<AllField>();
+    public class AllFieldService : IAllFieldService
+    {
+        private readonly AppManEntities _db = new AppManEntities();
+        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
+        private readonly IExceptionService<AllField> _exceptionService = new ExceptionService<AllField>();
 
-//        public AllFieldService(AppManEntities db)
-//        {
-//            _db = db;
-//        }
+        public AllFieldService(AppManEntities db)
+        {
+            _db = db;
+        }
 
-//        public IQueryable<AllField> GetAllByPsCardId(Guid? psCardId) => _exceptionService.TryCatch(() =>
-//        {
-//            var data = _db.AllFields.Where(w => w.PsCardId == psCardId).AsNoTracking();
-//            return data;
-//        });
+        public IQueryable<AllField> GetAllByPsCardId(Guid? psCardId) => _exceptionService.TryCatch(() =>
+        {
+            var data = _db.AllFields.Where(w => w.Id == psCardId).AsNoTracking();
+            return data;
+        });
 
-//        public IQueryable<AllField> GetAllByRisItemId(Guid? risItemId) => _exceptionService.TryCatch(() =>
-//        {
-//            var data = _db.AllFields.Where(w => w.RisItemId == risItemId).AsNoTracking();
-//            return data;
-//        });
+        public IQueryable<AllField> GetAllByRisItemId(Guid? risItemId) => _exceptionService.TryCatch(() =>
+        {
+            var data = _db.AllFields.Where(w => w.Id == risItemId).AsNoTracking();
+            return data;
+        });
 
-//        public ValueTask<AllField> GetByIdAsync(Guid id) => _exceptionService.TryCatch(async () =>
-//        {
-//            var data = await _db.AllFields.FindAsync(id);
-//            return data;
-//        });
+        public ValueTask<AllField> GetByIdAsync(Guid id) => _exceptionService.TryCatch(async () =>
+        {
+            var data = await _db.AllFields.FindAsync(id);
+            return data;
+        });
 
-//        private void ValidateEntry(AllField model, ItemCode itemCode)
-//        {
-//            if (!(itemCode.ForDistribution == "Y" && itemCode.IsConsumable == "Y" && itemCode.IsIncorporated == "Y"))
-//            {
-//                if (Enum.TryParse(itemCode.ItemType.Code, out Category category))
-//                {
-//                    if (category == Category.D)
-//                    {
-//                        if (string.IsNullOrWhiteSpace(model.GenericName))
-//                        {
-//                            throw new InvalidValueException("Generic Name is Required!");
-//                        }
-//                        if (string.IsNullOrWhiteSpace(model.Brand))
-//                        {
-//                            throw new InvalidValueException("Brand is Required!");
-//                        }
-//                        if (model.PsCard.ItemCode.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
-//                        {
-//                            if (string.IsNullOrWhiteSpace(model.DosageVolume))
-//                            {
-//                                throw new InvalidValueException("Dosage Volume is Required!");
-//                            }
-//                        }
-//                        else
-//                        {
-//                            if (string.IsNullOrWhiteSpace(model.DosageStrength))
-//                            {
-//                                throw new InvalidValueException("Dosage Strength is Required!");
-//                            }
-//                            if (string.IsNullOrWhiteSpace(model.DosageForm))
-//                            {
-//                                throw new InvalidValueException("Dosage Form is Required!");
-//                            }
-//                        }
-//                    }
-//                    else if (category == Category.M)
-//                    {
-//                        if (string.IsNullOrWhiteSpace(model.Brand))
-//                        {
-//                            throw new InvalidValueException("Brand is Required!");
-//                        }
-//                        if (string.IsNullOrWhiteSpace(model.Model_))
-//                        {
-//                            throw new InvalidValueException("Model is Required!");
-//                        }
-//                        if (string.IsNullOrWhiteSpace(model.Size) && string.IsNullOrWhiteSpace(model.Dimension) && string.IsNullOrWhiteSpace(model.Weight)
-//                            && string.IsNullOrWhiteSpace(model.Materials) && string.IsNullOrWhiteSpace(model.Capacity) && string.IsNullOrWhiteSpace(model.Color))
-//                        {
-//                            throw new InvalidValueException("Dimonsion or Sizeor Weight or Materials or Capacity or Color is Required!");
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        public void ValidatePsCardAllField(PsCardVM model)
+        {
+            var af = model.AllField;
+            if (Enum.TryParse(model.ItemTypeCode, out Category c))
+            {
+                if (c == CatDrugs())
+                {
+                    if (string.IsNullOrWhiteSpace(af.GenericName))
+                    {
+                        throw new InvalidValueException("Generic Name is Required!");
+                    }
+                    if (string.IsNullOrWhiteSpace(af.Brand))
+                    {
+                        throw new InvalidValueException("Brand is Required!");
+                    }
+                    if (model.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
+                    {
+                        if (string.IsNullOrWhiteSpace(af.DosageVolume))
+                        {
+                            throw new InvalidValueException("Dosage Volume is Required!");
+                        }
+                    }
+                    else
+                    {
+                        if (string.IsNullOrWhiteSpace(af.DosageStrength))
+                        {
+                            throw new InvalidValueException("Dosage Strength is Required!");
+                        }
+                        if (string.IsNullOrWhiteSpace(af.DosageForm))
+                        {
+                            throw new InvalidValueException("Dosage Form is Required!");
+                        }
+                    }
+                }
+                else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
+                || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
+                || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
+                || c == CatOtherSupplies())
+                {
+                    if (string.IsNullOrWhiteSpace(af.Brand))
+                    {
+                        throw new InvalidValueException("Brand is Required!");
+                    }
+                    if (string.IsNullOrWhiteSpace(af.Model_) && string.IsNullOrWhiteSpace(af.Size) && string.IsNullOrWhiteSpace(af.Dimension)
+                        && string.IsNullOrWhiteSpace(af.Weight) && string.IsNullOrWhiteSpace(af.Materials) && string.IsNullOrWhiteSpace(af.Capacity)
+                        && string.IsNullOrWhiteSpace(af.Color))
+                    {
+                        throw new InvalidValueException("Model or Dimension or Size or Weight or Materials or Capacity or Color is Required!");
+                    }
+                }
+            }
+        }
 
-//        public ValueTask<AllField> CreatePsCardFieldsAsync(AllField model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-//        {
-//            if (_db.AllFields.Any(a => a.Id == model.Id))
-//            {
-//                throw new RecordAlreadyExistsException(string.Format("Record already exists!"));
-//            }
+        public void ValidateRisAllField(RisItemEntryVM model)
+        {
+            var af = model.AllField;
+            if (Enum.TryParse(model.PsType, out Category c))
+            {
+                if (c == CatDrugs())
+                {
+                    if (string.IsNullOrWhiteSpace(af.GenericName))
+                    {
+                        throw new InvalidValueException("Generic Name is Required!");
+                    }
+                    if (string.IsNullOrWhiteSpace(af.Brand))
+                    {
+                        throw new InvalidValueException("Brand is Required!");
+                    }
+                    if (model.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
+                    {
+                        if (string.IsNullOrWhiteSpace(af.DosageVolume))
+                        {
+                            throw new InvalidValueException("Dosage Volume is Required!");
+                        }
+                    }
+                    else
+                    {
+                        if (string.IsNullOrWhiteSpace(af.DosageStrength))
+                        {
+                            throw new InvalidValueException("Dosage Strength is Required!");
+                        }
+                        if (string.IsNullOrWhiteSpace(af.DosageForm))
+                        {
+                            throw new InvalidValueException("Dosage Form is Required!");
+                        }
+                    }
+                }
+                else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
+                || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
+                || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
+                || c == CatOtherSupplies())
+                {
+                    if (string.IsNullOrWhiteSpace(af.Brand))
+                    {
+                        throw new InvalidValueException("Brand is Required!");
+                    }
+                    if (string.IsNullOrWhiteSpace(af.Model_) && string.IsNullOrWhiteSpace(af.Size) && string.IsNullOrWhiteSpace(af.Dimension)
+                        && string.IsNullOrWhiteSpace(af.Weight) && string.IsNullOrWhiteSpace(af.Materials) && string.IsNullOrWhiteSpace(af.Capacity)
+                        && string.IsNullOrWhiteSpace(af.Color))
+                    {
+                        throw new InvalidValueException("Model or Dimension or Size or Weight or Materials or Capacity or Color is Required!");
+                    }
+                }
+            }
+        }
 
-//            ValidateEntry(model, model.PsCard.ItemCode);
+        public ValueTask<AllField> CreatePsCardFieldsAsync(PsCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+            if (_db.AllFields.Any(a => a.Id == model.Id))
+            {
+                throw new RecordAlreadyExistsException(string.Format("Record already exists!"));
+            }
 
-//            await CreateAsync(model, user, date);
+            ValidatePsCardAllField(model);
 
-//            return model;
-//        });
+            await CreateAsync(model.AllField, user, date);
 
-//        public ValueTask<AllField> CreateRisFieldsAsync(AllField model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-//        {
-//            if (_db.AllFields.Any(a => a.Id == model.Id))
-//            {
-//                throw new RecordAlreadyExistsException(string.Format("Record already exists!"));
-//            }
+            return model.AllField;
+        });
 
-//            ValidateEntry(model, model.RisItem.ItemCode);
+        public ValueTask<AllField> CreateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+            if (_db.AllFields.Any(a => a.Id == model.Id))
+            {
+                throw new RecordAlreadyExistsException(string.Format("Record already exists!"));
+            }
 
-//            await CreateAsync(model, user, date);
+            ValidateRisAllField(model);
 
-//            return model;
-//        });
+            await CreateAsync(model.AllField, user, date);
 
-//        private async ValueTask CreateAsync(AllField model, string user, DateTime date)
-//        {
-//            model.Id = Guid.NewGuid();
-//            model.InsertedBy = user;
-//            model.InsertedDt = date;
-//            model.UpdatedBy = user;
-//            model.UpdatedDt = date;
+            return model.AllField;
+        });
 
-//            var entity = new AllField
-//            {
-//                Id = model.Id,
-//                PsCardId = model.PsCardId,
-//                RisItemId = model.RisItemId,
-//                SerialNo = model.SerialNo,
-//                PropertyNo = model.PropertyNo,
-//                PlateNo = model.PlateNo,
-//                BodyNo = model.BodyNo,
-//                MVFileNo = model.MVFileNo,
-//                InvDist = model.InvDist,
-//                GenericName = model.GenericName,
-//                DosageStrength = model.DosageStrength,
-//                DosageForm = model.DosageForm,
-//                DosageVolume = model.DosageVolume,
-//                Others = model.Others,
-//                Brand = model.Brand,
-//                Model_ = model.Model_,
-//                Dimension = model.Dimension,
-//                Size = model.Size,
-//                Capacity = model.Capacity,
-//                Color = model.Color,
-//                InsertedBy = model.InsertedBy,
-//                InsertedDt = model.InsertedDt,
-//                UpdatedBy = model.UpdatedBy,
-//                UpdatedDt = model.UpdatedDt
-//            };
+        private async ValueTask CreateAsync(AllField model, string user, DateTime date)
+        {
+            model.Id = Guid.NewGuid();
+            model.InsertedBy = user;
+            model.InsertedDt = date;
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
 
-//            _db.AllFields.Add(entity);
-//            await _db.SaveChangesAsync();
-//        }
+            var entity = new AllField
+            {
+                Id = model.Id,
+                AcqMode = model.AcqMode,
+                AcqCost = model.AcqCost,
+                InvDist = model.InvDist,
+                GenericName = model.GenericName,
+                DosageStrength = model.DosageStrength,
+                DosageForm = model.DosageForm,
+                DosageVolume = model.DosageVolume,
+                Others = model.Others,
+                Brand = model.Brand,
+                Multipliers = model.Multipliers,
+                Model_ = model.Model_,
+                Dimension = model.Dimension,
+                Size = model.Size,
+                Capacity = model.Capacity,
+                Color = model.Color,
+                SerialNo = model.SerialNo,
+                PropNo = model.PropNo,
+                PlateNo = model.PlateNo,
+                BodyNo = model.BodyNo,
+                MVFileNo = model.MVFileNo,
+                Type = model.Type,
+                Area = model.Area,
+                Barangay = model.Barangay,
+                DateSale = model.DateSale,
+                DateDonation = model.DateDonation,
+                DateAcquisition = model.DateAcquisition,
+                DateConstruction = model.DateConstruction,
+                AreaSoldDonated = model.AreaSoldDonated,
+                PricePerSqm = model.PricePerSqm,
+                VendorDonor = model.VendorDonor,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
 
-//        public ValueTask<AllField> UpdatePsCardFieldsAsync(AllField model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-//        {
-//            ValidateEntry(model, model.PsCard.ItemCode);
-//            await UpdateAsync(model, user, date);
-//            return model;
-//        });
+            _db.AllFields.Add(entity);
+            await _db.SaveChangesAsync();
+        }
 
-//        public ValueTask<AllField> UpdateRisFieldsAsync(AllField model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-//        {
-//            ValidateEntry(model, model.RisItem.ItemCode);
-//            await UpdateAsync(model, user, date);
-//            return model;
-//        });
+        public ValueTask<AllField> UpdatePsCardFieldsAsync(PsCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+            ValidatePsCardAllField(model);
+            await UpdateAsync(model.AllField, user, date);
+            return model.AllField;
+        });
 
-//        private async ValueTask UpdateAsync(AllField model, string user, DateTime date)
-//        {
-//            var entity = await GetByIdAsync(model.Id);
-//            if (entity == null)
-//            {
-//                throw new RecordNotFoundException(model.Id);
-//            }
+        public ValueTask<AllField> UpdateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+            ValidateRisAllField(model);
+            await UpdateAsync(model.AllField, user, date);
+            return model.AllField;
+        });
 
-//            model.UpdatedBy = user;
-//            model.UpdatedDt = date;
+        private async ValueTask UpdateAsync(AllField model, string user, DateTime date)
+        {
+            var entity = await GetByIdAsync(model.Id);
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(model.Id);
+            }
 
-//            entity.SerialNo = model.SerialNo;
-//            entity.PropertyNo = model.PropertyNo;
-//            entity.PlateNo = model.PlateNo;
-//            entity.BodyNo = model.BodyNo;
-//            entity.MVFileNo = model.MVFileNo;
-//            entity.InvDist = model.InvDist;
-//            entity.GenericName = model.GenericName;
-//            entity.DosageStrength = model.DosageStrength;
-//            entity.DosageForm = model.DosageForm;
-//            entity.DosageVolume = model.DosageVolume;
-//            entity.Others = model.Others;
-//            entity.Brand = model.Brand;
-//            entity.Model_ = model.Model_;
-//            entity.Dimension = model.Dimension;
-//            entity.Size = model.Size;
-//            entity.Capacity = model.Capacity;
-//            entity.Color = model.Color;
-//            entity.UpdatedBy = user;
-//            entity.UpdatedDt = date;
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
 
-//            _db.AllFields.Attach(entity);
-//            _db.Entry(entity).State = EntityState.Modified;
-//            await _db.SaveChangesAsync();
-//        }
+            entity.AcqMode = model.AcqMode;
+            entity.AcqCost = model.AcqCost;
+            entity.InvDist = model.InvDist;
+            entity.GenericName = model.GenericName;
+            entity.DosageStrength = model.DosageStrength;
+            entity.DosageForm = model.DosageForm;
+            entity.DosageVolume = model.DosageVolume;
+            entity.Others = model.Others;
+            entity.Brand = model.Brand;
+            entity.Multipliers = model.Multipliers;
+            entity.Model_ = model.Model_;
+            entity.Dimension = model.Dimension;
+            entity.Size = model.Size;
+            entity.Capacity = model.Capacity;
+            entity.Color = model.Color;
+            entity.SerialNo = model.SerialNo;
+            entity.PropNo = model.PropNo;
+            entity.PlateNo = model.PlateNo;
+            entity.BodyNo = model.BodyNo;
+            entity.MVFileNo = model.MVFileNo;
+            entity.Type = model.Type;
+            entity.Area = model.Area;            
+            entity.Barangay = model.Barangay;
+            entity.DateSale = model.DateSale;
+            entity.DateDonation = model.DateDonation;
+            entity.DateAcquisition = model.DateAcquisition;
+            entity.DateConstruction = model.DateConstruction;
+            entity.AreaSoldDonated = model.AreaSoldDonated;
+            entity.PricePerSqm = model.PricePerSqm;
+            entity.VendorDonor = model.VendorDonor;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-//        public ValueTask<AllField> DeleteAsync(AllField model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-//        {
-//            model.UpdatedBy = user;
-//            model.UpdatedDt = date;
+            _db.AllFields.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+        }
 
-//            var entity = await GetByIdAsync(model.Id);
+        public ValueTask<AllField> DeleteAsync(AllField model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
 
-//            entity.UpdatedBy = user;
-//            entity.UpdatedDt = date;
+            var entity = await GetByIdAsync(model.Id);
 
-//            _db.AllFields.Attach(entity);
-//            _db.Entry(entity).State = EntityState.Modified;
-//            await _db.SaveChangesAsync();
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-//            _db.AllFields.Remove(entity);
-//            _db.Entry(entity).State = EntityState.Deleted;
-//            await _db.SaveChangesAsync();
+            _db.AllFields.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-//            return model;
-//        });
+            _db.AllFields.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
+
+            return model;
+        });
 
 
-//        private string NextPropertyNo(string psNo)
-//        {
-//            string keyName = psNo;
+        private string NextPropertyNo(string psNo)
+        {
+            string keyName = psNo;
 
-//            var data = _db.PsCards.Where(w => w.PsNo == psNo)
-//                .OrderByDescending(o => o.PsNo).FirstOrDefault();
-//            if (data == null)
-//            {
-//                return keyName + "-" + "001";
-//            }
-//            else
-//            {
-//                var sequence = (int.Parse(data.PsNo.Split('-')[1]) + 1).ToString();
-//                return keyName + "-" + sequence.PadLeft(3, '0');
-//            }
-//        } 
+            var data = _db.PsCards.Where(w => w.PsNo == psNo)
+                .OrderByDescending(o => o.PsNo).FirstOrDefault();
+            if (data == null)
+            {
+                return keyName + "-" + "001";
+            }
+            else
+            {
+                var sequence = (int.Parse(data.PsNo.Split('-')[1]) + 1).ToString();
+                return keyName + "-" + sequence.PadLeft(3, '0');
+            }
+        }
 
-//        //public string GetRisDescription(RisItemEntryVM fields)
-//        //{
-//        //    string description = "";
-//        //    if (Enum.TryParse(fields.PsType, out Category category))
-//        //    {
-//        //        if (category == Category.D)
-//        //        {
-//        //            description = GetMedicineDescription(fields.FieldsMedicine);
-//        //        }
-//        //        else if (category == Category.O || category == Category.M)
-//        //        {
-//        //            description = GetOtherDescription(fields.FieldsOther);
-//        //        }
-//        //        else if (category == Category.T)
-//        //        {
-//        //            description = GetVehicleDescription(fields.FieldsVehicle);
-//        //        }
-//        //        //else if (category == Category.W)
-//        //        //{
-//        //        //    description = "Please see attachement.";
-//        //        //}
-//        //    }
-//        //    return description ?? "";
-//        //}
+        public string GetRisDescription(RisItemEntryVM model)
+        {
+            string description = "";
+            var af = model.AllField;
+            if (Enum.TryParse(model.PsType, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    description += af.Area.ToString() + "sqm";
+                }
+                else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
+                    || c == CatMedicals() || c == CatAgriculturals() || c  == CatAnimalSupplies() || c == CatConstructionMaterials() 
+                    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries() 
+                    || c == CatOtherSupplies())
+                {                    
+                    description = (!string.IsNullOrWhiteSpace(af.Model_) ? $"{af.Model_}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Dimension) ? $" {af.Dimension}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Size) ? $" {af.Size}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Weight) ? $" {af.Weight}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Materials) ? $" {af.Materials}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Capacity) ? $" {af.Capacity}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Color) ? $" {af.Color}" : "");
+                }               
+                else if (c == CatDrugs())
+                {
+                    description = (!string.IsNullOrWhiteSpace(af.GenericName) ? $"{af.GenericName}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.DosageStrength) ? $" {af.DosageStrength}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.DosageForm) ? $" {af.DosageForm}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.DosageVolume) ? $" {af.DosageVolume}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Others) ? $" {af.Others}" : "") +
+                                (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");                 
+                }
+                else if (c == CatRepairs())
+                {
+                    description = (!string.IsNullOrWhiteSpace(af.SerialNo) ? $"{af.SerialNo}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.PropNo) ? $" {af.PropNo}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.PlateNo) ? $" {af.PlateNo}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.BodyNo) ? $" {af.BodyNo}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.MVFileNo) ? $" {af.MVFileNo}" : "");                                
+                }
+            }
+            return description ?? "";
+        }
 
-        
+        public string GetRisStockNo(RisItemEntryVM model)
+        {            
+            string stockNo = model.ItemCode.Trim();
+            stockNo += GetStockNo(model.AllField, model.PsType);            
+            return stockNo ?? "";
+        }
 
-//        //public string GetRisStockNo(RisItemEntryVM model)
-//        //{
-//        //    string stockNo = model.ItemCode.Trim();
-//        //    if (Enum.TryParse(model.PsType, out Category category))
-//        //    {
-//        //        if (category == Category.D)
-//        //        {
-//        //            stockNo += GetMedicinePsNo(model.FieldsMedicine);
-//        //        }
-//        //        else if (category == Category.O || category == Category.M)
-//        //        {
-//        //            stockNo += GetOtherPsNo(model.FieldsOther);
-//        //        }
-//        //        else if (category == Category.T)
-//        //        {
-//        //            stockNo += GetVehiclePsNo(model.FieldsVehicle);
-//        //        }
-//        //    }
-//        //    return stockNo ?? "";
-//        //}
-        
-//    }
-//}
+        public string GetCardStockNo(PsCardVM model)
+        {
+            string stockNo = model.ItemCode.Trim();
+            if (model.FromDonation == true)
+            {
+                stockNo = "FD" + stockNo;
+            }
+            stockNo += GetStockNo(model.AllField, model.ItemTypeCode);            
+            return stockNo ?? "";
+        }
+
+
+        public bool IsBrandRequired(Category c)
+        {
+            return (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
+                    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
+                    || c == CatOtherSupplies() || c == CatRepairs()) || c == CatDrugs();
+        }
+
+        public string GetStockNo(AllField af, string itemTypeCode)
+        {
+            string stockNo = "";
+            if (Enum.TryParse(itemTypeCode, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    stockNo += ((af.Area != null) ? $"/{af.Area}sqm" : "");
+                }
+                else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
+                    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
+                    || c == CatOtherSupplies())
+                {
+                    stockNo += (!string.IsNullOrWhiteSpace(af.Brand) ? $"/{af.Brand.Trim()}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Model_) ? $"/{af.Model_}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Dimension) ? $"/{af.Dimension}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Size) ? $"/{af.Size}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Weight) ? $"/{af.Weight}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Materials) ? $"/{af.Materials}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Capacity) ? $"/{af.Capacity}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Color) ? $"/{af.Color}" : "");
+                }
+                else if (c == CatRepairs())
+                {
+                    stockNo += (!string.IsNullOrWhiteSpace(af.SerialNo) ? $"/{af.SerialNo}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.PropNo) ? $"/{af.PropNo}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.PlateNo) ? $"/{af.PlateNo}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.BodyNo) ? $"/{af.BodyNo}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.MVFileNo) ? $"/{af.MVFileNo}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Brand) ? $"/{af.Brand}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Model_) ? $"/{af.Model_}" : "");
+                }
+                else if (c == CatDrugs())
+                {
+                    if (!string.IsNullOrWhiteSpace(af.GenericName))
+                    {
+                        if (af.GenericName.Length >= 3)
+                        {
+                            stockNo += "/" + af.GenericName.Substring(0, 1) + af.GenericName.Substring(2, 1);
+                        }
+                        else
+                        {
+                            stockNo += "/" + af.GenericName.Substring(0, 1) + "X";
+                        }
+                    }
+                    if (!string.IsNullOrWhiteSpace(af.DosageStrength))
+                    {
+                        stockNo += "/" + af.DosageStrength.Replace(" ", "").Trim();
+                    }
+                    if (!string.IsNullOrWhiteSpace(af.DosageForm))
+                    {
+                        stockNo += "/" + af.DosageForm.PadRight(3, 'X').Substring(0, 3);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(af.DosageVolume))
+                    {
+                        stockNo += "/" + af.DosageVolume.Trim() + "'s";
+                    }
+
+                    if (af.Multipliers.HasValue)
+                    {
+                        stockNo += "/" + af.Multipliers.ToString().Trim() + "'s";
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(af.Brand))
+                    {
+                        stockNo += "/" + af.Brand.Replace(" ", "").Trim();
+                    }
+                    else
+                    {
+                        stockNo += "/xx";
+                    }
+                }
+            }
+            return stockNo;
+        }
+
+    }
+}

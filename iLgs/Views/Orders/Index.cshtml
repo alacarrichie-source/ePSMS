@@ -160,16 +160,10 @@
 
 
 <script type="text/javascript">
-    //function reloadTab(idx) {
-    //    var ts = $("#tabStrip").data("kendoTabStrip");
-    //    if (idx == 0) { 
-    //        ts.contentHolder(idx).load("../Orders/_OrderItem?orderId=" + selectedId);        
-    //    } else { 
-    //        ts.contentHolder(idx).load("../Orders/_UnitGroup?orderId=" + selectedItem);
-    //    }        
-    //}
-
-
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    }
+    
     function onSelectTab(e) {
         var ts = this;
         for (var idx = 0; ; ++idx) {
@@ -183,7 +177,7 @@
                     ts.contentHolder(idx).load("../Orders/_OrderItem?orderId=" + selectedId);
                 } else {
                     ts.contentHolder(idx).load("../Orders/_UnitGroup?orderId=" + selectedId);
-                }        
+                }
             }
             else {
                 //all other tabs
@@ -434,7 +428,7 @@
                 orderId: selectedId,
                 orderItemId: recId
             }
-        });        
+        });
         mywindow.open();
         setTimeout(mywindow.center(), 200);
     }
@@ -517,7 +511,8 @@
         //$("#ItemType").val(dataItem.ItemType).trigger("change");
         $("#ItemCode").val(dataItem.ItemCode).trigger("change");
         $("#ItemName").val(dataItem.ItemName).trigger("change");
-        $("#PsUnit").val(dataItem.Unit).trigger("change");
+        //$("#PsUnit").val(dataItem.Unit).trigger("change");
+        $("#Unit").val(dataItem.Unit).trigger("change");
         $("#PsNo").val(dataItem.PsNo).trigger("change");
         $("#PsCode").val(dataItem.Code).trigger("change");
         $("#Description").val(dataItem.Description).trigger("change");

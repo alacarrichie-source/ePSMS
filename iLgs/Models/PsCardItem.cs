@@ -18,6 +18,7 @@ namespace iLgs.Models
         public PsCardItem()
         {
             this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
+            this.IcsParItems = new HashSet<IcsParItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -48,11 +49,13 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
-        public virtual Codextn Codextn1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual PsCard PsCard { get; set; }
         public virtual OrderItem OrderItem { get; set; }
+        public virtual Codextn Codextn { get; set; }
+        public virtual Codextn Codextn1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<IcsParItem> IcsParItems { get; set; }
     }
 }

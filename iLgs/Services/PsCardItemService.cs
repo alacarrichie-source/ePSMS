@@ -61,7 +61,8 @@ namespace iLgs.Services
                     Description = s.Description,
                     DeptDisplay = s.DeptDisplay,
                     LocCode = s.Codextn1.Code,
-                    Location = s.Codextn1.Description
+                    Location = s.Codextn1.Description,
+                    RemBalance = s.QtyBal
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -97,7 +98,8 @@ namespace iLgs.Services
                     Description = s.Description,
                     DeptDisplay = s.DeptDisplay,
                     LocCode = s.Codextn1.Code,
-                    Location = s.Codextn1.Description
+                    Location = s.Codextn1.Description,
+                    RemBalance = s.QtyBal
                 });
             return data;
         });

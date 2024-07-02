@@ -47,7 +47,6 @@ namespace iLgs.Models
         public virtual FieldsLand FieldsLand { get; set; }
         public virtual FieldsMachinery FieldsMachinery { get; set; }
         public virtual FieldsMedical FieldsMedical { get; set; }
-        public virtual FieldsMedicine FieldsMedicine { get; set; }
         public virtual FieldsMilitarySuuply FieldsMilitarySuuply { get; set; }
         public virtual FieldsNonAccountableForm FieldsNonAccountableForm { get; set; }
         public virtual FieldsOfficeSupply FieldsOfficeSupply { get; set; }
@@ -62,5 +61,7 @@ namespace iLgs.Models
         public virtual RISs RISs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
+        public virtual FieldsMedicine FieldsMedicine { get; set; }
+        public virtual AllField AllField { get; set; }
     }
 }

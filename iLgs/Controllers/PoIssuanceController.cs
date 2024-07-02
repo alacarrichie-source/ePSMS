@@ -23,12 +23,14 @@ namespace iLgs.Controllers
         private IPoIssuanceService _poIssuanceService;
         private IPsCardItemService _psCardItemService;
         private IPsCardItemIssuanceService _psCardItemIssuanceService;
+        private IIcsParItemService _icsParItemService;
         
         public PoIssuanceController()
         {
             _poIssuanceService = new PoIssuanceService(_db);
             _psCardItemService = new PsCardItemService(_db);
-            _psCardItemIssuanceService = new PsCardItemIssuanceService(_db);            
+            _psCardItemIssuanceService = new PsCardItemIssuanceService(_db);
+            _icsParItemService = new IcsParItemService(_db);
         }
 
         // GET: PoIssuance
@@ -178,6 +180,7 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
+        #region TRANSFER
         public async Task<ActionResult> _Transfer(Guid? cardItemId)
         {
             ViewData["cardItemId"] = cardItemId;
@@ -186,68 +189,52 @@ namespace iLgs.Controllers
             return PartialView(model);
         }
 
-        //public async Task<ActionResult> _GeneratePAR(Guid airItemId, Guid? orderItemId, string refType)
-        //{
-        //    ViewData["orderItemId"] = orderItemId;
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _TransferSave(PsCardItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }                
 
-        //    var data = await _poIssuanceService.GetOrderItemByAirItemIdAsync(airItemId);
-        //    var model = new RisIssuedVM()
-        //    {
-        //        Id = airItemId,
-        //        OrderItemId = orderItemId,
-        //        Qty = data.Balance,
-        //        RefDate = DateTime.Now,
-        //        RefType = refType
-        //    };
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
 
-        //    return PartialView(model);
-        //}
+                    model = await _poIssuanceService.TransferAsync(model, user, date);                    
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
 
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> GeneratePAR(RisIssuedVM model)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
-        //        Access access = await accessTask;
-        //        if (!access.AllowPost)
-        //        {
-        //            ModelState.AddModelError("Access", "Access Denied!");
-        //        }
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
 
-        //        if (ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
 
-        //            await _poIssuanceService.GeneratePAR(model, user, date);
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        if (e.GetType().Name == "ServiceException")
-        //        {
-        //            ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-        //                 "please contact tech support with this message: " + e.Message);
-        //        }
-        //        else
-        //        {
-        //            ModelState.AddModelError("", e.Message);
-        //        }
-        //    }
-
-        //    var query = from state in ModelState.Values
-        //                from error in state.Errors
-        //                select error.ErrorMessage;
-
-        //    var errorList = query.ToList();
-        //    if (errorList.Count() > 0)
-        //    {
-        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-        //    }
-
-        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        //}
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+        #endregion
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> PostIssuance(Guid psCardItemIssuanceId)
@@ -340,5 +327,254 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
+
+        #region PAR ITEMS
+        public ActionResult _Pars(Guid? cardItemId, decimal? unitCost)
+        {
+            ViewData["CardItemId"] = cardItemId;
+            ViewData["UnitCost"] = unitCost;
+            return PartialView();
+        }
+
+        public ActionResult _ParsRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        {
+            var data = _icsParItemService.GetAllParItems(cardItemId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ParsUpdate([DataSourceRequest] DataSourceRequest request, IcsParItem model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _icsParItemService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ParsDestroy([DataSourceRequest]DataSourceRequest request, IcsParItem model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _icsParItemService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> _GeneratePAR(Guid? psCardItemId, string refType)
+        {
+            ViewData["psCardItemId"] = psCardItemId;
+
+            var psCardItem = await _poIssuanceService.GetByIdAsync(psCardItemId);            
+            var model = new GenerateIcsParVM()
+            {
+                PsCardItemId = psCardItemId,
+                Qty = refType == "P" ? psCardItem.ParBalance : psCardItem.IcsBalance,
+                Date = DateTime.Now,
+                RefType = refType
+            };
+
+            return PartialView(model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> GeneratePAR(GenerateIcsParVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _poIssuanceService.GeneratePAR(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+        #endregion
+
+        #region ICS ITEMS
+        public ActionResult _Ics(Guid? cardItemId, decimal? unitCost)
+        {
+            ViewData["CardItemId"] = cardItemId;
+            ViewData["UnitCost"] = unitCost;
+            return PartialView();
+        }
+
+        public ActionResult _IcsRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        {
+            var data = _icsParItemService.GetAllIcsItems(cardItemId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _IcsUpdate([DataSourceRequest] DataSourceRequest request, IcsParItem model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ics");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _icsParItemService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _IcsDestroy([DataSourceRequest]DataSourceRequest request, IcsParItem model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ics");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _icsParItemService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        
+        #endregion
     }
 }

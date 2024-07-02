@@ -50,7 +50,7 @@ namespace iLgs.Services
                     RequestItemUnitGroupDescriptionId = s.RequestItemUnitGroupDescriptionId,
                     RisItemUnitGroupDescriptionItemId = s.RisItemUnitGroupDescriptionItemId,
                     RequestItemId = s.RequestItemId,
-                    PsNo = s.RisItemUnitGroupDescriptionItem.RisItem.PsNo,
+                    PsNo = s.RisItemUnitGroupDescriptionItem.RisItem.PsNoDisplay,
                     ItemName = s.RisItemUnitGroupDescriptionItem.RisItem.ItemName,
                     Description = s.RisItemUnitGroupDescriptionItem.RisItem.Description,
                     Unit = s.RisItemUnitGroupDescriptionItem.RisItem.Unit,

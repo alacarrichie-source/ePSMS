@@ -8,6 +8,13 @@
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardId)
     @Html.HiddenFor(model => model.OrderItemId)
+    @Html.HiddenFor(model => model.Description)
+    @Html.HiddenFor(model => model.Remarks)
+    @Html.HiddenFor(model => model.AirNo)
+    @Html.HiddenFor(model => model.AirDate)
+    @Html.HiddenFor(model => model.Qty)
+    @Html.HiddenFor(model => model.TransferIn)
+    @Html.HiddenFor(model => model.QtyIss)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -36,7 +43,7 @@
             </div>
         </div>
 
-        <div class="row">
+        @*<div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.AirNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -54,7 +61,7 @@
                     @Html.ValidationMessageFor(m => m.AirDate)
                 </div>
             </div>
-        </div>
+        </div>*@
 
         <div class="row">
             <div class="col-md-12">
@@ -178,37 +185,13 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.Qty, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(m => m.QtyBal, "Balance", htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.Qty).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false)
-                        .Events(e => e.Change("UpdateBalance"))
-                    )
-                    @Html.ValidationMessageFor(m => m.Qty)
+                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyBal).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
+                    @Html.ValidationMessageFor(m => m.QtyBal)
                 </div>
             </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.TransferIn, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.TransferIn).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false)
-                        .Events(e => e.Change("UpdateBalance"))
-                    )
-                    @Html.ValidationMessageFor(m => m.TransferIn)
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.QtyIss, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyIss).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateBalance")).Enable(false))
-                    @Html.ValidationMessageFor(m => m.QtyIss)
-                </div>
-            </div>
-        </div>
+        </div>        
 
         <div class="row">
             <div class="col-md-12">
@@ -224,15 +207,15 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.QtyBal, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(m => m.RemBalance, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyBal).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                    @Html.ValidationMessageFor(m => m.QtyBal)
+                    @(Html.Kendo().NumericTextBoxFor(m => m.RemBalance).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
+                    @Html.ValidationMessageFor(m => m.RemBalance)
                 </div>
             </div>
         </div>        
 
-        <div class="row">
+        @*<div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Remarks, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -271,7 +254,7 @@
                     @Html.ValidationMessageFor(m => m.Description)
                 </div>
             </div>
-        </div>
+        </div>*@
 
         <br />
         <div class="row">

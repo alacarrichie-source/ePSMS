@@ -167,6 +167,10 @@
 
 
 <script type="text/javascript">
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    }
+
     function error_handler(e, status) {
         if ((e.errors)) {
             var message = "Errors:\n";
@@ -577,19 +581,38 @@
 
     }
 
-
     function RefreshDivs(dataItem) {
-        var itemType = dataItem.Type;
+        var fieldsContainer = $('#DIV_ALLFIELDS');
 
-        for (var i = 1; i <= 26; i++) {
-            var divId = "DIV_ITEM_" + String.fromCharCode(64 + i);
-            $("#" + divId).hide();
-        }
+        fieldsContainer.empty(); // Clear existing content
 
-        $("#DIV_ITEM_" + itemType).show();
+        var url = '@Url.Action("LoadFields", "RIS")';
+        var data = $("#form").serialize();
 
-        resizeWindow();
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: data,
+            success: function(data) {
+                fieldsContainer.html(data);
+                resizeWindow();
+            }
+        });
     }
+
+
+    //function RefreshDivs(dataItem) {
+    //    var itemType = dataItem.Type;
+
+    //    for (var i = 1; i <= 26; i++) {
+    //        var divId = "DIV_ITEM_" + String.fromCharCode(64 + i);
+    //        $("#" + divId).hide();
+    //    }
+
+    //    $("#DIV_ITEM_" + itemType).show();
+
+    //    resizeWindow();
+    //}
 
 
     function onDataBoundItemCode(e) {
@@ -1150,6 +1173,7 @@
             success: function (result) {
                 window.kendo.ui.progress($(document.body), false);
                 $("#Description").val(result.Description).trigger("change");
+                //$("#PsNo").val(result.StockNo).trigger("change");
                 disabled.attr('disabled', 'disabled')
             },
             error: function (req, status, errorObj) {

@@ -16,7 +16,7 @@
         {
             command.Edit();
             //command.Destroy();
-            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItem").SendDataKeys(true);
+            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItems").SendDataKeys(true);
         }).Width(100);
     })
     .ToolBar(t =>
@@ -35,7 +35,7 @@
     .NoRecords()
     .DataSource(dataSource => dataSource
         .Ajax()
-        .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridtems")
+        .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItems")
         )
         .Model(model =>
         {

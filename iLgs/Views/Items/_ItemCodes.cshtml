@@ -4,7 +4,9 @@
         {
             col.Bound(c => c.ItemNoIndex).Hidden();
             col.Bound(c => c.ItemNo).Width(50);
-            col.Bound(c => c.Description).Width(150);
+            col.Bound(c => c.Description).Width(150);//.HtmlAttributes(new { style = "text-align:left;" });
+                                                    //.ClientTemplate("#: Description #");
+                 //.ClientTemplate("<pre>#: Description #</pre>");
             col.Bound(c => c.Code).Width(70);
             col.Bound(c => c.ItemSw).Width(70);
             col.Bound(c => c.IsConsumable).Width(70);

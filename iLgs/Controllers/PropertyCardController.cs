@@ -31,7 +31,7 @@ namespace iLgs.Controllers
         public PropertyCardController()
         {
             _codextnService = new CodextnService(_db);
-            _cardService = new PsCardService(_db, _cardCategory);
+            _cardService = new PsCardService(_db);
             _cardItemService = new PsCardItemService(_db);
             _cardItemIssuanceService = new PsCardItemIssuanceService(_db);
         }

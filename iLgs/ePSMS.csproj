@@ -229,6 +229,9 @@
     <Compile Include="Models\AIRItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AllField.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\AllFieldsViewModels.cs" />
     <Compile Include="Models\AspNetRole.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -310,6 +313,13 @@
     <Compile Include="Models\FieldsVehicle.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\IcsPar.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\IcsParItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\IcsParViewModels.cs" />
     <Compile Include="Models\ItemCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -478,6 +488,8 @@
     <Compile Include="Services\AllFieldService.cs" />
     <Compile Include="Services\CardItemExtnService.cs" />
     <Compile Include="Services\DepartmentUserService.cs" />
+    <Compile Include="Services\IcsParItemService.cs" />
+    <Compile Include="Services\IcsParService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionService.cs" />
@@ -3712,6 +3724,18 @@
     <Content Include="Views\PropertyCard\EditorTemplates\_CardItemIssuanceTemplate.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_ItemSwTemplate.cshtml" />
     <Content Include="Views\PoIssuance\_Transfer.cshtml" />
+    <Content Include="Views\PoIssuance\_Pars.cshtml" />
+    <Content Include="Views\PoIssuance\EditorTemplates\_ParsTemplate.cshtml" />
+    <Content Include="Views\PoIssuance\_Ics.cshtml" />
+    <Content Include="Views\PoIssuance\EditorTemplates\_IcsTemplate.cshtml" />
+    <Content Include="Views\StockCard\_FieldDrugs.cshtml" />
+    <Content Include="Views\StockCard\_FieldSerial.cshtml" />
+    <Content Include="Views\StockCard\_FieldBrand.cshtml" />
+    <Content Include="Views\StockCard\_FieldLand.cshtml" />
+    <Content Include="Views\RIS\_FieldLand.cshtml" />
+    <Content Include="Views\RIS\_FieldDrugs.cshtml" />
+    <Content Include="Views\RIS\_FieldBrand.cshtml" />
+    <Content Include="Views\RIS\_FieldSerial.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

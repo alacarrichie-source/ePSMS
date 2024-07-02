@@ -248,6 +248,25 @@ namespace iLgs.Services
 
                 throw exceptions.CreateAndLogServiceException(failedServiceException);
             }
-        }        
+        }
+
+        public List<T> TryCatch(Func<List<T>> returningQueryableFunction)
+        {
+            try
+            {
+                return returningQueryableFunction();
+            }
+            catch (SqlException sqlException)
+            {
+                throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
+            }
+            catch (Exception exception)
+            {
+                var failedServiceException =
+                    new FailedServiceException(exception);
+
+                throw exceptions.CreateAndLogServiceException(failedServiceException);
+            }
+        }
     }
 }

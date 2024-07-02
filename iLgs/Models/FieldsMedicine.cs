@@ -19,6 +19,7 @@ namespace iLgs.Models
         public string DosageStrength { get; set; }
         public string DosageForm { get; set; }
         public string DosageVolume { get; set; }
+        public Nullable<int> Multipliers { get; set; }
         public string Others { get; set; }
         public string Brand { get; set; }
     
