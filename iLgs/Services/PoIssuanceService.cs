@@ -15,8 +15,7 @@ namespace iLgs.Services.Interfaces
     {
         ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId);
         ValueTask<PsCardItemVM> GetByIdAsync(Guid? id);
-        
-        ValueTask<GenerateIcsParVM> GeneratePAR(GenerateIcsParVM model, string user, DateTime date);
+                
         ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
         ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
         ValueTask<PsCardItemVM> TransferAsync(PsCardItemVM model, string user, DateTime date);
@@ -27,8 +26,7 @@ namespace iLgs.Services.Interfaces
         private decimal _parPrice = 50000;
         private readonly AppManEntities _db = new AppManEntities();
         private IUserService _userService;
-        private readonly IExceptionService<RisIssuedVM> _vmExceptionService = new ExceptionService<RisIssuedVM>();
-        private readonly IExceptionService<GenerateIcsParVM> _generateParExceptionService = new ExceptionService<GenerateIcsParVM>();
+        private readonly IExceptionService<RisIssuedVM> _vmExceptionService = new ExceptionService<RisIssuedVM>();        
         private readonly IExceptionService<PsCardItemVM> _psCardItemVMrExceptionService = new ExceptionService<PsCardItemVM>();
 
         public PoIssuanceService(AppManEntities db)
@@ -271,189 +269,7 @@ namespace iLgs.Services.Interfaces
         private string RefTypeDesc(string refType)
         {
             return refType == "P" ? "PAR" : "ICS";
-        }
-
-        public ValueTask<GenerateIcsParVM> GeneratePAR(GenerateIcsParVM model, string user, DateTime date) =>
-        _generateParExceptionService.TryCatchAsync(async () =>
-         {
-
-             var cardItem = await GetByIdAsync(model.PsCardItemId);
-
-             if (cardItem == null)
-             {
-                 throw new RecordNotFoundException((Guid)model.PsCardItemId);
-             }
-
-             if (cardItem.ParBalance == 0)
-             {
-                 throw new InvalidValueException(string.Format("All Items have PARs."));
-             }
-
-             if (model.Qty > cardItem.ParBalance)
-             {
-                 throw new InvalidValueException(string.Format("Cannot generate more than the available balance."));
-             }
-
-             var refType = (await _db.IcsParItems.Include(i => i.IcsPar).AsNoTracking().Where(w => w.PsCardItemId == model.PsCardItemId && w.IcsPar.RefType != model.RefType).FirstOrDefaultAsync())?.IcsPar.RefType;
-             if (!string.IsNullOrWhiteSpace(refType))
-             {
-                 throw new InvalidValueException(string.Format("{0} already exists, cannot add {1} as new reference type.", RefTypeDesc(refType), RefTypeDesc(model.RefType)));
-             }
-
-             Guid? icsParId = null;
-             IcsPar icsPar = null;
-             bool icsSw = true;
-             string acqYear;
-
-             if (cardItem.AirDate != null)
-             {
-                 acqYear = cardItem.AirDate.Value.Year.ToString();
-             }
-             else
-             {
-                 acqYear = cardItem.PoDate.Value.Year.ToString();
-             }
-
-             // generate par per qty 
-             for (var qty = 0; qty < model.Qty; ++qty)
-             {
-                 
-                 if (model.RefType == "P")
-                 {                     
-                     var refNo = await NextRefNoAsync(model.Date, model.RefType);
-                     icsPar = new IcsPar()
-                     {
-                         Id = Guid.NewGuid(),
-                         RefNo = refNo,
-                         RefDate = model.Date,
-                         RefType = model.RefType,
-                         InsertedBy = user,
-                         InsertedDt = date,
-                         UpdatedBy = user,
-                         UpdatedDt = date
-                     };
-                     var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
-                     var propSplit = propNo.Split('/');
-                     var propSeq = propSplit[propSplit.Length - 2];
-                     IcsParItem icsParItem = new IcsParItem()
-                     {
-                         Id = Guid.NewGuid(),
-                         IcsParId = icsPar.Id,
-                         PsCardItemId = model.PsCardItemId,
-                         Qty = 1,
-                         Amount = cardItem.UnitCost,
-                         LocationId = model.LocationId,
-                         PropNo = propNo,
-                         PropYear = acqYear,
-                         PropSeq = propSeq,
-                         InsertedBy = user,
-                         InsertedDt = date,
-                         UpdatedBy = user,
-                         UpdatedDt = date
-                     };
-                     icsPar.IcsParItems.Add(icsParItem);
-                     _db.IcsPars.Add(icsPar);
-                     _db.Entry(icsPar).State = EntityState.Added;
-                     await _db.SaveChangesAsync();
-                 }
-                 else
-                 {                     
-                     if (icsSw == true)
-                     {
-                         //var existingIcs = await _db.IcsParItems.FirstOrDefaultAsync(f => f.PsCardItemId == model.PsCardItemId);
-                         var existingIcs = await _db.IcsParItems.Where(w => w.PsCardItem.PoNo == cardItem.PoNo && w.PsCardItem.PoDate == cardItem.PoDate).FirstOrDefaultAsync();
-                         if (existingIcs == null)
-                         {
-                             //// check other PO for existing ICS
-                             //var psCardList = await _db.PsCardItems.Where(w => w.Id != model.PsCardItemId 
-                             //   && w.PoNo == cardItem.PoNo && w.PoDate == cardItem.PoDate
-                             //   && (w.PoNo != "" || w.PoNo != null)).ToListAsync();
-                             //if (psCardList.Any())
-                             //{
-                                 
-                             //}
-
-                             icsParId = Guid.NewGuid();
-                             var refNo = await NextRefNoAsync(model.Date, model.RefType);
-                             icsPar = new IcsPar()
-                             {
-                                 Id = (Guid)icsParId,
-                                 RefNo = refNo,
-                                 RefDate = model.Date,
-                                 RefType = model.RefType,
-                                 InsertedBy = user,
-                                 InsertedDt = date,
-                                 UpdatedBy = user,
-                                 UpdatedDt = date
-                             };
-                             icsSw = false;
-                             _db.IcsPars.Add(icsPar);
-                             _db.Entry(icsPar).State = EntityState.Added;
-                             await _db.SaveChangesAsync();
-                         }
-                         else
-                         {
-                             icsParId = existingIcs.IcsParId;
-                         }
-                     }
-
-                     var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
-                     var propSplit = propNo.Split('/');
-                     var propSeq = propSplit[propSplit.Length - 2];
-                     IcsParItem icsParItem = new IcsParItem()
-                     {
-                         Id = Guid.NewGuid(),
-                         IcsParId = icsParId,
-                         PsCardItemId = model.PsCardItemId,
-                         Qty = 1,
-                         Amount = cardItem.UnitCost,
-                         LocationId = model.LocationId,
-                         PropNo = propNo,
-                         PropYear = acqYear,
-                         PropSeq = propSeq,
-                         InsertedBy = user,
-                         InsertedDt = date,
-                         UpdatedBy = user,
-                         UpdatedDt = date
-                     };
-
-                     _db.IcsParItems.Add(icsParItem);
-                     _db.Entry(icsParItem).State = EntityState.Added;
-                     await _db.SaveChangesAsync();
-                 }                 
-             }             
-             return model;
-         });
-
-        private string NextPropNo(string acqYear, string stockNo, string locationCode, string refType)
-        {
-            var propNo = _db.Database.SqlQuery<string>("Exec PoIssuance_GetNextSeqNo {0}, {1}, {2}, {3}", acqYear, stockNo, locationCode, refType).ToList();
-            return propNo.LastOrDefault();
-        }
-
-        private async ValueTask<string> NextRefNoAsync(DateTime parDate, string refType)
-        {
-            string yyyy = parDate.Year.ToString().Trim();
-            string mm = parDate.Month.ToString().Trim();
-
-            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
-
-            string keyName = yyyy + "-" + mm;
-            // yyyy-mm-9999
-            // 123456789012
-
-            //var data = await _db.RisIssueds.Where(w => w.RefType == refType && w.RefDate.Value.Year == parDate.Year).OrderByDescending(o => o.RefNo).FirstOrDefaultAsync();
-            var data = await _db.IcsPars.Where(w => w.RefType == refType && w.RefDate.Value.Year == parDate.Year).OrderByDescending(o => o.RefNo).FirstOrDefaultAsync();
-            if (data == null)
-            {
-                return keyName + "-" + "0001";
-            }
-            else
-            {
-                var sequence = (int.Parse(data.RefNo.Split('-')[2]) + 1).ToString();
-                return keyName + "-" + sequence.PadLeft(4, '0');
-            }
-        }
+        }        
 
         public ValueTask<PsCardItemVM> TransferAsync(PsCardItemVM model, string user, DateTime date) =>
         _psCardItemVMrExceptionService.TryCatchAsync(async () =>

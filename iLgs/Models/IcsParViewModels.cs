@@ -133,5 +133,234 @@ namespace iLgs.Models
         public int? Qty { get; set; }
         public DateTime Date { get; set; }
         public string RefType { get; set; }
+
+        public IcsPar IcsPar { get; set; }
+    }
+
+    public class ParVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> PsCardId { get; set; }
+        public Nullable<System.Guid> OrderItemId { get; set; }
+
+        [Display(Name = "PO Date")]
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PoDate { get; set; }
+
+        [Display(Name = "PO No.")]
+        public string PoNo { get; set; }
+
+        [Display(Name = "AIR Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
+
+        public Nullable<System.DateTime> AirDate { get; set; }
+
+        [Display(Name = "AIR No.")]
+        public string AirNo { get; set; }
+
+        [Display(Name = "Issuance Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> AirIssueDate { get; set; }
+
+        //[Required]
+        public Nullable<int> Qty { get; set; }
+
+        [Display(Name = "Qty. Iss.")]
+        public Nullable<int> QtyIss { get; set; }
+        [Display(Name = "Qty. Bal.")]
+        public Nullable<int> QtyBal { get; set; }
+
+        [Display(Name = "Transfer-In")]
+        public Nullable<int> TransferIn { get; set; }
+
+        [Display(Name = "Transfer-Out")]
+        public Nullable<int> TransferOut { get; set; }
+
+        [Display(Name = "Transaction Type")]
+        public string TranType { get; set; }
+
+        public string Description { get; set; }
+
+        [Required]
+        [Display(Name = "Unit of Measurement")]
+        public string Unit { get; set; }
+
+        [Display(Name = "PO Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<decimal> Amount { get; set; }
+        public Nullable<decimal> PriceRate { get; set; }
+        public Nullable<int> Days { get; set; }
+        public string Remarks { get; set; }
+
+        [Display(Name = "Department/Office")]
+        [Required]
+        public Nullable<System.Guid> DeptId { get; set; }
+
+        [Display(Name = "Location")]
+        public Nullable<System.Guid> LocationId { get; set; }
+
+        [Display(Name = "Department Display")]
+        public string DeptDisplay { get; set; }
+
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // Transients
+        public string Article { get; set; }
+
+        [Display(Name = "Department")]
+        public string Department { get; set; }
+
+        [Display(Name = "Location")]
+        public string LocCode { get; set; }
+
+        [Display(Name = "Location")]
+        public string Location { get; set; }
+
+        public int? ParBalance { get; set; } = 0;
+        public int? IcsBalance { get; set; } = 0;
+        public string StockNo { get; set; }
+        [Display(Name = "Remaining Balance")]
+        public Nullable<int> RemBalance { get; set; }
+
+        public OrderItemUnitGroupDescriptionItem OrderItemUnitGroupDescriptionItem { get; set; }
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (!Qty.HasValue && !TransferIn.HasValue)
+            {
+                if (!Qty.HasValue)
+                {
+                    yield return new ValidationResult(
+                        "Either Qty or Transfer-In must be provided.",
+                        new[] { nameof(Qty) }
+                    );
+                }
+                else
+                {
+                    yield return new ValidationResult(
+                        "Either Qty or Transfer-In must be provided.",
+                        new[] { nameof(TransferIn) }
+                    );
+                }
+            }
+        }
+    }
+
+
+    public class IcsVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> PsCardId { get; set; }
+        public Nullable<System.Guid> OrderItemId { get; set; }
+
+        [Display(Name = "PO Date")]
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PoDate { get; set; }
+
+        [Display(Name = "PO No.")]
+        public string PoNo { get; set; }
+
+        [Display(Name = "AIR Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
+
+        public Nullable<System.DateTime> AirDate { get; set; }
+
+        [Display(Name = "AIR No.")]
+        public string AirNo { get; set; }
+
+        [Display(Name = "Issuance Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> AirIssueDate { get; set; }
+
+        //[Required]
+        public Nullable<int> Qty { get; set; }
+
+        [Display(Name = "Qty. Iss.")]
+        public Nullable<int> QtyIss { get; set; }
+        [Display(Name = "Qty. Bal.")]
+        public Nullable<int> QtyBal { get; set; }
+
+        [Display(Name = "Transfer-In")]
+        public Nullable<int> TransferIn { get; set; }
+
+        [Display(Name = "Transfer-Out")]
+        public Nullable<int> TransferOut { get; set; }
+
+        [Display(Name = "Transaction Type")]
+        public string TranType { get; set; }
+
+        public string Description { get; set; }
+
+        [Required]
+        [Display(Name = "Unit of Measurement")]
+        public string Unit { get; set; }
+
+        [Display(Name = "PO Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<decimal> Amount { get; set; }
+        public Nullable<decimal> PriceRate { get; set; }
+        public Nullable<int> Days { get; set; }
+        public string Remarks { get; set; }
+
+        [Display(Name = "Department/Office")]
+        [Required]
+        public Nullable<System.Guid> DeptId { get; set; }
+
+        [Display(Name = "Location")]
+        public Nullable<System.Guid> LocationId { get; set; }
+
+        [Display(Name = "Department Display")]
+        public string DeptDisplay { get; set; }
+
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        // Transients
+        public string Article { get; set; }
+
+        [Display(Name = "Department")]
+        public string Department { get; set; }
+
+        [Display(Name = "Location")]
+        public string LocCode { get; set; }
+
+        [Display(Name = "Location")]
+        public string Location { get; set; }
+
+        public int? ParBalance { get; set; } = 0;
+        public int? IcsBalance { get; set; } = 0;
+        public string StockNo { get; set; }
+        [Display(Name = "Remaining Balance")]
+        public Nullable<int> RemBalance { get; set; }
+
+        public OrderItemUnitGroupDescriptionItem OrderItemUnitGroupDescriptionItem { get; set; }
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (!Qty.HasValue && !TransferIn.HasValue)
+            {
+                if (!Qty.HasValue)
+                {
+                    yield return new ValidationResult(
+                        "Either Qty or Transfer-In must be provided.",
+                        new[] { nameof(Qty) }
+                    );
+                }
+                else
+                {
+                    yield return new ValidationResult(
+                        "Either Qty or Transfer-In must be provided.",
+                        new[] { nameof(TransferIn) }
+                    );
+                }
+            }
+        }
     }
 }

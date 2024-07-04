@@ -12,23 +12,17 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PsCardItemIssuance
+    public partial class PsCardItemUnitGroupDescriptionItem
     {
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
-        public Nullable<System.Guid> DeptId { get; set; }
-        public string IssuedTo { get; set; }
-        public Nullable<System.DateTime> IssuedDate { get; set; }
-        public Nullable<int> Qty { get; set; }
-        public Nullable<decimal> Amount { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        public string PostedBy { get; set; }
-        public Nullable<System.DateTime> PostedDt { get; set; }
     
-        public virtual Codextn Codextn { get; set; }
         public virtual PsCardItem PsCardItem { get; set; }
+        public virtual PsCardItemUnitGroupDescription PsCardItemUnitGroupDescription { get; set; }
     }
 }

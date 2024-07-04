@@ -1,15 +1,14 @@
 ﻿@{
-    ViewBag.Title = "PO Issuance";
+    ViewBag.Title = "Inventory Custodian Slip";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-@(Html.Kendo().Grid<iLgs.Models.PsCardItemVM>()
+@(Html.Kendo().Grid<iLgs.Models.IcsVM>()
     .Name("grid")
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(columns =>
     {
-        columns.Bound(f => f.Article).Width(70).Title("Articles");
-        columns.Bound(f => f.Description).Width(70).Title("Item<br>Description");
+        columns.Bound(f => f.Department).Width(70);
         columns.Group(group => group.Title("Reference")
             .Columns(info =>
             {
@@ -19,69 +18,34 @@
                 info.Bound(f => f.AirDate).Width(50);
             }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
         );
-        columns.Bound(f => f.UnitCost).Width(50).Title("PO<br>Unit Cost")
-            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-            .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        columns.Bound(f => f.Unit).Width(50).Title("Unit<br>of<br>Measurement");
-        columns.Group(group =>
-        {
-            group.Title("Receipt Quantity").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-            .Columns(col =>
-            {
-                col.Group(g =>
-                {
-                    g.Title("Originating Department").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-                    .Columns(info =>
-                    {
-                        info.Bound(f => f.Department).Width(70).Title("PO Owner");
-                        info.Bound(f => f.Qty)
-                          .Width(50).Title("In")
-                          .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                          .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                          .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                    });
-                });
-                col.Group(g =>
-                {
-                    g.Title("Intermediary").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-                    .Columns(info =>
-                    {
-                        info.Bound(f => f.LocCode).Width(50).Title("Code");
-                        info.Bound(f => f.Location).Width(50).Title("Location");
-                        info.Bound(f => f.TransferIn)
-                            .Width(50).Title("Transfer<br>In")
-                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                            .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                    });
-                });
-            });
-        });
-        columns.Group(group => group.Title("Released Quantity")
+        columns.Bound(f => f.Qty).Width(50).Title("Quantity");
+        columns.Bound(f => f.Unit).Width(50).Title("Unit of<br>Measurement");
+        columns.Group(group => group.Title("Amount")
             .Columns(info =>
             {
-                info.Bound(f => f.TransferOut)
-                    .Width(50).Title("Transfer<br>Out")
+                info.Bound(f => f.PriceRate)
+                    .Width(50).Title("%")
                     .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    //.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                info.Bound(f => f.QtyIss)
-                    .Width(50).Title("Issued")
-                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                info.Bound(f => f.UnitCost)
+                    .Width(50).Title("PO Unit<br>Cost")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                info.Bound(f => f.Amount)
+                    .Width(50).Title("Total<br>Cost")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
             }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
         );
-        columns.Bound(f => f.QtyBal).Width(50).Title("Balance<br>Quantity")
-            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-            .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(f => f.Article).Width(70).Title("Articles");
+        columns.Bound(f => f.Description).Width(70).Title("Item<br>Description");
     })
     .ToolBar(t =>
     {
-        t.Custom().Text("Transfer").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Generate PARs").IconClass("k-icon k-i-add").Name("btnAddPars").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Generate ICS").IconClass("k-icon k-i-add").Name("btnAddIcs").HtmlAttributes(new { @class = "k-button", href = "" });
+        //t.Custom().Text("Transfer").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
     .Search(s =>
@@ -120,15 +84,14 @@
         .Aggregates(a =>
         {
             a.Add(p => p.Qty).Sum();
-            a.Add(p => p.QtyIss).Sum();
-            a.Add(p => p.TransferIn).Sum();
-            a.Add(p => p.TransferOut).Sum();
-            a.Add(p => p.QtyBal).Sum();
+            a.Add(p => p.UnitCost).Sum();
+            a.Add(p => p.Amount).Sum();
         })
-        .Sort(s => {
-            s.Add(a => a.PoNo);            
+        .Sort(s =>
+        {
+            s.Add(a => a.PoNo);
         })
-        .Read(read => read.Action("IssuanceRead", "PoIssuance"))
+        .Read(read => read.Action("Read", "Ics"))
     )
     .Events(events => events
         .Change("onChangeGrid")
@@ -152,13 +115,13 @@
             .SelectedIndex(0)
             .Items(items =>
             {
-                items.Add().Text("Issued Items")
+                items.Add().Text("ICS")
                     .Selected(true)
-                    .LoadContentFrom("_Issuance", "PoIssuance", new { cardItemId = "#=Id#", unitCost = "#=UnitCost#"});
-                //items.Add().Text("PARs")
-                //    .LoadContentFrom("_Pars", "PoIssuance", new { cardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
+                    .LoadContentFrom("_Ics", "Ics", new { cardItemId = "#=Id#", unitCost = "#=UnitCost#" });
+                items.Add().Text("Issued Items")
+                    .LoadContentFrom("_Issuance", "Ics", new { cardItemId = "#=Id#" });
                 //items.Add().Text("ICS")
-                //    .LoadContentFrom("_Ics", "PoIssuance", new { cardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
+                //    .LoadContentFrom("_Ics", "PoIssuance", new { CardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
             }).ToClientTemplate())
 </script>
 
@@ -201,26 +164,26 @@
         overflow: hidden; /* Hide any overflow */
     }
 
-    /*#grid .k-grid-content {
+    #grid .k-grid-content {
         overflow-y: auto;
-        height: calc(100vh - 200px)!important;
-    }*/
+        height: calc(100vh - 245px)!important;
+    }
 </style>
 
 
 <script type="text/x-kendo-template" id="validationMessageTemplate">
     # if (messages.length) { #
     @*<li>
-        #=field#
-        <ul>
-            # for (var i = 0; i < messages.length; ++i) { #
-            <li>#= messages[i] #</li>
-            # } #
-        </ul>
-    </li>*@
-        # for (var i = 0; i < messages.length; ++i) { #
-        <li>#= messages[i] #</li>
-        # } #
+            #=field#
+            <ul>
+                # for (var i = 0; i < messages.length; ++i) { #
+                <li>#= messages[i] #</li>
+                # } #
+            </ul>
+        </li>*@
+    # for (var i = 0; i < messages.length; ++i) { #
+    <li>#= messages[i] #</li>
+    # } #
     # } #
 </script>
 
@@ -824,7 +787,7 @@
     function onGridParItemClickAdd(e) {
         e.preventDefault();
         var cardItemId = $(e.sender.element).data("carditemid");
-        GeneratePar("P", cardItemId);
+        GeneratePar("I", cardItemId);
     }
 
     function GeneratePar(refType, cardItemId) {
@@ -852,22 +815,22 @@
                             var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
                             grid.expandRow(row);
 
-                            // Find the detail row corresponding to the current data item
-                            var detailRow = row.next(".k-detail-row");
+                            //// Find the detail row corresponding to the current data item
+                            //var detailRow = row.next(".k-detail-row");
 
-                            if (detailRow) {
-                                var tabStrip = $(detailRow).find(".k-tabstrip").data("kendoTabStrip");
-                                if (tabStrip) {
-                                    // Activate the tab based on refType (adjust as per your logic)
-                                    if (refType == "P") {
-                                        tabStrip.select(1); // Select 2nd tab (index 1)
-                                    } else {
-                                        tabStrip.select(2); // Select 3rd tab (index 2)
-                                    }
-                                }
-                            }
+                            //if (detailRow) {
+                            //    var tabStrip = $(detailRow).find(".k-tabstrip").data("kendoTabStrip");
+                            //    if (tabStrip) {
+                            //        // Activate the tab based on refType (adjust as per your logic)
+                            //        if (refType == "P") {
+                            //            tabStrip.select(1); // Select 2nd tab (index 1)
+                            //        } else {
+                            //            tabStrip.select(2); // Select 3rd tab (index 2)
+                            //        }
+                            //    }
+                            //}
                         }
-                    });                    
+                    });
                 },
                 deactivate: function () {
                     this.destroy();
@@ -878,7 +841,7 @@
             width: width
         });
         mywindow.refresh({
-            url: '@Url.Action("_GeneratePAR", "PoIssuance")',
+            url: '@Url.Action("_GenerateIcs", "Ics")',
             data: {
                 psCardItemId: cardItemId,
                 refType: refType
@@ -1018,8 +981,8 @@
         e.preventDefault();
         var cardItemId = $(e.sender.element).data("carditemid");
         GeneratePar("I", cardItemId);
-    }    
-    
+    }
+
     // END GRID ICS ITEMS
 </script>
 

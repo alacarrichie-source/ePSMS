@@ -169,6 +169,7 @@ namespace iLgs.Models
         [Display(Name = "PO Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> Amount { get; set; }
+        public Nullable<decimal> PriceRate { get; set; }
         public Nullable<int> Days { get; set; }
         public string Remarks { get; set; }
 
@@ -203,9 +204,7 @@ namespace iLgs.Models
         public int? IcsBalance { get; set; } = 0;
         public string StockNo { get; set; }
         [Display(Name = "Remaining Balance")]
-        public Nullable<int> RemBalance { get; set; }
-
-        public OrderItemUnitGroupDescriptionItem OrderItemUnitGroupDescriptionItem { get; set; }
+        public Nullable<int> RemBalance { get; set; }        
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

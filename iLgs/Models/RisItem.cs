@@ -39,29 +39,12 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual FieldsAccountableForm FieldsAccountableForm { get; set; }
-        public virtual FieldsAgricultural FieldsAgricultural { get; set; }
-        public virtual FieldsAnimal FieldsAnimal { get; set; }
-        public virtual FieldsConstruction FieldsConstruction { get; set; }
-        public virtual FieldsFurniture FieldsFurniture { get; set; }
-        public virtual FieldsLand FieldsLand { get; set; }
-        public virtual FieldsMachinery FieldsMachinery { get; set; }
-        public virtual FieldsMedical FieldsMedical { get; set; }
-        public virtual FieldsMilitarySuuply FieldsMilitarySuuply { get; set; }
-        public virtual FieldsNonAccountableForm FieldsNonAccountableForm { get; set; }
-        public virtual FieldsOfficeSupply FieldsOfficeSupply { get; set; }
-        public virtual FieldsOther FieldsOther { get; set; }
-        public virtual FieldsOtherSupplyMaterial FieldsOtherSupplyMaterial { get; set; }
-        public virtual FieldsRepair FieldsRepair { get; set; }
-        public virtual FieldsTransportation FieldsTransportation { get; set; }
-        public virtual FieldsVehicle FieldsVehicle { get; set; }
         public virtual ItemCode ItemCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RequestItem> RequestItems { get; set; }
         public virtual RISs RISs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
-        public virtual FieldsMedicine FieldsMedicine { get; set; }
         public virtual AllField AllField { get; set; }
     }
 }

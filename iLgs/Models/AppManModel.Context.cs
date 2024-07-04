@@ -76,33 +76,19 @@ namespace iLgs.Models
         public virtual DbSet<AIRItem> AIRItems { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
-        public virtual DbSet<PsCardItem> PsCardItems { get; set; }
         public virtual DbSet<RSMI> RSMIs { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<ItemCode> ItemCodes { get; set; }
-        public virtual DbSet<FieldsAgricultural> FieldsAgriculturals { get; set; }
-        public virtual DbSet<FieldsAnimal> FieldsAnimals { get; set; }
-        public virtual DbSet<FieldsFurniture> FieldsFurnitures { get; set; }
-        public virtual DbSet<FieldsLand> FieldsLands { get; set; }
-        public virtual DbSet<FieldsMachinery> FieldsMachineries { get; set; }
-        public virtual DbSet<FieldsMedical> FieldsMedicals { get; set; }
-        public virtual DbSet<FieldsMilitarySuuply> FieldsMilitarySuuplies { get; set; }
-        public virtual DbSet<FieldsNonAccountableForm> FieldsNonAccountableForms { get; set; }
-        public virtual DbSet<FieldsOfficeSupply> FieldsOfficeSupplies { get; set; }
-        public virtual DbSet<FieldsOther> FieldsOthers { get; set; }
-        public virtual DbSet<FieldsOtherSupplyMaterial> FieldsOtherSupplyMaterials { get; set; }
-        public virtual DbSet<FieldsRepair> FieldsRepairs { get; set; }
-        public virtual DbSet<FieldsTransportation> FieldsTransportations { get; set; }
-        public virtual DbSet<FieldsVehicle> FieldsVehicles { get; set; }
-        public virtual DbSet<FieldsAccountableForm> FieldsAccountableForms { get; set; }
-        public virtual DbSet<FieldsConstruction> FieldsConstructions { get; set; }
         public virtual DbSet<PsCard> PsCards { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
         public virtual DbSet<IcsPar> IcsPars { get; set; }
-        public virtual DbSet<FieldsMedicine> FieldsMedicines { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<IcsParItem> IcsParItems { get; set; }
         public virtual DbSet<AllField> AllFields { get; set; }
+        public virtual DbSet<PsCardItem> PsCardItems { get; set; }
+        public virtual DbSet<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
+        public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
+        public virtual DbSet<PsCardItemUnitGroup> PsCardItemUnitGroups { get; set; }
     }
 }

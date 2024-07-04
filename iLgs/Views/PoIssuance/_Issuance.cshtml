@@ -11,7 +11,7 @@
         col.Bound(c => c.Amount).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });        
-        //col.Bound(c => c.PostedBy).Width(50);
+        //col.Bound(c => c.PostedBy).Width(50);        
         col.Command(command =>
         {
             command.Edit();
@@ -23,7 +23,9 @@
     {
         t.Template(@<text>
         @(Html.Kendo().Button().Name("btnAddItem_" + @ViewData["CardItemId"]).Content("Add Issuance").Icon("k-icon k-i-add")
-            .HtmlAttributes(new { data_CardItemId = @ViewData["CardItemId"] }).Events(events => events.Click("onGridItemClickAdd")))
+            .HtmlAttributes(new { data_CardItemId = @ViewData["CardItemId"] })
+            .Events(events => events.Click("onGridItemClickAdd"))            
+        )
         @*@(Html.Kendo().Button().Name("btnPost_" + @ViewData["CardItemId"]).Content("Post").Icon("k-icon k-i-lock")
             .HtmlAttributes(new {data_CardItemId = @ViewData["CardItemId"] }).Events(events => events.Click("onGridItemClickPost")))
         @(Html.Kendo().Button().Name("btnUnpost_" + @ViewData["CardItemId"]).Content("Unpost").Icon("k-icon k-i-unlock")

@@ -21,7 +21,7 @@ body {
     padding-top: 50px !important; /*beccause of sidebar*/
     width: 100% !important;
     /*font-size: x-small;*/
-    font-size: small !important;
+    /*font-size: small !important;*/
 }
 
 /* Override the default bootstrap behavior where horizontal description lists 

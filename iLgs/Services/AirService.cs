@@ -135,10 +135,8 @@ namespace iLgs.Services
 
             db.AIRs.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
-            //await db.SaveChangesAsync();
 
-            //await UpdatePsItem(entity, user, date, true);
-
+            List<Guid> psCardIdList = new List<Guid>(); 
             var orderItemGroups = await db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}", entity.OrderId).ToListAsync();
             // create stock for each group
             foreach (var oig in orderItemGroups)
@@ -155,11 +153,16 @@ namespace iLgs.Services
 
                 foreach (var orderItem in orderItemList)
                 {
-                    var psCard = await db.PsCards.Include(i => i.PsCardItems).AsNoTracking()
+                    var psCard = await db.PsCards.Include(i => i.PsCardItems)
+                        .Include(i => i.AllField)
                         .Where(w => w.PsNo == oig.StockNo && w.Fund == oig.Fund
                             && w.FromDonation != true
                         //&& w.Unit == oig.Unit
                         ).FirstOrDefaultAsync();
+
+                    var office = orderItem.RequestItem.RisItem.RISs.Office;
+                    var deptId = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description.Trim() == office).FirstOrDefault()?.Id;
+
                     if (psCard == null)
                     {
                         var psCardId = Guid.NewGuid();
@@ -181,267 +184,54 @@ namespace iLgs.Services
                             UpdatedDt = date
                         };
 
-                        FieldsAccountableForm fieldsAccountableForm = null;
-                        FieldsAgricultural fieldsAgricultural = null;
-                        FieldsAnimal fieldsAnimal = null;
-                        FieldsFurniture fieldsFurniture = null;
-                        FieldsLand fieldsLand = null;
-                        FieldsMachinery fieldsMachinery = null;
-                        FieldsMedical fieldsMedical = null;
-                        FieldsMedicine fieldsMedicine = null;
-                        FieldsMilitarySuuply fieldsMilitarySuuply = null;
-                        FieldsNonAccountableForm fieldsNonAccountableForm = null;
-                        FieldsOfficeSupply fieldsOfficeSupply = null;
-                        FieldsOther fieldsOther = null;
-                        FieldsOtherSupplyMaterial fieldsOtherSupplyMaterial = null;
-                        FieldsRepair fieldsRepair = null;
-                        FieldsTransportation fieldsTransportation = null;
-                        FieldsVehicle fieldsVehicle = null;
-                        FieldsConstruction fieldsConstruction = null;
-
-
-                        if (Enum.TryParse(oig.ItemTypeCode, out Category category))
+                        AllField allField = null;
+                        AllField risAllField = await db.AllFields.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                        if (risAllField != null)
                         {
-                            if (category == Category.A)
+                            allField = new AllField()
                             {
-                                var risFieldsAccountableForm = await db.FieldsAccountableForms.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsAccountableForm != null)
-                                {
-                                    fieldsAccountableForm = new FieldsAccountableForm()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsAccountableForm.Brand,
-                                        Model_ = risFieldsAccountableForm.Model_
-                                    };
-                                    psCard.FieldsAccountableForm = fieldsAccountableForm;
-                                }
-                            }
-                            else if (category == Category.C)
-                            {
-                                var risFieldsConstruction = await db.FieldsConstructions.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsConstruction != null)
-                                {
-                                    fieldsConstruction = new FieldsConstruction()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsConstruction.Brand,
-                                        Model_ = risFieldsConstruction.Model_
-                                    };
-                                    psCard.FieldsConstruction = fieldsConstruction;
-                                }
-                            }
-                            else if (category == Category.D)
-                            {
-                                var risFieldsMedicine = await db.FieldsMedicines.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsMedicine != null)
-                                {
-                                    fieldsMedicine = new FieldsMedicine()
-                                    {
-                                        Id = psCardId,
-                                        GenericName = risFieldsMedicine.GenericName,
-                                        DosageForm = risFieldsMedicine.DosageForm,
-                                        DosageStrength = risFieldsMedicine.DosageStrength,
-                                        DosageVolume = risFieldsMedicine.DosageVolume,
-                                        Brand = orderItem.Brand
-                                    };
+                                Id = psCardId,
+                                AcqMode = risAllField.AcqMode,
+                                InvDist = risAllField.InvDist,
+                                GenericName = risAllField.GenericName,
+                                DosageStrength = risAllField.DosageStrength,
+                                DosageForm = risAllField.DosageForm,
+                                DosageVolume = risAllField.DosageVolume,
+                                Others = risAllField.Others,
+                                Brand = risAllField.Brand,
+                                Multipliers = risAllField.Multipliers,
+                                Model_ = risAllField.Model_,
+                                Area = risAllField.Area,
+                                Barangay = risAllField.Barangay,
+                                DateSale = risAllField.DateSale,
+                                DateDonation = risAllField.DateDonation,
+                                DateAcquisition = risAllField.DateAcquisition,
+                                DateConstruction = risAllField.DateConstruction,
+                                AreaSoldDonated = risAllField.AreaSoldDonated,
+                                PricePerSqm = risAllField.PricePerSqm,
+                                AcqCost = risAllField.AcqCost,
+                                VendorDonor = risAllField.VendorDonor,
+                                Type = risAllField.Type,
+                                Dimension = risAllField.Dimension,
+                                Size = risAllField.Size,
+                                Weight = risAllField.Weight,
+                                Materials = risAllField.Materials,
+                                Capacity = risAllField.Capacity,
+                                Color = risAllField.Color,
+                                SerialNo = risAllField.SerialNo,
+                                PropNo = risAllField.PropNo,
+                                PlateNo = risAllField.PlateNo,
+                                BodyNo = risAllField.BodyNo,
+                                MVFileNo = risAllField.MVFileNo,
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date
+                            };
 
-                                    psCard.FieldsMedicine = fieldsMedicine;
-                                }
-                            }
-                            else if (category == Category.E)
-                            {
-                                var risFieldsMachinery = await db.FieldsMachineries.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsMachinery != null)
-                                {
-                                    fieldsMachinery = new FieldsMachinery()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsMachinery.Brand,
-                                        Model_ = risFieldsMachinery.Model_
-                                    };
-                                    psCard.FieldsMachinery = fieldsMachinery;
-                                }
-                            }
-                            else if (category == Category.G)
-                            {
-                                var risFieldsAgricultural = await db.FieldsAgriculturals.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsAgricultural != null)
-                                {
-                                    fieldsAgricultural = new FieldsAgricultural()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsAgricultural.Brand,
-                                        Model_ = risFieldsAgricultural.Model_
-                                    };
-                                    psCard.FieldsAgricultural = fieldsAgricultural;
-                                }
-                            }
-                            else if (category == Category.L)
-                            {
-                                var risFieldsLand = await db.FieldsLands.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsLand != null)
-                                {
-                                    fieldsLand = new FieldsLand()
-                                    {
-                                        Id = psCardId,
-                                        Area = risFieldsLand.Area
-                                    };
-                                    psCard.FieldsLand = fieldsLand;
-                                }
-                            }
-                            else if (category == Category.M)
-                            {
-                                var risFieldsMedical = await db.FieldsMedicals.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsMedical != null)
-                                {
-                                    fieldsMedical = new FieldsMedical()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsMedical.Brand,
-                                        Model_ = risFieldsMedical.Model_
-                                    };
-                                    psCard.FieldsMedical = fieldsMedical;
-                                }
-                            }
-                            else if (category == Category.N)
-                            {
-                                var risFieldsNonAccountableForm = await db.FieldsNonAccountableForms.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsNonAccountableForm != null)
-                                {
-                                    fieldsNonAccountableForm = new FieldsNonAccountableForm()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsNonAccountableForm.Brand,
-                                        Model_ = risFieldsNonAccountableForm.Model_
-                                    };
-                                    psCard.FieldsNonAccountableForm = fieldsNonAccountableForm;
-                                }
-                            }
-                            else if (category == Category.O)
-                            {
-                                var risFieldsOfficeSupply = await db.FieldsOfficeSupplies.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsOfficeSupply != null)
-                                {
-                                    fieldsOfficeSupply = new FieldsOfficeSupply()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsOfficeSupply.Brand,
-                                        Model_ = risFieldsOfficeSupply.Model_
-                                    };
-                                    psCard.FieldsOfficeSupply = fieldsOfficeSupply;
-                                }
-                            }
-                            else if (category == Category.P)
-                            {
-                                var risFieldsMilitarySuuply = await db.FieldsMilitarySuuplies.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsMilitarySuuply != null)
-                                {
-                                    fieldsMilitarySuuply = new FieldsMilitarySuuply()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsMilitarySuuply.Brand,
-                                        Model_ = risFieldsMilitarySuuply.Model_
-                                    };
-                                    psCard.FieldsMilitarySuuply = fieldsMilitarySuuply;
-                                }
-                            }
-                            else if (category == Category.R)
-                            {
-                                var risFieldsRepair = await db.FieldsRepairs.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsRepair != null)
-                                {
-                                    fieldsRepair = new FieldsRepair()
-                                    {
-                                        Id = psCardId,
-                                        SerialNo = risFieldsRepair.SerialNo,
-                                        PropertyNo = risFieldsRepair.PropertyNo,
-                                        PlateNo = risFieldsRepair.PlateNo,
-                                        BodyNo = risFieldsRepair.BodyNo,
-                                        MVFileNo = risFieldsRepair.MVFileNo,
-                                        Brand = risFieldsRepair.Brand,
-                                        Model_ = risFieldsRepair.Model_
-                                    };
-                                    psCard.FieldsRepair = fieldsRepair;
-                                }
-                            }
-                            else if (category == Category.T)
-                            {
-                                var risFieldsTransportation = await db.FieldsTransportations.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsTransportation != null)
-                                {
-                                    fieldsTransportation = new FieldsTransportation()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsTransportation.Brand,
-                                        Model_ = risFieldsTransportation.Model_
-                                    };
-                                    psCard.FieldsTransportation = fieldsTransportation;
-                                }
-                            }
-                            else if (category == Category.U)
-                            {
-                                var risFieldsFurniture = await db.FieldsFurnitures.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsFurniture != null)
-                                {
-                                    fieldsFurniture = new FieldsFurniture()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsFurniture.Brand,
-                                        Model_ = risFieldsFurniture.Model_,
-                                        Dimension = risFieldsFurniture.Dimension,
-                                        Size = risFieldsFurniture.Brand,
-                                        Weight = risFieldsFurniture.Weight,
-                                        Capacity = risFieldsFurniture.Capacity,
-                                        Color = risFieldsFurniture.Color
-                                    };
-                                    psCard.FieldsFurniture = fieldsFurniture;
-                                }
-                            }
-                            else if (category == Category.V)
-                            {
-                                var risFieldsAnimal = await db.FieldsAnimals.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsAnimal != null)
-                                {
-                                    fieldsAnimal = new FieldsAnimal()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsAnimal.Brand,
-                                        Model_ = risFieldsAnimal.Model_
-                                    };
-                                    psCard.FieldsAnimal = fieldsAnimal;
-                                }
-                            }
-                            else if (category == Category.X)
-                            {
-                                var risFieldsOtherSupplyMaterial = await db.FieldsOtherSupplyMaterials.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsOtherSupplyMaterial != null)
-                                {
-                                    fieldsOtherSupplyMaterial = new FieldsOtherSupplyMaterial()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsOtherSupplyMaterial.Brand,
-                                        Model_ = risFieldsOtherSupplyMaterial.Model_
-                                    };
-                                    psCard.FieldsOtherSupplyMaterial = fieldsOtherSupplyMaterial;
-                                }
-                            }
-                            else if (category == Category.Z)
-                            {
-                                var risFieldsOther = await db.FieldsOthers.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
-                                if (risFieldsOther != null)
-                                {
-                                    fieldsOther = new FieldsOther()
-                                    {
-                                        Id = psCardId,
-                                        Brand = risFieldsOther.Brand,
-                                        Model_ = risFieldsOther.Model_
-                                    };
-                                    psCard.FieldsOther = fieldsOther;
-                                }
-                            }
+                            psCard.AllField = allField;
                         }
-                        var office = orderItem.RequestItem.RisItem.RISs.Office;
-                        var deptId = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description.Trim() == office).FirstOrDefault()?.Id;
+                        
 
                         var psCardItem = await db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
                         if (psCardItem == null)
@@ -462,6 +252,7 @@ namespace iLgs.Services
                                 Unit = orderItem.RequestItem.RisItem.Unit,
                                 UnitCost = orderItem.UnitCost,
                                 Amount = orderItem.Amount,
+                                PriceRate = orderItem.PriceRate,
                                 TranType = "I",
                                 Remarks = oig.Remarks,
                                 InsertedBy = user,
@@ -471,16 +262,160 @@ namespace iLgs.Services
                                 Description = oig.Description
                             };
                             psCard.PsCardItems.Add(psCardItem);
-
                         }
-
                         db.PsCards.Add(psCard);
-                        //await db.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        var psCardItem = await db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
+                        if (psCardItem == null)
+                        {
+                            psCardItem = new PsCardItem()
+                            {
+                                Id = Guid.NewGuid(),
+                                PsCardId = psCard.Id,
+                                OrderItemId = orderItem.Id,
+                                PoDate = orderItem.Order.PoDate,
+                                PoNo = orderItem.Order.PoNo,
+                                AirNo = entity.AIRNo,
+                                AirDate = entity.AIRDate,
+                                DeptId = deptId,
+                                Qty = (int)orderItem.Qty,
+                                QtyIss = 0,
+                                QtyBal = (int)orderItem.Qty,
+                                Unit = orderItem.RequestItem.RisItem.Unit,
+                                UnitCost = orderItem.UnitCost,
+                                Amount = orderItem.Amount,
+                                PriceRate = orderItem.PriceRate,
+                                TranType = "I",
+                                Remarks = oig.Remarks,
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date,
+                                Description = oig.Description
+                            };
+                            db.PsCardItems.Add(psCardItem);                            
+                        }
+                    }
+                    psCardIdList.Add(psCard.Id);
+                }
+            }            
+
+            await db.SaveChangesAsync();
+            
+            foreach (var psCardId in psCardIdList)
+            {
+                var psCardItemList = db.PsCardItems.Where(w => w.PsCardId == psCardId).ToList();
+                foreach (var psCardItem in psCardItemList)
+                {
+                    // search unit group if any
+                    var orderItemUnitGroupDescriptionItem = await db.OrderItemUnitGroupDescriptionItems
+                        .Include(i => i.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup)
+                        .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
+                        .Where(w => w.OrderItemId == psCardItem.OrderItemId).FirstOrDefaultAsync();
+                    if (orderItemUnitGroupDescriptionItem != null)
+                    {
+                        // search in psCard unit group
+                        if (!await db.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id).AnyAsync())
+                        {
+                            var psCardItemUnitGroup = await db.PsCardItemUnitGroups.Include(i => i.PsCardItemUnitGroupDescriptions).Where(w => w.PoNo == psCardItem.PoNo).FirstOrDefaultAsync();
+                            if (psCardItemUnitGroup == null)
+                            {
+                                psCardItemUnitGroup = new PsCardItemUnitGroup()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    PoNo = psCardItem.PoNo,
+                                    Qty = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup.Qty,
+                                    Unit = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup.Unit,
+                                    UnitCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost,
+                                    TotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                var psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    UnitGroupId = psCardItemUnitGroup.Id,
+                                    Description = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                var psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
+                                    PsCardItemId = psCardItem.Id,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
+                                psCardItemUnitGroup.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);
+                                db.PsCardItemUnitGroups.Add(psCardItemUnitGroup);                                
+                            }
+                            else
+                            {
+                                // if with psCardItemUnitGroup, check UnitGroupDescription
+                                var psCardItemUnitGroupDescription = psCardItemUnitGroup.PsCardItemUnitGroupDescriptions
+                                    .Where(w => w.Description == orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description)
+                                    .FirstOrDefault();
+                                if (psCardItemUnitGroupDescription == null)
+                                {
+                                    psCardItemUnitGroupDescription = new PsCardItemUnitGroupDescription()
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        UnitGroupId = psCardItemUnitGroup.Id,
+                                        Description = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description,
+                                        InsertedBy = user,
+                                        InsertedDt = date,
+                                        UpdatedBy = user,
+                                        UpdatedDt = date
+                                    };
+                                    var psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
+                                        PsCardItemId = psCardItem.Id,
+                                        InsertedBy = user,
+                                        InsertedDt = date,
+                                        UpdatedBy = user,
+                                        UpdatedDt = date
+                                    };
+                                    psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);
+                                    db.PsCardItemUnitGroupDescriptions.Add(psCardItemUnitGroupDescription);                                                                        
+                                }
+                                else
+                                {
+                                    // if with UnitGroupDescription, check UnitGroupDescriptionItem
+                                    var psCardItemUnitGroupDescriptionItem = psCardItemUnitGroupDescription.PsCardItemUnitGroupDescriptionItems
+                                        .Where(w => w.PsCardItemId == psCardItem.Id).FirstOrDefault();
+                                    if (psCardItemUnitGroupDescriptionItem == null)
+                                    {
+                                        psCardItemUnitGroupDescriptionItem = new PsCardItemUnitGroupDescriptionItem()
+                                        {
+                                            Id = Guid.NewGuid(),
+                                            UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
+                                            PsCardItemId = psCardItem.Id,
+                                            InsertedBy = user,
+                                            InsertedDt = date,
+                                            UpdatedBy = user,
+                                            UpdatedDt = date
+                                        };
+                                        db.PsCardItemUnitGroupDescriptionItems.Add(psCardItemUnitGroupDescriptionItem);                                        
+                                    }
+                                }                                
+                            }
+                            await db.SaveChangesAsync();
+                        }
                     }
                 }
             }
-
-            await db.SaveChangesAsync();
         });
 
         public ValueTask UnpostAsync(Guid airId, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
@@ -510,11 +445,27 @@ namespace iLgs.Services
             var orderItems = db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode.ItemType).Where(w => w.OrderId == entity.OrderId).ToList();
 
             foreach (var orderItem in orderItems)
-            {
+            {                
                 var psCardItems = db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id);
                 if (psCardItems.Any())
                 {
-                    var psCardId = psCardItems.FirstOrDefault().PsCardId;
+                    var psCardItem = psCardItems.FirstOrDefault();
+
+                    // check unit groups           
+                    var unitGroupDescriptionItems = db.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id);
+                    db.PsCardItemUnitGroupDescriptionItems.RemoveRange(unitGroupDescriptionItems);
+                    await db.SaveChangesAsync();
+
+                    var unitGroupDescriptions = db.PsCardItemUnitGroupDescriptions.Where(w => w.PsCardItemUnitGroup.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptionItems.Any());
+                    db.PsCardItemUnitGroupDescriptions.RemoveRange(unitGroupDescriptions);
+                    await db.SaveChangesAsync();
+
+                    var unitGroups = db.PsCardItemUnitGroups.Where(w => w.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptions.Any());
+                    db.PsCardItemUnitGroups.RemoveRange(unitGroups);
+                    await db.SaveChangesAsync();
+
+                    var psCardId = psCardItem.PsCardId;                    
+
                     // log updates
                     await psCardItems.ForEachAsync(f =>
                     {
@@ -529,7 +480,7 @@ namespace iLgs.Services
 
                     if (!db.PsCardItems.Any(a => a.PsCardId == psCardId)) // no other  order item is using this item
                     {
-                        var psCard = await db.PsCards.Where(w => w.Id == psCardId).FirstOrDefaultAsync();
+                        var psCard = await db.PsCards.Include(i => i.AllField).Where(w => w.Id == psCardId).FirstOrDefaultAsync();
                         psCard.UpdatedBy = user;
                         psCard.UpdatedDt = date;
 
@@ -552,8 +503,7 @@ namespace iLgs.Services
 
             db.AIRs.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
-
+            await db.SaveChangesAsync();            
         });
 
         private ValueTask UpdatePsItem(AIR entity, string user, DateTime date, bool post) => _VmExceptionService.TryCatch(async () =>

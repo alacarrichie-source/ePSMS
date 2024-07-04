@@ -181,7 +181,7 @@
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("GeneratePAR", "Pars")',
+                url: '@Url.Action("GenerateIcs", "Ics")',
                 data: $("#form").serialize(),
                 async: true,
                 beforeSend: function () {
@@ -208,6 +208,7 @@
         $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
     });
 </script>
+
 
 
 

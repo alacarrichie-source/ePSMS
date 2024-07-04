@@ -52,6 +52,7 @@ namespace iLgs.Services
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
+                    PriceRate = s.PriceRate,
                     Days = s.Days,
                     Remarks = s.Remarks,
                     InsertedDt = s.InsertedDt,
@@ -89,6 +90,7 @@ namespace iLgs.Services
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
+                    PriceRate = s.PriceRate,
                     Days = s.Days,
                     Remarks = s.Remarks,
                     InsertedDt = s.InsertedDt,
@@ -148,6 +150,7 @@ namespace iLgs.Services
                 UnitCost = model.UnitCost,
                 Remarks = model.Remarks,
                 Amount = model.Amount,
+                PriceRate = model.PriceRate,
                 DeptId = model.DeptId,
                 LocationId = model.LocationId,
                 Description = model.Description,           
@@ -195,6 +198,7 @@ namespace iLgs.Services
             entity.UnitCost = model.UnitCost;
             entity.Remarks = model.Remarks;
             entity.Amount = model.Amount;
+            entity.PriceRate = model.PriceRate;
             entity.DeptId = model.DeptId;
             entity.LocationId = model.LocationId;
             entity.Description = model.Description;

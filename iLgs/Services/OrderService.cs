@@ -322,6 +322,7 @@ namespace iLgs.Services
         public ValueTask<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date) =>
         _orderVmExceptionService.TryCatchAsync(async () =>
         {
+            await ValidateOnDestroy(model);
 
             var unitGroups = db.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
             if (unitGroups.Any())

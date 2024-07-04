@@ -207,6 +207,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\IcsController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PropertyCardPpeController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
@@ -260,57 +261,6 @@
     </Compile>
     <Compile Include="Models\CategoryEnum.cs" />
     <Compile Include="Models\ErrorLog.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsAccountableForm.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsAgricultural.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsAnimal.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsConstruction.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsFurniture.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsLand.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsMachinery.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsMedical.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsMedicine.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsMilitarySuuply.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsNonAccountableForm.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsOfficeSupply.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsOther.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsOtherSupplyMaterial.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsRepair.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsTransportation.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FieldsVehicle.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\IcsPar.cs">
@@ -374,6 +324,15 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardItemIssuance.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemUnitGroup.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemUnitGroupDescription.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemUnitGroupDescriptionItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardViewModels.cs" />
@@ -490,6 +449,7 @@
     <Compile Include="Services\DepartmentUserService.cs" />
     <Compile Include="Services\IcsParItemService.cs" />
     <Compile Include="Services\IcsParService.cs" />
+    <Compile Include="Services\IcsService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionService.cs" />
@@ -3725,7 +3685,7 @@
     <Content Include="Views\Items\EditorTemplates\_ItemSwTemplate.cshtml" />
     <Content Include="Views\PoIssuance\_Transfer.cshtml" />
     <Content Include="Views\PoIssuance\_Pars.cshtml" />
-    <Content Include="Views\PoIssuance\EditorTemplates\_ParsTemplate.cshtml" />
+    <Content Include="Views\PARs\EditorTemplates\_ParsTemplate.cshtml" />
     <Content Include="Views\PoIssuance\_Ics.cshtml" />
     <Content Include="Views\PoIssuance\EditorTemplates\_IcsTemplate.cshtml" />
     <Content Include="Views\StockCard\_FieldDrugs.cshtml" />
@@ -3736,6 +3696,13 @@
     <Content Include="Views\RIS\_FieldDrugs.cshtml" />
     <Content Include="Views\RIS\_FieldBrand.cshtml" />
     <Content Include="Views\RIS\_FieldSerial.cshtml" />
+    <Content Include="Views\PARs\_Pars.cshtml" />
+    <Content Include="Views\PARs\_Issuance.cshtml" />
+    <Content Include="Views\Ics\Index.cshtml" />
+    <Content Include="Views\Ics\_Ics.cshtml" />
+    <Content Include="Views\Ics\_Issuance.cshtml" />
+    <Content Include="Views\Ics\_GenerateIcs.cshtml" />
+    <Content Include="Views\Ics\EditorTemplates\_IcsTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -12,36 +12,24 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PsCard
+    public partial class PsCardItemUnitGroupDescription
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public PsCard()
+        public PsCardItemUnitGroupDescription()
         {
-            this.PsCardItems = new HashSet<PsCardItem>();
+            this.PsCardItemUnitGroupDescriptionItems = new HashSet<PsCardItemUnitGroupDescriptionItem>();
         }
     
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> ItemCodeId { get; set; }
-        public string SubAccountCode { get; set; }
-        public string Fund { get; set; }
+        public Nullable<System.Guid> UnitGroupId { get; set; }
         public string Description { get; set; }
-        public string Unit { get; set; }
-        public string PsNo { get; set; }
-        public string PsName { get; set; }
-        public string PrevPsNo { get; set; }
-        public Nullable<System.DateTime> AcqDate { get; set; }
-        public string AcqMode { get; set; }
-        public Nullable<decimal> Amount { get; set; }
-        public Nullable<bool> FromDonation { get; set; }
-        public string CardCategory { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual ItemCode ItemCode { get; set; }
-        public virtual AllField AllField { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItem> PsCardItems { get; set; }
+        public virtual ICollection<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
+        public virtual PsCardItemUnitGroup PsCardItemUnitGroup { get; set; }
     }
 }

@@ -48,57 +48,57 @@ namespace iLgs.Controllers
             return PartialView(data);
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Save(PARItemVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
-                Access access = await accessTask;
-                if (!access.AllowPost)
-                {
-                    ModelState.AddModelError("Access", "Access Denied!");
-                }
-                else if (await parService.IsPostedAsync((Guid)model.ParId))
-                {
-                    ModelState.AddModelError("PAR No.", "PAR Number already Posted, cannot update!");
-                }
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> Save(PARItemVM model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
+        //        Access access = await accessTask;
+        //        if (!access.AllowPost)
+        //        {
+        //            ModelState.AddModelError("Access", "Access Denied!");
+        //        }
+        //        else if (await parService.IsPostedAsync((Guid)model.ParId))
+        //        {
+        //            ModelState.AddModelError("PAR No.", "PAR Number already Posted, cannot update!");
+        //        }
 
-                if (model != null && ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+        //        if (model != null && ModelState.IsValid)
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
 
-                    var entity = await parItemService.GetByIdAsync(model.Id);
+        //            var entity = await parItemService.GetByIdAsync(model.Id);
 
-                    if (entity == null)
-                    {
-                        model = await parItemService.CreateAsync(model, user, date);
-                    }
-                    else
-                    {
-                        model = await parItemService.UpdateAsync(model, user, date);
-                    }                    
-                }
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
-            }
+        //            if (entity == null)
+        //            {
+        //                model = await parItemService.CreateAsync(model, user, date);
+        //            }
+        //            else
+        //            {
+        //                model = await parItemService.UpdateAsync(model, user, date);
+        //            }                    
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+        //             "please contact tech support with this message: " + e.Message);
+        //    }
 
-            var query = from state in ModelState.Values
-                        from error in state.Errors
-                        select error.ErrorMessage;
+        //    var query = from state in ModelState.Values
+        //                from error in state.Errors
+        //                select error.ErrorMessage;
 
-            var errorList = query.ToList();
-            if (errorList.Count() > 0)
-            {
-                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-            }
+        //    var errorList = query.ToList();
+        //    if (errorList.Count() > 0)
+        //    {
+        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+        //    }
 
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        }
+        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        //}
 
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid? parId)
         {
@@ -119,10 +119,10 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await parService.IsPostedAsync((Guid)model.ParId))
-                {
-                    ModelState.AddModelError("DeleteError", "PAR Number already Posted, cannot update!");
-                }
+                //else if (await parService.IsPostedAsync((Guid)model.ParId))
+                //{
+                //    ModelState.AddModelError("DeleteError", "PAR Number already Posted, cannot update!");
+                //}
 
                 if (ModelState.IsValid)
                 {

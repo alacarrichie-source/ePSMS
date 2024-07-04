@@ -130,7 +130,7 @@ namespace iLgs.Services
             model.InsertedDt = date;
             model.UpdatedDt = date;
             //model.PsNo = _allFieldService.GetStockNo(model.PsType);
-            model.StockName = await StockNameAsync(model, requestItem.RisItemId);
+            model.StockName = StockNameAsync(model, requestItem.RisItemId);
             
             OrderItem entity = new OrderItem()
             {
@@ -315,7 +315,7 @@ namespace iLgs.Services
 
             entity.RequestItem.RisItem.AllField.Brand = model.Brand;            
             entity.RequestItemId = model.RequestItemId;
-            entity.StockName = await StockNameAsync(model, risItemId);
+            entity.StockName = StockNameAsync(model, risItemId);
             entity.Brand = model.Brand;
             entity.Description = model.Description;
             entity.Qty = model.Qty;
@@ -337,39 +337,39 @@ namespace iLgs.Services
             return model;
         });
 
-        private async ValueTask<string> StockNameAsync(OrderItemVM orderItem, Guid? risItemId) 
+        private string StockNameAsync(OrderItemVM orderItem, Guid? risItemId) 
         {            
             string stockName = "";
                        
-            if (Enum.TryParse(orderItem.PsType, out Category category))
-            {
-                if (category == Category.T)
-                {
+            //if (Enum.TryParse(orderItem.PsType, out Category category))
+            //{
+            //    if (category == Category.T)
+            //    {
                  
-                }
-                else if (category == Category.D)
-                {
-                    stockName = orderItem.Brand.Replace(" ", "").Trim();
-                    var fieldsMedicine = await _db.FieldsMedicines.FindAsync(risItemId);
+            //    }
+            //    else if (category == Category.D)
+            //    {
+            //        stockName = orderItem.Brand.Replace(" ", "").Trim();
+            //        var fieldsMedicine = await _db.FieldsMedicines.FindAsync(risItemId);
 
-                    if (!string.IsNullOrWhiteSpace(fieldsMedicine.DosageForm))
-                    {
-                        stockName += fieldsMedicine.DosageForm.Substring(0, 3);
-                    }
+            //        if (!string.IsNullOrWhiteSpace(fieldsMedicine.DosageForm))
+            //        {
+            //            stockName += fieldsMedicine.DosageForm.Substring(0, 3);
+            //        }
 
-                    if (!string.IsNullOrWhiteSpace(fieldsMedicine.DosageStrength))
-                    {
-                        stockName += fieldsMedicine.DosageStrength.Replace(" ", "");
-                    }
+            //        if (!string.IsNullOrWhiteSpace(fieldsMedicine.DosageStrength))
+            //        {
+            //            stockName += fieldsMedicine.DosageStrength.Replace(" ", "");
+            //        }
 
-                    stockName += fieldsMedicine.GenericName.Replace(" ", "");
-                    stockName += orderItem.ItemCode.ToString(); ;
-                }
-                else if (category == Category.U)
-                {
+            //        stockName += fieldsMedicine.GenericName.Replace(" ", "");
+            //        stockName += orderItem.ItemCode.ToString(); ;
+            //    }
+            //    else if (category == Category.U)
+            //    {
                     
-                }
-            }
+            //    }
+            //}
 
             return stockName;
         }

@@ -1,0 +1,38 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.PsCardItemIssuanceVM>()
+    .Name("gridIssuedItems_" + @ViewData["CardItemId"])
+    .Columns(col =>
+    {
+        col.Bound(c => c.Department).Width(70);
+        col.Bound(c => c.IssuedTo).Width(50);
+        col.Bound(c => c.IssuedDate).Width(40);
+        col.Bound(c => c.Qty).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Bound(c => c.Amount).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+    })
+    .Sortable()
+    .NoRecords()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Events(events => events.Error("GridError")
+        )
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        })
+        .Aggregates(a =>
+        {
+            a.Add(p => p.Qty).Sum();
+            a.Add(p => p.Amount).Sum();
+        })
+        .Sort(s => s.Add(a => a.IssuedDate))
+        .Read(read => read.Action("_IssuanceRead", "Ics", new { cardItemId = @ViewData["CardItemId"] }))
+    )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+//.Events(e => e.Edit("onEditGridItems").Change("onChangeGridItems").DataBound("onDataBoundGridItems"))
+)
+
+

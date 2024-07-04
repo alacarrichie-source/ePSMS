@@ -107,49 +107,21 @@
         <AssociationConnector Association="AppManModel.FK_RPCIItems_RPCIs" />
       </Diagram>
       <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" ZoomLevel="79" >
-        <EntityTypeShape EntityType="AppManModel.AccountableOfficer" Width="1.5" PointX="0.75" PointY="0.75" />
-        <EntityTypeShape EntityType="AppManModel.PsCode" Width="1.5" PointX="2.75" PointY="0.75" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemIssuance" Width="1.5" PointX="8.25" PointY="29" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItem" Width="1.5" PointX="6" PointY="27.375" />
-        <AssociationConnector Association="AppManModel.FK_PsCardItemIssuances_PsCardItems" />
-        <EntityTypeShape EntityType="AppManModel.FieldsAgricultural" Width="1.5" PointX="3" PointY="20.875" />
-        <EntityTypeShape EntityType="AppManModel.FieldsAnimal" Width="1.5" PointX="3" PointY="52" />
-        <EntityTypeShape EntityType="AppManModel.FieldsFurniture" Width="1.5" PointX="3" PointY="48.375" />
-        <EntityTypeShape EntityType="AppManModel.FieldsLand" Width="1.5" PointX="3" PointY="41.75" />
-        <EntityTypeShape EntityType="AppManModel.FieldsMachinery" Width="1.5" PointX="3" PointY="54.75" />
-        <EntityTypeShape EntityType="AppManModel.FieldsMedical" Width="1.5" PointX="3" PointY="39" />
-        <EntityTypeShape EntityType="AppManModel.FieldsMilitarySuuply" Width="1.5" PointX="3" PointY="15.5" />
-        <EntityTypeShape EntityType="AppManModel.FieldsNonAccountableForm" Width="1.5" PointX="3" PointY="60.25" />
-        <EntityTypeShape EntityType="AppManModel.FieldsOfficeSupply" Width="1.5" PointX="3" PointY="23.625" />
-        <EntityTypeShape EntityType="AppManModel.FieldsOther" Width="1.5" PointX="3" PointY="26.375" />
-        <EntityTypeShape EntityType="AppManModel.FieldsOtherSupplyMaterial" Width="1.5" PointX="3" PointY="57.5" />
-        <EntityTypeShape EntityType="AppManModel.FieldsRepair" Width="1.5" PointX="3" PointY="29.125" />
-        <EntityTypeShape EntityType="AppManModel.FieldsTransportation" Width="1.5" PointX="3" PointY="18.125" />
-        <EntityTypeShape EntityType="AppManModel.FieldsVehicle" Width="1.5" PointX="3" PointY="44.25" />
-        <EntityTypeShape EntityType="AppManModel.FieldsAccountableForm" Width="1.5" PointX="3" PointY="6.125" />
-        <EntityTypeShape EntityType="AppManModel.FieldsConstruction" Width="1.5" PointX="3" PointY="63.125" />
-        <EntityTypeShape EntityType="AppManModel.PsCard" Width="1.5" PointX="0.75" PointY="31.5" />
-        <AssociationConnector Association="AppManModel.FK_FieldsAccountableForms_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsAgriculturals_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsAnimals_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FielsConstructions_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsFurnitures_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsLands_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsMachineries_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsMedicals_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsMilitarySuuplies_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsNonAccountableForms_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsOfficeSupplies_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsOthers_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsOtherSupplyMaterials_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsRepairs_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsTransportations_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_FieldsVehicles_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_PsCardItems_PsCards" />
-        <EntityTypeShape EntityType="AppManModel.FieldsMedicine" Width="1.5" PointX="3" PointY="34.125" />
-        <AssociationConnector Association="AppManModel.FK_FieldsMedicines_PsCards" />
-        <EntityTypeShape EntityType="AppManModel.AllField" Width="1.5" PointX="3" PointY="66.375" />
+        <EntityTypeShape EntityType="AppManModel.AccountableOfficer" Width="1.5" PointX="5.75" PointY="0.75" />
+        <EntityTypeShape EntityType="AppManModel.PsCode" Width="1.5" PointX="5.75" PointY="4.75" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemIssuance" Width="1.5" PointX="5.25" PointY="13" />
+        <EntityTypeShape EntityType="AppManModel.PsCard" Width="1.5" PointX="0.75" PointY="9.625" />
+        <EntityTypeShape EntityType="AppManModel.AllField" Width="1.5" PointX="3" PointY="1.875" />
         <AssociationConnector Association="AppManModel.FK_AllFields_PsCards" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItem" Width="1.5" PointX="3" PointY="11.125" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItemIssuances_PsCardItems" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItems_PsCards" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroupDescriptionItem" Width="1.5" PointX="7.5" PointY="15.375" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroupDescription" Width="1.5" PointX="5.25" PointY="19.75" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroup" Width="1.5" PointX="3" PointY="20.5" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptions_PsCardItemUnitGroups" />
         </Diagram>
       <Diagram DiagramId="f737fa97db2e49e58b437ce4983844bf" Name="RIS" >
         <EntityTypeShape EntityType="AppManModel.RISs" Width="1.5" PointX="0.75" PointY="3.875" />

@@ -18,23 +18,23 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("PARS")]
-    public class PARsController : BaseController
+    [AppAuthorize("ICS")]
+    public class IcsController : BaseController
     {
-        private AppManEntities db = new AppManEntities();
-        private IParService _parService;
+        private AppManEntities _db = new AppManEntities();
+        private IIcsService _icsService;
         private IOrderService _orderService;
         private IOrderItemService _orderItemService;
         private IRisService _risService;
         private ICodextnService _codextnService;
 
-        public PARsController()
+        public IcsController()
         {
-            _parService = new ParService(db);
-            _orderService = new OrderService(db);
-            _orderItemService = new OrderItemService(db);
-            _risService = new RisService(db);
-            _codextnService = new CodextnService(db);
+            _icsService = new IcsService(_db);
+            _orderService = new OrderService(_db);
+            _orderItemService = new OrderItemService(_db);
+            _risService = new RisService(_db);
+            _codextnService = new CodextnService(_db);
         }
 
         // GET: PARs
@@ -45,7 +45,7 @@ namespace iLgs.Controllers
 
         public ActionResult Read([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _parService.GetAll();
+            var data = _icsService.GetAll();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -54,7 +54,7 @@ namespace iLgs.Controllers
             };
 
             return result;
-        }        
+        }
 
         [AcceptVerbs(HttpVerbs.Get)]
         public async Task<JsonResult> GetAmount(Guid orderItemId, int qty)
@@ -68,11 +68,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> PARRpt(string parNo)
+        public async Task<ActionResult> IcsRpt(string icsNo)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_par");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_ics");
                 Access access = await accessTask;
                 if (access == null)
                 {
@@ -95,11 +95,11 @@ namespace iLgs.Controllers
             Tables crTables;
             TableLogOnInfo crTableLogOnInfo;
             rpt = new ReportDocument();
-            rpt.FileName = Server.MapPath(Url.Content("~/Reports/Par.rpt"));
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/Ics.rpt"));
             rpt.Refresh();
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            string conString = db.Database.Connection.ConnectionString.ToString();
+            string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
 
             string un = decoder.UserID;
@@ -150,7 +150,7 @@ namespace iLgs.Controllers
 
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
-            rpt.SetParameterValue("@cParNo", parNo);
+            rpt.SetParameterValue("@cIcsNo", icsNo);
             rpt.SetParameterValue("LGU", lgu);
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
@@ -166,7 +166,7 @@ namespace iLgs.Controllers
         //    {
         //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
         //        Access access = await accessTask;
-                
+
         //        if (ModelState.IsValid)
         //        {
         //            string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -255,17 +255,17 @@ namespace iLgs.Controllers
         //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         //}
 
-        #region PAR ITEMS
-        public ActionResult _Pars(Guid? cardItemId, decimal? unitCost)
+        #region ICS ITEMS
+        public ActionResult _Ics(Guid? cardItemId, decimal? unitCost)
         {
             ViewData["CardItemId"] = cardItemId;
             ViewData["UnitCost"] = unitCost;
             return PartialView();
         }
 
-        public ActionResult _ParsRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        public ActionResult _IcsRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
         {
-            var data = _parService.IcsParItem.GetAllParItems(cardItemId);
+            var data = _icsService.IcsParItem.GetAllIcsItems(cardItemId);
 
             var result = new JsonNetResult
             {
@@ -277,11 +277,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ParsUpdate([DataSourceRequest] DataSourceRequest request, IcsParItem model)
+        public async Task<ActionResult> _IcsUpdate([DataSourceRequest] DataSourceRequest request, IcsParItem model)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ics");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -293,7 +293,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _parService.IcsParItem.UpdateAsync(model, user, date);
+                    model = await _icsService.IcsParItem.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -313,11 +313,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ParsDestroy([DataSourceRequest]DataSourceRequest request, IcsParItem model)
+        public async Task<ActionResult> _IcsDestroy([DataSourceRequest]DataSourceRequest request, IcsParItem model)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ics");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -328,7 +328,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _parService.IcsParItem.DeleteAsync(model, user, date);
+                    model = await _icsService.IcsParItem.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -347,15 +347,15 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _GeneratePAR(Guid? psCardItemId, string refType)
+        public async Task<ActionResult> _GenerateIcs(Guid? psCardItemId, string refType)
         {
             ViewData["psCardItemId"] = psCardItemId;
 
-            var psCardItem = await _parService.GetByIdAsync(psCardItemId);
+            var psCardItem = await _icsService.GetByIdAsync(psCardItemId);
             var model = new GenerateIcsParVM()
             {
                 PsCardItemId = psCardItemId,
-                Qty = refType == "P" ? psCardItem.ParBalance : psCardItem.IcsBalance,
+                Qty = psCardItem.IcsBalance,
                 Date = DateTime.Now,
                 RefType = refType,
                 IcsPar = new IcsPar()
@@ -365,11 +365,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> GeneratePAR(GenerateIcsParVM model)
+        public async Task<ActionResult> GenerateIcs(GenerateIcsParVM model)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ics");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -381,7 +381,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _parService.GeneratePAR(model, user, date);
+                    await _icsService.GenerateIcs(model, user, date);
                 }
             }
             catch (Exception e)
@@ -414,13 +414,13 @@ namespace iLgs.Controllers
         #region Issuance View
         public ActionResult _Issuance(Guid? cardItemId)
         {
-            ViewData["CardItemId"] = cardItemId;            
+            ViewData["CardItemId"] = cardItemId;
             return PartialView();
         }
 
         public ActionResult _IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
         {
-            var data = _parService.PsCardItemIssaunce.GetByCardItemId(cardItemId);
+            var data = _icsService.PsCardItemIssaunce.GetByCardItemId(cardItemId);
 
             var result = new JsonNetResult
             {
