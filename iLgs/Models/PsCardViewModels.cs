@@ -204,7 +204,22 @@ namespace iLgs.Models
         public int? IcsBalance { get; set; } = 0;
         public string StockNo { get; set; }
         [Display(Name = "Remaining Balance")]
-        public Nullable<int> RemBalance { get; set; }        
+        public Nullable<int> RemBalance { get; set; }
+
+        [Display(Name = "For ICS")]
+        public Nullable<bool> IsForICS { get; set; }
+
+        [Display(Name = "Consumable")]
+        public Nullable<bool> IsConsumable { get; set; }
+
+        [Display(Name = "Incorporated")]
+        public Nullable<bool> IsIncorporated { get; set; }
+
+        [Display(Name = "Others")]
+        public Nullable<bool> IsOthers { get; set; }
+
+        [Display(Name = "Remarks")]
+        public string OtherRemarks { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

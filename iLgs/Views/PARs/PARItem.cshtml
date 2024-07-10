@@ -170,10 +170,7 @@
         items.Add()
             .Text("PARs")
             .Selected(true)
-            .LoadContentFrom("_PARItem", "PARs", new { orderId = "#=OrderId#", orderItemId = "#=Id#" });
-            @*.Content(@<text>
-                    @RenderPARs()
-                </text>);*@
+            .LoadContentFrom("_PARItem", "PARs", new { orderId = "#=OrderId#", orderItemId = "#=Id#" });            
         })
        .ToClientTemplate()
     )
@@ -390,10 +387,10 @@
         font-weight: bold;
     }
 
-    #grid .k-grid-content {
+    /*#grid .k-grid-content {
         overflow-x: auto;
         height: calc(100vh - 230px) !important;
-    }
+    }*/
 
     #gridItems .k-grid-content {
         overflow-x: auto;

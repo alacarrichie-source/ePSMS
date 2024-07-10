@@ -195,9 +195,11 @@ namespace iLgs.Models
         public Nullable<decimal> UnitCost { get; set; }
 
         [Display(Name = "Total Cost")]
-        public Nullable<decimal> TotalCost { get; set; }
+        public Nullable<decimal> TotalCost { get; set; }       
 
-        public Nullable<decimal> GroupCost { get; set; }
+        public Nullable<decimal> GroupUnitCost { get; set; }
+        public Nullable<decimal> GroupTotalCost { get; set; }
+        public Nullable<int> GroupQty { get; set; }
         //public string GridItems { get; set; }
     }
 }

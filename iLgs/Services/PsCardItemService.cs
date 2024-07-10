@@ -17,6 +17,8 @@ namespace iLgs.Services
 
         ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date);
         ValueTask<PsCardItemVM> UpdateAsync(PsCardItemVM model, string user, DateTime date);
+        ValueTask<ParIcsItemVm> UpdateIsForICSAsync(ParIcsItemVm model, string user, DateTime date);
+        ValueTask<ParIcsItemVm> UpdateNoICSAsync(ParIcsItemVm model, string user, DateTime date);        
         ValueTask<PsCardItemVM> DeleteAsync(PsCardItemVM model, string user, DateTime date);
     }
 
@@ -24,7 +26,8 @@ namespace iLgs.Services
     {
         private readonly AppManEntities _db = new AppManEntities();
         private readonly IExceptionService<PsCardItemVM> _VmExceptionService = new ExceptionService<PsCardItemVM>();
-
+        private readonly IExceptionService<ParIcsItemVm> _parIcsItemExceptionService = new ExceptionService<ParIcsItemVm>();
+        
         public PsCardItemService(AppManEntities db)
         {
             _db = db;
@@ -63,7 +66,12 @@ namespace iLgs.Services
                     DeptDisplay = s.DeptDisplay,
                     LocCode = s.Codextn1.Code,
                     Location = s.Codextn1.Description,
-                    RemBalance = s.QtyBal
+                    RemBalance = s.QtyBal,
+                    IsForICS = s.IsForICS,
+                    IsConsumable = s.IsConsumable,
+                    IsIncorporated = s.IsIncorporated,
+                    IsOthers = s.IsOthers,
+                    OtherRemarks = s.OtherRemarks
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -101,7 +109,12 @@ namespace iLgs.Services
                     DeptDisplay = s.DeptDisplay,
                     LocCode = s.Codextn1.Code,
                     Location = s.Codextn1.Description,
-                    RemBalance = s.QtyBal
+                    RemBalance = s.QtyBal,
+                    IsForICS = s.IsForICS,
+                    IsConsumable = s.IsConsumable,
+                    IsIncorporated = s.IsIncorporated,
+                    IsOthers = s.IsOthers,
+                    OtherRemarks = s.OtherRemarks
                 });
             return data;
         });
@@ -116,9 +129,9 @@ namespace iLgs.Services
             if (model.DeptId == null)
             {
                 throw new InvalidValueException("Office/Department is Required!");
-            }            
+            }
         }
-        
+
         public ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
             ValidateFields(model);
@@ -128,7 +141,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
-            
+
             var entity = new PsCardItem
             {
                 Id = model.Id,
@@ -153,19 +166,19 @@ namespace iLgs.Services
                 PriceRate = model.PriceRate,
                 DeptId = model.DeptId,
                 LocationId = model.LocationId,
-                Description = model.Description,           
+                Description = model.Description,
                 DeptDisplay = model.DeptDisplay,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt    
+                UpdatedDt = model.UpdatedDt
             };
 
             _db.PsCardItems.Add(entity);
             await _db.SaveChangesAsync();
 
             return model;
-        });        
+        });
 
         public ValueTask<PsCardItemVM> UpdateAsync(PsCardItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
@@ -192,7 +205,7 @@ namespace iLgs.Services
             entity.QtyBal = model.QtyBal;
             entity.TransferIn = model.TransferIn;
             entity.TransferOut = model.TransferOut;
-            entity.Days = model.Days;            
+            entity.Days = model.Days;
             entity.TranType = model.TranType;
             entity.Unit = model.Unit;
             entity.UnitCost = model.UnitCost;
@@ -212,6 +225,95 @@ namespace iLgs.Services
 
             return model;
         });
+
+        //PsCardItemUnitGroupDescriptionItem
+
+        public ValueTask<ParIcsItemVm> UpdateIsForICSAsync(ParIcsItemVm model, string user, DateTime date) => _parIcsItemExceptionService.TryCatch(async () =>
+        {
+            var entity = await _db.PsCardItems.FindAsync(model.Id);
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(model.Id);
+            }
+
+            if (entity.IsForICS != model.IsForICS) // change in isForICS
+            {
+                var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemId == model.Id);
+                if (icsParItem != null)
+                {
+                    if (model.IsForICS == true && icsParItem.IcsPar.RefType == "P")
+                    {
+                        throw new InvalidValueException("Item with PAR already exists, cannot make this as For ICS.");
+                    }
+                    else
+                    {
+                        if (model.IsForICS == false && icsParItem.IcsPar.RefType == "I")
+                        {
+                            throw new InvalidValueException("Item with ICS already exists, cannot remove this as For ICS.");
+                        }
+                    }
+                }
+            }
+
+            entity.IsForICS = model.IsForICS;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.PsCardItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            return model;
+        });
+
+
+        public ValueTask<ParIcsItemVm> UpdateNoICSAsync(ParIcsItemVm model, string user, DateTime date) => _parIcsItemExceptionService.TryCatch(async () =>
+        {
+            if (model.IsOthers == true && string.IsNullOrWhiteSpace(model.OtherRemarks))
+            {
+                throw new InvalidValueException("Remarks field is required if Others is selected!");
+            }
+
+            var entity = await _db.PsCardItems.FindAsync(model.Id);
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(model.Id);
+            }
+
+            if (entity.IsConsumable != model.IsConsumable || entity.IsIncorporated != model.IsIncorporated
+                || entity.IsOthers != model.IsOthers) // change in decision
+            {
+                var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemId == model.Id);
+                if (icsParItem != null)
+                {
+                    if ((model.IsConsumable == true || model.IsIncorporated == true || model.IsOthers == true) && icsParItem.IcsPar.RefType == "P")
+                    {
+                        throw new InvalidValueException("Item with PAR already exists, cannot make this as For ICS.");
+                    }
+                    else
+                    {
+                        if ((model.IsConsumable == false || model.IsIncorporated == false || model.IsOthers == false) && icsParItem.IcsPar.RefType == "I")
+                        {
+                            throw new InvalidValueException("Item with ICS already exists, cannot remove this as For ICS.");
+                        }
+                    }
+                }
+            }
+
+            entity.IsConsumable = model.IsConsumable;
+            entity.IsIncorporated = model.IsIncorporated;
+            entity.IsOthers = model.IsOthers;
+            entity.OtherRemarks = model.IsOthers == true ? model.OtherRemarks : "";
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.PsCardItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            return model;
+        });
+
 
         public ValueTask<PsCardItemVM> DeleteAsync(PsCardItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {

@@ -25,10 +25,10 @@ namespace iLgs.Models
             public string ReceivedByPosition { get; set; }
 
             [Display(Name = "Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> ReceivedDate { get; set; }
 
-            [Display(Name = "Department")]
-            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+            [Display(Name = "Department")]            
             public string ReceivedDept { get; set; }
 
             [Display(Name = "Received From")]
@@ -86,9 +86,13 @@ namespace iLgs.Models
             public string PlateNo { get; set; }
             public string BodyNo { get; set; }
             public string CRN { get; set; }
+
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> CRNDate { get; set; }
             public string MVFileNo { get; set; }
             public string DRPNo { get; set; }
+
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> DTPDate { get; set; }
             public Nullable<decimal> CGT { get; set; }
             public Nullable<decimal> CGTTransferTax { get; set; }
@@ -122,6 +126,8 @@ namespace iLgs.Models
 
     public class GenerateIcsParVM
     {
+        [Display(Name = "PO No.")]
+        public string PoNo { get; set; }
         public Guid? PsCardItemId { get; set; }
 
         [Display(Name = "Location")]
@@ -227,6 +233,8 @@ namespace iLgs.Models
         [Display(Name = "Remaining Balance")]
         public Nullable<int> RemBalance { get; set; }
 
+        public bool? IsForICS { get; set; }
+
         public OrderItemUnitGroupDescriptionItem OrderItemUnitGroupDescriptionItem { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
@@ -249,7 +257,6 @@ namespace iLgs.Models
             }
         }
     }
-
 
     public class IcsVM
     {
@@ -275,7 +282,7 @@ namespace iLgs.Models
         public string AirNo { get; set; }
 
         [Display(Name = "Issuance Date")]
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AirIssueDate { get; set; }
 
         //[Required]
@@ -317,6 +324,11 @@ namespace iLgs.Models
 
         [Display(Name = "Department Display")]
         public string DeptDisplay { get; set; }
+
+        public Nullable<bool> IsConsumable { get; set; }
+        public Nullable<bool> IsIncorporated { get; set; }
+        public Nullable<bool> IsOthers { get; set; }
+        public string OtherRemarks { get; set; }
 
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
@@ -362,5 +374,62 @@ namespace iLgs.Models
                 }
             }
         }
+    }
+
+    public class ParIcsPOGroupVM
+    {
+        public System.Guid Id { get; set; }
+
+        [Display(Name = "PO No.")]
+        public string PoNo { get; set; }
+
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [Display(Name = "PO Date")]
+        public Nullable<System.DateTime> PoDate { get; set; }
+
+        [Display(Name = "AIR No.")]
+        public string AirNo { get; set; }
+
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [Display(Name = "AIR Date")]
+        public Nullable<System.DateTime> AirDate { get; set; }
+
+        public Nullable<System.Guid> DeptId { get; set; }
+
+        public string Department { get; set; }
+
+        public int? ParBalance { get; set; }
+        public int? IcsBalance { get; set; }
+    }
+
+    public class ParIcsItemVm
+    {
+        public System.Guid Id { get; set; }
+        public int? Qty { get; set; }
+        public string Unit { get; set; }
+        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<decimal> TotalCost { get; set; }
+        public string Article { get; set; }
+        public string Description { get; set; }
+        public string StockNo { get; set; }
+        public int? Balance { get; set; }
+        public Nullable<bool> IsForICS { get; set; }
+        public Nullable<bool> IsConsumable { get; set; }
+        public Nullable<bool> IsIncorporated { get; set; }
+        public Nullable<bool> IsOthers { get; set; }
+        public string OtherRemarks { get; set; }
+        public int? GeneratedItems { get; set; } = 0;
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+    }
+
+    public class ParIcsItemSetVm
+    {
+        public System.Guid Id { get; set; }
+        public int? Qty { get; set; }
+        public string Unit { get; set; }
+        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<decimal> TotalCost { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public ICollection<PsCardItemUnitGroupDescription> UnitGroupDescriptions { get; set; }
     }
 }

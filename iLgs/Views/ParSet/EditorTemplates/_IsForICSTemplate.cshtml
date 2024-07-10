@@ -1,0 +1,26 @@
+﻿@(Html.Kendo().Switch().Name("IsForICS")
+    //.HtmlAttributes(new { style = "text - align: center;" })
+    .Messages(c => c.Checked("YES").Unchecked("NO"))
+)
+
+@*<style>
+    .k-switch .k-switch-container {
+        position: relative;
+    }
+
+    .k-switch .k-switch-label-on,
+    .k-switch .k-switch-label-off {
+        display: inline-block;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .k-switch .k-switch-label-on {
+        left: -30px; /* Adjust this value to position the "YES" label */
+    }
+
+    .k-switch .k-switch-label-off {
+        right: -30px; /* Adjust this value to position the "NO" label */
+    }
+</style>*@

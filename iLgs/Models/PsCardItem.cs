@@ -46,6 +46,11 @@ namespace iLgs.Models
         public Nullable<System.Guid> LocationId { get; set; }
         public string DeptDisplay { get; set; }
         public string Description { get; set; }
+        public Nullable<bool> IsForICS { get; set; }
+        public Nullable<bool> IsConsumable { get; set; }
+        public Nullable<bool> IsIncorporated { get; set; }
+        public Nullable<bool> IsOthers { get; set; }
+        public string OtherRemarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

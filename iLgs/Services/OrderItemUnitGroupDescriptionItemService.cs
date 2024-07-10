@@ -59,7 +59,9 @@ namespace iLgs.Services
                     PriceRate = s.OrderItem.PriceRate,
                     UnitCost = s.OrderItem.UnitCost,
                     TotalCost = s.OrderItem.Amount,
-                    GroupCost = s.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
+                    GroupUnitCost = s.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost,
+                    GroupTotalCost = s.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
+                    GroupQty = s.OrderItemUnitGroupDescription.OrderItemUnitGroup.RequestItemUnitGroup.RisItemUnitGroup.Qty,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -192,9 +194,19 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
 
             var item = _db.OrderItems.Find(model.OrderItemId);
+            var groupUnitCost = model.GroupUnitCost / model.GroupQty;
             item.PriceRate = model.PriceRate;
-            item.Amount = model.PriceRate == 0 ? model.UnitCost * model.QtyRequest : model.GroupCost * (model.PriceRate / 100);
-            item.UnitCost = model.PriceRate == 0 ? model.UnitCost : decimal.Round((decimal)(item.Amount / model.QtyRequest), 2, MidpointRounding.AwayFromZero);
+            //item.Amount = model.PriceRate == 0 ? model.UnitCost * model.QtyRequest : model.GroupCost * (model.PriceRate / 100);
+            //item.UnitCost = model.PriceRate == 0 ? model.UnitCost : decimal.Round((decimal)(item.Amount / model.QtyRequest), 2, MidpointRounding.AwayFromZero);
+            if (model.PriceRate == 0)
+            {
+                item.UnitCost = model.UnitCost;
+            }
+            else
+            {
+                item.UnitCost = decimal.Round((decimal)(groupUnitCost * (model.PriceRate / 100) * model.QtyRequest), 2, MidpointRounding.AwayFromZero);
+            }
+            item.Amount = model.QtyRequest * item.UnitCost;
             item.UpdatedBy = model.UpdatedBy;
             item.UpdatedDt = model.UpdatedDt;
             _db.OrderItems.Attach(item);

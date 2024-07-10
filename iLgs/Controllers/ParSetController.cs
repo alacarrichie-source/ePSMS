@@ -19,21 +19,15 @@ using System.Web.Mvc;
 namespace iLgs.Controllers
 {
     [AppAuthorize("PARS")]
-    public class PARsController : BaseController
+    public class ParSetController : BaseController
     {
         private AppManEntities db = new AppManEntities();
         private IParService _parService;
-        private IOrderService _orderService;
-        private IOrderItemService _orderItemService;
-        private IRisService _risService;
         private ICodextnService _codextnService;
 
-        public PARsController()
+        public ParSetController()
         {
             _parService = new ParService(db);
-            _orderService = new OrderService(db);
-            _orderItemService = new OrderItemService(db);
-            _risService = new RisService(db);
             _codextnService = new CodextnService(db);
         }
 
@@ -45,7 +39,7 @@ namespace iLgs.Controllers
 
         public ActionResult Read([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _parService.GetAll();
+            var data = _parService.GetAllPo();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -54,21 +48,10 @@ namespace iLgs.Controllers
             };
 
             return result;
-        }            
-
-        [AcceptVerbs(HttpVerbs.Get)]
-        public async Task<JsonResult> GetAmount(Guid orderItemId, int qty)
-        {
-            var orderItem = await _orderItemService.GetByIdAsync(orderItemId);
-            if (orderItem != null)
-            {
-                return Json(new { Errors = "", Amount = orderItem.UnitCost * qty }, JsonRequestBehavior.AllowGet);
-            }
-            return Json(new { Errors = "Invalid Order Id", Amount = 0 }, JsonRequestBehavior.DenyGet);
         }
-
+        
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> PARRpt(string parNo)
+        public async Task<ActionResult> ParRpt(string parNo)
         {
             try
             {
@@ -159,101 +142,104 @@ namespace iLgs.Controllers
             return File(stream, "application/pdf");
         }
 
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> PostPAR(Guid parId)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
-        //        Access access = await accessTask;
-                
-        //        if (ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
 
-        //            await _parService.PostAsync(parId, user, date);
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        if (e.GetType().Name == "ServiceException")
-        //        {
-        //            ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-        //                 "please contact tech support with this message: " + e.Message);
-        //        }
-        //        else
-        //        {
-        //            ModelState.AddModelError("", e.Message);
-        //        }
-        //    }
+        #region PO ITEMS
+        public ActionResult _PoItems(string poNo)
+        {
+            ViewData["PoNo"] = poNo;            
+            return PartialView();
+        }
 
-        //    var query = from state in ModelState.Values
-        //                from error in state.Errors
-        //                select error.ErrorMessage;
+        public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo)
+        {
+            var data = _parService.GetItemsByPoNo(poNo);
 
-        //    var errorList = query.ToList();
-        //    if (errorList.Count() > 0)
-        //    {
-        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-        //    }
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
 
-        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        //}
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _PoItemsUpdate([DataSourceRequest] DataSourceRequest request, ParIcsItemVm model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
 
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> UnpostPAR(Guid parId)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
-        //        Access access = await accessTask;
-        //        if (!access.AllowPost)
-        //        {
-        //            ModelState.AddModelError("Access", "Access Denied!");
-        //        }
-        //        else if (await _parService.GetByIdAsync(parId) == null)
-        //        {
-        //            ModelState.AddModelError("PAR", "Invalid PAR Id");
-        //        }
-        //        else if (!(await _parService.IsPostedAsync(parId)))
-        //        {
-        //            ModelState.AddModelError("PAR No.", "PAR Number not yet posted, cannot unpost!");
-        //        }
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
 
-        //        if (ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
+                    model = await _parService.PsCardItem.UpdateIsForICSAsync(model, user, date);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("UpdateError", e.Message);
+                }
+            }
 
-        //            await _parService.UnpostAsync(parId, user, date);
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        if (e.GetType().Name == "ServiceException")
-        //        {
-        //            ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-        //                 "please contact tech support with this message: " + e.Message);
-        //        }
-        //        else
-        //        {
-        //            ModelState.AddModelError("", e.Message);
-        //        }
-        //    }
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
 
-        //    var query = from state in ModelState.Values
-        //                from error in state.Errors
-        //                select error.ErrorMessage;
+        public ActionResult _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo)
+        {
+            var data = _parService.GetItemSetsByPoNo(poNo);
 
-        //    var errorList = query.ToList();
-        //    if (errorList.Count() > 0)
-        //    {
-        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-        //    }
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
 
-        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        //}
+        public ActionResult _PoItemSetDescriptionRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
+        {
+            var data = _parService.GetItemSetDescriptionsByUnitGroupId(unitGroupId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        public ActionResult _PoItemSetDescriptionItemRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupDescriptionId)
+        {
+            var data = _parService.GetItemSetDescriptionItemsByUnitGroupDescriptionId(unitGroupDescriptionId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+        
+        #endregion
+
 
         #region PAR ITEMS
         public ActionResult _Pars(Guid? cardItemId, decimal? unitCost)
@@ -347,7 +333,7 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _GeneratePAR(Guid? psCardItemId, string refType)
+        public async Task<ActionResult> _GeneratePar(Guid? psCardItemId, string refType)
         {
             ViewData["psCardItemId"] = psCardItemId;
 
@@ -365,11 +351,11 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> GeneratePAR(GenerateIcsParVM model)
+        public async Task<ActionResult> GeneratePar(GenerateIcsParVM model)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -414,7 +400,7 @@ namespace iLgs.Controllers
         #region Issuance View
         public ActionResult _Issuance(Guid? cardItemId)
         {
-            ViewData["CardItemId"] = cardItemId;            
+            ViewData["CardItemId"] = cardItemId;
             return PartialView();
         }
 
@@ -431,5 +417,34 @@ namespace iLgs.Controllers
             return result;
         }
         #endregion
+
+
+        public ActionResult GetAllPo(string text)
+        {
+
+            IQueryable<ParIcsPOGroupVM> model = null;
+            
+            if (string.IsNullOrEmpty(text))
+            {
+                model = _parService.GetAllPoCombo().AsQueryable<ParIcsPOGroupVM>();
+            }
+            else
+            {
+                text = text.Trim();
+                model = _parService.GetAllPoCombo(text).AsQueryable<ParIcsPOGroupVM>();
+            }
+
+            //return Json(formattedModel, JsonRequestBehavior.AllowGet);
+
+            return Json(model.Select(c => new
+            {
+                PoNo = c.PoNo,
+                PoDate = c.PoDate,
+                AirNo = c.AirNo,
+                AirDate = c.AirDate,
+                DeptId = c.DeptId,
+                Department = c.Department
+            }), JsonRequestBehavior.AllowGet);
+        }
     }
 }

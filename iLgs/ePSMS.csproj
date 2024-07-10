@@ -207,6 +207,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\IcsSetController.cs" />
+    <Compile Include="Controllers\ParSetController.cs" />
     <Compile Include="Controllers\IcsController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PropertyCardPpeController.cs" />
@@ -3703,6 +3705,18 @@
     <Content Include="Views\Ics\_Issuance.cshtml" />
     <Content Include="Views\Ics\_GenerateIcs.cshtml" />
     <Content Include="Views\Ics\EditorTemplates\_IcsTemplate.cshtml" />
+    <Content Include="Views\ParSet\Index.cshtml" />
+    <Content Include="Views\ParSet\_PoItems.cshtml" />
+    <Content Include="Views\ParSet\EditorTemplates\_IsForICSTemplate.cshtml" />
+    <Content Include="Views\ParSet\_GeneratePar.cshtml" />
+    <Content Include="Views\ParSet\EditorTemplates\_ParsTemplate.cshtml" />
+    <Content Include="Views\IcsSet\Index.cshtml" />
+    <Content Include="Views\IcsSet\_GenerateIcs.cshtml" />
+    <Content Include="Views\IcsSet\EditorTemplates\_IcsTemplate.cshtml" />
+    <Content Include="Views\IcsSet\EditorTemplates\_IsConsumableTemplate.cshtml" />
+    <Content Include="Views\IcsSet\EditorTemplates\_IsIncorporatedTemplate.cshtml" />
+    <Content Include="Views\IcsSet\EditorTemplates\_IsOthersTemplate.cshtml" />
+    <Content Include="Views\IcsSet\_GenerateIcsBatch.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

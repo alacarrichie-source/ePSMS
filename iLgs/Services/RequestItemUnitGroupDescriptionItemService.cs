@@ -58,7 +58,9 @@ namespace iLgs.Services
                     PriceRate = s.RequestItem.PriceRate,
                     UnitCost = s.RequestItem.UnitCost,
                     TotalCost = s.RequestItem.TotalCost,
-                    GroupCost = s.RequestItemUnitGroupDescription.RequestItemUnitGroup.TotalCost,
+                    GroupUnitCost = s.RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost,
+                    GroupTotalCost = s.RequestItemUnitGroupDescription.RequestItemUnitGroup.TotalCost,
+                    GroupQty = s.RequestItemUnitGroupDescription.RequestItemUnitGroup.RisItemUnitGroup.Qty,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -157,9 +159,19 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
 
             var reqItem = _db.RequestItems.Find(model.RequestItemId);
-            reqItem.PriceRate = model.PriceRate;            
-            reqItem.TotalCost = model.PriceRate == 0 ? model.UnitCost * model.QtyRequest : model.GroupCost * (model.PriceRate / 100);
-            reqItem.UnitCost = model.PriceRate == 0 ? model.UnitCost : decimal.Round((decimal)(reqItem.TotalCost / model.QtyRequest), 2, MidpointRounding.AwayFromZero);
+            var groupUnitCost = model.GroupUnitCost / model.GroupQty;
+            reqItem.PriceRate = model.PriceRate;
+            //reqItem.TotalCost = model.PriceRate == 0 ? model.UnitCost * model.QtyRequest : model.GroupCost * (model.PriceRate / 100);
+            //reqItem.UnitCost = model.PriceRate == 0 ? model.UnitCost : decimal.Round((decimal)(reqItem.TotalCost / model.QtyRequest), 2, MidpointRounding.AwayFromZero);
+            if (model.PriceRate == 0)
+            {
+                reqItem.UnitCost = model.UnitCost;                
+            }
+            else
+            {
+                reqItem.UnitCost = decimal.Round((decimal)(groupUnitCost * (model.PriceRate / 100) * model.QtyRequest), 2, MidpointRounding.AwayFromZero);                
+            }
+            reqItem.TotalCost = model.QtyRequest * reqItem.UnitCost;            
             reqItem.UpdatedBy = model.UpdatedBy;
             reqItem.UpdatedDt = model.UpdatedDt;
             _db.RequestItems.Attach(reqItem);
