@@ -23,7 +23,7 @@ namespace iLgs.Services
         ValueTask<PsCardVM> UpdateAsync(PsCardVM model, string user, DateTime date);
         ValueTask<PsCardVM> DeleteAsync(PsCardVM model, string user, DateTime date);
         string GetDescription(PsCardVM model);        
-        string GetStockNo(PsCardVM model);
+        string GetStockNo(PsCardVM model);        
 
         //string GetRisDescription(RisItemEntryVM model);
         //string GetRisStockNo(RisItemEntryVM model);
@@ -171,23 +171,6 @@ namespace iLgs.Services
                     PrevPsNo = s.PrevPsNo,
                     FromDonation = s.FromDonation,
                     Amount = s.Amount,
-                    //FieldsAccountableForm = s.FieldsAccountableForm,
-                    //FieldsAgricultural = s.FieldsAgricultural,
-                    //FieldsAnimal = s.FieldsAnimal,
-                    //FieldsFurniture = s.FieldsFurniture,
-                    //FieldsLand = s.FieldsLand,
-                    //FieldsMachinery = s.FieldsMachinery,
-                    //FieldsMedical = s.FieldsMedical,
-                    //FieldsMedicine = s.FieldsMedicine,
-                    //FieldsMilitarySuuply = s.FieldsMilitarySuuply,
-                    //FieldsNonAccountableForm = s.FieldsNonAccountableForm,
-                    //FieldsOfficeSupply = s.FieldsOfficeSupply,
-                    //FieldsOther = s.FieldsOther,
-                    //FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
-                    //FieldsRepair = s.FieldsRepair,
-                    //FieldsTransportation = s.FieldsTransportation,
-                    //FieldsVehicle = s.FieldsVehicle,
-                    //FieldsConstruction = s.FieldsConstruction,
                     AllField = s.AllField,
                     InsertedDt = s.InsertedDt
                 }).FirstOrDefaultAsync();
@@ -197,24 +180,8 @@ namespace iLgs.Services
         public ValueTask<PsCard> GetByIdAsync(Guid id) => _exceptionService.TryCatch(async () =>
         {
             return await _db.PsCards
+                .Include(i => i.ItemCode.ItemType)
                 .Include(i => i.AllField)
-                //.Include(i => i.FieldsAccountableForm)
-                //.Include(i => i.FieldsAgricultural)
-                //.Include(i => i.FieldsAnimal)
-                //.Include(i => i.FieldsFurniture)
-                //.Include(i => i.FieldsLand)
-                //.Include(i => i.FieldsMachinery)
-                //.Include(i => i.FieldsMedical)
-                //.Include(i => i.FieldsMedicine)
-                //.Include(i => i.FieldsMilitarySuuply)
-                //.Include(i => i.FieldsNonAccountableForm)
-                //.Include(i => i.FieldsOfficeSupply)
-                //.Include(i => i.FieldsOther)
-                //.Include(i => i.FieldsOtherSupplyMaterial)
-                //.Include(i => i.FieldsRepair)
-                //.Include(i => i.FieldsTransportation)
-                //.Include(i => i.FieldsVehicle)
-                //.Include(i => i.FieldsConstruction)
                 .FirstOrDefaultAsync(f => f.Id == id);
         });
 
@@ -552,7 +519,7 @@ namespace iLgs.Services
         //}
         public string GetStockNo(PsCardVM model) => _allFieldService.GetCardStockNo(model);
                 
-        public string GetDescription(PsCardVM fields) => "Please see attachment.";        
+        public string GetDescription(PsCardVM fields) => "Please see attachment.";                
 
         //public string GetRisStockNo(RisItemEntryVM model)
         //{

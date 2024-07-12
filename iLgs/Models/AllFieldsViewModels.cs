@@ -48,22 +48,7 @@ namespace iLgs.Models
             public string Capacity { get; set; }
             public string Color { get; set; }
             public string Type { get; set; }
-
-            [Display(Name = "Serial No.")]
-            public string SerialNo { get; set; }
-
-            [Display(Name = "Property No.")]
-            public string PropNo { get; set; }
-
-            [Display(Name = "Plate No.")]
-            public string PlateNo { get; set; }
-
-            [Display(Name = "Body No.")]
-            public string BodyNo { get; set; }
-
-            [Display(Name = "MV File No.")]
-            public string MVFileNo { get; set; }
-
+            
             [Display(Name = "Aera (SQM)")]
             public Nullable<decimal> Area { get; set; }
 

@@ -19,6 +19,8 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderItemId { get; set; }
         public Nullable<decimal> Qty { get; set; }
         public string Remarks { get; set; }
+        public Nullable<decimal> AreaSoldDonated { get; set; }
+        public string InvDist { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

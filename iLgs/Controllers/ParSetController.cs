@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Controllers
 {
@@ -446,5 +447,37 @@ namespace iLgs.Controllers
                 Department = c.Department
             }), JsonRequestBehavior.AllowGet);
         }
+
+        #region Item Fields
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] IcsParItem model)
+        {            
+            string partialView = "";
+            var category = await _parService.PsCardItem.GetCategoryAsync(model.PsCardItemId);
+            if (Enum.TryParse(category, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    partialView = "_FieldLand";
+                }
+                //else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
+                //    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
+                //    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
+                //    || c == CatOtherSupplies())
+                //{
+                //    partialView = "_FieldBrand";
+                //}
+                //else if (c == CatDrugs())
+                //{
+                //    partialView = "_FieldDrugs";
+                //}
+                //else if (c == CatRepairs())
+                //{
+                //    partialView = "_FieldSerial";
+                //}
+            }
+            return PartialView(partialView, model);
+        }
+        #endregion
     }
 }

@@ -73,7 +73,6 @@ namespace iLgs.Models
         public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<PsCode> PsCodes { get; set; }
-        public virtual DbSet<AIRItem> AIRItems { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual DbSet<RSMI> RSMIs { get; set; }
@@ -84,11 +83,12 @@ namespace iLgs.Models
         public virtual DbSet<OrderItem> OrderItems { get; set; }
         public virtual DbSet<IcsPar> IcsPars { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
-        public virtual DbSet<IcsParItem> IcsParItems { get; set; }
-        public virtual DbSet<AllField> AllFields { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<PsCardItemUnitGroup> PsCardItemUnitGroups { get; set; }
+        public virtual DbSet<IcsParItem> IcsParItems { get; set; }
+        public virtual DbSet<AllField> AllFields { get; set; }
+        public virtual DbSet<AIRItem> AIRItems { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
     }
 }

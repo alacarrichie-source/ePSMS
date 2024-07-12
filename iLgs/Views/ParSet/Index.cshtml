@@ -65,7 +65,7 @@
         </div>
 
         <div class="row">
-            @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
+            @Html.Label("Originating Department", htmlAttributes: new { @class = "col-md-3" })
             <div class="col-md-9">
                 @(Html.Kendo().TextBox().Name("department").Enable(false)
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -1333,7 +1333,6 @@
     function onEditGridItems(e) {
         e.preventDefault();
         selectedGrid = e.sender;
-
         if (!e.model.isNew()) {
             selectedItemId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedItemId);
@@ -1484,7 +1483,27 @@
             selectedItemParId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedItemParId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            RefreshDivs(e.model);
         }
+    }
+
+    function RefreshDivs(dataItem) {
+        var fieldsContainer = $('#DIV_ALLFIELDS');
+
+        fieldsContainer.empty(); // Clear existing content
+
+        var url = '@Url.Action("LoadFields", "ParSet")';
+        var data = $("#form").serialize();
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: data,
+            success: function(data) {
+                fieldsContainer.html(data);
+                resizeWindow();
+            }
+        });
     }
 
     var selectedItemParId = null;

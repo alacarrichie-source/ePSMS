@@ -51,6 +51,12 @@ namespace iLgs.Models
         public Nullable<bool> IsIncorporated { get; set; }
         public Nullable<bool> IsOthers { get; set; }
         public string OtherRemarks { get; set; }
+        public string InvDist { get; set; }
+        public string AcqMode { get; set; }
+        public Nullable<System.DateTime> AcqDate { get; set; }
+        public Nullable<decimal> AreaSoldDonated { get; set; }
+        public Nullable<int> ConstructionYear { get; set; }
+        public string Vendor { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

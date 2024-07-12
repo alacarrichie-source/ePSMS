@@ -25,17 +25,17 @@ namespace iLgs.Controllers
         private readonly string _cardCategory = "S";
         private AppManEntities _db = new AppManEntities();
         private ICodextnService _codextnService;
-        private IPsCardService _cardService;
-        private IPsCardItemService _cardItemService;
-        private IPsCardItemIssuanceService _cardItemIssuanceService;
+        private IPsCardService _psCardService;
+        private IPsCardItemService _psCardItemService;
+        private IPsCardItemIssuanceService _psCardItemIssuanceService;
         private IAllFieldService _allFieldService;
 
         public StockCardController()
         {
             _codextnService = new CodextnService(_db);
-            _cardService = new PsCardService(_db);
-            _cardItemService = new PsCardItemService(_db);
-            _cardItemIssuanceService = new PsCardItemIssuanceService(_db);
+            _psCardService = new PsCardService(_db);
+            _psCardItemService = new PsCardItemService(_db);
+            _psCardItemIssuanceService = new PsCardItemIssuanceService(_db);
             _allFieldService = new AllFieldService(_db);
         }
 
@@ -47,7 +47,7 @@ namespace iLgs.Controllers
 
         public ActionResult Read([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _cardService.GetAll();
+            var data = _psCardService.GetAll();
 
             var result = new JsonNetResult
             {
@@ -76,7 +76,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardService.CreateAsync(model, user, date);
+                    model = await _psCardService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -111,7 +111,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardService.UpdateAsync(model, user, date);
+                    model = await _psCardService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -146,7 +146,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardService.DeleteAsync(model, user, date);
+                    model = await _psCardService.DeleteAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -167,7 +167,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _StockCardAddEdit(Guid? cardId)
         {
-            var data = await _cardService.GetVmByIdAsync(cardId);
+            var data = await _psCardService.GetVmByIdAsync(cardId);
             if (data == null)
             {
                 data = new PsCardVM()
@@ -191,13 +191,13 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = await _cardService.GetByIdAsync(model.Id);
+                    var entity = await _psCardService.GetByIdAsync(model.Id);
 
                     if (entity == null)
                     {
                         if (access.AllowAdd)
                         {
-                            model = await  _cardService.CreateAsync(model, user, date);
+                            model = await  _psCardService.CreateAsync(model, user, date);
                         }
                         else
                         {
@@ -209,7 +209,7 @@ namespace iLgs.Controllers
                     {
                         if (access.AllowEdit)
                         {
-                            model = await _cardService.UpdateAsync(model, user, date);
+                            model = await _psCardService.UpdateAsync(model, user, date);
                         }
                         else
                         {
@@ -249,8 +249,8 @@ namespace iLgs.Controllers
         [AcceptVerbs(HttpVerbs.Post)]
         public JsonResult GetDescription(PsCardVM fields)
         {
-            var description = _cardService.GetDescription(fields);
-            var stockNo = _cardService.GetStockNo(fields);
+            var description = _psCardService.GetDescription(fields);
+            var stockNo = _psCardService.GetStockNo(fields);
 
             return Json(new { Description = description, StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
@@ -263,7 +263,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _StockCardItemAddEdit(Guid cardId, Guid? cardItemId)
         {
-            var data = await _cardItemService.GetByIdAsync(cardItemId);
+            var data = await _psCardItemService.GetByIdAsync(cardItemId);
             if (data == null)
             {
                 data = new PsCardItemVM()
@@ -294,15 +294,15 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = await _cardItemService.GetByIdAsync(model.Id);
+                    var entity = await _psCardItemService.GetByIdAsync(model.Id);
 
                     if (entity == null)
                     {
-                        model = await _cardItemService.CreateAsync(model, user, date);
+                        model = await _psCardItemService.CreateAsync(model, user, date);
                     }
                     else
                     {
-                        model = await _cardItemService.UpdateAsync(model, user, date);
+                        model = await _psCardItemService.UpdateAsync(model, user, date);
                     }                    
                 }
             }
@@ -335,7 +335,7 @@ namespace iLgs.Controllers
 
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, Guid? cardId)
         {
-            var data = _cardItemService.GetByCardId(cardId);
+            var data = _psCardItemService.GetByCardId(cardId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -357,7 +357,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemService.CreateAsync(model, user, date);
+                    model = await _psCardItemService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -393,7 +393,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemService.UpdateAsync(model, user, date);
+                    model = await _psCardItemService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -429,7 +429,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemService.DeleteAsync(model, user, date);
+                    model = await _psCardItemService.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
             }
@@ -451,7 +451,7 @@ namespace iLgs.Controllers
 
         public ActionResult IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
         {
-            var data = _cardItemIssuanceService.GetByCardItemId(cardItemId);
+            var data = _psCardItemIssuanceService.GetByCardItemId(cardItemId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -473,7 +473,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemIssuanceService.CreateAsync(model, user, date);
+                    model = await _psCardItemIssuanceService.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -509,7 +509,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemIssuanceService.UpdateAsync(model, user, date);
+                    model = await _psCardItemIssuanceService.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -546,7 +546,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemIssuanceService.DeleteAsync(model, user, date);
+                    model = await _psCardItemIssuanceService.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
             }

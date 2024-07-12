@@ -14,6 +14,7 @@ namespace iLgs.Services
     {
         IQueryable<PsCardItemVM> GetByCardId(Guid? cardId);
         ValueTask<PsCardItemVM> GetByIdAsync(Guid? id);
+        ValueTask<string> GetCategoryAsync(Guid? psCardItemId);
 
         ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date);
         ValueTask<PsCardItemVM> UpdateAsync(PsCardItemVM model, string user, DateTime date);
@@ -118,6 +119,11 @@ namespace iLgs.Services
                 });
             return data;
         });
+
+        public async ValueTask<string> GetCategoryAsync(Guid? psCardItemId)
+        {
+            return await _db.PsCardItems.Where(w => w.Id == psCardItemId).Select(s => s.PsCard.ItemCode.ItemType.Code).FirstOrDefaultAsync();
+        }
 
         private void ValidateFields(PsCardItemVM model)
         {

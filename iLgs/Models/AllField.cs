@@ -42,11 +42,6 @@ namespace iLgs.Models
         public string Materials { get; set; }
         public string Capacity { get; set; }
         public string Color { get; set; }
-        public string SerialNo { get; set; }
-        public string PropNo { get; set; }
-        public string PlateNo { get; set; }
-        public string BodyNo { get; set; }
-        public string MVFileNo { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

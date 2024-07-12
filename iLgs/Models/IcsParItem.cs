@@ -24,6 +24,8 @@ namespace iLgs.Models
         public string PropNo { get; set; }
         public string PropYear { get; set; }
         public string PropSeq { get; set; }
+        public Nullable<decimal> AcqCost { get; set; }
+        public Nullable<System.DateTime> AcqDate { get; set; }
         public string TctNo { get; set; }
         public string PhaseNo { get; set; }
         public Nullable<decimal> PhaseAmount { get; set; }
@@ -37,12 +39,17 @@ namespace iLgs.Models
         public Nullable<System.DateTime> CRNDate { get; set; }
         public string MVFileNo { get; set; }
         public string DRPNo { get; set; }
-        public Nullable<System.DateTime> DTPDate { get; set; }
+        public Nullable<System.DateTime> DRPDate { get; set; }
         public Nullable<decimal> CGT { get; set; }
         public Nullable<decimal> CGTTransferTax { get; set; }
         public Nullable<decimal> CGTSurcharge { get; set; }
         public Nullable<decimal> CGTInterest { get; set; }
         public Nullable<decimal> CGTCompromise { get; set; }
+        public Nullable<decimal> DST { get; set; }
+        public Nullable<decimal> DSTTransferTax { get; set; }
+        public Nullable<decimal> DSTSurcharge { get; set; }
+        public Nullable<decimal> DSTInterest { get; set; }
+        public Nullable<decimal> DSTCompromise { get; set; }
         public Nullable<decimal> TransferTax { get; set; }
         public Nullable<decimal> Surcharge { get; set; }
         public Nullable<decimal> Interest { get; set; }
