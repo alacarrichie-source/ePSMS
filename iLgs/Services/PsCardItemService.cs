@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Services
 {
@@ -19,8 +20,9 @@ namespace iLgs.Services
         ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date);
         ValueTask<PsCardItemVM> UpdateAsync(PsCardItemVM model, string user, DateTime date);
         ValueTask<ParIcsItemVm> UpdateIsForICSAsync(ParIcsItemVm model, string user, DateTime date);
-        ValueTask<ParIcsItemVm> UpdateNoICSAsync(ParIcsItemVm model, string user, DateTime date);        
+        ValueTask<ParIcsItemVm> UpdateNoICSAsync(ParIcsItemVm model, string user, DateTime date);
         ValueTask<PsCardItemVM> DeleteAsync(PsCardItemVM model, string user, DateTime date);
+        PsCardItemVM TransferItemField(PsCardItemVM sourceModel, PsCardItemVM targetModel);
     }
 
     public class PsCardItemService : IPsCardItemService
@@ -28,22 +30,25 @@ namespace iLgs.Services
         private readonly AppManEntities _db = new AppManEntities();
         private readonly IExceptionService<PsCardItemVM> _VmExceptionService = new ExceptionService<PsCardItemVM>();
         private readonly IExceptionService<ParIcsItemVm> _parIcsItemExceptionService = new ExceptionService<ParIcsItemVm>();
-        
+
         public PsCardItemService(AppManEntities db)
         {
             _db = db;
         }
 
-        public ValueTask<PsCardItemVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
+        public async ValueTask<PsCardItemVM> GetByIdAsync(Guid? id)
         {
-            var data = await _db.PsCardItems.Where(w => w.Id == id).AsNoTracking()
+            var data = await _db.PsCardItems
+                .Include(i => i.Codextn) // Department
+                .Include(i => i.Codextn1) // Location
+                .Where(w => w.Id == id)
                 .Select(s => new PsCardItemVM
                 {
                     Id = s.Id,
                     PsCardId = s.PsCardId,
                     OrderItemId = s.OrderItemId,
-                    PoNo = s.PoNo,
                     PoDate = s.PoDate,
+                    PoNo = s.PoNo,
                     AirDate = s.AirDate,
                     AirNo = s.AirNo,
                     AirIssueDate = s.AirIssueDate,
@@ -53,40 +58,53 @@ namespace iLgs.Services
                     TransferIn = s.TransferIn,
                     TransferOut = s.TransferOut,
                     TranType = s.TranType,
+                    Days = s.Days,
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
                     PriceRate = s.PriceRate,
-                    Days = s.Days,
                     Remarks = s.Remarks,
-                    InsertedDt = s.InsertedDt,
                     DeptId = s.DeptId,
                     LocationId = s.LocationId,
-                    Department = s.Codextn.Description,
-                    Description = s.Description,
                     DeptDisplay = s.DeptDisplay,
-                    LocCode = s.Codextn1.Code,
-                    Location = s.Codextn1.Description,
-                    RemBalance = s.QtyBal,
+                    Description = s.Description,
+                    OtherDesc = s.OtherDesc,
                     IsForICS = s.IsForICS,
                     IsConsumable = s.IsConsumable,
                     IsIncorporated = s.IsIncorporated,
                     IsOthers = s.IsOthers,
-                    OtherRemarks = s.OtherRemarks
+                    OtherRemarks = s.OtherRemarks,
+                    Type = s.Type,
+                    InvDist = s.InvDist,
+                    AcqMode = s.AcqMode,
+                    AcqDate = s.AcqDate,
+                    AreaSoldDonated = s.AreaSoldDonated,
+                    ConstructionYear = s.ConstructionYear,
+                    Vendor = s.Vendor,
+                    OldAmount = s.OldAmount,
+                    PhaseNo = s.PhaseNo,
+                    PhaseAmount = s.PhaseAmount,
+                    InsertedDt = s.InsertedDt,
+                    Department = s.Codextn.Description,
+                    Location = s.Codextn1.Description,
+                    LocCode = s.Codextn1.Code
                 }).FirstOrDefaultAsync();
             return data;
-        });
+        }
 
         public IQueryable<PsCardItemVM> GetByCardId(Guid? cardId) => _VmExceptionService.TryCatch(() =>
         {
-            var data = _db.PsCardItems.Where(w => w.PsCardId == cardId).AsNoTracking()
+            var data = _db.PsCardItems
+                .Include(i => i.Codextn) // Department
+                .Include(i => i.Codextn1) // Location
+                .Where(w => w.PsCardId == cardId).AsNoTracking()
                 .Select(s => new PsCardItemVM
                 {
                     Id = s.Id,
                     PsCardId = s.PsCardId,
                     OrderItemId = s.OrderItemId,
-                    PoNo = s.PoNo,
                     PoDate = s.PoDate,
+                    PoNo = s.PoNo,
                     AirDate = s.AirDate,
                     AirNo = s.AirNo,
                     AirIssueDate = s.AirIssueDate,
@@ -96,26 +114,36 @@ namespace iLgs.Services
                     TransferIn = s.TransferIn,
                     TransferOut = s.TransferOut,
                     TranType = s.TranType,
+                    Days = s.Days,
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
                     PriceRate = s.PriceRate,
-                    Days = s.Days,
                     Remarks = s.Remarks,
-                    InsertedDt = s.InsertedDt,
                     DeptId = s.DeptId,
                     LocationId = s.LocationId,
-                    Department = s.Codextn.Description,
-                    Description = s.Description,
                     DeptDisplay = s.DeptDisplay,
-                    LocCode = s.Codextn1.Code,
-                    Location = s.Codextn1.Description,
-                    RemBalance = s.QtyBal,
+                    Description = s.Description,
+                    OtherDesc = s.OtherDesc,
                     IsForICS = s.IsForICS,
                     IsConsumable = s.IsConsumable,
                     IsIncorporated = s.IsIncorporated,
                     IsOthers = s.IsOthers,
-                    OtherRemarks = s.OtherRemarks
+                    OtherRemarks = s.OtherRemarks,
+                    Type = s.Type,
+                    InvDist = s.InvDist,
+                    AcqMode = s.AcqMode,
+                    AcqDate = s.AcqDate,
+                    AreaSoldDonated = s.AreaSoldDonated,
+                    ConstructionYear = s.ConstructionYear,
+                    Vendor = s.Vendor,
+                    OldAmount = s.OldAmount,
+                    PhaseNo = s.PhaseNo,
+                    PhaseAmount = s.PhaseAmount,
+                    InsertedDt = s.InsertedDt,
+                    Department = s.Codextn.Description,
+                    Location = s.Codextn1.Description,
+                    LocCode = s.Codextn1.Code
                 });
             return data;
         });
@@ -131,10 +159,25 @@ namespace iLgs.Services
             {
                 throw new InvalidValueException("Quantity or Transfer-In is Required!");
             }
-
-            if (model.DeptId == null)
+            
+            var category = _db.PsCards.Where(w => w.Id == model.PsCardId).Select(s => s.ItemCode.ItemType.Code).FirstOrDefault();
+            if (Enum.TryParse(category, out Category c))
             {
-                throw new InvalidValueException("Office/Department is Required!");
+                if (model.DeptId == null)
+                {
+                    if (c != CatLands() && c != CatBuildings() && c != CatLandImprovements() && c != CatInfrastructures() && c != CatOtherProperties())
+                    {
+                        throw new InvalidValueException("Department is Required!");
+                    }
+                }
+
+                if (model.LocationId == null)
+                {
+                    if (c == CatLands() || c == CatBuildings() || c == CatLandImprovements() || c == CatInfrastructures() || c == CatOtherProperties())
+                    {
+                        throw new InvalidValueException("Location is Required!");
+                    }
+                }
             }
         }
 
@@ -173,7 +216,18 @@ namespace iLgs.Services
                 DeptId = model.DeptId,
                 LocationId = model.LocationId,
                 Description = model.Description,
+                OtherDesc = model.OtherDesc,
                 DeptDisplay = model.DeptDisplay,
+                Type = model.Type,
+                InvDist = model.InvDist,
+                AcqDate = model.AcqDate,
+                AcqMode = model.AcqMode,
+                AreaSoldDonated = model.AreaSoldDonated,
+                ConstructionYear = model.ConstructionYear,
+                Vendor = model.Vendor,
+                OldAmount = model.OldAmount,
+                PhaseNo = model.PhaseNo,
+                PhaseAmount = model.PhaseAmount,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -221,7 +275,18 @@ namespace iLgs.Services
             entity.DeptId = model.DeptId;
             entity.LocationId = model.LocationId;
             entity.Description = model.Description;
+            entity.OtherDesc = model.OtherDesc;
             entity.DeptDisplay = model.DeptDisplay;
+            entity.Type = model.Type;
+            entity.InvDist = model.InvDist;
+            entity.AcqDate = model.AcqDate;
+            entity.AcqMode = model.AcqMode;
+            entity.AreaSoldDonated = model.AreaSoldDonated;
+            entity.ConstructionYear = model.ConstructionYear;
+            entity.Vendor = model.Vendor;
+            entity.OldAmount = model.OldAmount;
+            entity.PhaseNo = model.PhaseNo;
+            entity.PhaseAmount = model.PhaseAmount;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
@@ -244,7 +309,7 @@ namespace iLgs.Services
 
             if (entity.IsForICS != model.IsForICS) // change in isForICS
             {
-                var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemId == model.Id);
+                var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemExtn.PsCardItemId == model.Id);
                 if (icsParItem != null)
                 {
                     if (model.IsForICS == true && icsParItem.IcsPar.RefType == "P")
@@ -289,7 +354,7 @@ namespace iLgs.Services
             if (entity.IsConsumable != model.IsConsumable || entity.IsIncorporated != model.IsIncorporated
                 || entity.IsOthers != model.IsOthers) // change in decision
             {
-                var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemId == model.Id);
+                var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemExtn.PsCardItemId == model.Id);
                 if (icsParItem != null)
                 {
                     if ((model.IsConsumable == true || model.IsIncorporated == true || model.IsOthers == true) && icsParItem.IcsPar.RefType == "P")
@@ -342,5 +407,16 @@ namespace iLgs.Services
             return model;
         });
 
+        public PsCardItemVM TransferItemField(PsCardItemVM sourceModel, PsCardItemVM targetModel)
+        {
+            targetModel.Type = sourceModel.Type;
+            targetModel.AcqDate = sourceModel.AcqDate;
+            targetModel.AcqMode = sourceModel.AcqMode;
+            targetModel.InvDist = sourceModel.InvDist;
+            targetModel.AreaSoldDonated = sourceModel.AreaSoldDonated;
+            targetModel.ConstructionYear = sourceModel.ConstructionYear;
+            targetModel.Vendor = sourceModel.Vendor;
+            return targetModel;
+        }
     }
 }

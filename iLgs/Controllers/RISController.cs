@@ -776,9 +776,18 @@ namespace iLgs.Controllers
                 {
                     partialView = "_FieldLand";
                 }
-                else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
-                    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
+                else if (c == CatMachineries() 
+                    || c == CatTransportations() 
+                    || c == CatFurnitures() 
+                    || c == CatOtherProperties()
+                    || c == CatMedicals() 
+                    || c == CatAgriculturals() 
+                    || c == CatAnimalSupplies() 
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies() 
+                    || c == CatAccountableForms() 
+                    || c == CatNonAccountableForns() 
+                    || c == CatMilitaries()
                     || c == CatOtherSupplies())
                 {
                     partialView = "_FieldBrand";

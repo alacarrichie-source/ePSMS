@@ -254,12 +254,13 @@ namespace iLgs.Services
                                 Amount = orderItem.Amount,
                                 PriceRate = orderItem.PriceRate,
                                 TranType = "I",
-                                Remarks = oig.Remarks,
+                                InvDist = oig.InvDist,                                
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,
                                 UpdatedDt = date,
-                                Description = oig.Description
+                                Description = oig.Description,
+                                OtherDesc = orderItem.RequestItem.RisItem.OtherDesc
                             };
                             psCard.PsCardItems.Add(psCardItem);
                         }
@@ -288,12 +289,13 @@ namespace iLgs.Services
                                 Amount = orderItem.Amount,
                                 PriceRate = orderItem.PriceRate,
                                 TranType = "I",
-                                Remarks = oig.Remarks,
+                                InvDist = oig.InvDist,
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,
                                 UpdatedDt = date,
-                                Description = oig.Description
+                                Description = oig.Description,
+                                OtherDesc = orderItem.RequestItem.RisItem.OtherDesc
                             };
                             db.PsCardItems.Add(psCardItem);                            
                         }
@@ -431,7 +433,7 @@ namespace iLgs.Services
                 throw new RecordRelationshipException("Items were already issued cannot unpost!");
             }
 
-            if (await db.IcsParItems.AsNoTracking().AnyAsync(a => a.PsCardItem.OrderItemId == entity.OrderId))
+            if (await db.IcsParItems.AsNoTracking().AnyAsync(a => a.PsCardItemExtn.PsCardItem.OrderItemId == entity.OrderId))
             {
                 throw new RecordRelationshipException("PAR/ICS already issued cannot unpost!");
             }
@@ -517,7 +519,7 @@ namespace iLgs.Services
                 {
                     qtyAccepted = db.AIRItems.Where(w => w.OrderItemId == orderItemId).Sum(s => s.Qty);
                 }
-                var psCardItem = await db.PsCardItems.Where(w => w.OrderItemId == orderItemId).FirstOrDefaultAsync();
+                var psCardItem = await db.PsCardItems.Include(i => i.OrderItem.RequestItem.RisItem).Where(w => w.OrderItemId == orderItemId).FirstOrDefaultAsync();
                 if (psCardItem != null)
                 {
                     psCardItem.AirNo = entity.AIRNo;
@@ -526,6 +528,8 @@ namespace iLgs.Services
                     psCardItem.QtyBal = (int)qtyAccepted - psCardItem.QtyIss;
                     psCardItem.UpdatedBy = user;
                     psCardItem.UpdatedDt = date;
+                    psCardItem.Description = psCardItem.OrderItem.RequestItem.RisItem.Description;
+                    psCardItem.OtherDesc = psCardItem.OrderItem.RequestItem.RisItem.OtherDesc;
                     db.PsCardItems.Attach(psCardItem);
                     db.Entry(psCardItem).State = EntityState.Modified;
                     await db.SaveChangesAsync();

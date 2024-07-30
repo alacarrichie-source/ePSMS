@@ -16,7 +16,9 @@ namespace iLgs.Services
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo();
         IQueryable<ParIcsPOGroupVM> GetAllPoCombo(string text);
         IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo);
+        IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, Guid? deptId);
         IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo);
+        IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, Guid? deptId);
         IQueryable<PsCardItemUnitGroupDescription> GetItemSetDescriptionsByUnitGroupId(Guid? unitGroupId);
         IQueryable<ParIcsItemVm> GetItemSetDescriptionItemsByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
 
@@ -101,7 +103,9 @@ namespace iLgs.Services
                     LocCode = s.Codextn1.Code,
                     Location = s.Codextn1.Description,
                     StockNo = s.PsCard.PsNo,
-                    ParBalance = (s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0)) - (s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    ParBalance = (s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0)) -
+                     (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    //(s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
                     OrderItemUnitGroupDescriptionItem = s.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemId)
                 }).AsQueryable();
             //var data = _db.Database.SqlQuery<ParVM>("Exec PARS_GetAll {0}", "").AsQueryable();
@@ -111,126 +115,122 @@ namespace iLgs.Services
 
         public IQueryable<ParIcsPOGroupVM> GetAllPo()
         {
-            var data = _db.PsCardItems.AsNoTracking()
-                .Where(w => w.OrderItem.OrderItemUnitGroupDescriptionItems
-                    .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-                    || w.UnitCost >= _parPrice)
-                .Select(s => new 
-                {
-                    s.PoNo,
-                    s.PoDate,
-                    s.AirDate,
-                    s.AirNo,
-                    s.DeptId,
-                    s.Codextn.Description                                        
-                }).GroupBy(g => new { g.DeptId, g.Description, g.PoNo, g.PoDate, g.AirNo, g.AirDate })
-                .Select(s => new ParIcsPOGroupVM {
-                    Id = Guid.NewGuid(),
-                    PoNo = s.Key.PoNo,
-                    PoDate = s.Key.PoDate,
-                    AirNo = s.Key.AirNo,
-                    AirDate = s.Key.AirDate,
-                    DeptId = s.Key.DeptId,
-                    Department = s.Key.Description
-                })
-                .AsQueryable();
+            //var data = _db.PsCardItems.AsNoTracking()
+            //    .Where(w => w.OrderItem.OrderItemUnitGroupDescriptionItems
+            //        .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
+            //        || w.UnitCost >= _parPrice)
+            //    .Select(s => new 
+            //    {
+            //        s.PoNo,
+            //        s.PoDate,
+            //        s.AirDate,
+            //        s.AirNo,
+            //        s.DeptId,
+            //        s.Codextn.Description                                        
+            //    }).GroupBy(g => new { g.DeptId, g.Description, g.PoNo, g.PoDate, g.AirNo, g.AirDate })
+            //    .Select(s => new ParIcsPOGroupVM {
+            //        Id = Guid.NewGuid(),
+            //        PoNo = s.Key.PoNo,
+            //        PoDate = s.Key.PoDate,
+            //        AirNo = s.Key.AirNo,
+            //        AirDate = s.Key.AirDate,
+            //        DeptId = s.Key.DeptId,
+            //        Department = s.Key.Description
+            //    })
+            //    .AsQueryable();
 
-                    //DeptDisplay = s.DeptDisplay,
-                    //LocCode = s.Codextn1.Code,
-                    //Location = s.Codextn1.Description,
+            var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo").AsQueryable();
+                    
             return data;
         }
 
         public IQueryable<ParIcsPOGroupVM> GetAllPoCombo()
         {
-            var data = _db.PsCardItems.AsNoTracking()
-                .Where(w => (w.OrderItem.OrderItemUnitGroupDescriptionItems
-                    .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-                    || w.UnitCost >= _parPrice))
-                .Select(s => new
-                {
-                    s.PoNo,
-                    s.PoDate,
-                    s.AirDate,
-                    s.AirNo,
-                    s.DeptId,
-                    s.Codextn.Description
-                }).GroupBy(g => new { g.DeptId, g.Description, g.PoNo, g.PoDate, g.AirNo, g.AirDate })
-                .Select(s => new ParIcsPOGroupVM
-                {
-                    Id = Guid.NewGuid(),
-                    PoNo = s.Key.PoNo,
-                    PoDate = s.Key.PoDate,
-                    AirNo = s.Key.AirNo,
-                    AirDate = s.Key.AirDate,
-                    DeptId = s.Key.DeptId,
-                    Department = s.Key.Description
-                })
-                .AsQueryable().Take(100);
+
+            var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPoByText ''").AsQueryable();
 
             return data;
         }
 
         public IQueryable<ParIcsPOGroupVM> GetAllPoCombo(string text)
         {
-            var data = _db.PsCardItems.AsNoTracking()
-                .Where(w => (w.OrderItem.OrderItemUnitGroupDescriptionItems
-                    .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-                    || w.UnitCost >= _parPrice) && (w.PoNo.Contains(text) || w.AirNo.Contains(text) ||  w.Codextn.Description.Contains(text)))
-                .Select(s => new
-                {
-                    s.PoNo,
-                    s.PoDate,
-                    s.AirDate,
-                    s.AirNo,
-                    s.DeptId,
-                    s.Codextn.Description
-                }).GroupBy(g => new { g.DeptId, g.Description, g.PoNo, g.PoDate, g.AirNo, g.AirDate })
-                .Select(s => new ParIcsPOGroupVM
-                {
-                    Id = Guid.NewGuid(),
-                    PoNo = s.Key.PoNo,
-                    PoDate = s.Key.PoDate,
-                    AirNo = s.Key.AirNo,
-                    AirDate = s.Key.AirDate,
-                    DeptId = s.Key.DeptId,
-                    Department = s.Key.Description
-                })
-                .AsQueryable().Take(100);
-           
+            //var data = _db.PsCardItems.AsNoTracking()
+            //    .Where(w => (w.OrderItem.OrderItemUnitGroupDescriptionItems
+            //        .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
+            //        || w.UnitCost >= _parPrice) && (w.PoNo.Contains(text) || w.AirNo.Contains(text) ||  w.Codextn.Description.Contains(text)))
+            //    .Select(s => new
+            //    {
+            //        s.PoNo,
+            //        s.PoDate,
+            //        s.AirDate,
+            //        s.AirNo,
+            //        s.DeptId,
+            //        s.Codextn.Description
+            //    }).GroupBy(g => new { g.DeptId, g.Description, g.PoNo, g.PoDate, g.AirNo, g.AirDate })
+            //    .Select(s => new ParIcsPOGroupVM
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        PoNo = s.Key.PoNo,
+            //        PoDate = s.Key.PoDate,
+            //        AirNo = s.Key.AirNo,
+            //        AirDate = s.Key.AirDate,
+            //        DeptId = s.Key.DeptId,
+            //        Department = s.Key.Description
+            //    })
+            //    .AsQueryable().Take(100);
+            var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPoBytext {0}", text).AsQueryable();                
             return data;
         }
 
         public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo)
         {
-            var data = _db.PsCardItems.AsNoTracking()
-                .Where(w => w.PoNo == poNo &&
-                    !w.OrderItem.OrderItemUnitGroupDescriptionItems
-                    .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-                    && w.UnitCost >= _parPrice)
+            return GetItemsByPoNo(poNo, null);
+        }
+        public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, Guid? deptId)
+        {
+            var data = _db.PsCardItems
+                .Include(i => i.PsCard.ItemCode)
+                //.Include(i => i.IcsParItems)
+                .AsNoTracking()
+                .Where(w => w.DeptId == deptId
+                    && (w.PoNo == (string.IsNullOrEmpty(poNo) ? w.PoNo : poNo))
+                    && !w.OrderItem.OrderItemUnitGroupDescriptionItems
+                        .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
+                    && w.UnitCost >= _parPrice
+                )
                 .Select(s => new ParIcsItemVm
                 {
                     Id = s.Id,                    
-                    Qty = s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0),
+                    Qty = (s.Qty ?? 0) + (s.TransferIn ?? 0) - (s.TransferOut ?? 0),
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
-                    TotalCost = s.Amount,                    
+                    TotalCost = s.Amount,
                     Article = s.PsCard.ItemCode.Description,
                     Description = s.Description,
                     StockNo = s.PsCard.PsNo,
-                    Balance = (s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0)) - (s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),                    
+                    Balance = ((s.Qty ?? 0) + (s.TransferIn ?? 0) - (s.TransferOut ?? 0)) -
+                        (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    //(s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
                     IsForICS = s.IsForICS,
-                    GeneratedItems = s.IcsParItems.Count(),
-                    InsertedDt = s.InsertedDt
+                    GeneratedItems = s.PsCardItemExtns.Count(c => c.IcsParItems.Any()),
+                    InsertedDt = s.InsertedDt,
+                    IsConsumableSetup = s.PsCard.ItemCode.IsConsumable,
+                    IsIncorporatedSetup = s.PsCard.ItemCode.IsIncorporated,
+                    ForDistributionSetup = s.PsCard.ItemCode.ForDistribution
                 }).AsQueryable();
             return data;
         }
-        
+
         public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo)
+        {
+            return GetItemSetsByPoNo(poNo, null);
+        }
+
+        public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, Guid? deptId)
         {
             var data = _db.PsCardItemUnitGroups.AsNoTracking()
                 .Where(w => w.PsCardItemUnitGroupDescriptions.Any(a => a.PsCardItemUnitGroupDescriptionItems
-                    .Any(b => b.PsCardItem.PoNo == poNo))
+                    .Any(b => b.PsCardItem.DeptId == deptId && b.PsCardItem.PoNo == (string.IsNullOrEmpty(poNo) ? b.PsCardItem.PoNo : poNo)))
                 && w.UnitCost >= _parPrice)
                 .Select(s => new ParIcsItemSetVm
                 {
@@ -273,13 +273,15 @@ namespace iLgs.Services
                     Article = s.PsCard.ItemCode.Description,
                     Description = s.Description,
                     StockNo = s.PsCard.PsNo,
-                    Balance = (s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0)) - (s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    Balance = (s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0)) -
+                        (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    //(s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
                     IsForICS = s.IsForICS,
                     IsConsumable = s.IsConsumable,
                     IsIncorporated = s.IsIncorporated,
                     IsOthers = s.IsOthers,
                     OtherRemarks = s.OtherRemarks,
-                    GeneratedItems = s.IcsParItems.Count(),
+                    GeneratedItems = s.PsCardItemExtns.Count(c => c.IcsParItems.Any()),
                     InsertedDt = s.InsertedDt
                 }).AsQueryable();
             return data;
@@ -312,7 +314,9 @@ namespace iLgs.Services
                     LocCode = s.Codextn1.Code,
                     Location = s.Codextn1.Description,
                     StockNo = s.PsCard.PsNo,
-                    ParBalance = (s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0)) - (s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    ParBalance = (s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0)) -
+                        (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    //(s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
                     OrderItemUnitGroupDescriptionItem = s.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemId),
                     IsForICS = s.IsForICS
                 }).FirstOrDefaultAsync();
@@ -349,7 +353,7 @@ namespace iLgs.Services
                 throw new InvalidValueException(string.Format("Cannot generate more than the available balance."));
             }
 
-            var refType = (await _db.IcsParItems.Include(i => i.IcsPar).AsNoTracking().Where(w => w.PsCardItemId == model.PsCardItemId && w.IcsPar.RefType != model.RefType).FirstOrDefaultAsync())?.IcsPar.RefType;
+            var refType = (await _db.IcsParItems.Include(i => i.IcsPar).AsNoTracking().Where(w => w.PsCardItemExtn.PsCardItemId == model.PsCardItemId && w.IcsPar.RefType != model.RefType).FirstOrDefaultAsync())?.IcsPar.RefType;
             if (!string.IsNullOrWhiteSpace(refType))
             {
                 throw new InvalidValueException(string.Format("{0} already exists, cannot add {1} as new reference type.", RefTypeDesc(refType), RefTypeDesc(model.RefType)));
@@ -366,11 +370,22 @@ namespace iLgs.Services
             }
             else
             {
-                acqYear = cardItem.PoDate.Value.Year.ToString();
+                if (cardItem.PoDate != null)
+                {
+                    acqYear = cardItem.PoDate.Value.Year.ToString();
+                }
+                else
+                {
+                    acqYear = model.Date.Year.ToString();
+                }
             }
 
+            var psCardItemExtnList = await _db.PsCardItemExtns.Where(w => w.PsCardItemId == model.PsCardItemId && w.IcsParItems.Count() == 0).ToListAsync();
             // generate par per qty 
-            for (var qty = 0; qty < model.Qty; ++qty)
+            //for (var qty = 0; qty < model.Qty; ++qty)
+
+            // generate per itemextn
+            foreach(var psCardItemExtn in psCardItemExtnList)
             {
                 var refNo = await NextRefNoAsync(model.Date, model.RefType);
                 icsPar = new IcsPar()
@@ -392,20 +407,18 @@ namespace iLgs.Services
                     UpdatedBy = user,
                     UpdatedDt = date
                 };
-                var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
-                var propSplit = propNo.Split('/');
-                var propSeq = propSplit[propSplit.Length - 2];
+
+                //var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
+                //var propSplit = propNo.Split('/');
+                //var propSeq = propSplit[propSplit.Length - 2];
+
                 IcsParItem icsParItem = new IcsParItem()
                 {
                     Id = Guid.NewGuid(),
                     IcsParId = icsPar.Id,
-                    PsCardItemId = model.PsCardItemId,
+                    PsCardItemExtnId = psCardItemExtn.Id,
                     Qty = 1,
-                    Amount = cardItem.UnitCost,
-                    LocationId = model.LocationId,
-                    PropNo = propNo,
-                    PropYear = acqYear,
-                    PropSeq = propSeq,
+                    Amount = cardItem.UnitCost,                    
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
@@ -441,12 +454,12 @@ namespace iLgs.Services
             var data = await _db.IcsPars.Where(w => w.RefType == refType && w.RefDate.Value.Year == parDate.Year).OrderByDescending(o => o.RefNo).FirstOrDefaultAsync();
             if (data == null)
             {
-                return keyName + "-" + "0001";
+                return keyName + "-" + "00001";
             }
             else
             {
                 var sequence = (int.Parse(data.RefNo.Split('-')[2]) + 1).ToString();
-                return keyName + "-" + sequence.PadLeft(4, '0');
+                return keyName + "-" + sequence.PadLeft(5, '0');
             }
         }
 

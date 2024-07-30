@@ -45,6 +45,9 @@ namespace iLgs.Services
                     PsUnit = s.OrderItem.RequestItem.RisItem.Unit,
                     Qty = s.Qty,
                     Remarks = s.Remarks,
+                    AreaSoldDonated = s.AreaSoldDonated,
+                    ConstructionYear = s.ConstructionYear,
+                    InvDist= s.InvDist,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -65,6 +68,9 @@ namespace iLgs.Services
                     PsUnit = s.OrderItem.RequestItem.RisItem.Unit,
                     Qty = s.Qty,
                     Remarks = s.Remarks,
+                    AreaSoldDonated = s.AreaSoldDonated,
+                    ConstructionYear = s.ConstructionYear,
+                    InvDist = s.InvDist,
                     InsertedDt = s.InsertedDt
                 }).FirstOrDefaultAsync();
             return data;
@@ -92,6 +98,9 @@ namespace iLgs.Services
                 OrderItemId = model.OrderItemId,
                 Qty = model.Qty,
                 Remarks = model.Remarks,
+                AreaSoldDonated = model.AreaSoldDonated,
+                ConstructionYear = model.ConstructionYear,
+                InvDist = model.InvDist,
                 InsertedBy = user,
                 InsertedDt = date,
                 UpdatedBy = user,
@@ -151,6 +160,9 @@ namespace iLgs.Services
             entity.OrderItemId = model.OrderItemId;
             entity.Qty = model.Qty;
             entity.Remarks = model.Remarks;
+            entity.AreaSoldDonated = model.AreaSoldDonated;
+            entity.ConstructionYear = model.ConstructionYear;
+            entity.InvDist = model.InvDist;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 

@@ -4,6 +4,7 @@
 }
 <br />
 <fieldset>
+    @Html.Hidden("deptId")
     <div class=" col-md-6">
         <div class="row">
             @Html.Label("PO No", htmlAttributes: new { @class = "col-md-3" })
@@ -13,7 +14,7 @@
                     .Placeholder("Select PO Number")
                     .DataTextField("PoNo")
                     .DataValueField("PoNo")
-                    .ValuePrimitive(true)
+                    .ValuePrimitive(true)                    
                     .Filter(FilterType.Contains)
                     .DataSource(source =>
                     {
@@ -32,7 +33,7 @@
                         c.Add().Field("Department").Title("Department").Width("60%");
                     })
                     .Suggest(true)
-                    .Events(e => { e.Select("onSelectPoNo"); })
+                    .Events(e => e.Select("onSelectPoNo") )
                 )
             </div>
         </div>
@@ -126,23 +127,20 @@
                     })
                     .ToolBar(t =>
                     {
-                    t.Template(@<text>
-            <div style="padding: 10px; font-size: 14px; font-weight: bold;">
-                Individual Item
-            </div>
-            
-                <span id="span_">
-                    @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate PAR").Events(e => e.Click("onClickBtnAddPar")))
-                </span>
-            
-                    </text>);
+                        t.Template(@<text>
+                        <div style = "padding: 10px; font-size: 14px; font-weight: bold;">
+                            Individual Item
+                        </div>
+                        <span id = "span_">
+                           @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate PAR").Events(e => e.Click("onClickBtnAddPar")))
+                        </span>
+                        </text>);
                     })
                     .Sortable()
                     .NoRecords()
                     .DataSource(dataSource => dataSource
                         .Ajax()
-                        .Events(events => events.Error("GridError")
-                        )
+                        .Events(events => events.Error("GridError"))
                         .Model(model =>
                         {
                             model.Id(p => p.Id);
@@ -167,11 +165,11 @@
 
                     ).AutoBind(false)
                     .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .Events(e => e
-        .Change("onChangeGridItems")
-        .Edit("onEditGridItems")
-        .DataBound("onDataBoundGridItems")
-    )
+        .Events(e => e
+            .Change("onChangeGridItems")
+            .Edit("onEditGridItems")
+            .DataBound("onDataBoundGridItems")
+        )
     )
 }
 
@@ -219,7 +217,7 @@
                             a.Add(p => p.TotalCost).Sum();
                         })
                         .Sort(s => s.Add(a => a.InsertedDt))
-                        .Read(read => read.Action("_PoItemSetRead", "ParSet")) // .Data("DataGridItemSet"))
+                        .Read(read => read.Action("_PoItemSetRead", "ParSet").Data("DataGridItemSet"))
                     ).AutoBind(false)
                     .Selectable(s => s.Mode(GridSelectionMode.Single))
                     .Events(e => e
@@ -241,7 +239,8 @@
                         col.Bound(c => c.PropNo).Title("Property No.").Width(70);
                         col.Command(command =>
                         {
-                            command.Edit();
+                            //command.Edit();
+                            command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditParsItem");
                             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridParItems").SendDataKeys(true);
                         }).Width(100);
                     })
@@ -259,7 +258,7 @@
             </div>
                     </text>);
                     })
-                    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ParsTemplate").Window(w => w.Width(800)))
+                    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ParsTemplate").Window(w => w.Width(800)))
                     .Sortable()
                     .NoRecords()
                     .DataSource(dataSource => dataSource
@@ -273,14 +272,14 @@
                         })
                         .Sort(s => { s.Add(a => a.IcsPar.RefNo); s.Add(a => a.PropNo); })
                         .Read(read => read.Action("_ParsRead", "ParSet").Data("DataGridItemPar"))
-                        .Update(update => update.Action("_ParsUpdate", "ParSet"))
+                        //.Update(update => update.Action("_ParsUpdate", "ParSet"))
                         .Destroy(destroy => destroy.Action("_ParsDestroy", "ParSet"))
                     )
                     .AutoBind(false)
                     .Selectable(s => s.Mode(GridSelectionMode.Single))
     //.ToClientTemplate()
     .Events(e => e
-        .Edit("onEditGridItemsPar")
+        //.Edit("onEditGridItemsPar")
         .Change("onChangeGridItemsPar")
         .DataBound("onDataBoundGridItemsPar")
     )
@@ -350,12 +349,12 @@
         .Columns(col =>
         {
             col.Bound(c => c.Qty).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                    //.ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.Unit).Width(50);
             col.Bound(c => c.UnitCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                    //.ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.Article).Width(100);
             col.Bound(c => c.Description).Width(100);
@@ -396,8 +395,6 @@
                 a.Add(p => p.GeneratedItems).Sum();
             })
             .Sort(s => s.Add(a => a.InsertedDt))
-        //.Read(read => read.Action("_PoItemsRead", "IcsSet").Data("DataGridItems"))
-        //.Update(update => update.Action("_PoItemsUpdate", "IcsSet"))
             .Read(read => read.Action("_PoItemSetDescriptionItemRead", "ParSet", new { unitGroupDescriptionId = "#=Id#" }))
             .Update(update => update.Action("_PoItemsUpdate", "ParSet"))
         //.Update(update => update.Action("_PoItemSetDescriptionItemUpdate", "IcsSet"))
@@ -411,48 +408,6 @@
         .ToClientTemplate()
     )
 </script>
-
-<script id="item-set-description-item-template-XX" type="text/x-kendo-template">
-    @(Html.Kendo().Grid<iLgs.Models.PsCardItemUnitGroupDescriptionItem>()
-        .Name("gridItemSetDescriptionItem_#=Id#")
-        .Columns(col =>
-        {
-            col.Bound(c => c.PsCardItem.Qty).Width(50);
-            col.Bound(c => c.PsCardItem.Unit).Width(50);
-            col.Bound(c => c.PsCardItem.PriceRate).Width(50);
-            col.Bound(c => c.PsCardItem.UnitCost).Width(50);
-            col.Bound(c => c.PsCardItem.Amount).Width(50);
-            col.Bound(c => c.PsCardItem.PsCard.ItemCode.Description).Width(50);
-            col.Bound(c => c.PsCardItem.Description).Width(50);
-        })
-        //.ClientDetailTemplateId("item-set-description-template")
-        .Sortable()
-        .NoRecords()
-        .DataSource(dataSource => dataSource
-            .Ajax()
-            .Events(events => events.Error("GridError")
-            )
-            .Model(model =>
-            {
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-            })
-            .Sort(s => s.Add(a => a.InsertedDt))
-            .Read(read => read.Action("_PoItemSetDescriptionItemRead", "ParSet", new { unitGroupDescriptionId = "#=Id#" }))
-        )
-        .Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Events(e => e
-            //.Edit("onEditGridItemSetDescriptionItem")
-            .Change("onChangeGridItemSetDescriptionItem")
-            .DataBound("onDataBoundGridItemSetDescriptionItem")
-        )
-        .ToClientTemplate()
-    )
-</script>
-
-
-
-
 
 @(Html.Kendo().Notification()
         .Name("popupNotification")
@@ -556,14 +511,16 @@
 <script type="text/javascript">
     function onSelectPoNo(e) {
         var dataItem = this.dataItem(e.item.index());
+        if (dataItem) {
+            $("#poDate").val(dataItem.PoDate).trigger("change");
+            $("#airNo").val(dataItem.AirNo).trigger("change");
+            $("#airDate").val(dataItem.AirDate).trigger("change");
+            $("#department").val(dataItem.Department).trigger("change");
+            $("#deptId").val(dataItem.DeptId).trigger("change");
 
-        $("#poDate").val(dataItem.PoDate).trigger("change");
-        $("#airNo").val(dataItem.AirNo).trigger("change");
-        $("#airDate").val(dataItem.AirDate).trigger("change");
-        $("#department").val(dataItem.Department).trigger("change");
-
-        $("#gridItems").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo });
-        $("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo });
+            $("#gridItems").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, deptId: dataItem.DeptId });
+            $("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, deptId: dataItem.DeptId });
+        }
     }
 
 
@@ -1077,39 +1034,40 @@
         }
     }
 
-    function onRequestEndGridParItems(e) {
-        e.preventDefault();
-        if (!e.response.Errors) {
-            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                var grid = $("#grid").data("kendoGrid");
+    //function onRequestEndGridParItems(e) {
+    //    e.preventDefault();
+    //    if (!e.response.Errors) {
+    //        if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+    //            var grid = $("#grid").data("kendoGrid");
 
-                // Trigger a read operation on the data source.
-                grid.dataSource.read().then(function () {
-                    // Additional actions to be performed after the read operation.
+    //            // Trigger a read operation on the data source.
+    //            grid.dataSource.read().then(function () {
+    //                // Additional actions to be performed after the read operation.
 
-                    // Find the row with the specified Id.
-                    var dataItem = grid.dataSource.get(selectedId);
+    //                // Find the row with the specified Id.
+    //                var dataItem = grid.dataSource.get(selectedId);
 
-                    // If the row is found, expand it.
-                    if (dataItem) {
-                        var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
-                        grid.expandRow(row);
-                    }
-                });
-            }
-        }
-    }
+    //                // If the row is found, expand it.
+    //                if (dataItem) {
+    //                    var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
+    //                    grid.expandRow(row);
+    //                }
+    //            });
+    //        }
+    //    }
+    //}
 
     function onRequestEndGridParItems(e) {
         e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 var poNo = $("#poNo").val();
+                var deptId = $("#deptId").val();
                 var grid = $("#gridItems").data("kendoGrid");
                 var gridItemSet = $("#gridItemSet").data("kendoGrid");
 
-                grid.dataSource.read({ poNo: poNo });
-                gridItemSet.dataSource.read({ poNo: poNo });
+                grid.dataSource.read({ poNo: poNo, deptId: deptId });
+                gridItemSet.dataSource.read({ poNo: poNo, deptId: deptId });
             }
         }
     }
@@ -1170,6 +1128,7 @@
         var dataItem = this.dataItem(e.item.index());
 
         $("#LocationCode").val(dataItem.Code).trigger("change");
+        $("#Location").val(dataItem.Description).trigger("change");
     }
     // END GRID PAR ITEMS
 
@@ -1299,7 +1258,8 @@
     // GRID ITEMS
     function DataGridItems() {
         return {
-            poNo: $("#poNo").val()
+            poNo: $("#poNo").val(),
+            deptId: $("#deptId").val()
         }
     }
 
@@ -1309,7 +1269,7 @@
         selectedItemId = selectedData.Id;
         selectedCardItemId = selectedData.Id;
         var parGrid = $("#gridItemsPar").data("kendoGrid");
-        parGrid.dataSource.read({ cardItemId: selectedItemId });
+        parGrid.dataSource.read();
     }
 
     function onDataBoundGridItems(e) {
@@ -1346,7 +1306,8 @@
     function DataGridItemSet()
     {
         return {
-            poNo: $("#poNo").val()
+            poNo: $("#poNo").val(),
+            deptId: $("deptId").val()
         }
     }
 
@@ -1483,18 +1444,18 @@
             selectedItemParId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedItemParId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            RefreshDivs(e.model);
+            RefreshDivs();
         }
     }
 
-    function RefreshDivs(dataItem) {
+    function RefreshDivs() {
         var fieldsContainer = $('#DIV_ALLFIELDS');
 
         fieldsContainer.empty(); // Clear existing content
 
         var url = '@Url.Action("LoadFields", "ParSet")';
         var data = $("#form").serialize();
-
+        
         $.ajax({
             url: url,
             type: 'POST',
@@ -1533,6 +1494,58 @@
             grid.dataSource.remove(dataItem);
             grid.dataSource.sync();
         }
+    }
+
+    function onClickBtnEditParsItem(e) {
+        e.preventDefault();        
+        // the current row for this detail
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        ParItem(dataItem.Id);
+    }
+
+    function ParItem(recId) {
+        var myTitle = "PAR Item - EDIT";
+        var width = 800;
+        var height = 650;
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    close: function () {
+                        $("#gridItemsPar").data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    },                    
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width            
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_ParItemEdit", "ParSet")',
+            data: {
+                parItemId: recId
+            },
+            complete: function () {
+                RefreshDivs();
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        mywindow.open();        
     }
     // END GRID ITEM PAR
 </script>

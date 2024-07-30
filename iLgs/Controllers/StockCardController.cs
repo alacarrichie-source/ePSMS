@@ -255,9 +255,14 @@ namespace iLgs.Controllers
             return Json(new { Description = description, StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult _StockCardItem(Guid cardId)
-        {
+        public ActionResult _StockCardItem(Guid cardId, string category)
+        {                        
+            ViewBag.FieldSw = _psCardService.GetFieldSw(category);
+
+            ViewData["partialView"] = _psCardService.GetItemFieldsPartialView(category);
             ViewData["cardId"] = cardId;
+            ViewData["category"] = category;            
+
             return PartialView();
         }
 
@@ -585,9 +590,18 @@ namespace iLgs.Controllers
                 {
                     partialView = "_FieldLand";
                 }
-                else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
-                    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
+                else if (c == CatMachineries() 
+                    || c == CatTransportations() 
+                    || c == CatFurnitures() 
+                    || c == CatOtherProperties()
+                    || c == CatMedicals() 
+                    || c == CatAgriculturals() 
+                    || c == CatAnimalSupplies() 
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies() 
+                    || c == CatAccountableForms() 
+                    || c == CatNonAccountableForns() 
+                    || c == CatMilitaries()
                     || c == CatOtherSupplies())
                 {
                     partialView = "_FieldBrand";
@@ -603,7 +617,52 @@ namespace iLgs.Controllers
             }
             return PartialView(partialView, model);
         }
-        
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadItemFields([System.Web.Http.FromBody] PsCardItemVM model)
+        {
+            var psCard = await _psCardService.GetByIdAsync((Guid)model.PsCardId);
+            if (model.Id != Guid.Empty)
+            {
+                var data = await _psCardItemService.GetByIdAsync(model.Id);
+                model = _psCardItemService.TransferItemField(data, model);
+
+            }
+            string partialView = "";
+            if (Enum.TryParse(psCard.ItemCode.ItemType.Code, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    partialView = "_ItemFieldLand";
+                }
+                else if (c == CatMachineries()
+                    || c == CatTransportations()
+                    || c == CatFurnitures()
+                    || c == CatOtherProperties()
+                    || c == CatMedicals()
+                    || c == CatAgriculturals()
+                    || c == CatAnimalSupplies()
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies()
+                    || c == CatAccountableForms()
+                    || c == CatNonAccountableForns()
+                    || c == CatMilitaries()
+                    || c == CatOtherSupplies())
+                {
+                    partialView = "_ItemFieldBrand";
+                }
+                else if (c == CatDrugs())
+                {
+                    partialView = "_ItemFieldDrugs";
+                }
+                else if (c == CatRepairs())
+                {
+                    partialView = "_ItemFieldSerial";
+                }
+            }
+            return PartialView(partialView, model);
+        }
+
 
         #region PRINTOUTS
         public ActionResult StockCardRpt(string stockNo)

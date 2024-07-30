@@ -10,7 +10,7 @@
             <ul class="errors"></ul>
         </div>
     </div>
-    
+
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.AirId)
 
@@ -75,36 +75,44 @@
             @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                    //.Events(e => e.Change("changeAmount"))
+                //.Events(e => e.Change("changeAmount"))
                 )
                 @Html.ValidationMessageFor(model => model.Qty)
             </div>
         </div>
-        
+
         <div class="row">
-            @Html.LabelFor(m => m.Remarks, htmlAttributes: new { @class = "col-md-12" })
+            @Html.LabelFor(m => m.InvDist, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
-                @(Html.Kendo().MultiColumnComboBoxFor(m => m.Remarks)
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.InvDist)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Remarks")
                             .DataTextField("Description")
-                            .DataValueField("Description")
+                            .DataValueField("Code")
                             .ValuePrimitive(true)
                             .Filter(FilterType.Contains)
                             .DataSource(source =>
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "PS-REMARKS", addAll = false });
+                                    read.Action("GetinvDistList", "Getters");
                                 })
                                 .ServerFiltering(true);
                             })
                             .Columns(c =>
-                            {                                
+                            {
                                 c.Add().Field("Description").Title("Description").Width("100%");
                             })
                             .Suggest(true)
                 )
+                @Html.ValidationMessageFor(m => m.InvDist)
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.LabelFor(m => m.Remarks, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @(Html.Kendo().TextBoxFor(m => m.Remarks).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.Remarks)
             </div>
         </div>

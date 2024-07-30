@@ -14,6 +14,7 @@
     //@Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardItemId)
     @Html.HiddenFor(model => model.RefType)
+    @Html.HiddenFor(model => model.Location)
 
     <fieldset>
         <div class="row">
@@ -181,7 +182,7 @@
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("GeneratePAR", "Pars")',
+                url: '@Url.Action("GeneratePar", "ParSet")',
                 data: $("#form").serialize(),
                 async: true,
                 beforeSend: function () {

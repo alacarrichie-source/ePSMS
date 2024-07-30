@@ -19,7 +19,7 @@ using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("PARS")]
+    [AppAuthorize("PARSET")]
     public class ParSetController : BaseController
     {
         private AppManEntities db = new AppManEntities();
@@ -151,9 +151,9 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo)
+        public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, Guid? deptId)
         {
-            var data = _parService.GetItemsByPoNo(poNo);
+            var data = _parService.GetItemsByPoNo(poNo, deptId);
 
             var result = new JsonNetResult
             {
@@ -200,9 +200,9 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public ActionResult _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo)
+        public ActionResult _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo, Guid? deptId)
         {
-            var data = _parService.GetItemSetsByPoNo(poNo);
+            var data = _parService.GetItemSetsByPoNo(poNo, deptId);
 
             var result = new JsonNetResult
             {
@@ -261,6 +261,52 @@ namespace iLgs.Controllers
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
             return result;
+        }
+
+        public async Task<ActionResult> _ParItemEdit(Guid? parItemId)
+        {
+            var data = await _parService.IcsParItem.GetByIdAsync(parItemId);
+            
+            return PartialView(data);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ParItemSave(IcsParItem model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("Access", "Update Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _parService.IcsParItem.UpdateAsync(model, user, date);                    
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -451,14 +497,21 @@ namespace iLgs.Controllers
         #region Item Fields
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] IcsParItem model)
-        {            
+        {
+            var data = await _parService.IcsParItem.GetByIdAsync(model.Id);
+            data.IcsPar = model.IcsPar;
+
             string partialView = "";
-            var category = await _parService.PsCardItem.GetCategoryAsync(model.PsCardItemId);
+            var category = await _parService.PsCardItem.GetCategoryAsync(model.PsCardItemExtn.PsCardItemId);
             if (Enum.TryParse(category, out Category c))
             {
                 if (c == CatLands())
                 {
                     partialView = "_FieldLand";
+                }
+                else if (c == CatTransportations())
+                {
+                    partialView = "_FieldTransportation";
                 }
                 //else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
                 //    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
@@ -476,7 +529,7 @@ namespace iLgs.Controllers
                 //    partialView = "_FieldSerial";
                 //}
             }
-            return PartialView(partialView, model);
+            return PartialView(partialView, data);
         }
         #endregion
     }

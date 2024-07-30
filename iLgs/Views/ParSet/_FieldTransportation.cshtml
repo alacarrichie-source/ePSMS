@@ -1,0 +1,62 @@
+﻿@model iLgs.Models.IcsParItem
+
+<div class="row">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.YearModel, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.YearModel).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.YearModel)
+        </div>
+    </div>
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.NetWeight, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.NetWeight).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.NetWeight)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.ConductionSticker, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.ConductionSticker).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.ConductionSticker)
+        </div>
+    </div>
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.PlateNo, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.PlateNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.PlateNo)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.BodyNo, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.BodyNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.BodyNo)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.CRNDate, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().DatePickerFor(m => m.CRNDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.CRNDate)
+        </div>
+    </div>
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.CRN, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.CRN).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.CRN)
+        </div>
+    </div>
+</div>

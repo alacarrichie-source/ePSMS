@@ -17,7 +17,7 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public PsCardItem()
         {
-            this.IcsParItems = new HashSet<IcsParItem>();
+            this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
             this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
             this.PsCardItemUnitGroupDescriptionItems = new HashSet<PsCardItemUnitGroupDescriptionItem>();
         }
@@ -46,17 +46,22 @@ namespace iLgs.Models
         public Nullable<System.Guid> LocationId { get; set; }
         public string DeptDisplay { get; set; }
         public string Description { get; set; }
+        public string OtherDesc { get; set; }
         public Nullable<bool> IsForICS { get; set; }
         public Nullable<bool> IsConsumable { get; set; }
         public Nullable<bool> IsIncorporated { get; set; }
         public Nullable<bool> IsOthers { get; set; }
         public string OtherRemarks { get; set; }
+        public string Type { get; set; }
         public string InvDist { get; set; }
         public string AcqMode { get; set; }
         public Nullable<System.DateTime> AcqDate { get; set; }
         public Nullable<decimal> AreaSoldDonated { get; set; }
         public Nullable<int> ConstructionYear { get; set; }
         public string Vendor { get; set; }
+        public Nullable<decimal> OldAmount { get; set; }
+        public Nullable<int> PhaseNo { get; set; }
+        public Nullable<decimal> PhaseAmount { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
@@ -64,9 +69,9 @@ namespace iLgs.Models
     
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<IcsParItem> IcsParItems { get; set; }
         public virtual OrderItem OrderItem { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual PsCard PsCard { get; set; }

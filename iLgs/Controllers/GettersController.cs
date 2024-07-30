@@ -176,6 +176,20 @@ namespace iLgs.Controllers
             return Json(retModel, JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetInvDistList(string text)
+        {
+
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS").OrderByDescending(o => o.Desc2).AsQueryable();
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
+            }
+
+            var retModel = model.Select(c => new GetCodeListVM { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }).ToList();            
+
+            return Json(retModel, JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetSupplier(string text)
         {
 

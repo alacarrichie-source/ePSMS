@@ -325,6 +325,21 @@
     <Compile Include="Models\PsCardItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PsCardItemExtn.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemExtnBuilding.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemExtnLand.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemExtnOther.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemExtnTransport.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PsCardItemIssuance.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -462,6 +477,7 @@
     <Compile Include="Services\PropertyCardVehicleService.cs" />
     <Compile Include="Services\PropertyItemService.cs" />
     <Compile Include="Services\PropertyService.cs" />
+    <Compile Include="Services\PsCardItemExtnService.cs" />
     <Compile Include="Services\PsCardItemIssuanceService.cs" />
     <Compile Include="Services\PsCardItemService.cs" />
     <Compile Include="Services\PsCardService.cs" />
@@ -3709,7 +3725,7 @@
     <Content Include="Views\ParSet\_PoItems.cshtml" />
     <Content Include="Views\ParSet\EditorTemplates\_IsForICSTemplate.cshtml" />
     <Content Include="Views\ParSet\_GeneratePar.cshtml" />
-    <Content Include="Views\ParSet\EditorTemplates\_ParsTemplate.cshtml" />
+    <Content Include="Views\ParSet\_ParItemEdit.cshtml" />
     <Content Include="Views\IcsSet\Index.cshtml" />
     <Content Include="Views\IcsSet\_GenerateIcs.cshtml" />
     <Content Include="Views\IcsSet\EditorTemplates\_IcsTemplate.cshtml" />
@@ -3718,6 +3734,12 @@
     <Content Include="Views\IcsSet\EditorTemplates\_IsOthersTemplate.cshtml" />
     <Content Include="Views\IcsSet\_GenerateIcsBatch.cshtml" />
     <Content Include="Views\ParSet\_FieldLand.cshtml" />
+    <Content Include="Views\StockCard\_ItemFieldLand.cshtml" />
+    <Content Include="Views\StockCard\_ItemFieldDrugs.cshtml" />
+    <Content Include="Views\StockCard\_ItemFieldBrand.cshtml" />
+    <Content Include="Views\StockCard\_ItemFieldSerial.cshtml" />
+    <Content Include="Views\ParSet\_FieldTransportation.cshtml" />
+    <Content Include="Views\IcsSet\EditorTemplates\_ItemTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3828,7 +3850,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

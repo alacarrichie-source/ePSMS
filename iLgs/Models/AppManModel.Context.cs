@@ -81,14 +81,19 @@ namespace iLgs.Models
         public virtual DbSet<PsCard> PsCards { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
-        public virtual DbSet<IcsPar> IcsPars { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<PsCardItemUnitGroup> PsCardItemUnitGroups { get; set; }
-        public virtual DbSet<IcsParItem> IcsParItems { get; set; }
-        public virtual DbSet<AllField> AllFields { get; set; }
         public virtual DbSet<AIRItem> AIRItems { get; set; }
+        public virtual DbSet<AllField> AllFields { get; set; }
+        public virtual DbSet<PsCardItemExtnLand> PsCardItemExtnLands { get; set; }
+        public virtual DbSet<PsCardItemExtnOther> PsCardItemExtnOthers { get; set; }
+        public virtual DbSet<PsCardItemExtnTransport> PsCardItemExtnTransports { get; set; }
+        public virtual DbSet<IcsParItem> IcsParItems { get; set; }
+        public virtual DbSet<IcsPar> IcsPars { get; set; }
+        public virtual DbSet<PsCardItemExtnBuilding> PsCardItemExtnBuildings { get; set; }
+        public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
     }
 }

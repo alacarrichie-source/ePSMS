@@ -116,6 +116,14 @@ namespace iLgs.Models
         public string GridOrderItemExtns { get; set; }
         public string Mode { get; set; }
         public string PsType { get; set; }
+
+        [Display(Name = "Area Sold/Donated")]
+
+        public Nullable<decimal> AreaSoldDonated { get; set; }
+
+        [Display(Name = "Construction Year")]
+        public Nullable<int> ConstructionYear { get; set; }
+        public string InvDist { get; set; }
     }
 
     public class AIRInvoiceVM

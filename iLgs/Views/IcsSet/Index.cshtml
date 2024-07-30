@@ -4,6 +4,7 @@
 }
 <br />
 <fieldset>
+    @Html.Hidden("deptId")
     <div class=" col-md-6">
         <div class="row">
             @Html.Label("PO No", htmlAttributes: new { @class = "col-md-3" })
@@ -117,6 +118,15 @@
                                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
                         col.Bound(c => c.Article).Width(100);
                         col.Bound(c => c.Description).Width(100);
+                        //col.Group(group => group.Title("item Setup")
+                        //    .Columns(info =>
+                        //    {
+                        //        info.Bound(f => f.IsConsumableSetup).Width(70).Title("Consumable");
+                        //        info.Bound(f => f.IsIncorporatedSetup).Width(70).Title("Incorporated");
+                        //        info.Bound(f => f.ForDistributionSetup).Width(40).Title("For Distribution");
+                        //    }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                        //);
+                        //col.Bound(c => c.InvDist).Width(70).Title("Inventory/For Dstribution");
                         col.Group(group => group.Title("No ICS")
                             .Columns(info =>
                             {
@@ -141,6 +151,7 @@
                             command.Edit();
                         }).Width(100);
                     })
+                    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ItemTemplate").Window(w => w.Width(800).Title("Item Details")))
                     //.ClientDetailTemplateId("GeneratedItems")
                     .ToolBar(t =>
                     {
@@ -254,7 +265,7 @@
                         {
                             col.Bound(c => c.IcsPar.RefNo).Title("ICS No.").Width(70);
                             col.Bound(c => c.IcsPar.RefDate).Title("ICS Date").Width(70).Format("{0:MM/dd/yyyy}");
-                            col.Bound(c => c.PropNo).Title("Property No.").Width(70);
+                            col.Bound(c => c.PsCardItemExtn.PropNo).Title("Property No.").Width(70);
                             col.Command(command =>
                             {
                                 command.Edit();
@@ -287,7 +298,7 @@
                                 model.Id(p => p.Id);
                                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
                             })
-                            .Sort(s => { s.Add(a => a.IcsPar.RefNo); s.Add(a => a.PropNo); })
+                            .Sort(s => { s.Add(a => a.IcsPar.RefNo); s.Add(a => a.PsCardItemExtn.PropNo); })
                             .Read(read => read.Action("_IcsRead", "IcsSet").Data("DataGridItemPar"))
                             //.Read(read => read.Action("_IcsRead", "IcsSet", new { cardItemId = "#=Id#" }))
                             .Update(update => update.Action("_IcsUpdate", "IcsSet"))
@@ -375,6 +386,15 @@
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.Article).Width(100);
             col.Bound(c => c.Description).Width(100);
+            //col.Group(group => group.Title("item Setup")
+            //    .Columns(info =>
+            //    {
+            //        info.Bound(f => f.IsConsumableSetup).Width(70).Title("Consumable");
+            //        info.Bound(f => f.IsIncorporatedSetup).Width(70).Title("Incorporated");
+            //        info.Bound(f => f.ForDistributionSetup).Width(40).Title("For Distribution");
+            //    }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            //);
+            //col.Bound(c => c.InvDist).Width(70).Title("Inventory/For Dstribution");
             col.Group(group => group.Title("No ICS")
                 .Columns(info =>
                 {
@@ -596,6 +616,7 @@
         $("#poDate").val(dataItem.PoDate).trigger("change");
         $("#airNo").val(dataItem.AirNo).trigger("change");
         $("#airDate").val(dataItem.AirDate).trigger("change");
+        $("#deptId").val(dataItem.DeptId).trigger("change");
         $("#department").val(dataItem.Department).trigger("change");
 
         $("#gridItems").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo });
@@ -1294,7 +1315,8 @@
         mywindow.refresh({
             url: '@Url.Action("_GenerateIcsBatch", "IcsSet")',
             data: {
-                poNo: $("#poNo").val()
+                poNo: $("#poNo").val(),
+                deptId: $("#deptId").val()
             },
             // Specify a callback function to execute after content is loaded
             complete: function () {

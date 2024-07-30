@@ -18,12 +18,15 @@ namespace iLgs.Services
         ValueTask<PsCardVM> GetVmByIdAsync(Guid? id);
         ValueTask<PsCard> GetByIdAsync(Guid id);
         ValueTask<PsCard> GetByPsNoAsync(string psNo);
+        FieldSw GetFieldSw(string category);
+        string GetItemFieldsPartialView(string category);
         ValueTask<bool> GetAnyPsNoAsync(Guid id, string psNo);
+        string GetDescription(PsCardVM model);
+        string GetStockNo(PsCardVM model);
+
         ValueTask<PsCardVM> CreateAsync(PsCardVM model, string user, DateTime date);
         ValueTask<PsCardVM> UpdateAsync(PsCardVM model, string user, DateTime date);
-        ValueTask<PsCardVM> DeleteAsync(PsCardVM model, string user, DateTime date);
-        string GetDescription(PsCardVM model);        
-        string GetStockNo(PsCardVM model);        
+        ValueTask<PsCardVM> DeleteAsync(PsCardVM model, string user, DateTime date);        
 
         //string GetRisDescription(RisItemEntryVM model);
         //string GetRisStockNo(RisItemEntryVM model);
@@ -194,6 +197,63 @@ namespace iLgs.Services
         {
             return await _db.PsCards.Where(w => w.PsNo == psNo).FirstOrDefaultAsync();
         });
+
+        public FieldSw GetFieldSw(string category)
+        {
+            var fieldSw = new FieldSw();
+            if (Enum.TryParse(category, out Category c))
+            {
+                fieldSw.InvDist = (c == CatDrugs() || c == CatMedicals() || c == CatAgriculturals());
+                fieldSw.AcqDate = (c == CatLands() || c == CatLandImprovements() || c == CatInfrastructures() || c == CatBuildings() ||
+                    c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties());
+                fieldSw.AcqYear = (c == CatConstructionInProgress());
+                fieldSw.PhaseNo = (c == CatLands() || c == CatInfrastructures() || c == CatBuildings() || c == CatConstructionInProgress());
+                fieldSw.CapitalOutlay = (c == CatLands() || c == CatLandImprovements() || c == CatInfrastructures() || c == CatBuildings() ||
+                    c == CatConstructionInProgress());
+                fieldSw.Type = (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties() ||
+                    c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials() ||
+                    c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries() ||
+                    c == CatRepairs() || c == CatOtherSupplies());
+            }
+            return fieldSw;
+        }
+
+        public string GetItemFieldsPartialView(string category)
+        {
+            string partialView = "";
+            if (Enum.TryParse(category, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    partialView = "_ItemFieldLand";
+                }
+                else if (c == CatMachineries()
+                    || c == CatTransportations()
+                    || c == CatFurnitures()
+                    || c == CatOtherProperties()
+                    || c == CatMedicals()
+                    || c == CatAgriculturals()
+                    || c == CatAnimalSupplies()
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies()
+                    || c == CatAccountableForms()
+                    || c == CatNonAccountableForns()
+                    || c == CatMilitaries()
+                    || c == CatOtherSupplies())
+                {
+                    partialView = "_ItemFieldBrand";
+                }
+                else if (c == CatDrugs())
+                {
+                    partialView = "_ItemFieldDrugs";
+                }
+                else if (c == CatRepairs())
+                {
+                    partialView = "_ItemFieldSerial";
+                }
+            }
+            return partialView;
+        }
 
         private void ValidateField(PsCardVM model)
         {

@@ -93,7 +93,7 @@
         {
             items.Add().Text("Items")
             .Selected(true)
-            .LoadContentFrom("_StockCardItem", "StockCard", new { cardId = "#=Id#" });
+            .LoadContentFrom("_StockCardItem", "StockCard", new { cardId = "#=Id#", category = "#=ItemTypeCode#" });
         })
        .ToClientTemplate()
     )
@@ -879,7 +879,7 @@
         //    $("#" + divId).hide();
         //}
 
-        //$("#DIV_ITEM_" + itemType).show();        
+        //$("#DIV_ITEM_" + itemType).show();
     }
 
     function onDataBoundItemCode(e) {
@@ -1014,8 +1014,36 @@
             // Selecting the row in the subgrid using e.model
             var row = e.sender.tbody.find("tr[data-uid='" + e.model.uid + "']");
             e.sender.select(row);
-        }
+        }        
     }
+
+    function onSaveGridItems(e) {
+        var container = e.container;
+        console.log(e.container);
+        var fieldsContainer = $('#DIV_ITEMFIELDS');
+
+        kendo.unbind(fieldsContainer); // Unbind the fields
+        kendo.bind(fieldsContainer, e.model); // Re-bind the fields to update the model        
+    }
+
+    @*function RefreshItemDivs() {
+        var fieldsContainer = $('#DIV_ITEMFIELDS');
+
+        fieldsContainer.empty(); // Clear existing content
+
+        var url = '@Url.Action("LoadItemFields", "StockCard")';
+        var data = $("#form").serialize();
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: data,
+            success: function(data) {
+                fieldsContainer.html(data);
+                resizeWindow();
+            }
+        });
+    }*@
 
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
@@ -1316,11 +1344,16 @@
         var qtyIss = $("#QtyIss").data("kendoNumericTextBox").value();
         var transferIn = $("#TransferIn").data("kendoNumericTextBox").value();
         var transferOut = $("#TransferOut").data("kendoNumericTextBox").value();
+        var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();
 
         var balance = (qty + transferIn) - (qtyIss + transferOut);
+        var amount = (qty + transferIn) * unitCost;
 
         $("#QtyBal").data("kendoNumericTextBox").value(balance);
         $("#QtyBal").data("kendoNumericTextBox").trigger("change");
+
+        $("#Amount").data("kendoNumericTextBox").value(amount);
+        $("#Amount").data("kendoNumericTextBox").trigger("change");
     }
 
     function onSelectDeptId(e) {
@@ -1344,6 +1377,25 @@
         //if (opt2 == true) {
         //    $("#OptDept").addClass("hidden");
         //}
+    }
+
+    function RefreshItemDivs() {
+        var fieldsContainer = $('#DIV_ITEMFIELDS');
+
+        fieldsContainer.empty(); // Clear existing content
+
+        var url = '@Url.Action("LoadItemFields", "StockCard")';
+        var data = $("#form").serialize();
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: data,
+            success: function(data) {
+                fieldsContainer.html(data);
+                resizeWindow();
+            }
+        });
     }
     // END CARD ITEM TEMPLATE
 

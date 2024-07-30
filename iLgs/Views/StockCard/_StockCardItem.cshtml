@@ -48,7 +48,7 @@
                         });
                     });
                 });
-            });            
+            });
             columns.Group(group => group.Title("Released Quantity")
                 .Columns(info =>
                 {
@@ -72,6 +72,7 @@
             columns.Command(commands =>
             {
                 commands.Edit();
+                //commands.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
                 commands.Destroy();
             }).Width(120);
         })
@@ -79,14 +80,13 @@
         {
             t.Create();
         })
-        //.Editable(editable => editable.Mode(GridEditMode.InLine))
         @*.ToolBar(toolbar =>
-            {
-                toolbar.Template(@<text>
-                    @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["cardId"]).Content("Add Order Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddItem")))
+        {
+            toolbar.Template(@<text>
+                    @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["cardId"]).Content("Add New Record").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddItem")))
                 </text>);
-            })*@
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemTemplate").Window(w => w.Width(800).Title("Stock Card Item")))
+        })*@
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemTemplate").Window(w => w.Width(1000).Title("Stock Card Item")))
         .Selectable()
         .Navigatable()
         .NoRecords()
@@ -117,8 +117,11 @@
             .Update("ItemUpdate", "StockCard")
             .Destroy("ItemDestroy", "StockCard")
         )
-        .Events(e => e.Edit("onEditGridItems").Change("onChangeGridItems").DataBound("onDataBoundGridItems")
+        .Events(e => e
+            .Edit("onEditGridItems")
+            .Change("onChangeGridItems").DataBound("onDataBoundGridItems")
             .Remove("onRemoveGridItems")
+        //.Save("onSaveGridItems")
         //.DetailExpand("onExpandGridItems")
         )
 )

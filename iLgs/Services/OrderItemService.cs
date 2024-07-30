@@ -153,7 +153,7 @@ namespace iLgs.Services
             };
 
             entity = SetItemEntity(entity, model);
-            model.PsNo = requestItem.RisItem.ItemCode.Code  + _allFieldService.GetStockNo(entity.RequestItem.RisItem.AllField, model.PsType);
+            model.PsNo = requestItem.RisItem.ItemCode.Code  + _allFieldService.GetStockNo(entity.RequestItem.RisItem.AllField, model.PsType, model.ItemCode);
             entity.StockNo = model.PsNo;
 
             _db.OrderItems.Add(entity);
@@ -326,7 +326,7 @@ namespace iLgs.Services
             entity.UpdatedDt = model.UpdatedDt;
 
             entity = SetItemEntity(entity, model);
-            model.PsNo = entity.RequestItem.RisItem.ItemCode.Code + _allFieldService.GetStockNo(entity.RequestItem.RisItem.AllField, model.PsType);
+            model.PsNo = entity.RequestItem.RisItem.ItemCode.Code + _allFieldService.GetStockNo(entity.RequestItem.RisItem.AllField, model.PsType, model.ItemCode);
             entity.StockNo = model.PsNo;
 
 

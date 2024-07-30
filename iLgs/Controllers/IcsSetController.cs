@@ -18,7 +18,7 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("ICS")]
+    [AppAuthorize("ICSSET")]
     public class IcsSetController : BaseController
     {
         private AppManEntities db = new AppManEntities();
@@ -431,14 +431,15 @@ namespace iLgs.Controllers
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult _GenerateIcsBatch(string poNo)
+        public ActionResult _GenerateIcsBatch(string poNo, Guid? deptId)
         {
             var model = new GenerateIcsParVM()
             {
                 PoNo = poNo,
                 Date = DateTime.Now,
                 RefType = "I",
-                IcsPar = new IcsPar()
+                IcsPar = new IcsPar(),
+                DeptId = deptId
             };
 
             return PartialView(model);

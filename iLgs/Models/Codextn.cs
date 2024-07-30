@@ -22,7 +22,7 @@ namespace iLgs.Models
             this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
             this.RPCIItems = new HashSet<RPCIItem>();
             this.RPCIs = new HashSet<RPCI>();
-            this.IcsParItems = new HashSet<IcsParItem>();
+            this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
             this.PsCardItems = new HashSet<PsCardItem>();
             this.PsCardItems1 = new HashSet<PsCardItem>();
         }
@@ -52,7 +52,7 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCI> RPCIs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<IcsParItem> IcsParItems { get; set; }
+        public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItem> PsCardItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

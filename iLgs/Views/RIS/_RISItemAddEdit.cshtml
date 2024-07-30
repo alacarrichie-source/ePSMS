@@ -23,8 +23,8 @@
     <fieldset>
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.ItemCodeId, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.ItemCodeId, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select Item")
@@ -57,8 +57,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.SubAccount, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.SubAccount, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.SubAccount).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
@@ -66,8 +66,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.PsTypeDesc, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.PsTypeDesc, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.PsTypeDesc).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                    
                 </div>
             </div>
@@ -80,8 +80,8 @@
         
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Description)
                 </div>
@@ -91,8 +91,8 @@
         <br />
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.OtherDesc, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.OtherDesc, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(3).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.OtherDesc)
                 </div>
@@ -100,9 +100,9 @@
         </div>
 
         <div class="row">
-            <div class="col-md-4">
-                @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-6">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.Unit)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select unit")
@@ -127,18 +127,24 @@
                     )
                     @Html.ValidationMessageFor(m => m.Unit)
                 </div>
-            </div>
-            <div class="col-md-4">
-                @Html.LabelFor(model => model.QtyRequest, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(model => model.QtyRequest).Decimals(0).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            </div>            
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.QtyRequest, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-6">
+                    @(Html.Kendo().NumericTextBoxFor(model => model.QtyRequest).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.QtyRequest)
                 </div>
-            </div>
-            <div class="col-md-4">
-                @Html.LabelFor(model => model.QtyIssue, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(model => model.QtyIssue).Decimals(0).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            </div>            
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.QtyIssue, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-6">
+                    @(Html.Kendo().NumericTextBoxFor(model => model.QtyIssue).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.QtyIssue)
                 </div>
             </div>
@@ -146,8 +152,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.Remarks, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.Remarks, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.Remarks).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>

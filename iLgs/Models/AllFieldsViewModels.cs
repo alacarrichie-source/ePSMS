@@ -77,8 +77,23 @@ namespace iLgs.Models
             public Nullable<decimal> PricePerSqm { get; set; }            
 
             [Display(Name = "Vendor/Donor")]
-            public string VendorDonor { get; set; }                       
-                        
+            public string VendorDonor { get; set; }
+
+            [Display(Name = "Serial No.")]
+            public string SerialNo { get; set; }
+
+            [Display(Name = "Property No.")]
+            public string PropNo { get; set; }
+
+            [Display(Name = "Plate No.")]
+            public string PlateNo { get; set; }
+
+            [Display(Name = "Body No.")]
+            public string BodyNo { get; set; }
+
+            [Display(Name = "MV File No.")]
+            public string MVFileNo { get; set; }
+
             public string InsertedBy { get; set; }
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }

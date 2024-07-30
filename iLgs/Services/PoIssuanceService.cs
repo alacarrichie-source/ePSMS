@@ -39,6 +39,8 @@ namespace iLgs.Services.Interfaces
         {
             var IsAdmin = await _userService.IsAdmin(userId);
             var data = _db.PsCardItems.AsNoTracking()
+                .Include(i => i.Codextn)
+                .Include(i => i.Codextn1)
                 .Where(w => (IsAdmin || _db.Codextns.Any(x => x.CodeMast.Code == "DEPARTMENTS" && x.Id == w.DeptId
                     && x.DepartmentUsers.Any(a => a.UserId == userId)))
                 ).Select(s => new PsCardItemVM
@@ -65,39 +67,23 @@ namespace iLgs.Services.Interfaces
                     InsertedDt = s.InsertedDt,
                     DeptId = s.DeptId,
                     LocationId = s.LocationId,
-                    Department = s.Codextn.Description,
+                    //Department = s.Codextn.Description,
                     Article = s.PsCard.ItemCode.Description,
                     Description = s.Description,
                     DeptDisplay = s.DeptDisplay,
-                    LocCode = s.Codextn1.Code,
-                    Location = s.Codextn1.Description,
+                    //LocCode = s.Codextn1.Code,
+                    //Location = s.Codextn1.Description,
                     StockNo = s.PsCard.PsNo,
-                    ParBalance = s.QtyBal - (s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
-                    IcsBalance = s.QtyBal - (s.IcsParItems.Where(w => w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
-                    RemBalance = s.QtyBal
-                    //Id = s.Id,
-                    //PoNo = s.PoNo,
-                    //PoDate = s.PoDate,
-                    //OrderItemId = s.OrderItemId,
-                    //AirNo = s.AirNo,
-                    //AirDate = s.AirDate,
-                    //Department = s.Codextn.Description,
-                    //PrNo = s.OrderItem.RequestItem.Request.PrNo,
-                    //RisNo = s.OrderItem.RequestItem.RisItem.RISs.RisNo,
-                    //Qty = s.Qty,
-                    //QtyIss = s.QtyIss,
-                    //TransferIn = s.TransferIn,
-                    //TransferOut = s.TransferOut,
-                    //Balance = s.QtyBal,
-                    //UnitCost = s.UnitCost,
-                    //Unit = s.Unit,
-                    //StockNo = s.PsCard.PsNo,
-                    //ItemName = s.PsCard.ItemCode.Description,                    
-                    //Description = s.Description,
-                    //IsWithPar = s.UnitCost >= _parPrice,
-                    //IsWithIcs = s.UnitCost < _parPrice,
-                    //ParBalance = s.Qty - (s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
-                    //IcsBalance = s.Qty - (s.IcsParItems.Where(w => w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0)
+                    ParBalance = s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    //(s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    IcsBalance = s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                    //(s.IcsParItems.Where(w => w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                    RemBalance = s.QtyBal,
+                    Department = s.Codextn.Description,
+                    Location = s.Codextn1.Description,
+                    LocCode = s.Codextn1.Code
+                    //_Deparment = s.Codextn,
+                    //_Location = s.Codextn1
                 }).AsQueryable();           
             return data;
         }
@@ -105,6 +91,8 @@ namespace iLgs.Services.Interfaces
         public async ValueTask<PsCardItemVM> GetByIdAsync(Guid? id)
         {
             var data = await _db.PsCardItems
+                .Include(i => i.Codextn)
+                .Include(i => i.Codextn1)
                 .Where(w => w.Id == id)
                 .Select(s => new PsCardItemVM
                 {
@@ -130,16 +118,21 @@ namespace iLgs.Services.Interfaces
                     InsertedDt = s.InsertedDt,
                     DeptId = s.DeptId,
                     LocationId = s.LocationId,
-                    Department = s.Codextn.Description,
+                    //Department = s.Codextn.Description,
                     Article = s.PsCard.ItemCode.Description,
                     Description = s.Description,
                     DeptDisplay = s.DeptDisplay,
-                    LocCode = s.Codextn1.Code,
-                    Location = s.Codextn1.Description,
+                    //LocCode = s.Codextn1.Code,
+                    //Location = s.Codextn1.Description,
                     StockNo = s.PsCard.PsNo,
-                    ParBalance = s.QtyBal - (s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
-                    IcsBalance = s.QtyBal - (s.IcsParItems.Where(w => w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
-                    RemBalance = s.QtyBal
+                    ParBalance = s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    //(s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    IcsBalance = s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                    //(s.IcsParItems.Where(w => w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                    RemBalance = s.QtyBal,
+                    Department = s.Codextn.Description,
+                    Location = s.Codextn1.Description,
+                    LocCode = s.Codextn1.Code
                 }).FirstOrDefaultAsync();
             return data;
         }

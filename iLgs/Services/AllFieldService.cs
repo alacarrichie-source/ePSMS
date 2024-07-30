@@ -25,8 +25,9 @@ namespace iLgs.Services
         string GetCardStockNo(PsCardVM model);
         string GetRisStockNo(RisItemEntryVM model);
         void ValidatePsCardAllField(PsCardVM model);
-        string GetStockNo(AllField af, string itemTypeCode);
+        string GetStockNo(AllField af, string itemTypeCode, string itemCode);
         bool IsBrandRequired(Category c);
+        bool IsNoIcs(Guid? itemCodeId);
     }
 
     public class AllFieldService : IAllFieldService
@@ -92,10 +93,19 @@ namespace iLgs.Services
                         }
                     }
                 }
-                else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
-                || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
-                || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
-                || c == CatOtherSupplies())
+                else if (c == CatMachineries() 
+                    || c == CatTransportations() 
+                    || c == CatFurnitures() 
+                    || c == CatOtherProperties()
+                    || c == CatMedicals() 
+                    || c == CatAgriculturals() 
+                    || c == CatAnimalSupplies() 
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies() 
+                    || c == CatAccountableForms() 
+                    || c == CatNonAccountableForns() 
+                    || c == CatMilitaries()
+                    || c == CatOtherSupplies())
                 {
                     if (string.IsNullOrWhiteSpace(af.Brand))
                     {
@@ -217,22 +227,24 @@ namespace iLgs.Services
                 Dimension = model.Dimension,
                 Size = model.Size,
                 Capacity = model.Capacity,
+                Weight = model.Weight,
+                Materials = model.Materials,
                 Color = model.Color,
+                Type = model.Type,
+                Area = model.Area,
+                //Barangay = model.Barangay,
+                //DateSale = model.DateSale,
+                //DateDonation = model.DateDonation,
+                //DateAcquisition = model.DateAcquisition,
+                //DateConstruction = model.DateConstruction,
+                //AreaSoldDonated = model.AreaSoldDonated,
+                //PricePerSqm = model.PricePerSqm,
+                //VendorDonor = model.VendorDonor,
                 SerialNo = model.SerialNo,
                 PropNo = model.PropNo,
                 PlateNo = model.PlateNo,
                 BodyNo = model.BodyNo,
                 MVFileNo = model.MVFileNo,
-                Type = model.Type,
-                Area = model.Area,
-                Barangay = model.Barangay,
-                DateSale = model.DateSale,
-                DateDonation = model.DateDonation,
-                DateAcquisition = model.DateAcquisition,
-                DateConstruction = model.DateConstruction,
-                AreaSoldDonated = model.AreaSoldDonated,
-                PricePerSqm = model.PricePerSqm,
-                VendorDonor = model.VendorDonor,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -281,23 +293,27 @@ namespace iLgs.Services
             entity.Model_ = model.Model_;
             entity.Dimension = model.Dimension;
             entity.Size = model.Size;
+            entity.Weight = model.Weight;
             entity.Capacity = model.Capacity;
+            entity.Materials = model.Materials;
             entity.Color = model.Color;
+            entity.Area = model.Area;
+
+            //entity.AreaSoldDonated = model.AreaSoldDonated;
+            //entity.PricePerSqm = model.PricePerSqm;
+            //entity.Type = model.Type;            
+            //entity.Barangay = model.Barangay;
+            //entity.DateSale = model.DateSale;
+            //entity.DateDonation = model.DateDonation;
+            //entity.DateAcquisition = model.DateAcquisition;
+            //entity.DateConstruction = model.DateConstruction;                       
+            //entity.VendorDonor = model.VendorDonor;
+
             entity.SerialNo = model.SerialNo;
             entity.PropNo = model.PropNo;
             entity.PlateNo = model.PlateNo;
             entity.BodyNo = model.BodyNo;
             entity.MVFileNo = model.MVFileNo;
-            entity.Type = model.Type;
-            entity.Area = model.Area;
-            entity.Barangay = model.Barangay;
-            entity.DateSale = model.DateSale;
-            entity.DateDonation = model.DateDonation;
-            entity.DateAcquisition = model.DateAcquisition;
-            entity.DateConstruction = model.DateConstruction;
-            entity.AreaSoldDonated = model.AreaSoldDonated;
-            entity.PricePerSqm = model.PricePerSqm;
-            entity.VendorDonor = model.VendorDonor;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
@@ -355,9 +371,18 @@ namespace iLgs.Services
                 {
                     description += af.Area.ToString() + "sqm";
                 }
-                else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
-                    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
+                else if (c == CatMachineries() 
+                    || c == CatTransportations() 
+                    || c == CatFurnitures() 
+                    || c == CatOtherProperties()
+                    || c == CatMedicals() 
+                    || c == CatAgriculturals() 
+                    || c == CatAnimalSupplies() 
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies() 
+                    || c == CatAccountableForms() 
+                    || c == CatNonAccountableForns() 
+                    || c == CatMilitaries()
                     || c == CatOtherSupplies())
                 {
                     description = (!string.IsNullOrWhiteSpace(af.Model_) ? $"{af.Model_}" : "") +
@@ -366,7 +391,8 @@ namespace iLgs.Services
                                 (!string.IsNullOrWhiteSpace(af.Weight) ? $" {af.Weight}" : "") +
                                 (!string.IsNullOrWhiteSpace(af.Materials) ? $" {af.Materials}" : "") +
                                 (!string.IsNullOrWhiteSpace(af.Capacity) ? $" {af.Capacity}" : "") +
-                                (!string.IsNullOrWhiteSpace(af.Color) ? $" {af.Color}" : "");
+                                (!string.IsNullOrWhiteSpace(af.Color) ? $" {af.Color}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
                 }
                 else if (c == CatDrugs())
                 {
@@ -383,16 +409,25 @@ namespace iLgs.Services
                                 (!string.IsNullOrWhiteSpace(af.PropNo) ? $" {af.PropNo}" : "") +
                                 (!string.IsNullOrWhiteSpace(af.PlateNo) ? $" {af.PlateNo}" : "") +
                                 (!string.IsNullOrWhiteSpace(af.BodyNo) ? $" {af.BodyNo}" : "") +
-                                (!string.IsNullOrWhiteSpace(af.MVFileNo) ? $" {af.MVFileNo}" : "");
+                                (!string.IsNullOrWhiteSpace(af.MVFileNo) ? $" {af.MVFileNo}" : "") +
+                                (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : ""); 
                 }
             }
             return description ?? "";
         }
 
+        public bool IsNoIcs(Guid? itemCodeId)
+        {
+            return _db.ItemCodes.Where(w => w.Id == itemCodeId && (w.IsConsumable == "Y" || w.IsIncorporated == "Y" || w.ForDistribution == "Y")).Any();
+        }
+
         public string GetRisStockNo(RisItemEntryVM model)
         {
             string stockNo = model.ItemCode.Trim();
-            stockNo += GetStockNo(model.AllField, model.PsType);
+            if (!IsNoIcs(model.ItemCodeId))
+            {
+                stockNo += GetStockNo(model.AllField, model.PsType, model.ItemCode);
+            }
             return stockNo ?? "";
         }
 
@@ -403,7 +438,10 @@ namespace iLgs.Services
             {
                 stockNo = "FD" + stockNo;
             }
-            stockNo += GetStockNo(model.AllField, model.ItemTypeCode);
+            if (!IsNoIcs(model.ItemCodeId))
+            {
+                stockNo += GetStockNo(model.AllField, model.ItemTypeCode, model.ItemCode);
+            }
             return stockNo ?? "";
         }
 
@@ -416,7 +454,7 @@ namespace iLgs.Services
                     || c == CatOtherSupplies() || c == CatRepairs()) || c == CatDrugs();
         }
 
-        public string GetStockNo(AllField af, string itemTypeCode)
+        public string GetStockNo(AllField af, string itemTypeCode, string itemCode)
         {
             string stockNo = "";
             if (Enum.TryParse(itemTypeCode, out Category c))
@@ -425,12 +463,21 @@ namespace iLgs.Services
                 {
                     stockNo += ((af.Area != null) ? $"/{af.Area}sqm" : "");
                 }
-                else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
-                    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
+                else if (c == CatMachineries()
+                    || c == CatTransportations()
+                    || c == CatFurnitures()
+                    || c == CatOtherProperties()
+                    || c == CatMedicals()
+                    || c == CatAgriculturals()
+                    || c == CatAnimalSupplies()
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies()
+                    || c == CatAccountableForms()
+                    || c == CatNonAccountableForns()
+                    || c == CatMilitaries()
                     || c == CatOtherSupplies())
                 {
-                    stockNo += (!string.IsNullOrWhiteSpace(af.Brand) ? $"/{af.Brand.Trim()}" : "/xx");                                
+                    stockNo += (!string.IsNullOrWhiteSpace(af.Brand) ? $"/{af.Brand}" : "/xx");
                     if (string.IsNullOrWhiteSpace(af.Model_))
                     {
                         if (string.IsNullOrWhiteSpace(af.Dimension))
@@ -443,7 +490,10 @@ namespace iLgs.Services
                                     {
                                         if (string.IsNullOrWhiteSpace(af.Capacity))
                                         {
-                                            stockNo += $"/{af.Color}";
+                                            if (!string.IsNullOrWhiteSpace(af.Color))
+                                            {
+                                                stockNo += $"/{af.Color}";
+                                            }
                                         }
                                         else
                                         {
@@ -477,12 +527,12 @@ namespace iLgs.Services
 
                 }
                 else if (c == CatRepairs())
-                {                    
+                {
                     if (string.IsNullOrWhiteSpace(af.SerialNo))
                     {
                         if (string.IsNullOrWhiteSpace(af.PropNo))
                         {
-                            stockNo += $"/NA";                            
+                            stockNo += $"/NA";
                         }
                         else
                         {
@@ -494,42 +544,81 @@ namespace iLgs.Services
                         stockNo += $"/{af.SerialNo}";
                     }
 
-                    if (string.IsNullOrWhiteSpace(af.PlateNo))
+                    if (itemCode.Equals("RSL-5.1") || itemCode.Contains("SL-5.2.") || itemCode.Contains("SL-6.")
+                        || itemCode.Contains("SL-99."))
                     {
-                        if (string.IsNullOrWhiteSpace(af.BodyNo))
+                        if (string.IsNullOrWhiteSpace(af.PlateNo))
                         {
-                            if (string.IsNullOrWhiteSpace(af.MVFileNo))
+                            if (string.IsNullOrWhiteSpace(af.BodyNo))
                             {
-                                if (string.IsNullOrWhiteSpace(af.Brand))
+                                if (!string.IsNullOrWhiteSpace(af.MVFileNo))
                                 {
-                                    stockNo += $"/xx";
-                                    if (string.IsNullOrWhiteSpace(af.Model_))
-                                    {
-                                        stockNo += $"/NA";
-                                    }
-                                    else
-                                    {
-                                        stockNo += $"/{af.Model_}";
-                                    }
-                                }
-                                else
-                                {
-                                    stockNo += $"/{af.Brand}";
+                                    stockNo += $"/{af.MVFileNo}";
                                 }
                             }
                             else
                             {
-                                stockNo += $"/{af.MVFileNo}";
+                                stockNo += $"/{af.BodyNo}";
                             }
                         }
                         else
                         {
-                            stockNo += $"/{af.BodyNo}";
+                            stockNo += $"/{af.PlateNo}";
                         }
                     }
-                    else
+
+                    if (itemCode.Contains("SL-1.2") || itemCode.Contains("SL-2.2") || itemCode.Contains("SL-3.2") || itemCode.Contains("SL-4.2")
+                        || itemCode.Contains("SL-5.2.") || itemCode.Contains("SL-6.2.")
+                        || itemCode.Contains("SL-7.2") || itemCode.Contains("SL-8.2") || itemCode.Contains("SL-99.2")
+                        )
                     {
-                        stockNo += $"/{af.PlateNo}";
+                        stockNo += (!string.IsNullOrWhiteSpace(af.Brand) ? $"/{af.Brand}" : "/xx");
+                        if (string.IsNullOrWhiteSpace(af.Model_))
+                        {
+                            if (string.IsNullOrWhiteSpace(af.Dimension))
+                            {
+                                if (string.IsNullOrWhiteSpace(af.Size))
+                                {
+                                    if (string.IsNullOrWhiteSpace(af.Weight))
+                                    {
+                                        if (string.IsNullOrWhiteSpace(af.Materials))
+                                        {
+                                            if (string.IsNullOrWhiteSpace(af.Capacity))
+                                            {
+                                                if (!string.IsNullOrWhiteSpace(af.Color))
+                                                {
+                                                    stockNo += $"/{af.Color}";
+                                                }
+                                            }
+                                            else
+                                            {
+                                                stockNo += $"/{af.Capacity}";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            stockNo += $"/{af.Materials}";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        stockNo += $"/{af.Weight}";
+                                    }
+                                }
+                                else
+                                {
+                                    stockNo += $"/{af.Size}";
+                                }
+                            }
+                            else
+                            {
+                                stockNo += $"/{af.Dimension}";
+                            }
+                        }
+                        else
+                        {
+                            stockNo += $"/{af.Model_}";
+                        }
                     }
                 }
                 else if (c == CatDrugs())
@@ -545,18 +634,24 @@ namespace iLgs.Services
                             stockNo += "/" + af.GenericName.Substring(0, 1) + "X";
                         }
                     }
-                    if (!string.IsNullOrWhiteSpace(af.DosageStrength))
-                    {
-                        stockNo += "/" + af.DosageStrength.Replace(" ", "").Trim();
-                    }
-                    if (!string.IsNullOrWhiteSpace(af.DosageForm))
-                    {
-                        stockNo += "/" + af.DosageForm.PadRight(3, 'X').Substring(0, 3);
-                    }
 
-                    if (!string.IsNullOrWhiteSpace(af.DosageVolume))
+                    if (itemCode.Contains("SC-5.1.")) // Alcohol
                     {
-                        stockNo += "/" + af.DosageVolume.Trim() + "'s";
+                        if (!string.IsNullOrWhiteSpace(af.DosageVolume))
+                        {
+                            stockNo += "/" + af.DosageVolume.Trim() + "'s";
+                        }
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrWhiteSpace(af.DosageStrength))
+                        {
+                            stockNo += "/" + af.DosageStrength.Replace(" ", "").Trim();
+                        }
+                        if (!string.IsNullOrWhiteSpace(af.DosageForm))
+                        {
+                            stockNo += "/" + af.DosageForm.PadRight(3, 'X').Substring(0, 3);
+                        }
                     }
 
                     if (af.Multipliers.HasValue)

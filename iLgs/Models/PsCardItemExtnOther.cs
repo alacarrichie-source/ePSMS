@@ -12,19 +12,12 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class IcsParItem
+    public partial class PsCardItemExtnOther
     {
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> IcsParId { get; set; }
-        public Nullable<System.Guid> PsCardItemExtnId { get; set; }
-        public Nullable<int> Qty { get; set; }
-        public Nullable<decimal> Amount { get; set; }
-        public string InsertedBy { get; set; }
-        public Nullable<System.DateTime> InsertedDt { get; set; }
-        public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public string SerialNo { get; set; }
+        public string Condition { get; set; }
     
-        public virtual IcsPar IcsPar { get; set; }
         public virtual PsCardItemExtn PsCardItemExtn { get; set; }
     }
 }

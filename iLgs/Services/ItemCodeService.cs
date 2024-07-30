@@ -27,12 +27,12 @@ namespace iLgs.Services
             var data = db.ItemCodes.AsNoTracking()
                 .Select(s => new ItemCodeVM
                 {
-                    Id = s.Id,                    
+                    Id = s.Id,
                     ItemTypeId = s.ItemTypeId,
                     ItemNo = s.ItemNo,
                     ItemNoIndex = s.ItemNoIndex,
                     Code = s.Code,
-                    Description = s.Description,     
+                    Description = s.Description,
                     ItemSw = s.ItemSw,
                     IsConsumable = s.IsConsumable,
                     IsIncorporated = s.IsIncorporated,
@@ -45,7 +45,7 @@ namespace iLgs.Services
         }
 
         public IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId)
-        {            
+        {
             var data = db.ItemCodes.Where(w => w.ItemTypeId == itemTypeId).AsNoTracking().ToList()
                 .Select(s => new ItemCodeVM
                 {
@@ -54,12 +54,13 @@ namespace iLgs.Services
                     ItemNoIndex = s.ItemNoIndex,
                     ItemNo = s.ItemNo,
                     Code = s.Code,
-                    Description = s.Description.PadLeft(s.ItemNo.Count(c => c == '.') * 20, ' '),
+                    Description = s.Description,
                     ItemSw = s.ItemSw,
                     IsConsumable = s.IsConsumable,
                     IsIncorporated = s.IsIncorporated,
                     ForDistribution = s.ForDistribution,
                     //ItemSwUI = s.ItemSw == "Y" ? true : false,
+                    Padding = s.ItemNo.Count(c => c == '.') * 30,
                     AccountCode = s.AccountCode,
                     InsertedDt = s.InsertedDt
                 }).AsQueryable();
@@ -92,24 +93,40 @@ namespace iLgs.Services
 
         private void ValidateFields(ItemCodeVM model)
         {
-            if (!string.IsNullOrWhiteSpace(model.ItemSw) && !(model.ItemSw == "Y" || model.ItemSw == "N" || model.ItemSw == ""))
+            if (!string.IsNullOrWhiteSpace(model.ItemSw))
             {
-                throw new InvalidValueException("Invalid Article value!");
+                var f = model.ItemSw.ToUpper().Trim();
+                if (f != "Y" && f != "N" && f != "")
+                {
+                    throw new InvalidValueException("Invalid Article value!");
+                }
             }
 
-            if (!string.IsNullOrWhiteSpace(model.IsConsumable) && !(model.IsConsumable == "Y" || model.IsConsumable == "N" || model.IsConsumable == ""))
+            if (!string.IsNullOrWhiteSpace(model.IsConsumable))
             {
-                throw new InvalidValueException("Invalid Consumable value!");
+                var f = model.IsConsumable.ToUpper().Trim();
+                if (f != "Y" && f != "N" && f != "")
+                {
+                    throw new InvalidValueException("Invalid Consumable value!");
+                }
             }
 
-            if (!string.IsNullOrWhiteSpace(model.IsIncorporated) && !(model.IsIncorporated == "Y" || model.IsIncorporated == "N" || model.IsIncorporated == ""))
+            if (!string.IsNullOrWhiteSpace(model.IsIncorporated)) 
             {
-                throw new InvalidValueException("Invalid Incorporated value!");
+                var f = model.IsConsumable.ToUpper().Trim();
+                if (f != "Y" && f != "N" && f != "")
+                {
+                    throw new InvalidValueException("Invalid Incorporated value!");
+                }
             }
 
-            if (!string.IsNullOrWhiteSpace(model.ForDistribution) && !(model.ForDistribution == "Y" || model.ForDistribution == "N" || model.ForDistribution == "O" || model.ForDistribution == ""))
+            if (!string.IsNullOrWhiteSpace(model.ForDistribution))
             {
-                throw new InvalidValueException("Invalid For Distribution value!");
+                var f = model.ForDistribution.ToUpper().Trim();
+                if (f != "Y" && f != "N" && f != "O" && f != "")
+                {
+                    throw new InvalidValueException("Invalid For Distribution value!");
+                }
             }
         }
 
@@ -136,11 +153,11 @@ namespace iLgs.Services
                 ItemNoIndex = model.ItemNoIndex,
                 Code = model.Code,
                 Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim(),
-                ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper(),
-                IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.ToUpper(),
-                IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.ToUpper(),
-                ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.ToUpper(),
-                AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper(),
+                ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.Trim().ToUpper(),
+                IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.Trim().ToUpper(),
+                IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper(),
+                ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper(),
+                AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.Trim().ToUpper(),
                 InsertedBy = user,
                 InsertedDt = date,
                 UpdatedBy = user,
@@ -151,11 +168,10 @@ namespace iLgs.Services
             await db.SaveChangesAsync();
 
             return model;
-          
+
         });
 
         public ValueTask<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
-
         {
             ValidateFields(model);
 
@@ -173,10 +189,10 @@ namespace iLgs.Services
             entity.ItemNoIndex = model.ItemNoIndex;
             entity.Code = model.Code;
             entity.Description = string.IsNullOrWhiteSpace(model.Description) ? "" : model.Description.Trim();
-            entity.ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper().Trim();
-            entity.IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.ToUpper();
-            entity.IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.ToUpper();
-            entity.ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.ToUpper();
+            entity.ItemSw = string.IsNullOrWhiteSpace(model.ItemSw) ? "" : model.ItemSw.ToUpper().Trim().Trim();
+            entity.IsConsumable = string.IsNullOrWhiteSpace(model.IsConsumable) ? "" : model.IsConsumable.Trim().ToUpper();
+            entity.IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper();
+            entity.ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper();
             entity.AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper().Trim();
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
@@ -227,7 +243,7 @@ namespace iLgs.Services
         {
             var raItemNo = itemNo.Trim().Split('.');
             string itemNoIndex = "";
-            for(var x = 0; x < raItemNo.Length; x++)
+            for (var x = 0; x < raItemNo.Length; x++)
             {
                 itemNoIndex += (x > 0 ? "-" : "") + raItemNo[x].PadLeft(3, '0');
             }

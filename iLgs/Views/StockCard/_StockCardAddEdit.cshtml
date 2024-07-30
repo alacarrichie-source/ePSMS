@@ -25,8 +25,8 @@
     <fieldset>
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.Fund, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(model => model.Fund, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Fund")
@@ -55,8 +55,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.ItemCodeId, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.ItemCodeId, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select Item")
@@ -90,8 +90,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.SubAccount, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.SubAccount, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.SubAccount).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
@@ -99,8 +99,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.ItemType, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.ItemType, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.ItemType).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
@@ -112,8 +112,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Description)
                 </div>
@@ -124,8 +124,10 @@
 
         <div class="row">
             <div class="col-md-12">
-                @*@Html.LabelFor(m => m.FromDonation, htmlAttributes: new { @class = "col-md-12" })*@
-                <div class="col-md-12">
+                <div class="col-md-2">
+                    @Html.Label("")
+                </div>
+                <div class="col-md-10">
                     @(Html.Kendo().CheckBoxFor(m => m.FromDonation).Events(e => e.Change("UpdateDescription")))
                     @Html.ValidationMessageFor(m => m.FromDonation)
                 </div>
@@ -135,8 +137,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.PsNo, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.PsNo, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.PsNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PsNo)
                 </div>
@@ -145,7 +147,7 @@
 
         @*<div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.PsName, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(m => m.PsName, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.PsName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PsName)
@@ -155,8 +157,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.PrevPsNo, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
+                @Html.LabelFor(m => m.PrevPsNo, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.PrevPsNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PrevPsNo)
                 </div>
@@ -165,7 +167,7 @@
 
         @*<div class="row">
                 <div class="col-md-12">
-                    @Html.LabelFor(m => m.AcqDate, htmlAttributes: new { @class = "col-md-12" })
+                    @Html.LabelFor(m => m.AcqDate, htmlAttributes: new { @class = "col-md-2" })
                     <div class="col-md-12">
                         @(Html.Kendo().DatePickerFor(m => m.AcqDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                         @Html.ValidationMessageFor(m => m.AcqDate)
@@ -175,7 +177,7 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    @Html.LabelFor(m => m.AcqMode, htmlAttributes: new { @class = "col-md-12" })
+                    @Html.LabelFor(m => m.AcqMode, htmlAttributes: new { @class = "col-md-2" })
                     <div class="col-md-12">
                         @(Html.Kendo().TextBoxFor(m => m.AcqMode).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                         @Html.ValidationMessageFor(m => m.AcqMode)

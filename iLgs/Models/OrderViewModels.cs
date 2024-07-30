@@ -167,7 +167,7 @@ namespace iLgs.Models
         public string ItemTypeCode { get; set; }
         public string ItemCategory { get; set; }
         public string CardCategory { get; set; }
-        public string Remarks { get; set; }
+        public string InvDist { get; set; }
     }
 
     public class OrderItemExtnVM

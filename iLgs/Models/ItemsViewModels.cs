@@ -93,6 +93,7 @@ namespace iLgs.Models
 
         [Display(Name = "Is Article?")]
         public bool? ItemSwUI { get; set; }
+        public int? Padding { get; set; } = 0;
     }
    
     public class ItemFieldVM

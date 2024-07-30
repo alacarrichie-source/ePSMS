@@ -20,6 +20,7 @@ namespace iLgs.Models
         public Nullable<decimal> Qty { get; set; }
         public string Remarks { get; set; }
         public Nullable<decimal> AreaSoldDonated { get; set; }
+        public Nullable<int> ConstructionYear { get; set; }
         public string InvDist { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }

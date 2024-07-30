@@ -1,0 +1,31 @@
+﻿@model iLgs.Models.PsCardItemVM
+
+@*<div class="row">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.AcqDate, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().DatePickerFor(m => m.AcqDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.AcqDate)
+        </div>
+    </div>
+</div>*@
+
+<div class="row">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.AreaSoldDonated, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AreaSoldDonated).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.AreaSoldDonated)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.Vendor, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.Vendor).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.Vendor)
+        </div>
+    </div>
+</div>

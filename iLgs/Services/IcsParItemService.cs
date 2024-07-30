@@ -13,8 +13,9 @@ namespace iLgs.Services
     public interface IIcsParItemService
     {
         IQueryable<IcsParItem> GetAllByIcsParId(Guid? icsParId);
-        List<IcsParItem> GetAllParItems(Guid? psCardItemId);
-        List<IcsParItem> GetAllIcsItems(Guid? psCardItemId);
+        ValueTask<IcsParItem> GetByIdAsync(Guid? id);
+        IQueryable<IcsParItem> GetAllParItems(Guid? psCardItemId);
+        IQueryable<IcsParItem> GetAllIcsItems(Guid? psCardItemId);
         ValueTask<IcsParItem> CreateAsync(IcsParItem model, string user, DateTime date);
         ValueTask<IcsParItem> UpdateAsync(IcsParItem model, string user, DateTime date);
         ValueTask<IcsParItem> DeleteAsync(IcsParItem model, string user, DateTime date);        
@@ -38,132 +39,41 @@ namespace iLgs.Services
             return data;
         });
 
-        public List<IcsParItem> GetAllParItems(Guid? psCardItemId) =>
+        public async ValueTask<IcsParItem> GetByIdAsync(Guid? id)         
+        {
+            var data = await _db.IcsParItems.Include(i => i.IcsPar)
+                    .Include(i => i.PsCardItemExtn.PsCardItem) // Ensure related entities are included
+                    .Include(i => i.PsCardItemExtn.Codextn)    // Ensure Codextn is included for Location description
+                    .Include(i => i.PsCardItemExtn.PsCardItemExtnBuilding)
+                    .Include(i => i.PsCardItemExtn.PsCardItemExtnLand)
+                    .Include(i => i.PsCardItemExtn.PsCardItemExtnOther)
+                    .Include(i => i.PsCardItemExtn.PsCardItemExtnTransport)                    
+                .Where(w => w.Id == id)
+                .FirstOrDefaultAsync();
+            return data;
+        }
+
+        public IQueryable<IcsParItem> GetAllParItems(Guid? psCardItemId) =>
         _exceptionService.TryCatch(() =>
         {
             var data = GetAllIcsParItems(psCardItemId, "P");
             return data;
         });
 
-        public List<IcsParItem> GetAllIcsItems(Guid? psCardItemId) =>
+        public IQueryable<IcsParItem> GetAllIcsItems(Guid? psCardItemId) =>
         _exceptionService.TryCatch(() =>
         {
             var data = GetAllIcsParItems(psCardItemId, "I");
             return data;
         });
 
-        private List<IcsParItem> GetAllIcsParItems(Guid? psCardItemId, string refType)         
+        private IQueryable<IcsParItem> GetAllIcsParItems(Guid? psCardItemId, string refType)         
         {
             var data = _db.IcsParItems
-                .Where(w => w.PsCardItemId == psCardItemId && w.IcsPar.RefType == refType).AsNoTracking()
-                .Select(s => new
-                {
-                    Id = s.Id,
-                    IcsParId = s.IcsParId,
-                    PsCardItemId = s.PsCardItemId,
-                    Qty = s.Qty,
-                    Amount = s.Amount,
-                    LocationId = s.LocationId,
-                    Location = s.Codextn.Description,
-                    PropNo = s.PropNo,
-                    PropYear = s.PropYear,
-                    PropSeq = s.PropSeq,
-                    AcqCost = s.AcqCost,
-                    AcqDate = s.AcqDate,
-                    TctNo = s.TctNo,
-                    PhaseNo = s.PhaseNo,
-                    PhaseAmount = s.PhaseAmount,
-                    SerialNo = s.SerialNo,
-                    YearModel = s.YearModel,
-                    NetWeight = s.NetWeight,
-                    ConductionSticker = s.ConductionSticker,
-                    BodyNo = s.BodyNo,
-                    PlateNo = s.PlateNo,
-                    CRN = s.CRN,
-                    CRNDate = s.CRNDate,
-                    MVFileNo = s.MVFileNo,
-                    DRPNo = s.DRPNo,
-                    DRPDate = s.DRPDate,
-                    CGT = s.CGT,
-                    CGTTransferTax = s.CGTTransferTax,
-                    CGTSurcharge = s.CGTSurcharge,
-                    CGTInterest = s.CGTInterest,
-                    CGTCompromise = s.CGTCompromise,
-                    DST = s.DST,
-                    DSTTransferTax = s.DSTTransferTax,
-                    DSTSurcharge = s.DSTSurcharge,
-                    DSTInterest = s.DSTInterest,
-                    DSTCompromise = s.DSTCompromise,
-                    TransferTax = s.TransferTax,
-                    Interest = s.Interest,
-                    ConfirmationFee = s.ConfirmationFee,
-                    TransferRegsFee = s.TransferRegsFee,
-                    RealPropertyTax = s.RealPropertyTax,
-                    VAT = s.VAT,
-                    EstateTax = s.EstateTax,
-                    Tilting = s.Tilting,
-                    CertificationFee = s.CertificationFee,
-                    Relocation = s.Relocation,
-                    Surveying = s.Surveying,
-                    IncidentalExpenses = s.IncidentalExpenses,
-                    CapitalOutlayOrExpense = s.CapitalOutlayOrExpense,
-                    UnitCost = s.PsCardItem.UnitCost,
-                    IcsPar = s.IcsPar                    
-                }).ToList()
-                .Select(s => new IcsParItem
-                {
-                    Id = s.Id,
-                    IcsParId = s.IcsParId,
-                    PsCardItemId = s.PsCardItemId,
-                    Qty = s.Qty,
-                    Amount = s.Amount,
-                    LocationId = s.LocationId,
-                    Location = s.Location,
-                    PropNo = s.PropNo,
-                    PropYear = s.PropYear,
-                    PropSeq = s.PropSeq,
-                    AcqCost = s.AcqCost,
-                    AcqDate = s.AcqDate,
-                    TctNo = s.TctNo,
-                    PhaseNo = s.PhaseNo,
-                    PhaseAmount = s.PhaseAmount,
-                    SerialNo = s.SerialNo,
-                    YearModel = s.YearModel,
-                    NetWeight = s.NetWeight,
-                    ConductionSticker = s.ConductionSticker,
-                    BodyNo = s.BodyNo,
-                    PlateNo = s.PlateNo,
-                    CRN = s.CRN,
-                    CRNDate = s.CRNDate,
-                    MVFileNo = s.MVFileNo,
-                    DRPNo = s.DRPNo,
-                    DRPDate = s.DRPDate,
-                    CGT = s.CGT,
-                    CGTTransferTax = s.CGTTransferTax,
-                    CGTSurcharge = s.CGTSurcharge,
-                    CGTInterest = s.CGTInterest,
-                    CGTCompromise = s.CGTCompromise,
-                    DST = s.DST,
-                    DSTTransferTax = s.DSTTransferTax,
-                    DSTSurcharge = s.DSTSurcharge,
-                    DSTInterest = s.DSTInterest,
-                    DSTCompromise = s.DSTCompromise,
-                    TransferTax = s.TransferTax,
-                    Interest = s.Interest,
-                    ConfirmationFee = s.ConfirmationFee,
-                    TransferRegsFee = s.TransferRegsFee,
-                    RealPropertyTax = s.RealPropertyTax,
-                    VAT = s.VAT,
-                    EstateTax = s.EstateTax,
-                    Tilting = s.Tilting,
-                    CertificationFee = s.CertificationFee,
-                    Relocation = s.Relocation,
-                    Surveying = s.Surveying,
-                    IncidentalExpenses = s.IncidentalExpenses,
-                    CapitalOutlayOrExpense = s.CapitalOutlayOrExpense,
-                    UnitCost = s.UnitCost,
-                    IcsPar = s.IcsPar                    
-                }).ToList();
+                .Include(i => i.IcsPar)
+                .Include(i => i.PsCardItemExtn)
+                .Where(w => w.PsCardItemExtn.PsCardItemId == psCardItemId && w.IcsPar.RefType == refType).AsNoTracking();
+                
             return data;
         }
 
@@ -182,10 +92,9 @@ namespace iLgs.Services
             {
                 Id = model.Id,
                 IcsParId = model.IcsParId,
-                PsCardItemId = model.PsCardItemId,
+                PsCardItemExtnId = model.PsCardItemExtnId,
                 Qty = model.Qty,
-                LocationId = model.LocationId,
-                PropNo = model.PropNo,
+                Amount = model.Amount,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -200,7 +109,7 @@ namespace iLgs.Services
         public ValueTask<IcsParItem> UpdateAsync(IcsParItem model, string user, DateTime date) =>
         _exceptionService.TryCatchAsync(async () =>
         {
-            IcsParItem entity = await _db.IcsParItems.Include(i => i.IcsPar).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+            var entity = await GetByIdAsync(model.Id);
 
             if (entity == null)
             {
@@ -221,21 +130,7 @@ namespace iLgs.Services
 
             entity.IcsPar.UpdatedBy = user;
             entity.IcsPar.UpdatedDt = date;
-
-            entity.Qty = model.Qty;
-            entity.LocationId = model.LocationId;
-            entity.PropNo = model.PropNo;
-            entity.PropYear = model.PropYear;
-            entity.PropSeq = model.PropSeq;
-            entity.SerialNo = model.SerialNo;
-            entity.YearModel = model.YearModel;
-            entity.NetWeight = model.NetWeight;
-            entity.ConductionSticker = model.ConductionSticker;
-            entity.BodyNo = model.BodyNo;
-            entity.PlateNo = model.PlateNo;
-            entity.CRN = model.CRN;
-            entity.CRNDate = model.CRNDate;
-            entity.MVFileNo = model.MVFileNo;
+            
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
@@ -255,6 +150,8 @@ namespace iLgs.Services
                 throw new RecordNotFoundException(model.Id);
             }
 
+            var psCardItemExtnId = entity.PsCardItemExtnId;
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
             
@@ -268,6 +165,24 @@ namespace iLgs.Services
             _db.IcsParItems.Remove(entity);
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
+
+            PsCardItemExtn psCardItemExtn = await _db.PsCardItemExtns.FindAsync(psCardItemExtnId);
+            if (psCardItemExtn != null)
+            {
+                psCardItemExtn.UpdatedBy = user;
+                psCardItemExtn.UpdatedDt = date;
+
+                psCardItemExtn.UpdatedBy = model.UpdatedBy;
+                psCardItemExtn.UpdatedDt = model.UpdatedDt;
+
+                _db.PsCardItemExtns.Attach(psCardItemExtn);
+                _db.Entry(psCardItemExtn).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
+
+                _db.PsCardItemExtns.Remove(psCardItemExtn);
+                _db.Entry(psCardItemExtn).State = EntityState.Deleted;
+                await _db.SaveChangesAsync();
+            }
 
             // remove master record if no child record exists
             if (!(await _db.IcsParItems.AnyAsync(a => a.IcsParId == model.IcsParId)))
