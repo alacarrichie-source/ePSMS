@@ -42,7 +42,7 @@ namespace iLgs.Services
             var data = await _db.PsCardItemExtns
                 .Include(i => i.PsCardItemExtnLand)
                 .Include(i => i.PsCardItemExtnBuilding)
-                .Include(i => i.PsCardItemExtnTransport)
+                .Include(i => i.PsCardItemExtnVehicle)
                 .Include(i => i.PsCardItemExtnOther)
                 .Where(w => w.Id == id)
                 .FirstOrDefaultAsync();

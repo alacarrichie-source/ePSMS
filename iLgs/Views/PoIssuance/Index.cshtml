@@ -79,7 +79,7 @@
     })
     .ToolBar(t =>
     {
-        t.Custom().Text("Transfer").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Transit").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
         //t.Custom().Text("Generate PARs").IconClass("k-icon k-i-add").Name("btnAddPars").HtmlAttributes(new { @class = "k-button", href = "" });
         //t.Custom().Text("Generate ICS").IconClass("k-icon k-i-add").Name("btnAddIcs").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
@@ -125,8 +125,10 @@
             a.Add(p => p.TransferOut).Sum();
             a.Add(p => p.QtyBal).Sum();
         })
-        .Sort(s => {
-            s.Add(a => a.PoNo);            
+        .Sort(s =>
+        {
+            s.Add(a => a.PoNo);
+            s.Add(a => a.InsertedDt);
         })
         .Read(read => read.Action("IssuanceRead", "PoIssuance"))
     )
@@ -154,7 +156,7 @@
             {
                 items.Add().Text("Issued Items")
                     .Selected(true)
-                    .LoadContentFrom("_Issuance", "PoIssuance", new { cardItemId = "#=Id#", unitCost = "#=UnitCost#"});
+                    .LoadContentFrom("_Issuance", "PoIssuance", new { cardItemId = "#=Id#", unitCost = "#=UnitCost#" });
                 //items.Add().Text("PARs")
                 //    .LoadContentFrom("_Pars", "PoIssuance", new { cardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
                 //items.Add().Text("ICS")
@@ -211,16 +213,16 @@
 <script type="text/x-kendo-template" id="validationMessageTemplate">
     # if (messages.length) { #
     @*<li>
-        #=field#
-        <ul>
-            # for (var i = 0; i < messages.length; ++i) { #
-            <li>#= messages[i] #</li>
-            # } #
-        </ul>
-    </li>*@
-        # for (var i = 0; i < messages.length; ++i) { #
-        <li>#= messages[i] #</li>
-        # } #
+            #=field#
+            <ul>
+                # for (var i = 0; i < messages.length; ++i) { #
+                <li>#= messages[i] #</li>
+                # } #
+            </ul>
+        </li>*@
+    # for (var i = 0; i < messages.length; ++i) { #
+    <li>#= messages[i] #</li>
+    # } #
     # } #
 </script>
 
@@ -697,6 +699,45 @@
         //}
     }
 
+    function onSelectIssuedTo(e) {
+        var dataItem = this.dataItem(e.item.index());
+        var issuedTo = dataItem.Description;
+
+        if (issuedTo == "Department")
+        {
+            $("#DIV_DEPARTMENT").removeClass("hidden");
+            $("#DIV_LOCATION").addClass("hidden");
+        }
+        else if (issuedTo == "Location") {
+            $("#DIV_LOCATION").removeClass("hidden");
+            $("#DIV_DEPARTMENT").addClass("hidden");
+        }
+        else {
+            $("#DIV_LOCATION").addClass("hidden");
+            $("#DIV_DEPARTMENT").addClass("hidden");
+        }
+    }
+
+    function onDataBoundIssuedTo(e) {
+        // Use 'this' to get the ComboBox instance
+        var comboBox = this;
+
+        // Get the default value of the ComboBox
+        var defaultValue = comboBox.value();
+
+        // Check the default value and adjust the visibility of DIV_DEPARTMENT
+        if (defaultValue === "Department") {
+            $("#DIV_DEPARTMENT").removeClass("hidden");
+            $("#DIV_LOCATION").addClass("hidden");
+        } else if (defaultValue === "Location") {
+            $("#DIV_LOCATION").removeClass("hidden");
+            $("#DIV_DEPARTMENT").addClass("hidden");
+        } else {
+            $("#DIV_LOCATION").addClass("hidden");
+            $("#DIV_DEPARTMENT").addClass("hidden");
+        }
+    }
+
     function UpdateBalance(e) {
         var qtyBal = $("#QtyBal").data("kendoNumericTextBox").value();
         var transferOut = $("#TransferOut").data("kendoNumericTextBox").value();
@@ -867,7 +908,7 @@
                                 }
                             }
                         }
-                    });                    
+                    });
                 },
                 deactivate: function () {
                     this.destroy();
@@ -1018,8 +1059,8 @@
         e.preventDefault();
         var cardItemId = $(e.sender.element).data("carditemid");
         GeneratePar("I", cardItemId);
-    }    
-    
+    }
+
     // END GRID ICS ITEMS
 </script>
 

@@ -86,6 +86,7 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
+        public Nullable<System.Guid> TransferRefId { get; set; }
 
         [Display(Name = "PO Date")]
         //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
@@ -254,8 +255,10 @@ namespace iLgs.Models
         public Nullable<System.Guid> PsCardItemId { get; set; }
         
         [Display(Name = "Department")]
-        //[Required]
         public Nullable<System.Guid> DeptId { get; set; }
+
+        [Display(Name = "Location")]
+        public Nullable<System.Guid> LocationId { get; set; }
 
         [Display(Name = "Issued To")]
         public string IssuedTo { get; set; }
@@ -282,10 +285,14 @@ namespace iLgs.Models
 
         // Transients
         public string Department { get; set; }
-
+        public string Location { get; set; }
+        
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
         public int? IssuedToSw { get; set; }
+
+        [Display(Name = "Issued to description")]
+        public string IssuedToDesc { get; set; }
     }
 
     public class FieldSw

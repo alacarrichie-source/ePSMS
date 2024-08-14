@@ -29,6 +29,9 @@ namespace iLgs.Models
         public Nullable<int> CompletionMonth { get; set; }
         public string Status { get; set; }
         public string Condition { get; set; }
+        public string BuildingType { get; set; }
+        public Nullable<int> AcqMonth { get; set; }
+        public Nullable<int> AcqYear { get; set; }
     
         public virtual PsCardItemExtn PsCardItemExtn { get; set; }
     }

@@ -17,9 +17,9 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public ItemCode()
         {
-            this.PsCodes = new HashSet<PsCode>();
             this.PsCards = new HashSet<PsCard>();
             this.RisItems = new HashSet<RisItem>();
+            this.RPCIItems = new HashSet<RPCIItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -40,10 +40,10 @@ namespace iLgs.Models
     
         public virtual ItemType ItemType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCode> PsCodes { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCard> PsCards { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItem> RisItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RPCIItem> RPCIItems { get; set; }
     }
 }

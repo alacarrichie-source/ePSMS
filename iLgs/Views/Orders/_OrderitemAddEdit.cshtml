@@ -93,7 +93,7 @@
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
         </div>

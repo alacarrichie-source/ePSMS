@@ -7,7 +7,7 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardItemId)
-    @Html.HiddenFor(model => model.IssuedTo)
+    @*@Html.HiddenFor(model => model.IssuedTo)*@
     @*@Html.HiddenFor(model => model.RefIssuedId)*@
     @*@Html.HiddenFor(model => model.Location)
         @Html.HiddenFor(model => model.Officer)*@
@@ -22,6 +22,99 @@
     <fieldset>
 
         <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.IssuedTo, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().ComboBoxFor(m => m.IssuedTo)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Issued To")
+                            .DataTextField("Description")
+                            .DataValueField("Description")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetIssuedTo", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Events(e => e.Select("onSelectIssuedTo").DataBound("onDataBoundIssuedTo"))
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.IssuedTo)
+                </div>
+            </div>
+        </div>
+
+        <div id="DIV_DEPARTMENT" class="hidden">
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.DeptId, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Department")
+                            .DataTextField("Description")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "DEPARTMENTS", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Suggest(true)
+                        )
+                        @Html.ValidationMessageFor(model => model.DeptId)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="DIV_LOCATION" class="hidden">
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.LocationId, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Location")
+                            .DataTextField("Description")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Suggest(true)
+                        )
+                        @Html.ValidationMessageFor(model => model.LocationId)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @*<div class="row">
             <div class="row">
                 <div class="col-md-offset-1">
                     @(Html.Kendo().RadioButtonFor(m => m.IssuedToSw).Value(1).Label("Issue to Department").HtmlAttributes(new { @onchange = "onChangeOpt();" }))
@@ -70,7 +163,7 @@
                     )
                 </div>
             </div>
-        </div>
+        </div>*@
 
         <br />
 

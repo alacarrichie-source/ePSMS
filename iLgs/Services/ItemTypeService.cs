@@ -5,21 +5,33 @@ using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Services
 {
+    public interface IItemTypeService
+    {
+        IQueryable<ItemTypeVM> GetAll();
+        Task<ItemType> GetByIdAsync(Guid id);
+        IQueryable<ItemType> GetRpciAccounts(string text);
+
+        Task<ItemTypeVM> CreateAsync(ItemTypeVM model, string user, DateTime date);
+        Task<ItemTypeVM> UpdateAsync(ItemTypeVM model, string user, DateTime date);
+        Task<ItemTypeVM> DeleteAsync(ItemTypeVM model, string user, DateTime date);
+    }
+
     public class ItemTypeService : IItemTypeService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db = new AppManEntities();
 
         public ItemTypeService(AppManEntities db)
         {
-            this.db = db;
+            this._db = db;
         }
 
         public IQueryable<ItemTypeVM> GetAll()
         {
-            var data = db.ItemTypes
+            var data = _db.ItemTypes
                 .Select(s => new ItemTypeVM
                 {
                     Id = s.Id,                   
@@ -27,7 +39,7 @@ namespace iLgs.Services
                     Description = s.Description,
                     FormulaNo = s.FormulaNo,
                     Category = s.Category,
-                    CategoryDesc = db.Codextns.Where(w => w.Code == s.Category && w.CodeMast.Code == "PS-CATEGORY").FirstOrDefault().Description,
+                    CategoryDesc = _db.Codextns.Where(w => w.Code == s.Category && w.CodeMast.Code == "PS-CATEGORY").FirstOrDefault().Description,
                     GroupCode = s.GroupCode,
                     InsertedDt = s.InsertedDt
                 });
@@ -36,10 +48,20 @@ namespace iLgs.Services
         
         public async Task<ItemType> GetByIdAsync(Guid id)
         {
-            var data = await db.ItemTypes.FindAsync(id);
+            var data = await _db.ItemTypes.FindAsync(id);
             return data;
         }
 
+        public IQueryable<ItemType> GetRpciAccounts(string text) 
+        {
+            var exclude = new[] { "B", "L", "S" }; // Building // Land // Land Improvements
+            var data = _db.ItemTypes.Where(w => !exclude.Contains(w.Code)).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                data = data.Where(w => w.Description.Contains(text));
+            }
+            return data;
+        }
         public async Task<ItemTypeVM> CreateAsync(ItemTypeVM model, string user, DateTime date)
         {
 
@@ -65,8 +87,8 @@ namespace iLgs.Services
                 UpdatedDt = date
             };
 
-            db.ItemTypes.Add(entity);
-            await db.SaveChangesAsync();
+            _db.ItemTypes.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -101,7 +123,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ItemType entity = await db.ItemTypes.FindAsync(model.Id);
+            ItemType entity = await _db.ItemTypes.FindAsync(model.Id);
 
             entity.Code = model.Code;
             entity.Description = model.Description;
@@ -111,9 +133,9 @@ namespace iLgs.Services
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            db.ItemTypes.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.ItemTypes.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -123,18 +145,18 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ItemType entity = await db.ItemTypes.FindAsync(model.Id);
+            ItemType entity = await _db.ItemTypes.FindAsync(model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.ItemTypes.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.ItemTypes.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.ItemTypes.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.ItemTypes.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         }

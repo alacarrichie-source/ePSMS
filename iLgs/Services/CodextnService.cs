@@ -35,7 +35,9 @@ namespace iLgs.Services
                     Desc2Hdg = s.CodeMast.Desc2Hdg,
                     Desc3Hdg = s.CodeMast.Desc3Hdg,
                     Desc4Hdg = s.CodeMast.Desc4Hdg,
-                    Desc5Hdg = s.CodeMast.Desc5Hdg
+                    Desc5Hdg = s.CodeMast.Desc5Hdg,
+                    Pad = s.Code.Trim().Substring(s.Code.Trim().Length - 2),
+                    Padding = s.Code.Trim().Substring(s.Code.Trim().Length - 2)  == "00" ? 0 : 30                    
                 });
             return data;
         }
@@ -58,7 +60,9 @@ namespace iLgs.Services
                     Desc2Hdg = s.CodeMast.Desc2Hdg,
                     Desc3Hdg = s.CodeMast.Desc3Hdg,
                     Desc4Hdg = s.CodeMast.Desc4Hdg,
-                    Desc5Hdg = s.CodeMast.Desc5Hdg
+                    Desc5Hdg = s.CodeMast.Desc5Hdg,
+                    Pad = s.Code.Trim().Substring(s.Code.Trim().Length - 2),
+                    Padding = s.Code.Trim().Substring(s.Code.Trim().Length - 2) == "00" ? 0 : 30
                 });
             return data;
         }

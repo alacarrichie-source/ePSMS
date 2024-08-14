@@ -185,9 +185,19 @@ namespace iLgs.Services
             return data;
         });
 
+        private void ValidateFields(RisItemEntryVM model)
+        {
+            if (!model.QtyRequest.HasValue || model.QtyRequest == 0)
+            {
+                throw new InvalidValueException("Quantity Request is Required!");
+            }
+        }
+
         public ValueTask<RisItemEntryVM> CreateAsync(RisItemEntryVM model, string user, DateTime date) =>
         _entryVmExceptionService.TryCatchAsync(async () =>
         {
+            ValidateFields(model);
+
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
@@ -276,6 +286,8 @@ namespace iLgs.Services
         public ValueTask<RisItemEntryVM> UpdateAsync(RisItemEntryVM model, string user, DateTime date) =>
         _entryVmExceptionService.TryCatchAsync(async () =>
         {
+            ValidateFields(model);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 

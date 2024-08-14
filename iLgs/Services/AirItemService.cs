@@ -7,17 +7,22 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Services
 {
     public interface IAirItemService
     {
+        string GetItemExtnName(Guid? id);
         IQueryable<AIRItemVM> GetByAirId(Guid? airId);
         ValueTask<AIRItemVM> GetByIdAsync(Guid? id);
 
         ValueTask<AIRItemVM> CreateAsync(AIRItemVM model, string user, DateTime date);
         ValueTask<AIRItemVM> UpdateAsync(AIRItemVM model, string user, DateTime date);
         ValueTask<AIRItemVM> DeleteAsync(AIRItemVM model, string user, DateTime date);
+
+        void ValidAirItems(Guid? airId);
+        IAirItemExtnService AirItemExtn { get; }
     }
 
     public class AirItemService : IAirItemService
@@ -25,10 +30,56 @@ namespace iLgs.Services
         private readonly AppManEntities _db = new AppManEntities();
         private readonly IExceptionService<AIRItemVM> _vmExceptionService = new ExceptionService<AIRItemVM>();
 
+        private IAirItemExtnService _airItemExtnService;
+
         public AirItemService(AppManEntities db)
         {
-            this._db = db;
+            _db = db;
+            _airItemExtnService = new AirItemExtnService(db);
         }
+
+        public IAirItemExtnService AirItemExtn { get { return _airItemExtnService = _airItemExtnService ?? new AirItemExtnService(_db); } }
+
+        public string GetItemExtnName(Guid? id)
+        {
+            var category = _db.AIRItems.Where(w => w.Id == id).Select(s => s.OrderItem.RequestItem.RisItem.ItemCode.ItemType.Code).FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(category))
+            {
+                return "";
+            }
+
+            string itemExtnName = "";
+            if (Enum.TryParse(category, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    itemExtnName = "ItemExtnLand";
+                }
+                else if (c == CatTransportations())
+                {
+                    itemExtnName = "ItemExtnVehicle";
+                }
+                else if (c == CatMachineries()
+                    || c == CatFurnitures()
+                    || c == CatOtherProperties()
+                    || c == CatMedicals()
+                    || c == CatAgriculturals()
+                    || c == CatAnimalSupplies()
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies()
+                    || c == CatAccountableForms()
+                    || c == CatNonAccountableForns()
+                    || c == CatMilitaries()
+                    || c == CatOtherSupplies()
+                    || c == CatDrugs()
+                    || c == CatRepairs()
+                    )
+                {
+                    itemExtnName = "ItemExtnOther";
+                }
+            }
+            return itemExtnName;
+        }        
 
         public IQueryable<AIRItemVM> GetByAirId(Guid? airId)
         {
@@ -47,7 +98,7 @@ namespace iLgs.Services
                     Remarks = s.Remarks,
                     AreaSoldDonated = s.AreaSoldDonated,
                     ConstructionYear = s.ConstructionYear,
-                    InvDist= s.InvDist,
+                    InvDist = s.InvDist,
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -137,7 +188,44 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
 
             return model;
-        });                
+        });
+
+        private void ValidateFields(AIRItemVM model)
+        {
+            if (Enum.TryParse(model.PsType, out Category c))
+            {
+                if (c == CatFoodSupplies() ||
+                    c == CatConstructionMaterials() ||
+                    c == CatDrugs() ||
+                    c == CatMedicals() ||
+                    c == CatAgriculturals() ||
+                    c == CatOtherSupplies())
+                {
+                    if (string.IsNullOrWhiteSpace(model.InvDist))
+                    {
+                        throw new InvalidValueException("Inventory/For Distribution Field is Required!");
+                    }
+                }
+            }
+        }
+        public void ValidateItemExtns(Guid? airItemId)
+        {
+            var itemExtnName = GetItemExtnName(airItemId);
+            if (itemExtnName == "ItemExtnVehicle")
+            {
+                if (_db.AIRItems.Any(a => a.Id == airItemId && a.AIRItemExtns.OfType<AIRItemExtnVehicle>().Count() < a.Qty))
+                {
+                    throw new InvalidValueException("Incomplete item quantity contents detected.");
+                }
+            }
+            else if (itemExtnName == "ItemExtnOther")
+            {
+                if (_db.AIRItems.Any(a => a.Id == airItemId && a.AIRItemExtns.OfType<AIRItemExtnOther>().Count() < a.Qty))
+                {
+                    throw new InvalidValueException("Incomplete item quantity contents detected.");
+                }
+            }
+        }
 
         public ValueTask<AIRItemVM> UpdateAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
         {
@@ -146,10 +234,11 @@ namespace iLgs.Services
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }
 
-            if (string.IsNullOrWhiteSpace(model.Remarks))
-            {
-                throw new InvalidValueException("Remarks Field is Required!");
-            }
+            ValidateFields(model);
+            //if (string.IsNullOrWhiteSpace(model.Remarks))
+            //{
+            //    throw new InvalidValueException("Remarks Field is Required!");
+            //}
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -172,6 +261,16 @@ namespace iLgs.Services
 
             return model;
         });
+
+        public void ValidAirItems(Guid? airId)
+        {
+            var airItems = GetByAirId(airId);
+            foreach (var airItem in airItems)
+            {
+                ValidateFields(airItem);
+                ValidateItemExtns(airItem.Id);
+            }
+        }
 
         private async ValueTask<bool> IsPostedAsync(Guid? airId)
         {

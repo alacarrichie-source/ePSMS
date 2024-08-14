@@ -519,6 +519,13 @@ namespace iLgs.Controllers
         }
 
         [Authorize]
+        public JsonResult GetRpciAccounts(string text)
+        {
+            var model =_itemTypeService.GetRpciAccounts(text);
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Category = c.Category, GroupCode = c.GroupCode }), JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize]
         public JsonResult GetItemsByCategory(string category, string text)
         {
             var model = _itemCodeService.GetItemsByCategory(category, text);

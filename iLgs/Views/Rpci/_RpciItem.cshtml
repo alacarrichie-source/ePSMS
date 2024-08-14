@@ -2,23 +2,28 @@
         .Name("gridItems_" + @ViewData["rpciId"])
         .Columns(col =>
         {
-            col.Bound(c => c.Fund).Width(50);
             col.Bound(c => c.Article).Width(70);
-            col.Bound(c => c.RefNo).Width(50);
-            col.Bound(c => c.RefDate).Width(50);
-            col.Bound(c => c.Location).Width(50);            
-            col.Bound(c => c.Description).Width(150);
-            col.Bound(c => c.StockNo).Width(70);
+            col.Bound(c => c.PoNo).Width(50);
+            col.Bound(c => c.PoDate).Width(50);
             col.Bound(c => c.Unit).Width(50);
-            col.Bound(c => c.UnitValue).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.QtyBalance).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.Qty).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });           
-            col.Bound(c => c.ValueShortOver).Width(100).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Remarks).Width(50);
+            col.Bound(c => c.LocationCode).Width(50);
+            col.Bound(c => c.LocationName).Width(70);
+            col.Bound(c => c.TransferIn).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.TotalBalance).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.AcqCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.StockNo).Width(70);
+            col.Bound(c => c.Description).Width(150);
             col.Command(command =>
             {
                 command.Edit();
@@ -31,7 +36,8 @@
             @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["orderId"]).Content("Add Order Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddOrderItem")))
             </text>);
         })*@
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpciItemTemplate").Window(w => w.Width(800).Title("RPCI Item")))
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpciItemTemplate").Window(w => w.Width(800).Title("RPCI Item")))
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -54,15 +60,18 @@
                 model.Id(p => p.Id);
                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
             })
+            .ServerOperation(true)
             .Aggregates(a =>
             {
-                a.Add(p => p.QtyBalance).Sum();
-                a.Add(p => p.ValueShortOver).Sum();
+                a.Add(p => p.Qty).Sum();
+                a.Add(p => p.TransferIn).Sum();
+                a.Add(p => p.TotalBalance).Sum();
+                a.Add(p => p.AcqCost).Sum();
             })
-            //.Sort(s =>
-            //{
-            //    s.Add(a => a.InsertedDt);
-            //})
+            .Sort(s =>
+            {
+                s.Add(a => a.InsertedDt);
+            })
             .Read(read => read.Action("_RpciItemRead", "Rpci", new { rpciId = @ViewData["rpciId"] }))
             .Update(update => update.Action("_RpciItemUpdate", "Rpci"))
             .Destroy(destroy => destroy.Action("_RpciItemDestroy", "Rpci"))

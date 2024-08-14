@@ -71,10 +71,6 @@ namespace iLgs.Models
         public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
         public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
-        public virtual DbSet<RPCI> RPCIs { get; set; }
-        public virtual DbSet<PsCode> PsCodes { get; set; }
-        public virtual DbSet<RPCIItem> RPCIItems { get; set; }
-        public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual DbSet<RSMI> RSMIs { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<ItemCode> ItemCodes { get; set; }
@@ -89,11 +85,17 @@ namespace iLgs.Models
         public virtual DbSet<AllField> AllFields { get; set; }
         public virtual DbSet<PsCardItemExtnLand> PsCardItemExtnLands { get; set; }
         public virtual DbSet<PsCardItemExtnOther> PsCardItemExtnOthers { get; set; }
-        public virtual DbSet<PsCardItemExtnTransport> PsCardItemExtnTransports { get; set; }
         public virtual DbSet<IcsParItem> IcsParItems { get; set; }
         public virtual DbSet<IcsPar> IcsPars { get; set; }
         public virtual DbSet<PsCardItemExtnBuilding> PsCardItemExtnBuildings { get; set; }
+        public virtual DbSet<PsCardItemExtnVehicle> PsCardItemExtnVehicles { get; set; }
+        public virtual DbSet<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
+        public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
+        public virtual DbSet<PsItemIssuance> PsItemIssuances { get; set; }
+        public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
+        public virtual DbSet<RPCI> RPCIs { get; set; }
+        public virtual DbSet<RPCIItem> RPCIItems { get; set; }
     }
 }

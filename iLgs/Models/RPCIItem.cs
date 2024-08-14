@@ -16,35 +16,41 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RpciId { get; set; }
-        public string ItemType { get; set; }
-        public string Fund { get; set; }
+        public Nullable<System.Guid> ItemCodeId { get; set; }
         public string Article { get; set; }
-        public string Description { get; set; }
-        public string Brand { get; set; }
-        public string RefNo { get; set; }
-        public Nullable<System.DateTime> RefDate { get; set; }
-        public string OldStockNo { get; set; }
-        public string StockNo { get; set; }
-        public string Unit { get; set; }
-        public Nullable<decimal> UnitValue { get; set; }
-        public Nullable<decimal> Amount { get; set; }
-        public Nullable<int> QtyBalance { get; set; }
-        public Nullable<int> QtyOnHand { get; set; }
-        public Nullable<int> QtyShortOver { get; set; }
-        public Nullable<decimal> ValueShortOver { get; set; }
-        public string Remarks { get; set; }
+        public string PoNo { get; set; }
+        public Nullable<System.DateTime> PoDate { get; set; }
         public string AirNo { get; set; }
         public Nullable<System.DateTime> AirDate { get; set; }
+        public Nullable<decimal> UnitCost { get; set; }
+        public string Unit { get; set; }
+        public Nullable<System.Guid> DeptId { get; set; }
+        public string Department { get; set; }
+        public Nullable<int> Qty { get; set; }
         public Nullable<System.Guid> LocationId { get; set; }
-        public Nullable<System.Guid> OfficerId { get; set; }
+        public string LocationCode { get; set; }
+        public string LocationName { get; set; }
+        public Nullable<int> TransferIn { get; set; }
+        public Nullable<int> TransferOut { get; set; }
+        public Nullable<int> QtyIss { get; set; }
+        public Nullable<int> TotalBalance { get; set; }
+        public Nullable<decimal> AcqCost { get; set; }
+        public string OldStockNo { get; set; }
+        public string StockNo { get; set; }
+        public string Brand { get; set; }
         public string Model_ { get; set; }
+        public string SerialNo { get; set; }
+        public string Description { get; set; }
+        public string OtherDesc { get; set; }
+        public string Remarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual AccountableOfficer AccountableOfficer { get; set; }
-        public virtual RPCI RPCI { get; set; }
         public virtual Codextn Codextn { get; set; }
+        public virtual Codextn Codextn1 { get; set; }
+        public virtual ItemCode ItemCode { get; set; }
+        public virtual RPCI RPCI { get; set; }
     }
 }

@@ -31,6 +31,9 @@
         .PageSizes(true)
         .ButtonCount(5)
     )
+    //.ClientDetailTemplateId((string)ViewData["TemplateId"])
+    //.ClientDetailTemplateId("#= detailInit(data) #")
+    .ClientDetailTemplateId("default-template")
     .Filterable()
     .NoRecords()
     .Resizable(r => r.Columns(true))
@@ -62,7 +65,7 @@
     .Events(events => events
         .Change("onChangeGridItems")
         .Edit("onEditGridItems")
-        .DataBound("onDataBoundGridItems")
+        .DataBound("onDataBoundGridItems").DetailExpand("onDetailExpand")
     )
     .AutoBind(true)
 )

@@ -2,8 +2,8 @@
     .Name("gridIssuedItems_" + @ViewData["CardItemId"])
     .Columns(col =>
     {
-        col.Bound(c => c.Department).Width(70);
         col.Bound(c => c.IssuedTo).Width(50);
+        col.Bound(c => c.IssuedToDesc).Width(50);
         col.Bound(c => c.IssuedDate).Width(40);
         col.Bound(c => c.Qty).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })

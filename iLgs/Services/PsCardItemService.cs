@@ -388,11 +388,23 @@ namespace iLgs.Services
 
         public ValueTask<PsCardItemVM> DeleteAsync(PsCardItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            if (_db.PsCardItems.Any(a => a.Id == model.Id && a.PsCardItemTransfers.Any()))
+            {
+                throw new RecordRelationshipException("Items of this record was transfered to other department/location, cannot delete!");
+            }
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             var entity = await _db.PsCardItems.FindAsync(model.Id);
 
+            // Get transfer record if any
+            PsCardItemTransfer psCardItemTransfer = null;
+            if (entity.TransferRefId != null)
+            {
+                psCardItemTransfer = await _db.PsCardItemTransfers.FindAsync(entity.TransferRefId);
+            }
+            
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
@@ -403,6 +415,34 @@ namespace iLgs.Services
             _db.PsCardItems.Remove(entity);
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
+
+            // put back transferred items
+            if (psCardItemTransfer != null)
+            {
+                var psCardItem = await _db.PsCardItems.FindAsync(psCardItemTransfer.PsCardItemId);
+                if (psCardItem != null)
+                {
+                    psCardItem.TransferOut -= (psCardItemTransfer.Qty ?? 0);
+                    psCardItem.QtyBal = ((psCardItem.Qty ?? 0) + (psCardItem.TransferIn ?? 0)) - ((psCardItem.TransferOut ?? 0) + (psCardItem.QtyIss ?? 0));
+                    psCardItem.UpdatedBy = user;
+                    psCardItem.UpdatedDt = date;
+
+                    _db.PsCardItems.Attach(psCardItem);
+                    _db.Entry(psCardItem).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
+
+                    // delete transfer record
+                    psCardItemTransfer.UpdatedBy = user;
+                    psCardItemTransfer.UpdatedDt = date;
+                    _db.PsCardItemTransfers.Attach(psCardItemTransfer);
+                    _db.Entry(psCardItemTransfer).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
+
+                    _db.PsCardItemTransfers.Remove(psCardItemTransfer);
+                    _db.Entry(psCardItemTransfer).State = EntityState.Deleted;
+                    await _db.SaveChangesAsync();
+                }
+            }
 
             return model;
         });

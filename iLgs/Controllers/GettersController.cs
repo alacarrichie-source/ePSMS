@@ -459,6 +459,19 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetIssuedTo(string text)
+        {
+
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-TO");
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }).OrderBy(o => o.Description), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetLocations(string text)
         {
 

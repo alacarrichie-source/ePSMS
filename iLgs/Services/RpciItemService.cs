@@ -12,7 +12,8 @@ namespace iLgs.Services
 {
     public interface IRpciItemService
     {
-        IQueryable<RPCIItemVM> GetByRpciId(Guid? rpciId);
+        IQueryable<RPCIItem> GetByRpciId(Guid? rpciId);
+        IQueryable<RPCIItemVM> GetVmByRpciId(Guid? rpciId);
         ValueTask<RPCIItem> GetByIdAsync(Guid? id);
         ValueTask<RPCIItemVM> CreateAsync(RPCIItemVM model, string user, DateTime date);
         ValueTask<RPCIItemVM> UpdateAsync(RPCIItemVM model, string user, DateTime date);
@@ -23,8 +24,8 @@ namespace iLgs.Services
     {
         private readonly AppManEntities _db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<RPCIItemVM> _vmExceptionService = new ExceptionService<RPCIItemVM>();
         private readonly IExceptionService<RPCIItem> _exceptionService = new ExceptionService<RPCIItem>();
+        private readonly IExceptionService<RPCIItemVM> _vmExceptionService = new ExceptionService<RPCIItemVM>();
         private readonly IOrderService _orderService;
 
         public RpciItemService(AppManEntities db)
@@ -40,46 +41,74 @@ namespace iLgs.Services
             return data;
         });
 
-        public IQueryable<RPCIItemVM> GetByRpciId(Guid? rpciId) =>
+        public IQueryable<RPCIItem> GetByRpciId(Guid? rpciId) =>
+        _exceptionService.TryCatch(() =>
+        {
+            var data = _db.RPCIItems.Where(w => w.RpciId == rpciId);
+            return data;
+        });
+
+        public IQueryable<RPCIItemVM> GetVmByRpciId(Guid? rpciId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.RPCIItems.Where(w => w.RpciId == rpciId)
+            var data = _db.RPCIItems.Where(w => w.RpciId == rpciId).AsNoTracking()
                 .Select(s => new RPCIItemVM
                 {
                     Id = s.Id,
                     RpciId = s.RpciId,
-                    ItemType = s.ItemType,
-                    Fund = s.Fund,
-                    Article = s.Article,                                        
-                    Description = s.Description,
-                    Brand = s.Brand,
-                    RefNo = s.RefNo,
-                    RefDate = s.RefDate,
-                    OldStockNo = s.OldStockNo,
-                    StockNo = s.StockNo,
-                    Unit = s.Unit,
-                    UnitValue = s.UnitValue,
-                    QtyBalance = s.QtyBalance,
-                    QtyOnHand = s.QtyOnHand,
-                    QtyShortOver = s.QtyShortOver,
-                    ValueShortOver = s.ValueShortOver,
-                    Remarks = s.Remarks,
+                    ItemCodeId = s.ItemCodeId,
+                    Article = s.Article,
+                    PoNo = s.PoNo,
+                    PoDate = s.PoDate,
                     AirNo = s.AirNo,
                     AirDate = s.AirDate,
+                    UnitCost = s.UnitCost,
+                    Unit = s.Unit,
+                    DeptId = s.DeptId,
+                    Department = s.Department,
+                    Qty = s.Qty,
                     LocationId = s.LocationId,
-                    OfficerId = s.OfficerId,
+                    LocationCode = s.LocationCode,
+                    LocationName = s.LocationName,
+                    TransferIn = s.TransferIn,
+                    TransferOut = s.TransferOut,
+                    QtyIss = s.QtyIss,
+                    TotalBalance = s.TotalBalance,
+                    AcqCost = s.AcqCost,
+                    OldStockNo = s.OldStockNo,
+                    StockNo = s.StockNo,
+                    Brand = s.Brand,
                     Model_ = s.Model_,
-                    Location = s.Codextn.Description,
-                    Officer = s.AccountableOfficer.Name,
+                    SerialNo = s.SerialNo,
+                    Description = s.Description,
+                    OtherDesc = s.OtherDesc,
+                    Remarks = s.Remarks,
                     InsertedDt = s.InsertedDt
                 });
+
             return data;
         });
+
+
+        private void ValidatePost(Guid? rpciId)
+        {
+            var data = _db.RPCIs.Find(rpciId);
+            if (data == null)
+            {
+                throw new InvalidValueException("Record no longer exists!");
+            }
+
+            if (!string.IsNullOrWhiteSpace(data.PostedBy))
+            {
+                throw new RecordAlreadyPostedException($"Record Already Posted by {data.PostedBy}, cannot updaet!");
+            }
+        }
 
         public ValueTask<RPCIItemVM> CreateAsync(RPCIItemVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
-            
+            ValidatePost(model.RpciId);
+
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
@@ -90,27 +119,33 @@ namespace iLgs.Services
             {
                 Id = model.Id,
                 RpciId = model.RpciId,
-                ItemType = model.ItemType,                
-                Fund = model.Fund,
+                ItemCodeId = model.ItemCodeId,
                 Article = model.Article,
-                Description = model.Description,
-                Brand = model.Brand,
-                RefNo = model.RefNo,
-                RefDate = model.RefDate,        
-                OldStockNo = model.OldStockNo,
-                StockNo = model.StockNo,
-                Unit = model.Unit,
-                UnitValue = model.UnitValue,
-                QtyBalance = model.QtyBalance,
-                QtyOnHand = model.QtyOnHand,
-                QtyShortOver = model.QtyShortOver,
-                ValueShortOver = model.ValueShortOver,
-                Remarks = model.Remarks,
+                PoNo = model.PoNo,
+                PoDate = model.PoDate,
                 AirNo = model.AirNo,
                 AirDate = model.AirDate,
+                UnitCost = model.UnitCost,
+                Unit = model.Unit,
+                DeptId = model.DeptId,
+                Department = model.Department,
+                Qty = model.Qty,
+                QtyIss = model.QtyIss,
                 LocationId = model.LocationId,
-                OfficerId = model.OfficerId,
-                Model_ = model.Model_,                
+                LocationCode = model.LocationCode,
+                LocationName = model.LocationName,
+                TransferIn = model.TransferIn,
+                TransferOut = model.TransferOut,
+                TotalBalance = model.TotalBalance,
+                AcqCost = model.AcqCost,
+                OldStockNo = model.OldStockNo,
+                StockNo = model.StockNo,
+                Brand = model.Brand,
+                Model_ = model.Model_,
+                SerialNo = model.SerialNo,
+                Description = model.Description,
+                OtherDesc = model.OtherDesc,
+                Remarks = model.Remarks,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -121,11 +156,13 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
 
             return model;
-        });        
+        });
 
         public ValueTask<RPCIItemVM> UpdateAsync(RPCIItemVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
+            ValidatePost(model.RpciId);
+
             var entity = await _db.RPCIItems.FindAsync(model.Id);
             if (entity == null)
             {
@@ -135,28 +172,34 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            entity.RpciId = model.RpciId;            
-            entity.ItemType = model.ItemType;
-            entity.Fund = model.Fund;
+            entity.RpciId = model.RpciId;
+            entity.ItemCodeId = model.ItemCodeId;
             entity.Article = model.Article;
-            entity.Description = model.Description;
-            entity.Brand = model.Brand;
-            entity.RefNo = model.RefNo;
-            entity.RefDate = model.RefDate;
-            entity.OldStockNo = model.OldStockNo;
-            entity.StockNo = model.StockNo;
-            entity.Unit = model.Unit;
-            entity.UnitValue = model.UnitValue;
-            entity.QtyBalance = model.QtyBalance;
-            entity.QtyOnHand = model.QtyOnHand;
-            entity.QtyShortOver = model.QtyShortOver;
-            entity.ValueShortOver = model.ValueShortOver;
-            entity.Remarks = model.Remarks;
+            entity.PoNo = model.PoNo;
+            entity.PoDate = model.PoDate;
             entity.AirNo = model.AirNo;
             entity.AirDate = model.AirDate;
+            entity.UnitCost = model.UnitCost;
+            entity.Unit = model.Unit;
+            entity.DeptId = model.DeptId;
+            entity.Department = model.Department;
+            entity.Qty = model.Qty;
+            entity.QtyIss = model.QtyIss;
             entity.LocationId = model.LocationId;
-            entity.OfficerId = model.OfficerId;
+            entity.LocationCode = model.LocationCode;
+            entity.LocationName = model.LocationName;
+            entity.TransferIn = model.TransferIn;
+            entity.TransferOut = model.TransferOut;
+            entity.TotalBalance = model.TotalBalance;
+            entity.AcqCost = model.AcqCost;
+            entity.OldStockNo = model.OldStockNo;
+            entity.StockNo = model.StockNo;
+            entity.Brand = model.Brand;
             entity.Model_ = model.Model_;
+            entity.SerialNo = model.SerialNo;
+            entity.Description = model.Description;
+            entity.OtherDesc = model.OtherDesc;
+            entity.Remarks = model.Remarks;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
@@ -169,6 +212,8 @@ namespace iLgs.Services
         public ValueTask<RPCIItemVM> DeleteAsync(RPCIItemVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
+            ValidatePost(model.RpciId);
+
             var entity = await _db.RPCIItems.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
             if (entity == null)

@@ -1,0 +1,39 @@
+﻿@model iLgs.Models.AIRItemExtnOther
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.AIRItemId)
+    @Html.HiddenFor(model => model.ContentNo)
+
+    <fieldset>
+
+        <div class="row">
+            @Html.LabelFor(m => m.SerialNo, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.SerialNo)
+            </div>
+        </div>
+
+        
+        <div class="row">
+            @Html.LabelFor(m => m.Condition, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.Condition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.Condition)
+            </div>
+        </div>
+
+    </fieldset>
+}
+

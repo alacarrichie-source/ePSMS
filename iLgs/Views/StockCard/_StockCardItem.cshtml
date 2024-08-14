@@ -23,29 +23,29 @@
                     col.Group(g =>
                     {
                         g.Title("Originating Department").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-                        .Columns(info =>
-                        {
-                            info.Bound(f => f.Department).Width(70).Title("PO Owner");
-                            info.Bound(f => f.Qty)
-                              .Width(50).Title("In")
-                              .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                              .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                              .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                        });
+        .Columns(info =>
+                {
+                    info.Bound(f => f.Department).Width(70).Title("PO Owner");
+                    info.Bound(f => f.Qty)
+    .Width(50).Title("In")
+    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                });
                     });
                     col.Group(g =>
                     {
                         g.Title("Intermediary").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-                        .Columns(info =>
-                        {
-                            info.Bound(f => f.LocCode).Width(50).Title("Code");
-                            info.Bound(f => f.Location).Width(50).Title("Location");
-                            info.Bound(f => f.TransferIn)
-                                .Width(50).Title("Transfer-In")
-                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                                .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                        });
+        .Columns(info =>
+                {
+                    info.Bound(f => f.LocCode).Width(50).Title("Code");
+                    info.Bound(f => f.Location).Width(50).Title("Location");
+                    info.Bound(f => f.TransferIn)
+    .Width(50).Title("Transfer-In")
+    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+    .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                });
                     });
                 });
             });
@@ -53,15 +53,15 @@
                 .Columns(info =>
                 {
                     info.Bound(f => f.TransferOut)
-                        .Width(50).Title("Transfer-Out")
-                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        .Width(50).Title("Transfer-Out")
+        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        .HeaderHtmlAttributes(new { style = "text-align:right;" });
                     info.Bound(f => f.QtyIss)
-                        .Width(50).Title("Issued")
-                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        .Width(50).Title("Issued")
+        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        .HeaderHtmlAttributes(new { style = "text-align:right;" });
                 }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
             );
             columns.Bound(f => f.QtyBal).Width(50).Title("Balance<br>Quantity")
@@ -81,11 +81,11 @@
             t.Create();
         })
         @*.ToolBar(toolbar =>
-        {
-            toolbar.Template(@<text>
-                    @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["cardId"]).Content("Add New Record").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddItem")))
-                </text>);
-        })*@
+            {
+                toolbar.Template(@<text>
+                        @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["cardId"]).Content("Add New Record").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddItem")))
+                    </text>);
+            })*@
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemTemplate").Window(w => w.Width(1000).Title("Stock Card Item")))
         .Selectable()
         .Navigatable()
@@ -102,6 +102,7 @@
                 //model.Field(p => p.QtyIss).DefaultValue(0);
                 //model.Field(p => p.QtyBal).DefaultValue(0);
             })
+            .Sort(s => { s.Add(a => a.PoNo);  s.Add(a => a.InsertedDt); })
             .Aggregates(a =>
             {
                 a.Add(p => p.Qty).Sum();
@@ -112,7 +113,10 @@
                 a.Add(p => p.Amount).Sum();
             })
             .Events(events => events.Error("GridItemError").RequestEnd("onRequestEndGridItems"))
-            .Read("ItemRead", "StockCard", new { cardId = @ViewData["cardId"] })
+            .Read("ItemRead", "StockCard", new
+            {
+                cardId = @ViewData["cardId"]
+            })
             .Create("ItemCreate", "StockCard")
             .Update("ItemUpdate", "StockCard")
             .Destroy("ItemDestroy", "StockCard")

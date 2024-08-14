@@ -10,7 +10,10 @@
     .Columns(col =>
     {
         col.Bound(c => c.AsOf).Width(70);
-        col.Bound(c => c.Department).Width(70);
+        col.Bound(c => c.Fund).Width(70);
+        col.Bound(c => c.InvDistDesc).Width(70);
+        col.Bound(c => c.AcqMode).Width(70);
+        col.Bound(c => c.Account).Width(70);
         col.Bound(c => c.CertifiedCorrectBy).Width(70);
         col.Bound(c => c.PostedBy).Width(70);
         col.Bound(c => c.PostedDt).Width(70);
@@ -32,7 +35,10 @@
     .Search(s =>
     {
         s.Field(o => o.AsOf, "contains");
-        s.Field(o => o.Department, "contains");        
+        s.Field(o => o.Fund, "contains");
+        s.Field(o => o.InvDistDesc, "contains");
+        s.Field(o => o.AcqMode, "contains");
+        s.Field(o => o.Account, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -58,6 +64,7 @@
         {
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            model.Field(p => p.FromDonation).DefaultValue(false);
         })
         .Read(read => read.Action("RpciRead", "Rpci"))
         .Create(create => create.Action("RpciCreate", "Rpci"))
@@ -157,7 +164,32 @@
     //        ts.contentHolder(idx).load("../Orders/_UnitGroup?orderId=" + selectedItem);
     //    }
     //}
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    }
 
+    $(document).ready(function () {
+        var datePicker = $("#AsOf").data("kendoDatePicker");
+
+        //// Ensure the DatePicker calendar popup still works
+        //$("#AsOf").on('mousedown', function (e) {
+        //    alert('x');
+        //    e.preventDefault(); // Prevent the default mouse events
+        //    if (!$(e.target).is('input')) {
+        //        $(this).data("kendoDatePicker").open(); // Open the calendar popup
+        //    }
+        //});
+
+        // Prevent manual input by disabling all key events
+        //$("#AsOf").on('keydown keypress keyup', function (e) {
+        //    e.preventDefault();
+        //});
+
+        //// Ensure the DatePicker popup opens on click
+        //$("#AsOf").on('click', function () {
+        //    $(this).data("kendoDatePicker").open();
+        //});
+    });
 
     function onSelectTab(e) {
         var ts = this;
@@ -276,6 +308,10 @@
             $(".k-grid-btnPostPO", grid).hide();
             $(".k-grid-btnUnpostPO", grid).hide();
         }
+        else {
+            $(".k-grid-btnPrintPO", grid).show();
+            //$(".k-grid-btnPostPO", grid).show();            
+        }
     }
 
     function onEditGrid(e) {
@@ -306,7 +342,10 @@
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
             $("#AsOf").data("kendoDatePicker").enable(false);
-            $("#Department").data("kendoMultiColumnComboBox").enable(false);
+            $("#Fund").data("kendoMultiColumnComboBox").enable(false);
+            $("#FromDonation").data("kendoCheckBox").enable(false);
+            $("#InvDist").data("kendoComboBox").enable(false);
+            $("#ItemTypeId").data("kendoMultiColumnComboBox").enable(false);
             e.container.find("[id=EditDiv]").toggle(true);
         }
     }
@@ -446,7 +485,7 @@
                 var popupNotification = $("#popupNotification").data("kendoNotification");
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("PostRpci", "RPCI")',
+                    url: '@Url.Action("RpciPost", "RPCI")',
                     data: { rpciId: selectedId },
                     async: true,
                     beforeSend: function () {
@@ -458,7 +497,8 @@
                             popupNotification.show("Record successfully posted...", "info");
                             $("#grid").data("kendoGrid").dataSource.read();
                         } else {
-                            alert(result.Errors);
+                            //alert(result.Errors);
+                            displayErrors(result.Errors);
                             return false;
                         }
                     },
@@ -472,6 +512,15 @@
         }
     });
 
+    function displayErrors(errors) {
+        
+        if (errors.length > 0) {
+            // Concatenate all error messages into a single string
+            var allErrors = errors.join('\n');
+            alert(allErrors);
+        }
+    }
+
     $(".k-grid-btnUnpostPO").click(function (e) {
         e.preventDefault();
         var msg = "Unpost Selected Record?";
@@ -479,7 +528,7 @@
         if (confirm(msg)) {
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("UnpostRpci", "Rpci")',
+                url: '@Url.Action("RpciUnpost", "Rpci")',
                 data: { rpciId: selectedId },
                 async: true,
                 beforeSend: function () {
@@ -502,8 +551,7 @@
 
     $(".k-grid-btnPrintPO").click(function (e) {
         e.preventDefault();
-        var asOf = selectedAsOf;
-        var url = '@Url.Action("RpciRpt", "Rpci")?asOf=' + asOf + "&id=null";
+        var url = '@Url.Action("RpciRpt", "Rpci")?id=' + selectedId;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -530,6 +578,12 @@
         mywindow.open();
     });
 
+    function onSelectItemId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#Account").val(dataItem.Description).trigger("change");
+    }
+
     // rpci item template
     // Card TEMPLATE
     function DataItemCode() {
@@ -540,13 +594,23 @@
         };
     }
 
-    function onSelectItemCode(e) {
+    function onSelectItemCodeId(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#ItemType").val(dataItem.Type).trigger("change");
-        //$("#SubAccount").val(dataItem.MainDesc).trigger("change");
-        //$("#SubAccountCode").val(dataItem.MainDescCode).trigger("change");
-        
+        $("#Article").val(dataItem.Description).trigger("change");        
+    }
+
+    function onSelectDeptId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#Department").val(dataItem.Description).trigger("change");
+    }
+
+    function onSelectLocationId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#LocationCode").val(dataItem.Code).trigger("change");
+        $("#Location").val(dataItem.Description).trigger("change");
     }
 
     function DataOfficerId() {
@@ -558,6 +622,25 @@
             deptId: $("#LocationId").val(),
             text: text
         };
+    }
+
+    function onSelectLocationCode(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#LocationId").val(dataItem.Id).trigger("change");     
+
+    }
+
+    function UpdateTotalBalance(e) {
+        var qty = $("#Qty").data("kendoNumericTextBox").value();
+        var transferIn = $("#TransferIn").data("kendoNumericTextBox").value();
+        var qtyIss = $("#QtyIss").data("kendoNumericTextBox").value();
+        var transferOut = $("#TransferOut").data("kendoNumericTextBox").value();
+                
+        var totalBalance = (qty + transferIn) - (qtyIss + transferOut);
+
+        $("#TotalBalance").data("kendoNumericTextBox").value(totalBalance);
+        $("#TotalBalance").data("kendoNumericTextBox").trigger("change");        
     }
     // end rpci item template
 

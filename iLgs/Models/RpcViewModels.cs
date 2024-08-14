@@ -10,12 +10,25 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
        
+        [Required]
         [Display(Name = "As Of")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AsOf { get; set; }
 
-        [Display(Name = "Department")]
-        public Nullable<System.Guid> DeptId { get; set; }
+        [Required]
+        public string Fund { get; set; }
+
+        [Display(Name = "From Donation")]
+        public bool? FromDonation { get; set; } = false;
+
+        [Required]
+        [Display(Name = "Inventory/For Distribution")]
+        public string InvDist { get; set; }
+
+        [Required]
+        [Display(Name = "Account")]
+        public Nullable<System.Guid> ItemTypeId { get; set; }
+        public string Account { get; set; }
 
         [Display(Name = "Certified correct by")]
         public string CertifiedCorrectBy { get; set; }
@@ -38,80 +51,193 @@ namespace iLgs.Models
         public Nullable<System.DateTime> PostedDt { get; set; }
 
         // Transients
-        public string Department { get; set; }        
+        
+        [Display(Name = "Inventory/For distribution")]
+        //public string InvDistDesc { get { return this.InvDist == "I" ? "Inventory" : this.InvDist == "D" ? "For Distribution" : ""; } }
+        public string InvDistDesc { get; set; }
+   
+        [Display(Name = "Acquisition Mode")]
+        //public string AcqMode { get { return this.FromDonation == true ? "From Donation" : "Purchase"; } }
+        public string AcqMode { get; set; }
     }
 
     public class RPCIItemVM
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RpciId { get; set; }
-        [Display(Name = "Item Type")]
-        public string ItemType { get; set; }        
+        
+        [Display(Name = "Article")]
+        public Nullable<System.Guid> ItemCodeId { get; set; }
 
-        public string Fund { get; set; }
         public string Article { get; set; }
-        public string Description { get; set; }
-        public string Brand { get; set; }
 
         [Display(Name = "PO No.")]
-        public string RefNo { get; set; }
+        public string PoNo { get; set; }
 
         [Display(Name = "PO Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> RefDate { get; set; }
-
-        [Display(Name = "Old Stock No.")]
-        public string OldStockNo { get; set; }
-        
-        [Display(Name = "Stock No.")]
-        public string StockNo { get; set; }
-
-        public string Unit { get; set; }
-
-        [Display(Name = "Unit Value")]
-        public Nullable<decimal> UnitValue { get; set; }
-
-        [Display(Name = "Qty Balance")]
-        public Nullable<int> QtyBalance { get; set; }
-
-        [Display(Name = "Qty On hand")]
-        public Nullable<int> QtyOnHand { get; set; }
-
-        [Display(Name = "Qty Short/Over")]
-        public Nullable<int> QtyShortOver { get; set; }
-
-        [Display(Name = "Value Short/Over")]
-        public Nullable<decimal> ValueShortOver { get; set; }
-
-        public string Remarks { get; set; }
+        public Nullable<System.DateTime> PoDate { get; set; }
 
         [Display(Name = "AIR No.")]
         public string AirNo { get; set; }
 
         [Display(Name = "AIR Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AirDate { get; set; }
 
-        [Display(Name = "Location")]
-        public Nullable<System.Guid> LocationId { get; set; }
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
 
-        [Display(Name = "Officer")]
-        public Nullable<System.Guid> OfficerId { get; set; }
+        [Display(Name = "Unit")]
+        public string Unit { get; set; }
+
+        [Display(Name = "Department")]
+        public Nullable<System.Guid> DeptId { get; set; }
+
+        [Display(Name = "Department Display")]
+        public string Department { get; set; }
+        public Nullable<int> Qty { get; set; }
+
+        [Display(Name = "Location Code")]
+        public Nullable<System.Guid> LocationId { get; set; }
+        [Display(Name = "Location Code")]
+        public string LocationCode { get; set; }
+
+        [Display(Name = "Location")]
+        public string LocationName { get; set; }
+
+        [Display(Name = "Transfer In")]
+        public Nullable<int> TransferIn { get; set; }
+
+        [Display(Name = "Transfer Out")]
+        public Nullable<int> TransferOut { get; set; }
+
+        [Display(Name = "Qty Iss.")]
+        public Nullable<int> QtyIss { get; set; }
+        
+        [Display(Name = "Total Balance")]
+        public Nullable<int> TotalBalance { get; set; }
+
+        [Display(Name = "Acquisition Cost")]
+        public Nullable<decimal> AcqCost { get; set; }
+
+        [Display(Name = "Old Stock No.")]
+        public string OldStockNo { get; set; }
+
+        [Display(Name = "Stock No.")]
+        public string StockNo { get; set; }
+
+        public string Brand { get; set; }
 
         [Display(Name = "Model")]
         public string Model_ { get; set; }
 
+        [Display(Name = "Serisl No.")]
+        public string SerialNo { get; set; }
+
+        [Display(Name = "Item Description")]
+        public string Description { get; set; }
+
+        [Display(Name = "Other Particulars")]
+        public string OtherDesc { get; set; }
+        public string Remarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+    }
 
-        // Transients
-        public string Location { get; set; }
-        public string Officer { get; set; }
-        public string Designation { get; set; }
-        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [Display(Name = "Assumption Date")]
-        public Nullable<System.DateTime> AssumptionDt { get; set; }
+
+    [MetadataType(typeof(RPCIItem.Metadata))]
+    public partial class RPCIItem
+    {
+        internal sealed class Metadata
+        {
+            public System.Guid Id { get; set; }
+            public Nullable<System.Guid> RpciId { get; set; }
+            
+            [Display(Name = "Article")]
+            public Nullable<System.Guid> ItemCodeId { get; set; }
+
+            [Display(Name = "PO No.")]
+            public string PoNo { get; set; }
+
+            [Display(Name = "PO Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+            public Nullable<System.DateTime> PoDate { get; set; }
+
+            [Display(Name = "AIR No.")]
+            public string AirNo { get; set; }
+
+            [Display(Name = "AIR Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+            public Nullable<System.DateTime> AirDate { get; set; }
+
+            [Display(Name = "Unit Cost")]
+            public Nullable<decimal> UnitCost { get; set; }
+
+            [Display(Name = "Unit")]
+            public string Unit { get; set; }
+
+            [Display(Name = "Department")]
+            public Nullable<System.Guid> DeptId { get; set; }
+
+            [Display(Name = "Department Display")]
+            public string Department { get; set; }
+            public Nullable<int> Qty { get; set; }
+
+            [Display(Name = "Qty Iss.")]
+            public Nullable<int> QtyIss { get; set; }
+
+            [Display(Name = "Location Code")]
+            public Nullable<System.Guid> LocationId { get; set; }
+
+            [Display(Name = "Location Code")]
+            public string LocationCode { get; set; }
+
+            [Display(Name = "Location")]
+            public string LocationName { get; set; }
+
+            [Display(Name = "Transfer In")]
+            public Nullable<int> TransferIn { get; set; }
+
+            [Display(Name = "Transfer Out")]
+            public Nullable<int> TransferOut { get; set; }
+
+            [Display(Name = "Total Balance")]
+            public Nullable<int> TotalBalance { get; set; }
+
+
+            [Display(Name = "Acquisition Cost")]
+            public Nullable<decimal> AcqCost { get; set; }
+
+            [Display(Name = "Old Stock No.")]
+            public string OldStockNo { get; set; }
+
+            [Display(Name = "Stock No.")]
+            public string StockNo { get; set; }
+
+            public string Brand { get; set; }
+
+            [Display(Name = "Model")]
+            public string Model_ { get; set; }
+
+            [Display(Name = "Serisl No.")]
+            public string SerialNo { get; set; }
+
+            [Display(Name = "Item Description")]
+            public string Description { get; set; }
+
+            [Display(Name = "Other Particulars")]
+            public string OtherDesc { get; set; }
+            public string Remarks { get; set; }
+            public string InsertedBy { get; set; }
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+            public RPCI RPCI { get; set; }
+        }
     }
 
     public class RPCEFFOPPE_VM

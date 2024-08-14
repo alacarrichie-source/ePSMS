@@ -13,9 +13,12 @@ namespace iLgs.Services
     public interface IRpciService
     {
         IQueryable<RPCI_VM> GetAll();
+        IQueryable<RPCIItem> GetRpciXls(DateTime? asOf, Guid? id);
         ValueTask<RPCI> GetByIdAsync(Guid? id);
         ValueTask<RPCI_VM> GetByAsOfAsync(DateTime? AsOf);
         ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date);
+        ValueTask PostAsync(Guid? id, string user, DateTime date);
+        ValueTask UnPostAsync(Guid? id, string user, DateTime date);
         ValueTask<RPCI_VM> CreateAsync(RPCI_VM model, string user, DateTime date);
         ValueTask<RPCI_VM> UpdateAsync(RPCI_VM model, string user, DateTime date);
         ValueTask<RPCI_VM> DeleteAsync(RPCI_VM model, string user, DateTime date);
@@ -42,6 +45,14 @@ namespace iLgs.Services
             return data;
         });
 
+        public IQueryable<RPCIItem> GetRpciXls(DateTime? asOf, Guid? id) 
+        {
+            var data = _db.RPCIItems.Include(i => i.RPCI).Where(w => w.RPCI.AsOf == asOf && (id == null || w.RPCI.Id == id))
+                .OrderBy(o => o.RPCI.Fund).ThenBy(o => o.PoNo);
+                  
+            return data;
+        }
+
         public ValueTask<RPCI_VM> GetByAsOfAsync(DateTime? AsOf) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
@@ -50,14 +61,19 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     AsOf = s.AsOf,
-                    DeptId = s.DeptId,
-                    Department = s.Codextn.Description,
+                    Fund = s.Fund,
+                    FromDonation = s.FromDonation,
+                    InvDist = s.InvDist,
+                    ItemTypeId = s.ItemTypeId,
+                    Account = s.Account,
                     CertifiedCorrectBy = s.CertifiedCorrectBy,
                     ApprovedBy = s.ApprovedBy,
                     VerifiedBy = s.VerifiedBy,
                     PostedBy = s.PostedBy,
                     PostedDt = s.PostedDt,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    InvDistDesc = s.InvDist == "I" ? "Inventory" : s.InvDist == "D" ? "For Distribution" : "",
+                    AcqMode = s.FromDonation == true ? "From Donation" : "Purchase"
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -70,14 +86,19 @@ namespace iLgs.Services
                 {
                     Id = s.Id,
                     AsOf = s.AsOf,
-                    DeptId = s.DeptId,
-                    Department = s.Codextn.Description,
+                    Fund = s.Fund,
+                    FromDonation = s.FromDonation,
+                    InvDist = s.InvDist,
+                    ItemTypeId = s.ItemTypeId,
+                    Account = s.Account,
                     CertifiedCorrectBy = s.CertifiedCorrectBy,
                     ApprovedBy = s.ApprovedBy,
                     VerifiedBy = s.VerifiedBy,
                     PostedBy = s.PostedBy,    
                     PostedDt = s.PostedDt,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    InvDistDesc = s.InvDist == "I" ? "Inventory" : s.InvDist == "D" ? "For Distribution" : "",
+                    AcqMode = s.FromDonation == true ? "From Donation" : "Purchase"
                 });
             return data;
         });
@@ -86,9 +107,78 @@ namespace iLgs.Services
         _vmExceptionService.TryCatchAsync(async () =>
         {
 
-            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}", model.AsOf, model.DeptId, user);
+            if (await _db.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId && a.Account == model.Account))
+            {
+                throw new RecordAlreadyExistsException();
+            }
+
+            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}", model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, user);
             model = await GetByAsOfAsync(model.AsOf);
             return model;
+        });
+
+        public ValueTask PostAsync(Guid? id, string user, DateTime date) =>
+        _exceptionService.TryCatchAsync(async () =>
+        {
+            var entity = await _db.RPCIs.FindAsync(id);
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(id);
+            }
+
+            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordAlreadyPostedException($"Record Already Posted by {entity.PostedBy}");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.CertifiedCorrectBy))
+            {
+                throw new InvalidValueException("Certified Correct by is Required!");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.ApprovedBy))
+            {
+                throw new InvalidValueException("Aporoved by is Required!");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.VerifiedBy))
+            {
+                throw new InvalidValueException("Verified by is Required!");
+            }
+            
+
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.RPCIs.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();                       
+        });
+
+        public ValueTask UnPostAsync(Guid? id, string user, DateTime date) =>
+        _exceptionService.TryCatchAsync(async () =>
+        {
+            var entity = await _db.RPCIs.FindAsync(id);
+            if (entity == null)
+            {
+                throw new RecordNotFoundException(id);
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordNotYetPostedException($"Record is not yet posted!");
+            }
+                                    
+            entity.PostedBy = "";
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.RPCIs.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
         });
 
         public ValueTask<RPCI_VM> CreateAsync(RPCI_VM model, string user, DateTime date) =>
@@ -110,7 +200,11 @@ namespace iLgs.Services
             {
                 Id = model.Id,
                 AsOf = model.AsOf,
-                DeptId = model.DeptId,
+                Fund = model.Fund,
+                FromDonation = model.FromDonation,
+                InvDist = model.InvDist,
+                ItemTypeId = model.ItemTypeId,
+                Account = model.Account,                
                 CertifiedCorrectBy = model.CertifiedCorrectBy,
                 ApprovedBy = model.ApprovedBy,
                 VerifiedBy = model.VerifiedBy,
@@ -137,7 +231,12 @@ namespace iLgs.Services
             {
                 throw new RecordNotFoundException(model.Id);
             }
-            
+
+            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordAlreadyPostedException($"Record Already Posted by {entity.PostedBy}, cannot delete!");
+            }
+
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -164,12 +263,21 @@ namespace iLgs.Services
             {
                 throw new RecordNotFoundException(model.Id);
             }
-            
+
+            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordAlreadyPostedException($"Record Already Posted by {entity.PostedBy}, cannot update!");
+            }
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             entity.AsOf = model.AsOf;
-            entity.DeptId = model.DeptId;
+            entity.Fund = model.Fund;
+            entity.FromDonation = model.FromDonation;
+            entity.InvDist = model.InvDist;
+            entity.ItemTypeId = model.ItemTypeId;
+            entity.Account = model.Account;
             entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
             entity.ApprovedBy = model.ApprovedBy;
             entity.VerifiedBy = model.VerifiedBy;

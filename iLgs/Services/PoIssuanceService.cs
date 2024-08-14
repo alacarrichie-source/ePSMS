@@ -15,7 +15,7 @@ namespace iLgs.Services.Interfaces
     {
         ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId);
         ValueTask<PsCardItemVM> GetByIdAsync(Guid? id);
-                
+        
         ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
         ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
         ValueTask<PsCardItemVM> TransferAsync(PsCardItemVM model, string user, DateTime date);
@@ -48,6 +48,7 @@ namespace iLgs.Services.Interfaces
                     Id = s.Id,
                     PsCardId = s.PsCardId,
                     OrderItemId = s.OrderItemId,
+                    TransferRefId = s.TransferRefId,
                     PoNo = s.PoNo,
                     PoDate = s.PoDate,
                     AirDate = s.AirDate,
@@ -99,6 +100,7 @@ namespace iLgs.Services.Interfaces
                     Id = s.Id,
                     PsCardId = s.PsCardId,
                     OrderItemId = s.OrderItemId,
+                    TransferRefId = s.TransferRefId,
                     PoNo = s.PoNo,
                     PoDate = s.PoDate,
                     AirDate = s.AirDate,
@@ -136,7 +138,7 @@ namespace iLgs.Services.Interfaces
                 }).FirstOrDefaultAsync();
             return data;
         }
-
+        
         public async ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date)
         {
             var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
@@ -280,12 +282,27 @@ namespace iLgs.Services.Interfaces
             {
                 throw new InvalidValueException("Transfer out must not be greather than the balance!");
             }
+            
+            var psCardItemTransfer = new PsCardItemTransfer()
+            {
+                Id = Guid.NewGuid(),
+                PsCardItemId = model.Id,
+                Qty = model.TransferOut,
+                InsertedBy = user,
+                InsertedDt = date,
+                UpdatedBy = user,
+                UpdatedDt = date
+            };
+
+            _db.PsCardItemTransfers.Add(psCardItemTransfer);
+            await _db.SaveChangesAsync();
 
             var entity = new PsCardItem()
             {
                 Id = Guid.NewGuid(),
                 PsCardId = model.PsCardId,
                 OrderItemId = model.OrderItemId,
+                TransferRefId = psCardItemTransfer.Id,
                 PoNo = model.PoNo,
                 PoDate = model.PoDate,
                 AirNo = model.AirNo,
@@ -306,22 +323,34 @@ namespace iLgs.Services.Interfaces
                 LocationId = model.LocationId,
                 DeptDisplay = model.DeptDisplay,
                 Description = model.Description,
+                OtherDesc = model.OtherDesc,
+                IsForICS = model.IsForICS,
+                IsConsumable = model.IsConsumable,
+                IsIncorporated = model.IsIncorporated,
+                IsOthers = model.IsOthers,
+                OtherRemarks = model.OtherRemarks,
+                Type = model.Type,
+                InvDist = model.InvDist,
+                Vendor = model.Vendor,
                 InsertedBy = user,
                 InsertedDt = date,
                 UpdatedBy = user,
-                UpdatedDt = date
+                UpdatedDt = date                
             };
+            
+            _db.PsCardItems.Add(entity);
+            await _db.SaveChangesAsync();
 
-            var qtyBal = model.RemBalance; //model.Qty - ((model.QtyIss ?? 0) + model.TransferOut);
-            psCardItem.TransferOut = model.TransferOut;
+            var transferOuts = (_db.PsCardItemTransfers.Where(w => w.PsCardItemId == model.Id).Sum(s => s.Qty)) ?? 0;
+
+            var qtyBal = ((model.Qty ?? 0) + (model.TransferIn ?? 0)) - ((model.QtyIss ?? 0) + transferOuts);
+            psCardItem.TransferOut = transferOuts;
             psCardItem.QtyBal = qtyBal;
             psCardItem.Amount = qtyBal * model.UnitCost;
             psCardItem.UpdatedBy = user;
             psCardItem.UpdatedDt = date;
             _db.PsCardItems.Attach(psCardItem);
             _db.Entry(psCardItem).State = EntityState.Modified;
-
-            _db.PsCardItems.Add(entity);
             await _db.SaveChangesAsync();
 
             return model;

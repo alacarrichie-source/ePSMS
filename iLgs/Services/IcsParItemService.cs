@@ -47,7 +47,7 @@ namespace iLgs.Services
                     .Include(i => i.PsCardItemExtn.PsCardItemExtnBuilding)
                     .Include(i => i.PsCardItemExtn.PsCardItemExtnLand)
                     .Include(i => i.PsCardItemExtn.PsCardItemExtnOther)
-                    .Include(i => i.PsCardItemExtn.PsCardItemExtnTransport)                    
+                    .Include(i => i.PsCardItemExtn.PsCardItemExtnVehicle)                    
                 .Where(w => w.Id == id)
                 .FirstOrDefaultAsync();
             return data;

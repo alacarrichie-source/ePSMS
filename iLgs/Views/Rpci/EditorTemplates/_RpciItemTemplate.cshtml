@@ -7,7 +7,9 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.RpciId)
-    @Html.HiddenFor(model => model.ItemType)
+    @Html.HiddenFor(model => model.Article)
+    @Html.HiddenFor(model => model.LocationCode)
+
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -18,43 +20,13 @@
     <fieldset>
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.Fund, htmlAttributes: new { @class = "col-md-2" })
+                @Html.LabelFor(m => m.ItemCodeId, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Fund")
-                            .DataTextField("Description")
-                            .DataValueField("Code")
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "FUND", addAll = false });
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Code").Title("Code").Width("30%");
-                                c.Add().Field("Description").Title("Description").Width("70%");
-                            })
-                            .Suggest(true)
-                    )
-                    @Html.ValidationMessageFor(model => model.Fund)
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.Article, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Article)
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select Item")
                         .DataTextField("Description")
-                        .DataValueField("Description")
+                        .DataValueField("Id")
                         .ValuePrimitive(true)
                         .Filter(FilterType.Contains)
                         .DataSource(source =>
@@ -67,37 +39,39 @@
                         })
                         .Columns(c =>
                         {
-                            c.Add().Field("ItemNo").Title("Item No.").Width("10%");
-                            c.Add().Field("Code").Title("Code").Width("10%");
-                            c.Add().Field("MainDesc").Title("Group").Width("60%");
-                            c.Add().Field("Description").Title("Article").Width("20%");
+                            c.Add().Field("Code").Title("Code").Width("15%").Template("#= columnTemplate(data.Code) #");
+                            c.Add().Field("TypeDesc").Title("Account").Width("25%").Template("#= columnTemplate(data.TypeDesc) #");
+                            c.Add().Field("MainDesc").Title("Sub-Account").Width("35%").Template("#= columnTemplate(data.MainDesc) #");
+                            c.Add().Field("Description").Title("Article").Width("25%").Template("#= columnTemplate(data.Description) #");
                         })
                         .Suggest(true)
-                        .Events(e => { e.Select("onSelectItemCode");
+                        .Events(e =>
+                        {
+                            e.Select("onSelectItemCodeId");
                             //.DataBound("onDataBoundItemCode");
                         })
                     )
-                    @Html.ValidationMessageFor(m => m.Article)
+                    @Html.ValidationMessageFor(m => m.ItemCodeId)
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.RefNo, htmlAttributes: new { @class = "col-md-2" })
+                @Html.LabelFor(m => m.PoNo, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.RefNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.RefNo)
+                    @(Html.Kendo().TextBoxFor(m => m.PoNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.PoNo)
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.RefDate, htmlAttributes: new { @class = "col-md-2" })
+                @Html.LabelFor(m => m.PoDate, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().DatePickerFor(m => m.RefDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.RefDate)
+                    @(Html.Kendo().DatePickerFor(m => m.PoDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.PoDate)
                 </div>
             </div>
         </div>
@@ -124,113 +98,10 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-2" })
+                @Html.LabelFor(m => m.UnitCost, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Location")
-                            .DataTextField("Description")
-                            .DataValueField("Id")
-                            .ValuePrimitive(true)
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Code").Title("Code").Width("30%");
-                                c.Add().Field("Description").Title("Description").Width("70%");
-                            })
-                            .Suggest(true)
-                    )
-                    @Html.ValidationMessageFor(model => model.LocationId)
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(model => model.OfficerId, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.OfficerId)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Officer")
-                            .DataTextField("Name")
-                            .DataValueField("Id")
-                            .ValuePrimitive(true)
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetAccountableOfficersByDeptId", "Getters").Data("DataOfficerId");
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Name").Title("Name").Width("40%");
-                                c.Add().Field("Designation").Title("Designation").Width("60%");
-                            })
-                            .CascadeFrom("LocationId")
-                            .Suggest(true)
-                    )
-                    @Html.ValidationMessageFor(model => model.OfficerId)
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.OldStockNo, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.OldStockNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.OldStockNo)
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.StockNo, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.StockNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.StockNo)
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.Model_, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.Model_).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.Model_)
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.Brand, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.Brand)
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.Description).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.Description)
+                    @(Html.Kendo().NumericTextBoxFor(m => m.UnitCost).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.UnitCost)
                 </div>
             </div>
         </div>
@@ -268,50 +139,223 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.QtyBalance, htmlAttributes: new { @class = "col-md-2" })
+                @Html.LabelFor(model => model.DeptId, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyBalance).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.QtyBalance)
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Department")
+                            .DataTextField("Description")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "DEPARTMENTS", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Events(e => e.Select("onSelectDeptId"))
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.DeptId)
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.QtyOnHand, htmlAttributes: new { @class = "col-md-2" })
+                @Html.LabelFor(m => m.Department, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyOnHand).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.QtyOnHand)
+                    @(Html.Kendo().TextBoxFor(m => m.Department).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Department)
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.QtyShortOver, htmlAttributes: new { @class = "col-md-2" })
+                @Html.LabelFor(m => m.Qty, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyShortOver).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.QtyShortOver)
+                    @(Html.Kendo().NumericTextBoxFor(m => m.Qty).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("UpdateTotalBalance"))
+                    )
+                    @Html.ValidationMessageFor(m => m.Qty)
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.UnitValue, htmlAttributes: new { @class = "col-md-2" })
+                @Html.LabelFor(model => model.LocationId, "Location Code", htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.UnitValue).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.UnitValue)
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Location")
+                            .DataTextField("Code")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("100");
+                                c.Add().Field("Description").Title("Description").Width("300");
+                            })
+                            .Events(e => e.Select("onSelectLocationId"))
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.LocationId)
+                </div>
+            </div>
+            <
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.LocationName, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.LocationName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.LocationName)
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.ValueShortOver, htmlAttributes: new { @class = "col-md-2" })
+                @Html.LabelFor(m => m.TransferIn, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.ValueShortOver).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.ValueShortOver)
+                    @(Html.Kendo().NumericTextBoxFor(m => m.TransferIn).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("UpdateTotalBalance"))
+                    )
+                    @Html.ValidationMessageFor(m => m.TransferIn)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.QtyIss, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyIss).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("UpdateTotalBalance"))
+                    )
+                    @Html.ValidationMessageFor(m => m.QtyIss)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.TransferOut, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.TransferOut).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("UpdateTotalBalance"))
+                    )
+                    @Html.ValidationMessageFor(m => m.TransferOut)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.TotalBalance, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.TotalBalance).Decimals(0).Format("{0:n0}").Spinners(false).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.TotalBalance)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.AcqCost, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.AcqCost).Decimals(2).Format("{0:n2}").Spinners(false).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.AcqCost)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.OldStockNo, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.OldStockNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.OldStockNo)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.StockNo, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.StockNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.StockNo)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Brand, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Brand)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Model_, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.Model_).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Model_)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.SerialNo, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.SerialNo)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(5).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Description)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.OtherDesc, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(3).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.OtherDesc)
                 </div>
             </div>
         </div>

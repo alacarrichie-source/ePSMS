@@ -45,7 +45,7 @@ namespace iLgs.Models
         public Guid Id { get; set; }
         public Guid MastId { get; set; }
         //[Required]
-        public string Code { get; set; }            
+        public string Code { get; set; }
         [Required]
         public string Description { get; set; }
         public string Desc2 { get; set; }
@@ -55,7 +55,9 @@ namespace iLgs.Models
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }        
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public int? Padding { get; set; }
+        public string Pad { get; set; }
     }
 
     public class MenuActionSw

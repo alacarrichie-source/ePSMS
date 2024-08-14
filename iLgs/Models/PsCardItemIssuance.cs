@@ -16,6 +16,7 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
+        public Nullable<System.Guid> LocatinId { get; set; }
         public Nullable<System.Guid> DeptId { get; set; }
         public string IssuedTo { get; set; }
         public Nullable<System.DateTime> IssuedDate { get; set; }
@@ -29,6 +30,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> PostedDt { get; set; }
     
         public virtual Codextn Codextn { get; set; }
+        public virtual Codextn Codextn1 { get; set; }
         public virtual PsCardItem PsCardItem { get; set; }
     }
 }

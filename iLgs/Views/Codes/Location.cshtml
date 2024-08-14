@@ -11,9 +11,11 @@
     .Columns(columns =>
     {
         columns.Bound(o => o.Code).Width(70).Title(Model.CodeHdg ?? "Code");
-        columns.Bound(o => o.Description).Width(300).Title(Model.Desc1Hdg ?? "Description");
+        columns.Bound(o => o.Description).Width(300).Title(Model.Desc1Hdg ?? "Description")
+            .ClientTemplate("<div style='padding-left: #= Padding #px;'>#= Description #</div>"); 
         columns.Bound(o => o.Desc2).Width(100).Title(Model.Desc2Hdg ?? "Desc2");
         columns.Bound(o => o.Desc3).Width(70).Title(Model.Desc3Hdg ?? "Desc3");
+        //columns.Bound(o => o.Pad).Width(50);
         //columns.Bound(o => o.Desc4).Width(70).Title(Model.Desc4Hdg ?? "Desc4");
         //columns.Bound(o => o.Desc5).Width(70).Title(Model.Desc5Hdg ?? "Desc5");
         columns.Command(command =>

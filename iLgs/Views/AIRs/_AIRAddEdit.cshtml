@@ -88,24 +88,7 @@
                     @(Html.Kendo().TextBoxFor(m => m.Department).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
-        </div>
-
-        @*<div class="row">
-            <div class="col-md-6">
-                @Html.LabelFor(model => model.InvoiceNo, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.InvoiceNo).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
-                    @Html.ValidationMessageFor(model => model.InvoiceNo)
-                </div>
-            </div>
-            <div class="col-md-6">
-                @Html.LabelFor(model => model.InvoiceDate, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(model => model.InvoiceDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.InvoiceDate)
-                </div>
-            </div>
-        </div>*@
+        </div>        
 
         <br />
 
@@ -242,6 +225,29 @@
             </div>
         </div>
 
+        @*<div>
+            <label>invoice:</label>
+            <div class="k-edit-field">
+                <div id="invoiceContainer" data-bind="source:AIRInvoices">
+                    @foreach (var invoice in Model.AIRInvoices)
+                    {
+                        <div class="invoice-row">
+                            <div>
+                                <label for="InvoiceNo">Invoice No:</label>
+                                <input type="text" class=" k-textbox" required value="@invoice.InvoiceNo" />
+                            </div>
+                            <div>
+                                <label for="InvoiceDate">Date:</label>
+                                <input type="date" class="k-textbox" required value="@invoice.InvoiceDate" />
+                            </div>
+                            <button type="button" class="remove-invoice k-button">Remove</button>                            
+                        </div>                        
+                    }
+                </div>
+                @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Add").Name("addInvoice"))
+            </div>            
+        </div>*@        
+
         <br />
         <div class="row">
             <div class="col-md-12">
@@ -253,6 +259,23 @@
         </div>
     </fieldset>
 }
+
+<script type="text/x-kendo-template" id="invoiceTemplate">
+    <div class="invoice-row">
+        <div>
+            <label for="InvoiceNo">Invoice No:</label>B
+            <input type="text" class="InvoiceNo k-textbox" required />
+        </div>
+        <div>
+            <label for="InvoiceDate">Date:</label>
+            <input type="date" class="InvoiceDate k-textbox" required />
+        </div>
+        @*@(Html.Kendo().Button().Icon("k-icon k-i-close").HtmlAttributes(new { @class = "remove-invoice" }).Content("Remove").Name("removeInvoice"))*@
+        <button type="button" class="remove-invoice k-button">Remove</button>
+    </div>
+</script>
+
+
 
 @helper RenderTabstrip()
 {
@@ -366,7 +389,20 @@
         $("#btnCancelSelection").closest(".k-window-content").data("kendoWindow").close();
     });
 
+    $("#addInvoice").click(function () {
+        var invoiceTemplate = $("#invoiceTemplate").html();
+        $("#invoiceContainer").append(invoiceTemplate);
+    });
 
+    // Remove book row
+    //$(".remove-invoice").click(function (e) {
+    //    alert('x');
+    //    $(this).closest(".invoice-row").remove();
+    //});
+
+    $(document).on("click", ".remove-invoice", function () {
+        $(this).closest(".invoice-row").remove();
+    });
 </script>
 
 
