@@ -24,8 +24,6 @@ namespace iLgs.Models
         public Nullable<System.DateTime> AirDate { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
         public string Unit { get; set; }
-        public Nullable<System.Guid> DeptId { get; set; }
-        public string Department { get; set; }
         public Nullable<int> Qty { get; set; }
         public Nullable<System.Guid> LocationId { get; set; }
         public string LocationCode { get; set; }
@@ -49,7 +47,6 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual Codextn Codextn { get; set; }
-        public virtual Codextn Codextn1 { get; set; }
         public virtual ItemCode ItemCode { get; set; }
         public virtual RPCI RPCI { get; set; }
     }

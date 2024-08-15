@@ -262,10 +262,10 @@ namespace iLgs.Services
                 throw new InvalidValueException("Article is Required!");
             }
 
-            if (string.IsNullOrWhiteSpace(model.Description))
-            {
-                throw new InvalidValueException("Description is Required!");
-            }
+            //if (string.IsNullOrWhiteSpace(model.Description))
+            //{
+            //    throw new InvalidValueException("Description is Required!");
+            //}
 
             if (string.IsNullOrWhiteSpace(model.Fund))
             {
@@ -274,76 +274,24 @@ namespace iLgs.Services
 
             if (string.IsNullOrWhiteSpace(model.PsNo))
             {
-                throw new InvalidValueException("Stock/Prop No. is Required!");
+                throw new InvalidValueException("Property/Stock No. is Required!");
             }
-        }
-
-        //private void ValidateAllFieldModel(AllField model, ItemCode itemCode)
-        //{
-        //    if (!(itemCode.ForDistribution == "Y" && itemCode.IsConsumable == "Y" && itemCode.IsIncorporated == "Y"))
-        //    {
-        //        if (Enum.TryParse(itemCode.ItemType.Code, out Category category))
-        //        {
-        //            if (category == Category.D)
-        //            {
-        //                if (string.IsNullOrWhiteSpace(model.GenericName))
-        //                {
-        //                    throw new InvalidValueException("Generic Name is Required!");
-        //                }
-        //                if (string.IsNullOrWhiteSpace(model.Brand))
-        //                {
-        //                    throw new InvalidValueException("Brand is Required!");
-        //                }
-        //                if (model.PsCard.ItemCode.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
-        //                {
-        //                    if (string.IsNullOrWhiteSpace(model.DosageVolume))
-        //                    {
-        //                        throw new InvalidValueException("Dosage Volume is Required!");
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    if (string.IsNullOrWhiteSpace(model.DosageStrength))
-        //                    {
-        //                        throw new InvalidValueException("Dosage Strength is Required!");
-        //                    }
-        //                    if (string.IsNullOrWhiteSpace(model.DosageForm))
-        //                    {
-        //                        throw new InvalidValueException("Dosage Form is Required!");
-        //                    }
-        //                }
-        //            }
-        //            else if (category == Category.M)
-        //            {
-        //                if (string.IsNullOrWhiteSpace(model.Brand))
-        //                {
-        //                    throw new InvalidValueException("Brand is Required!");
-        //                }
-        //                if (string.IsNullOrWhiteSpace(model.Model_))
-        //                {
-        //                    throw new InvalidValueException("Model is Required!");
-        //                }
-        //                if (string.IsNullOrWhiteSpace(model.Size) && string.IsNullOrWhiteSpace(model.Dimension) && string.IsNullOrWhiteSpace(model.Weight)
-        //                    && string.IsNullOrWhiteSpace(model.Materials) && string.IsNullOrWhiteSpace(model.Capacity) && string.IsNullOrWhiteSpace(model.Color))
-        //                {
-        //                    throw new InvalidValueException("Dimonsion or Sizeor Weight or Materials or Capacity or Color is Required!");
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
+        }        
 
         public ValueTask<PsCardVM> CreateAsync(PsCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
+            model.Description = "Please see attachment.";
             ValidateField(model);
             _allFieldService.ValidatePsCardAllField(model);
             var itemCode = await _db.ItemCodes.FindAsync(model.ItemCodeId);
             //ValidateAllFieldModel(model.AllField, itemCode);
 
-            if (await _db.PsCards.AnyAsync(a => a.PsNo == model.PsNo && a.CardCategory == "S"))
+            if (await _db.PsCards.AnyAsync(a => a.PsNo == model.PsNo))
             {
                 throw new RecordAlreadyExistsException(string.Format("Stock No. {0} already exists!", model.PsNo));
             }
+
+            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -395,12 +343,14 @@ namespace iLgs.Services
             }
 
             ValidateField(model);
-            _allFieldService.ValidatePsCardAllField(model);
+            _allFieldService.ValidatePsCardAllField(model);            
 
             if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Id != model.Id))
             {
                 throw new RecordAlreadyExistsException(string.Format("Stock No. {0} already exists!", model.PsNo));
             }
+
+            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;

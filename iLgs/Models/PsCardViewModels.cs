@@ -22,7 +22,7 @@ namespace iLgs.Models
         [Required]
         public string Fund { get; set; }
 
-        [Required]
+        //[Required]
         [MaxLength(900)]
         [Display(Name = "Item Description")]
         public string Description { get; set; }
@@ -31,14 +31,14 @@ namespace iLgs.Models
         [Display(Name = "Card Category")]
         public string CardCategory { get; set; } // P or S only, to identify where the item belongs.
 
-        [Display(Name = "Stock/Property No.")]
+        [Display(Name = "Property/Stock No.")]
         [Required]
         public string PsNo { get; set; }
         
-        [Display(Name = "Stock/Property Name")]
+        [Display(Name = "Property/Stock Name")]
         public string PsName { get; set; }
 
-        [Display(Name = "Prev. Stock/Property No.")]
+        [Display(Name = "Previous Property/Stock No.")]
         public string PrevPsNo { get; set; }
 
         //[Display(Name = "Acq. Date")]
@@ -112,15 +112,15 @@ namespace iLgs.Models
         //[Required]
         public Nullable<int> Qty { get; set; }
 
-        [Display(Name = "Qty. Iss.")]
+        [Display(Name = "Qty. Issued")]
         public Nullable<int> QtyIss { get; set; }
-        [Display(Name = "Qty. Bal.")]
+        [Display(Name = "Qty. Balance")]
         public Nullable<int> QtyBal { get; set; }
 
-        [Display(Name = "Transfer-In")]
+        [Display(Name = "Transit-In")]
         public Nullable<int> TransferIn { get; set; }
 
-        [Display(Name = "Transfer-Out")]
+        [Display(Name = "Transit-Out")]
         public Nullable<int> TransferOut { get; set; }
 
         [Display(Name = "Transaction Type")]
@@ -139,7 +139,7 @@ namespace iLgs.Models
         public Nullable<decimal> PriceRate { get; set; }
         public string Remarks { get; set; }
 
-        [Display(Name = "Originating Department")]
+        [Display(Name = "Originating PO Department")]
         //[Required]
         public Nullable<System.Guid> DeptId { get; set; }
 
@@ -203,6 +203,9 @@ namespace iLgs.Models
         [Display(Name = "Phase Amount")]
         public Nullable<decimal> PhaseAmount { get; set; }
 
+        [Display(Name = "Previous Property/Stock No.")]
+        public string PrevPsNo { get; set; }
+
         // Transients
         public string Article { get; set; }
 
@@ -231,13 +234,13 @@ namespace iLgs.Models
                 if (!Qty.HasValue)
                 {
                     yield return new ValidationResult(
-                        "Either Qty or Transfer-In must be provided.",
+                        "Either Qty or Transit-In must be provided.",
                         new[] { nameof(Qty) }
                     );
                 } else
                 {
                     yield return new ValidationResult(
-                        "Either Qty or Transfer-In must be provided.",
+                        "Either Qty or Transit-In must be provided.",
                         new[] { nameof(TransferIn) }
                     );
                 }
@@ -291,7 +294,7 @@ namespace iLgs.Models
         public Nullable<decimal> UnitCost { get; set; }
         public int? IssuedToSw { get; set; }
 
-        [Display(Name = "Issued to description")]
+        [Display(Name = "Issued to Description")]
         public string IssuedToDesc { get; set; }
     }
 

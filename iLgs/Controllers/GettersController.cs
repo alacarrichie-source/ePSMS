@@ -469,7 +469,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Description.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }).OrderBy(o => o.Description), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }).OrderBy(o => o.Code), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetLocations(string text)

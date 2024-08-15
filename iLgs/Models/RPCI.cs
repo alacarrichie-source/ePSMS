@@ -27,6 +27,8 @@ namespace iLgs.Models
         public string InvDist { get; set; }
         public Nullable<System.Guid> ItemTypeId { get; set; }
         public string Account { get; set; }
+        public Nullable<System.Guid> DeptId { get; set; }
+        public string Department { get; set; }
         public string CertifiedCorrectBy { get; set; }
         public string ApprovedBy { get; set; }
         public string VerifiedBy { get; set; }
@@ -37,6 +39,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public System.DateTime UpdatedDt { get; set; }
     
+        public virtual Codextn Codextn { get; set; }
         public virtual ItemType ItemType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCIItem> RPCIItems { get; set; }

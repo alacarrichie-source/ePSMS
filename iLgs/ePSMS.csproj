@@ -388,6 +388,9 @@
     <Compile Include="Models\PARItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PropertyCardItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PropertyCardViewModels.cs" />
     <Compile Include="Models\PropertyViewModels.cs" />
     <Compile Include="Models\PsCard.cs">
@@ -427,9 +430,6 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardViewModels.cs" />
-    <Compile Include="Models\PsItemIssuance.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\Request.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -795,6 +795,7 @@
     <Compile Include="Startup.cs" />
     <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
     <Compile Include="Controllers\BaseConroller.cs" />
+    <Compile Include="Utilities\Utility.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\city-hall.jpg" />

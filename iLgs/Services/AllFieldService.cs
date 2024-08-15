@@ -1,9 +1,11 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using static iLgs.Models.CategoryEnum;
 
@@ -25,9 +27,11 @@ namespace iLgs.Services
         string GetCardStockNo(PsCardVM model);
         string GetRisStockNo(RisItemEntryVM model);
         void ValidatePsCardAllField(PsCardVM model);
+        void ValidateRisAllField(RisItemEntryVM model);
         string GetStockNo(AllField af, string itemTypeCode, string itemCode);
         bool IsBrandRequired(Category c);
         bool IsNoIcs(Guid? itemCodeId);
+        AllField ChangeAllFieldCase(AllField allField);
     }
 
     public class AllFieldService : IAllFieldService
@@ -70,10 +74,12 @@ namespace iLgs.Services
                     {
                         throw new InvalidValueException("Generic Name is Required!");
                     }
-                    if (string.IsNullOrWhiteSpace(af.Brand))
-                    {
-                        throw new InvalidValueException("Brand is Required!");
-                    }
+
+                    //if (string.IsNullOrWhiteSpace(af.Brand))
+                    //{
+                    //    throw new InvalidValueException("Brand is Required!");
+                    //}
+
                     if (model.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
                     {
                         if (string.IsNullOrWhiteSpace(af.DosageVolume))
@@ -93,17 +99,17 @@ namespace iLgs.Services
                         }
                     }
                 }
-                else if (c == CatMachineries() 
-                    || c == CatTransportations() 
-                    || c == CatFurnitures() 
+                else if (c == CatMachineries()
+                    || c == CatTransportations()
+                    || c == CatFurnitures()
                     || c == CatOtherProperties()
-                    || c == CatMedicals() 
-                    || c == CatAgriculturals() 
-                    || c == CatAnimalSupplies() 
+                    || c == CatMedicals()
+                    || c == CatAgriculturals()
+                    || c == CatAnimalSupplies()
                     || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies() 
-                    || c == CatAccountableForms() 
-                    || c == CatNonAccountableForns() 
+                    || c == CatOfficeSupplies()
+                    || c == CatAccountableForms()
+                    || c == CatNonAccountableForns()
                     || c == CatMilitaries()
                     || c == CatOtherSupplies())
                 {
@@ -210,6 +216,8 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
+            model = ChangeAllFieldCase(model);
+
             var entity = new AllField
             {
                 Id = model.Id,
@@ -279,6 +287,8 @@ namespace iLgs.Services
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
+
+            model = ChangeAllFieldCase(model);
 
             entity.AcqMode = model.AcqMode;
             entity.AcqCost = model.AcqCost;
@@ -371,17 +381,17 @@ namespace iLgs.Services
                 {
                     description += af.Area.ToString() + "sqm";
                 }
-                else if (c == CatMachineries() 
-                    || c == CatTransportations() 
-                    || c == CatFurnitures() 
+                else if (c == CatMachineries()
+                    || c == CatTransportations()
+                    || c == CatFurnitures()
                     || c == CatOtherProperties()
-                    || c == CatMedicals() 
-                    || c == CatAgriculturals() 
-                    || c == CatAnimalSupplies() 
+                    || c == CatMedicals()
+                    || c == CatAgriculturals()
+                    || c == CatAnimalSupplies()
                     || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies() 
-                    || c == CatAccountableForms() 
-                    || c == CatNonAccountableForns() 
+                    || c == CatOfficeSupplies()
+                    || c == CatAccountableForms()
+                    || c == CatNonAccountableForns()
                     || c == CatMilitaries()
                     || c == CatOtherSupplies())
                 {
@@ -410,7 +420,7 @@ namespace iLgs.Services
                                 (!string.IsNullOrWhiteSpace(af.PlateNo) ? $" {af.PlateNo}" : "") +
                                 (!string.IsNullOrWhiteSpace(af.BodyNo) ? $" {af.BodyNo}" : "") +
                                 (!string.IsNullOrWhiteSpace(af.MVFileNo) ? $" {af.MVFileNo}" : "") +
-                                (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : ""); 
+                                (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
                 }
             }
             return description ?? "";
@@ -423,6 +433,7 @@ namespace iLgs.Services
 
         public string GetRisStockNo(RisItemEntryVM model)
         {
+            model.AllField = ChangeAllFieldCase(model.AllField);
             string stockNo = model.ItemCode.Trim();
             if (!IsNoIcs(model.ItemCodeId))
             {
@@ -431,8 +442,46 @@ namespace iLgs.Services
             return stockNo ?? "";
         }
 
+        public AllField ChangeAllFieldCase(AllField allField)
+        {
+            if (!string.IsNullOrWhiteSpace(allField.DosageStrength))
+            {
+                allField.DosageStrength = allField.DosageStrength.ToLower();
+            }
+
+            if (!string.IsNullOrWhiteSpace(allField.PlateNo))
+            {
+                allField.PlateNo = allField.PlateNo.ToUpper();
+            }
+
+            if (!string.IsNullOrWhiteSpace(allField.PlateNo))
+            {
+                allField.PlateNo = allField.PlateNo.ToUpper();
+            }
+
+            var properties = allField.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (var property in properties)
+            {
+                if (property.PropertyType == typeof(string))
+                {
+                    if (property.Name != nameof(allField.DosageStrength) && property.Name != nameof(allField.PlateNo)
+                         && property.Name != nameof(allField.InsertedBy) && property.Name != nameof(allField.UpdatedBy)) {
+                        var value = (string)property.GetValue(allField);
+                        if (value != null)
+                        {
+                            property.SetValue(allField, Utility.ToProperCase(value));
+                        }
+                    }
+                }
+            }
+            
+            return allField;
+        }        
+
         public string GetCardStockNo(PsCardVM model)
         {
+            model.AllField = ChangeAllFieldCase(model.AllField);
             string stockNo = model.ItemCode.Trim();
             if (model.FromDonation == true)
             {
@@ -563,7 +612,7 @@ namespace iLgs.Services
                         }
                         else
                         {
-                            stockNo += $"/{af.PlateNo}";
+                            stockNo += $"/{af.PlateNo.ToUpper()}";
                         }
                     }
 
@@ -617,7 +666,7 @@ namespace iLgs.Services
                         }
                         else
                         {
-                            stockNo += $"/{af.Model_}";
+                            stockNo += $"/{Utility.ToProperCase(af.Model_)}";
                         }
                     }
                 }
@@ -625,13 +674,14 @@ namespace iLgs.Services
                 {
                     if (!string.IsNullOrWhiteSpace(af.GenericName))
                     {
-                        if (af.GenericName.Length >= 3)
+                        var genName = Utility.ToProperCase(af.GenericName);
+                        if (genName.Length >= 3)
                         {
-                            stockNo += "/" + af.GenericName.Substring(0, 1) + af.GenericName.Substring(2, 1);
+                            stockNo += "/" + genName.Substring(0, 1) + genName.Substring(2, 1);
                         }
                         else
                         {
-                            stockNo += "/" + af.GenericName.Substring(0, 1) + "X";
+                            stockNo += "/" + genName.Substring(0, 1) + "X";
                         }
                     }
 

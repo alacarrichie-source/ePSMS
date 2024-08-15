@@ -53,10 +53,11 @@ namespace iLgs.Controllers
             return result;
         }
         
-        public ActionResult _Issuance(Guid? cardItemId, decimal? unitCost)
+        public ActionResult _Issuance(Guid? cardItemId, decimal? unitCost, Guid? deptId)
         {
             ViewData["CardItemId"] = cardItemId;
-            ViewData["UnitCost"] = unitCost;            
+            ViewData["UnitCost"] = unitCost;
+            ViewData["DeptId"] = deptId;
             return PartialView();
         }
         

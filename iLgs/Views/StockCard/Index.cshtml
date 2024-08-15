@@ -14,7 +14,7 @@
         col.Bound(c => c.SubAccount).Width(100);
         col.Bound(c => c.Item).Width(100).Title("Articles");
         //col.Bound(c => c.PsName).Width(70);
-        col.Bound(c => c.Description).Width(100);
+        //col.Bound(c => c.Description).Width(100);
         col.Command(command =>
         {
             //command.Edit();
@@ -23,18 +23,30 @@
             command.Destroy();
         }).Width(100);
     })
-    //.ToolBar(t =>
-    //{
-    //    t.Create();
-    //    t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintCard").HtmlAttributes(new { @class = "k-button", href = "" });
-    //})
-    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardTemplate").Window(w => w.Width(800).Title("Stock Card")))
-    .ToolBar(toolbar =>
+    @*.ToolBar(toolbar =>
+        {
+        toolbar.Template(@<text>
+            @(Html.Kendo().Button().Name("btnAdd_").Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAdd")))
+            @(Html.Kendo().Button().Name("btnPrintCard").Content("Print").Icon("k-icon k-i-print").Events(e => e.Click("onClickBtnPrint")))
+        </text>);
+    })*@
+    .ToolBar(t =>
     {
-    toolbar.Template(@<text>
-        @(Html.Kendo().Button().Name("btnAdd_").Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAdd")))
-        @(Html.Kendo().Button().Name("btnPrintCard").Content("Print").Icon("k-icon k-i-print").Events(e => e.Click("onClickBtnPrint")))
-    </text>);
+        //t.Create().Text("Add New Record");
+        //t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnAddNew").HtmlAttributes(new { @class = "k-grid-add-custom" });
+        //t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        //t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        //t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Search();
+    })
+    .Search(s =>
+    {
+        s.Field(o => o.Fund, "contains");
+        s.Field(o => o.PsNo, "contains");
+        s.Field(o => o.ItemType, "contains");
+        s.Field(o => o.SubAccount, "contains");
+        s.Field(o => o.Item, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -627,6 +639,11 @@
         mywindow.open();
     }
 
+    $(".k-grid-btnAddNew").click(function (e) {
+        e.preventDefault();
+        StockCard("A", null);
+    });
+
     $(".k-grid-btnPrintCard").click(function (e) {
         e.preventDefault();
         var url = '@Url.Action("StockCardRpt", "Stocks")?stockNo=' + selectedStockNo;
@@ -849,7 +866,7 @@
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
         $("#SubAccountCode").val(dataItem.MainDescCode).trigger("change");
 
-        UpdateDescription(e);
+        //UpdateDescription(e);
 
         RefreshDivs(dataItem);
     }
@@ -1014,7 +1031,7 @@
             // Selecting the row in the subgrid using e.model
             var row = e.sender.tbody.find("tr[data-uid='" + e.model.uid + "']");
             e.sender.select(row);
-        }        
+        }
     }
 
     function onSaveGridItems(e) {
@@ -1023,7 +1040,7 @@
         var fieldsContainer = $('#DIV_ITEMFIELDS');
 
         kendo.unbind(fieldsContainer); // Unbind the fields
-        kendo.bind(fieldsContainer, e.model); // Re-bind the fields to update the model        
+        kendo.bind(fieldsContainer, e.model); // Re-bind the fields to update the model
     }
 
     @*function RefreshItemDivs() {

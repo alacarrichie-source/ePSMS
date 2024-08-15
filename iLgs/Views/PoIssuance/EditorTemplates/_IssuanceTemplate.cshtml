@@ -73,7 +73,7 @@
                                 c.Add().Field("Code").Title("Code").Width("30%");
                                 c.Add().Field("Description").Title("Description").Width("70%");
                             })
-                            .Suggest(true)
+                            .Enable(false)
                         )
                         @Html.ValidationMessageFor(model => model.DeptId)
                     </div>

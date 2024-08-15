@@ -87,7 +87,8 @@ namespace iLgs.Services
                     InsertedDt = s.InsertedDt,
                     Department = s.Codextn.Description,
                     Location = s.Codextn1.Description,
-                    LocCode = s.Codextn1.Code
+                    LocCode = s.Codextn1.Code,
+                    PrevPsNo = s.PrevPsNo
                 }).FirstOrDefaultAsync();
             return data;
         }
@@ -143,7 +144,8 @@ namespace iLgs.Services
                     InsertedDt = s.InsertedDt,
                     Department = s.Codextn.Description,
                     Location = s.Codextn1.Description,
-                    LocCode = s.Codextn1.Code
+                    LocCode = s.Codextn1.Code,
+                    PrevPsNo = s.PrevPsNo
                 });
             return data;
         });
@@ -228,6 +230,7 @@ namespace iLgs.Services
                 OldAmount = model.OldAmount,
                 PhaseNo = model.PhaseNo,
                 PhaseAmount = model.PhaseAmount,
+                PrevPsNo = model.PrevPsNo,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -287,6 +290,7 @@ namespace iLgs.Services
             entity.OldAmount = model.OldAmount;
             entity.PhaseNo = model.PhaseNo;
             entity.PhaseAmount = model.PhaseAmount;
+            entity.PrevPsNo = model.PrevPsNo;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

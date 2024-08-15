@@ -5,7 +5,7 @@
 
 @(Html.Kendo().Grid<iLgs.Models.PsCardItemVM>()
     .Name("grid")
-    .HtmlAttributes(new { @class = "max-grid" })
+    //.HtmlAttributes(new { @class = "max-grid" })
     .Columns(columns =>
     {
         columns.Bound(f => f.Article).Width(70).Title("Articles");
@@ -79,7 +79,7 @@
     })
     .ToolBar(t =>
     {
-        t.Custom().Text("Transit").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Transit Selected Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
         //t.Custom().Text("Generate PARs").IconClass("k-icon k-i-add").Name("btnAddPars").HtmlAttributes(new { @class = "k-button", href = "" });
         //t.Custom().Text("Generate ICS").IconClass("k-icon k-i-add").Name("btnAddIcs").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
@@ -156,7 +156,7 @@
             {
                 items.Add().Text("Issued Items")
                     .Selected(true)
-                    .LoadContentFrom("_Issuance", "PoIssuance", new { cardItemId = "#=Id#", unitCost = "#=UnitCost#" });
+                    .LoadContentFrom("_Issuance", "PoIssuance", new { cardItemId = "#=Id#", unitCost = "#=UnitCost#", deptId = "#=DeptId#" });
                 //items.Add().Text("PARs")
                 //    .LoadContentFrom("_Pars", "PoIssuance", new { cardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
                 //items.Add().Text("ICS")
@@ -203,10 +203,10 @@
         overflow: hidden; /* Hide any overflow */
     }
 
-    /*#grid .k-grid-content {
-        overflow-y: auto;
-        height: calc(100vh - 200px)!important;
-    }*/
+    #grid .k-grid-content {
+        overflow-x: auto;
+        height: calc(90vh - 180px)!important;
+    }
 </style>
 
 
@@ -703,12 +703,12 @@
         var dataItem = this.dataItem(e.item.index());
         var issuedTo = dataItem.Description;
 
-        if (issuedTo == "Department")
+        if (issuedTo.includes("Department"))
         {
-            $("#DIV_DEPARTMENT").removeClass("hidden");
+            $("#DIV_DEPARTMENT").removeClass("hidden");            
             $("#DIV_LOCATION").addClass("hidden");
         }
-        else if (issuedTo == "Location") {
+        else if (issuedTo == "Location" || issuedTo == "Disposal") {
             $("#DIV_LOCATION").removeClass("hidden");
             $("#DIV_DEPARTMENT").addClass("hidden");
         }
@@ -726,10 +726,10 @@
         var defaultValue = comboBox.value();
 
         // Check the default value and adjust the visibility of DIV_DEPARTMENT
-        if (defaultValue === "Department") {
+        if (defaultValue.includes("Department")) {
             $("#DIV_DEPARTMENT").removeClass("hidden");
             $("#DIV_LOCATION").addClass("hidden");
-        } else if (defaultValue === "Location") {
+        } else if (defaultValue == "Location" || defaultValue == "Disposal") {
             $("#DIV_LOCATION").removeClass("hidden");
             $("#DIV_DEPARTMENT").addClass("hidden");
         } else {

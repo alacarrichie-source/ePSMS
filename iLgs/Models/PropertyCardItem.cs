@@ -12,18 +12,26 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PsItemIssuance
+    public partial class PropertyCardItem
     {
         public System.Guid Id { get; set; }
-        public string TranCode { get; set; }
-        public Nullable<System.Guid> PsItemId { get; set; }
-        public Nullable<System.Guid> RisIssuedId { get; set; }
-        public Nullable<System.DateTime> IssuedDate { get; set; }
-        public string IssuedTo { get; set; }
-        public string InsertedBy { get; set; }
+        public Nullable<System.Guid> CardId { get; set; }
+        public Nullable<System.DateTime> RefDate { get; set; }
+        public string RefNo { get; set; }
+        public string RefType { get; set; }
+        public Nullable<int> QtyRec { get; set; }
         public Nullable<int> Qty { get; set; }
-        public Nullable<decimal> UnitCost { get; set; }
-        public Nullable<System.Guid> SourceId { get; set; }
+        public string TransType { get; set; }
+        public Nullable<int> QtyBal { get; set; }
+        public Nullable<decimal> Amount { get; set; }
+        public string Remarks { get; set; }
+        public string Location { get; set; }
+        public string IssuedTo { get; set; }
+        public string Officer { get; set; }
+        public string PrevOfficer { get; set; }
+        public string PrevRefNo { get; set; }
+        public string PrevRefType { get; set; }
+        public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }

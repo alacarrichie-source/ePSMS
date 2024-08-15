@@ -49,8 +49,8 @@ namespace iLgs.Services
                     Department = s.Codextn.Description,
                     UnitCost = s.PsCardItem.UnitCost,
                     PostedBy = s.PostedBy,
-                    PostedDt = s.PostedDt,                    
-                    IssuedToDesc = s.IssuedTo == "Department"  ? s.Codextn.Description : s.IssuedTo == "Location" ? s.Codextn1.Description : ""
+                    PostedDt = s.PostedDt,
+                    IssuedToDesc = s.IssuedTo.Contains("Department") ? s.Codextn.Description : (s.IssuedTo == "Location" || s.IssuedTo == "Disposal") ? s.Codextn1.Description : ""
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -73,14 +73,14 @@ namespace iLgs.Services
                     UnitCost = s.PsCardItem.UnitCost,
                     PostedBy = s.PostedBy,
                     PostedDt = s.PostedDt,                    
-                    IssuedToDesc = s.IssuedTo == "Department" ? s.Codextn.Description : s.IssuedTo == "Location" ? s.Codextn1.Description : ""
+                    IssuedToDesc = s.IssuedTo.Contains("Department") ? s.Codextn.Description : (s.IssuedTo == "Location" || s.IssuedTo == "Disposal") ? s.Codextn1.Description : ""
                 });
             return data;
         });
 
         private async ValueTask ValidateFieldsAsync(PsCardItemIssuanceVM model)
         {
-            if (model.IssuedTo == "Department")
+            if (model.IssuedTo.Contains("Department"))
             {
                 if (model.DeptId == null)
                 {
@@ -88,9 +88,9 @@ namespace iLgs.Services
                 }                
             }
 
-            if (model.IssuedTo == "Location")
+            if (model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
             {
-                if (model.DeptId == null)
+                if (model.LocationId == null)
                 {
                     throw new InvalidValueException("Location is required!");
                 }
@@ -104,11 +104,6 @@ namespace iLgs.Services
             if (model.Qty == 0)
             {
                 throw new InvalidValueException("Quantity is required!");
-            }
-
-            if (model.IssuedToSw == 1 && (model.DeptId == null || model.DeptId == Guid.Empty))
-            {
-                throw new InvalidValueException("Department is Required!");
             }
 
             var rsmiDate = await _db.RSMIs.MaxAsync(m => m.Date);
@@ -131,11 +126,11 @@ namespace iLgs.Services
                 throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
             }
 
-            if (model.IssuedTo == "Department")
+            if (model.IssuedTo.Contains("Department"))
             {
                 model.LocationId = null;
             }
-            else if (model.IssuedTo == "Location")
+            else if (model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
             {
                 model.DeptId = null;
             }
@@ -196,11 +191,11 @@ namespace iLgs.Services
                 throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
             }
 
-            if (model.IssuedTo == "Department")
+            if (model.IssuedTo.Contains("Department"))
             {
                 model.LocationId = null;
             }
-            else if (model.IssuedTo == "Location")
+            else if (model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
             {
                 model.DeptId = null;
             }

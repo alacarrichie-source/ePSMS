@@ -272,7 +272,7 @@ namespace iLgs.Services.Interfaces
             var psCardItem = await _db.PsCardItems.FindAsync(model.Id);
             if (!model.TransferOut.HasValue)
             {
-                throw new InvalidValueException("Transfer out is required!");
+                throw new InvalidValueException("Transit out is required!");
             }
             if (model.LocationId == null)
             {
@@ -280,7 +280,7 @@ namespace iLgs.Services.Interfaces
             }
             if (model.TransferOut > psCardItem.QtyBal)
             {
-                throw new InvalidValueException("Transfer out must not be greather than the balance!");
+                throw new InvalidValueException("Transit out must not be greater than the balance!");
             }
             
             var psCardItemTransfer = new PsCardItemTransfer()

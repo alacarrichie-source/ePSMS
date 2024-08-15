@@ -95,11 +95,11 @@
         <EntityTypeShape EntityType="AppManModel.RpcPpeItem" Width="1.5" PointX="3" PointY="7" />
         <EntityTypeShape EntityType="AppManModel.RpcPpe" Width="1.5" PointX="0.75" PointY="8.5" />
         <AssociationConnector Association="AppManModel.FK_RpcPpeItems_RpcPpes" />
-        <EntityTypeShape EntityType="AppManModel.RPCI" Width="1.5" PointX="5.375" PointY="9.125" />
         <EntityTypeShape EntityType="AppManModel.RPCIItem" Width="1.5" PointX="7.625" PointY="7.25" />
+        <EntityTypeShape EntityType="AppManModel.RPCI" Width="1.5" PointX="5.375" PointY="8.5" />
         <AssociationConnector Association="AppManModel.FK_RPCIItems_RPCIs1" />
       </Diagram>
-      <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" ZoomLevel="77" >
+      <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" ZoomLevel="111" >
         <EntityTypeShape EntityType="AppManModel.AccountableOfficer" Width="1.5" PointX="5.75" PointY="0.75" />
         <EntityTypeShape EntityType="AppManModel.PsCard" Width="1.5" PointX="0.75" PointY="9.625" />
         <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroupDescriptionItem" Width="1.5" PointX="8.25" PointY="15.5" />
@@ -136,7 +136,6 @@
         <EntityTypeShape EntityType="AppManModel.PropertyCardPpe" Width="1.5" PointX="13" PointY="15.375" />
         <EntityTypeShape EntityType="AppManModel.PropertyCard" Width="1.5" PointX="10.75" PointY="7.5" />
         <EntityTypeShape EntityType="AppManModel.PropertyCardVehicle" Width="1.5" PointX="13" PointY="11.5" />
-        <EntityTypeShape EntityType="AppManModel.PsItemIssuance" Width="1.5" PointX="12.875" PointY="29.75" />
         <EntityTypeShape EntityType="AppManModel.PsItem" Width="1.5" PointX="10.625" PointY="28.75" />
         <EntityTypeShape EntityType="AppManModel.PsStockExtn" Width="1.5" PointX="10.625" PointY="24.875" />
         <EntityTypeShape EntityType="AppManModel.PsStock" Width="1.5" PointX="8.375" PointY="27.75" />
@@ -190,14 +189,14 @@
         <AssociationConnector Association="AppManModel.FK_StockItemIssuances_StockItems" />
         <EntityTypeShape EntityType="AppManModel.AllField" Width="1.5" PointX="3" PointY="1.875" />
         <AssociationConnector Association="AppManModel.FK_AllFields_PsCards" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItem" Width="1.5" PointX="3" PointY="11.625" />
-        <AssociationConnector Association="AppManModel.FK_PsCardItems_PsCards" />
-        <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" />
         <EntityTypeShape EntityType="AppManModel.PsCardItemTransfer" Width="1.5" PointX="5.25" PointY="20" />
-        <AssociationConnector Association="AppManModel.FK_PsCardItems_PsCardItemTransfers" />
-        <AssociationConnector Association="AppManModel.FK_PsCardItemTransfers_PsCardItems" />
         <EntityTypeShape EntityType="AppManModel.PsCardItemIssuance" Width="1.5" PointX="5.25" PointY="14.125" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItem" Width="1.5" PointX="10.5" PointY="10.375" />
         <AssociationConnector Association="AppManModel.FK_PsCardItemIssuances_PsCardItems" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItems_PsCardItemTransfers" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItems_PsCards" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItemTransfers_PsCardItems" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" />
         </Diagram>
       <Diagram DiagramId="f737fa97db2e49e58b437ce4983844bf" Name="RIS" >
         <EntityTypeShape EntityType="AppManModel.RISs" Width="1.5" PointX="0.75" PointY="3.875" />
