@@ -64,8 +64,6 @@ namespace iLgs.Services
                     AirDate = s.AirDate,
                     UnitCost = s.UnitCost,
                     Unit = s.Unit,
-                    DeptId = s.DeptId,
-                    Department = s.Department,
                     Qty = s.Qty,
                     LocationId = s.LocationId,
                     LocationCode = s.LocationCode,
@@ -127,8 +125,8 @@ namespace iLgs.Services
                 AirDate = model.AirDate,
                 UnitCost = model.UnitCost,
                 Unit = model.Unit,
-                DeptId = model.DeptId,
-                Department = model.Department,
+                //DeptId = model.DeptId,
+                //Department = model.Department,
                 Qty = model.Qty,
                 QtyIss = model.QtyIss,
                 LocationId = model.LocationId,
@@ -181,8 +179,8 @@ namespace iLgs.Services
             entity.AirDate = model.AirDate;
             entity.UnitCost = model.UnitCost;
             entity.Unit = model.Unit;
-            entity.DeptId = model.DeptId;
-            entity.Department = model.Department;
+            //entity.DeptId = model.DeptId;
+            //entity.Department = model.Department;
             entity.Qty = model.Qty;
             entity.QtyIss = model.QtyIss;
             entity.LocationId = model.LocationId;

@@ -67,6 +67,8 @@ namespace iLgs.Services
                     ItemTypeId = s.ItemTypeId,
                     Account = s.Account,
                     CertifiedCorrectBy = s.CertifiedCorrectBy,
+                    DeptId = s.DeptId,
+                    Department = s.Department,
                     ApprovedBy = s.ApprovedBy,
                     VerifiedBy = s.VerifiedBy,
                     PostedBy = s.PostedBy,
@@ -91,6 +93,8 @@ namespace iLgs.Services
                     InvDist = s.InvDist,
                     ItemTypeId = s.ItemTypeId,
                     Account = s.Account,
+                    DeptId = s.DeptId,
+                    Department = s.Department,
                     CertifiedCorrectBy = s.CertifiedCorrectBy,
                     ApprovedBy = s.ApprovedBy,
                     VerifiedBy = s.VerifiedBy,
@@ -106,13 +110,17 @@ namespace iLgs.Services
         public ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date) =>
         _vmExceptionService.TryCatchAsync(async () =>
         {
-
-            if (await _db.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId && a.Account == model.Account))
-            {
-                throw new RecordAlreadyExistsException();
+            if (model.DeptId != null) {                 
+                if (await _db.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
+                     && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId
+                     && a.Account == model.Account && a.DeptId == model.DeptId))
+                {
+                    throw new RecordAlreadyExistsException();
+                }
             }
 
-            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}", model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, user);
+            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}", 
+                model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, model.DeptId, user);
             model = await GetByAsOfAsync(model.AsOf);
             return model;
         });
@@ -205,6 +213,8 @@ namespace iLgs.Services
                 InvDist = model.InvDist,
                 ItemTypeId = model.ItemTypeId,
                 Account = model.Account,                
+                DeptId = model.DeptId,
+                Department = model.Department,
                 CertifiedCorrectBy = model.CertifiedCorrectBy,
                 ApprovedBy = model.ApprovedBy,
                 VerifiedBy = model.VerifiedBy,
@@ -278,6 +288,8 @@ namespace iLgs.Services
             entity.InvDist = model.InvDist;
             entity.ItemTypeId = model.ItemTypeId;
             entity.Account = model.Account;
+            entity.DeptId = model.DeptId;
+            entity.Department = model.Department;
             entity.CertifiedCorrectBy = model.CertifiedCorrectBy;
             entity.ApprovedBy = model.ApprovedBy;
             entity.VerifiedBy = model.VerifiedBy;
