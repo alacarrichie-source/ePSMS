@@ -16,8 +16,10 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
-        public Nullable<System.Guid> LocatinId { get; set; }
+        public Nullable<System.Guid> LocationId { get; set; }
         public Nullable<System.Guid> DeptId { get; set; }
+        public string IssuedToCode { get; set; }
+        public string IssuedToDescription { get; set; }
         public string IssuedTo { get; set; }
         public Nullable<System.DateTime> IssuedDate { get; set; }
         public Nullable<int> Qty { get; set; }

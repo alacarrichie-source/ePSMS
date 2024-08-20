@@ -35,7 +35,7 @@
         //t.Create().Text("Add New Record");
         //t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnAddNew").HtmlAttributes(new { @class = "k-grid-add-custom" });
-        //t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintCard").HtmlAttributes(new { @class = "k-button", href = "" });
         //t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         //t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
@@ -646,8 +646,9 @@
 
     $(".k-grid-btnPrintCard").click(function (e) {
         e.preventDefault();
-        var url = '@Url.Action("StockCardRpt", "Stocks")?stockNo=' + selectedStockNo;
-
+        
+        var url = '@Url.Action("StockCardRpt", "StockCard")?selectedId=' + selectedId;
+        
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
                 .kendoWindow({
@@ -723,6 +724,9 @@
         if (this.dataSource.data().length == 0) {
             var grid = $("#grid");
             $(".k-grid-btnPrintCard", grid).hide();
+        }
+        else {
+            $(".k-grid-btnPrintCard", grid).show();
         }
 
     }

@@ -225,7 +225,11 @@ namespace iLgs.Models
         public int? IcsBalance { get; set; } = 0;
         public string StockNo { get; set; }
         [Display(Name = "Remaining Balance")]
-        public Nullable<int> RemBalance { get; set; }        
+        public Nullable<int> RemBalance { get; set; }
+
+        [Display(Name = "Transit Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> TransDate { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
@@ -275,6 +279,11 @@ namespace iLgs.Models
         public Nullable<int> Qty { get; set; }
         public Nullable<decimal> Amount { get; set; }
 
+        public string IssuedToCode { get; set; }
+
+        [Display(Name = "Issued to Description")]
+        public string IssuedToDescription { get; set; }
+
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
@@ -292,10 +301,7 @@ namespace iLgs.Models
         
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
-        public int? IssuedToSw { get; set; }
-
-        [Display(Name = "Issued to Description")]
-        public string IssuedToDesc { get; set; }
+        public int? IssuedToSw { get; set; }        
     }
 
     public class FieldSw

@@ -282,12 +282,17 @@ namespace iLgs.Services.Interfaces
             {
                 throw new InvalidValueException("Transit out must not be greater than the balance!");
             }
+            if (!model.TransDate.HasValue)
+            {
+                throw new InvalidValueException("Transit date is required!");
+            }
             
             var psCardItemTransfer = new PsCardItemTransfer()
             {
                 Id = Guid.NewGuid(),
                 PsCardItemId = model.Id,
                 Qty = model.TransferOut,
+                TransDate = model.TransDate,
                 InsertedBy = user,
                 InsertedDt = date,
                 UpdatedBy = user,

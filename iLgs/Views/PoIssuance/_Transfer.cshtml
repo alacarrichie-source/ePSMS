@@ -106,7 +106,16 @@
                 </div>
             </div>
         </div>
-
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.TransDate, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().DatePickerFor(m => m.TransDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.TransDate)
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-12" })

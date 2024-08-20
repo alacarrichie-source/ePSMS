@@ -23,6 +23,7 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
         public Nullable<int> Qty { get; set; }
+        public Nullable<System.DateTime> TransDate { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

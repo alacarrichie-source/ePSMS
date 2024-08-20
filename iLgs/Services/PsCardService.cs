@@ -16,6 +16,8 @@ namespace iLgs.Services
         IQueryable<PsCardVM> GetAll();
         IQueryable<PsCardVM> GetAllByItemCodeId(Guid? itemCodeId);
         ValueTask<PsCardVM> GetVmByIdAsync(Guid? id);
+
+        PsCard GetById(Guid id);
         ValueTask<PsCard> GetByIdAsync(Guid id);
         ValueTask<PsCard> GetByPsNoAsync(string psNo);
         FieldSw GetFieldSw(string category);
@@ -187,6 +189,14 @@ namespace iLgs.Services
                 .Include(i => i.AllField)
                 .FirstOrDefaultAsync(f => f.Id == id);
         });
+
+        public PsCard GetById(Guid id) 
+        {
+            return _db.PsCards
+                .Include(i => i.ItemCode.ItemType)
+                .Include(i => i.AllField)
+                .FirstOrDefault(f => f.Id == id);
+        }
 
         public async ValueTask<bool> GetAnyPsNoAsync(Guid id, string psNo)
         {

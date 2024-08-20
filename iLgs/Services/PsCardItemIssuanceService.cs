@@ -38,10 +38,12 @@ namespace iLgs.Services
                 .Select(s => new PsCardItemIssuanceVM
                 {
                     Id = s.Id,
-                    LocationId = s.LocatinId,
+                    LocationId = s.LocationId,
                     PsCardItemId = s.PsCardItemId,
                     IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
+                    IssuedToCode = s.IssuedToCode,
+                    IssuedToDescription = s.IssuedToDescription,
                     Qty = s.Qty,
                     Amount = s.Amount,
                     InsertedDt = s.InsertedDt,
@@ -49,8 +51,8 @@ namespace iLgs.Services
                     Department = s.Codextn.Description,
                     UnitCost = s.PsCardItem.UnitCost,
                     PostedBy = s.PostedBy,
-                    PostedDt = s.PostedDt,
-                    IssuedToDesc = s.IssuedTo.Contains("Department") ? s.Codextn.Description : (s.IssuedTo == "Location" || s.IssuedTo == "Disposal") ? s.Codextn1.Description : ""
+                    PostedDt = s.PostedDt
+                    //IssuedToDesc = s.IssuedTo.Contains("Department") ? s.Codextn.Description : (s.IssuedTo == "Location" || s.IssuedTo == "Disposal") ? s.Codextn1.Description : ""
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -61,10 +63,12 @@ namespace iLgs.Services
                 .Select(s => new PsCardItemIssuanceVM
                 {
                     Id = s.Id,
-                    LocationId = s.LocatinId,
+                    LocationId = s.LocationId,
                     PsCardItemId = s.PsCardItemId,
                     IssuedTo = s.IssuedTo,
                     IssuedDate = s.IssuedDate,
+                    IssuedToCode = s.IssuedToCode,
+                    IssuedToDescription = s.IssuedToDescription,
                     Qty = s.Qty,
                     Amount = s.Amount,
                     InsertedDt = s.InsertedDt,
@@ -72,8 +76,8 @@ namespace iLgs.Services
                     Department = s.Codextn.Description,
                     UnitCost = s.PsCardItem.UnitCost,
                     PostedBy = s.PostedBy,
-                    PostedDt = s.PostedDt,                    
-                    IssuedToDesc = s.IssuedTo.Contains("Department") ? s.Codextn.Description : (s.IssuedTo == "Location" || s.IssuedTo == "Disposal") ? s.Codextn1.Description : ""
+                    PostedDt = s.PostedDt          
+                    //IssuedToDesc = s.IssuedTo.Contains("Department") ? s.Codextn.Description : (s.IssuedTo == "Location" || s.IssuedTo == "Disposal") ? s.Codextn1.Description : ""
                 });
             return data;
         });
@@ -114,7 +118,7 @@ namespace iLgs.Services
         }
         
         public ValueTask<PsCardItemIssuanceVM> CreateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
-        {            
+        {
             await ValidateFieldsAsync(model);
 
             //var totalQtyIssued = _db.PsCardItems.Find(model.PsCardItemId)?.Qty ?? 0;
@@ -126,13 +130,22 @@ namespace iLgs.Services
                 throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
             }
 
-            if (model.IssuedTo.Contains("Department"))
+            if (model.IssuedTo.Contains("Department") || model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
+            { 
+                if (model.IssuedTo.Contains("Department"))
+                {
+                    model.LocationId = null;
+                    model.IssuedToDescription = model.IssuedTo;
+                }
+                else if (model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
+                {
+                    model.DeptId = null;
+                }
+            }
+            else
             {
                 model.LocationId = null;
-            }
-            else if (model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
-            {
-                model.DeptId = null;
+                model.IssuedToCode = "";                
             }
 
             model.Id = Guid.NewGuid();
@@ -146,12 +159,14 @@ namespace iLgs.Services
             var entity = new PsCardItemIssuance
             {
                 Id = model.Id,
-                LocatinId = model.LocationId,
+                LocationId = model.LocationId,
                 PsCardItemId = model.PsCardItemId,
                 IssuedTo = model.IssuedTo,
                 IssuedDate = model.IssuedDate,
                 Qty = model.Qty,
                 Amount = cardItem.UnitCost * model.Qty,
+                IssuedToCode = model.IssuedToCode,
+                IssuedToDescription = model.IssuedToDescription,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -191,23 +206,33 @@ namespace iLgs.Services
                 throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
             }
 
-            if (model.IssuedTo.Contains("Department"))
+            if (model.IssuedTo.Contains("Department") || model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
+            {
+                if (model.IssuedTo.Contains("Department"))
+                {
+                    model.LocationId = null;
+                }
+                else if (model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
+                {
+                    model.DeptId = null;
+                }
+            }
+            else
             {
                 model.LocationId = null;
-            }
-            else if (model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
-            {
-                model.DeptId = null;
+                model.IssuedToCode = "";
             }
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            entity.LocatinId = model.LocationId;
+            entity.LocationId = model.LocationId;
             entity.PsCardItemId = model.PsCardItemId;
             entity.DeptId = model.DeptId;
             entity.IssuedTo = model.IssuedTo;
             entity.IssuedDate = model.IssuedDate;
+            entity.IssuedToCode = model.IssuedToCode;
+            entity.IssuedToDescription = model.IssuedToDescription;
             entity.Qty = model.Qty;
             entity.Amount = entity.PsCardItem.UnitCost * model.Qty;
             entity.UpdatedBy = model.UpdatedBy;

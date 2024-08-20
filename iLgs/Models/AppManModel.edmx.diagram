@@ -99,7 +99,7 @@
         <EntityTypeShape EntityType="AppManModel.RPCI" Width="1.5" PointX="5.375" PointY="8.5" />
         <AssociationConnector Association="AppManModel.FK_RPCIItems_RPCIs1" />
       </Diagram>
-      <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" ZoomLevel="111" >
+      <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" ZoomLevel="83" >
         <EntityTypeShape EntityType="AppManModel.AccountableOfficer" Width="1.5" PointX="5.75" PointY="0.75" />
         <EntityTypeShape EntityType="AppManModel.PsCard" Width="1.5" PointX="0.75" PointY="9.625" />
         <EntityTypeShape EntityType="AppManModel.PsCardItemUnitGroupDescriptionItem" Width="1.5" PointX="8.25" PointY="15.5" />
@@ -189,14 +189,14 @@
         <AssociationConnector Association="AppManModel.FK_StockItemIssuances_StockItems" />
         <EntityTypeShape EntityType="AppManModel.AllField" Width="1.5" PointX="3" PointY="1.875" />
         <AssociationConnector Association="AppManModel.FK_AllFields_PsCards" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemTransfer" Width="1.5" PointX="5.25" PointY="20" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemIssuance" Width="1.5" PointX="5.25" PointY="14.125" />
         <EntityTypeShape EntityType="AppManModel.PsCardItem" Width="1.5" PointX="10.5" PointY="10.375" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItems_PsCards" />
+        <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemIssuance" Width="1.5" PointX="12.75" PointY="15.625" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemTransfer" Width="1.5" PointX="12.75" PointY="12" />
         <AssociationConnector Association="AppManModel.FK_PsCardItemIssuances_PsCardItems" />
         <AssociationConnector Association="AppManModel.FK_PsCardItems_PsCardItemTransfers" />
-        <AssociationConnector Association="AppManModel.FK_PsCardItems_PsCards" />
         <AssociationConnector Association="AppManModel.FK_PsCardItemTransfers_PsCardItems" />
-        <AssociationConnector Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" />
         </Diagram>
       <Diagram DiagramId="f737fa97db2e49e58b437ce4983844bf" Name="RIS" >
         <EntityTypeShape EntityType="AppManModel.RISs" Width="1.5" PointX="0.75" PointY="3.875" />

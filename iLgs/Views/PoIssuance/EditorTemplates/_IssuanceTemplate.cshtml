@@ -12,6 +12,8 @@
     @*@Html.HiddenFor(model => model.Location)
         @Html.HiddenFor(model => model.Officer)*@
     @Html.HiddenFor(model => model.UnitCost)
+    @Html.HiddenFor(model => model.IssuedToCode)
+    @Html.HiddenFor(model => model.IssuedToDescription)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -73,6 +75,7 @@
                                 c.Add().Field("Code").Title("Code").Width("30%");
                                 c.Add().Field("Description").Title("Description").Width("70%");
                             })
+                            .Events(e => e.Select("onSelectDeptIdIssuance"))
                             .Enable(false)
                         )
                         @Html.ValidationMessageFor(model => model.DeptId)
@@ -106,6 +109,7 @@
                                 c.Add().Field("Code").Title("Code").Width("30%");
                                 c.Add().Field("Description").Title("Description").Width("70%");
                             })
+                            .Events(e => e.Select("onSelectLocationIdIssuance"))
                             .Suggest(true)
                         )
                         @Html.ValidationMessageFor(model => model.LocationId)

@@ -1062,6 +1062,22 @@
     }
 
     // END GRID ICS ITEMS
+
+    // ISSUANCE TEMPLATE
+    function onSelectDeptIdIssuance(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#IssuedToCode").val(dataItem.Code).trigger("change");
+        $("#IssuedToDescription").val(dataItem.Description).trigger("change");
+    }
+
+    function onSelectLocationIdIssuance(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#IssuedToCode").val(dataItem.Code).trigger("change");
+        $("#IssuedToDescription").val(dataItem.Description).trigger("change");
+    }
+    // END ISSUANCE TEMPLATE
 </script>
 
 

@@ -14,6 +14,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using static iLgs.Models.CategoryEnum;
 
@@ -665,8 +666,9 @@ namespace iLgs.Controllers
 
 
         #region PRINTOUTS
-        public ActionResult StockCardRpt(string stockNo)
-        {
+        
+        public ActionResult StockCardRpt(Guid? selectedId)
+        {            
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
 
@@ -692,6 +694,7 @@ namespace iLgs.Controllers
                 table.ApplyLogOnInfo(logonInfo);
             }
 
+            var stockNo = _psCardService.GetById((Guid)selectedId)?.PsNo;
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
             var imagePath = _codextnService.GetByMastCode("DIRS").Where(w => w.Code == "IMAGE-ITEMS").FirstOrDefault().Description;
 
