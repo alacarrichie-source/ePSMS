@@ -18,7 +18,15 @@ namespace iLgs.Exceptions
             return Message;
         }
 
+        public string Key { get; set; }
+
+        public RecordAlreadyPostedException()
+            : base(message: string.Format("Record already posted.")) { }
+
         public RecordAlreadyPostedException(string message)
-            : base(message: message) { }
+            : base(message: message) { }        
+        
+        public RecordAlreadyPostedException(string key, string message)
+            : base(message: message) { this.Key = key; }
     }
 }

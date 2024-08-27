@@ -314,4 +314,35 @@ namespace iLgs.Models
         public bool OtherDesc { get; set; } = false;
         public bool CapitalOutlay { get; set; } = false;
     }
+
+    public class PsCardItemLocationVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> PsCardItemExtnId { get; set; }
+
+        [Required]
+        [Display(Name = "Transaction Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> TransDate { get; set; }
+
+        [Display(Name = "Transaction Type")]
+        public string TransType { get; set; }
+        public Nullable<System.Guid> TransId { get; set; }
+
+        [Required]
+        [Display(Name = "Location")]
+        public Nullable<System.Guid> LocationId { get; set; }
+
+        [Display(Name = "Location Code")]
+        public string LocationCode { get; set; }
+
+        public string Location { get; set; }
+        public string InsertedBy { get; set; }
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+    
+        public PsCardItemExtn PsCardItemExtn { get; set; }
+        public PsCardItemIssuance PsCardItemIssuance { get; set; }
+    }
 }

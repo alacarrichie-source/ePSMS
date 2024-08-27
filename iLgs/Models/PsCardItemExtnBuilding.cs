@@ -12,9 +12,8 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PsCardItemExtnBuilding
+    public partial class PsCardItemExtnBuilding : PsCardItemExtn
     {
-        public System.Guid Id { get; set; }
         public string Address { get; set; }
         public string ProjectName { get; set; }
         public Nullable<decimal> Area { get; set; }
@@ -32,7 +31,5 @@ namespace iLgs.Models
         public string BuildingType { get; set; }
         public Nullable<int> AcqMonth { get; set; }
         public Nullable<int> AcqYear { get; set; }
-    
-        public virtual PsCardItemExtn PsCardItemExtn { get; set; }
     }
 }

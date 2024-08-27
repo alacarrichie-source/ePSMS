@@ -82,13 +82,15 @@
         </div>
 
         <div class="row">
-            @Html.LabelFor(m => m.InvDist, htmlAttributes: new { @class = "col-md-12" })
+            <div class="col-md-12">
+                @Html.DisplayFor(m => m.InvDist, "RequiredLabel")
+            </div>
             <div class="col-md-12">
                 @(Html.Kendo().MultiColumnComboBoxFor(m => m.InvDist)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Remarks")
+                            .Placeholder("Select a value..")
                             .DataTextField("Description")
-                            .DataValueField("Code")
+                            .DataValueField("Code")                            
                             .ValuePrimitive(true)
                             .Filter(FilterType.Contains)
                             .DataSource(source =>
@@ -110,9 +112,11 @@
         </div>
 
         <div class="row">
-            @Html.LabelFor(m => m.Remarks, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
-                @(Html.Kendo().TextBoxFor(m => m.Remarks).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.DisplayFor(m => m.Remarks, "RequiredLabel")
+            </div>
+            <div class="col-md-12">
+                @(Html.Kendo().TextBoxFor(m => m.Remarks).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.Remarks)
             </div>
         </div>

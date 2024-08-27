@@ -91,7 +91,8 @@
         .Navigatable()
         .NoRecords()
         .Sortable()
-        .ClientDetailTemplateId("IssuedItems")
+        //.ClientDetailTemplateId("IssuedItems")
+        .ClientDetailTemplateId("default-template")
         .DataSource(dataSource => dataSource
             .Ajax()
             .Model(model =>
@@ -125,7 +126,8 @@
             .Edit("onEditGridItems")
             .Change("onChangeGridItems").DataBound("onDataBoundGridItems")
             .Remove("onRemoveGridItems")
+            .DetailExpand("onDetailExpand")
         //.Save("onSaveGridItems")
-        //.DetailExpand("onExpandGridItems")
+            //.DetailExpand("onExpandGridItems")
         )
 )

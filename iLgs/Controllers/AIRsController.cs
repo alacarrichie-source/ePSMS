@@ -18,6 +18,7 @@ using iLgs.Services.Interfaces;
 using iLgs.Services;
 using System.IO;
 using iLgs.Agents.Services;
+using iLgs.Exceptions;
 
 namespace iLgs.Controllers
 {
@@ -602,9 +603,18 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airItemService.AirItemExtn.AirItemExtnVehicle.CreateAsync(model, user, date);
-
-                    // TO DO: save to stock card
+                    var result = await airItemService.AirItemExtn.AirItemExtnVehicle.CreateAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        model = result.Data;
+                    }
+                    else 
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            ModelState.AddModelError(error.Key, error.Value);
+                        }                       
+                    }
                 }
             }
             catch (Exception e)
@@ -640,9 +650,18 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airItemService.AirItemExtn.AirItemExtnVehicle.UpdateAsync(model, user, date);
-
-                    // TO DO: update stock card
+                    var result = await airItemService.AirItemExtn.AirItemExtnVehicle.UpdateAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        model = result.Data;
+                    }
+                    else
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            ModelState.AddModelError(error.Key, error.Value);
+                        }
+                    }
                 }
             }
             catch (Exception e)
@@ -923,14 +942,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await airService.GetByIdAsync(airId) == null)
-                {
-                    ModelState.AddModelError("AIR", "Invalid AIR Id");
-                }
-                else if (await airService.IsPostedAsync(airId))
-                {
-                    ModelState.AddModelError("AIR No.", "AIR Number already Posted, cannot post again!");
-                }
+                
 
                 if (ModelState.IsValid)
                 {
@@ -942,10 +954,10 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
+                if (e is ServiceException se)
                 {
                     ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
+                             "please contact tech support with this message: " + se.Message);                    
                 }
                 else
                 {

@@ -23,6 +23,7 @@ namespace iLgs.Services
         ValueTask<ParIcsItemVm> UpdateNoICSAsync(ParIcsItemVm model, string user, DateTime date);
         ValueTask<PsCardItemVM> DeleteAsync(PsCardItemVM model, string user, DateTime date);
         PsCardItemVM TransferItemField(PsCardItemVM sourceModel, PsCardItemVM targetModel);
+        IPsCardItemExtnService PsCardItemExtn { get; }
     }
 
     public class PsCardItemService : IPsCardItemService
@@ -30,11 +31,15 @@ namespace iLgs.Services
         private readonly AppManEntities _db = new AppManEntities();
         private readonly IExceptionService<PsCardItemVM> _VmExceptionService = new ExceptionService<PsCardItemVM>();
         private readonly IExceptionService<ParIcsItemVm> _parIcsItemExceptionService = new ExceptionService<ParIcsItemVm>();
+        private IPsCardItemExtnService _psCardItemExtnService;
 
         public PsCardItemService(AppManEntities db)
         {
             _db = db;
+            _psCardItemExtnService = new PsCardItemExtnService(db);
         }
+
+        public IPsCardItemExtnService PsCardItemExtn { get { return _psCardItemExtnService = _psCardItemExtnService ?? new PsCardItemExtnService(_db); } }
 
         public async ValueTask<PsCardItemVM> GetByIdAsync(Guid? id)
         {

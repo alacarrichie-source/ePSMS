@@ -424,7 +424,27 @@ namespace iLgs.Controllers
             }
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
-        #endregion          
+        #endregion
+
+        #region ITEM PREVIEW    
+        public ActionResult ItemCodePreview()
+        {
+            return View();
+        }
+
+        public ActionResult ItemCodePreviewRead([DataSourceRequest] DataSourceRequest request)
+        {
+            var data = _itemCodeService.GetItemCodePreview();
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+        #endregion
 
         public string GetImageDir()
         {

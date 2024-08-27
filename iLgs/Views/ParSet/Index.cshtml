@@ -1,15 +1,16 @@
-﻿@{
+﻿@model iLgs.Models.ParIcsPOGroupVM
+@{
     ViewBag.Title = "Property Acknowledgement Receipt";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 <br />
 <fieldset>
-    @Html.Hidden("deptId")
+    @Html.HiddenFor(m => m.DeptId)
     <div class=" col-md-6">
         <div class="row">
             @Html.Label("PO No", htmlAttributes: new { @class = "col-md-3" })
             <div class="col-md-9">
-                @(Html.Kendo().MultiColumnComboBox().Name("poNo")
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.PoNo)
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                     .Placeholder("Select PO Number")
                     .DataTextField("PoNo")
@@ -26,11 +27,11 @@
                     })
                     .Columns(c =>
                     {
-                        c.Add().Field("PoNo").Title("PO No.").Width("20%");
-                        c.Add().Field("PoDate").Title("Date").Width("20%");
+                        c.Add().Field("PoNo").Title("PO No.").Width("25%");
+                        c.Add().Field("PoDate").Title("Date").Width("25%");
                         //c.Add().Field("AirNo").Title("AIR No.").Width("15%");
                         //c.Add().Field("AirDate").Title("Date").Width("15%");
-                        c.Add().Field("Department").Title("Department").Width("60%");
+                        c.Add().Field("Department").Title("Department").Width("50%");
                     })
                     .Suggest(true)
                     .Events(e => e.Select("onSelectPoNo") )
@@ -41,7 +42,7 @@
         <div class="row">
             @Html.Label("PO Date", htmlAttributes: new { @class = "col-md-3" })
             <div class="col-md-9">
-                @(Html.Kendo().DatePicker().Name("poDate").Format("{0:MM/dd/yyyy}")
+                @(Html.Kendo().DatePickerFor(m => m.PoDate).Format("{0:MM/dd/yyyy}")
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 )
             </div>
@@ -50,7 +51,7 @@
         <div class="row">
             @Html.Label("AIR No", htmlAttributes: new { @class = "col-md-3" })
             <div class="col-md-9">
-                @(Html.Kendo().TextBox().Name("airNo").Enable(false)
+                @(Html.Kendo().TextBoxFor(m => m.AirNo).Enable(false)
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 )
             </div>
@@ -59,7 +60,7 @@
         <div class="row">
             @Html.Label("AIR Date", htmlAttributes: new { @class = "col-md-3" })
             <div class="col-md-9">
-                @(Html.Kendo().DatePicker().Name("airDate").Enable(false).Format("{0:MM/dd/yyyy}")
+                @(Html.Kendo().DatePickerFor(m => m.AirDate).Enable(false).Format("{0:MM/dd/yyyy}")
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 )
             </div>
@@ -68,7 +69,7 @@
         <div class="row">
             @Html.Label("Originating Department", htmlAttributes: new { @class = "col-md-3" })
             <div class="col-md-9">
-                @(Html.Kendo().TextBox().Name("department").Enable(false)
+                @(Html.Kendo().TextBoxFor(m => m.Department).Enable(false)
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 )
             </div>
@@ -78,7 +79,7 @@
 
 <br />
 
-<div id="main-div">
+@*<div id="main-div">
     <div class="col-md-7">
         <div class="div-pane row">
             @RenderOrderItems()
@@ -93,8 +94,32 @@
             @RenderPars()
         </div>
     </div>
-</div>
+</div>*@
 
+
+@(Html.Kendo().PanelBar()
+    .Name("panelbar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text("Individual Item")
+            .Expanded(true)
+            .Selected(true)
+            .Content(@<text>
+                @RenderOrderItems()
+            </text>);
+        panelbar.Add().Text("Item Set")
+            .Expanded(true)
+            .Content(@<text>
+                @RenderOrderItemSet()
+            </text>);
+        panelbar.Add().Text("Property Acknowledgement Receipt")
+            .Expanded(true)
+            .Content(@<text>
+                @RenderPars()
+            </text>);
+    })
+)
 
 
 @helper RenderOrderItems()
@@ -127,13 +152,8 @@
                     })
                     .ToolBar(t =>
                     {
-                        t.Template(@<text>
-                        <div style = "padding: 10px; font-size: 14px; font-weight: bold;">
-                            Individual Item
-                        </div>
-                        <span id = "span_">
-                           @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate PAR").Events(e => e.Click("onClickBtnAddPar")))
-                        </span>
+                        t.Template(@<text>                        
+                           @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate PAR").Events(e => e.Click("onClickBtnAddPar")))                        
                         </text>);
                     })
                     .Sortable()
@@ -191,12 +211,7 @@
                     .ToolBar(t =>
                     {
                         t.Template(@<text>
-            <div style="padding: 10px; font-size: 14px; font-weight: bold;">
-                Set Items
-            </div>
-            <span id="span_">
-                @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItemSet").Content("Generate PAR").Events(e => e.Click("onClickBtnAddPar")))
-            </span>
+                            @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItemSet").Content("Generate PAR").Events(e => e.Click("onClickBtnAddPar")))            
                         </text>);
                     })
                     .ClientDetailTemplateId("item-set-description-template")
@@ -236,7 +251,7 @@
                     {
                         col.Bound(c => c.IcsPar.RefNo).Title("PAR No.").Width(70);
                         col.Bound(c => c.IcsPar.RefDate).Title("PAR Date").Width(70).Format("{0:MM/dd/yyyy}");
-                        col.Bound(c => c.PropNo).Title("Property No.").Width(70);
+                        col.Bound(c => c.PsCardItemExtn.PropNo).Title("Property No.").Width(70);
                         col.Command(command =>
                         {
                             //command.Edit();
@@ -247,15 +262,10 @@
                     .ToolBar(t =>
                     {
                     t.Template(@<text>
-            <div clas="row" style="padding: 10px; font-size: 14px; font-weight: bold;">
-                PAR
-            </div>
-            <div>
                 @*@(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAdd").Content("Generate PARs").Events(e => e.Click("onClickBtnAddPar")))*@
                 @*@(Html.Kendo().Button().Content("Print").Icon("k-icon k-i-print").Name("btnPrint_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPrintPar")))
                     @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPostPar")))
-                    @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnUnpostPar")))*@
-            </div>
+                    @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnUnpostPar")))*@            
                     </text>);
                     })
                     //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ParsTemplate").Window(w => w.Width(800)))
@@ -270,7 +280,7 @@
                             model.Id(p => p.Id);
                             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
                         })
-                        .Sort(s => { s.Add(a => a.IcsPar.RefNo); s.Add(a => a.PropNo); })
+                        .Sort(s => { s.Add(a => a.IcsPar.RefNo); s.Add(a => a.PsCardItemExtn.PropNo); })
                         .Read(read => read.Action("_ParsRead", "ParSet").Data("DataGridItemPar"))
                         //.Update(update => update.Action("_ParsUpdate", "ParSet"))
                         .Destroy(destroy => destroy.Action("_ParsDestroy", "ParSet"))
@@ -511,16 +521,29 @@
 <script type="text/javascript">
     function onSelectPoNo(e) {
         var dataItem = this.dataItem(e.item.index());
-        if (dataItem) {
-            $("#poDate").val(dataItem.PoDate).trigger("change");
-            $("#airNo").val(dataItem.AirNo).trigger("change");
-            $("#airDate").val(dataItem.AirDate).trigger("change");
-            $("#department").val(dataItem.Department).trigger("change");
-            $("#deptId").val(dataItem.DeptId).trigger("change");
+        //if (dataItem) {
+        //    $("#poDate").val(dataItem.PoDate).trigger("change");
+        //    $("#airNo").val(dataItem.AirNo).trigger("change");
+        //    $("#airDate").val(dataItem.AirDate).trigger("change");
+        //    $("#department").val(dataItem.Department).trigger("change");
+        //    $("#deptId").val(dataItem.DeptId).trigger("change");
 
-            $("#gridItems").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, deptId: dataItem.DeptId });
-            $("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, deptId: dataItem.DeptId });
-        }
+        //    $("#gridItems").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, deptId: dataItem.DeptId });
+        //    $("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, deptId: dataItem.DeptId });
+        //}
+
+        $("#PoDate").data("kendoDatePicker").value(dataItem.PoDate);
+        $("#AirDate").data("kendoDatePicker").value(dataItem.AirDate);
+
+        $("#AirNo").val(dataItem.AirNo).trigger("change");
+        $("#DeptId").val(dataItem.DeptId).trigger("change");
+        $("#Department").val(dataItem.Department).trigger("change");
+
+        $("#PoDate").data("kendoDatePicker").trigger("change");
+        $("#AirDate").data("kendoDatePicker").trigger("change");
+
+        $("#gridItems").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, poDate: dataItem.PoDate, department: dataItem.Department });
+        $("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, poDate: dataItem.PoDate, department: dataItem.Department });
     }
 
 
@@ -1062,12 +1085,13 @@
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 var poNo = $("#poNo").val();
-                var deptId = $("#deptId").val();
+                var poDate = $("#PoDate").data("kendoDatePicker").value();
+                var deptId = $("#DeptId").val();
                 var grid = $("#gridItems").data("kendoGrid");
                 var gridItemSet = $("#gridItemSet").data("kendoGrid");
 
-                grid.dataSource.read({ poNo: poNo, deptId: deptId });
-                gridItemSet.dataSource.read({ poNo: poNo, deptId: deptId });
+                grid.dataSource.read({ poNo: poNo, poDate: poDate, deptId: deptId });
+                gridItemSet.dataSource.read({ poNo: poNo, poDate: poDate, deptId: deptId });
             }
         }
     }
@@ -1079,7 +1103,7 @@
 
     function GeneratePar(refType, cardItemId) {
         var myTitle = refType == "P" ? "Generate PAR" : "Generate ICS";
-        var width = 500;
+        var width = 800;
 
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
@@ -1090,15 +1114,19 @@
                 visible: false,
                 close: function () {
                     var grid = $("#gridItems").data("kendoGrid");
-                    grid.dataSource.read().then(function () {
-                        // Find the row with the specified Id.
-                        var dataItem = grid.dataSource.get(selectedId);
+                    var poNo = $("#PoNo").val();
+                    var poDate = $("#PoDate").data("kendoDatePicker").value();
+                    var deptId = $("#DeptId").val();
+                    grid.dataSource.read({ poNo: poNo, poDate: poDate, deptId: deptId });
+                    //.then(function () {
+                    //    // Find the row with the specified Id.
+                    //    var dataItem = grid.dataSource.get(selectedId);
 
-                        // If the row is found, read geneared items.
-                        if (dataItem) {
+                    //    // If the row is found, read geneared items.
+                    //    if (dataItem) {
 
-                        }
-                    });
+                    //    }
+                    //});
                 },
                 deactivate: function () {
                     this.destroy();
@@ -1258,8 +1286,9 @@
     // GRID ITEMS
     function DataGridItems() {
         return {
-            poNo: $("#poNo").val(),
-            deptId: $("#deptId").val()
+            poNo: $("#PoNo").val(),
+            poDate: $("#PoDate").data("kendoDatePicker").value(),
+            deptId: $("#DeptId").val()
         }
     }
 
@@ -1539,7 +1568,7 @@
                 parItemId: recId
             },
             complete: function () {
-                RefreshDivs();
+                RefreshDivs(); //item info edit not allowed here, use stock card.
                 // Resize the window to fit its content
                 mywindow.resize();
                 mywindow.center();

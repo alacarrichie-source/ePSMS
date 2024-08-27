@@ -12,9 +12,8 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PsCardItemExtnVehicle
+    public partial class PsCardItemExtnVehicle : PsCardItemExtn
     {
-        public System.Guid Id { get; set; }
         public Nullable<int> YearModel { get; set; }
         public string PlateNo { get; set; }
         public string BodyNo { get; set; }
@@ -31,7 +30,6 @@ namespace iLgs.Models
         public string ParReissuance { get; set; }
         public string Condition { get; set; }
         public string SubLocation { get; set; }
-    
-        public virtual PsCardItemExtn PsCardItemExtn { get; set; }
+        public string ConductionNo { get; set; }
     }
 }

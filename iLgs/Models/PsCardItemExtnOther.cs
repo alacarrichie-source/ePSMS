@@ -12,12 +12,9 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PsCardItemExtnOther
+    public partial class PsCardItemExtnOther : PsCardItemExtn
     {
-        public System.Guid Id { get; set; }
         public string SerialNo { get; set; }
         public string Condition { get; set; }
-    
-        public virtual PsCardItemExtn PsCardItemExtn { get; set; }
     }
 }

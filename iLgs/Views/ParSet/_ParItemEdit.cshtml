@@ -7,11 +7,10 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.IcsParId)
-    @Html.HiddenFor(model => model.PsCardItemId)
     @Html.HiddenFor(model => model.Qty)
     @Html.HiddenFor(model => model.Amount)
-    @Html.HiddenFor(model => model.LocationId)
-    @Html.HiddenFor(model => model.Location)
+    @Html.HiddenFor(model => model.PsCardItemExtn.PsCardItemId) // need to Include the PsCardItemId, PsCardItemExtn is null when not included
+    @Html.HiddenFor(model => model.PsCardItemExtnId)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -40,10 +39,10 @@
         
         <div class="row">
             <div class="col-md-6">
-                @Html.LabelFor(m => m.PropNo, htmlAttributes: new { @class = "col-md-3" })
+                @Html.LabelFor(m => m.PsCardItemExtn.PropNo, "Property No.", htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-9">
-                    @(Html.Kendo().TextBoxFor(m => m.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.PropNo)
+                    @(Html.Kendo().TextBoxFor(m => m.PsCardItemExtn.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.PsCardItemExtn.PropNo)
                 </div>
             </div>
         </div>

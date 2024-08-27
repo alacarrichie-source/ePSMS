@@ -100,6 +100,8 @@ namespace iLgs.Models
         public string RefType { get; set; }
 
         public IcsPar IcsPar { get; set; }
+
+        public string SelectedIds { get; set; }
     }
 
     public class ParVM
@@ -193,6 +195,7 @@ namespace iLgs.Models
         public Nullable<int> RemBalance { get; set; }
 
         public bool? IsForICS { get; set; }
+        public Nullable<System.DateTime> AcqDate { get; set; }
 
         public OrderItemUnitGroupDescriptionItem OrderItemUnitGroupDescriptionItem { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -363,11 +366,17 @@ namespace iLgs.Models
 
         public int? ParBalance { get; set; }
         public int? IcsBalance { get; set; }
+
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public string SPoDate { get; set; }
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public string SAirDate { get; set; }
     }
 
     public class ParIcsItemVm
     {
         public System.Guid Id { get; set; }
+        public System.Guid? PsCardId { get; set; }
         public int? Qty { get; set; }
         public string Unit { get; set; }
 

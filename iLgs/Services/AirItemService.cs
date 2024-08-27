@@ -29,6 +29,7 @@ namespace iLgs.Services
     {
         private readonly AppManEntities _db = new AppManEntities();
         private readonly IExceptionService<AIRItemVM> _vmExceptionService = new ExceptionService<AIRItemVM>();
+        private readonly IValidationService validationService = new ValidationService();
 
         private IAirItemExtnService _airItemExtnService;
 
@@ -90,9 +91,9 @@ namespace iLgs.Services
                     AirId = s.AirId,
                     OrderItemId = s.OrderItemId,
                     PsType = s.OrderItem.RequestItem.RisItem.ItemCode.ItemType.Code,
-                    PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
+                    PsNo = s.OrderItem.StockNo,
                     PsItem = s.OrderItem.RequestItem.RisItem.ItemName,
-                    OrderDescription = s.OrderItem.RequestItem.RisItem.Description,
+                    OrderDescription = s.OrderItem.Description,
                     PsUnit = s.OrderItem.RequestItem.RisItem.Unit,
                     Qty = s.Qty,
                     Remarks = s.Remarks,
@@ -113,9 +114,9 @@ namespace iLgs.Services
                     AirId = s.AirId,
                     OrderItemId = s.OrderItemId,
                     PsType = s.OrderItem.RequestItem.RisItem.ItemCode.ItemType.Code,
-                    PsNo = s.OrderItem.RequestItem.RisItem.PsNo,
+                    PsNo = s.OrderItem.StockNo,
                     PsItem = s.OrderItem.RequestItem.RisItem.ItemName,
-                    OrderDescription = s.OrderItem.RequestItem.RisItem.Description,
+                    OrderDescription = s.OrderItem.Description,
                     PsUnit = s.OrderItem.RequestItem.RisItem.Unit,
                     Qty = s.Qty,
                     Remarks = s.Remarks,
@@ -199,7 +200,8 @@ namespace iLgs.Services
                     c == CatDrugs() ||
                     c == CatMedicals() ||
                     c == CatAgriculturals() ||
-                    c == CatOtherSupplies())
+                    c == CatOtherSupplies() ||
+                    c == CatTransportations())
                 {
                     if (string.IsNullOrWhiteSpace(model.InvDist))
                     {
@@ -208,21 +210,33 @@ namespace iLgs.Services
                 }
             }
         }
-        public void ValidateItemExtns(Guid? airItemId)
+        public void ValidateItemExtn(Guid? airItemId)
         {
             var itemExtnName = GetItemExtnName(airItemId);
             if (itemExtnName == "ItemExtnVehicle")
-            {
-                if (_db.AIRItems.Any(a => a.Id == airItemId && a.AIRItemExtns.OfType<AIRItemExtnVehicle>().Count() < a.Qty))
+            {                                
+                if (_db.AIRItems.Any(a => a.Id == airItemId && a.InvDist == "I" && a.AIRItemExtns.OfType<AIRItemExtnVehicle>().Count() < a.Qty))
                 {
                     throw new InvalidValueException("Incomplete item quantity contents detected.");
+                }
+
+                var airItemExtnVehicles = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItem.Id == airItemId).ToList();
+                foreach(var item in airItemExtnVehicles)
+                {
+                    validationService.ValidateEntity(item);
                 }
             }
             else if (itemExtnName == "ItemExtnOther")
             {
-                if (_db.AIRItems.Any(a => a.Id == airItemId && a.AIRItemExtns.OfType<AIRItemExtnOther>().Count() < a.Qty))
+                if (_db.AIRItems.Any(a => a.Id == airItemId && a.InvDist == "I" && a.AIRItemExtns.OfType<AIRItemExtnOther>().Count() < a.Qty))
                 {
                     throw new InvalidValueException("Incomplete item quantity contents detected.");
+                }
+
+                var airItemExtnOthers = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItem.Id == airItemId).ToList();
+                foreach (var item in airItemExtnOthers)
+                {
+                    validationService.ValidateEntity(item);
                 }
             }
         }
@@ -235,11 +249,7 @@ namespace iLgs.Services
             }
 
             ValidateFields(model);
-            //if (string.IsNullOrWhiteSpace(model.Remarks))
-            //{
-            //    throw new InvalidValueException("Remarks Field is Required!");
-            //}
-
+            
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -268,7 +278,7 @@ namespace iLgs.Services
             foreach (var airItem in airItems)
             {
                 ValidateFields(airItem);
-                ValidateItemExtns(airItem.Id);
+                ValidateItemExtn(airItem.Id);
             }
         }
 

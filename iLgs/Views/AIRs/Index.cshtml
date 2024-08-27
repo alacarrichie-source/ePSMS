@@ -106,8 +106,9 @@
     .Name("gridItemExtn_#=Id#")
     .Columns(col =>
     {
-        col.Bound(c => c.YearModel).Width(100);
-        col.Bound(c => c.PlateNo).Width(100);
+        col.Bound(c => c.YearModel).Width(40);
+        col.Bound(c => c.ConductionNo).Width(50);
+        col.Bound(c => c.PlateNo).Width(50);
         col.Bound(c => c.BodyNo).Width(50);
         col.Bound(c => c.EngineNo).Width(50);
         col.Bound(c => c.ChasisNo).Width(50);
@@ -168,7 +169,7 @@
     .Columns(col =>
     {
         col.Bound(c => c.SerialNo).Width(100);
-        col.Bound(c => c.Condition).Width(100);
+        //col.Bound(c => c.Condition).Width(100);
         col.Command(command =>
         {
             command.Edit();

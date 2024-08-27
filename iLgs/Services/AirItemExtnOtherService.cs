@@ -23,7 +23,7 @@ namespace iLgs.Services
     public class AirItemExtnOtherService : IAirItemExtnOtherService
     {
         private readonly AppManEntities _db = new AppManEntities();
-        private readonly IExceptionService<AIRItemExtnOther> _exceptionService = new ExceptionService<AIRItemExtnOther>();
+        private readonly IExceptionService<AIRItemExtnOther> _exceptionService = new ExceptionService<AIRItemExtnOther>();        
 
         public AirItemExtnOtherService(AppManEntities db)
         {
@@ -47,6 +47,11 @@ namespace iLgs.Services
             if (await IsPostedAsync(model.AIRItemId))
             {
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
+            
+            if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.SerialNo == model.SerialNo))
+            {
+                throw new  RecordAlreadyExistsException("Serial No. already exists!");
             }
 
             var airItemQty = (int)_db.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId).Qty;
@@ -116,6 +121,11 @@ namespace iLgs.Services
             if (await IsPostedAsync(model.AIRItemId))
             {
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
+
+            if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.SerialNo == model.SerialNo && f.Id != model.Id))
+            {
+                throw new RecordAlreadyExistsException("Serial No.", "Serial No. already exists!");
             }
 
             model.UpdatedBy = user;

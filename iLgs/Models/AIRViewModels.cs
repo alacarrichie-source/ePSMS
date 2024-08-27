@@ -98,7 +98,8 @@ namespace iLgs.Models
 
         public Nullable<decimal> Qty { get; set; }
 
-        [Required]
+        //[Required]
+        [Display(Name = "Remarks")]
         public string Remarks { get; set; }
 
         public string InsertedBy { get; set; }
@@ -108,7 +109,7 @@ namespace iLgs.Models
 
         // Transients
 
-        [Display(Name = "Stock/Property No.")]
+        [Display(Name = "Property/Stock No.")]
         public string PsNo { get; set; }
 
         [Display(Name = "Item")]
@@ -131,8 +132,12 @@ namespace iLgs.Models
         [Display(Name = "Construction Year")]
         public Nullable<int> ConstructionYear { get; set; }
 
-        [Display(Name = "Inventoryy/For Distribution")]
+        [Required]
+        [Display(Name = "Inventory/For Distribution")]
         public string InvDist { get; set; }
+
+        [Display(Name = "Inventory/For Distribution")]
+        public string InvDistDesc { get { return this.InvDist == "I" ? "Inventory" : this.InvDist == "D" ? "For Distribution" : ""; } }
     }
 
     public class AIRInvoiceVM
@@ -166,12 +171,15 @@ namespace iLgs.Models
             [Display(Name = "Series No.")]
             public string SeriesNo { get; set; }
 
+            //[Required]
             [Display(Name = "Year Model")]
             public Nullable<int> YearModel { get; set; }
 
+            [Required]
             [Display(Name = "Plate No.")]
             public string PlateNo { get; set; }
 
+            [Required]
             [Display(Name = "Body No.")]
             public string BodyNo { get; set; }
 
@@ -182,12 +190,16 @@ namespace iLgs.Models
             public string ChasisNo { get; set; }
 
             public string Color { get; set; }
+
+            [Required]
+            [Display(Name = "CR No.")]
             public string CRN { get; set; }
 
             [Display(Name = "CR Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> CRDate { get; set; }
 
+            [Required]
             [Display(Name = "MV File No.")]
             public string MVFileNo { get; set; }
 
@@ -198,6 +210,7 @@ namespace iLgs.Models
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> OrDate { get; set; }
 
+            [Required]
             [Display(Name = "Net Weight")]
             public Nullable<int> NetWeight { get; set; }
 
@@ -206,7 +219,11 @@ namespace iLgs.Models
 
             [Display(Name = "Sub-Location")]
             public string SubLocation { get; set; }
-            
+
+            [Required]
+            [Display(Name = "Conduction Sticker No.")]
+            public string ConductionNo { get; set; }
+
             public AIRItem AIRItem { get; set; }
         }
     }

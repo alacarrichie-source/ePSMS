@@ -18,6 +18,7 @@ namespace iLgs.Models
         public PsCardItemExtn()
         {
             this.IcsParItems = new HashSet<IcsParItem>();
+            this.PsCardItemLocations = new HashSet<PsCardItemLocation>();
         }
     
         public System.Guid Id { get; set; }
@@ -40,10 +41,8 @@ namespace iLgs.Models
         public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IcsParItem> IcsParItems { get; set; }
-        public virtual PsCardItemExtnBuilding PsCardItemExtnBuilding { get; set; }
-        public virtual PsCardItemExtnLand PsCardItemExtnLand { get; set; }
-        public virtual PsCardItemExtnOther PsCardItemExtnOther { get; set; }
-        public virtual PsCardItemExtnVehicle PsCardItemExtnVehicle { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemLocation> PsCardItemLocations { get; set; }
         public virtual PsCardItem PsCardItem { get; set; }
     }
 }

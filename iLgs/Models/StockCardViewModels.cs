@@ -133,4 +133,64 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         public string UpdatedBy { get; set; }        
     }
+
+    [MetadataType(typeof(PsCardItemExtnOther.Metadata))]
+    public partial class PsCardItemExtnOther : PsCardItemExtn
+    {
+        internal sealed class Metadata
+        {
+            [Display(Name = "Serial No.")]
+            public string SerialNo { get; set; }
+            public string Condition { get; set; }
+        }
+    }
+
+    [MetadataType(typeof(PsCardItemExtnVehicle.Metadata))]
+    public partial class PsCardItemExtnVehicle : PsCardItemExtn
+    {
+        internal sealed class Metadata
+        {
+            [Display(Name = "Year Model")]
+            public Nullable<int> YearModel { get; set; }
+
+            [Display(Name = "Plate No.")]
+            public string PlateNo { get; set; }
+
+            [Display(Name = "Body No.")]
+            public string BodyNo { get; set; }
+
+            [Display(Name = "Engine No.")]
+            public string EngineNo { get; set; }
+
+            [Display(Name = "Chasis No.")]
+            public string ChasisNo { get; set; }
+            public string Color { get; set; }
+            public string CRN { get; set; }
+
+            [Display(Name = "CR Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+            public Nullable<System.DateTime> CRDate { get; set; }
+
+            [Display(Name = "MV File No.")]
+            public string MVFileNo { get; set; }
+
+            [Display(Name = "OR No.")]
+            public string OrNo { get; set; }
+
+            [Display(Name = "OR Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+            public Nullable<System.DateTime> OrDate { get; set; }
+
+            [Display(Name = "Net Weight")]
+            public Nullable<int> NetWeight { get; set; }
+            public string InsPolicyNo { get; set; }
+            public string ParReissuance { get; set; }
+            public string Condition { get; set; }
+            public string SubLocation { get; set; }
+
+            [Required]
+            [Display(Name = "Conduction Sticker No.")]
+            public string ConductionNo { get; set; }
+        }
+    }
 }

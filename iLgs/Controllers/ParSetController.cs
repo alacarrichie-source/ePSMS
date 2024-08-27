@@ -381,9 +381,7 @@ namespace iLgs.Controllers
         }
 
         public async Task<ActionResult> _GeneratePar(Guid? psCardItemId, string refType)
-        {
-            ViewData["psCardItemId"] = psCardItemId;
-
+        {            
             var psCardItem = await _parService.GetByIdAsync(psCardItemId);
             var model = new GenerateIcsParVM()
             {
@@ -393,6 +391,9 @@ namespace iLgs.Controllers
                 RefType = refType,
                 IcsPar = new IcsPar()
             };
+
+            ViewData["psCardItemId"] = psCardItemId;
+            ViewBag.ItemExtnName = _parService.PsCard.GetItemExtnName(psCardItemId);
 
             return PartialView(model);
         }
@@ -441,6 +442,19 @@ namespace iLgs.Controllers
             }
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult _GenerateParSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
+        {
+            var data = _parService.PsCardItemExtn.GetCardItemExtnForIcsParsByType(psCardItemId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
         }
         #endregion
 

@@ -125,4 +125,27 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         public string CategoryDesc { get; set; }
     }
+
+    public class ItemCodePreviewVM
+    {
+        public Guid Id { get; set; }
+
+        [Display(Name = "Code")]
+        public string Code { get; set; }
+
+        [Display(Name = "Account")]
+        public string Account { get; set; }
+
+        [Display(Name = "Sub-Account 1")]
+        public string SubAccount1 { get; set; }
+
+        [Display(Name = "Sub-Account 2")]
+        public string SubAccount2 { get; set; }
+
+        [Display(Name = "Sub-Account 3")]
+        public string SubAccount3 { get; set; }
+
+        [Display(Name = "Sub-Account 4")]
+        public string SubAccount4 { get; set; }
+    }
 }

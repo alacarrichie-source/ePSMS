@@ -12,9 +12,8 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PsCardItemExtnLand
+    public partial class PsCardItemExtnLand : PsCardItemExtn
     {
-        public System.Guid Id { get; set; }
         public string PIN { get; set; }
         public string Address { get; set; }
         public string LandMarks { get; set; }
@@ -51,7 +50,5 @@ namespace iLgs.Models
         public Nullable<decimal> Surveying { get; set; }
         public Nullable<decimal> IncidentalExpenses { get; set; }
         public string CapitalOutlayOrExpense { get; set; }
-    
-        public virtual PsCardItemExtn PsCardItemExtn { get; set; }
     }
 }

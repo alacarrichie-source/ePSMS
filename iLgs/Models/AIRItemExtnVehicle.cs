@@ -29,5 +29,6 @@ namespace iLgs.Models
         public Nullable<int> NetWeight { get; set; }
         public string InsPolicyNo { get; set; }
         public string SubLocation { get; set; }
+        public string ConductionNo { get; set; }
     }
 }

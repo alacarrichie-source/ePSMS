@@ -14,8 +14,16 @@ namespace iLgs.Exceptions
         {
             return Message;
         }
+        
+        public string Key { get; set; }
+
+        public RecordNotYetPostedException()
+            : base(message: string.Format("Record not yet posted.")) { }
 
         public RecordNotYetPostedException(string message)
             : base(message: message) { }
+
+        public RecordNotYetPostedException(string key, string message)
+            : base(message: message) { this.Key = key; }
     }
 }

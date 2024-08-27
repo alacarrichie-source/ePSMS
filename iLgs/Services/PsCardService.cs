@@ -25,6 +25,7 @@ namespace iLgs.Services
         ValueTask<bool> GetAnyPsNoAsync(Guid id, string psNo);
         string GetDescription(PsCardVM model);
         string GetStockNo(PsCardVM model);
+        string GetItemExtnName(Guid? id);
 
         ValueTask<PsCardVM> CreateAsync(PsCardVM model, string user, DateTime date);
         ValueTask<PsCardVM> UpdateAsync(PsCardVM model, string user, DateTime date);
@@ -539,7 +540,7 @@ namespace iLgs.Services
         //}
         public string GetStockNo(PsCardVM model) => _allFieldService.GetCardStockNo(model);
                 
-        public string GetDescription(PsCardVM fields) => "Please see attachment.";                
+        public string GetDescription(PsCardVM fields) => "Please see attachment.";
 
         //public string GetRisStockNo(RisItemEntryVM model)
         //{
@@ -628,7 +629,7 @@ namespace iLgs.Services
         //        }
         //        else if (category == Category.Y)
         //        {
-                    
+
         //        }
         //        else if (category == Category.Z)
         //        {
@@ -1067,7 +1068,7 @@ namespace iLgs.Services
         //    {
         //        stockNo += "/" + f.Multipliers.ToString().Trim() + "'s";
         //    }
-            
+
 
         //    return stockNo;
         //}
@@ -1127,7 +1128,7 @@ namespace iLgs.Services
 
         //    return stockNo;
         //}
-               
+
         //public string GetRisDescription(RisItemEntryVM model)
         //{
         //    string description = "";
@@ -1215,7 +1216,7 @@ namespace iLgs.Services
         //        }
         //        else if (category == Category.Y)
         //        {
-                    
+
         //        }
         //        else if (category == Category.Z)
         //        {
@@ -1371,6 +1372,47 @@ namespace iLgs.Services
         //    description += string.IsNullOrWhiteSpace(f.Model_) ? "" : f.Model_.Trim();
         //    return description;
         //}
-        
+
+        public string GetItemExtnName(Guid? id)
+        {
+            var category = _db.PsCardItems.Where(w => w.Id == id).Select(s => s.PsCard.ItemCode.ItemType.Code).FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(category))
+            {
+                return "";
+            }
+
+            string itemExtnName = "";
+            if (Enum.TryParse(category, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    itemExtnName = "ItemExtnLand";
+                }
+                else if (c == CatTransportations())
+                {
+                    itemExtnName = "ItemExtnVehicle";
+                }
+                else if (c == CatMachineries()
+                    || c == CatFurnitures()
+                    || c == CatOtherProperties()
+                    || c == CatMedicals()
+                    || c == CatAgriculturals()
+                    || c == CatAnimalSupplies()
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies()
+                    || c == CatAccountableForms()
+                    || c == CatNonAccountableForns()
+                    || c == CatMilitaries()
+                    || c == CatOtherSupplies()
+                    || c == CatDrugs()
+                    || c == CatRepairs()
+                    )
+                {
+                    itemExtnName = "ItemExtnOther";
+                }
+            }
+            return itemExtnName;
+        }
+
     }
 }

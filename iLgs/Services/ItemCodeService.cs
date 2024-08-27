@@ -11,6 +11,22 @@ using System.Web;
 
 namespace iLgs.Services
 {
+    public interface IItemCodeService
+    {
+        IQueryable<ItemCodeVM> GetAll();
+        IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId);
+        ValueTask<ItemCode> GetByIdAsync(Guid id);
+        IQueryable<ItemCodeVM> GetItems(string item);
+        IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item);
+        IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item);
+
+        IQueryable<ItemCodePreviewVM> GetItemCodePreview();
+
+        ValueTask<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date);
+        ValueTask<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date);
+        ValueTask<ItemCodeVM> DeleteAsync(ItemCodeVM model, string user, DateTime date);
+    }
+
     public class ItemCodeService : IItemCodeService
     {
         private readonly AppManEntities db = new AppManEntities();
@@ -77,7 +93,7 @@ namespace iLgs.Services
         {
             var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", item).AsQueryable();
             return data;
-        });
+        });        
 
         public IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item) => _VmExceptionService.TryCatch(() =>
         {
@@ -90,6 +106,12 @@ namespace iLgs.Services
             var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItemsByTypeCode {0}, {1}", typeCode, item).AsQueryable();
             return data;
         });
+
+        public IQueryable<ItemCodePreviewVM> GetItemCodePreview()
+        {
+            var data = db.Database.SqlQuery<ItemCodePreviewVM>("Exec ItemCodes_GetPreview").AsQueryable();
+            return data;
+        }
 
         private void ValidateFields(ItemCodeVM model)
         {

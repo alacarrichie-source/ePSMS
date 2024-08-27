@@ -44,10 +44,11 @@ namespace iLgs.Services
             var data = await _db.IcsParItems.Include(i => i.IcsPar)
                     .Include(i => i.PsCardItemExtn.PsCardItem) // Ensure related entities are included
                     .Include(i => i.PsCardItemExtn.Codextn)    // Ensure Codextn is included for Location description
-                    .Include(i => i.PsCardItemExtn.PsCardItemExtnBuilding)
-                    .Include(i => i.PsCardItemExtn.PsCardItemExtnLand)
-                    .Include(i => i.PsCardItemExtn.PsCardItemExtnOther)
-                    .Include(i => i.PsCardItemExtn.PsCardItemExtnVehicle)                    
+                    .Include(i => i.PsCardItemExtn)
+                    //.Include(i => i.PsCardItemExtn.PsCardItemExtnBuilding)
+                    //.Include(i => i.PsCardItemExtn.PsCardItemExtnLand)
+                    //.Include(i => i.PsCardItemExtn.PsCardItemExtnOther)
+                    //.Include(i => i.PsCardItemExtn.PsCardItemExtnVehicle)                    
                 .Where(w => w.Id == id)
                 .FirstOrDefaultAsync();
             return data;
@@ -72,7 +73,7 @@ namespace iLgs.Services
             var data = _db.IcsParItems
                 .Include(i => i.IcsPar)
                 .Include(i => i.PsCardItemExtn)
-                .Where(w => w.PsCardItemExtn.PsCardItemId == psCardItemId && w.IcsPar.RefType == refType).AsNoTracking();
+                .Where(w => w.PsCardItemExtn.PsCardItemId == psCardItemId && w.IcsPar.RefType == refType);
                 
             return data;
         }
@@ -116,6 +117,10 @@ namespace iLgs.Services
                 throw new RecordNotFoundException(model.Id);
             }
 
+            var propSplit = model.PsCardItemExtn.PropNo.Split('/');
+            var propYear = model.PsCardItemExtn.PropNo.Substring(0, 4);
+            var propSeq = propSplit[propSplit.Length - 2];
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -130,7 +135,13 @@ namespace iLgs.Services
 
             entity.IcsPar.UpdatedBy = user;
             entity.IcsPar.UpdatedDt = date;
-            
+
+            entity.PsCardItemExtn.PropNo = model.PsCardItemExtn.PropNo;
+            entity.PsCardItemExtn.PropYear = propYear;
+            entity.PsCardItemExtn.PropSeq = propSeq;
+            entity.PsCardItemExtn.UpdatedBy = user;
+            entity.PsCardItemExtn.UpdatedDt = date;
+
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
@@ -172,16 +183,24 @@ namespace iLgs.Services
                 psCardItemExtn.UpdatedBy = user;
                 psCardItemExtn.UpdatedDt = date;
 
-                psCardItemExtn.UpdatedBy = model.UpdatedBy;
-                psCardItemExtn.UpdatedDt = model.UpdatedDt;
+                psCardItemExtn.LocationId = null;
+                psCardItemExtn.PropNo = null;
+                psCardItemExtn.PropSeq = null;
+                psCardItemExtn.PropYear = null;
+                psCardItemExtn.SeriesNo = null;
 
                 _db.PsCardItemExtns.Attach(psCardItemExtn);
                 _db.Entry(psCardItemExtn).State = EntityState.Modified;
                 await _db.SaveChangesAsync();
 
-                _db.PsCardItemExtns.Remove(psCardItemExtn);
-                _db.Entry(psCardItemExtn).State = EntityState.Deleted;
-                await _db.SaveChangesAsync();
+                /*
+                 * TO DO:
+                 * Delete PsCardItemExnLocations
+                 */
+
+                //_db.PsCardItemExtns.Remove(psCardItemExtn);
+                //_db.Entry(psCardItemExtn).State = EntityState.Deleted;
+                //await _db.SaveChangesAsync();
             }
 
             // remove master record if no child record exists

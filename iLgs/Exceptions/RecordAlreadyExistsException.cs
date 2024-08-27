@@ -8,10 +8,7 @@ using System.Web.Services.Description;
 namespace iLgs.Exceptions
 {
     public class RecordAlreadyExistsException : Exception, IException
-    {
-        //public HttpStatusCode StatusCode => HttpStatusCode.Conflict;
-        //public string ErrorMessage => Message;
-
+    {        
         public HttpStatusCode StatusCode()
         {
             return HttpStatusCode.Conflict;
@@ -22,6 +19,8 @@ namespace iLgs.Exceptions
             return Message;
         }
 
+        public string Key { get; set; }
+
         public RecordAlreadyExistsException()
         : base(message: "Record already exists.") { }
 
@@ -30,5 +29,8 @@ namespace iLgs.Exceptions
 
         public RecordAlreadyExistsException(string message)
             : base(message: message) { }
+               
+        public RecordAlreadyExistsException(string key, string message)
+            : base(message: message) { this.Key = key; }
     }
 }

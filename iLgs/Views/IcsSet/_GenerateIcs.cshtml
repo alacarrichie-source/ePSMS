@@ -14,6 +14,8 @@
     //@Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardItemId)
     @Html.HiddenFor(model => model.RefType)
+    @Html.HiddenFor(model => model.Location)
+    @Html.HiddenFor(model => model.SelectedIds)
 
     <fieldset>
         <div class="row">
@@ -26,7 +28,7 @@
             </div>
         </div>
 
-        <div class="row">
+        @*<div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
@@ -34,7 +36,7 @@
                     @Html.ValidationMessageFor(model => model.Qty)
                 </div>
             </div>
-        </div>
+        </div>*@
 
         <div class="row">
             <div class="col-md-12">
@@ -158,6 +160,11 @@
                 </div>
             </div>
         </div>
+        <br />
+
+        <div class="row" style="padding-left:20px;padding-right:20px;">
+            @RenderGridSelections()
+        </div>
 
         <br />
         <div class="row">
@@ -171,14 +178,125 @@
     </fieldset>
 }
 
+@helper RenderGridSelections()
+{
+if (@ViewBag.ItemExtnName == "ItemExtnOther")
+{
+        @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnOther>()
+            .Name("gridSelections")
+            .Columns(col =>
+            {
+                col.Select().Width(30);
+                col.Bound(c => c.SerialNo).Width(100);
+            })
+            .Filterable()
+            .NoRecords()
+            .Resizable(r => r.Columns(true))
+            .Selectable(s => s.Mode(GridSelectionMode.Multiple))
+            .Sortable()
+            .Scrollable(s => s.Height(200))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Events(events => events.Error("GridError"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                })
+                .Sort(s =>
+                {
+                    s.Add(a => a.SerialNo);
+                })
+                .Read(read => read.Action("_GenerateIcsSelectionRead", "IcsSet", new { psCardItemId = @ViewData["psCardItemId"] }))
+            )
+            .AutoBind(true)
+        )
+}
+else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
+{
+        @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicle>()
+            .Name("gridSelections")
+            .Columns(col =>
+            {
+                col.Select().Width(30);
+                col.Bound(c => c.YearModel).Width(50);
+                col.Bound(c => c.PlateNo).Width(50);
+                col.Bound(c => c.BodyNo).Width(70);
+                col.Bound(c => c.EngineNo).Width(70);
+                col.Bound(c => c.ChasisNo).Width(70);
+                col.Bound(c => c.Color).Width(50);
+                col.Bound(c => c.CRN).Width(70);
+                col.Bound(c => c.CRDate).Width(50);
+                col.Bound(c => c.MVFileNo).Width(70);
+            })
+            .Filterable()
+            .NoRecords()
+            .Resizable(r => r.Columns(true))
+            .Selectable(s => s.Mode(GridSelectionMode.Multiple))
+            .Sortable()
+            .Scrollable(s => s.Height(200))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Events(events => events.Error("GridError"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                })
+                .Sort(s =>
+                {
+                    s.Add(a => a.PlateNo);
+                })
+                .Read(read => read.Action("_GenerateIcsSelectionRead", "IcsSet", new { psCardItemId = @ViewData["psCardItemId"] }))
+            )
+            .AutoBind(true)
+        )
+}
+}
+
 
 <script type="text/javascript">
+    //function onDataBoundGrid(e) {
+    //    var grid = this;
+    //    var selectedRows = this.select();
+    //    var totalSelectedRow = this.selectedKeyNames().length;
+    //    if (totalSelectedRow == 0) {
+    //        $("#btnSave").html("Generate");
+    //    } else {
+    //        $("#btnSave").html("Generate " + totalSelectedRow + " record(s)");
+    //    }
+    //    $("#btnSave").data('kendoButton').enable(totalSelectedRow != 0);
+    //}
+
+    //function onChangeGrid(e) {
+    //    var selectedRows = this.select();
+    //    //var totalSelectedRow = selectedRows.length;
+    //    var totalSelectedRow = this.selectedKeyNames().length;
+    //    if (totalSelectedRow == 0) {
+    //        $("#btnSave").html("Post records");
+    //    } else {
+    //        $("#btnSave").html("Post " + totalSelectedRow + " record(s)");
+    //    }
+    //    $("#btnSave").data('kendoButton').enable(totalSelectedRow != 0);
+    //}
+
     $("#btnSave").click(function (e) {
         e.preventDefault();
 
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+
+            // Get reference to Grid object
+            var grid = $("#gridSelections").data("kendoGrid");
+            // Get selected rows
+            var sel = $("input:checked", grid.tbody).closest("tr");
+            // Get data item for each
+
+            var selectedIds = grid.selectedKeyNames().join(",");
+
+            $("#SelectedIds").val(selectedIds);
+
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("GenerateIcs", "IcsSet")',

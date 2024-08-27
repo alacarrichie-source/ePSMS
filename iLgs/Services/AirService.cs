@@ -148,6 +148,11 @@ namespace iLgs.Services
                 throw new RecordNotFoundException(airId);
             }
 
+            if (await IsPostedAsync(airId))
+            {
+                throw new RecordAlreadyPostedException();
+            }
+
             _airItemService.ValidAirItems(airId);
 
             entity.PostedBy = user;
@@ -175,6 +180,7 @@ namespace iLgs.Services
 
                 foreach (var orderItem in orderItemList)
                 {
+                    var isNew = false;
                     var psCard = await _db.PsCards.Include(i => i.PsCardItems)
                         .Include(i => i.AllField)
                         .Where(w => w.PsNo == oig.StockNo && w.Fund == oig.Fund
@@ -188,13 +194,13 @@ namespace iLgs.Services
 
                     if (psCard == null)
                     {
+                        isNew = true;
                         var psCardId = Guid.NewGuid();
                         psCard = new PsCard()
                         {
                             Id = psCardId,
                             ItemCodeId = oig.ItemCodeId,
                             Fund = oig.Fund,
-                            //Description = oig.Description,                            
                             Description = "Please see attachment.",
                             PsNo = oig.StockNo,
                             PsName = oig.StockName,
@@ -208,7 +214,6 @@ namespace iLgs.Services
                         };
 
                         AllField allField = null;
-                        //AllField risAllField = await _db.AllFields.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
                         if (risAllField != null)
                         {
                             allField = new AllField()
@@ -253,169 +258,107 @@ namespace iLgs.Services
                             };
                             psCard.AllField = allField;
                         }
+                    }
 
-                        var psCardItem = await _db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
-                        if (psCardItem == null)
+                    var psCardItem = await _db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
+                    if (psCardItem == null)
+                    {
+                        psCardItem = new PsCardItem()
                         {
-                            //psCardItem = new PsCardItem()
-                            //{
-                            //    Id = Guid.NewGuid(),
-                            //    PsCardId = psCard.Id,
-                            //    OrderItemId = orderItem.Id,
-                            //    PoDate = orderItem.Order.PoDate,
-                            //    PoNo = orderItem.Order.PoNo,
-                            //    AirNo = entity.AIRNo,
-                            //    AirDate = entity.AIRDate,
-                            //    DeptId = deptId,
-                            //    Qty = (int)orderItem.Qty,
-                            //    QtyIss = 0,
-                            //    QtyBal = (int)orderItem.Qty,
-                            //    Unit = orderItem.RequestItem.RisItem.Unit,
-                            //    UnitCost = orderItem.UnitCost,
-                            //    Amount = orderItem.Amount,
-                            //    PriceRate = orderItem.PriceRate,
-                            //    TranType = "I",
-                            //    InvDist = oig.InvDist,
-                            //    InsertedBy = user,
-                            //    InsertedDt = date,
-                            //    UpdatedBy = user,
-                            //    UpdatedDt = date,
-                            //    Description = oig.Description,
-                            //    OtherDesc = orderItem.RequestItem.RisItem.OtherDesc
-                            //};
+                            Id = Guid.NewGuid(),
+                            PsCardId = psCard.Id,
+                            OrderItemId = orderItem.Id,
+                            PoDate = orderItem.Order.PoDate,
+                            PoNo = orderItem.Order.PoNo,
+                            AirDate = entity.AIRDate,
+                            AirNo = entity.AIRNo,
+                            Qty = (int)orderItem.Qty,
+                            QtyIss = 0,
+                            QtyBal = (int)orderItem.Qty,
+                            TranType = "I",
+                            Unit = orderItem.RequestItem.RisItem.Unit,
+                            UnitCost = orderItem.UnitCost,
+                            Amount = orderItem.Amount,
+                            PriceRate = orderItem.PriceRate,
+                            DeptId = deptId,
+                            Description = oig.Description,
+                            OtherDesc = orderItem.RequestItem.RisItem.OtherDesc,
+                            Type = risAllField.Type,
+                            InvDist = oig.InvDist,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
 
-                            psCardItem = new PsCardItem()
+                        // include ItemExtns
+                        var airItemExtnOthers = _airItemService.AirItemExtn.GetAirItemExtnByOrderItemId<AIRItemExtnOther>(orderItem.Id);
+                        foreach (var airItemExtnOther in airItemExtnOthers)
+                        {
+                            var psCardItemExtnOther = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>()
+                                .FirstOrDefaultAsync(f => f.AIRItemExtnId == airItemExtnOther.Id);
+                            if (psCardItemExtnOther == null)
                             {
-                                Id = Guid.NewGuid(),
-                                PsCardId = psCard.Id,
-                                OrderItemId = orderItem.Id,
-                                PoDate = orderItem.Order.PoDate,
-                                PoNo = orderItem.Order.PoNo,
-                                AirDate = entity.AIRDate,
-                                AirNo = entity.AIRNo,                                
-                                Qty = (int)orderItem.Qty,
-                                QtyIss = 0,
-                                QtyBal = (int)orderItem.Qty,                                
-                                TranType = "I",                                
-                                Unit = orderItem.RequestItem.RisItem.Unit,
-                                UnitCost = orderItem.UnitCost,
-                                Amount = orderItem.Amount,
-                                PriceRate = orderItem.PriceRate,                                
-                                DeptId = deptId,                                
-                                Description = oig.Description,
-                                OtherDesc = orderItem.RequestItem.RisItem.OtherDesc,
-                                Type = risAllField.Type,
-                                InvDist = oig.InvDist,                                
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                                //AirIssueDate
-                                //TransferIn 
-                                //TransferOut
-                                //Days
-                                //Remarks
-                                //LocationId
-                                //DeptDisplay
-                                //IsForICS
-                                //IsConsumable
-                                //IsIncorporated
-                                //IsOthers
-                                //OtherRemarks
-                                //AcqMode  
-                                //AcqDate
-                                //AreaSoldDonated
-                                //ConstructionYear
-                                //Vendor
-                                //OldAmount
-                                //PhaseNo
-                                //PhaseAmount
-                            };
-                            psCard.PsCardItems.Add(psCardItem);
+                                psCardItemExtnOther = new PsCardItemExtnOther()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    PsCardItemId = psCardItem.Id,
+                                    AIRItemExtnId = airItemExtnOther.Id,
+                                    SerialNo = airItemExtnOther.SerialNo,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                psCardItem.PsCardItemExtns.Add(psCardItemExtnOther);
+                            }
                         }
+
+                        var airItemExtnVehicles = _airItemService.AirItemExtn.GetAirItemExtnByOrderItemId<AIRItemExtnVehicle>(orderItem.Id);
+                        foreach (var airItemExtnVehicle in airItemExtnVehicles)
+                        {
+                            var psCardItemExtnVehicle = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
+                                    .FirstOrDefaultAsync(f => f.AIRItemExtnId == airItemExtnVehicle.Id);
+                            if (psCardItemExtnVehicle == null)
+                            {
+                                psCardItemExtnVehicle = new PsCardItemExtnVehicle()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    PsCardItemId = psCardItem.Id,
+                                    AIRItemExtnId = airItemExtnVehicle.Id,
+                                    YearModel = airItemExtnVehicle.YearModel,
+                                    PlateNo = airItemExtnVehicle.PlateNo,
+                                    BodyNo = airItemExtnVehicle.BodyNo,
+                                    EngineNo = airItemExtnVehicle.EngineNo,
+                                    ChasisNo = airItemExtnVehicle.ChasisNo,
+                                    Color = airItemExtnVehicle.Color,
+                                    CRN = airItemExtnVehicle.CRN,
+                                    CRDate = airItemExtnVehicle.CRDate,
+                                    MVFileNo = airItemExtnVehicle.MVFileNo,
+                                    OrNo = airItemExtnVehicle.OrNo,
+                                    OrDate = airItemExtnVehicle.OrDate,
+                                    NetWeight = airItemExtnVehicle.NetWeight,
+                                    InsPolicyNo = airItemExtnVehicle.InsPolicyNo,
+                                    //ParReissuance = airItemExtnVehicle.ParReissuance,
+                                    //Condition = airItemExtnVehicle.Condition,
+                                    SubLocation = airItemExtnVehicle.SubLocation,
+                                    InsertedBy = user,
+                                    InsertedDt = date,
+                                    UpdatedBy = user,
+                                    UpdatedDt = date
+                                };
+                                psCardItem.PsCardItemExtns.Add(psCardItemExtnVehicle);
+                            }
+                        }
+
+                        psCard.PsCardItems.Add(psCardItem);
+                    }
+
+                    if (isNew == true)
+                    {
                         _db.PsCards.Add(psCard);
                     }
-                    else
-                    {
-                        var psCardItem = await _db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
-                        if (psCardItem == null)
-                        {
-                            //psCardItem = new PsCardItem()
-                            //{
-                            //    Id = Guid.NewGuid(),
-                            //    PsCardId = psCard.Id,
-                            //    OrderItemId = orderItem.Id,
-                            //    PoDate = orderItem.Order.PoDate,
-                            //    PoNo = orderItem.Order.PoNo,
-                            //    AirNo = entity.AIRNo,
-                            //    AirDate = entity.AIRDate,
-                            //    DeptId = deptId,
-                            //    Qty = (int)orderItem.Qty,
-                            //    QtyIss = 0,
-                            //    QtyBal = (int)orderItem.Qty,
-                            //    Unit = orderItem.RequestItem.RisItem.Unit,
-                            //    UnitCost = orderItem.UnitCost,
-                            //    Amount = orderItem.Amount,
-                            //    PriceRate = orderItem.PriceRate,
-                            //    TranType = "I",
-                            //    InvDist = oig.InvDist,
-                            //    InsertedBy = user,
-                            //    InsertedDt = date,
-                            //    UpdatedBy = user,
-                            //    UpdatedDt = date,
-                            //    Description = oig.Description,
-                            //    OtherDesc = orderItem.RequestItem.RisItem.OtherDesc
-                            //};
-                            psCardItem = new PsCardItem()
-                            {
-                                Id = Guid.NewGuid(),
-                                PsCardId = psCard.Id,
-                                OrderItemId = orderItem.Id,
-                                PoDate = orderItem.Order.PoDate,
-                                PoNo = orderItem.Order.PoNo,
-                                AirDate = entity.AIRDate,
-                                AirNo = entity.AIRNo,
-                                Qty = (int)orderItem.Qty,
-                                QtyIss = 0,
-                                QtyBal = (int)orderItem.Qty,
-                                TranType = "I",
-                                Unit = orderItem.RequestItem.RisItem.Unit,
-                                UnitCost = orderItem.UnitCost,
-                                Amount = orderItem.Amount,
-                                PriceRate = orderItem.PriceRate,
-                                DeptId = deptId,
-                                Description = oig.Description,
-                                OtherDesc = orderItem.RequestItem.RisItem.OtherDesc,
-                                Type = risAllField.Type,
-                                InvDist = oig.InvDist,
-                                InsertedBy = user,
-                                InsertedDt = date,
-                                UpdatedBy = user,
-                                UpdatedDt = date
-                                //AirIssueDate
-                                //TransferIn 
-                                //TransferOut
-                                //Days
-                                //Remarks
-                                //LocationId
-                                //DeptDisplay
-                                //IsForICS
-                                //IsConsumable
-                                //IsIncorporated
-                                //IsOthers
-                                //OtherRemarks
-                                //AcqMode  
-                                //AcqDate
-                                //AreaSoldDonated
-                                //ConstructionYear
-                                //Vendor
-                                //OldAmount
-                                //PhaseNo
-                                //PhaseAmount
-                            };
-                            _db.PsCardItems.Add(psCardItem);
-                        }
-                    }
+
                     psCardIdList.Add(psCard.Id);
                 }
             }
@@ -544,6 +487,11 @@ namespace iLgs.Services
                 throw new RecordNotFoundException(airId);
             }
 
+            if (!await IsPostedAsync(airId))
+            {
+                throw new RecordNotYetPostedException();
+            }
+
             if (await _db.PsCardItemIssuances.AsNoTracking().AnyAsync(a => a.PsCardItem.OrderItemId == entity.OrderId))
             {
                 throw new RecordRelationshipException("Items were already issued cannot unpost!");
@@ -556,7 +504,7 @@ namespace iLgs.Services
 
             /*
                 * Delete the following records onUnpost:
-                * PsCardItems, Fields...
+                * PsCardItems, Fields..., PsCardItemExtns
                 * PsCards --> if no PsItem                
             */
 
@@ -564,38 +512,60 @@ namespace iLgs.Services
 
             foreach (var orderItem in orderItems)
             {
-                var psCardItems = _db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id);
-                if (psCardItems.Any())
+                var psCardItems = _db.PsCardItems.Include(i => i.PsCardItemExtns).Where(w => w.OrderItemId == orderItem.Id).ToList();
+                Guid? psCardId = psCardItems?.FirstOrDefault()?.PsCardId;
+
+                foreach (var psCardItem in psCardItems)
                 {
-                    var psCardItem = psCardItems.FirstOrDefault();
 
                     // check unit groups           
                     var unitGroupDescriptionItems = _db.PsCardItemUnitGroupDescriptionItems.Where(w => w.PsCardItemId == psCardItem.Id);
-                    _db.PsCardItemUnitGroupDescriptionItems.RemoveRange(unitGroupDescriptionItems);
-                    await _db.SaveChangesAsync();
+                    if (unitGroupDescriptionItems.Any())
+                    {
+                        _db.PsCardItemUnitGroupDescriptionItems.RemoveRange(unitGroupDescriptionItems);
+                        await _db.SaveChangesAsync();
+                    }
 
                     var unitGroupDescriptions = _db.PsCardItemUnitGroupDescriptions.Where(w => w.PsCardItemUnitGroup.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptionItems.Any());
-                    _db.PsCardItemUnitGroupDescriptions.RemoveRange(unitGroupDescriptions);
-                    await _db.SaveChangesAsync();
+                    if (unitGroupDescriptions.Any())
+                    {
+                        _db.PsCardItemUnitGroupDescriptions.RemoveRange(unitGroupDescriptions);
+                        await _db.SaveChangesAsync();
+                    }
 
                     var unitGroups = _db.PsCardItemUnitGroups.Where(w => w.PoNo == psCardItem.PoNo && !w.PsCardItemUnitGroupDescriptions.Any());
-                    _db.PsCardItemUnitGroups.RemoveRange(unitGroups);
-                    await _db.SaveChangesAsync();
-
-                    var psCardId = psCardItem.PsCardId;
-
-                    // log updates
-                    await psCardItems.ForEachAsync(f =>
+                    if (unitGroups.Any())
                     {
-                        f.UpdatedBy = user;
-                        f.UpdatedDt = date;
-                    });
-                    await _db.SaveChangesAsync();
+                        _db.PsCardItemUnitGroups.RemoveRange(unitGroups);
+                        await _db.SaveChangesAsync();
+                    }
 
-                    // delete all stockitems
-                    _db.PsCardItems.RemoveRange(psCardItems);
-                    await _db.SaveChangesAsync();
+                    if (psCardItem.PsCardItemExtns.Any())
+                    {
+                        _db.PsCardItemExtns.RemoveRange(psCardItem.PsCardItemExtns);
+                        await _db.SaveChangesAsync();
+                    }
 
+
+                    var item = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == psCardItem.Id);
+                    if (item != null)
+                    {
+                        item.UpdatedBy = user;
+                        item.UpdatedDt = date;
+
+                        _db.PsCardItems.Attach(item);
+                        _db.Entry(item).State = EntityState.Modified;
+                        await _db.SaveChangesAsync();
+
+                        _db.PsCardItems.Remove(item);
+                        _db.Entry(item).State = EntityState.Deleted;
+                        await _db.SaveChangesAsync();
+
+                    }                    
+                }
+                
+                if (psCardId != null)
+                {
                     if (!_db.PsCardItems.Any(a => a.PsCardId == psCardId)) // no other  order item is using this item
                     {
                         var psCard = await _db.PsCards.Include(i => i.AllField).Where(w => w.Id == psCardId).FirstOrDefaultAsync();

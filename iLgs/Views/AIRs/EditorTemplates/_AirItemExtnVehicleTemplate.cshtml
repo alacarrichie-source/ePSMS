@@ -18,23 +18,29 @@
     <fieldset>
 
         <div class="row">
-            @Html.LabelFor(m => m.SeriesNo, htmlAttributes: new { @class = "col-md-2" })
-            <div class="col-md-10">
-                @(Html.Kendo().TextBoxFor(m => m.SeriesNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(model => model.SeriesNo)
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.YearModel, "Label")
             </div>
-        </div>
-
-        <div class="row">
-            @Html.LabelFor(m => m.YearModel, htmlAttributes: new { @class = "col-md-2" })
             <div class="col-md-10">
-                @(Html.Kendo().NumericTextBoxFor(m => m.YearModel).Decimals(0).Spinners(false).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @(Html.Kendo().NumericTextBoxFor(m => m.YearModel).Decimals(0).Spinners(false).Format("n0").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.YearModel)
             </div>
         </div>
 
         <div class="row">
-            @Html.LabelFor(m => m.PlateNo, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.ConductionNo, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.ConductionNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.ConductionNo)
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.PlateNo, "Label")
+            </div>
             <div class="col-md-10">
                 @(Html.Kendo().TextBoxFor(m => m.PlateNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.PlateNo)
@@ -42,39 +48,19 @@
         </div>
 
         <div class="row">
-            @Html.LabelFor(m => m.BodyNo, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.BodyNo, "Label")
+            </div>
             <div class="col-md-10">
                 @(Html.Kendo().TextBoxFor(m => m.BodyNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.BodyNo)
             </div>
-        </div>
+        </div>        
 
         <div class="row">
-            @Html.LabelFor(m => m.EngineNo, htmlAttributes: new { @class = "col-md-2" })
-            <div class="col-md-10">
-                @(Html.Kendo().TextBoxFor(m => m.EngineNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(model => model.EngineNo)
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.CRN, "Label")
             </div>
-        </div>
-
-        <div class="row">
-            @Html.LabelFor(m => m.ChasisNo, htmlAttributes: new { @class = "col-md-2" })
-            <div class="col-md-10">
-                @(Html.Kendo().TextBoxFor(m => m.ChasisNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(model => model.ChasisNo)
-            </div>
-        </div>
-
-        <div class="row">
-            @Html.LabelFor(m => m.Color, htmlAttributes: new { @class = "col-md-2" })
-            <div class="col-md-10">
-                @(Html.Kendo().TextBoxFor(m => m.Color).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(model => model.Color)
-            </div>
-        </div>
-
-        <div class="row">
-            @Html.LabelFor(m => m.CRN, htmlAttributes: new { @class = "col-md-2" })
             <div class="col-md-10">
                 @(Html.Kendo().TextBoxFor(m => m.CRN).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.CRN)
@@ -82,7 +68,9 @@
         </div>
 
         <div class="row">
-            @Html.LabelFor(m => m.CRDate, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.CRDate, "Label")
+            </div>
             <div class="col-md-10">
                 @(Html.Kendo().DatePickerFor(m => m.CRDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.CRDate)
@@ -90,16 +78,90 @@
         </div>
 
         <div class="row">
-            @Html.LabelFor(model => model.NetWeight, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.MVFileNo, "Label")
+            </div>
             <div class="col-md-10">
-                @(Html.Kendo().NumericTextBoxFor(model => model.NetWeight).Decimals(0).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })                
+                @(Html.Kendo().TextBoxFor(m => m.MVFileNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.MVFileNo)
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-2">
+                @Html.DisplayFor(model => model.NetWeight, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().NumericTextBoxFor(model => model.NetWeight).Decimals(0).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 )
                 @Html.ValidationMessageFor(model => model.NetWeight)
             </div>
         </div>
 
         <div class="row">
-            @Html.LabelFor(m => m.InsPolicyNo, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.OrNo, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.OrNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.OrNo)
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.OrDate, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().DatePickerFor(m => m.OrDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.OrDate)
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.EngineNo, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.EngineNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.EngineNo)
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.ChasisNo, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.ChasisNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.ChasisNo)
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.Color, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.Color).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.Color)
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.SeriesNo, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.SeriesNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.SeriesNo)
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.InsPolicyNo, "Label")
+            </div>
             <div class="col-md-10">
                 @(Html.Kendo().TextBoxFor(m => m.InsPolicyNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.InsPolicyNo)
@@ -107,12 +169,14 @@
         </div>
 
         <div class="row">
-            @Html.LabelFor(m => m.SubLocation, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.SubLocation, "Label")
+            </div>
             <div class="col-md-10">
                 @(Html.Kendo().TextBoxFor(m => m.SubLocation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.SubLocation)
             </div>
-        </div>        
+        </div>
 
     </fieldset>
 }

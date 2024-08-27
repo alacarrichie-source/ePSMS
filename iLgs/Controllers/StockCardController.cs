@@ -708,5 +708,258 @@ namespace iLgs.Controllers
             return File(stream, "application/pdf");
         }
         #endregion
+
+        [HttpPost]
+        public ActionResult GetItemExtnTemplate(Guid? id)
+        {
+
+            string itemExtnName = _psCardService.GetItemExtnName(id);
+
+            return Json(new { Errors = "", ItemExtnName = itemExtnName }, JsonRequestBehavior.AllowGet);
+
+        }
+
+        #region ITEMEXTN VEHICLES
+        public ActionResult _ItemExtnVehicleRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
+        {
+            var data = _psCardItemService.PsCardItemExtn.PsCardItemExtnVehicle.GetByPsCardItemId(psCardItemId);
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnVehicleCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnVehicle model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("", "Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardItemService.PsCardItemExtn.PsCardItemExtnVehicle.CreateAsync(model, user, date);
+
+                    // TO DO: save to stock card
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnVehicleUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnVehicle model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardItemService.PsCardItemExtn.PsCardItemExtnVehicle.UpdateAsync(model, user, date);
+
+                    // TO DO: update stock card
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnVehicleDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnVehicle model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("GridError", "Delete Access Denied!");
+                }
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardItemService.PsCardItemExtn.PsCardItemExtnVehicle.DeleteAsync(model, user, date);
+                    // TO DO: update stocks
+                }
+
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion  
+
+
+        #region ITEMEXTN OTHERS
+        public ActionResult _ItemExtnOtherRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
+        {
+            var data = _psCardItemService.PsCardItemExtn.PsCardItemExtnOther.GetByPsCardItemId(psCardItemId);
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnOtherCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnOther model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("", "Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardItemService.PsCardItemExtn.PsCardItemExtnOther.CreateAsync(model, user, date);
+
+                    // TO DO: save to stock card
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnOtherUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnOther model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardItemService.PsCardItemExtn.PsCardItemExtnOther.UpdateAsync(model, user, date);
+
+                    // TO DO: update stock card
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnOtherDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnOther model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("GridError", "Delete Access Denied!");
+                }
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardItemService.PsCardItemExtn.PsCardItemExtnOther.DeleteAsync(model, user, date);
+                    // TO DO: update stocks
+                }
+
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion  
     }
 }

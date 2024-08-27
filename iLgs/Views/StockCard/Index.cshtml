@@ -88,7 +88,6 @@
     )
 )
 
-
 <script id="DetailTemplate" type="text/x-kendo-tmpl">
     @(Html.Kendo().TabStrip()
         .Name("details_tabstrip_#=Id#")
@@ -110,7 +109,6 @@
        .ToClientTemplate()
     )
 </script>
-
 
 <script id="IssuedItems" type="text/kendo-tmpl">
     @(Html.Kendo().Grid<iLgs.Models.PsCardItemIssuanceVM>()
@@ -172,6 +170,111 @@
     .ToClientTemplate())
 </script>
 
+<script id="default-template" type="text/kendo-tmpl">
+    <h4>Loading..</h4>
+</script>
+
+<script id="ItemExtnVehicle" type="text/kendo-tmpl">
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicle>()
+    .Name("gridItemExtn_#=Id#")
+    .Columns(col =>
+    {
+        col.Bound(c => c.YearModel).Width(100);
+        col.Bound(c => c.PlateNo).Width(100);
+        col.Bound(c => c.BodyNo).Width(50);
+        col.Bound(c => c.EngineNo).Width(50);
+        col.Bound(c => c.ChasisNo).Width(50);
+        col.Bound(c => c.Color).Width(50);
+        col.Bound(c => c.CRN).Width(50);
+        col.Bound(c => c.CRDate).Width(50).Format("{0:MM/dd/yyyy}");
+        col.Bound(c => c.MVFileNo).Width(50);
+        col.Bound(c => c.OrNo).Width(50);
+        col.Bound(c => c.OrDate).Width(50).Format("{0:MM/dd/yyyy}");
+        col.Bound(c => c.NetWeight).Width(50);
+        col.Bound(c => c.InsPolicyNo).Width(50);
+        col.Bound(c => c.SubLocation).Width(50);
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridItemExtnDeleteClick").SendDataKeys(true);
+        }).Width(100);
+    })
+    .ToolBar(t =>
+    {
+        t.Create();
+    })
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnVehicleTemplate").Window(w => w.Width(500).Title("Item Details")))
+    .Sortable()
+    .NoRecords()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
+        )
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        })
+        .Read(read => read.Action("_ItemExtnVehicleRead", "StockCard", new { psCardItemId = "#=Id#" }))
+        .Create(create => create.Action("_ItemExtnVehicleCreate", "StockCard"))
+        .Update(update => update.Action("_ItemExtnVehicleUpdate", "StockCard"))
+        .Destroy(destroy => destroy.Action("_ItemExtnVehicleDestroy", "StockCard"))
+    )
+    .Events(events => events
+        .Change("onChangeGridItemExtn")
+        .Edit("onEditGridItemExtn")
+        .DataBound("onDataBoundGridItemExtn")
+        .Remove("onRemoveGridItemExtn")
+    )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .ToClientTemplate())
+</script>
+
+<script id="ItemExtnOther" type="text/kendo-tmpl">
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnOther>()
+    .Name("gridItemExtn_#=Id#")
+    .Columns(col =>
+    {
+        col.Bound(c => c.SerialNo).Width(100);
+        //col.Bound(c => c.Condition).Width(100);
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridItemExtnDeleteClick").SendDataKeys(true);
+        }).Width(100);
+    })
+    .ToolBar(t =>
+    {
+        t.Create();
+    })
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnOtherTemplate").Window(w => w.Width(500).Title("Item Details")))
+    .Sortable()
+    .NoRecords()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
+        )
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        })
+        .Read(read => read.Action("_ItemExtnOtherRead", "StockCard", new { psCardItemId = "#=Id#" }))
+        .Create(create => create.Action("_ItemExtnOtherCreate", "StockCard"))
+        .Update(update => update.Action("_ItemExtnOtherUpdate", "StockCard"))
+        .Destroy(destroy => destroy.Action("_ItemExtnOtherDestroy", "StockCard"))
+    )
+    .Events(events => events
+        .Change("onChangeGridItemExtn")
+        .Edit("onEditGridItemExtn")
+        .DataBound("onDataBoundGridItemExtn")
+        .Remove("onRemoveGridItemExtn")
+    )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .ToClientTemplate())
+</script>
 
 <div id="windowcontainer"></div>
 
@@ -646,9 +749,9 @@
 
     $(".k-grid-btnPrintCard").click(function (e) {
         e.preventDefault();
-        
+
         var url = '@Url.Action("StockCardRpt", "StockCard")?selectedId=' + selectedId;
-        
+
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
                 .kendoWindow({
@@ -987,6 +1090,41 @@
 
 
     // GRID ITEMS
+    
+    function onDetailExpand(e) {
+        // Find the corresponding row in the main grid and select it
+        var mainGridRow = $(e.sender.wrapper).closest("tr").prev();
+        var mainGrid = mainGridRow.closest("[data-role=grid]").data("kendoGrid");
+        mainGrid.select(mainGridRow);
+
+        var dataItem = this.dataItem(e.masterRow); // Get the data item for the current row
+        var templateId = null;
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GetItemExtnTemplate", "StockCard")',
+            data: { id: dataItem.Id},
+            success: function (result) {
+                if (result.Errors == "") {
+                    templateId = result.ItemExtnName;
+                    // Get the template content and render it
+                    var templateHtml = $("#" + templateId).html();
+                    var template = kendo.template(templateHtml);
+
+                    // Insert the rendered template into the detail cell
+                    e.detailRow.find(".k-detail-cell").html(template(dataItem));
+                } else {
+                    alert(result.Errors);
+                    return false;
+                }
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+                return false;
+            }
+        });
+
+    }
 
     function onRequestEndGridItems(e) {
         e.preventDefault();
@@ -1420,6 +1558,100 @@
     }
     // END CARD ITEM TEMPLATE
 
+
+    // GRID ITEMEXTN
+    var selectedItemExtnId = null;
+    function onChangeGridItemExtn(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedItemExtnId = selectedData.Id;
+    }
+
+    function onDataBoundGridItemExtn(e) {
+        e.preventDefault();
+        
+        if (selectedItemExtnId) {
+            var dataItem = this.dataSource.get(selectedItemExtnId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onEditGridItemExtn(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        //the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedItemExtnId = null;
+            e.model.set("PsCardItemId", parentModel.Id);
+        } else {
+            selectedItemExtnId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedItemExtnId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onRemoveGridItemExtn(e) { // triggers after confirm
+        //e.preventDefault();
+        selectedGrid = e.sender;
+
+        //the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+    }
+
+    function onGridItemExtnDeleteClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        selectedItemExtnId = dataItem.Id;
+        var rowitem = selectedGrid.dataSource.get(selectedItemExtnId);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGrid.removeRow(tr);
+    }
+
+    function onRequestEndGridItemExtn(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "create") {
+                var responseData = e.response;
+                var newRecord = responseData.Data[0];
+                selectedItemExtnId = newRecord.Id;
+            }
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+
+                var grid = $("#gridItems_" + selectedId).data("kendoGrid");
+
+                // Trigger a read operation on the data source.
+                grid.dataSource.read().then(function () {
+                    // Additional actions to be performed after the read operation.
+
+                    // Find the row with the specified Id.
+                    var dataItem = grid.dataSource.get(selectedItemId);
+                    // If the row is found, expand it.
+                    if (dataItem) {
+                        var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
+                        grid.expandRow(row);
+                    }
+                });
+            }
+        }
+    }
+    // END GRID ITEMEXTN
 </script>
 
 

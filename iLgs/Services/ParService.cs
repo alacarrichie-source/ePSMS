@@ -43,12 +43,13 @@ namespace iLgs.Services
         //Task<PARAcknowledgementVM> CreateAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date);
         //Task<PARAcknowledgementVM> UpdateAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date);
         //Task<PARAcknowledgementVM> DeleteAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date);
+        ValueTask<GenerateIcsParVM> GeneratePAR(GenerateIcsParVM model, string user, DateTime date);
 
         IIcsParItemService IcsParItem { get; }
+        IPsCardService PsCard { get; }
         IPsCardItemService PsCardItem { get; }
-        IPsCardItemIssuanceService PsCardItemIssaunce { get; }
-
-        ValueTask<GenerateIcsParVM> GeneratePAR(GenerateIcsParVM model, string user, DateTime date);
+        IPsCardItemExtnService PsCardItemExtn { get; }
+        IPsCardItemIssuanceService PsCardItemIssaunce { get; }        
     }
 
     public class ParService : IParService
@@ -57,7 +58,9 @@ namespace iLgs.Services
         private decimal _parPrice = 50000;
 
         private IIcsParItemService _icsParItemService;
+        private IPsCardService _psCardService;
         private IPsCardItemService _psCardItemService;
+        private IPsCardItemExtnService _psCardItemExtnService;
         private IPsCardItemIssuanceService _psCardItemIssaunceService;
         private readonly IExceptionService<GenerateIcsParVM> _generateParExceptionService = new ExceptionService<GenerateIcsParVM>();
 
@@ -65,12 +68,16 @@ namespace iLgs.Services
         {
             _db = db;
             _icsParItemService = new IcsParItemService(db);
+            _psCardService = new PsCardService(db);
             _psCardItemService = new PsCardItemService(db);
+            _psCardItemExtnService = new PsCardItemExtnService(db);
             _psCardItemIssaunceService = new PsCardItemIssuanceService(db);
         }
 
         public IIcsParItemService IcsParItem { get { return _icsParItemService = _icsParItemService ?? new IcsParItemService(_db); } }
+        public IPsCardService PsCard { get { return _psCardService = _psCardService ?? new PsCardService(_db); } }
         public IPsCardItemService PsCardItem { get { return _psCardItemService = _psCardItemService ?? new PsCardItemService(_db); } }
+        public IPsCardItemExtnService PsCardItemExtn { get { return _psCardItemExtnService = _psCardItemExtnService ?? new PsCardItemExtnService(_db); } }
         public IPsCardItemIssuanceService PsCardItemIssaunce { get { return _psCardItemIssaunceService = _psCardItemIssaunceService ?? new PsCardItemIssuanceService(_db); } }
 
         public IQueryable<ParVM> GetAll()
@@ -318,7 +325,8 @@ namespace iLgs.Services
                         (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
                     //(s.IcsParItems.Where(w => w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
                     OrderItemUnitGroupDescriptionItem = s.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemId),
-                    IsForICS = s.IsForICS
+                    IsForICS = s.IsForICS,
+                    AcqDate = s.AcqDate
                 }).FirstOrDefaultAsync();
             return data;
         }
@@ -353,6 +361,12 @@ namespace iLgs.Services
                 throw new InvalidValueException(string.Format("Cannot generate more than the available balance."));
             }
 
+            var selectedIds = model.SelectedIds.Split(',');
+            if (selectedIds.Count() == 0)
+            {
+                throw new InvalidValueException(string.Format("No selected items, cannot generate."));
+            }
+
             var refType = (await _db.IcsParItems.Include(i => i.IcsPar).AsNoTracking().Where(w => w.PsCardItemExtn.PsCardItemId == model.PsCardItemId && w.IcsPar.RefType != model.RefType).FirstOrDefaultAsync())?.IcsPar.RefType;
             if (!string.IsNullOrWhiteSpace(refType))
             {
@@ -361,31 +375,31 @@ namespace iLgs.Services
 
             Guid? icsParId = null;
             IcsPar icsPar = null;
-            bool icsSw = true;
-            string acqYear;
+            bool icsSw = true;            
+            string acqYear = "";
 
-            if (cardItem.AirDate != null)
+            if (cardItem.AcqDate != null)
+            {
+                acqYear = cardItem.AcqDate.Value.Year.ToString();
+            }
+            else if (cardItem.AirDate != null)
             {
                 acqYear = cardItem.AirDate.Value.Year.ToString();
             }
             else
             {
-                if (cardItem.PoDate != null)
-                {
-                    acqYear = cardItem.PoDate.Value.Year.ToString();
-                }
-                else
-                {
-                    acqYear = model.Date.Year.ToString();
-                }
+                acqYear = cardItem.PoDate.Value.Year.ToString();
             }
 
-            var psCardItemExtnList = await _db.PsCardItemExtns.Where(w => w.PsCardItemId == model.PsCardItemId && w.IcsParItems.Count() == 0).ToListAsync();
-            // generate par per qty 
-            //for (var qty = 0; qty < model.Qty; ++qty)
+            if (string.IsNullOrEmpty(acqYear))
+            {
+                throw new InvalidValueException("Acquisition Date is Required!");
+            }
 
             // generate per itemextn
-            foreach(var psCardItemExtn in psCardItemExtnList)
+            //var psCardItemExtnList = await _db.PsCardItemExtns.Where(w => w.PsCardItemId == model.PsCardItemId && w.IcsParItems.Count() == 0).ToListAsync();                        
+            //foreach(var psCardItemExtn in psCardItemExtnList)
+            foreach (var selectedId in selectedIds)
             {
                 var refNo = await NextRefNoAsync(model.Date, model.RefType);
                 icsPar = new IcsPar()
@@ -408,15 +422,11 @@ namespace iLgs.Services
                     UpdatedDt = date
                 };
 
-                //var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
-                //var propSplit = propNo.Split('/');
-                //var propSeq = propSplit[propSplit.Length - 2];
-
                 IcsParItem icsParItem = new IcsParItem()
                 {
                     Id = Guid.NewGuid(),
                     IcsParId = icsPar.Id,
-                    PsCardItemExtnId = psCardItemExtn.Id,
+                    PsCardItemExtnId = Guid.Parse(selectedId),
                     Qty = 1,
                     Amount = cardItem.UnitCost,                    
                     InsertedBy = user,
@@ -428,6 +438,26 @@ namespace iLgs.Services
                 _db.IcsPars.Add(icsPar);
                 _db.Entry(icsPar).State = EntityState.Added;
                 await _db.SaveChangesAsync();
+
+                var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
+                var propSplit = propNo.Split('/');
+                var propSeq = propSplit[propSplit.Length - 2];
+                var psCardItemExtnId = Guid.Parse(selectedId);
+
+                var psCardItemExtn = _db.PsCardItemExtns.Where(w => w.Id == psCardItemExtnId).FirstOrDefault();
+                psCardItemExtn.LocationId = model.LocationId;
+                psCardItemExtn.PropYear = acqYear;
+                psCardItemExtn.PropNo = propNo;
+                psCardItemExtn.PropSeq = propSeq;
+                psCardItemExtn.UpdatedBy = user;
+                psCardItemExtn.UpdatedDt = date;
+
+                _db.PsCardItemExtns.Attach(psCardItemExtn);
+                _db.Entry(psCardItemExtn).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
+
+                // TO DO:
+                // Save to PsCardItemLocations
 
             }
             return model;

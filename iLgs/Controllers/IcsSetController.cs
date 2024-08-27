@@ -21,14 +21,14 @@ namespace iLgs.Controllers
     [AppAuthorize("ICSSET")]
     public class IcsSetController : BaseController
     {
-        private AppManEntities db = new AppManEntities();
+        private AppManEntities _db = new AppManEntities();
         private IIcsService _icsService;
         private ICodextnService _codextnService;
-
+        
         public IcsSetController()
         {
-            _icsService = new IcsService(db);
-            _codextnService = new CodextnService(db);
+            _icsService = new IcsService(_db);
+            _codextnService = new CodextnService(_db);
         }
 
         // GET: Ics
@@ -82,7 +82,7 @@ namespace iLgs.Controllers
             rpt.Refresh();
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            string conString = db.Database.Connection.ConnectionString.ToString();
+            string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
 
             string un = decoder.UserID;
@@ -150,9 +150,9 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo)
+        public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _icsService.GetItemsByPoNo(poNo);
+            var data = _icsService.GetItemsByPoNo_PoDate_DeptId(poNo, poDate, deptId);
 
             var result = new JsonNetResult
             {
@@ -369,9 +369,7 @@ namespace iLgs.Controllers
         }
 
         public async Task<ActionResult> _GenerateIcs(Guid? psCardItemId, string refType)
-        {
-            ViewData["psCardItemId"] = psCardItemId;
-
+        {                        
             var psCardItem = await _icsService.GetByIdAsync(psCardItemId);
             var model = new GenerateIcsParVM()
             {
@@ -381,6 +379,9 @@ namespace iLgs.Controllers
                 RefType = refType,
                 IcsPar = new IcsPar()
             };
+
+            ViewData["psCardItemId"] = psCardItemId;
+            ViewBag.ItemExtnName = _icsService.PsCard.GetItemExtnName(psCardItemId);
 
             return PartialView(model);
         }        
@@ -429,6 +430,19 @@ namespace iLgs.Controllers
             }
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult _GenerateIcsSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
+        {
+            var data = _icsService.PsCardItemExtn.GetCardItemExtnForIcsParsByType(psCardItemId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
         }
 
         public ActionResult _GenerateIcsBatch(string poNo, Guid? deptId)

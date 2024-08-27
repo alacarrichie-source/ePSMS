@@ -72,6 +72,9 @@
     <Reference Include="ExcelNumberFormat, Version=1.1.0.0, Culture=neutral, PublicKeyToken=23c6f5d73be07eca, processorArchitecture=MSIL">
       <HintPath>..\packages\ExcelNumberFormat.1.1.0\lib\net20\ExcelNumberFormat.dll</HintPath>
     </Reference>
+    <Reference Include="FluentValidation, Version=11.0.0.0, Culture=neutral, PublicKeyToken=7de548da2fbae0f0, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentValidation.11.9.2\lib\netstandard2.0\FluentValidation.dll</HintPath>
+    </Reference>
     <Reference Include="Irony, Version=1.0.11.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
       <HintPath>..\packages\Irony.NetCore.1.0.11\lib\net461\Irony.dll</HintPath>
     </Reference>
@@ -417,6 +420,9 @@
     <Compile Include="Models\PsCardItemIssuance.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PsCardItemLocation.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PsCardItemTransfer.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -554,8 +560,11 @@
     <Compile Include="Services\PropertyCardVehicleService.cs" />
     <Compile Include="Services\PropertyItemService.cs" />
     <Compile Include="Services\PropertyService.cs" />
+    <Compile Include="Services\PsCardItemExtnOtherService.cs" />
     <Compile Include="Services\PsCardItemExtnService.cs" />
+    <Compile Include="Services\PsCardItemExtnVehicleService.cs" />
     <Compile Include="Services\PsCardItemIssuanceService.cs" />
+    <Compile Include="Services\PsCardItemLocationService.cs" />
     <Compile Include="Services\PsCardItemService.cs" />
     <Compile Include="Services\PsCardService.cs" />
     <Compile Include="Services\PsItemIssuanceService.cs" />
@@ -571,6 +580,7 @@
     <Compile Include="Services\RpceffoppeService.cs" />
     <Compile Include="Services\RpcPpeItemService.cs" />
     <Compile Include="Services\RpcPpeService.cs" />
+    <Compile Include="Services\ServiceResult.cs" />
     <Compile Include="Services\StockItemIssuanceService.cs" />
     <Compile Include="Services\StockItemService.cs" />
     <Compile Include="Services\UserService.cs" />
@@ -792,6 +802,9 @@
     <Compile Include="Services\RisItemExtnService.cs" />
     <Compile Include="Services\RisItemService.cs" />
     <Compile Include="Services\RisService.cs" />
+    <Compile Include="Services\ValidationService.cs" />
+    <Compile Include="Services\Validators\AirItemExtnVehicleValator.cs" />
+    <Compile Include="Services\Validators\CombinedValidatorSelector.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
     <Compile Include="Controllers\BaseConroller.cs" />
@@ -3819,6 +3832,10 @@
     <Content Include="Views\IcsSet\EditorTemplates\_ItemTemplate.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AirItemExtnVehicleTemplate.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AirItemExtnOtherTemplate.cshtml" />
+    <Content Include="Views\StockCard\EditorTemplates\_CardItemExtnOtherTemplate.cshtml" />
+    <Content Include="Views\StockCard\EditorTemplates\_CardItemExtnVehicleTemplate.cshtml" />
+    <Content Include="Views\Items\ItemCodePreview.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\Label.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -3929,7 +3946,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
