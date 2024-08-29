@@ -3,6 +3,7 @@ using iLgs.Models;
 using iLgs.Services.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -63,7 +64,7 @@ namespace iLgs.Services
                 throw new InvalidValueException("Plate Number is required!");
             }
         }
-
+        
         public ValueTask<PsCardItemExtnVehicle> CreateAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatchAsync(async () =>
         {
             //if (await IsPostedAsync(model.pPsCardItemId))
@@ -71,10 +72,13 @@ namespace iLgs.Services
             //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             //}
 
-            var itemQty = (int)_db.PsCardItems.FirstOrDefault(f => f.Id == model.PsCardItemId).Qty;
+            ValidatorService.ValidateModel<PsCardItemExtn>(model);
+
+            var psCardItem = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == model.PsCardItemId);
+            var itemQty = (int)(psCardItem.Qty ?? 0) + (int)(psCardItem.TransferIn ?? 0);
             var itemExtnCount = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == model.PsCardItemId).Count();
 
-            if (itemQty == itemExtnCount)
+            if (itemExtnCount >= itemQty)
             {
                 throw new InvalidValueException($"Cannot create more than {itemQty} record(s).");
             }
@@ -90,9 +94,6 @@ namespace iLgs.Services
             var entity = new PsCardItemExtnVehicle()
             {
                 Id = model.Id,
-                ContentNo = model.ContentNo,
-                CustItemNo = model.CustItemNo,
-                PsCardItemId = model.PsCardItemId,
                 SeriesNo = model.SeriesNo,
                 YearModel = model.YearModel,
                 PlateNo = model.PlateNo,
@@ -107,8 +108,13 @@ namespace iLgs.Services
                 OrDate = model.OrDate,
                 NetWeight = model.NetWeight,
                 InsPolicyNo = model.InsPolicyNo,
+                ParReissuance = model.ParReissuance,
+                Condition = model.Condition,
                 SubLocation = model.SubLocation,
                 ConductionNo = model.ConductionNo,
+                ContentNo = model.ContentNo,
+                CustItemNo = model.CustItemNo,
+                PsCardItemId = model.PsCardItemId,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -127,6 +133,13 @@ namespace iLgs.Services
             //{
             //    throw new RecordAlreadyPostedException("Record already posted, cannot delete!");
             //}
+
+            // check in Par/Ics
+            if (await _db.IcsParItems.AnyAsync(a => a.PsCardItemExtnId == model.Id))
+            {
+                throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
+            }
+
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -159,8 +172,6 @@ namespace iLgs.Services
 
             var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
-            entity.ContentNo = model.ContentNo;
-            entity.CustItemNo = model.CustItemNo;
             entity.SeriesNo = model.SeriesNo;
             entity.YearModel = model.YearModel;
             entity.PlateNo = model.PlateNo;
@@ -175,8 +186,13 @@ namespace iLgs.Services
             entity.OrDate = model.OrDate;
             entity.NetWeight = model.NetWeight;
             entity.InsPolicyNo = model.InsPolicyNo;
+            entity.ParReissuance = model.ParReissuance;
+            entity.Condition = model.Condition;
             entity.SubLocation = model.SubLocation;
             entity.ConductionNo = model.ConductionNo;
+            entity.ContentNo = model.ContentNo;
+            entity.CustItemNo = model.CustItemNo;
+            entity.PsCardItemId = model.PsCardItemId;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 

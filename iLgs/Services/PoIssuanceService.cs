@@ -305,6 +305,7 @@ namespace iLgs.Services.Interfaces
             var entity = new PsCardItem()
             {
                 Id = Guid.NewGuid(),
+                GroupId = model.Id,
                 PsCardId = model.PsCardId,
                 OrderItemId = model.OrderItemId,
                 TransferRefId = psCardItemTransfer.Id,

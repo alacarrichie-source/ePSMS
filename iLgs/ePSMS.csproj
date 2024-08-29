@@ -803,8 +803,10 @@
     <Compile Include="Services\RisItemService.cs" />
     <Compile Include="Services\RisService.cs" />
     <Compile Include="Services\ValidationService.cs" />
+    <Compile Include="Services\ValidatorService.cs" />
     <Compile Include="Services\Validators\AirItemExtnVehicleValator.cs" />
     <Compile Include="Services\Validators\CombinedValidatorSelector.cs" />
+    <Compile Include="Services\Validators\PsCardItemExtnVehicleValidator.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
     <Compile Include="Controllers\BaseConroller.cs" />
@@ -3946,7 +3948,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

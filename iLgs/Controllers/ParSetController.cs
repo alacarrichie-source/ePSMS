@@ -1,5 +1,6 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
+using iLgs.Exceptions;
 using iLgs.Exceptions.PARs;
 using iLgs.Models;
 using iLgs.Services;
@@ -151,9 +152,9 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, Guid? deptId)
+        public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _parService.GetItemsByPoNo(poNo, deptId);
+            var data = _parService.GetItemsByPoNo(poNo, poDate, deptId);
 
             var result = new JsonNetResult
             {
@@ -200,9 +201,9 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public ActionResult _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo, Guid? deptId)
+        public ActionResult _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _parService.GetItemSetsByPoNo(poNo, deptId);
+            var data = _parService.GetItemSetsByPoNo(poNo, poDate, deptId);
 
             var result = new JsonNetResult
             {
@@ -238,7 +239,113 @@ namespace iLgs.Controllers
             };
             return result;
         }
-        
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PostPoItem(Guid? groupId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _parService.PostAsync(groupId, user, date);
+                }
+            }
+            catch (RecordNotFoundException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (RecordAlreadyPostedException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (InvalidValueException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (RequiredFieldException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> UnpostPoItem(Guid? groupId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _parService.UnPostAsync(groupId, user, date);
+                }
+            }
+            catch (RecordNotFoundException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (RecordNotYetPostedException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (RequiredFieldException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
         #endregion
 
 
@@ -250,9 +357,9 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public ActionResult _ParsRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        public ActionResult _ParsRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemGroupId)
         {
-            var data = _parService.IcsParItem.GetAllParItems(cardItemId);
+            var data = _parService.IcsParItem.GetAllParItems(cardItemGroupId);
 
             var result = new JsonNetResult
             {
@@ -364,8 +471,12 @@ namespace iLgs.Controllers
                     model = await _parService.IcsParItem.DeleteAsync(model, user, date);
                 }
             }
-            catch (Exception e)
+            catch (RecordAlreadyPostedException e)
             {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+            catch (Exception e)
+            {                
                 if (e.GetType().Name == "ServiceException")
                 {
                     ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
@@ -392,6 +503,9 @@ namespace iLgs.Controllers
                 IcsPar = new IcsPar()
             };
 
+            //ViewData["poNo"] = psCardItem.PoNo;
+            //ViewData["poDate"] = psCardItem.PoDate;
+            //ViewData["deptId"] = psCardItem.DeptId;
             ViewData["psCardItemId"] = psCardItemId;
             ViewBag.ItemExtnName = _parService.PsCard.GetItemExtnName(psCardItemId);
 

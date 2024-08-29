@@ -1,5 +1,6 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
+using iLgs.Exceptions;
 using iLgs.Exceptions.PARs;
 using iLgs.Models;
 using iLgs.Services;
@@ -152,7 +153,7 @@ namespace iLgs.Controllers
 
         public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _icsService.GetItemsByPoNo_PoDate_DeptId(poNo, poDate, deptId);
+            var data = _icsService.GetItemsByPoNo(poNo, poDate, deptId);
 
             var result = new JsonNetResult
             {
@@ -199,9 +200,9 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public ActionResult _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo)
+        public ActionResult _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _icsService.GetItemSetsByPoNo(poNo);
+            var data = _icsService.GetItemSetsByPoNo(poNo, poDate, deptId);
 
             var result = new JsonNetResult
             {
@@ -272,6 +273,112 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PostPoItem(Guid? groupId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _icsService.PostAsync(groupId, user, date);
+                }
+            }
+            catch (RecordNotFoundException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (RecordAlreadyPostedException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (InvalidValueException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (RequiredFieldException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> UnpostPoItem(Guid? groupId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _icsService.UnPostAsync(groupId, user, date);
+                }
+            }
+            catch (RecordNotFoundException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (RecordNotYetPostedException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (RequiredFieldException e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                     "please contact tech support with this message: " + e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
         #endregion
 

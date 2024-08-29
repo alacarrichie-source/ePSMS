@@ -51,7 +51,13 @@ namespace iLgs.Services
         public IQueryable<T> GetCardItemExtnForIcsPars<T>(Guid? psCardItemId) where T : PsCardItemExtn
         {
             var data = _db.PsCardItemExtns.OfType<T>().AsNoTracking()
-                        .Where(w => w.PsCardItemId == psCardItemId && !w.IcsParItems.Any(a => a.PsCardItemExtnId == w.Id))
+                        .Where(w => !w.IcsParItems.Any(a => a.PsCardItemExtnId == w.Id) 
+                            && (w.PsCardItemId == psCardItemId || 
+                                // Get items from same PO of different CardItem (Due to Transfer of Item)
+                                _db.PsCardItems.Any(a => a.PoNo == w.PsCardItem.PoNo && a.PoDate == w.PsCardItem.PoDate 
+                                    && a.DeptId == w.PsCardItem.DeptId &&  a.PsCardId == w.PsCardItem.PsCardId && a.Id != psCardItemId)
+                            )
+                        )
                         .AsQueryable();
             return data;
         }

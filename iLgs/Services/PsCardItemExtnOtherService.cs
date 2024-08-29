@@ -49,7 +49,8 @@ namespace iLgs.Services
             //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             //}
 
-            var itemQty = (int)_db.PsCardItems.FirstOrDefault(f => f.Id == model.PsCardItemId).Qty;
+            var psCardItem = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == model.PsCardItemId);
+            var itemQty = (int)(psCardItem.Qty ?? 0) + (int)(psCardItem.TransferIn ?? 0);
             var itemExtns = _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().Where(w => w.PsCardItemId == model.PsCardItemId);
 
             if (itemExtns.Count() >= itemQty)

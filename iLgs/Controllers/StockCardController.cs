@@ -811,7 +811,7 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
-                    ModelState.AddModelError("GridError", "Delete Access Denied!");
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
                 if (ModelState.IsValid)
                 {
@@ -827,12 +827,12 @@ namespace iLgs.Controllers
             {
                 if (e.GetType().Name == "ServiceException")
                 {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
                          "please contact tech support with this message: " + e.Message);
                 }
                 else
                 {
-                    ModelState.AddModelError("", e.Message);
+                    ModelState.AddModelError("DeleteError", e.Message);
                 }
             }
 

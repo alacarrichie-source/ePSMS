@@ -88,11 +88,11 @@ namespace iLgs.Models
         public virtual DbSet<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
-        public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
         public virtual DbSet<PsCardItemLocation> PsCardItemLocations { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
+        public virtual DbSet<RPCIItem> RPCIItems { get; set; }
     }
 }

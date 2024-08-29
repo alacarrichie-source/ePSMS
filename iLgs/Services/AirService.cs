@@ -263,9 +263,11 @@ namespace iLgs.Services
                     var psCardItem = await _db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
                     if (psCardItem == null)
                     {
+                        var psCardItemId = Guid.NewGuid();
                         psCardItem = new PsCardItem()
                         {
-                            Id = Guid.NewGuid(),
+                            Id = psCardItemId,
+                            GroupId = psCardItemId,
                             PsCardId = psCard.Id,
                             OrderItemId = orderItem.Id,
                             PoDate = orderItem.Order.PoDate,

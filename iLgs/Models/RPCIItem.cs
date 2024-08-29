@@ -25,6 +25,8 @@ namespace iLgs.Models
         public Nullable<decimal> UnitCost { get; set; }
         public string Unit { get; set; }
         public Nullable<int> Qty { get; set; }
+        public Nullable<System.Guid> DeptId { get; set; }
+        public string Department { get; set; }
         public Nullable<System.Guid> LocationId { get; set; }
         public string LocationCode { get; set; }
         public string LocationName { get; set; }

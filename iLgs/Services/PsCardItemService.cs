@@ -201,6 +201,7 @@ namespace iLgs.Services
             var entity = new PsCardItem
             {
                 Id = model.Id,
+                GroupId = model.Id,
                 PsCardId = model.PsCardId,
                 OrderItemId = model.OrderItemId,
                 PoDate = model.PoDate,
@@ -316,9 +317,15 @@ namespace iLgs.Services
                 throw new RecordNotFoundException(model.Id);
             }
 
+            if (!string.IsNullOrWhiteSpace(entity.ParPostedBy))
+            {
+                throw new RecordAlreadyPostedException("Item already posted, cannot update!"); ;
+            }
+
             if (entity.IsForICS != model.IsForICS) // change in isForICS
             {
-                var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemExtn.PsCardItemId == model.Id);
+                //var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemExtn.PsCardItemId == model.Id);
+                var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemExtn.PsCardItem.GroupId == model.GroupId);
                 if (icsParItem != null)
                 {
                     if (model.IsForICS == true && icsParItem.IcsPar.RefType == "P")
@@ -354,25 +361,35 @@ namespace iLgs.Services
                 throw new InvalidValueException("Remarks field is required if Others is selected!");
             }
 
-            var entity = await _db.PsCardItems.FindAsync(model.Id);
-            if (entity == null)
+            var entity = _db.PsCardItems.Where(w => w.GroupId == model.GroupId);
+            if (entity.Count() == 0)
             {
                 throw new RecordNotFoundException(model.Id);
             }
 
-            if (entity.IsConsumable != model.IsConsumable || entity.IsIncorporated != model.IsIncorporated
-                || entity.IsOthers != model.IsOthers) // change in decision
+            var psCardItem = await entity.FirstOrDefaultAsync(f => f.TransferRefId == null);
+
+            if (psCardItem.IsConsumable != model.IsConsumable 
+                || psCardItem.IsIncorporated != model.IsIncorporated
+                || psCardItem.IsOthers != model.IsOthers) // change in decision
             {
-                var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemExtn.PsCardItemId == model.Id);
+                //var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemExtn.PsCardItemId == model.Id);
+                var icsParItem = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.PsCardItemExtn.PsCardItem.GroupId == model.GroupId);
                 if (icsParItem != null)
                 {
-                    if ((model.IsConsumable == true || model.IsIncorporated == true || model.IsOthers == true) && icsParItem.IcsPar.RefType == "P")
+                    if ((model.IsConsumable == true 
+                        || model.IsIncorporated == true 
+                        || model.IsOthers == true) 
+                        && icsParItem.IcsPar.RefType == "P")
                     {
                         throw new InvalidValueException("Item with PAR already exists, cannot make this as For ICS.");
                     }
                     else
                     {
-                        if ((model.IsConsumable == false || model.IsIncorporated == false || model.IsOthers == false) && icsParItem.IcsPar.RefType == "I")
+                        if ((model.IsConsumable == false 
+                            || model.IsIncorporated == false 
+                            || model.IsOthers == false) 
+                            && icsParItem.IcsPar.RefType == "I")
                         {
                             throw new InvalidValueException("Item with ICS already exists, cannot remove this as For ICS.");
                         }
@@ -380,15 +397,15 @@ namespace iLgs.Services
                 }
             }
 
-            entity.IsConsumable = model.IsConsumable;
-            entity.IsIncorporated = model.IsIncorporated;
-            entity.IsOthers = model.IsOthers;
-            entity.OtherRemarks = model.IsOthers == true ? model.OtherRemarks : "";
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.PsCardItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
+            await entity.ForEachAsync(f =>
+            {
+                f.IsConsumable = model.IsConsumable;
+                f.IsIncorporated = model.IsIncorporated;
+                f.IsOthers = model.IsOthers;
+                f.OtherRemarks = model.IsOthers == true ? model.OtherRemarks : "";
+                f.UpdatedBy = user;
+                f.UpdatedDt = date;
+            });                           
             await _db.SaveChangesAsync();
 
             return model;

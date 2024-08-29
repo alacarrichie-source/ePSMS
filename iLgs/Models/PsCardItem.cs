@@ -24,6 +24,7 @@ namespace iLgs.Models
         }
     
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> GroupId { get; set; }
         public Nullable<System.Guid> PsCardId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
         public Nullable<System.Guid> TransferRefId { get; set; }
@@ -65,6 +66,8 @@ namespace iLgs.Models
         public Nullable<int> PhaseNo { get; set; }
         public Nullable<decimal> PhaseAmount { get; set; }
         public string PrevPsNo { get; set; }
+        public string ParPostedBy { get; set; }
+        public Nullable<System.DateTime> ParPostedDt { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

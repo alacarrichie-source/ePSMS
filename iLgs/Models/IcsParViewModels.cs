@@ -83,6 +83,7 @@ namespace iLgs.Models
     {
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
+        public DateTime? PoDate { get; set; }
         public Guid? PsCardItemId { get; set; }
 
         public Guid? DeptId { get; set; }
@@ -107,6 +108,7 @@ namespace iLgs.Models
     public class ParVM
     {
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> GroupId { get; set; }
         public Nullable<System.Guid> PsCardId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
 
@@ -223,6 +225,7 @@ namespace iLgs.Models
     public class IcsVM
     {
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> GroupId { get; set; }
         public Nullable<System.Guid> PsCardId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
 
@@ -371,11 +374,21 @@ namespace iLgs.Models
         public string SPoDate { get; set; }
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public string SAirDate { get; set; }
+
+        public string Status { get; set; }
+        public int? Qty { get; set; }
+
+        [Display(Name = "Finished")]
+        public int? QtyFinished { get; set; }
+
+        [Display(Name = "Pending")]
+        public int? QtyBalance { get { return this.Qty - this.QtyFinished; } }
     }
 
     public class ParIcsItemVm
     {
         public System.Guid Id { get; set; }
+        public System.Guid? GroupId { get; set; }
         public System.Guid? PsCardId { get; set; }
         public int? Qty { get; set; }
         public string Unit { get; set; }
@@ -388,7 +401,7 @@ namespace iLgs.Models
         public string Article { get; set; }
         public string Description { get; set; }
         public string StockNo { get; set; }
-        public int? Balance { get; set; }
+        public int? Balance { get { return this.Qty - this.GeneratedItems; } }
 
         [Display(Name = "For ICS")]
         public Nullable<bool> IsForICS { get; set; }
@@ -418,6 +431,13 @@ namespace iLgs.Models
 
         [Display(Name = "Inventory/For Distribution")]
         public string InvDist { get; set; }
+
+        [Display(Name = "Posted by")]
+        public string ParPostedBy { get; set; }
+
+        [Display(Name = "Date Posted")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> ParPostedDt { get; set; }
     }
 
     public class ParIcsItemSetVm
@@ -429,5 +449,15 @@ namespace iLgs.Models
         public Nullable<decimal> TotalCost { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public ICollection<PsCardItemUnitGroupDescription> UnitGroupDescriptions { get; set; }
+    }
+
+    public class ParIcsPoVM
+    {
+        public string PoNo { get; set; }
+        public Nullable<System.DateTime> PoDate { get; set; }
+        public string AirNo { get; set; }
+        public Nullable<System.DateTime> AirDate { get; set; }
+        public string Department { get; set; }
+        public string Status { get; set; }
     }
 }

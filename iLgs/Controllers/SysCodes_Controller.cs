@@ -42,6 +42,33 @@ namespace iLgs.Controllers
             return model;
         }
 
+        [Route("api/SysCodes/{userId}")]
+        public IQueryable<Codextn> GetSysCodesNew(string userId)
+        {
+            /*
+             * Get user roles
+             * if role = admin, view all
+             * else view all menu where user is in {role}_admin
+             */
+           
+            var isAdmin = db.AspNetUserRoles.Where(w => w.RoleId == "admin" && w.UserId == userId).Count() > 0;
+            //var model = Enumerable.Empty<Codextn>().AsQueryable();
+
+            if (isAdmin)
+            {
+                var data = db.Codextns.Where(w => w.CodeMast.Code == _mastCode);
+                return data;
+            }
+            else
+            {
+                var data = db.Codextns.Where(w => w.CodeMast.Code == _mastCode
+                    && db.AspNetUserRoles.Where(x => x.UserId == userId && x.RoleId.Contains(w.Code) && x.RoleId.Contains("_admin")).Any());
+                return data;
+            }
+
+            //return model;
+        }
+
 
         //// GET: api/SysCodes_
         //public IQueryable<SysCode> GetSysCodes()

@@ -14,8 +14,8 @@ namespace iLgs.Services
     {
         IQueryable<IcsParItem> GetAllByIcsParId(Guid? icsParId);
         ValueTask<IcsParItem> GetByIdAsync(Guid? id);
-        IQueryable<IcsParItem> GetAllParItems(Guid? psCardItemId);
-        IQueryable<IcsParItem> GetAllIcsItems(Guid? psCardItemId);
+        IQueryable<IcsParItem> GetAllParItems(Guid? psCardItemGroupId);
+        IQueryable<IcsParItem> GetAllIcsItems(Guid? psCardItemGroupId);
         ValueTask<IcsParItem> CreateAsync(IcsParItem model, string user, DateTime date);
         ValueTask<IcsParItem> UpdateAsync(IcsParItem model, string user, DateTime date);
         ValueTask<IcsParItem> DeleteAsync(IcsParItem model, string user, DateTime date);        
@@ -54,26 +54,33 @@ namespace iLgs.Services
             return data;
         }
 
-        public IQueryable<IcsParItem> GetAllParItems(Guid? psCardItemId) =>
+        public IQueryable<IcsParItem> GetAllParItems(Guid? psCardItemGroupId) =>
         _exceptionService.TryCatch(() =>
         {
-            var data = GetAllIcsParItems(psCardItemId, "P");
+            var data = GetAllIcsParItems(psCardItemGroupId, "P");
             return data;
         });
 
-        public IQueryable<IcsParItem> GetAllIcsItems(Guid? psCardItemId) =>
+        public IQueryable<IcsParItem> GetAllIcsItems(Guid? psCardItemGroupId) =>
         _exceptionService.TryCatch(() =>
         {
-            var data = GetAllIcsParItems(psCardItemId, "I");
+            var data = GetAllIcsParItems(psCardItemGroupId, "I");
             return data;
         });
 
-        private IQueryable<IcsParItem> GetAllIcsParItems(Guid? psCardItemId, string refType)         
+        private IQueryable<IcsParItem> GetAllIcsParItems(Guid? psCardItemGroupId, string refType)         
         {
             var data = _db.IcsParItems
                 .Include(i => i.IcsPar)
                 .Include(i => i.PsCardItemExtn)
-                .Where(w => w.PsCardItemExtn.PsCardItemId == psCardItemId && w.IcsPar.RefType == refType);
+                .Where(w => w.IcsPar.RefType == refType && (w.PsCardItemExtn.PsCardItem.GroupId == psCardItemGroupId)
+                                // Get items from same PO of different CardItem (Due to Transfer of Item)
+                                //|| _db.PsCardItems.Any(a => a.PoNo == w.PsCardItemExtn.PsCardItem.PoNo
+                                //    && a.PoDate == w.PsCardItemExtn.PsCardItem.PoDate
+                                //    && a.DeptId == w.PsCardItemExtn.PsCardItem.DeptId
+                                //    && a.PsCardId == w.PsCardItemExtn.PsCardItem.PsCardId
+                                //    && a.Id != psCardItemId))
+                );
                 
             return data;
         }
@@ -82,6 +89,8 @@ namespace iLgs.Services
         public ValueTask<IcsParItem> CreateAsync(IcsParItem model, string user, DateTime date) =>
         _exceptionService.TryCatchAsync(async () =>
         {
+
+            ValidateIfPosted(model);
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -116,6 +125,8 @@ namespace iLgs.Services
             {
                 throw new RecordNotFoundException(model.Id);
             }
+
+            ValidateIfPosted(model);
 
             var propSplit = model.PsCardItemExtn.PropNo.Split('/');
             var propYear = model.PsCardItemExtn.PropNo.Substring(0, 4);
@@ -160,6 +171,8 @@ namespace iLgs.Services
             {
                 throw new RecordNotFoundException(model.Id);
             }
+
+            ValidateIfPosted(model);
 
             var psCardItemExtnId = entity.PsCardItemExtnId;
 
@@ -225,6 +238,13 @@ namespace iLgs.Services
             return model;
         });
 
-        
+        public void ValidateIfPosted(IcsParItem model)
+        {
+            if (_db.IcsParItems.Where(w => w.Id == model.Id 
+                && (w.PsCardItemExtn.PsCardItem.ParPostedBy != null && w.PsCardItemExtn.PsCardItem.ParPostedBy != "")).Any())
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
+        }
     }
 }

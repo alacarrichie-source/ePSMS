@@ -154,7 +154,7 @@ namespace iLgs.Controllers
 
             string userId = User.Identity.GetUserId();
             IEnumerable<Codextn> model = Enumerable.Empty<Codextn>().AsQueryable();
-            HttpResponseMessage responseMessage = client.GetAsync("syscodes_/" + userId).Result;
+            HttpResponseMessage responseMessage = client.GetAsync("SysCodes/" + userId).Result;
             if (responseMessage.IsSuccessStatusCode)
             {
                 var responseData = responseMessage.Content.ReadAsStringAsync().Result;

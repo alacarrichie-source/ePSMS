@@ -12,6 +12,9 @@
     </div>
 
     //@Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.PoNo)
+    @Html.HiddenFor(model => model.PoDate)
+    @Html.HiddenFor(model => model.DeptId)
     @Html.HiddenFor(model => model.PsCardItemId)
     @Html.HiddenFor(model => model.RefType)
     @Html.HiddenFor(model => model.Location)
@@ -207,7 +210,7 @@ if (@ViewBag.ItemExtnName == "ItemExtnOther")
                 {
                     s.Add(a => a.SerialNo);
                 })
-                .Read(read => read.Action("_GenerateIcsSelectionRead", "ParSet", new { psCardItemId = @ViewData["psCardItemId"] }))
+                .Read(read => read.Action("_GenerateParSelectionRead", "ParSet", new { psCardItemId = @ViewData["psCardItemId"] }))
             )
             .AutoBind(true)
         )
