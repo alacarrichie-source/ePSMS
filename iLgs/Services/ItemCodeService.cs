@@ -17,6 +17,8 @@ namespace iLgs.Services
         IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId);
         ValueTask<ItemCode> GetByIdAsync(Guid id);
         IQueryable<ItemCodeVM> GetItems(string item);
+        IQueryable<ItemCodeVM> GetItemAccounts(string item);
+        IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item);
         IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item);
         IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item);
 
@@ -93,7 +95,19 @@ namespace iLgs.Services
         {
             var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", item).AsQueryable();
             return data;
-        });        
+        });
+
+        public IQueryable<ItemCodeVM> GetItemAccounts(string item) => _VmExceptionService.TryCatch(() =>
+        {
+            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts '', {0}", item).AsQueryable();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item) => _VmExceptionService.TryCatch(() =>
+        {
+            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts {0}, {1}", category, item).AsQueryable();
+            return data;
+        });
 
         public IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item) => _VmExceptionService.TryCatch(() =>
         {

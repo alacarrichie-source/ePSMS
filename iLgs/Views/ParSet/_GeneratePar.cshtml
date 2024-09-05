@@ -23,7 +23,9 @@
     <fieldset>
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.Date, "Reference Date", htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(model => model.Date, "LabelDate")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().DatePickerFor(model => model.Date).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.Date)
@@ -31,19 +33,11 @@
             </div>
         </div>
 
-        @*<div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(2).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.Qty)
-                </div>
-            </div>
-        </div>*@
-
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(model => model.LocationId, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -75,7 +69,9 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.LocationCode, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(model => model.LocationCode, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(model => model.LocationCode).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.LocationCode)
@@ -86,7 +82,9 @@
         <br />
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.ReceivedBy, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.ReceivedBy, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.ReceivedBy)
@@ -96,7 +94,9 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.ReceivedByPosition, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.ReceivedByPosition, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.ReceivedByPosition)
@@ -106,7 +106,9 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.ReceivedDept, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.ReceivedDept, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.ReceivedDept)
@@ -116,17 +118,21 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.ReceivedDate, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.ReceivedDate, "LabelDate")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().DatePickerFor(m => m.IcsPar.ReceivedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.ReceivedDate)
                 </div>
             </div>
         </div>
-
+        <br />
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.IssuedBy, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.IssuedBy, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.IssuedBy)
@@ -136,7 +142,9 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.IssuedByPosition, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.IssuedByPosition, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.IssuedByPosition)
@@ -146,7 +154,9 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.IssuedDept, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.IssuedDept, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.IssuedDept)
@@ -156,7 +166,9 @@
 
         <div class="row">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.IssuedDate, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.IssuedDate, "LabelDate")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().DatePickerFor(m => m.IcsPar.IssuedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.IssuedDate)

@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.PsCardVM
+﻿@model iLgs.Models.StockCardVM
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
@@ -60,7 +60,7 @@
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select Item")
-                        .DataTextField("Description")
+                        .DataTextField("Article")
                         .DataValueField("Id")
                         .ValuePrimitive(true)
                         .Filter(FilterType.Contains)
@@ -68,18 +68,26 @@
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetItems", "Items");
+                                read.Action("GetStockItemAccounts", "Items");
                             })
                             .ServerFiltering(true);
                         })
                         .Columns(c =>
                         {
-                            //c.Add().Field("ItemNo").Title("Item No.").Width("10%");
-                            c.Add().Field("Code").Title("Code").Width("15%").Template("#= columnTemplate(data.Code) #");
-                            c.Add().Field("TypeDesc").Title("Account").Width("25%").Template("#= columnTemplate(data.TypeDesc) #");
-                            c.Add().Field("MainDesc").Title("Sub-Account").Width("35%").Template("#= columnTemplate(data.MainDesc) #");
-                            c.Add().Field("Description").Title("Article").Width("25%").Template("#= columnTemplate(data.Description) #");                            
+                            //c.Add().Field("Code").Title("Code").Width("15%").Template("#= columnTemplate(data.Code) #");
+                            //c.Add().Field("TypeDesc").Title("Account").Width("25%").Template("#= columnTemplate(data.TypeDesc) #");
+                            //c.Add().Field("MainDesc").Title("Sub-Account").Width("35%").Template("#= columnTemplate(data.MainDesc) #");
+                            //c.Add().Field("Description").Title("Article").Width("25%").Template("#= columnTemplate(data.Description) #");                            
+
+                            c.Add().Field("Code").Title("Code").Width("10%").Template("#= columnTemplate(data.Code) #");
+                            c.Add().Field("TypeDesc").Title("Account").Width("15%").Template("#= columnTemplate(data.TypeDesc) #");
+                            c.Add().Field("SubAccount1").Title("Sub-Account1").Width("15%").Template("#= columnTemplate(data.SubAccount1) #");
+                            c.Add().Field("SubAccount2").Title("Sub-Account2").Width("15%").Template("#= columnTemplate(data.SubAccount2) #");
+                            c.Add().Field("SubAccount3").Title("Sub-Account3").Width("15%").Template("#= columnTemplate(data.SubAccount3) #");
+                            c.Add().Field("SubAccount4").Title("Sub-Account4").Width("15%").Template("#= columnTemplate(data.SubAccount4) #");
+                            c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");                            
                         })
+                        .Height(300)
                         .Suggest(true)
                         .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
                     )

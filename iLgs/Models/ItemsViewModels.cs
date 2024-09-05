@@ -94,6 +94,11 @@ namespace iLgs.Models
         [Display(Name = "Is Article?")]
         public bool? ItemSwUI { get; set; }
         public int? Padding { get; set; } = 0;
+        public string SubAccount1 { get; set; }
+        public string SubAccount2 { get; set; }
+        public string SubAccount3 { get; set; }
+        public string SubAccount4 { get; set; }
+        public string Article { get; set; }
     }
    
     public class ItemFieldVM

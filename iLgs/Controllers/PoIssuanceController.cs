@@ -367,7 +367,12 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _icsParItemService.UpdateAsync(model, user, date);
+                    var result = await _icsParItemService.UpdateAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
+                    }
+                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
                 }
             }
             catch (Exception e)
@@ -402,7 +407,12 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _icsParItemService.DeleteAsync(model, user, date);
+                    var result = await _icsParItemService.DeleteAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
+                    }
+                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
                 }
             }
             catch (Exception e)

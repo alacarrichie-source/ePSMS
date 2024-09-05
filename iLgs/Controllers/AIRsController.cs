@@ -392,7 +392,8 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _AIRItemAddEdit(Guid airId, Guid? airItemId)
         {
-            var data = await airItemService.GetByIdAsync(airItemId);
+            var result = await airItemService.GetByIdAsync(airItemId);
+            var data = result.Data;
             if (data == null)
             {
                 data = new AIRItemVM()
@@ -431,7 +432,11 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airItemService.UpdateAsync(model, user, date);                    
+                    var result = await airItemService.UpdateAsync(model, user, date);
+                    if (!result.IsSuccess)
+                    {
+                        return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
+                    }
                 }
             }
             catch (Exception e)
@@ -483,8 +488,12 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airItemService.CreateAsync(model, user, date);
-
+                    var result = await airItemService.CreateAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
+                    }
+                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
                     // TO DO: save to stock card
                 }
             }
@@ -521,8 +530,12 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airItemService.UpdateAsync(model, user, date);
-
+                    var result = await airItemService.UpdateAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
+                    }
+                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
                     // TO DO: update stock card
                 }
             }
@@ -558,7 +571,12 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airItemService.DeleteAsync(model, user, date);
+                    var result = await airItemService.DeleteAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
+                    }
+                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
                     // TO DO: update stocks
                 }
 
@@ -696,7 +714,12 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airItemService.AirItemExtn.AirItemExtnVehicle.DeleteAsync(model, user, date);
+                    var result = await airItemService.AirItemExtn.AirItemExtnVehicle.DeleteAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
+                    }
+                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
                     // TO DO: update stocks
                 }
 
@@ -744,7 +767,6 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
                     model = await airItemService.AirItemExtn.AirItemExtnOther.CreateAsync(model, user, date);
-
                     // TO DO: save to stock card
                 }
             }

@@ -9,10 +9,10 @@ using System.Web;
 
 namespace iLgs.Services.Validators
 {
-    public class AirItemExtnVehicleValator : AbstractValidator<AIRItemExtnVehicle>
+    public class AirItemExtnVehicleValidator : AbstractValidator<AIRItemExtnVehicle>
     {
         private readonly IAirItemExtnVehicleService _airItemExtnVehicleService;
-        public AirItemExtnVehicleValator(IAirItemExtnVehicleService airItemExtnVehicleService)
+        public AirItemExtnVehicleValidator(IAirItemExtnVehicleService airItemExtnVehicleService)
         {
             _airItemExtnVehicleService = airItemExtnVehicleService;
 

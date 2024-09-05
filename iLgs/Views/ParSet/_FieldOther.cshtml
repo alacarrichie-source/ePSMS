@@ -1,0 +1,17 @@
+﻿@model iLgs.Models.IcsParItem
+
+@{
+    var data = Model.PsCardItemExtn as iLgs.Models.PsCardItemExtnOther;
+}
+
+<div class="row">
+    <div class="col-md-6">
+        @Html.LabelFor(m => data.SerialNo, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => data.SerialNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => data.SerialNo)
+        </div>
+    </div>    
+</div>
+
+

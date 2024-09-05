@@ -3,79 +3,6 @@
     ViewBag.Title = "Property Acknowledgement Receipt";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
-@*<br />
-<fieldset>
-    @Html.HiddenFor(m => m.DeptId)
-    <div class=" col-md-6">
-        <div class="row">
-            @Html.Label("PO No", htmlAttributes: new { @class = "col-md-3" })
-            <div class="col-md-9">
-                @(Html.Kendo().MultiColumnComboBoxFor(m => m.PoNo)
-                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                    .Placeholder("Select PO Number")
-                    .DataTextField("PoNo")
-                    .DataValueField("PoNo")
-                    .ValuePrimitive(true)                    
-                    .Filter(FilterType.Contains)
-                    .DataSource(source =>
-                    {
-                        source.Read(read =>
-                        {
-                            read.Action("GetAllPo", "ParSet");
-                        })
-                        .ServerFiltering(true);
-                    })
-                    .Columns(c =>
-                    {
-                        c.Add().Field("PoNo").Title("PO No.").Width("25%");
-                        c.Add().Field("PoDate").Title("Date").Width("25%");
-                        //c.Add().Field("AirNo").Title("AIR No.").Width("15%");
-                        //c.Add().Field("AirDate").Title("Date").Width("15%");
-                        c.Add().Field("Department").Title("Department").Width("50%");
-                    })
-                    .Suggest(true)
-                    .Events(e => e.Select("onSelectPoNo") )
-                )
-            </div>
-        </div>
-
-        <div class="row">
-            @Html.Label("PO Date", htmlAttributes: new { @class = "col-md-3" })
-            <div class="col-md-9">
-                @(Html.Kendo().DatePickerFor(m => m.PoDate).Format("{0:MM/dd/yyyy}")
-                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                )
-            </div>
-        </div>
-
-        <div class="row">
-            @Html.Label("AIR No", htmlAttributes: new { @class = "col-md-3" })
-            <div class="col-md-9">
-                @(Html.Kendo().TextBoxFor(m => m.AirNo).Enable(false)
-                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                )
-            </div>
-        </div>
-
-        <div class="row">
-            @Html.Label("AIR Date", htmlAttributes: new { @class = "col-md-3" })
-            <div class="col-md-9">
-                @(Html.Kendo().DatePickerFor(m => m.AirDate).Enable(false).Format("{0:MM/dd/yyyy}")
-                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                )
-            </div>
-        </div>
-
-        <div class="row">
-            @Html.Label("Originating Department", htmlAttributes: new { @class = "col-md-3" })
-            <div class="col-md-9">
-                @(Html.Kendo().TextBoxFor(m => m.Department).Enable(false)
-                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                )
-            </div>
-        </div>
-    </div>
-</fieldset>*@
 
 
 @(Html.Kendo().PanelBar()
@@ -87,22 +14,30 @@
             .Expanded(true)
             .Selected(true)
             .Content(@<text>
-                @RenderOrders()
+                <div class="div-render">
+                    @RenderOrders()
+                </div>
             </text>);
         panelbar.Add().Text("Order Items - Individual")
             .Expanded(true)
             .Content(@<text>
-                @RenderOrderItems()
+                <div class="div-render">
+                    @RenderOrderItems()
+                </div>
             </text>);
         panelbar.Add().Text("Order Items - Set")
             .Expanded(true)
             .Content(@<text>
-                @RenderOrderItemSet()
+                <div class="div-render">
+                    @RenderOrderItemSet()
+                </div>
             </text>);
         panelbar.Add().Text("Property Acknowledgement Receipt")
             .Expanded(true)
             .Content(@<text>
-                @RenderPars()
+                <div class="div-render">
+                    @RenderPars()
+                </div>
             </text>);
     })
 )
@@ -111,7 +46,7 @@
 
 @helper RenderOrders()
 {
-@(Html.Kendo().Grid<iLgs.Models.ParIcsPOGroupVM>()
+    @(Html.Kendo().Grid<iLgs.Models.ParIcsPOGroupVM>()
     .Name("grid")
     //.HtmlAttributes(new { style = "height: 100%;" })
     .Columns(col =>
@@ -168,7 +103,10 @@
             a.Add(p => p.QtyFinished).Sum();
             a.Add(p => p.QtyBalance).Sum();
         })
-        .Sort(s => s.Add(a => a.PoNo))
+        .Sort(s => {
+            s.Add(a => a.PoNo);
+            //s.Add(a => a.QtyBalance).Descending();            
+            })
         .Read(read => read.Action("Read", "ParSet"))
     ).AutoBind(true)
     .Selectable(s => s.Mode(GridSelectionMode.Single))
@@ -176,7 +114,7 @@
         .Change("onChangeGrid")
         .DataBound("onDataBoundGrid")
     )
-)
+    )
 }
 
 @helper RenderOrderItems()
@@ -211,14 +149,15 @@
                     })
                     .ToolBar(t =>
                     {
-                    t.Template(@<text>                        
-                           @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate PAR").Events(e => e.Click("onClickBtnAddPar")))                        
-                           @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_").Events(e => e.Click("onClickBtnPostPar")))
-                           @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_").Events(e => e.Click("onClickBtnUnpostPar")))
-                        </text>);
+                    t.Template(@<text>
+            @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate PAR").Events(e => e.Click("onClickBtnAddPar")))
+            @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_").Events(e => e.Click("onClickBtnPostPar")))
+            @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_").Events(e => e.Click("onClickBtnUnpostPar")))
+                    </text>);
                     })
                     .Sortable()
                     .NoRecords()
+                    .ClientDetailTemplateId("UploadedFiles")
                     .DataSource(dataSource => dataSource
                         .Ajax()
                         .Events(events => events.Error("GridError"))
@@ -274,9 +213,9 @@
         .ToolBar(t =>
         {
             t.Template(@<text>
-                @(Html.Kendo().Button().Content("Generate PAR").Icon("k-icon k-i-add").Name("btnParsAddItemSet").Events(e => e.Click("onClickBtnAddPar")))                                        
-                @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPostItemSet_").Events(e => e.Click("onClickBtnPostPar")))
-                @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpostItemSet_").Events(e => e.Click("onClickBtnUnpostPar")))
+            @(Html.Kendo().Button().Content("Generate PAR").Icon("k-icon k-i-add").Name("btnParsAddItemSet").Events(e => e.Click("onClickBtnAddPar")))
+            @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPostItemSet_").Events(e => e.Click("onClickBtnPostPar")))
+            @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpostItemSet_").Events(e => e.Click("onClickBtnUnpostPar")))
             </text>);
         })
         .ClientDetailTemplateId("item-set-description-template")
@@ -327,10 +266,10 @@
                     .ToolBar(t =>
                     {
                     t.Template(@<text>
-                @*@(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAdd").Content("Generate PARs").Events(e => e.Click("onClickBtnAddPar")))*@
-                @*@(Html.Kendo().Button().Content("Print").Icon("k-icon k-i-print").Name("btnPrint_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPrintPar")))
-                    @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPostPar")))
-                    @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnUnpostPar")))*@            
+            @*@(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAdd").Content("Generate PARs").Events(e => e.Click("onClickBtnAddPar")))*@
+            @*@(Html.Kendo().Button().Content("Print").Icon("k-icon k-i-print").Name("btnPrint_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPrintPar")))
+                @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnPostPar")))
+                @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["orderItemId"]).Events(e => e.Click("onClickBtnUnpostPar")))*@
                     </text>);
                     })
                     //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ParsTemplate").Window(w => w.Width(800)))
@@ -361,6 +300,20 @@
     )
 }
 
+
+<script id="UploadedFiles" type="text/kendo-tmpl">    
+    @(Html.Kendo().TabStrip()
+        .Name("tabStrip_#=GroupId#")
+        .HtmlAttributes(new { @class = "no-text-tabstrip" })
+        .TabPosition(TabStripTabPosition.Top)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .SelectedIndex(0)
+        .Items(items =>
+        {
+            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "ParIcsUpload", new { imageId = "#=GroupId#" });
+        })
+        .ToClientTemplate())
+</script>
 
 
 <script id="Details" type="text/kendo-tmpl">
@@ -546,7 +499,55 @@
 
     #main-div {
         height: 100%;
-    }    
+    }
+
+    .div-render {
+        padding: 0 10px 10px;
+    }
+
+    .disabled-row {
+        background-color: #f0f0f0; /* Light gray background */
+        /*color: #a0a0a0;*/ /* Gray text */
+        /*color: red;*/
+        opacity: 0.5;
+        /*pointer-events: none;*/ /* Prevent clicking */
+    }
+
+    /* Default style for PanelBar header */
+    #panelbar .k-link {
+        background-color: #f8f9fa; /* Default color for header */
+        color: #333; /* Default text color for header */
+    }
+
+    /* Style for the PanelBar header when hovered */
+    #panelbar .k-item:hover > .k-link {
+        background-color: #0056b3 !important; /* Desired hover color for the header */
+        color: white !important; /* Text color change for header */
+    }
+
+    /* Active state style for selected PanelBar item */
+    #panelbar > .k-item.k-state-active > .k-link {
+        background-color: rgba(13, 110, 253, .25); /* Active color for header */
+        color: black;
+    }
+
+    /* Prevent hover color from affecting div-render content */
+    .div-render {
+        background-color: transparent; /* Ensure no background color for content */
+    }
+
+    /* Kendo Grid styles should not change */
+    .k-grid, .k-grid-header, .k-grid-content {
+        background-color: inherit !important; /* Ensure grid background remains unaffected */
+        color: inherit !important; /* Ensure grid text color remains unaffected */
+    }
+
+    /* Specific styles for Kendo Grid headers to avoid hover interference */
+    .k-grid-header th {
+        background-color: inherit !important; /* Ensure header background remains unaffected */
+        color: inherit !important; /* Ensure text color remains unaffected */
+    }
+   
 </style>
 
 
@@ -568,6 +569,31 @@
 
 
 <script type="text/javascript">
+    $(document).ready(function () {
+        // When mouse enters the content area
+        $('#panelbar .div-render').on('mouseenter', function (event) {
+            // Add hover class to the closest PanelBar item (header)
+            $(this).closest('.k-item').addClass('hover-panel');
+            event.stopPropagation(); // Prevent the event from bubbling up
+        });
+
+        // When mouse leaves the content area
+        $('#panelbar .div-render').on('mouseleave', function (event) {
+            // Remove hover class from the closest PanelBar item (header)
+            $(this).closest('.k-item').removeClass('hover-panel');
+            event.stopPropagation(); // Prevent the event from bubbling up
+        });
+
+        // Optional: Keep hover style on click
+        $('#panelbar .div-render').on('click', function (event) {
+            // Remove hover from all panels
+            $('#panelbar .k-item').removeClass('hover-panel');
+            // Add hover style to the clicked panel
+            $(this).closest('.k-item').addClass('hover-panel');
+            event.stopPropagation(); // Prevent the event from bubbling up
+        });
+    });
+
     function onSelectPoNo(e) {
         var dataItem = this.dataItem(e.item.index());
         //if (dataItem) {
@@ -614,6 +640,13 @@
         }
     }
 
+    function onError(e) {
+        // invalid because the responseText is a raw string, not JSON
+        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
+        var err = e.XMLHttpRequest.responseText;
+        alert(err);
+    };
+
     function error_handler(e, status) {
         if ((e.errors)) {
             var message = "Errors:\n";
@@ -625,8 +658,6 @@
                 }
             });
             alert(message);
-            //var subGridName = $(e.sender).closest(".k-grid").attr("id");
-            //$("#" + subGridName).data("kendoGrid").dataSource.read();
         }
     }
     //$(window).on("resize", function () {
@@ -666,6 +697,165 @@
                     });
                 });
             }
+        }
+    }
+
+    function GridUploadError(e) {        
+        if (e.errors) {
+            //var grid = $("#gridItems").data("kendoGrid");
+            ////var row = $(args.target).closest("tr"); // Adjust based on where the error occurred
+            //var row = $(args.target).wrapper.closest("tr").prev(); // Adjust based on the structure of your grid
+            //alert(row);
+            //var dataItem = grid.dataItem(row);
+            //alert(dataItem);
+
+            //var parentRow = this.wrapper.closest("tr").prev();
+            //var parentRow = $(args.target).closest("tr").prev();
+            //alert(parentRow);
+            ////var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+            //var parentGrid = $("#gridItems").data("kendoGrid");
+            //alert(parentGrid);
+            //var parentModel = parentGrid.dataItem(parentRow);
+            //console.log(parentModel);
+
+
+            //var parentGrid = $("#gridItems").data("kendoGrid");
+
+            //// Use the closest grid context to find the row, or use a known reference
+            ////var row = $(args.target).closest("tr").prev(); // Adjust based on the structure of your grid
+            //var row = $(args.target).closest("tr"); 
+            //alert(row);
+            //// Get the dataItem for the parent grid
+            //var dataItem = parentGrid.dataItem(row);
+            //alert(dataItem);
+
+            //if (!dataItem) {
+            //    // Log additional information for debugging
+            //    console.warn("Data item is null. Attempting to find data item with alternate methods.");
+
+            //    // Get the index of the row in the parent grid
+            //    var rowIndex = row.index();
+            //    console.log("Row index:", rowIndex);
+
+            //    // Try fetching the dataItem by row index instead
+            //    dataItem = parentGrid.dataSource.view()[rowIndex];
+
+            //    if (dataItem) {
+            //        console.log("Data item found using index:", dataItem);
+            //    } else {
+            //        console.warn("Still unable to retrieve data item.");
+            //    }
+            //}
+
+            //// Get the parent grid
+            var parentGrid = $("#gridItems").data("kendoGrid");
+
+            //// Log the entire dataSource for debugging
+            //console.log("Parent Grid Data Source:", parentGrid.dataSource.view());
+
+            //// Find the closest row to the target that raised the error
+            //var row = $(e.target).closest("tr");
+
+            //// Log the row for debugging
+            //console.log("Row element:", row);
+
+            //// Get the dataItem for the parent grid
+            //var dataItem = parentGrid.dataItem(row);
+
+            //// Log the retrieved dataItem
+            //if (!dataItem) {
+            //    // Get the index of the row in the parent grid
+            //    var rowIndex = row.index();
+            //    console.log("Row index:", rowIndex);
+
+            //    // Attempt to access dataItem using the dataSource view
+            //    dataItem = parentGrid.dataSource.view()[rowIndex];
+
+            //    // Log the data item retrieved via index
+            //    console.log("Data Item found using index:", dataItem);
+            //}
+
+            
+            // Try to find the closest grid row
+            //var row = $(e.target).closest("tr[data-uid]"); // Look for the row with a data-uid attribute, which is a Kendo UI convention
+
+            //// Log the row for debugging
+            //console.log("Row element:", row);
+
+            //// Check if a valid row was found
+            //if (row.length === 0) {
+            //    console.warn("No valid row found. Event target may not be within a grid row.");
+            //    return;
+            //}
+
+            //// Get the dataItem for the parent grid
+            //var dataItem = parentGrid.dataItem(row);
+
+            //// Log the retrieved dataItem
+            //if (!dataItem) {
+            //    // Get the index of the row in the parent grid
+            //    var rowIndex = row.index();
+            //    console.log("Row index:", rowIndex);
+
+            //    // Attempt to access dataItem using the dataSource view
+            //    dataItem = parentGrid.dataSource.view()[rowIndex];
+
+            //    // Log the data item retrieved via index
+            //    console.log("Data Item found using index:", dataItem);
+            //}
+
+            // Try to find the closest grid row
+            var row = $(e.target).closest("tr[data-uid]"); // Look for the row with a data-uid attribute
+
+            // Log the row for debugging
+            console.log("Row element:", row);
+
+            // Check if a valid row was found
+            if (row.length === 0) {
+                console.warn("No valid row found. The event target may not be within a grid row.");
+
+                // Provide a fallback: Try getting the parent row from a specific known container
+                var knownContainer = $("#gridItems"); // Replace with your grid's container
+                row = knownContainer.find("tr[data-uid]"); // Grab any row as a fallback
+
+                if (row.length === 0) {
+                    console.warn("No rows found in the parent grid.");
+                    return; // Exit if no rows are found
+                } else {
+                    console.warn("Fallback: Found rows in the parent grid but not the specific one.");
+                }
+            }
+
+            // Get the dataItem for the parent grid
+            var dataItem = parentGrid.dataItem(row);
+
+            // Log the retrieved dataItem
+            if (!dataItem) {
+                // Get the index of the row in the parent grid
+                var rowIndex = row.index();
+                console.log("Row index:", rowIndex);
+
+                // Attempt to access dataItem using the dataSource view
+                dataItem = parentGrid.dataSource.view()[rowIndex];
+
+                // Log the data item retrieved via index
+                console.log("Data Item found using index:", dataItem);
+            }
+
+
+            // Find the subgrid and refresh it
+            var subgridName = "gridImages_" + dataItem.GroupId; // Adjust based on how you identify the subgrid
+            var subgrid = $("#" + subgridName).data("kendoGrid");
+
+            if (subgrid) {
+                subgrid.dataSource.read(); // Refresh the subgrid
+            }
+
+            $.each(e.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);            
+                }
+            });
         }
     }
 
@@ -719,13 +909,13 @@
         //    var row = e.sender.tbody.find("tr:first");
         //    this.select(row);
         //}
-        
+
         var selectedRow = selectRowByConditions("grid", {
             PoNo: selectedPoNo,
             PoDate: selectedPoDate,
             DeptId: selectedDeptId
         });
-        
+
         if (!selectedRow) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
@@ -738,6 +928,18 @@
         //        $(".k-grid-btnAddPars").hide()
         //    }
         //});
+
+        var grid = this;
+        var items = grid.items(); // Get all the rows (tr elements) in the grid
+
+        items.each(function (index, row) {
+            var dataItem = grid.dataItem(row); // Get the corresponding data item for each row
+            if (dataItem.QtyBalance === 0) {
+                $(row).addClass("disabled-row"); // Add a custom class to disabled rows
+                //$(row).find("input").attr("disabled", "disabled"); // Disable input elements
+                //$(row).find("a.k-button").removeClass("k-button").addClass("k-disabled"); // Disable buttons
+            }
+        });
     }
 
     function formatDate(date) {
@@ -780,7 +982,7 @@
         GeneratePar("ICS");
     });
 
-    // Grid Item    
+    // Grid Item
     //function onRequestEndGridItems(e) {
     //    e.preventDefault();
     //    if (!e.response.Errors) {
@@ -917,7 +1119,7 @@
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-        }        
+        }
     }
 
     function onClickDeleteGridParItems(e) {
@@ -976,7 +1178,7 @@
                         if (result.Errors == "") {
                             popupNotification.show("Record Posted...", "info");
                             $("#grid").data("kendoGrid").dataSource.read();
-                            selectedGrid.dataSource.read();                            
+                            selectedGrid.dataSource.read();
                         } else {
                             alert(result.Errors);
                             return false;
@@ -1323,6 +1525,12 @@
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
+
+            // Attach a handler to the "detailExpand" event
+            this.bind("detailExpand", function (e) {
+                // Select the expanded master row
+                this.select(e.masterRow);
+            });
         }
 
         if (this.dataSource.data().length == 0) {
@@ -1598,6 +1806,149 @@
         mywindow.open();
     }
     // END GRID ITEM PAR
+
+    // GRID IMAGES
+    var selectedGridImagesItem = null;
+    function onEditGridImages(e) {
+        e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("ImageId", '@ViewData["imageId"]');
+        } else {
+            selectedGridImagesItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridImagesItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridImages(e) {
+        if (selectedGridImagesItem) {
+            var dataItem = this.dataSource.get(selectedGridImagesItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+
+        @*var trs = this.tbody.find('tr').each(
+           function () {
+               var item = this.dataItem($(this));
+
+               if ('@ViewBag.isAllowed' == 'False') {
+                   $('.k-grid-Upload', $("#gridImages")).remove();
+               }
+           }
+          );*@
+    }
+    function onDeleteGridImages(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+
+    function onClickUpload(e) {
+        var button = e.sender.element; // Use the sender's element;
+        // Retrieve the grid name from the data attribute
+        var gridName = $(button).data("gridname");
+        selectedGrid = $("#" + gridName).data("kendoGrid");
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        var imageId = parentModel.GroupId;
+
+        var myUrl = '@Url.Action("_ImagesAdd", "ParIcsUpload")?imageId=' + imageId;
+        var myTitle = "Upload Images/Documents";
+        var width = 800;
+        var height = 650;
+
+
+        $("#windowcontainer").append("<div id='windowUpload'></div>");
+        var mywindow = $("#windowUpload")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+
+    }
+
+    function UploadPara(e) {
+        var data = JSON.stringify({ model: $("#formUpload").serialize() });
+        //alert(additional);
+        //e.data = JSON.parse(additional);
+        //$('#chkSMS').is(':checked');
+        e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val() }
+    }
+
+    function onClickPreview(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGridImagesItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("PreviewUpload", "ParIcsUpload")?id=' + selectedGridImagesItem;
+        var myTitle = "Preview";
+        var width = 800;
+        var height = 650;
+
+
+        $("#windowcontainer").append("<div id='windowPreview'></div>");
+        var mywindow = $("#windowPreview")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function onUploadSuccess(e)
+    {
+        selectedGrid.dataSource.read();
+    }
+    
+    // END GRID IMAGES
 </script>
 
 

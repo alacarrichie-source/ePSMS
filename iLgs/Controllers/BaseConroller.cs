@@ -253,6 +253,21 @@ namespace iLgs.Utilities
             return model;
         }
 
+        protected async Task<Access> Access(string userId, params string[] menuIds)
+        {
+            Access returnAccess = new Access();
+            foreach (var menuId in menuIds)
+            {
+                var access =  await Access(userId, menuId);
+                if (access != null)
+                {
+                    returnAccess = access;
+                    break;
+                }
+            }
+            return returnAccess;
+        }
+
         protected async Task<Access> Access(string userId, string menuId)
         {
             if (await GetUserInRole(userId, "admin") || await GetUserInRole(userId, sysAdmin))

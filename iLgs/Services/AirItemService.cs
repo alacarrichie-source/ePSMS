@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -15,11 +16,11 @@ namespace iLgs.Services
     {
         string GetItemExtnName(Guid? id);
         IQueryable<AIRItemVM> GetByAirId(Guid? airId);
-        ValueTask<AIRItemVM> GetByIdAsync(Guid? id);
+        ValueTask<ServiceResult<AIRItemVM>> GetByIdAsync(Guid? id);
 
-        ValueTask<AIRItemVM> CreateAsync(AIRItemVM model, string user, DateTime date);
-        ValueTask<AIRItemVM> UpdateAsync(AIRItemVM model, string user, DateTime date);
-        ValueTask<AIRItemVM> DeleteAsync(AIRItemVM model, string user, DateTime date);
+        ValueTask<ServiceResult<AIRItemVM>> CreateAsync(AIRItemVM model, string user, DateTime date);
+        ValueTask<ServiceResult<AIRItemVM>> UpdateAsync(AIRItemVM model, string user, DateTime date);
+        ValueTask<ServiceResult<AIRItemVM>> DeleteAsync(AIRItemVM model, string user, DateTime date);
 
         void ValidAirItems(Guid? airId);
         IAirItemExtnService AirItemExtn { get; }
@@ -28,15 +29,15 @@ namespace iLgs.Services
     public class AirItemService : IAirItemService
     {
         private readonly AppManEntities _db = new AppManEntities();
-        private readonly IExceptionService<AIRItemVM> _vmExceptionService = new ExceptionService<AIRItemVM>();
-        private readonly IValidationService validationService = new ValidationService();
+        private readonly IExceptionService<ServiceResult<AIRItemVM>> _vmExceptionService = new ExceptionService<ServiceResult<AIRItemVM>>();
+        private readonly IValidationService<AIRItemVM> _validationService;
 
         private IAirItemExtnService _airItemExtnService;
 
         public AirItemService(AppManEntities db)
         {
             _db = db;
-            _airItemExtnService = new AirItemExtnService(db);
+            _validationService = new ValidationService<AIRItemVM>(new AirItemValidator(this));
         }
 
         public IAirItemExtnService AirItemExtn { get { return _airItemExtnService = _airItemExtnService ?? new AirItemExtnService(_db); } }
@@ -105,7 +106,7 @@ namespace iLgs.Services
             return data;
         }
 
-        public ValueTask<AIRItemVM> GetByIdAsync(Guid? id) => _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemVM>> GetByIdAsync(Guid? id) => _vmExceptionService.TryCatchAsync(async () =>
         {
             var data = await _db.AIRItems.Where(w => w.Id == id)
                 .Select(s => new AIRItemVM
@@ -125,10 +126,10 @@ namespace iLgs.Services
                     InvDist = s.InvDist,
                     InsertedDt = s.InsertedDt
                 }).FirstOrDefaultAsync();
-            return data;
+            return ServiceResult<AIRItemVM>.Success(data);
         });
 
-        public ValueTask<AIRItemVM> CreateAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemVM>> CreateAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
         {
             if (await IsPostedAsync(model.AirId))
             {
@@ -162,10 +163,10 @@ namespace iLgs.Services
             _db.AIRItems.Add(entity);
             await _db.SaveChangesAsync();
 
-            return model;
+            return ServiceResult<AIRItemVM>.Success(model);
         });
 
-        public ValueTask<AIRItemVM> DeleteAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemVM>> DeleteAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
         {
             if (await IsPostedAsync(model.AirId))
             {
@@ -188,7 +189,7 @@ namespace iLgs.Services
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
 
-            return model;
+            return ServiceResult<AIRItemVM>.Success(model);
         });
 
         private void ValidateFields(AIRItemVM model)
@@ -220,11 +221,11 @@ namespace iLgs.Services
                     throw new InvalidValueException("Incomplete item quantity contents detected.");
                 }
 
-                var airItemExtnVehicles = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItem.Id == airItemId).ToList();
-                foreach(var item in airItemExtnVehicles)
-                {
-                    validationService.ValidateEntity(item);
-                }
+                //var airItemExtnVehicles = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItem.Id == airItemId).ToList();
+                //foreach(var item in airItemExtnVehicles)
+                //{
+                //    validationService.ValidateEntity(item);
+                //}
             }
             else if (itemExtnName == "ItemExtnOther")
             {
@@ -233,15 +234,15 @@ namespace iLgs.Services
                     throw new InvalidValueException("Incomplete item quantity contents detected.");
                 }
 
-                var airItemExtnOthers = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItem.Id == airItemId).ToList();
-                foreach (var item in airItemExtnOthers)
-                {
-                    validationService.ValidateEntity(item);
-                }
+                //var airItemExtnOthers = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItem.Id == airItemId).ToList();
+                //foreach (var item in airItemExtnOthers)
+                //{
+                //    validationService.ValidateEntity(item);
+                //}
             }
         }
 
-        public ValueTask<AIRItemVM> UpdateAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemVM>> UpdateAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
         {
             if (await IsPostedAsync(model.AirId))
             {
@@ -269,7 +270,7 @@ namespace iLgs.Services
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            return model;
+            return ServiceResult<AIRItemVM>.Success(model);
         });
 
         public void ValidAirItems(Guid? airId)

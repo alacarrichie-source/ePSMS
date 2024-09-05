@@ -394,7 +394,11 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _parService.IcsParItem.UpdateAsync(model, user, date);                    
+                    var result = await _parService.IcsParItem.UpdateAsync(model, user, date);
+                    if (!result.IsSuccess)
+                    {
+                        return Json(new { Errors = string.Join("; ", result.Errors.Select(e => e.Value)) }, JsonRequestBehavior.DenyGet);
+                    }
                 }
             }
             catch (Exception e)
@@ -433,7 +437,12 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _parService.IcsParItem.UpdateAsync(model, user, date);
+                    var result = await _parService.IcsParItem.UpdateAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
+                    }
+                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
                 }
             }
             catch (Exception e)
@@ -468,7 +477,12 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _parService.IcsParItem.DeleteAsync(model, user, date);
+                    var result = await _parService.IcsParItem.DeleteAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
+                    }
+                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
                 }
             }
             catch (RecordAlreadyPostedException e)
@@ -641,6 +655,10 @@ namespace iLgs.Controllers
                 {
                     partialView = "_FieldTransportation";
                 }
+                else
+                {
+                    partialView = "_FieldOther";
+                }
                 //else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
                 //    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
                 //    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
@@ -660,5 +678,9 @@ namespace iLgs.Controllers
             return PartialView(partialView, data);
         }
         #endregion
+
+        #region UPLOADS
+            
+        #endregion  
     }
 }

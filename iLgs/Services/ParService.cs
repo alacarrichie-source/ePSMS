@@ -512,6 +512,20 @@ namespace iLgs.Services
             return refType == "P" ? "PAR" : "ICS";
         }
 
+        private async Task<bool> IsWwithUploadAsync(Guid? groupId)
+        {
+            var result = await _db.Uploads.AnyAsync(a => a.ImageId == groupId);
+            return result;
+        }
+
+        private async Task ValidateUploadAsync(Guid? groupId)
+        {
+            if (!await IsWwithUploadAsync(groupId))
+            {
+                throw new InvalidValueException("No uploaded files found, cannot post!");
+            }
+        }
+
         public ValueTask PostAsync(Guid? groupId, string user, DateTime date) => _generateParExceptionService.TryCatch(async () =>
         {
             var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
@@ -522,7 +536,7 @@ namespace iLgs.Services
 
             var psCardItem = entity.FirstOrDefault(f => f.TransferRefId == null);
 
-            if (psCardItem.IsForICS == false)
+            if (psCardItem.IsForICS != true)
             {
                 var partItems = _icsParItemService.GetAllParItems(groupId);
                 if (partItems.Count() < psCardItem.Qty)
@@ -530,6 +544,8 @@ namespace iLgs.Services
                     throw new InvalidValueException("Insufficient PAR Item created.");
                 }
             }
+
+            await ValidateUploadAsync(groupId);
 
             //await ValidateOnPost(entity);
 

@@ -54,11 +54,11 @@
         })
         .Read(read => read.Action("ItemCodePreviewRead", "Items"))
     )
-//.Events(events => events
-//    .Change("onChangeGrid")
-//    .Edit("onEditGrid")
-//    .DataBound("onDataBoundGrid")
-//    )
+.Events(events => events
+    //.Change("onChangeGrid")
+    //.Edit("onEditGrid")
+    .DataBound("onDataBoundGrid")
+    )
 )
 
 <style>
@@ -73,4 +73,79 @@
     }
 </style>
 
-<script type="text/javascript"> </script>
+<script type="text/javascript"> 
+    function onDataBoundGrid(e) {
+        var grid = this; // Kendo Grid instance
+        var rows = grid.tbody.find("tr");
+
+        // Make sure the grid has rows before proceeding
+        if (rows.length === 0) return;
+
+        // Get the index of the target column ("SomeField")
+        var columnAccountIndex = grid.element.find("th[data-field='Account']").index();
+        var columnSubAccount1Index = grid.element.find("th[data-field='SubAccount1']").index();
+        var columnSubAccount2Index = grid.element.find("th[data-field='SubAccount2']").index();
+        var columnSubAccount3Index = grid.element.find("th[data-field='SubAccount3']").index();
+        var columnSubAccount4Index = grid.element.find("th[data-field='SubAccount4']").index();
+
+        rows.each(function (index, row) {
+            // Get current and previous rows
+            var currentRow = $(row);
+            var previousRow = rows.eq(index - 1);
+
+            // Check if the previous row exists
+            if (previousRow.length) {
+                // Get data from current and previous rows
+                var currentDataItem = grid.dataItem(currentRow);
+                var previousDataItem = grid.dataItem(previousRow);
+
+                // Compare the values of the specific column (e.g., "SomeField")
+                if (currentDataItem.Account === previousDataItem.Account) {
+                    // Find the specific column cell in the current row
+                    var currentCell = currentRow.find("td").eq(columnAccountIndex);
+
+                    // Apply opacity to the cell if the value matches the previous row
+                    currentCell.css("opacity", "0.5"); // Adjust opacity as needed
+                }
+
+                if (currentDataItem.Account === previousDataItem.Account && currentDataItem.SubAccount1 === previousDataItem.SubAccount1) {
+                    // Find the specific column cell in the current row
+                    var currentCell = currentRow.find("td").eq(columnSubAccount1Index);
+
+                    // Apply opacity to the cell if the value matches the previous row
+                    currentCell.css("opacity", "0.5"); // Adjust opacity as needed
+                }
+
+                if (currentDataItem.Account === previousDataItem.Account && currentDataItem.SubAccount1 === previousDataItem.SubAccount1
+                    && currentDataItem.SubAccount2 === previousDataItem.SubAccount2) {
+                    // Find the specific column cell in the current row
+                    var currentCell = currentRow.find("td").eq(columnSubAccount2Index);
+
+                    // Apply opacity to the cell if the value matches the previous row
+                    currentCell.css("opacity", "0.5"); // Adjust opacity as needed
+                }
+
+                if (currentDataItem.Account === previousDataItem.Account && currentDataItem.SubAccount1 === previousDataItem.SubAccount1
+                    && currentDataItem.SubAccount2 === previousDataItem.SubAccount2
+                    && currentDataItem.SubAccount3 === previousDataItem.SubAccount3) {
+                    // Find the specific column cell in the current row
+                    var currentCell = currentRow.find("td").eq(columnSubAccount3Index);
+
+                    // Apply opacity to the cell if the value matches the previous row
+                    currentCell.css("opacity", "0.5"); // Adjust opacity as needed
+                }
+
+                //if (currentDataItem.Account === previousDataItem.Account && currentDataItem.SubAccount1 === previousDataItem.SubAccount1
+                //    && currentDataItem.SubAccount2 === previousDataItem.SubAccount2
+                //    && currentDataItem.SubAccount3 === previousDataItem.SubAccount3
+                //    && currentDataItem.SubAccount4 === previousDataItem.SubAccount4) {
+                //    // Find the specific column cell in the current row
+                //    var currentCell = currentRow.find("td").eq(columnSubAccount4Index);
+
+                //    // Apply opacity to the cell if the value matches the previous row
+                //    currentCell.css("opacity", "0.5"); // Adjust opacity as needed
+                //}
+            }
+        });
+    }    
+</script>

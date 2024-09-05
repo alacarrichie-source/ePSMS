@@ -1,226 +1,228 @@
-﻿//using iLgs.Exceptions;
-//using iLgs.Models;
-//using iLgs.Services.Interfaces;
-//using System;
-//using System.Collections.Generic;
-//using System.Data.Entity;
-//using System.Linq;
-//using System.Threading.Tasks;
-//using System.Web;
+﻿using iLgs.Models;
+using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
 
-//namespace iLgs.Services
-//{
-//    public interface IPropertyCardService
-//    {
-//        IQueryable<PropertyCardVM> GetAll();
-//        IQueryable<PropertyCardVM> GetAllByItemCodeId(Guid? itemCodeId);
-//        ValueTask<PropertyCardVM> GetVmByIdAsync(Guid? id);
-//        ValueTask<PropertyCard> GetByIdAsync(Guid id);
-//        ValueTask<PropertyCard> GetByPropNoAsync(string propNo);
-//        ValueTask<bool> GetAnyPropNoAsync(Guid id, string propNo);
-//        ValueTask<PropertyCardVM> CreateAsync(PropertyCardVM model, string user, DateTime date);
-//        ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date);
-//        ValueTask<PropertyCardVM> DeleteAsync(PropertyCardVM model, string user, DateTime date);
-//    }
+namespace iLgs.Services
+{
+    public interface IPropertyCardService
+    {
+        IQueryable<PropertyCardVM> GetAll();
+        ValueTask<PropertyCardVM> GetByIdAsync(Guid? id);
+        ValueTask<ServiceResult<PropertyCardVM>> CreateAsync(PropertyCardVM model, string user, DateTime date);
+        ValueTask<ServiceResult<PropertyCardVM>> UpdateAsync(PropertyCardVM model, string user, DateTime date);
+        ValueTask<ServiceResult<PropertyCardVM>> DeleteAsync(PropertyCardVM model, string user, DateTime date);
 
-//    public class PropertyCardService : IPropertyCardService
-//    {
-//        private readonly AppManEntities _db = new AppManEntities();
-//        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-//        private readonly IExceptionService<PropertyCardVM> _vmExceptionService = new ExceptionService<PropertyCardVM>();
-//        private readonly IExceptionService<PropertyCard> _exceptionService = new ExceptionService<PropertyCard>();
+        IAllFieldService AllField { get; }
+        IPsCardItemService PsCardItem { get; }
+        IPsCardItemIssuanceService PsCardItemIssuance { get; }
+    }
+    public class PropertyCardService : IPropertyCardService
+    {
+        private readonly AppManEntities _db = new AppManEntities();
+        private readonly IExceptionService<ServiceResult<PropertyCardVM>> _exceptionService = new ExceptionService<ServiceResult<PropertyCardVM>>();
+        private readonly IExceptionService<PropertyCardVM> _vmExceptionService = new ExceptionService<PropertyCardVM>();
+        private readonly IValidationService<PropertyCardVM> _validationService;
+        private IAllFieldService _allFieldService;
+        private IPsCardItemService _psCardItemService;
+        private IPsCardItemIssuanceService _psCardItemIssuanceService;
 
-//        public PropertyCardService(AppManEntities db)
-//        {
-//            _db = db;
-//        }
+        public PropertyCardService(AppManEntities db)
+        {
+            _db = db;
+            _validationService = new ValidationService<PropertyCardVM>(new PropertyCardValidator(db));
+            _allFieldService = new AllFieldService(db);
+            _psCardItemService = new PsCardItemService(db);
+            _psCardItemIssuanceService = new PsCardItemIssuanceService(db);
+        }
 
-//        public IQueryable<PropertyCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
-//        {
-//            var data = _db.PropertyCards
-//                .Select(s => new PropertyCardVM
-//                {
-//                    Id = s.Id,
-//                    ItemCodeId = s.ItemCodeId,
-//                    Item = s.ItemCode.Description,
-//                    ItemCode = s.ItemCode.Code,
-//                    ItemType = s.ItemCode.ItemType.Description,
-//                    ItemTypeCode = s.ItemCode.ItemType.Code,
-//                    Description = s.Description,
-//                    Fund = s.Fund,
-//                    InsertedDt = s.InsertedDt                    
-//                });
-//            return data;
-//        });
+        public IAllFieldService AllField { get { return _allFieldService = _allFieldService ?? new AllFieldService(_db); } }
+        public IPsCardItemService PsCardItem { get { return _psCardItemService = _psCardItemService ?? new PsCardItemService(_db); } }
+        public IPsCardItemIssuanceService PsCardItemIssuance { get { return _psCardItemIssuanceService = _psCardItemIssuanceService ?? new PsCardItemIssuanceService(_db); } }
 
-//        public IQueryable<PropertyCardVM> GetAllByItemCodeId(Guid? itemCodeId) => _vmExceptionService.TryCatch(() =>
-//        {
-//            var data = _db.PropertyCards.Where(w => w.ItemCodeId == itemCodeId)
-//                .Select(s => new PropertyCardVM
-//                {
-//                    Id = s.Id,
-//                    ItemCodeId = s.ItemCodeId,
-//                    Item = s.ItemCode.Description,
-//                    ItemCode = s.ItemCode.Code,
-//                    ItemType = s.ItemCode.ItemType.Description,
-//                    ItemTypeCode = s.ItemCode.ItemType.Code,
-//                    Description = s.Description,
-//                    Fund = s.Fund,
-//                    InsertedDt = s.InsertedDt                   
-//                });
-//            return data;
-//        });
+        public IQueryable<PropertyCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
+        {
+            var data = _db.PsCards.AsNoTracking()
+            .Where(w => w.ItemCode.ItemType.Category != "S")
+                .Select(s => new PropertyCardVM
+                {
+                    Id = s.Id,
+                    ItemCodeId = s.ItemCodeId,
+                    Item = s.ItemCode.Description,
+                    ItemNo = s.ItemCode.ItemNo,
+                    ItemCode = s.ItemCode.Code,
+                    ItemType = s.ItemCode.ItemType.Description,
+                    ItemTypeCode = s.ItemCode.ItemType.Code,
+                    FieldGroupNo = s.ItemCode.ItemType.FormulaNo,
+                    CardCategory = s.CardCategory,
+                    Description = s.Description,
+                    SubAccountCode = s.SubAccountCode,
+                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
+                    Fund = s.Fund,
+                    Unit = s.Unit,
+                    PsNo = s.PsNo,
+                    PsName = s.PsName,
+                    PrevPsNo = s.PrevPsNo,
+                    Amount = s.Amount,
+                    FromDonation = s.FromDonation,
+                    AllField = s.AllField,
+                    InsertedDt = s.InsertedDt
+                });
+            return data;
+        });
 
-//        public ValueTask<PropertyCardVM> GetVmByIdAsync(Guid? id) => _vmExceptionService.TryCatch(async () =>
-//        {
-//            var data = await _db.PropertyCards.Where(w => w.Id == id)
-//                .Select(s => new PropertyCardVM
-//                {
-//                    Id = s.Id,
-//                    ItemCodeId = s.ItemCodeId,
-//                    Item = s.ItemCode.Description,
-//                    ItemCode = s.ItemCode.Code,
-//                    ItemType = s.ItemCode.ItemType.Description,
-//                    ItemTypeCode = s.ItemCode.ItemType.Code,
-//                    Description = s.Description,
-//                    Fund = s.Fund,
-//                    InsertedDt = s.InsertedDt                 
-//                }).FirstOrDefaultAsync();
-//            return data;
-//        });
+        public ValueTask<PropertyCardVM> GetByIdAsync(Guid? id) => _vmExceptionService.TryCatch(async () =>
+        {
+            var data = await _db.PsCards.Where(w => w.Id == id).AsNoTracking()
+                .Select(s => new PropertyCardVM
+                {
+                    Id = s.Id,
+                    ItemCodeId = s.ItemCodeId,
+                    Item = s.ItemCode.Description,
+                    ItemNo = s.ItemCode.ItemNo,
+                    ItemCode = s.ItemCode.Code,
+                    ItemType = s.ItemCode.ItemType.Description,
+                    ItemTypeCode = s.ItemCode.ItemType.Code,
+                    FieldGroupNo = s.ItemCode.ItemType.FormulaNo,
+                    CardCategory = s.CardCategory,
+                    Description = s.Description,
+                    SubAccountCode = s.SubAccountCode,
+                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
+                    Fund = s.Fund,
+                    Unit = s.Unit,
+                    PsNo = s.PsNo,
+                    PsName = s.PsName,
+                    PrevPsNo = s.PrevPsNo,
+                    FromDonation = s.FromDonation,
+                    Amount = s.Amount,
+                    AllField = s.AllField,
+                    InsertedDt = s.InsertedDt
+                }).FirstOrDefaultAsync();
+            return data;
+        });
 
-//        public ValueTask<PropertyCard> GetByIdAsync(Guid id) => _exceptionService.TryCatch(async () =>
-//        {
-//            return await _db.PropertyCards.FindAsync(id);
-//        });
+        public ValueTask<ServiceResult<PropertyCardVM>> CreateAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+            var result = await _validationService.ValidateAsync(model, "Create");
+            if (!result.IsSuccess)
+            {
+                return ServiceResult<PropertyCardVM>.Failure(result.Errors);
+            }
 
-//        public async ValueTask<bool> GetAnyPropNoAsync(Guid id, string propNo)
-//        {
-//            return await _db.PropertyCards.AnyAsync(a => a.Id != id && a.PropNo == propNo);
-//        }
+            _allFieldService.ValidatePropertyCardAllField(model);
 
-//        public ValueTask<PropertyCard> GetByPropNoAsync(string propNo) => _exceptionService.TryCatch(async () =>
-//        {
-//            return await _db.PropertyCards.Where(w => w.PropNo == propNo).FirstOrDefaultAsync();
-//        });
+            model.Description = "Please see attachment.";
+            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
 
-//        public ValueTask<PropertyCardVM> CreateAsync(PropertyCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
-//        {
-//            if (model.ItemCodeId == null)
-//            {
-//                throw new InvalidValueException("PPE is Required!");
-//            }
+            model.Id = Guid.NewGuid();
+            model.InsertedBy = user;
+            model.InsertedDt = date;
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
 
-//            if (string.IsNullOrWhiteSpace(model.Description))
-//            {
-//                throw new InvalidValueException("Description is Required!");
-//            }
+            var entity = new PsCard
+            {
+                Id = model.Id,
+                ItemCodeId = model.ItemCodeId,
+                SubAccountCode = model.SubAccountCode,
+                Fund = model.Fund,
+                Description = model.Description,
+                Unit = model.Unit,
+                CardCategory = model.CardCategory,
+                PsNo = model.PsNo,
+                PsName = model.PsName,
+                PrevPsNo = model.PrevPsNo,
+                FromDonation = model.FromDonation,
+                Amount = model.Amount,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
 
-//            if (string.IsNullOrWhiteSpace(model.Fund))
-//            {
-//                throw new InvalidValueException("Fund is Required!");
-//            }
+            model.AllField.Id = model.Id;
+            model.AllField.InsertedBy = user;
+            model.AllField.InsertedDt = date;
+            model.AllField.UpdatedBy = user;
+            model.AllField.UpdatedDt = date;
+            entity.AllField = model.AllField;
 
-//            model.Id = Guid.NewGuid();
-//            model.InsertedBy = user;
-//            model.InsertedDt = date;
-//            model.UpdatedBy = user;
-//            model.UpdatedDt = date;
+            //entity = SetItemEntity(entity, model);
 
-//            var entity = new PropertyCard
-//            {
-//                Id = model.Id,
-//                ItemCodeId = model.ItemCodeId,
-//                Fund = model.Fund,
-//                Description = model.Description,
-//                InsertedBy = model.InsertedBy,
-//                InsertedDt = model.InsertedDt,
-//                UpdatedBy = model.UpdatedBy,
-//                UpdatedDt = model.UpdatedDt
-//            };
+            _db.PsCards.Add(entity);
+            await _db.SaveChangesAsync();
 
-//            _db.PropertyCards.Add(entity);
-//            await _db.SaveChangesAsync();
+            return ServiceResult<PropertyCardVM>.Success(model);
+        });
 
-//            return model;
-//        });
+        public ValueTask<ServiceResult<PropertyCardVM>> UpdateAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+            var result = await _validationService.ValidateAsync(model, "Update");
+            if (!result.IsSuccess)
+            {
+                return ServiceResult<PropertyCardVM>.Failure(result.Errors);
+            }
 
-//        public ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
-//        {
-//            var entity = _db.PropertyCards.Find(model.Id);
-//            if (entity == null)
-//            {
-//                throw new RecordNotFoundException(model.Id);
-//            }
+            var entity = await _db.PsCards.FindAsync(model.Id);
 
-//            if (model.ItemCodeId == null)
-//            {
-//                throw new InvalidValueException("Item is Required!");
-//            }
+            _allFieldService.ValidatePsCardAllField(model);
 
-//            if (string.IsNullOrWhiteSpace(model.Description))
-//            {
-//                throw new InvalidValueException("Description is Required!");
-//            }
+            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
 
-//            if (string.IsNullOrWhiteSpace(model.Fund))
-//            {
-//                throw new InvalidValueException("Fund is Required!");
-//            }
+            entity.ItemCodeId = model.ItemCodeId;
+            entity.SubAccountCode = model.SubAccountCode;
+            entity.Fund = model.Fund;
+            entity.Description = model.Description;
+            entity.Unit = model.Unit;
+            entity.CardCategory = model.CardCategory;
+            entity.PsNo = model.PsNo;
+            entity.PsName = model.PsName;
+            entity.PrevPsNo = model.PrevPsNo;
+            entity.FromDonation = model.FromDonation;
+            entity.Amount = model.Amount;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-//            model.UpdatedBy = user;
-//            model.UpdatedDt = date;
+            model.AllField.Id = model.Id;
+            model.AllField.UpdatedBy = user;
+            model.AllField.UpdatedDt = date;
+            entity.AllField = model.AllField;
 
-//            entity.ItemCodeId = model.ItemCodeId;
-//            entity.Fund = model.Fund;
-//            entity.Description = model.Description;
-//            entity.UpdatedBy = user;
-//            entity.UpdatedDt = date;
+            //entity = SetItemEntity(entity, model);
 
-//            _db.PropertyCards.Attach(entity);
-//            _db.Entry(model).State = EntityState.Modified;
-//            await _db.SaveChangesAsync();
+            _db.PsCards.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-//            return model;
-//        });
+            return ServiceResult<PropertyCardVM>.Success(model);
+        });
 
-//        public ValueTask<PropertyCardVM> DeleteAsync(PropertyCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
-//        {
+        public ValueTask<ServiceResult<PropertyCardVM>> DeleteAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
 
-//            model.UpdatedBy = user;
-//            model.UpdatedDt = date;
+            var entity = await _db.PsCards.FindAsync(model.Id);
 
-//            var entity = await _db.PropertyCards.FindAsync(model.Id);
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
 
-//            entity.UpdatedBy = user;
-//            entity.UpdatedDt = date;
+            _db.PsCards.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-//            _db.PropertyCards.Attach(entity);
-//            _db.Entry(entity).State = EntityState.Modified;
-//            await _db.SaveChangesAsync();
+            _db.PsCards.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
-//            _db.PropertyCards.Remove(entity);
-//            _db.Entry(entity).State = EntityState.Deleted;
-//            await _db.SaveChangesAsync();
-
-//            return model;
-//        });
-
-//        private string NextPropertyNo(string propNo)
-//        {
-//            string keyName = propNo;
-
-//            var data = _db.PropertyCards.Where(w => w.PropNo == propNo)
-//                .OrderByDescending(o => o.PropNo).FirstOrDefault();
-//            if (data == null)
-//            {
-//                return keyName + "-" + "001";
-//            }
-//            else
-//            {
-//                var sequence = (int.Parse(data.PropNo.Split('-')[1]) + 1).ToString();
-//                return keyName + "-" + sequence.PadLeft(3, '0');
-//            }
-//        }
-//    }
-//}
+            return ServiceResult<PropertyCardVM>.Success(model);
+        });
+    }
+}

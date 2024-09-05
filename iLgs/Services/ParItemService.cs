@@ -9,6 +9,17 @@ using System.Web;
 
 namespace iLgs.Services
 {
+    public interface IParItemService
+    {
+        IQueryable<PARItemVM> GetAll(Guid? parId);
+        Task<PARItemVM> GetVmByIdAsync(Guid? itemId);
+        Task<Models.PARItem> GetByIdAsync(Guid? itemId);
+
+        Task<PARItemVM> CreateAsync(PARItemVM model, string user, DateTime date);
+        Task<PARItemVM> UpdateAsync(PARItemVM model, string user, DateTime date);
+        Task<PARItemVM> DeleteAsync(PARItemVM model, string user, DateTime date);
+    }
+
     public class ParItemService : IParItemService
     {
         private readonly AppManEntities db = new AppManEntities();

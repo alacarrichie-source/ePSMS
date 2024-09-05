@@ -278,6 +278,7 @@
     <Compile Include="Controllers\RpciController.cs" />
     <Compile Include="Controllers\RpcPpeController.cs" />
     <Compile Include="Controllers\StockCardController.cs" />
+    <Compile Include="Controllers\ParIcsUploadController.cs" />
     <Compile Include="Controllers\_StockCardController.cs" />
     <Compile Include="Models\AccountableOfficer.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -417,6 +418,7 @@
     <Compile Include="Models\PsCardItemExtnVehicle.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PsCardItemExtnViewModels.cs" />
     <Compile Include="Models\PsCardItemIssuance.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -504,6 +506,7 @@
     <Compile Include="Models\Upload.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\UploadViewModels.cs" />
     <Compile Include="Models\UserCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -581,8 +584,10 @@
     <Compile Include="Services\RpcPpeItemService.cs" />
     <Compile Include="Services\RpcPpeService.cs" />
     <Compile Include="Services\ServiceResult.cs" />
+    <Compile Include="Services\StockCardService.cs" />
     <Compile Include="Services\StockItemIssuanceService.cs" />
     <Compile Include="Services\StockItemService.cs" />
+    <Compile Include="Services\ParIcsUploadService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
     <Compile Include="Services\Agents\IServiceAgent.cs" />
@@ -802,15 +807,20 @@
     <Compile Include="Services\RisItemExtnService.cs" />
     <Compile Include="Services\RisItemService.cs" />
     <Compile Include="Services\RisService.cs" />
-    <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Services\ValidatorService.cs" />
-    <Compile Include="Services\Validators\AirItemExtnVehicleValator.cs" />
+    <Compile Include="Services\Validators\AirItemExtnVehicleValidator.cs" />
+    <Compile Include="Services\Validators\AirItemValidator.cs" />
     <Compile Include="Services\Validators\CombinedValidatorSelector.cs" />
+    <Compile Include="Services\Validators\IcsParItemValidator.cs" />
+    <Compile Include="Services\Validators\ParSetValidator.cs" />
+    <Compile Include="Services\Validators\PropertyCardValidator.cs" />
     <Compile Include="Services\Validators\PsCardItemExtnVehicleValidator.cs" />
+    <Compile Include="Services\Validators\StockCardValidator.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
     <Compile Include="Controllers\BaseConroller.cs" />
     <Compile Include="Utilities\Utility.cs" />
+    <Compile Include="Utilities\ValidationService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\city-hall.jpg" />
@@ -3838,6 +3848,20 @@
     <Content Include="Views\StockCard\EditorTemplates\_CardItemExtnVehicleTemplate.cshtml" />
     <Content Include="Views\Items\ItemCodePreview.cshtml" />
     <Content Include="Views\Shared\DisplayTemplates\Label.cshtml" />
+    <Content Include="Views\ParIcsUpload\_Images.cshtml" />
+    <Content Include="Views\ParIcsUpload\_ImagesAdd.cshtml" />
+    <Content Include="Views\ParIcsUpload\EditorTemplates\_ImagesTemplate.cshtml" />
+    <Content Include="Views\ParSet\_FieldOther.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldBrand.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldLand.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldSerial.cshtml" />
+    <Content Include="Views\PropertyCard\_ItemFieldBrand.cshtml" />
+    <Content Include="Views\PropertyCard\_ItemFieldDrugs.cshtml" />
+    <Content Include="Views\PropertyCard\_ItemFieldLand.cshtml" />
+    <Content Include="Views\PropertyCard\_ItemFieldSerial.cshtml" />
+    <Content Include="Views\PropertyCard\EditorTemplates\_CardItemExtnOtherTemplate.cshtml" />
+    <Content Include="Views\PropertyCard\EditorTemplates\_CardItemExtnVehicleTemplate.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\LabelDate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

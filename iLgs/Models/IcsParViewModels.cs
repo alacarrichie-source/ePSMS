@@ -18,29 +18,37 @@ namespace iLgs.Models
             public Nullable<System.DateTime> RefDate { get; set; }
             public string RefType { get; set; }
 
+            [Required]
             [Display(Name = "Received by")]
             public string ReceivedBy { get; set; }
 
+            [Required]
             [Display(Name = "Position")]
             public string ReceivedByPosition { get; set; }
 
+            [Required]
             [Display(Name = "Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> ReceivedDate { get; set; }
 
+            [Required]
             [Display(Name = "Department")]            
             public string ReceivedDept { get; set; }
 
+            [Required]
             [Display(Name = "Received From")]
             public string IssuedBy { get; set; }
 
+            [Required]
             [Display(Name = "Position")]
             public string IssuedByPosition { get; set; }
 
+            [Required]
             [Display(Name = "Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> IssuedDate { get; set; }
 
+            [Required]
             [Display(Name = "Department")]
             public string IssuedDept { get; set; }
 
@@ -89,6 +97,7 @@ namespace iLgs.Models
         public Guid? DeptId { get; set; }
 
         [Display(Name = "Location")]
+        [Required]
         public Guid? LocationId { get; set; }
 
         [Display(Name = "Location Code")]
@@ -97,6 +106,9 @@ namespace iLgs.Models
         public string Location { get; set; }
 
         public int? Qty { get; set; }
+
+        [Display(Name = "Reference Date")]
+        [Required]
         public DateTime Date { get; set; }
         public string RefType { get; set; }
 

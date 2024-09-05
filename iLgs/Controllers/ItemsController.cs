@@ -42,10 +42,10 @@ namespace iLgs.Controllers
         // GET: Codes
         public ActionResult Index()
         {
-            return View();        
+            return View();
         }
-        
-        
+
+
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request)
         {
             var data = _itemTypeService.GetAll();
@@ -292,7 +292,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", e.Message);
                 }
-            }        
+            }
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
         #endregion
@@ -348,7 +348,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("AddError", e.Message);
                 }
-            }        
+            }
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
@@ -420,7 +420,7 @@ namespace iLgs.Controllers
                 else
                 {
                     ModelState.AddModelError("DeleteError", e.Message);
-                }            
+                }
             }
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
@@ -451,7 +451,7 @@ namespace iLgs.Controllers
             return _directoryService.GetItemImageDirectory();
         }
 
-        
+
         [Authorize]
         public ActionResult GetItemByCategoryRead([DataSourceRequest] DataSourceRequest request, string category)
         {
@@ -500,7 +500,7 @@ namespace iLgs.Controllers
         //    return result;
         //}
 
-        
+
         #region ISSUED
         //public ActionResult _RISIssuedRead([DataSourceRequest] DataSourceRequest request, string poNo, string stockNo)
         //{
@@ -516,7 +516,7 @@ namespace iLgs.Controllers
         //}
         #endregion
 
-        
+
 
         public FileResult GetProductImage(Guid imageId)
         {
@@ -534,14 +534,81 @@ namespace iLgs.Controllers
         [Authorize]
         public JsonResult GetItems(string text)
         {
-            var model = _itemCodeService.GetItems(text);            
+            var model = _itemCodeService.GetItems(text);
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode, FieldGroupNo = c.FieldGroupNo }), JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize]
+        public JsonResult GetItemAccounts(string text)
+        {
+            var model = _itemCodeService.GetItemAccounts(text);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                Code = c.Code,
+                Description = c.Description
+                ,
+                Type = c.ItemType
+                ,
+                TypeDesc = c.Account
+                ,
+                ItemNo = c.ItemNo
+                ,
+                MainDesc = c.MainDesc
+                ,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4
+                ,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode
+            }), JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize]
+        public JsonResult GetPropertyItemAccounts(string text)
+        {
+            var model = _itemCodeService.GetItemAccountsByCategory("PPE", text);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType,
+                TypeDesc = c.Account, ItemNo = c.ItemNo, MainDesc = c.MainDesc,
+                Account = c.Account, SubAccount1 = c.SubAccount1, SubAccount2 = c.SubAccount2, SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4, Article = c.Article, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode
+            }), JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize]
+        public JsonResult GetStockItemAccounts(string text)
+        {
+            var model = _itemCodeService.GetItemAccountsByCategory("S", text);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                Code = c.Code,
+                Description = c.Description,
+                Type = c.ItemType,
+                TypeDesc = c.Account,
+                ItemNo = c.ItemNo,
+                MainDesc = c.MainDesc,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode
+            }), JsonRequestBehavior.AllowGet);
         }
 
         [Authorize]
         public JsonResult GetRpciAccounts(string text)
         {
-            var model =_itemTypeService.GetRpciAccounts(text);
+            var model = _itemTypeService.GetRpciAccounts(text);
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Category = c.Category, GroupCode = c.GroupCode }), JsonRequestBehavior.AllowGet);
         }
 
@@ -557,8 +624,8 @@ namespace iLgs.Controllers
         {
             var model = _itemCodeService.GetItemsByTypeCode(typeCode, text);
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode, FieldGroupNo = c.FieldGroupNo }), JsonRequestBehavior.AllowGet);
-        }        
-        
+        }
+
         #endregion
 
         public async Task<ActionResult> ItemCodeRpt(Guid itemTypeId)

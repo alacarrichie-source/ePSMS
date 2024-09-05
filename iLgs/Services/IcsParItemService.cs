@@ -1,10 +1,12 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -16,81 +18,88 @@ namespace iLgs.Services
         ValueTask<IcsParItem> GetByIdAsync(Guid? id);
         IQueryable<IcsParItem> GetAllParItems(Guid? psCardItemGroupId);
         IQueryable<IcsParItem> GetAllIcsItems(Guid? psCardItemGroupId);
-        ValueTask<IcsParItem> CreateAsync(IcsParItem model, string user, DateTime date);
-        ValueTask<IcsParItem> UpdateAsync(IcsParItem model, string user, DateTime date);
-        ValueTask<IcsParItem> DeleteAsync(IcsParItem model, string user, DateTime date);        
+        ValueTask<ServiceResult<IcsParItem>> CreateAsync(IcsParItem model, string user, DateTime date);
+        ValueTask<ServiceResult<IcsParItem>> UpdateAsync(IcsParItem model, string user, DateTime date);
+        ValueTask<ServiceResult<IcsParItem>> DeleteAsync(IcsParItem model, string user, DateTime date);
+
+        ValueTask<bool> IsPostedAsync(Guid? id);
+        ValueTask<bool> IsExistingAsync(Guid? id);
     }
 
     public class IcsParItemService : IIcsParItemService
     {
         private readonly AppManEntities _db = new AppManEntities();
         private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<IcsParItem> _exceptionService = new ExceptionService<IcsParItem>();        
+        private readonly IExceptionService<ServiceResult<IcsParItem>> _exceptionService = new ExceptionService<ServiceResult<IcsParItem>>();
+        private readonly IValidationService<IcsParItem> _validationService;
 
         public IcsParItemService(AppManEntities db)
         {
             _db = db;
+            _validationService = new ValidationService<IcsParItem>(new IcsParItemValidator(db));
         }
 
-        public IQueryable<IcsParItem> GetAllByIcsParId(Guid? icsParId) =>
-        _exceptionService.TryCatch(() =>
+        public IQueryable<IcsParItem> GetAllByIcsParId(Guid? icsParId) 
         {
             var data = _db.IcsParItems.Where(w => w.IcsParId == icsParId).AsNoTracking();
             return data;
-        });
+        }
 
-        public async ValueTask<IcsParItem> GetByIdAsync(Guid? id)         
+        public async ValueTask<IcsParItem> GetByIdAsync(Guid? id)
         {
             var data = await _db.IcsParItems.Include(i => i.IcsPar)
                     .Include(i => i.PsCardItemExtn.PsCardItem) // Ensure related entities are included
                     .Include(i => i.PsCardItemExtn.Codextn)    // Ensure Codextn is included for Location description
                     .Include(i => i.PsCardItemExtn)
-                    //.Include(i => i.PsCardItemExtn.PsCardItemExtnBuilding)
-                    //.Include(i => i.PsCardItemExtn.PsCardItemExtnLand)
-                    //.Include(i => i.PsCardItemExtn.PsCardItemExtnOther)
-                    //.Include(i => i.PsCardItemExtn.PsCardItemExtnVehicle)                    
+                //.Include(i => i.PsCardItemExtn.PsCardItemExtnBuilding)
+                //.Include(i => i.PsCardItemExtn.PsCardItemExtnLand)
+                //.Include(i => i.PsCardItemExtn.PsCardItemExtnOther)
+                //.Include(i => i.PsCardItemExtn.PsCardItemExtnVehicle)                    
                 .Where(w => w.Id == id)
                 .FirstOrDefaultAsync();
             return data;
         }
 
-        public IQueryable<IcsParItem> GetAllParItems(Guid? psCardItemGroupId) =>
-        _exceptionService.TryCatch(() =>
+        public IQueryable<IcsParItem> GetAllParItems(Guid? psCardItemGroupId) 
         {
             var data = GetAllIcsParItems(psCardItemGroupId, "P");
             return data;
-        });
+        }
 
-        public IQueryable<IcsParItem> GetAllIcsItems(Guid? psCardItemGroupId) =>
-        _exceptionService.TryCatch(() =>
+        public IQueryable<IcsParItem> GetAllIcsItems(Guid? psCardItemGroupId) 
         {
             var data = GetAllIcsParItems(psCardItemGroupId, "I");
             return data;
-        });
+        }
 
-        private IQueryable<IcsParItem> GetAllIcsParItems(Guid? psCardItemGroupId, string refType)         
+        private IQueryable<IcsParItem> GetAllIcsParItems(Guid? psCardItemGroupId, string refType)
         {
             var data = _db.IcsParItems
                 .Include(i => i.IcsPar)
                 .Include(i => i.PsCardItemExtn)
                 .Where(w => w.IcsPar.RefType == refType && (w.PsCardItemExtn.PsCardItem.GroupId == psCardItemGroupId)
-                                // Get items from same PO of different CardItem (Due to Transfer of Item)
-                                //|| _db.PsCardItems.Any(a => a.PoNo == w.PsCardItemExtn.PsCardItem.PoNo
-                                //    && a.PoDate == w.PsCardItemExtn.PsCardItem.PoDate
-                                //    && a.DeptId == w.PsCardItemExtn.PsCardItem.DeptId
-                                //    && a.PsCardId == w.PsCardItemExtn.PsCardItem.PsCardId
-                                //    && a.Id != psCardItemId))
+                // Get items from same PO of different CardItem (Due to Transfer of Item)
+                //|| _db.PsCardItems.Any(a => a.PoNo == w.PsCardItemExtn.PsCardItem.PoNo
+                //    && a.PoDate == w.PsCardItemExtn.PsCardItem.PoDate
+                //    && a.DeptId == w.PsCardItemExtn.PsCardItem.DeptId
+                //    && a.PsCardId == w.PsCardItemExtn.PsCardItem.PsCardId
+                //    && a.Id != psCardItemId))
                 );
-                
+
             return data;
         }
 
 
-        public ValueTask<IcsParItem> CreateAsync(IcsParItem model, string user, DateTime date) =>
+        public ValueTask<ServiceResult<IcsParItem>> CreateAsync(IcsParItem model, string user, DateTime date) =>
         _exceptionService.TryCatchAsync(async () =>
         {
 
-            ValidateIfPosted(model);
+            //await ValidateIfPosted(model);
+            var result = await _validationService.ValidateAsync(model, "Update");
+            if (!result.IsSuccess)
+            {
+                return ServiceResult<IcsParItem>.Failure(result.Errors);
+            }
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -113,20 +122,19 @@ namespace iLgs.Services
 
             _db.IcsParItems.Add(entity);
             await _db.SaveChangesAsync();
-            return model;
+            return ServiceResult<IcsParItem>.Success(model);
         });
 
-        public ValueTask<IcsParItem> UpdateAsync(IcsParItem model, string user, DateTime date) =>
+        public ValueTask<ServiceResult<IcsParItem>> UpdateAsync(IcsParItem model, string user, DateTime date) =>
         _exceptionService.TryCatchAsync(async () =>
         {
-            var entity = await GetByIdAsync(model.Id);
-
-            if (entity == null)
+            var result = await _validationService.ValidateAsync(model, "Update");
+            if (!result.IsSuccess)
             {
-                throw new RecordNotFoundException(model.Id);
+                return ServiceResult<IcsParItem>.Failure(result.Errors);
             }
 
-            ValidateIfPosted(model);
+            var entity = await GetByIdAsync(model.Id);
 
             var propSplit = model.PsCardItemExtn.PropNo.Split('/');
             var propYear = model.PsCardItemExtn.PropNo.Substring(0, 4);
@@ -160,25 +168,31 @@ namespace iLgs.Services
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            return model;
+            return ServiceResult<IcsParItem>.Success(model);
         });
 
-        public ValueTask<IcsParItem> DeleteAsync(IcsParItem model, string user, DateTime date) =>
+        public ValueTask<ServiceResult<IcsParItem>> DeleteAsync(IcsParItem model, string user, DateTime date) =>
         _exceptionService.TryCatchAsync(async () =>
         {
-            IcsParItem entity = await _db.IcsParItems.FindAsync(model.Id);
-            if (entity == null)
+            var result = await _validationService.ValidateAsync(model, "Delete");
+            if (!result.IsSuccess)
             {
-                throw new RecordNotFoundException(model.Id);
+                return ServiceResult<IcsParItem>.Failure(result.Errors);
             }
 
-            ValidateIfPosted(model);
+            IcsParItem entity = await _db.IcsParItems.FindAsync(model.Id);
+            //if (entity == null)
+            //{
+            //    throw new RecordNotFoundException(model.Id);
+            //}
+
+            //await ValidateIfPosted(model);
 
             var psCardItemExtnId = entity.PsCardItemExtnId;
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
-            
+
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
@@ -235,13 +249,24 @@ namespace iLgs.Services
                 }
             }
 
-            return model;
+            
+            return ServiceResult<IcsParItem>.Success(model);            
         });
 
-        public void ValidateIfPosted(IcsParItem model)
+        public async ValueTask<bool> IsPostedAsync(Guid? id)
         {
-            if (_db.IcsParItems.Where(w => w.Id == model.Id 
-                && (w.PsCardItemExtn.PsCardItem.ParPostedBy != null && w.PsCardItemExtn.PsCardItem.ParPostedBy != "")).Any())
+            return await _db.IcsParItems.Where(w => w.Id == id
+                && (w.PsCardItemExtn.PsCardItem.ParPostedBy != null && w.PsCardItemExtn.PsCardItem.ParPostedBy != "")).AnyAsync();
+        }
+
+        public async ValueTask<bool> IsExistingAsync(Guid? id)
+        {
+            return await _db.IcsParItems.AnyAsync(a => a.Id == id);
+        }
+
+        private async Task ValidateIfPosted(IcsParItem model)
+        {
+            if (await IsPostedAsync(model.Id))
             {
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }

@@ -3,7 +3,7 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-@(Html.Kendo().Grid<iLgs.Models.PsCardVM>()
+@(Html.Kendo().Grid<iLgs.Models.StockCardVM>()
     .HtmlAttributes(new { @class = "max-grid" })
     .Name("grid")
     .Columns(col =>
@@ -900,7 +900,7 @@
 
     function StockCard(mode, recId) {
         var myTitle = (mode == "A") ? "Stock Card - ADD" : "Stock Card - EDIT";
-        var width = 800;
+        var width = 1000;
         var height = 650;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
@@ -943,7 +943,7 @@
         var mywindow = $("#window").data("kendoWindow");
         if (mywindow) {
             mywindow.setOptions({
-                width: "800",
+                width: "1000",
                 height: "auto"
             });
             mywindow.center(); // Optional: Center the window after resizing

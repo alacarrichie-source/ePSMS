@@ -14,7 +14,9 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
+using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Controllers
 {
@@ -24,16 +26,18 @@ namespace iLgs.Controllers
         private readonly string _cardCategory = "P";
         private AppManEntities _db = new AppManEntities();
         private ICodextnService _codextnService;
-        private IPsCardService _cardService;
-        private IPsCardItemService _cardItemService;
-        private IPsCardItemIssuanceService _cardItemIssuanceService;
+        private IPsCardService _psCardService;
+        //private IPsCardItemService _psCardItemService;
+        //private IPsCardItemIssuanceService _psCardItemIssuanceService;
+        //private IAllFieldService _allFieldService;
 
         public PropertyCardController()
         {
             _codextnService = new CodextnService(_db);
-            _cardService = new PsCardService(_db);
-            _cardItemService = new PsCardItemService(_db);
-            _cardItemIssuanceService = new PsCardItemIssuanceService(_db);
+            _psCardService = new PsCardService(_db);
+            //_psCardItemService = new PsCardItemService(_db);
+            //_psCardItemIssuanceService = new PsCardItemIssuanceService(_db);
+            //_allFieldService = new AllFieldService(_db);
         }
 
         // GET: Index
@@ -44,7 +48,7 @@ namespace iLgs.Controllers
 
         public ActionResult Read([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _cardService.GetAll();
+            var data = _psCardService.PropertyCard.GetAll();
 
             var result = new JsonNetResult
             {
@@ -57,7 +61,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Create([DataSourceRequest] DataSourceRequest request, PsCardVM model)
+        public async Task<ActionResult> Create([DataSourceRequest] DataSourceRequest request, PropertyCardVM model)
         {
             try
             {
@@ -73,7 +77,12 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardService.CreateAsync(model, user, date);
+                    var result = await _psCardService.PropertyCard.CreateAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
+                    }
+                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
                 }
             }
             catch (Exception e)
@@ -92,7 +101,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Update([DataSourceRequest] DataSourceRequest request, PsCardVM model)
+        public async Task<ActionResult> Update([DataSourceRequest] DataSourceRequest request, PropertyCardVM model)
         {
             try
             {
@@ -108,7 +117,12 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardService.UpdateAsync(model, user, date);
+                    var result = await _psCardService.PropertyCard.UpdateAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
+                    }
+                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
                 }
             }
             catch (Exception e)
@@ -128,7 +142,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, PsCardVM model)
+        public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, PropertyCardVM model)
         {
             try
             {
@@ -143,7 +157,12 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardService.DeleteAsync(model, user, date);
+                    var result = await _psCardService.PropertyCard.DeleteAsync(model, user, date);
+                    if (result.IsSuccess)
+                    {
+                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
+                    }
+                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
                 }
             }
             catch (Exception e)
@@ -164,10 +183,10 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _PropertyCardAddEdit(Guid? cardId)
         {
-            var data = await _cardService.GetVmByIdAsync(cardId);
+            var data = await _psCardService.PropertyCard.GetByIdAsync(cardId);
             if (data == null)
             {
-                data = new PsCardVM()
+                data = new PropertyCardVM()
                 {
                     CardCategory = _cardCategory
                 };
@@ -176,40 +195,50 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _PropertyCardSave(PsCardVM model)
+        public async Task<ActionResult> _PropertyCardSave(PropertyCardVM model)
         {
+            string errorKey = "";
             try
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
-
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = await _cardService.GetByIdAsync(model.Id);
+                    var entity = await _psCardService.PropertyCard.GetByIdAsync(model.Id);
 
                     if (entity == null)
                     {
                         if (access.AllowAdd)
                         {
-                            model = await _cardService.CreateAsync(model, user, date);
+                            var result = await _psCardService.PropertyCard.CreateAsync(model, user, date);
+                            if (!result.IsSuccess)
+                            {
+                                return Json(new { Errors = string.Join("; ", result.Errors.Select(e => e.Value)) }, JsonRequestBehavior.DenyGet);
+                            }
                         }
                         else
                         {
-                            ModelState.AddModelError("AddError", "Access Denied!");
+                            errorKey = "AddError";
+                            ModelState.AddModelError(errorKey, "Access Denied!");
                         }
                     }
                     else
                     {
                         if (access.AllowEdit)
                         {
-                            model = await _cardService.UpdateAsync(model, user, date);
+                            var result = await _psCardService.PropertyCard.UpdateAsync(model, user, date);
+                            if (!result.IsSuccess)
+                            {
+                                return Json(new { Errors = string.Join("; ", result.Errors.Select(e => e.Value)) }, JsonRequestBehavior.DenyGet);
+                            }
                         }
                         else
                         {
-                            ModelState.AddModelError("UpdateError", "Access Denied!");
+                            errorKey = "UpdateError";
+                            ModelState.AddModelError(errorKey, "Access Denied!");
                         }
                     }
 
@@ -217,8 +246,15 @@ namespace iLgs.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError(errorKey, "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError(errorKey, e.Message);
+                }
             }
 
             var query = from state in ModelState.Values
@@ -234,25 +270,29 @@ namespace iLgs.Controllers
             return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
         }
 
-
         [AcceptVerbs(HttpVerbs.Post)]
-        public JsonResult GetDescription(PsCardVM fields)
+        public JsonResult GetDescription(PropertyCardVM fields)
         {
-            var description = _cardService.GetDescription(fields);
-            var stockNo = _cardService.GetStockNo(fields);
+            var description = _psCardService.GetDescription(fields);
+            var stockNo = _psCardService.GetStockNo(fields);
 
             return Json(new { Description = description, StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult _PropertyCardItem(Guid cardId)
+        public ActionResult _PropertyCardItem(Guid cardId, string category)
         {
+            ViewBag.FieldSw = _psCardService.GetFieldSw(category);
+
+            ViewData["partialView"] = _psCardService.GetItemFieldsPartialView(category);
             ViewData["cardId"] = cardId;
+            ViewData["category"] = category;
+
             return PartialView();
         }
 
         public async Task<ActionResult> _PropertyCardItemAddEdit(Guid cardId, Guid? cardItemId)
         {
-            var data = await _cardItemService.GetByIdAsync(cardItemId);
+            var data = await _psCardService.PropertyCard.PsCardItem.GetByIdAsync(cardItemId);
             if (data == null)
             {
                 data = new PsCardItemVM()
@@ -283,15 +323,15 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = await _cardItemService.GetByIdAsync(model.Id);
+                    var entity = await _psCardService.PropertyCard.PsCardItem.GetByIdAsync(model.Id);
 
                     if (entity == null)
                     {
-                        model = await _cardItemService.CreateAsync(model, user, date);
+                        model = await _psCardService.PropertyCard.PsCardItem.CreateAsync(model, user, date);
                     }
                     else
                     {
-                        model = await _cardItemService.UpdateAsync(model, user, date);
+                        model = await _psCardService.PropertyCard.PsCardItem.UpdateAsync(model, user, date);
                     }
                 }
             }
@@ -324,7 +364,7 @@ namespace iLgs.Controllers
 
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, Guid? cardId)
         {
-            var data = _cardItemService.GetByCardId(cardId);
+            var data = _psCardService.PropertyCard.PsCardItem.GetByCardId(cardId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -346,13 +386,20 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemService.CreateAsync(model, user, date);
+                    model = await _psCardService.PropertyCard.PsCardItem.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -367,7 +414,7 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
-                    ModelState.AddModelError("UpdateError", "Access Denied!");
+                    ModelState.AddModelError("Access", "Access Denied!");
                 }
 
                 if (ModelState.IsValid)
@@ -375,19 +422,19 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemService.UpdateAsync(model, user, date);
+                    model = await _psCardService.PropertyCard.PsCardItem.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
             {
                 if (e.GetType().Name == "ServiceException")
                 {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
                          "please contact tech support with this message: " + e.Message);
                 }
                 else
                 {
-                    ModelState.AddModelError("UpdateError", e.Message);
+                    ModelState.AddModelError("", e.Message);
                 }
             }
 
@@ -405,13 +452,13 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
+                //if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemService.DeleteAsync(model, user, date);
+                    model = await _psCardService.PropertyCard.PsCardItem.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
             }
@@ -433,7 +480,7 @@ namespace iLgs.Controllers
 
         public ActionResult IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
         {
-            var data = _cardItemIssuanceService.GetByCardItemId(cardItemId);
+            var data = _psCardService.PropertyCard.PsCardItemIssuance.GetByCardItemId(cardItemId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -455,13 +502,20 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemIssuanceService.CreateAsync(model, user, date);
+                    model = await _psCardService.PropertyCard.PsCardItemIssuance.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -484,14 +538,14 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemIssuanceService.UpdateAsync(model, user, date);
+                    model = await _psCardService.PropertyCard.PsCardItemIssuance.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
             {
                 if (e.GetType().Name == "ServiceException")
                 {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
                          "please contact tech support with this message: " + e.Message);
                 }
                 else
@@ -514,13 +568,14 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-
-                if (ModelState.IsValid)
+                else
+                //if (ModelState.IsValid)
                 {
+                    ModelState.Clear();
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _cardItemIssuanceService.DeleteAsync(model, user, date);
+                    model = await _psCardService.PropertyCard.PsCardItemIssuance.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
             }
@@ -540,8 +595,102 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] PropertyCardVM model)
+        {
+            if (model.Id != Guid.Empty)
+            {
+                //model = await _cardService.GetVmByIdAsync(model.Id);
+                var allField = await _psCardService.PropertyCard.AllField.GetByIdAsync(model.Id);
+                if (allField != null)
+                {
+                    model.AllField = allField;
+                }
+            }
+            string partialView = "";
+            if (Enum.TryParse(model.ItemTypeCode, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    partialView = "_FieldLand";
+                }
+                else if (c == CatMachineries()
+                    || c == CatTransportations()
+                    || c == CatFurnitures()
+                    || c == CatOtherProperties()
+                    || c == CatMedicals()
+                    || c == CatAgriculturals()
+                    || c == CatAnimalSupplies()
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies()
+                    || c == CatAccountableForms()
+                    || c == CatNonAccountableForns()
+                    || c == CatMilitaries()
+                    || c == CatOtherSupplies())
+                {
+                    partialView = "_FieldBrand";
+                }
+                else if (c == CatDrugs())
+                {
+                    partialView = "_FieldDrugs";
+                }
+                else if (c == CatRepairs())
+                {
+                    partialView = "_FieldSerial";
+                }
+            }
+            return PartialView(partialView, model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadItemFields([System.Web.Http.FromBody] PsCardItemVM model)
+        {
+            var psCard = await _psCardService.GetByIdAsync((Guid)model.PsCardId);
+            if (model.Id != Guid.Empty)
+            {
+                var data = await _psCardService.PropertyCard.PsCardItem.GetByIdAsync(model.Id);
+                model = _psCardService.PropertyCard.PsCardItem.TransferItemField(data, model);
+
+            }
+            string partialView = "";
+            if (Enum.TryParse(psCard.ItemCode.ItemType.Code, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    partialView = "_ItemFieldLand";
+                }
+                else if (c == CatMachineries()
+                    || c == CatTransportations()
+                    || c == CatFurnitures()
+                    || c == CatOtherProperties()
+                    || c == CatMedicals()
+                    || c == CatAgriculturals()
+                    || c == CatAnimalSupplies()
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies()
+                    || c == CatAccountableForms()
+                    || c == CatNonAccountableForns()
+                    || c == CatMilitaries()
+                    || c == CatOtherSupplies())
+                {
+                    partialView = "_ItemFieldBrand";
+                }
+                else if (c == CatDrugs())
+                {
+                    partialView = "_ItemFieldDrugs";
+                }
+                else if (c == CatRepairs())
+                {
+                    partialView = "_ItemFieldSerial";
+                }
+            }
+            return PartialView(partialView, model);
+        }
+
+
         #region PRINTOUTS
-        public ActionResult StockCardRpt(string stockNo)
+
+        public ActionResult StockCardRpt(Guid? selectedId)
         {
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
@@ -568,6 +717,7 @@ namespace iLgs.Controllers
                 table.ApplyLogOnInfo(logonInfo);
             }
 
+            var stockNo = _psCardService.GetById((Guid)selectedId)?.PsNo;
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
             var imagePath = _codextnService.GetByMastCode("DIRS").Where(w => w.Code == "IMAGE-ITEMS").FirstOrDefault().Description;
 
@@ -581,5 +731,258 @@ namespace iLgs.Controllers
             return File(stream, "application/pdf");
         }
         #endregion
+
+        [HttpPost]
+        public ActionResult GetItemExtnTemplate(Guid? id)
+        {
+
+            string itemExtnName = _psCardService.GetItemExtnName(id);
+
+            return Json(new { Errors = "", ItemExtnName = itemExtnName }, JsonRequestBehavior.AllowGet);
+
+        }
+
+        #region ITEMEXTN VEHICLES
+        public ActionResult _ItemExtnVehicleRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
+        {
+            var data = _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.GetByPsCardItemId(psCardItemId);
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnVehicleCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnVehicle model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("", "Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.CreateAsync(model, user, date);
+
+                    // TO DO: save to stock card
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnVehicleUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnVehicle model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.UpdateAsync(model, user, date);
+
+                    // TO DO: update stock card
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnVehicleDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnVehicle model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.DeleteAsync(model, user, date);
+                    // TO DO: update stocks
+                }
+
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("DeleteError", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion  
+
+
+        #region ITEMEXTN OTHERS
+        public ActionResult _ItemExtnOtherRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
+        {
+            var data = _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.GetByPsCardItemId(psCardItemId);
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnOtherCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnOther model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("", "Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.CreateAsync(model, user, date);
+
+                    // TO DO: save to stock card
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnOtherUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnOther model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.UpdateAsync(model, user, date);
+
+                    // TO DO: update stock card
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemExtnOtherDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnOther model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("GridError", "Delete Access Denied!");
+                }
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.DeleteAsync(model, user, date);
+                    // TO DO: update stocks
+                }
+
+            }
+            catch (Exception e)
+            {
+                if (e.GetType().Name == "ServiceException")
+                {
+                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                         "please contact tech support with this message: " + e.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("", e.Message);
+                }
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion  
     }
 }
