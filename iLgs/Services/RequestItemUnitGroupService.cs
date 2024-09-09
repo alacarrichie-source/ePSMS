@@ -36,7 +36,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<RequestItemUnitGroup> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await _db.RequestItemUnitGroups.FindAsync(id);
             return data;
@@ -62,7 +62,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RequestItemUnitGroupVM> CreateAsync(RequestItemUnitGroupVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             if (await _requestService.IsPostedAsync((Guid)model.PrId))
             {
@@ -96,7 +96,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RequestItemUnitGroupVM> DeleteAsync(RequestItemUnitGroupVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RequestItemUnitGroups.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
@@ -128,7 +128,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RequestItemUnitGroupVM> UpdateAsync(RequestItemUnitGroupVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RequestItemUnitGroups.FindAsync(model.Id);
             if (entity == null)

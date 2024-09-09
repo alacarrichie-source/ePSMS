@@ -33,7 +33,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<OrderItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await _db.OrderItemUnitGroupDescriptionItems.FindAsync(id);
             return data;
@@ -85,7 +85,7 @@ namespace iLgs.Services
         //});
 
         public ValueTask<OrderItemUnitGroupDescriptionItemVM> CreateAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -112,7 +112,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<OrderItemUnitGroupDescriptionItemVM> DeleteAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -144,7 +144,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<OrderItemUnitGroupDescriptionItem> DeleteEmptyGroupsAsync(Guid? orderItemId) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var unitGroupDescriptionItems = _db.OrderItemUnitGroupDescriptionItems.Where(w => w.OrderItemId == orderItemId);
             if (unitGroupDescriptionItems.Any())
@@ -176,7 +176,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<OrderItemUnitGroupDescriptionItemVM> UpdateAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;

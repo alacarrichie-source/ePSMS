@@ -16,6 +16,26 @@ using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Services
 {
+    public interface IOrderService
+    {
+        IQueryable<OrderVM> GetAll();
+        IQueryable<OrderVM> GetAllParOrders();
+        ValueTask<Models.Order> GetByIdAsync(Guid orderId);
+        ValueTask<Models.Order> GetByPoNoAsync(string poNo);
+        ValueTask<bool> GetAnyPoNoAsync(Guid id, string poNo);
+        ValueTask<bool> IsPostedAsync(Guid orderId);
+        ValueTask<bool> GetAnyParsAsync(Guid id);
+        ValueTask<bool> GetAnyAirsAsync(Guid id);
+
+        ValueTask<int> GetNotPostedAsync(DateTime asOf);
+
+        ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date);
+        ValueTask<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date);
+        ValueTask<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date);
+        ValueTask<Order> PostAsync(Guid orderId, string user, DateTime date);
+        ValueTask<Order> UnpostAsync(Guid orderId, string user, DateTime date);
+    }
+
     public class OrderService : IOrderService
     {
         private readonly AppManEntities db = new AppManEntities();
@@ -245,7 +265,7 @@ namespace iLgs.Services
             return model;
         });
 
-        public ValueTask<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch(async () =>
         {
             await ValidateOnUpdate(model);
 
@@ -320,7 +340,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<OrderVM> DeleteAsync(OrderVM model, string user, DateTime date) =>
-        _orderVmExceptionService.TryCatchAsync(async () =>
+        _orderVmExceptionService.TryCatch(async () =>
         {
             await ValidateOnDestroy(model);
 
@@ -350,7 +370,7 @@ namespace iLgs.Services
             return model;
         });
 
-        public ValueTask PostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
+        public ValueTask<Order> PostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
             //var entity = await db.Orders.FindAsync(orderId);
             var entity = await db.Orders.Include(i => i.Request.RISs.RisItems).Where(w => w.Id == orderId).FirstOrDefaultAsync();
@@ -366,10 +386,11 @@ namespace iLgs.Services
             
             db.Orders.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();            
+            await db.SaveChangesAsync();
+            return entity;
         });
 
-        public ValueTask UnpostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
+        public ValueTask<Order> UnpostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
             var entity = await db.Orders.FindAsync(orderId);
 
@@ -388,7 +409,7 @@ namespace iLgs.Services
             db.Orders.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
-
+            return entity;
             ///*
             //    * Delete the following records onUnpost:
             //    //* PsCardItems, Fields...

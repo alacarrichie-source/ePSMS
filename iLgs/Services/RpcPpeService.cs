@@ -36,14 +36,14 @@ namespace iLgs.Services
         }
 
         public ValueTask<RpcPpe> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await _db.RpcPpes.FindAsync(id);
             return data;
         });
 
         public ValueTask<RpcPpeVM> GetByAsOfAsync(DateTime? asOf) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var data = await _db.RpcPpes.Where(w => w.AsOf == asOf)
                 .Select(s => new RpcPpeVM
@@ -87,7 +87,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RpcPpeVM> GenerateAsync(RpcPpeVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
 
             await _db.Database.ExecuteSqlCommandAsync("Exec RpcPpe_Generate {0}, {1}, {2}", model.AsOf, model.Department, user);
@@ -96,7 +96,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RpcPpeVM> CreateAsync(RpcPpeVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             //var notPosted = await _orderService.GetNotPostedAsync((DateTime)model.AsAt);
             //if (notPosted > 0)
@@ -136,7 +136,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RpcPpeVM> DeleteAsync(RpcPpeVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RpcPpes.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
@@ -163,7 +163,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RpcPpeVM> UpdateAsync(RpcPpeVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RpcPpes.FindAsync(model.Id);
             if (entity == null)

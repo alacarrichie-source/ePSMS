@@ -36,13 +36,13 @@ namespace iLgs.Services
             return data;
         }
 
-        public ValueTask<AIRItemExtnOther> GetByIdAsync(Guid? id) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<AIRItemExtnOther> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
         {
             var data = await _db.AIRItemExtns.OfType<AIRItemExtnOther>().Where(w => w.Id == id).FirstOrDefaultAsync();
             return data;
         });
 
-        public ValueTask<AIRItemExtnOther> CreateAsync(AIRItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<AIRItemExtnOther> CreateAsync(AIRItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             if (await IsPostedAsync(model.AIRItemId))
             {
@@ -90,7 +90,7 @@ namespace iLgs.Services
             return model;
         });
 
-        public ValueTask<AIRItemExtnOther> DeleteAsync(AIRItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<AIRItemExtnOther> DeleteAsync(AIRItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             if (await IsPostedAsync(model.AIRItemId))
             {
@@ -116,7 +116,7 @@ namespace iLgs.Services
             return model;
         });
 
-        public ValueTask<AIRItemExtnOther> UpdateAsync(AIRItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<AIRItemExtnOther> UpdateAsync(AIRItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             if (await IsPostedAsync(model.AIRItemId))
             {

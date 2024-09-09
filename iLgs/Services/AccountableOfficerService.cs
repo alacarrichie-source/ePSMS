@@ -47,7 +47,7 @@ namespace iLgs.Services
 
 
         public ValueTask<AccountableOfficerVM> CreateAsync(AccountableOfficerVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             if (_db.AccountableOfficers.Any(a => a.LocationId == model.LocationId && a.Name == model.Name && a.Designation == model.Designation && a.DateAssumption ==  model.DateAssumption))
             {
@@ -89,7 +89,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<AccountableOfficerVM> DeleteAsync(AccountableOfficerVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             if (_db.AccountableOfficers.Find(model.Id) == null)
             {
@@ -115,7 +115,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<AccountableOfficerVM> UpdateAsync(AccountableOfficerVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             if (_db.AccountableOfficers.Find(model.Id) == null)
             {

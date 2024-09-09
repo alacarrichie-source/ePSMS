@@ -43,7 +43,7 @@
 //        });
 
 //        public ValueTask SaveAsync(Guid risItemId, List<RisItemExtnVM> risItemExtnList, string user, DateTime date) =>
-//        _vmExceptionService.TryCatchAsync(async () =>
+//        _vmExceptionService.TryCatch(async () =>
 //        {
 //            // log updates
 //            var existingRisItemExtns = db.RisItemExtns.Where(w => w.RisItemId == risItemId).ToList();

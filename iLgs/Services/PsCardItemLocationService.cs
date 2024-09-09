@@ -48,7 +48,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<PsCardItemLocation> CreateAsync(PsCardItemLocation model, string user, DateTime date) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
 
             model.Id = Guid.NewGuid();
@@ -79,7 +79,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<PsCardItemLocation> UpdateAsync(PsCardItemLocation model, string user, DateTime date) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var entity = await GetByIdAsync(model.Id);
 
@@ -110,7 +110,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<PsCardItemLocation> DeleteAsync(PsCardItemLocation model, string user, DateTime date) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             PsCardItemLocation entity = await _db.PsCardItemLocations.FindAsync(model.Id);
             if (entity == null)

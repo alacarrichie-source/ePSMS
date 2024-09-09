@@ -375,7 +375,7 @@
 
     function RisItem(mode, recId) {
         var myTitle = (mode == "A") ? "RIS Item - ADD" : "RIS Item - EDIT";
-        var width = 800;
+        var width = 1000;
         var height = 650;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
@@ -420,7 +420,7 @@
         var mywindow = $("#window").data("kendoWindow");
         if (mywindow) {
             mywindow.setOptions({
-                width: "800",
+                width: "1000",
                 height: "auto"
             });
             mywindow.center(); // Optional: Center the window after resizing
@@ -578,7 +578,6 @@
         $("#SubAccountCode").val(dataItem.MainDescCode).trigger("change");
 
         RefreshDivs(dataItem);
-
     }
 
     function RefreshDivs(dataItem) {

@@ -94,5 +94,6 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItemLocation> PsCardItemLocations { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
+        public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
     }
 }

@@ -239,11 +239,56 @@
                 },
                 success: function (result) {
                     window.kendo.ui.progress($("#form"), false);
-                    if (result.Errors == "") {
+                    if (!result.Errors) {
                         $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
                     }
                     else {
-                        alert(result.Errors);
+                        //alert(result.Errors);                       
+                        //var errors = result.Errors;
+
+                        //var $errorList = $(".errors");
+                        //$errorList.empty(); // Clear previous errors
+
+                        //// Iterate through the errors and render them using the Kendo template
+                        //$.each(errors, function (field, messages) {
+                        //    var errorHtml = kendo.template($("#validationMessageTemplate").html())({
+                        //        field: field,
+                        //        messages: messages
+                        //    });
+                        //    $errorList.append(errorHtml);
+                        //});
+
+                        //// Show the error content
+                        //$("#ErrorContent").removeClass("hidden");
+
+                        // Clear previous error messages
+                        $('#ErrorContent .errors').empty();
+
+                        // Loop through each error object and create the HTML structure
+                        for (var i = 0; i < result.Errors.length; i++) {
+                            var field = result.Errors[i].field;
+                            var messages = result.Errors[i].messages;
+
+                            // Check if messages exists and is an array
+                            if (Array.isArray(messages)) {
+                                // Build the HTML structure
+                                var errorListItem = $('<li></li>').text(field);
+                                var messageList = $('<ul></ul>');
+
+                                for (var j = 0; j < messages.length; j++) {
+                                    messageList.append($('<li></li>').text(messages[j]));
+                                }
+
+                                errorListItem.append(messageList);
+                                $('#ErrorContent .errors').append(errorListItem);
+                            } else {
+                                console.error(`Expected messages to be an array for field ${field}`);
+                            }
+                        }
+
+                        // Show the error content
+                        $('#ErrorContent').removeClass('hidden');
+
                     }
                     selectedId = result.Id;
                 },

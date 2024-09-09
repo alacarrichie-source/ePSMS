@@ -1114,6 +1114,19 @@
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="datetime" />
         </EntityType>
+        <EntityType Name="RPCIDepLocs">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="RpciId" Type="uniqueidentifier" />
+          <Property Name="DeptId" Type="uniqueidentifier" />
+          <Property Name="LocationId" Type="uniqueidentifier" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
         <EntityType Name="RPCIItems">
           <Key>
             <PropertyRef Name="Id" />
@@ -2491,6 +2504,20 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_RPCIDepLocs_RPCIs">
+          <End Role="RPCIs" Type="Self.RPCIs" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RPCIDepLocs" Type="Self.RPCIDepLocs" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RPCIs">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCIDepLocs">
+              <PropertyRef Name="RpciId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_RPCIItems_Codextn">
           <End Role="Codextn" Type="Self.Codextn" Multiplicity="0..1" />
           <End Role="RPCIItems" Type="Self.RPCIItems" Multiplicity="*" />
@@ -2696,6 +2723,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="RISs" EntityType="Self.RISs" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RPCEFFOPPEItems" EntityType="Self.RPCEFFOPPEItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RPCEFFOPPEs" EntityType="Self.RPCEFFOPPEs" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RPCIDepLocs" EntityType="Self.RPCIDepLocs" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RPCIItems" EntityType="Self.RPCIItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RPCIs" EntityType="Self.RPCIs" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RpcPpeItems" EntityType="Self.RpcPpeItems" Schema="dbo" store:Type="Tables" />
@@ -3080,6 +3108,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_RPCEFFOPPEItems_RPCEFFOPPEs" Association="Self.FK_RPCEFFOPPEItems_RPCEFFOPPEs">
             <End Role="RPCEFFOPPEs" EntitySet="RPCEFFOPPEs" />
             <End Role="RPCEFFOPPEItems" EntitySet="RPCEFFOPPEItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RPCIDepLocs_RPCIs" Association="Self.FK_RPCIDepLocs_RPCIs">
+            <End Role="RPCIs" EntitySet="RPCIs" />
+            <End Role="RPCIDepLocs" EntitySet="RPCIDepLocs" />
           </AssociationSet>
           <AssociationSet Name="FK_RPCIItems_Codextn" Association="Self.FK_RPCIItems_Codextn">
             <End Role="Codextn" EntitySet="Codextn" />
@@ -3530,6 +3562,11 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_RPCIItems_RPCIs1" Association="AppManModel.FK_RPCIItems_RPCIs1">
             <End Role="RPCI" EntitySet="RPCIs" />
             <End Role="RPCIItem" EntitySet="RPCIItems" />
+          </AssociationSet>
+          <EntitySet Name="RPCIDepLocs" EntityType="AppManModel.RPCIDepLoc" />
+          <AssociationSet Name="FK_RPCIDepLocs_RPCIs" Association="AppManModel.FK_RPCIDepLocs_RPCIs">
+            <End Role="RPCI" EntitySet="RPCIs" />
+            <End Role="RPCIDepLoc" EntitySet="RPCIDepLocs" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -5789,6 +5826,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_RPCIs_Codextn" FromRole="RPCI" ToRole="Codextn" />
           <NavigationProperty Name="ItemType" Relationship="AppManModel.FK_RPCIs_ItemTypes" FromRole="RPCI" ToRole="ItemType" />
           <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_RPCIs1" FromRole="RPCI" ToRole="RPCIItem" />
+          <NavigationProperty Name="RPCIDepLocs" Relationship="AppManModel.FK_RPCIDepLocs_RPCIs" FromRole="RPCI" ToRole="RPCIDepLoc" />
         </EntityType>
         <Association Name="FK_RPCIs_Codextn">
           <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
@@ -6177,6 +6215,34 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="RPCIItem">
+              <PropertyRef Name="RpciId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="RPCIDepLoc">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RpciId" Type="Guid" />
+          <Property Name="DeptId" Type="Guid" />
+          <Property Name="LocationId" Type="Guid" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="RPCI" Relationship="AppManModel.FK_RPCIDepLocs_RPCIs" FromRole="RPCIDepLoc" ToRole="RPCI" />
+        </EntityType>
+        <Association Name="FK_RPCIDepLocs_RPCIs">
+          <End Type="AppManModel.RPCI" Role="RPCI" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RPCIDepLoc" Role="RPCIDepLoc" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RPCI">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RPCIDepLoc">
               <PropertyRef Name="RpciId" />
             </Dependent>
           </ReferentialConstraint>
@@ -7687,6 +7753,20 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="PoNo" ColumnName="PoNo" />
                 <ScalarProperty Name="Article" ColumnName="Article" />
                 <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
+                <ScalarProperty Name="RpciId" ColumnName="RpciId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RPCIDepLocs">
+            <EntityTypeMapping TypeName="AppManModel.RPCIDepLoc">
+              <MappingFragment StoreEntitySet="RPCIDepLocs">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="LocationId" ColumnName="LocationId" />
+                <ScalarProperty Name="DeptId" ColumnName="DeptId" />
                 <ScalarProperty Name="RpciId" ColumnName="RpciId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

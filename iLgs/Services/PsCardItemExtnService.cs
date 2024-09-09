@@ -107,7 +107,7 @@ namespace iLgs.Services
             //}
 
             //public ValueTask<PsCardItemExtn> CreateAsync(PsCardItemExtn model, string user, DateTime date) =>
-            //_exceptionService.TryCatchAsync(async () =>
+            //_exceptionService.TryCatch(async () =>
             //{
 
             //    model.Id = Guid.NewGuid();
@@ -139,7 +139,7 @@ namespace iLgs.Services
             //});
 
             //public ValueTask<PsCardItemExtn> UpdateAsync(PsCardItemExtn model, string user, DateTime date) =>
-            //_exceptionService.TryCatchAsync(async () =>
+            //_exceptionService.TryCatch(async () =>
             //{
             //    var entity = await GetByIdAsync(model.Id);
 
@@ -170,7 +170,7 @@ namespace iLgs.Services
             //});
 
             //public ValueTask<PsCardItemExtn> DeleteAsync(PsCardItemExtn model, string user, DateTime date) =>
-            //_exceptionService.TryCatchAsync(async () =>
+            //_exceptionService.TryCatch(async () =>
             //{
             //    PsCardItemExtn entity = await _db.PsCardItemExtns.FindAsync(model.Id);
             //    if (entity == null)

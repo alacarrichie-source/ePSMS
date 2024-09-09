@@ -36,14 +36,14 @@ namespace iLgs.Services
         }
 
         public ValueTask<RPCEFFOPPE> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await _db.RPCEFFOPPEs.FindAsync(id);
             return data;
         });
 
         public ValueTask<RPCEFFOPPE_VM> GetByAsAtAsync(DateTime? asAt) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var data = await _db.RPCEFFOPPEs.Where(w => w.AsAt == asAt)
                 .Select(s => new RPCEFFOPPE_VM
@@ -87,7 +87,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCEFFOPPE_VM> GenerateAsync(RPCEFFOPPE_VM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
 
             await _db.Database.ExecuteSqlCommandAsync("Exec RPCEFFOPPE_Generate {0}, {1}, {2}", model.AsAt, model.Department, user);
@@ -96,7 +96,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCEFFOPPE_VM> CreateAsync(RPCEFFOPPE_VM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var notPosted = await _orderService.GetNotPostedAsync((DateTime)model.AsAt);
             if (notPosted > 0)
@@ -136,7 +136,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCEFFOPPE_VM> DeleteAsync(RPCEFFOPPE_VM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RPCEFFOPPEs.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
@@ -163,7 +163,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCEFFOPPE_VM> UpdateAsync(RPCEFFOPPE_VM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RPCEFFOPPEs.FindAsync(model.Id);
             if (entity == null)

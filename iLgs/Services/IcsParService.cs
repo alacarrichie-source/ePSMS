@@ -37,7 +37,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<IcsPar> CreateAsync(IcsPar model, string user, DateTime date) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {            
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -63,7 +63,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<IcsPar> UpdateAsync(IcsPar model, string user, DateTime date) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             IcsPar entity = await _db.IcsPars.FindAsync(model.Id);
             if (entity == null)
@@ -98,7 +98,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<IcsPar> DeleteAsync(IcsPar model, string user, DateTime date) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             IcsPar entity = await _db.IcsPars.FindAsync(model.Id);
 

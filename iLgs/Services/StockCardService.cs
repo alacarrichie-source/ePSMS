@@ -10,42 +10,25 @@ using System.Web;
 
 namespace iLgs.Services
 {
-    public interface IStockCardService
+    public interface IStockCardService : IPsCardService
     {
-        IQueryable<StockCardVM> GetAll();
         ValueTask<StockCardVM> GetByIdAsync(Guid? id);
-        ValueTask<ServiceResult<StockCardVM>> CreateAsync(StockCardVM model, string user, DateTime date);
-        ValueTask<ServiceResult<StockCardVM>> UpdateAsync(StockCardVM model, string user, DateTime date);
-        ValueTask<ServiceResult<StockCardVM>> DeleteAsync(StockCardVM model, string user, DateTime date);
-
-        IAllFieldService AllField { get; }
-        IPsCardItemService PsCardItem { get; }
-        IPsCardItemIssuanceService PsCardItemIssuance { get; }
+        ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date);
+        ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date);
+        ValueTask<StockCardVM> DeleteAsync(StockCardVM model, string user, DateTime date);                
     }
-    public class StockCardService : IStockCardService
+    public class StockCardService : PsCardService, IStockCardService
     {
-        private readonly AppManEntities _db = new AppManEntities();
         private readonly IExceptionService<ServiceResult<StockCardVM>> _exceptionService = new ExceptionService<ServiceResult<StockCardVM>>();
         private readonly IExceptionService<StockCardVM> _vmExceptionService = new ExceptionService<StockCardVM>();
-        private readonly IValidationService<StockCardVM> _validationService;
-        private IAllFieldService _allFieldService;
-        private IPsCardItemService _psCardItemService;
-        private IPsCardItemIssuanceService _psCardItemIssuanceService;
+        private readonly IStockCardValidator _validator;        
 
-        public StockCardService(AppManEntities db)
+        public StockCardService(AppManEntities db) : base (db)
         {
-            _db = db;
-            _validationService = new ValidationService<StockCardVM>(new StockCardValidator(db));
-            _allFieldService = new AllFieldService(db);
-            _psCardItemService = new PsCardItemService(db);
-            _psCardItemIssuanceService = new PsCardItemIssuanceService(db);
-        }
+            _validator = new StockCardValidator(db);            
+        }               
 
-        public IAllFieldService AllField { get { return _allFieldService = _allFieldService ?? new AllFieldService(_db); } }
-        public IPsCardItemService PsCardItem { get { return _psCardItemService = _psCardItemService ?? new PsCardItemService(_db); } }
-        public IPsCardItemIssuanceService PsCardItemIssuance { get { return _psCardItemIssuanceService = _psCardItemIssuanceService ?? new PsCardItemIssuanceService(_db); } }
-
-        public IQueryable<StockCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
+        public new IQueryable<StockCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.PsCards.AsNoTracking()
                 .Where(w => w.ItemCode.ItemType.Category == "S")
@@ -107,16 +90,10 @@ namespace iLgs.Services
             return data;
         });
 
-        public ValueTask<ServiceResult<StockCardVM>> CreateAsync(StockCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            var result = await _validationService.ValidateAsync(model, "Create");
-            if (!result.IsSuccess)
-            {
-                return ServiceResult<StockCardVM>.Failure(result.Errors);
-            }
-                        
-            _allFieldService.ValidateStockCardAllField(model);
-            
+            _validator.ValidateOnCreate(model);
+
             model.Description = "Please see attachment.";
             model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
 
@@ -158,20 +135,20 @@ namespace iLgs.Services
             _db.PsCards.Add(entity);
             await _db.SaveChangesAsync();
 
-            return ServiceResult<StockCardVM>.Success(model);
+            return model;
         });
         
-        public ValueTask<ServiceResult<StockCardVM>> UpdateAsync(StockCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            var result = await _validationService.ValidateAsync(model, "Update");
-            if (!result.IsSuccess)
-            {
-                return ServiceResult<StockCardVM>.Failure(result.Errors);
-            }
+            //var result = await _validator.ValidateAsync(model, "Update");
+            //if (!result.IsSuccess)
+            //{
+            //    return ServiceResult<StockCardVM>.Failure(result.Errors);
+            //}
 
             var entity = await _db.PsCards.FindAsync(model.Id);
 
-            _allFieldService.ValidatePsCardAllField(model);
+            //await _allFieldService.ValidatePsCardAllField(model);
             
             model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
             model.UpdatedBy = user;
@@ -202,10 +179,10 @@ namespace iLgs.Services
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            return ServiceResult<StockCardVM>.Success(model);
+            return model;
         });
 
-        public ValueTask<ServiceResult<StockCardVM>> DeleteAsync(StockCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<StockCardVM> DeleteAsync(StockCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -223,7 +200,7 @@ namespace iLgs.Services
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
             
-            return ServiceResult<StockCardVM>.Success(model);
+            return model;
         });
     }
 }

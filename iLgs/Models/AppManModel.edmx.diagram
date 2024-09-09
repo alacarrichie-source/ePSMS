@@ -98,6 +98,8 @@
         <EntityTypeShape EntityType="AppManModel.RPCI" Width="1.5" PointX="5.375" PointY="8.5" />
         <EntityTypeShape EntityType="AppManModel.RPCIItem" Width="1.5" PointX="7.625" PointY="7" />
         <AssociationConnector Association="AppManModel.FK_RPCIItems_RPCIs1" />
+        <EntityTypeShape EntityType="AppManModel.RPCIDepLoc" Width="1.5" PointX="7.625" PointY="15.75" />
+        <AssociationConnector Association="AppManModel.FK_RPCIDepLocs_RPCIs" />
       </Diagram>
       <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" ZoomLevel="83" >
         <EntityTypeShape EntityType="AppManModel.AccountableOfficer" Width="1.5" PointX="0.75" PointY="0.75" />

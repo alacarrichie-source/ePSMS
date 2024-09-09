@@ -34,7 +34,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<RequestItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await _db.RequestItemUnitGroupDescriptionItems.FindAsync(id);
             return data;
@@ -84,7 +84,7 @@ namespace iLgs.Services
         //});
 
         //public ValueTask<RequestItemUnitGroupDescriptionItemVM> CreateAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date) =>
-        //_vmExceptionService.TryCatchAsync(async () =>
+        //_vmExceptionService.TryCatch(async () =>
         //{
         //    if (string.IsNullOrWhiteSpace(model.GridItems))
         //    {
@@ -119,7 +119,7 @@ namespace iLgs.Services
         //});
 
         public ValueTask<RequestItemUnitGroupDescriptionItemVM> DeleteAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -141,7 +141,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RequestItemUnitGroupDescriptionItemVM> UpdateAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;

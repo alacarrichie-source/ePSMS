@@ -18,6 +18,7 @@ namespace iLgs.Models
         public RPCI()
         {
             this.RPCIItems = new HashSet<RPCIItem>();
+            this.RPCIDepLocs = new HashSet<RPCIDepLoc>();
         }
     
         public System.Guid Id { get; set; }
@@ -43,5 +44,7 @@ namespace iLgs.Models
         public virtual ItemType ItemType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCIItem> RPCIItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RPCIDepLoc> RPCIDepLocs { get; set; }
     }
 }

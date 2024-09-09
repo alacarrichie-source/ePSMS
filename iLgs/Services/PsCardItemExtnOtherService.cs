@@ -36,13 +36,13 @@ namespace iLgs.Services
             return data;
         }
 
-        public ValueTask<PsCardItemExtnOther> GetByIdAsync(Guid? id) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<PsCardItemExtnOther> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
         {
             var data = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().Where(w => w.Id == id).FirstOrDefaultAsync();
             return data;
         });
 
-        public ValueTask<PsCardItemExtnOther> CreateAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<PsCardItemExtnOther> CreateAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             //if (await IsPostedAsync(model.PsCardItemId))
             //{
@@ -91,7 +91,7 @@ namespace iLgs.Services
             return model;
         });
 
-        public ValueTask<PsCardItemExtnOther> DeleteAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<PsCardItemExtnOther> DeleteAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             //if (await IsPostedAsync(model.PsCardItemId))
             //{
@@ -117,7 +117,7 @@ namespace iLgs.Services
             return model;
         });
 
-        public ValueTask<PsCardItemExtnOther> UpdateAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<PsCardItemExtnOther> UpdateAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             //if (await IsPostedAsync(model.PsCardItemId))
             //{

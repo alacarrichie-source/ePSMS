@@ -23,8 +23,8 @@ namespace iLgs.Services
         IQueryable<PsCardItemUnitGroupDescription> GetItemSetDescriptionsByUnitGroupId(Guid? unitGroupId);
         IQueryable<ParIcsItemVm> GetItemSetDescriptionItemsByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
 
-        ValueTask PostAsync(Guid? groupId, string user, DateTime date);
-        ValueTask UnPostAsync(Guid? groupId, string user, DateTime date);
+        ValueTask<PsCardItem> PostAsync(Guid? groupId, string user, DateTime date);
+        ValueTask<PsCardItem> UnPostAsync(Guid? groupId, string user, DateTime date);
 
         ValueTask<ParVM> GetByIdAsync(Guid? id);
 
@@ -67,6 +67,7 @@ namespace iLgs.Services
         private IPsCardItemExtnService _psCardItemExtnService;
         private IPsCardItemIssuanceService _psCardItemIssaunceService;
         private readonly IExceptionService<GenerateIcsParVM> _generateParExceptionService = new ExceptionService<GenerateIcsParVM>();
+        private readonly IExceptionService<PsCardItem> _postExceptionService = new ExceptionService<PsCardItem>();
 
         public ParService(AppManEntities db)
         {
@@ -346,7 +347,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<GenerateIcsParVM> GeneratePAR(GenerateIcsParVM model, string user, DateTime date) =>
-        _generateParExceptionService.TryCatchAsync(async () =>
+        _generateParExceptionService.TryCatch(async () =>
         {
             if (model.LocationId == null || model.LocationId == Guid.Empty)
             {
@@ -526,7 +527,7 @@ namespace iLgs.Services
             }
         }
 
-        public ValueTask PostAsync(Guid? groupId, string user, DateTime date) => _generateParExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItem> PostAsync(Guid? groupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
         {
             var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
             if (entity.Count() == 0)
@@ -546,6 +547,7 @@ namespace iLgs.Services
             }
 
             await ValidateUploadAsync(groupId);
+            return entity.FirstOrDefault();
 
             //await ValidateOnPost(entity);
 
@@ -557,9 +559,10 @@ namespace iLgs.Services
                 f.UpdatedDt = date;
             });
             await _db.SaveChangesAsync();
+            return entity.FirstOrDefault();
         });
 
-        public ValueTask UnPostAsync(Guid? groupId, string user, DateTime date) => _generateParExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItem> UnPostAsync(Guid? groupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
         {
             var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
 
@@ -577,7 +580,8 @@ namespace iLgs.Services
                 f.UpdatedBy = user;
                 f.UpdatedDt = date;
             });
-            await _db.SaveChangesAsync();            
+            await _db.SaveChangesAsync();
+            return entity.FirstOrDefault();
         });
     }
 }

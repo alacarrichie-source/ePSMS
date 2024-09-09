@@ -41,7 +41,7 @@ namespace iLgs.Services
 
                 
         public ValueTask<DepartmentUserVM> CreateAsync(DepartmentUserVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             if (db.DepartmentUsers.Any(a => a.DeptId == model.DeptId && a.UserId == a.UserId))
             {
@@ -76,7 +76,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<DepartmentUserVM> DeleteAsync(DepartmentUserVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             if (db.DepartmentUsers.Find(model.Id) == null)
             {
@@ -102,7 +102,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<DepartmentUserVM> UpdateAsync(DepartmentUserVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {            
             if (db.DepartmentUsers.Find(model.Id) == null)
             {

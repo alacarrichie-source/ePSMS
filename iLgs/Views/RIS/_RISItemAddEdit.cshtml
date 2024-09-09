@@ -36,16 +36,23 @@
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetItems", "Items");
+                                read.Action("GetItemAccounts", "Items");
                             })
                             .ServerFiltering(true);
                         })
                         .Columns(c =>
                         {
-                            c.Add().Field("Code").Title("Code").Width("15%").Template("#= columnTemplate(data.Code) #");
-                            c.Add().Field("TypeDesc").Title("Account").Width("25%").Template("#= columnTemplate(data.TypeDesc) #");
-                            c.Add().Field("MainDesc").Title("Sub-Account").Width("35%").Template("#= columnTemplate(data.MainDesc) #");
-                            c.Add().Field("Description").Title("Article").Width("25%").Template("#= columnTemplate(data.Description) #");
+                            //c.Add().Field("Code").Title("Code").Width("15%").Template("#= columnTemplate(data.Code) #");
+                            //c.Add().Field("TypeDesc").Title("Account").Width("25%").Template("#= columnTemplate(data.TypeDesc) #");
+                            //c.Add().Field("MainDesc").Title("Sub-Account").Width("35%").Template("#= columnTemplate(data.MainDesc) #");
+                            //c.Add().Field("Description").Title("Article").Width("25%").Template("#= columnTemplate(data.Description) #");
+                            c.Add().Field("Code").Title("Code").Width("10%").Template("#= columnTemplate(data.Code) #");
+                            c.Add().Field("TypeDesc").Title("Account").Width("15%").Template("#= columnTemplate(data.TypeDesc) #");
+                            c.Add().Field("SubAccount1").Title("Sub-Account1").Width("15%").Template("#= columnTemplate(data.SubAccount1) #");
+                            c.Add().Field("SubAccount2").Title("Sub-Account2").Width("15%").Template("#= columnTemplate(data.SubAccount2) #");
+                            c.Add().Field("SubAccount3").Title("Sub-Account3").Width("15%").Template("#= columnTemplate(data.SubAccount3) #");
+                            c.Add().Field("SubAccount4").Title("Sub-Account4").Width("15%").Template("#= columnTemplate(data.SubAccount4) #");
+                            c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");
                         })
                         .Suggest(true)
                         .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
@@ -82,7 +89,7 @@
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(5).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Description)
                 </div>
             </div>
@@ -93,7 +100,7 @@
             <div class="col-md-12">
                 @Html.LabelFor(m => m.OtherDesc, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(3).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(2).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.OtherDesc)
                 </div>
             </div>
@@ -102,7 +109,7 @@
         <div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-6">
+                <div class="col-md-10">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.Unit)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select unit")
@@ -133,7 +140,7 @@
         <div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.QtyRequest, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-6">
+                <div class="col-md-10">
                     @(Html.Kendo().NumericTextBoxFor(model => model.QtyRequest).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.QtyRequest)
                 </div>
@@ -143,7 +150,7 @@
         <div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.QtyIssue, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-6">
+                <div class="col-md-10">
                     @(Html.Kendo().NumericTextBoxFor(model => model.QtyIssue).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.QtyIssue)
                 </div>

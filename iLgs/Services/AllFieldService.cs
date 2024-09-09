@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Data.Entity;
@@ -26,7 +27,7 @@ namespace iLgs.Services
         string GetRisDescription(RisItemEntryVM model);
         string GetCardStockNo(PsCardVM model);
         string GetRisStockNo(RisItemEntryVM model);
-        void ValidatePsCardAllField(PsCardVM model);
+        //void ValidatePsCardAllField(PsCardVM model);
         void ValidateStockCardAllField(StockCardVM model);
         void ValidatePropertyCardAllField(PropertyCardVM model);
         void ValidateRisAllField(RisItemEntryVM model);
@@ -34,6 +35,8 @@ namespace iLgs.Services
         bool IsBrandRequired(Category c);
         bool IsNoIcs(Guid? itemCodeId);
         AllField ChangeAllFieldCase(AllField allField);
+
+        ValueTask<ServiceResult<PsCardVM>> ValidatePsCardAllField(PsCardVM model);
     }
 
     public class AllFieldService : IAllFieldService
@@ -41,10 +44,11 @@ namespace iLgs.Services
         private readonly AppManEntities _db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<AllField> _exceptionService = new ExceptionService<AllField>();
-
+        private readonly IValidationService<PsCardVM> _validationService;
         public AllFieldService(AppManEntities db)
         {
             _db = db;
+            _validationService = new ValidationService<PsCardVM>(new AllFieldsValidator(db));
         }
 
         public IQueryable<AllField> GetAllByPsCardId(Guid? psCardId) => _exceptionService.TryCatch(() =>
@@ -65,68 +69,88 @@ namespace iLgs.Services
             return data;
         });
 
-        public void ValidatePsCardAllField(PsCardVM model)
+        public async ValueTask<ServiceResult<PsCardVM>> ValidatePsCardAllField(PsCardVM model)
         {
-            var af = model.AllField;
-            if (Enum.TryParse(model.ItemTypeCode, out Category c))
-            {
-                if (c == CatDrugs())
-                {
-                    if (string.IsNullOrWhiteSpace(af.GenericName))
-                    {
-                        throw new InvalidValueException("Generic Name is Required!");
-                    }
+            return await _validationService.ValidateAsync(model, "Create");
 
-                    //if (string.IsNullOrWhiteSpace(af.Brand))
-                    //{
-                    //    throw new InvalidValueException("Brand is Required!");
-                    //}
+            //var af = model.AllField;
+            //if (Enum.TryParse(model.ItemTypeCode, out Category c))
+            //{
+            //    if (c == CatDrugs())
+            //    {
+            //        if (string.IsNullOrWhiteSpace(af.GenericName))
+            //        {
+            //            throw new InvalidValueException("Generic Name is Required!");
+            //        }
 
-                    if (model.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
-                    {
-                        if (string.IsNullOrWhiteSpace(af.DosageVolume))
-                        {
-                            throw new InvalidValueException("Dosage Volume is Required!");
-                        }
-                    }
-                    else
-                    {
-                        if (string.IsNullOrWhiteSpace(af.DosageStrength))
-                        {
-                            throw new InvalidValueException("Dosage Strength is Required!");
-                        }
-                        if (string.IsNullOrWhiteSpace(af.DosageForm))
-                        {
-                            throw new InvalidValueException("Dosage Form is Required!");
-                        }
-                    }
-                }
-                else if (c == CatMachineries()
-                    || c == CatTransportations()
-                    || c == CatFurnitures()
-                    || c == CatOtherProperties()
-                    || c == CatMedicals()
-                    || c == CatAgriculturals()
-                    || c == CatAnimalSupplies()
-                    || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies()
-                    || c == CatAccountableForms()
-                    || c == CatNonAccountableForns()
-                    || c == CatMilitaries()
-                    || c == CatOtherSupplies())
-                {
-                    if (string.IsNullOrWhiteSpace(af.Brand))
-                    {
-                        throw new InvalidValueException("Brand is Required!");
-                    }
-                    if (string.IsNullOrWhiteSpace(af.Model_) && string.IsNullOrWhiteSpace(af.Size) && string.IsNullOrWhiteSpace(af.Dimension)
-                        && string.IsNullOrWhiteSpace(af.Weight) && string.IsNullOrWhiteSpace(af.Materials) && string.IsNullOrWhiteSpace(af.Capacity)
-                        && string.IsNullOrWhiteSpace(af.Color))
-                    {
-                        throw new InvalidValueException("Model or Dimension or Size or Weight or Materials or Capacity or Color is Required!");
-                    }
-                }
-            }
+                    
+            //        if (model.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
+            //        {
+            //            if (string.IsNullOrWhiteSpace(af.DosageVolume))
+            //            {
+            //                throw new InvalidValueException("Dosage Volume is Required!");
+            //            }
+            //        }
+            //        else
+            //        {
+            //            if (string.IsNullOrWhiteSpace(af.DosageStrength))
+            //            {
+            //                throw new InvalidValueException("Dosage Strength is Required!");
+            //            }
+            //            if (string.IsNullOrWhiteSpace(af.DosageForm))
+            //            {
+            //                throw new InvalidValueException("Dosage Form is Required!");
+            //            }
+            //        }
+            //    }
+            //    else if (c == CatMachineries()
+            //        || c == CatTransportations()
+            //        || c == CatFurnitures()
+            //        || c == CatOtherProperties()
+            //        || c == CatMedicals()
+            //        || c == CatAgriculturals()
+            //        || c == CatAnimalSupplies()
+            //        || c == CatConstructionMaterials()
+            //        || c == CatOfficeSupplies()
+            //        || c == CatAccountableForms()
+            //        || c == CatNonAccountableForns()
+            //        || c == CatMilitaries()
+            //        || c == CatOtherSupplies())
+            //    {
+            //        if (string.IsNullOrWhiteSpace(af.Brand))
+            //        {
+            //            throw new InvalidValueException("Brand is required!");
+            //        }
+            //        if (string.IsNullOrWhiteSpace(af.Model_))
+            //        {
+            //            throw new InvalidValueException("Model is required!");
+            //        }
+            //        if (string.IsNullOrWhiteSpace(af.Dimension))
+            //        {
+            //            throw new InvalidValueException("Dimension is required!");
+            //        }
+            //        if (string.IsNullOrWhiteSpace(af.Size))
+            //        {
+            //            throw new InvalidValueException("Size is required!");
+            //        }
+            //        if (string.IsNullOrWhiteSpace(af.Weight))
+            //        {
+            //            throw new InvalidValueException("Weight is required!");
+            //        }
+            //        if (string.IsNullOrWhiteSpace(af.Materials))
+            //        {
+            //            throw new InvalidValueException("Materials is required!");
+            //        }
+            //        if (string.IsNullOrWhiteSpace(af.Capacity))
+            //        {
+            //            throw new InvalidValueException("Capacity is required!");
+            //        }
+            //        if (string.IsNullOrWhiteSpace(af.Color))
+            //        {
+            //            throw new InvalidValueException("Color is required!");
+            //        }                    
+            //    }
+            //}
         }
 
         public void ValidateStockCardAllField(StockCardVM model)
@@ -181,14 +205,36 @@ namespace iLgs.Services
                 {
                     if (string.IsNullOrWhiteSpace(af.Brand))
                     {
-                        throw new InvalidValueException("Brand is Required!");
+                        throw new InvalidValueException("Brand is required!");
                     }
-                    if (string.IsNullOrWhiteSpace(af.Model_) && string.IsNullOrWhiteSpace(af.Size) && string.IsNullOrWhiteSpace(af.Dimension)
-                        && string.IsNullOrWhiteSpace(af.Weight) && string.IsNullOrWhiteSpace(af.Materials) && string.IsNullOrWhiteSpace(af.Capacity)
-                        && string.IsNullOrWhiteSpace(af.Color))
+                    if (string.IsNullOrWhiteSpace(af.Model_) )
                     {
-                        throw new InvalidValueException("Model or Dimension or Size or Weight or Materials or Capacity or Color is Required!");
+                        throw new InvalidValueException("Model is required!");
                     }
+                    if (string.IsNullOrWhiteSpace(af.Dimension))
+                    {
+                        throw new InvalidValueException("Dimension is required!");
+                    }
+                    if (string.IsNullOrWhiteSpace(af.Size))
+                    {
+                        throw new InvalidValueException("Size is required!");
+                    }
+                    if (string.IsNullOrWhiteSpace(af.Weight))
+                    {
+                        throw new InvalidValueException("Weight is required!");
+                    }
+                    if (string.IsNullOrWhiteSpace(af.Materials))
+                    {
+                        throw new InvalidValueException("Materials is required!");
+                    }
+                    if (string.IsNullOrWhiteSpace(af.Capacity))
+                    {
+                        throw new InvalidValueException("Capacity is required!");
+                    }
+                    if (string.IsNullOrWhiteSpace(af.Color))
+                    {
+                        throw new InvalidValueException("Color is required!");
+                    }                    
                 }
             }
         }
@@ -596,7 +642,8 @@ namespace iLgs.Services
                 if (property.PropertyType == typeof(string))
                 {
                     if (property.Name != nameof(allField.DosageStrength) && property.Name != nameof(allField.PlateNo)
-                         && property.Name != nameof(allField.InsertedBy) && property.Name != nameof(allField.UpdatedBy)) {
+                         && property.Name != nameof(allField.InsertedBy) && property.Name != nameof(allField.UpdatedBy))
+                    {
                         var value = (string)property.GetValue(allField);
                         if (value != null)
                         {
@@ -605,9 +652,9 @@ namespace iLgs.Services
                     }
                 }
             }
-            
+
             return allField;
-        }        
+        }
 
         public string GetCardStockNo(PsCardVM model)
         {
@@ -687,88 +734,38 @@ namespace iLgs.Services
                                         {
                                             if (!string.IsNullOrWhiteSpace(af.Color))
                                             {
-                                                if (af.Color == "-")
-                                                {
-                                                    stockNo += "/xx";
-                                                }
-                                                else
-                                                {
-                                                    stockNo += $"/{af.Color}";
-                                                }
+                                                stockNo += $"/{af.Color}";
                                             }
                                         }
                                         else
                                         {
-                                            if (af.Capacity == "-")
-                                            {
-                                                stockNo += "/xx";
-                                            }
-                                            else
-                                            {
-                                                stockNo += $"/{af.Capacity}";
-                                            }
+                                            stockNo += $"/{af.Capacity}";
                                         }
                                     }
                                     else
                                     {
-                                        if (af.Materials == "-")
-                                        {
-                                            stockNo += "/xx";
-                                        }
-                                        else
-                                        {
-                                            stockNo += $"/{af.Materials}";
-                                        }
+                                        stockNo += $"/{af.Materials}";
                                     }
                                 }
                                 else
                                 {
-                                    if (af.Weight == "-")
-                                    {
-                                        stockNo += "/xx";
-                                    }
-                                    else
-                                    {
-                                        stockNo += $"/{af.Weight}";
-                                    }
+                                    stockNo += $"/{af.Weight}";
                                 }
                             }
                             else
                             {
-                                if (af.Size == "-")
-                                {
-                                    stockNo += "/xx";
-                                }
-                                else
-                                {
-                                    stockNo += $"/{af.Size}";
-                                }
+                                stockNo += $"/{af.Size}";
                             }
                         }
                         else
                         {
-                            if (af.Dimension == "-")
-                            {
-                                stockNo += "/xx";
-                            }
-                            else
-                            {
-                                stockNo += $"/{af.Dimension}";
-                            }
+                            stockNo += $"/{af.Dimension}";
                         }
                     }
                     else
                     {
-                        if (af.Model_ == "-")
-                        {
-                            stockNo += "/xx";
-                        }
-                        else
-                        {
-                            stockNo += $"/{af.Model_}";
-                        }
+                        stockNo += $"/{af.Model_}";
                     }
-
                 }
                 else if (c == CatRepairs())
                 {
@@ -785,14 +782,7 @@ namespace iLgs.Services
                     }
                     else
                     {
-                        if (af.SerialNo == "-")
-                        {
-                            stockNo += "/xx";
-                        }
-                        else
-                        {
-                            stockNo += $"/{af.SerialNo}";
-                        }
+                        stockNo += $"/{af.SerialNo}";
                     }
 
                     if (itemCode.Equals("RSL-5.1") || itemCode.Contains("SL-5.2.") || itemCode.Contains("SL-6.")
@@ -804,38 +794,17 @@ namespace iLgs.Services
                             {
                                 if (!string.IsNullOrWhiteSpace(af.MVFileNo))
                                 {
-                                    if (af.MVFileNo == "-")
-                                    {
-                                        stockNo += "/xx";
-                                    }
-                                    else
-                                    {
-                                        stockNo += $"/{af.MVFileNo}";
-                                    }
+                                    stockNo += $"/{af.MVFileNo}";
                                 }
                             }
                             else
                             {
-                                if (af.BodyNo == "-")
-                                {
-                                    stockNo += "/xx";
-                                }
-                                else
-                                {
-                                    stockNo += $"/{af.BodyNo}";
-                                }
+                                stockNo += $"/{af.BodyNo}";
                             }
                         }
                         else
                         {
-                            if (af.PlateNo == "-")
-                            {
-                                stockNo += "/xx";
-                            }
-                            else
-                            {
-                                stockNo += $"/{af.PlateNo.ToUpper()}";
-                            }
+                            stockNo += $"/{af.PlateNo.ToUpper()}";
                         }
                     }
 
@@ -874,86 +843,37 @@ namespace iLgs.Services
                                             {
                                                 if (!string.IsNullOrWhiteSpace(af.Color))
                                                 {
-                                                    if (af.Color == "-")
-                                                    {
-                                                        stockNo += "/xx";
-                                                    }
-                                                    else
-                                                    {
-                                                        stockNo += $"/{af.Color}";
-                                                    }
+                                                    stockNo += $"/{af.Color}";
                                                 }
                                             }
                                             else
                                             {
-                                                if (af.Capacity == "-")
-                                                {
-                                                    stockNo += "/xx";
-                                                }
-                                                else
-                                                {
-                                                    stockNo += $"/{af.Capacity}";
-                                                }
+                                                stockNo += $"/{af.Capacity}";
                                             }
                                         }
                                         else
                                         {
-                                            if (af.Materials == "-")
-                                            {
-                                                stockNo += "/xx";
-                                            }
-                                            else
-                                            {
-                                                stockNo += $"/{af.Materials}";
-                                            }
+                                            stockNo += $"/{af.Materials}";
                                         }
                                     }
                                     else
                                     {
-                                        if (af.Weight == "-")
-                                        {
-                                            stockNo += "/xx";
-                                        }
-                                        else
-                                        {
-                                            stockNo += $"/{af.Weight}";
-                                        }
+                                        stockNo += $"/{af.Weight}";
                                     }
                                 }
                                 else
                                 {
-                                    if (af.Size == "-")
-                                    {
-                                        stockNo += "/xx";
-                                    }
-                                    else
-                                    {
-                                        stockNo += $"/{af.Size}";
-                                    }
+                                    stockNo += $"/{af.Size}";
                                 }
                             }
                             else
                             {
-                                if (af.Dimension == "-")
-                                {
-                                    stockNo += "/xx";
-                                }
-                                else
-                                {
-                                    stockNo += $"/{af.Dimension}";
-                                }
+                                stockNo += $"/{af.Dimension}";
                             }
                         }
                         else
                         {
-                            if (af.Model_ == "-")
-                            {
-                                stockNo += "/xx";
-                            }
-                            else
-                            {
-                                stockNo += $"/{Utility.ToProperCase(af.Model_)}";
-                            }
+                            stockNo += $"/{Utility.ToProperCase(af.Model_)}";
                         }
                     }
                 }
@@ -976,50 +896,36 @@ namespace iLgs.Services
                     {
                         if (!string.IsNullOrWhiteSpace(af.DosageVolume))
                         {
-                            if (af.DosageVolume == "-")
-                            {
-                                stockNo += "/xx";
-                            }
-                            else
-                            {
-                                stockNo += "/" + af.DosageVolume.Trim() + "'s";
-                            }
+                            stockNo += "/" + af.DosageVolume.Trim() + "'s";                            
                         }
                     }
                     else
                     {
                         if (!string.IsNullOrWhiteSpace(af.DosageStrength))
                         {
-                            if (af.DosageStrength == "-")
-                            {
-                                stockNo += "/xx";
-                            }
-                            else
-                            {
-                                stockNo += "/" + af.DosageStrength.Replace(" ", "").Trim();
-                            }
+                            stockNo += "/" + af.DosageStrength.Replace(" ", "").Trim();                            
                         }
                         if (!string.IsNullOrWhiteSpace(af.DosageForm))
                         {
-                            if (af.DosageForm == "-")
-                            {
-                                stockNo += "/xx";
-                            }
-                            else
-                            {
-                                stockNo += "/" + af.DosageForm.PadRight(3, 'X').Substring(0, 3);
-                            }
+                            stockNo += "/" + af.DosageForm.PadRight(3, 'X').Substring(0, 3);                            
                         }
                     }
 
                     if (af.Multipliers.HasValue)
                     {
-                        stockNo += "/" + af.Multipliers.ToString().Trim() + "'s";                        
+                        stockNo += "/" + af.Multipliers.ToString().Trim() + "'s";
                     }
 
                     if (!string.IsNullOrWhiteSpace(af.Brand))
                     {
-                        stockNo += "/" + af.Brand.Replace(" ", "").Trim();
+                        if (af.Brand == "-")
+                        {
+                            stockNo += "/xx";
+                        }
+                        else
+                        {
+                            stockNo += "/" + af.Brand.Replace(" ", "").Trim();
+                        }
                     }
                     else
                     {

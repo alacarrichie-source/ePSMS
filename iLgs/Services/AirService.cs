@@ -25,8 +25,8 @@ namespace iLgs.Services
         ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date);
 
-        ValueTask PostAsync(Guid airId, string user, DateTime date);
-        ValueTask UnpostAsync(Guid airId, string user, DateTime date);
+        ValueTask<AIR> PostAsync(Guid airId, string user, DateTime date);
+        ValueTask<AIR> UnpostAsync(Guid airId, string user, DateTime date);
     }
 
     public class AirService : IAirService
@@ -140,7 +140,7 @@ namespace iLgs.Services
         //    return false;
         //}
 
-        public ValueTask PostAsync(Guid airId, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<AIR> PostAsync(Guid airId, string user, DateTime date) => _ExceptionService.TryCatch(async () =>
         {
             var entity = await _db.AIRs.Include(i => i.AIRItems).FirstOrDefaultAsync(f => f.Id == airId);
             if (entity == null)
@@ -479,9 +479,10 @@ namespace iLgs.Services
                     }
                 }
             }
+            return entity;
         });
 
-        public ValueTask UnpostAsync(Guid airId, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<AIR> UnpostAsync(Guid airId, string user, DateTime date) => _ExceptionService.TryCatch(async () =>
         {
             var entity = await _db.AIRs.FindAsync(airId);
             if (entity == null)
@@ -594,9 +595,10 @@ namespace iLgs.Services
             _db.AIRs.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
+            return entity;
         });
 
-        private ValueTask UpdatePsItem(AIR entity, string user, DateTime date, bool post) => _VmExceptionService.TryCatch(async () =>
+        private ValueTask<AIR> UpdatePsItem(AIR entity, string user, DateTime date, bool post) => _ExceptionService.TryCatch(async () =>
         {
             var orderItemIdList = await _db.AIRItems.Where(w => w.AirId == entity.Id).GroupBy(g => g.OrderItemId)
                 .Select(s => s.Key).ToListAsync();
@@ -623,6 +625,7 @@ namespace iLgs.Services
                     await _db.SaveChangesAsync();
                 }
             }
+            return entity;
         });
 
         public ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>

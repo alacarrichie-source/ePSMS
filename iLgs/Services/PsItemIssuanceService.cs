@@ -34,7 +34,7 @@
 //        }
 
 //        public ValueTask<PsItemIssuanceVM> GetVmByIdAsync(Guid? id) =>
-//        _vmExceptionService.TryCatchAsync(async () =>
+//        _vmExceptionService.TryCatch(async () =>
 //        {
 //            var data = await _db.PsItemIssuances.Where(w => w.Id == id)
 //                .Select(s => new PsItemIssuanceVM
@@ -54,7 +54,7 @@
 //        });
 
 //        public ValueTask<PsItemIssuance> GetByIdAsync(Guid? id) =>
-//        _exceptionService.TryCatchAsync(async () =>
+//        _exceptionService.TryCatch(async () =>
 //        {
 //            var data = await _db.PsItemIssuances.FindAsync(id);
 //            return data;
@@ -81,7 +81,7 @@
 //        });
 
 //        public ValueTask<PsItemIssuanceVM> CreateAsync(PsItemIssuanceVM model, string user, DateTime date) =>
-//        _vmExceptionService.TryCatchAsync(async () =>
+//        _vmExceptionService.TryCatch(async () =>
 //        {
 //            model.Id = Guid.NewGuid();
 //            model.InsertedBy = user;
@@ -113,7 +113,7 @@
 //        });
 
 //        public ValueTask<PsItemIssuanceVM> DeleteAsync(PsItemIssuanceVM model, string user, DateTime date) =>
-//        _vmExceptionService.TryCatchAsync(async () =>
+//        _vmExceptionService.TryCatch(async () =>
 //        {
 //            if (model.RisIssuedId != null)
 //            {
@@ -140,7 +140,7 @@
 //        });
 
 //        public ValueTask<PsItemIssuanceVM> UpdateAsync(PsItemIssuanceVM model, string user, DateTime date) =>
-//        _vmExceptionService.TryCatchAsync(async () =>
+//        _vmExceptionService.TryCatch(async () =>
 //        {
 //            if (model.RisIssuedId != null)
 //            {

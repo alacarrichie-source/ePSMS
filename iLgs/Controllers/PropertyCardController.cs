@@ -26,18 +26,12 @@ namespace iLgs.Controllers
         private readonly string _cardCategory = "P";
         private AppManEntities _db = new AppManEntities();
         private ICodextnService _codextnService;
-        private IPsCardService _psCardService;
-        //private IPsCardItemService _psCardItemService;
-        //private IPsCardItemIssuanceService _psCardItemIssuanceService;
-        //private IAllFieldService _allFieldService;
-
+        private IPropertyCardService _propertyCardService;
+        
         public PropertyCardController()
         {
             _codextnService = new CodextnService(_db);
-            _psCardService = new PsCardService(_db);
-            //_psCardItemService = new PsCardItemService(_db);
-            //_psCardItemIssuanceService = new PsCardItemIssuanceService(_db);
-            //_allFieldService = new AllFieldService(_db);
+            _propertyCardService = new PropertyCardService(_db);        
         }
 
         // GET: Index
@@ -48,7 +42,7 @@ namespace iLgs.Controllers
 
         public ActionResult Read([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _psCardService.PropertyCard.GetAll();
+            var data = _propertyCardService.GetAll();
 
             var result = new JsonNetResult
             {
@@ -77,7 +71,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await _psCardService.PropertyCard.CreateAsync(model, user, date);
+                    var result = await _propertyCardService.CreateAsync(model, user, date);
                     if (result.IsSuccess)
                     {
                         return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
@@ -117,7 +111,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await _psCardService.PropertyCard.UpdateAsync(model, user, date);
+                    var result = await _propertyCardService.UpdateAsync(model, user, date);
                     if (result.IsSuccess)
                     {
                         return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
@@ -157,7 +151,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await _psCardService.PropertyCard.DeleteAsync(model, user, date);
+                    var result = await _propertyCardService.DeleteAsync(model, user, date);
                     if (result.IsSuccess)
                     {
                         return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
@@ -183,7 +177,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _PropertyCardAddEdit(Guid? cardId)
         {
-            var data = await _psCardService.PropertyCard.GetByIdAsync(cardId);
+            var data = await _propertyCardService.GetByIdAsync(cardId);
             if (data == null)
             {
                 data = new PropertyCardVM()
@@ -207,13 +201,13 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = await _psCardService.PropertyCard.GetByIdAsync(model.Id);
+                    var entity = await _propertyCardService.GetByIdAsync(model.Id);
 
                     if (entity == null)
                     {
                         if (access.AllowAdd)
                         {
-                            var result = await _psCardService.PropertyCard.CreateAsync(model, user, date);
+                            var result = await _propertyCardService.CreateAsync(model, user, date);
                             if (!result.IsSuccess)
                             {
                                 return Json(new { Errors = string.Join("; ", result.Errors.Select(e => e.Value)) }, JsonRequestBehavior.DenyGet);
@@ -229,7 +223,7 @@ namespace iLgs.Controllers
                     {
                         if (access.AllowEdit)
                         {
-                            var result = await _psCardService.PropertyCard.UpdateAsync(model, user, date);
+                            var result = await _propertyCardService.UpdateAsync(model, user, date);
                             if (!result.IsSuccess)
                             {
                                 return Json(new { Errors = string.Join("; ", result.Errors.Select(e => e.Value)) }, JsonRequestBehavior.DenyGet);
@@ -273,17 +267,17 @@ namespace iLgs.Controllers
         [AcceptVerbs(HttpVerbs.Post)]
         public JsonResult GetDescription(PropertyCardVM fields)
         {
-            var description = _psCardService.GetDescription(fields);
-            var stockNo = _psCardService.GetStockNo(fields);
+            var description = _propertyCardService.GetDescription(fields);
+            var stockNo = _propertyCardService.GetStockNo(fields);
 
             return Json(new { Description = description, StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult _PropertyCardItem(Guid cardId, string category)
         {
-            ViewBag.FieldSw = _psCardService.GetFieldSw(category);
+            ViewBag.FieldSw = _propertyCardService.GetFieldSw(category);
 
-            ViewData["partialView"] = _psCardService.GetItemFieldsPartialView(category);
+            ViewData["partialView"] = _propertyCardService.GetItemFieldsPartialView(category);
             ViewData["cardId"] = cardId;
             ViewData["category"] = category;
 
@@ -292,7 +286,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _PropertyCardItemAddEdit(Guid cardId, Guid? cardItemId)
         {
-            var data = await _psCardService.PropertyCard.PsCardItem.GetByIdAsync(cardItemId);
+            var data = await _propertyCardService.PsCardItem.GetByIdAsync(cardItemId);
             if (data == null)
             {
                 data = new PsCardItemVM()
@@ -323,15 +317,15 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var entity = await _psCardService.PropertyCard.PsCardItem.GetByIdAsync(model.Id);
+                    var entity = await _propertyCardService.PsCardItem.GetByIdAsync(model.Id);
 
                     if (entity == null)
                     {
-                        model = await _psCardService.PropertyCard.PsCardItem.CreateAsync(model, user, date);
+                        model = await _propertyCardService.PsCardItem.CreateAsync(model, user, date);
                     }
                     else
                     {
-                        model = await _psCardService.PropertyCard.PsCardItem.UpdateAsync(model, user, date);
+                        model = await _propertyCardService.PsCardItem.UpdateAsync(model, user, date);
                     }
                 }
             }
@@ -364,7 +358,7 @@ namespace iLgs.Controllers
 
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, Guid? cardId)
         {
-            var data = _psCardService.PropertyCard.PsCardItem.GetByCardId(cardId);
+            var data = _propertyCardService.PsCardItem.GetByCardId(cardId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -386,7 +380,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItem.CreateAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItem.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -422,7 +416,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItem.UpdateAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItem.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -458,7 +452,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItem.DeleteAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItem.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
             }
@@ -480,7 +474,7 @@ namespace iLgs.Controllers
 
         public ActionResult IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
         {
-            var data = _psCardService.PropertyCard.PsCardItemIssuance.GetByCardItemId(cardItemId);
+            var data = _propertyCardService.PsCardItemIssuance.GetByCardItemId(cardItemId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -502,7 +496,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItemIssuance.CreateAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItemIssuance.CreateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -538,7 +532,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItemIssuance.UpdateAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItemIssuance.UpdateAsync(model, user, date);
                 }
             }
             catch (Exception e)
@@ -575,7 +569,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItemIssuance.DeleteAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItemIssuance.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
             }
@@ -601,7 +595,7 @@ namespace iLgs.Controllers
             if (model.Id != Guid.Empty)
             {
                 //model = await _cardService.GetVmByIdAsync(model.Id);
-                var allField = await _psCardService.PropertyCard.AllField.GetByIdAsync(model.Id);
+                var allField = await _propertyCardService.AllField.GetByIdAsync(model.Id);
                 if (allField != null)
                 {
                     model.AllField = allField;
@@ -645,15 +639,15 @@ namespace iLgs.Controllers
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> LoadItemFields([System.Web.Http.FromBody] PsCardItemVM model)
         {
-            var psCard = await _psCardService.GetByIdAsync((Guid)model.PsCardId);
+            var psCard = await _propertyCardService.GetByIdAsync((Guid)model.PsCardId);
             if (model.Id != Guid.Empty)
             {
-                var data = await _psCardService.PropertyCard.PsCardItem.GetByIdAsync(model.Id);
-                model = _psCardService.PropertyCard.PsCardItem.TransferItemField(data, model);
+                var data = await _propertyCardService.PsCardItem.GetByIdAsync(model.Id);
+                model = _propertyCardService.PsCardItem.TransferItemField(data, model);
 
             }
             string partialView = "";
-            if (Enum.TryParse(psCard.ItemCode.ItemType.Code, out Category c))
+            if (Enum.TryParse(psCard.ItemTypeCode, out Category c))
             {
                 if (c == CatLands())
                 {
@@ -717,7 +711,7 @@ namespace iLgs.Controllers
                 table.ApplyLogOnInfo(logonInfo);
             }
 
-            var stockNo = _psCardService.GetById((Guid)selectedId)?.PsNo;
+            var stockNo = _propertyCardService.GetById((Guid)selectedId)?.PsNo;
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
             var imagePath = _codextnService.GetByMastCode("DIRS").Where(w => w.Code == "IMAGE-ITEMS").FirstOrDefault().Description;
 
@@ -736,7 +730,7 @@ namespace iLgs.Controllers
         public ActionResult GetItemExtnTemplate(Guid? id)
         {
 
-            string itemExtnName = _psCardService.GetItemExtnName(id);
+            string itemExtnName = _propertyCardService.GetItemExtnName(id);
 
             return Json(new { Errors = "", ItemExtnName = itemExtnName }, JsonRequestBehavior.AllowGet);
 
@@ -745,7 +739,7 @@ namespace iLgs.Controllers
         #region ITEMEXTN VEHICLES
         public ActionResult _ItemExtnVehicleRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
         {
-            var data = _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.GetByPsCardItemId(psCardItemId);
+            var data = _propertyCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.GetByPsCardItemId(psCardItemId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
@@ -766,7 +760,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.CreateAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.CreateAsync(model, user, date);
 
                     // TO DO: save to stock card
                 }
@@ -804,7 +798,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.UpdateAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.UpdateAsync(model, user, date);
 
                     // TO DO: update stock card
                 }
@@ -841,7 +835,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.DeleteAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
 
@@ -867,7 +861,7 @@ namespace iLgs.Controllers
         #region ITEMEXTN OTHERS
         public ActionResult _ItemExtnOtherRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
         {
-            var data = _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.GetByPsCardItemId(psCardItemId);
+            var data = _propertyCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.GetByPsCardItemId(psCardItemId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
@@ -888,7 +882,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.CreateAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.CreateAsync(model, user, date);
 
                     // TO DO: save to stock card
                 }
@@ -926,7 +920,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.UpdateAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.UpdateAsync(model, user, date);
 
                     // TO DO: update stock card
                 }
@@ -963,7 +957,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PropertyCard.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.DeleteAsync(model, user, date);
+                    model = await _propertyCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
 

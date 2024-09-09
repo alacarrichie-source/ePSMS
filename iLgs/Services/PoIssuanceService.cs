@@ -267,7 +267,7 @@ namespace iLgs.Services.Interfaces
         }        
 
         public ValueTask<PsCardItemVM> TransferAsync(PsCardItemVM model, string user, DateTime date) =>
-        _psCardItemVMrExceptionService.TryCatchAsync(async () =>
+        _psCardItemVMrExceptionService.TryCatch(async () =>
         {
             var psCardItem = await _db.PsCardItems.FindAsync(model.Id);
             if (!model.TransferOut.HasValue)

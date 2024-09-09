@@ -22,8 +22,8 @@ namespace iLgs.Services
         IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate, Guid? deptId);
         IQueryable<PsCardItemUnitGroupDescription> GetItemSetDescriptionsByUnitGroupId(Guid? unitGroupId);
         IQueryable<ParIcsItemVm> GetItemSetDescriptionItemsByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
-        ValueTask PostAsync(Guid? groupId, string user, DateTime date);
-        ValueTask UnPostAsync(Guid? groupId, string user, DateTime date);
+        ValueTask<PsCardItem> PostAsync(Guid? groupId, string user, DateTime date);
+        ValueTask<PsCardItem> UnPostAsync(Guid? groupId, string user, DateTime date);
         ValueTask<IcsVM> GetByIdAsync(Guid? id);
         
         ValueTask<GenerateIcsParVM> GenerateIcs(GenerateIcsParVM model, string user, DateTime date);
@@ -48,6 +48,7 @@ namespace iLgs.Services
         private IPsCardItemExtnService _psCardItemExtnService;
         private IPsCardItemIssuanceService _psCardItemIssaunceService;
         private readonly IExceptionService<GenerateIcsParVM> _generateParExceptionService = new ExceptionService<GenerateIcsParVM>();
+        private readonly IExceptionService<PsCardItem> _postExceptionService = new ExceptionService<PsCardItem>();
         private readonly IExceptionService<PsCardItemUnitGroupDescriptionItem> _psCardItemUnitGroupDescriptionItemService = new ExceptionService<PsCardItemUnitGroupDescriptionItem>();
 
         public IcsService(AppManEntities db)
@@ -346,7 +347,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<GenerateIcsParVM> GenerateIcs(GenerateIcsParVM model, string user, DateTime date) =>
-        _generateParExceptionService.TryCatchAsync(async () =>
+        _generateParExceptionService.TryCatch(async () =>
         {
             if (model.LocationId == null || model.LocationId == Guid.Empty)
             {
@@ -520,7 +521,7 @@ namespace iLgs.Services
          * 
          */
         public ValueTask<GenerateIcsParVM> GenerateIcsBatch(GenerateIcsParVM model, string user, DateTime date) =>
-        _generateParExceptionService.TryCatchAsync(async () =>
+        _generateParExceptionService.TryCatch(async () =>
         {
             if (model.LocationId == null || model.LocationId == Guid.Empty)
             {
@@ -730,7 +731,7 @@ namespace iLgs.Services
             return model;
         });
 
-        public ValueTask PostAsync(Guid? groupId, string user, DateTime date) => _generateParExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItem> PostAsync(Guid? groupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
         {
             var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
             if (entity.Count() == 0)
@@ -759,9 +760,10 @@ namespace iLgs.Services
                 f.UpdatedDt = date;
             });
             await _db.SaveChangesAsync();
+            return entity.FirstOrDefault();
         });
 
-        public ValueTask UnPostAsync(Guid? groupId, string user, DateTime date) => _generateParExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItem> UnPostAsync(Guid? groupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
         {
             var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
 
@@ -780,6 +782,7 @@ namespace iLgs.Services
                 f.UpdatedDt = date;
             });
             await _db.SaveChangesAsync();
+            return entity.FirstOrDefault();
         });
 
     }

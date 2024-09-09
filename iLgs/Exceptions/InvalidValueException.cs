@@ -6,7 +6,7 @@ using System.Web;
 
 namespace iLgs.Exceptions
 {
-    public class InvalidValueException : Exception, IException
+    public class InvalidValueException : Xeption
     {
         public HttpStatusCode StatusCode()
         {
@@ -18,12 +18,16 @@ namespace iLgs.Exceptions
             return Message;
         }
 
-        public string Key { get; set; }
-
         public InvalidValueException(string message)
             : base(message: message) { }
 
-        public InvalidValueException(string key, string message)
-            : base(message: message) { this.Key = key; }
+        public InvalidValueException(string parameterName, object parameterValue)
+            : base(message: $"Invalid data, " +
+                  $"parameter name: {parameterName}, " +
+                  $"parameter value: {parameterValue}.")
+        { }
+
+        public InvalidValueException()
+            : base(message: "Invalid data. Please fix the errors and try again.") { }
     }
 }

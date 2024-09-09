@@ -33,7 +33,7 @@ namespace iLgs.Services
 
 
         public ValueTask<RequestItemUnitGroupDescription> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await _db.RequestItemUnitGroupDescriptions.FindAsync(id);
             return data;
@@ -55,7 +55,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RequestItemUnitGroupDescriptionVM> CreateAsync(RequestItemUnitGroupDescriptionVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -81,7 +81,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RequestItemUnitGroupDescriptionVM> DeleteAsync(RequestItemUnitGroupDescriptionVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -103,7 +103,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RequestItemUnitGroupDescriptionVM> UpdateAsync(RequestItemUnitGroupDescriptionVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;

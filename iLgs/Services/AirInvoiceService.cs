@@ -39,7 +39,7 @@ namespace iLgs.Services
        });
 
         public ValueTask<AIRInvoiceVM> GetVmByIdAsync(Guid? id) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var data = await db.AIRInvoices.Where(w => w.Id == id)
                .Select(s => new AIRInvoiceVM
@@ -56,7 +56,7 @@ namespace iLgs.Services
 
         
         public ValueTask<AIRInvoiceVM> CreateAsync(AIRInvoiceVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             ValidateRequired(model);
 
@@ -117,7 +117,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<AIRInvoiceVM> UpdateAsync(AIRInvoiceVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             ValidateRequired(model);
 
@@ -149,7 +149,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<AIRInvoiceVM> DeleteAsync(AIRInvoiceVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             if (await IsPostedAsync(model.AirId))
             {

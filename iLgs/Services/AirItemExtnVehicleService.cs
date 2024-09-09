@@ -50,7 +50,7 @@ namespace iLgs.Services
             return data;
         }
 
-        public ValueTask<ServiceResult<AIRItemExtnVehicle>> GetByIdAsync(Guid? id) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemExtnVehicle>> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
         {
             var data = await _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.Id == id).FirstOrDefaultAsync();
             return ServiceResult<AIRItemExtnVehicle>.Success(data);
@@ -76,7 +76,7 @@ namespace iLgs.Services
         //    }
         //}
 
-        public ValueTask<ServiceResult<AIRItemExtnVehicle>> CreateAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemExtnVehicle>> CreateAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             var result = await _validationService.ValidateAsync(model, "Create");
             if (!result.IsSuccess)
@@ -126,7 +126,7 @@ namespace iLgs.Services
             return ServiceResult<AIRItemExtnVehicle>.Success(model);
         });
 
-        public ValueTask<ServiceResult<AIRItemExtnVehicle>> DeleteAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemExtnVehicle>> DeleteAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             var result = await _validationService.ValidateAsync(model, "Delete");
             if (!result.IsSuccess)
@@ -153,7 +153,7 @@ namespace iLgs.Services
             return ServiceResult<AIRItemExtnVehicle>.Success(model);
         });
 
-        public ValueTask<ServiceResult<AIRItemExtnVehicle>> UpdateAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemExtnVehicle>> UpdateAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             var result = await _validationService.ValidateAsync(model, "Update");
             if (!result.IsSuccess)

@@ -34,7 +34,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<RPCEFFOPPEItem> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await _db.RPCEFFOPPEItems.FindAsync(id);
             return data;
@@ -63,7 +63,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCEFFOPPEItemVM> CreateAsync(RPCEFFOPPEItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
 
             model.Id = Guid.NewGuid();
@@ -98,7 +98,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCEFFOPPEItemVM> DeleteAsync(RPCEFFOPPEItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RPCEFFOPPEItems.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
@@ -125,7 +125,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCEFFOPPEItemVM> UpdateAsync(RPCEFFOPPEItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RPCEFFOPPEItems.FindAsync(model.Id);
             if (entity == null)

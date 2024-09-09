@@ -33,7 +33,7 @@ namespace iLgs.Services
 
 
         public ValueTask<RisItemUnitGroupDescription> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await db.RisItemUnitGroupDescriptions.FindAsync(id);
             return data;
@@ -54,7 +54,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RisItemUnitGroupDescriptionVM> CreateAsync(RisItemUnitGroupDescriptionVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -80,7 +80,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RisItemUnitGroupDescriptionVM> DeleteAsync(RisItemUnitGroupDescriptionVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -102,7 +102,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RisItemUnitGroupDescriptionVM> UpdateAsync(RisItemUnitGroupDescriptionVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;

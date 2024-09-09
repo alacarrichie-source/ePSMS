@@ -27,33 +27,39 @@ namespace iLgs.Services
         ValueTask<bool> GetAnyPsNoAsync(Guid id, string psNo);
         string GetDescription(PsCardVM model);
         string GetStockNo(PsCardVM model);
-        string GetItemExtnName(Guid? id);        
-        
-        IStockCardService StockCard { get; }
-        IPropertyCardService PropertyCard { get; }        
+        string GetItemExtnName(Guid? id);
+
+        //IStockCardService StockCard { get; }
+        //IPropertyCardService PropertyCard { get; }        
+        IAllFieldService AllField { get; }
+        IPsCardItemService PsCardItem { get; }
+        IPsCardItemIssuanceService PsCardItemIssuance { get; }
     }
 
     public class PsCardService : IPsCardService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        protected readonly AppManEntities _db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<PsCardVM> _vmExceptionService = new ExceptionService<PsCardVM>();
         private readonly IExceptionService<PsCard> _exceptionService = new ExceptionService<PsCard>();
-        private IAllFieldService _allFieldService;
-        private IStockCardService _stockCardService;
-        private IPropertyCardService _propertyCardService;        
-
+        protected IAllFieldService _allFieldService;
+        protected IPsCardItemService _psCardItemService;
+        protected IPsCardItemIssuanceService _psCardItemIssuanceService;
+        
         public PsCardService(AppManEntities db)
         {
             _db = db;
             _allFieldService = new AllFieldService(db);
-            _stockCardService = new StockCardService(db);
-            _propertyCardService = new PropertyCardService(db);            
+            _psCardItemService = new PsCardItemService(db);
+            _psCardItemIssuanceService = new PsCardItemIssuanceService(db);
         }
 
-        public IStockCardService StockCard { get { return _stockCardService = _stockCardService ?? new StockCardService(_db); } }
-        public IPropertyCardService PropertyCard { get { return _propertyCardService = _propertyCardService ?? new PropertyCardService(_db); } }
-        
+        //public IStockCardService StockCard { get { return _stockCardService = _stockCardService ?? new StockCardService(_db); } }
+        //public IPropertyCardService PropertyCard { get { return _propertyCardService = _propertyCardService ?? new PropertyCardService(_db); } }
+        public IAllFieldService AllField { get { return _allFieldService = _allFieldService ?? new AllFieldService(_db); } }
+        public IPsCardItemService PsCardItem { get { return _psCardItemService = _psCardItemService ?? new PsCardItemService(_db); } }
+        public IPsCardItemIssuanceService PsCardItemIssuance { get { return _psCardItemIssuanceService = _psCardItemIssuanceService ?? new PsCardItemIssuanceService(_db); } }
+
         public IQueryable<PsCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.PsCards.AsNoTracking()

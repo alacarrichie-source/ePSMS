@@ -50,7 +50,7 @@
 //        });
 
 //        public ValueTask SaveAsync(Guid cardId, List<CardItemExtnVM> itemExtnList, string user, DateTime date) =>
-//        _vmExceptionService.TryCatchAsync(async () =>
+//        _vmExceptionService.TryCatch(async () =>
 //        {
 //            // log updates
 //            var existingtemExtns = _db.CardItemExtns.Where(w => w.CardId == cardId).ToList();

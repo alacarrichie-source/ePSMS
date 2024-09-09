@@ -36,7 +36,7 @@ namespace iLgs.Services
         }
         
         public ValueTask<RisItemUnitGroup> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await db.RisItemUnitGroups.FindAsync(id);
             return data;
@@ -58,7 +58,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RisItemUnitGroupVM> CreateAsync(RisItemUnitGroupVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             if (await _risService.IsPostedAsync((Guid)model.RisId))
             {
@@ -90,7 +90,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RisItemUnitGroupVM> DeleteAsync(RisItemUnitGroupVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             RisItemUnitGroup entity = await db.RisItemUnitGroups.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
@@ -122,7 +122,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RisItemUnitGroupVM> UpdateAsync(RisItemUnitGroupVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             RisItemUnitGroup entity = await db.RisItemUnitGroups.FindAsync(model.Id);
             if (entity == null)

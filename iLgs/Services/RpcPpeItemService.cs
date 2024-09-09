@@ -34,7 +34,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<RpcPpeItem> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await _db.RpcPpeItems.FindAsync(id);
             return data;
@@ -78,7 +78,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RpcPpeItemVM> CreateAsync(RpcPpeItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
 
             model.Id = Guid.NewGuid();
@@ -128,7 +128,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RpcPpeItemVM> DeleteAsync(RpcPpeItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RpcPpeItems.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
@@ -155,7 +155,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RpcPpeItemVM> UpdateAsync(RpcPpeItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RpcPpeItems.FindAsync(model.Id);
             if (entity == null)

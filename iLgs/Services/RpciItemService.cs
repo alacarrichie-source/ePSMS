@@ -35,7 +35,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<RPCIItem> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await _db.RPCIItems.FindAsync(id);
             return data;
@@ -103,7 +103,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<RPCIItemVM> CreateAsync(RPCIItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             ValidatePost(model.RpciId);
 
@@ -157,7 +157,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCIItemVM> UpdateAsync(RPCIItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             ValidatePost(model.RpciId);
 
@@ -208,7 +208,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCIItemVM> DeleteAsync(RPCIItemVM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             ValidatePost(model.RpciId);
 

@@ -283,6 +283,22 @@ namespace iLgs.Models
         // Transients
     }
 
+    [MetadataType(typeof(RPCIDepLoc.Metadata))]
+    public partial class RPCIDepLoc
+    {
+        internal sealed class Metadata
+        {
+            public System.Guid Id { get; set; }
+            public Nullable<System.Guid> RpciId { get; set; }
+            public Nullable<System.Guid> DeptId { get; set; }
+            public Nullable<System.Guid> LocationId { get; set; }
+            public string InsertedBy { get; set; }
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
+        }
+    }
+
     public class RPCEFFOPPEItemVM
     {
         public System.Guid Id { get; set; }

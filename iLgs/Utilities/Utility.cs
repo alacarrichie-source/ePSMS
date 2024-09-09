@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
@@ -21,22 +22,7 @@ namespace iLgs.Utilities
             // Convert the input to lowercase and then to title case
             return textInfo.ToTitleCase(input.ToLower());
         }
-
-        //public static string GetDisplayName(Type modelType, string propertyName)
-        //{
-        //    // Get the property
-        //    var property = modelType.GetProperty(propertyName);
-        //    if (property == null) return propertyName;
-
-        //    // Check if the Display attribute is applied
-        //    var displayAttribute = property.GetCustomAttributes(typeof(DisplayAttribute), true)
-        //                                   .Cast<DisplayAttribute>()
-        //                                   .FirstOrDefault();
-
-        //    // Return the display name if available, otherwise the property name
-        //    return displayAttribute?.Name ?? propertyName;
-        //}        
-
+        
         public static string GetDisplayName(Type modelType, string propertyName)
         {
             // Get the property info from the main model type
@@ -65,7 +51,68 @@ namespace iLgs.Utilities
             var displayOnModelProperty = propertyInfo.GetCustomAttributes(typeof(DisplayAttribute), true)
                                                       .FirstOrDefault() as DisplayAttribute;
             return displayOnModelProperty?.Name ?? propertyName; // Return display name or original name
+        }
 
+        public static string GetDisplayName<T>(string propertyName)
+        {
+            // First, check the derived model type
+            var displayName = GetDisplayNameFromType(typeof(T), propertyName);
+
+            if (!string.IsNullOrEmpty(displayName))
+            {
+                return displayName;
+            }
+
+            // If not found, check the base type recursively
+            var baseType = typeof(T).BaseType;
+            while (baseType != null)
+            {
+                displayName = GetDisplayNameFromType(baseType, propertyName);
+                if (!string.IsNullOrEmpty(displayName))
+                {
+                    return displayName;
+                }
+
+                baseType = baseType.BaseType;
+            }
+
+            // Check for MetadataType attribute if defined on the derived class
+            var metadataType = typeof(T).GetCustomAttributes(typeof(MetadataTypeAttribute), true)
+                                        .FirstOrDefault() as MetadataTypeAttribute;
+
+            if (metadataType != null)
+            {
+                displayName = GetDisplayNameFromType(metadataType.MetadataClassType, propertyName);
+            }
+
+            return displayName ?? propertyName; // Return property name if no display name found
+        }
+
+        private static string GetDisplayNameFromType(Type type, string propertyName)
+        {
+            var property = type.GetProperty(propertyName);
+            if (property != null)
+            {
+                // Check for DisplayNameAttribute in the property
+                var displayNameAttr = property.GetCustomAttributes(typeof(DisplayNameAttribute), true)
+                                              .FirstOrDefault() as DisplayNameAttribute;
+
+                if (displayNameAttr != null)
+                {
+                    return displayNameAttr.DisplayName;
+                }
+
+                // Check for DisplayAttribute in the property
+                var displayAttr = property.GetCustomAttributes(typeof(DisplayAttribute), true)
+                                          .FirstOrDefault() as DisplayAttribute;
+
+                if (displayAttr != null)
+                {
+                    return displayAttr.Name;
+                }
+            }
+
+            return null;
         }
     }
 }

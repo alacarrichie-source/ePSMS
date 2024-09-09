@@ -91,7 +91,7 @@ namespace iLgs.Services
 
 
         public ValueTask<ServiceResult<IcsParItem>> CreateAsync(IcsParItem model, string user, DateTime date) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
 
             //await ValidateIfPosted(model);
@@ -126,7 +126,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<ServiceResult<IcsParItem>> UpdateAsync(IcsParItem model, string user, DateTime date) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var result = await _validationService.ValidateAsync(model, "Update");
             if (!result.IsSuccess)
@@ -172,7 +172,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<ServiceResult<IcsParItem>> DeleteAsync(IcsParItem model, string user, DateTime date) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var result = await _validationService.ValidateAsync(model, "Delete");
             if (!result.IsSuccess)

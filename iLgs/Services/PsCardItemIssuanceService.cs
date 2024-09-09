@@ -18,14 +18,15 @@ namespace iLgs.Services
         ValueTask<PsCardItemIssuanceVM> CreateAsync(PsCardItemIssuanceVM model, string user, DateTime date);
         ValueTask<PsCardItemIssuanceVM> UpdateAsync(PsCardItemIssuanceVM model, string user, DateTime date);
         ValueTask<PsCardItemIssuanceVM> DeleteAsync(PsCardItemIssuanceVM model, string user, DateTime date);
-        ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
-        ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
+        ValueTask<PsCardItemIssuance> PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
+        ValueTask<PsCardItemIssuance> UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
     }
 
     public class PsCardItemIssuanceService : IPsCardItemIssuanceService
     {
         private readonly AppManEntities _db = new AppManEntities();
         private readonly IExceptionService<PsCardItemIssuanceVM> _VmExceptionService = new ExceptionService<PsCardItemIssuanceVM>();
+        private readonly IExceptionService<PsCardItemIssuance> _ExceptionService = new ExceptionService<PsCardItemIssuance>();
 
         public PsCardItemIssuanceService(AppManEntities db)
         {
@@ -292,7 +293,7 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
         }
 
-        public ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemIssuance> PostAsync(Guid psCardItemIssuanceId, string user, DateTime date) => _ExceptionService.TryCatch(async () =>
         {
             var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
             if (entity == null)
@@ -306,9 +307,10 @@ namespace iLgs.Services
             _db.PsCardItemIssuances.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
+            return entity;
         });
 
-        public ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemIssuance> UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date) => _ExceptionService.TryCatch(async () =>
         {
             var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
             if (entity == null)
@@ -324,6 +326,7 @@ namespace iLgs.Services
             _db.PsCardItemIssuances.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
+            return entity;
         });
     }
 }

@@ -29,7 +29,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<RisItemEntryVM> GetVmByIdAsync(Guid? id) =>
-        _entryVmExceptionService.TryCatchAsync(async () =>
+        _entryVmExceptionService.TryCatch(async () =>
         {
             var data = await _db.RisItems.Where(w => w.Id == id)
                 .Select(s => new RisItemEntryVM
@@ -79,7 +79,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RisItemEntryVM> GetEntryVmByIdAsync(Guid? id) =>
-        _entryVmExceptionService.TryCatchAsync(async () =>
+        _entryVmExceptionService.TryCatch(async () =>
         {
             var data = await _db.RisItems.Where(w => w.Id == id)
                 .Select(s => new RisItemEntryVM
@@ -129,7 +129,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RisItem> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await _db.RisItems.FindAsync(id);
             return data;
@@ -194,7 +194,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<RisItemEntryVM> CreateAsync(RisItemEntryVM model, string user, DateTime date) =>
-        _entryVmExceptionService.TryCatchAsync(async () =>
+        _entryVmExceptionService.TryCatch(async () =>
         {
             ValidateFields(model);
 
@@ -243,7 +243,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RisItemEntryVM> DeleteAsync(RisItemEntryVM model, string user, DateTime date) =>
-        _entryVmExceptionService.TryCatchAsync(async () =>
+        _entryVmExceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;            
@@ -284,7 +284,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RisItemEntryVM> UpdateAsync(RisItemEntryVM model, string user, DateTime date) =>
-        _entryVmExceptionService.TryCatchAsync(async () =>
+        _entryVmExceptionService.TryCatch(async () =>
         {
             ValidateFields(model);
 

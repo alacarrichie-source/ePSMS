@@ -23,7 +23,7 @@
 //        }
 
 //        public ValueTask<RisIssuedVM> GetVmByIdAsync(Guid? id) =>
-//        _vmExceptionService.TryCatchAsync(async () =>
+//        _vmExceptionService.TryCatch(async () =>
 //        {
 //            var data = await _db.RisIssueds.Where(w => w.Id == id)
 //                .Select(s => new RisIssuedVM
@@ -53,7 +53,7 @@
 //        });
 
 //        public ValueTask<RisIssued> GetByIdAsync(Guid? id) =>
-//        _exceptionService.TryCatchAsync(async () =>
+//        _exceptionService.TryCatch(async () =>
 //        {
 //            var data = await _db.RisIssueds.FindAsync(id);
 //            return data;
@@ -180,7 +180,7 @@
 //        }
 
 //        public ValueTask<RisIssuedVM> CreateAsync(RisIssuedVM model, string user, DateTime date) =>
-//        _vmExceptionService.TryCatchAsync(async () =>
+//        _vmExceptionService.TryCatch(async () =>
 //        {
 //            await ValidateFieldsAsync(model);
 
@@ -238,7 +238,7 @@
 //        });
 
 //        public ValueTask<RisIssuedVM> DeleteAsync(RisIssuedVM model, string user, DateTime date) =>
-//        _vmExceptionService.TryCatchAsync(async () =>
+//        _vmExceptionService.TryCatch(async () =>
 //        {
 //            if (_db.RSMIs.Any(a => a.Date == model.IssuedDate))
 //            {
@@ -274,7 +274,7 @@
 //        });
 
 //        public ValueTask<RisIssuedVM> UpdateAsync(RisIssuedVM model, string user, DateTime date) =>
-//        _vmExceptionService.TryCatchAsync(async () =>
+//        _vmExceptionService.TryCatch(async () =>
 //        {
 
 //            RisIssued entity = await _db.RisIssueds.FindAsync(model.Id);

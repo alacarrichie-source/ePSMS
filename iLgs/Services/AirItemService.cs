@@ -106,7 +106,7 @@ namespace iLgs.Services
             return data;
         }
 
-        public ValueTask<ServiceResult<AIRItemVM>> GetByIdAsync(Guid? id) => _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemVM>> GetByIdAsync(Guid? id) => _vmExceptionService.TryCatch(async () =>
         {
             var data = await _db.AIRItems.Where(w => w.Id == id)
                 .Select(s => new AIRItemVM
@@ -129,7 +129,7 @@ namespace iLgs.Services
             return ServiceResult<AIRItemVM>.Success(data);
         });
 
-        public ValueTask<ServiceResult<AIRItemVM>> CreateAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemVM>> CreateAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             if (await IsPostedAsync(model.AirId))
             {
@@ -166,7 +166,7 @@ namespace iLgs.Services
             return ServiceResult<AIRItemVM>.Success(model);
         });
 
-        public ValueTask<ServiceResult<AIRItemVM>> DeleteAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemVM>> DeleteAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             if (await IsPostedAsync(model.AirId))
             {
@@ -242,7 +242,7 @@ namespace iLgs.Services
             }
         }
 
-        public ValueTask<ServiceResult<AIRItemVM>> UpdateAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatchAsync(async () =>
+        public ValueTask<ServiceResult<AIRItemVM>> UpdateAsync(AIRItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             if (await IsPostedAsync(model.AirId))
             {

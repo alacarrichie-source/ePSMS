@@ -10,6 +10,25 @@ using System.Threading.Tasks;
 
 namespace iLgs.Services
 {
+    public interface IRisService
+    {
+        IQueryable<RIS_VM> GetAll();
+        ValueTask<RISs> GetByIdAsync(Guid id);
+        ValueTask<RISs> GetByRisNoAsync(string risNo);
+        ValueTask<RISs> GetByOrderIdAsync(Guid orderId);
+        ValueTask<bool> GetAnyRisNoAsync(Guid risId, string risNo);
+        ValueTask<bool> IsPostedAsync(Guid risId);
+        ValueTask<bool> IsPrPostedAsync(Guid risId);
+        ValueTask<bool> IsWithPrAsync(Guid risId);
+
+        ValueTask<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date);
+        ValueTask<RIS_VM> UpdateAsync(RIS_VM model, string user, DateTime date);
+        ValueTask<RIS_VM> DeleteAsync(RIS_VM model, string user, DateTime date);
+
+        ValueTask<RISs> PostAsync(Guid risId, string user, DateTime date);
+        ValueTask<RISs> UnpostAsync(Guid risId, string user, DateTime date);
+    }
+
     public class RisService : IRisService
     {
         private readonly AppManEntities db = new AppManEntities();
@@ -66,14 +85,14 @@ namespace iLgs.Services
         }
 
         public ValueTask<RISs> GetByIdAsync(Guid id) =>
-        _risExceptionService.TryCatchAsync(async () =>
+        _risExceptionService.TryCatch(async () =>
         {
             var data = await db.RISses.FindAsync(id);
             return data;
         });
 
         public ValueTask<RISs> GetByRisNoAsync(string risNo) =>
-        _risExceptionService.TryCatchAsync(async () =>
+        _risExceptionService.TryCatch(async () =>
         {
             return await db.RISses.Where(w => w.RisNo == risNo).FirstOrDefaultAsync();
         });
@@ -105,8 +124,8 @@ namespace iLgs.Services
             return await db.Requests.AnyAsync(a => a.RisId == risId);
         }
 
-        public ValueTask PostAsync(Guid risId, string user, DateTime date) =>
-        _risExceptionService.TryCatchAsync(async () =>
+        public ValueTask<RISs> PostAsync(Guid risId, string user, DateTime date) =>
+        _risExceptionService.TryCatch(async () =>
         {
             await ValidateOnPost(risId);
 
@@ -119,8 +138,8 @@ namespace iLgs.Services
 
             db.RISses.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();            
-
+            await db.SaveChangesAsync();
+            return entity;
             //// crate psCode foreach item (problem in unpost, sequence number will rumble)
             //var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
             //foreach (var risItem in risItemList)
@@ -171,8 +190,8 @@ namespace iLgs.Services
         //    }
         //}
 
-        public ValueTask UnpostAsync(Guid risId, string user, DateTime date) =>
-        _risExceptionService.TryCatchAsync(async () =>
+        public ValueTask<RISs> UnpostAsync(Guid risId, string user, DateTime date) =>
+        _risExceptionService.TryCatch(async () =>
         {
             await ValidateOnUnpost(risId);
 
@@ -186,6 +205,7 @@ namespace iLgs.Services
             db.RISses.Attach(entity);
             db.Entry(entity).State = EntityState.Modified;
             await db.SaveChangesAsync();
+            return entity;
 
             //// delete un-used psCode foreach item (problem in unpost, sequence number will rumble)
             //var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
@@ -202,7 +222,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RIS_VM> CreateAsync(RIS_VM model, string user, DateTime date) =>
-        _risVmExceptionService.TryCatchAsync(async () =>
+        _risVmExceptionService.TryCatch(async () =>
             {
                 await ValidateOnCreate(model);
 
@@ -251,7 +271,7 @@ namespace iLgs.Services
             });
 
         public ValueTask<RIS_VM> DeleteAsync(RIS_VM model, string user, DateTime date) =>
-        _risVmExceptionService.TryCatchAsync(async () =>
+        _risVmExceptionService.TryCatch(async () =>
         {
             await ValidateOnDelete(model);
 
@@ -275,7 +295,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RIS_VM> UpdateAsync(RIS_VM model, string user, DateTime date) =>
-        _risVmExceptionService.TryCatchAsync(async () =>
+        _risVmExceptionService.TryCatch(async () =>
         {
             await ValidateOnUpdate(model);
 

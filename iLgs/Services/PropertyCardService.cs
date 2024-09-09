@@ -10,42 +10,25 @@ using System.Web;
 
 namespace iLgs.Services
 {
-    public interface IPropertyCardService
+    public interface IPropertyCardService : IPsCardService
     {
-        IQueryable<PropertyCardVM> GetAll();
         ValueTask<PropertyCardVM> GetByIdAsync(Guid? id);
         ValueTask<ServiceResult<PropertyCardVM>> CreateAsync(PropertyCardVM model, string user, DateTime date);
         ValueTask<ServiceResult<PropertyCardVM>> UpdateAsync(PropertyCardVM model, string user, DateTime date);
-        ValueTask<ServiceResult<PropertyCardVM>> DeleteAsync(PropertyCardVM model, string user, DateTime date);
-
-        IAllFieldService AllField { get; }
-        IPsCardItemService PsCardItem { get; }
-        IPsCardItemIssuanceService PsCardItemIssuance { get; }
+        ValueTask<ServiceResult<PropertyCardVM>> DeleteAsync(PropertyCardVM model, string user, DateTime date);        
     }
-    public class PropertyCardService : IPropertyCardService
+    public class PropertyCardService : PsCardService, IPropertyCardService
     {
-        private readonly AppManEntities _db = new AppManEntities();
         private readonly IExceptionService<ServiceResult<PropertyCardVM>> _exceptionService = new ExceptionService<ServiceResult<PropertyCardVM>>();
         private readonly IExceptionService<PropertyCardVM> _vmExceptionService = new ExceptionService<PropertyCardVM>();
         private readonly IValidationService<PropertyCardVM> _validationService;
-        private IAllFieldService _allFieldService;
-        private IPsCardItemService _psCardItemService;
-        private IPsCardItemIssuanceService _psCardItemIssuanceService;
-
-        public PropertyCardService(AppManEntities db)
+        
+        public PropertyCardService(AppManEntities db) : base(db)
         {
-            _db = db;
             _validationService = new ValidationService<PropertyCardVM>(new PropertyCardValidator(db));
-            _allFieldService = new AllFieldService(db);
-            _psCardItemService = new PsCardItemService(db);
-            _psCardItemIssuanceService = new PsCardItemIssuanceService(db);
         }
 
-        public IAllFieldService AllField { get { return _allFieldService = _allFieldService ?? new AllFieldService(_db); } }
-        public IPsCardItemService PsCardItem { get { return _psCardItemService = _psCardItemService ?? new PsCardItemService(_db); } }
-        public IPsCardItemIssuanceService PsCardItemIssuance { get { return _psCardItemIssuanceService = _psCardItemIssuanceService ?? new PsCardItemIssuanceService(_db); } }
-
-        public IQueryable<PropertyCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
+        public new IQueryable<PropertyCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.PsCards.AsNoTracking()
             .Where(w => w.ItemCode.ItemType.Category != "S")
@@ -170,7 +153,7 @@ namespace iLgs.Services
 
             var entity = await _db.PsCards.FindAsync(model.Id);
 
-            _allFieldService.ValidatePsCardAllField(model);
+            await _allFieldService.ValidatePsCardAllField(model);
 
             model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
             model.UpdatedBy = user;

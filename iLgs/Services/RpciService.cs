@@ -17,8 +17,8 @@ namespace iLgs.Services
         ValueTask<RPCI> GetByIdAsync(Guid? id);
         ValueTask<RPCI_VM> GetByAsOfAsync(DateTime? AsOf);
         ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date);
-        ValueTask PostAsync(Guid? id, string user, DateTime date);
-        ValueTask UnPostAsync(Guid? id, string user, DateTime date);
+        ValueTask<RPCI> PostAsync(Guid? id, string user, DateTime date);
+        ValueTask<RPCI> UnPostAsync(Guid? id, string user, DateTime date);
         ValueTask<RPCI_VM> CreateAsync(RPCI_VM model, string user, DateTime date);
         ValueTask<RPCI_VM> UpdateAsync(RPCI_VM model, string user, DateTime date);
         ValueTask<RPCI_VM> DeleteAsync(RPCI_VM model, string user, DateTime date);
@@ -39,7 +39,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<RPCI> GetByIdAsync(Guid? id) =>
-        _exceptionService.TryCatchAsync(async () =>
+        _exceptionService.TryCatch(async () =>
         {
             var data = await _db.RPCIs.FindAsync(id);
             return data;
@@ -54,7 +54,7 @@ namespace iLgs.Services
         }
 
         public ValueTask<RPCI_VM> GetByAsOfAsync(DateTime? AsOf) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var data = await _db.RPCIs.Where(w => w.AsOf == AsOf)
                 .Select(s => new RPCI_VM
@@ -108,7 +108,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             if (model.DeptId != null) {                 
                 if (await _db.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
@@ -125,8 +125,8 @@ namespace iLgs.Services
             return model;
         });
 
-        public ValueTask PostAsync(Guid? id, string user, DateTime date) =>
-        _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<RPCI> PostAsync(Guid? id, string user, DateTime date) =>
+        _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.RPCIs.FindAsync(id);
             if (entity == null)
@@ -162,11 +162,12 @@ namespace iLgs.Services
 
             _db.RPCIs.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();                       
+            await _db.SaveChangesAsync();
+            return entity;
         });
 
-        public ValueTask UnPostAsync(Guid? id, string user, DateTime date) =>
-        _exceptionService.TryCatchAsync(async () =>
+        public ValueTask<RPCI> UnPostAsync(Guid? id, string user, DateTime date) =>
+        _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.RPCIs.FindAsync(id);
             if (entity == null)
@@ -187,10 +188,11 @@ namespace iLgs.Services
             _db.RPCIs.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
+            return entity;
         });
 
         public ValueTask<RPCI_VM> CreateAsync(RPCI_VM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {            
             var notPosted = await _orderService.GetNotPostedAsync((DateTime)model.AsOf);
             if (notPosted > 0)
@@ -233,7 +235,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCI_VM> DeleteAsync(RPCI_VM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RPCIs.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
@@ -266,7 +268,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<RPCI_VM> UpdateAsync(RPCI_VM model, string user, DateTime date) =>
-        _vmExceptionService.TryCatchAsync(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.RPCIs.FindAsync(model.Id);
             if (entity == null)
