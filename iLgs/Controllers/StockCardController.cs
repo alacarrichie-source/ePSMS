@@ -747,16 +747,6 @@ namespace iLgs.Controllers
         }
         #endregion
 
-        [HttpPost]
-        public ActionResult GetItemExtnTemplate(Guid? id)
-        {
-
-            string itemExtnName = _stockCardService.GetItemExtnName(id);
-
-            return Json(new { Errors = "", ItemExtnName = itemExtnName }, JsonRequestBehavior.AllowGet);
-
-        }
-
         #region ITEMEXTN VEHICLES
         public ActionResult _ItemExtnVehicleRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
         {
@@ -998,6 +988,29 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
-        #endregion  
+        #endregion
+
+        #region AJAX CALLS
+
+        [HttpPost]
+        public ActionResult GetItemExtnTemplate(Guid? id)
+        {
+
+            string itemExtnName = _stockCardService.GetItemExtnName(id);
+
+            return Json(new { Errors = "", ItemExtnName = itemExtnName }, JsonRequestBehavior.AllowGet);
+
+        }
+
+        [HttpGet]
+        public ActionResult GetEndSeries(string startSeries, Guid? itemId)
+        {
+
+            string endSeries = _stockCardService.PsCardItem.PsCardItemExtn.GetEndSeries(startSeries, itemId);
+
+            return Json(new { Errors = "", EndSeries = endSeries }, JsonRequestBehavior.AllowGet);
+
+        }
+        #endregion
     }
 }

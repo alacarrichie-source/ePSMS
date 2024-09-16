@@ -134,6 +134,7 @@ namespace iLgs.Models
     public class ItemCodePreviewVM
     {
         public Guid Id { get; set; }
+        public string Category { get; set; }
 
         [Display(Name = "Code")]
         public string Code { get; set; }

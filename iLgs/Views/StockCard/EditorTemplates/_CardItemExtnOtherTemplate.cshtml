@@ -13,15 +13,35 @@
 
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardItemId)
-    @Html.HiddenFor(model => model.ContentNo)
+    @Html.HiddenFor(model => model.ContentNo)    
 
     <fieldset>
 
-        <div class="row">
-            @Html.LabelFor(m => m.SerialNo, htmlAttributes: new { @class = "col-md-2" })
-            <div class="col-md-10">
-                @(Html.Kendo().TextBoxFor(m => m.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(model => model.SerialNo)
+        <div id="DIV_CREATE">
+            <div class="row">
+                @Html.LabelFor(m => m.BegSerial, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.BegSerial).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateEndSeries")))
+                    @Html.ValidationMessageFor(model => model.BegSerial)
+                </div>
+            </div>
+
+            <div class="row">
+                @Html.LabelFor(m => m.EndSerial, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.EndSerial).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.EndSerial)
+                </div>
+            </div>
+        </div>
+
+        <div id="DIV_UPDATE">
+            <div class="row">
+                @Html.LabelFor(m => m.SerialNo, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.SerialNo)
+                </div>
             </div>
         </div>
 

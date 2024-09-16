@@ -38,7 +38,6 @@
         </Diagram>
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="97" >
         <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="0.75" PointY="0.75" />
-        <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="2.75" PointY="0.75" />
         <EntityTypeShape EntityType="AppManModel.Request" Width="1.5" PointX="0.75" PointY="10.875" />
         <EntityTypeShape EntityType="AppManModel.PAR" Width="1.5" PointX="5.25" PointY="20.875" />
         <EntityTypeShape EntityType="AppManModel.OrderItemExtn" Width="1.5" PointX="10.5" PointY="14.25" />
@@ -61,6 +60,7 @@
         <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_RequestItems" />
         <AssociationConnector Association="AppManModel.FK_PARItems_OrderItems" />
+        <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="3.375" PointY="0.75" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="Issuance" ZoomLevel="75" >
         <EntityTypeShape EntityType="AppManModel.RSMIRecap" Width="1.5" PointX="3" PointY="5.625" />

@@ -1331,8 +1331,8 @@
           </Key>
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="ImageId" Type="uniqueidentifier" />
-          <Property Name="FileName" Type="nvarchar" MaxLength="50" />
-          <Property Name="Description" Type="nvarchar" MaxLength="50" />
+          <Property Name="FileName" Type="nvarchar" MaxLength="200" />
+          <Property Name="Description" Type="nvarchar" MaxLength="200" />
           <Property Name="ServerIpAddress" Type="varchar" MaxLength="50" />
           <Property Name="VirtualDirectory" Type="nvarchar" MaxLength="150" />
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
@@ -3220,7 +3220,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </AssociationSet>
           <EntitySet Name="Suppliers" EntityType="AppManModel.Supplier" />
           <EntitySet Name="Sequences" EntityType="AppManModel.Sequence" />
-          <EntitySet Name="Uploads" EntityType="AppManModel.Upload" />
           <EntitySet Name="Requests" EntityType="AppManModel.Request" />
           <EntitySet Name="RISses" EntityType="AppManModel.RISs" />
           <AssociationSet Name="FK_Requests_RIS" Association="AppManModel.FK_Requests_RIS">
@@ -3568,6 +3567,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RPCI" EntitySet="RPCIs" />
             <End Role="RPCIDepLoc" EntitySet="RPCIDepLocs" />
           </AssociationSet>
+          <EntitySet Name="Uploads" EntityType="AppManModel.Upload" />
           </EntityContainer>
         <EntityType Name="Menubase">
           <Key>
@@ -3994,21 +3994,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           </Key>
           <Property Name="KeyName" Type="String" Nullable="false" MaxLength="20" FixedLength="true" Unicode="false" />
           <Property Name="KeyValue" Type="String" MaxLength="20" FixedLength="true" Unicode="false" />
-        </EntityType>
-        <EntityType Name="Upload">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="ImageId" Type="Guid" />
-          <Property Name="FileName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="Description" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="ServerIpAddress" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="VirtualDirectory" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
         </EntityType>
         <EntityType Name="Request">
           <Key>
@@ -6247,6 +6232,21 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="Upload">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ImageId" Type="Guid" />
+          <Property Name="FileName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="ServerIpAddress" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="VirtualDirectory" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+        </EntityType>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -6538,22 +6538,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               <MappingFragment StoreEntitySet="Sequences">
                 <ScalarProperty Name="KeyValue" ColumnName="KeyValue" />
                 <ScalarProperty Name="KeyName" ColumnName="KeyName" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Uploads">
-            <EntityTypeMapping TypeName="AppManModel.Upload">
-              <MappingFragment StoreEntitySet="Uploads">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="VirtualDirectory" ColumnName="VirtualDirectory" />
-                <ScalarProperty Name="ServerIpAddress" ColumnName="ServerIpAddress" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="FileName" ColumnName="FileName" />
-                <ScalarProperty Name="ImageId" ColumnName="ImageId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -7768,6 +7752,22 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="LocationId" ColumnName="LocationId" />
                 <ScalarProperty Name="DeptId" ColumnName="DeptId" />
                 <ScalarProperty Name="RpciId" ColumnName="RpciId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Uploads">
+            <EntityTypeMapping TypeName="AppManModel.Upload">
+              <MappingFragment StoreEntitySet="Uploads">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="VirtualDirectory" ColumnName="VirtualDirectory" />
+                <ScalarProperty Name="ServerIpAddress" ColumnName="ServerIpAddress" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="ImageId" ColumnName="ImageId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

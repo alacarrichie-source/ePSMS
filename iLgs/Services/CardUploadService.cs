@@ -2,37 +2,34 @@
 using iLgs.Models;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.Entity;
-using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Mvc;
 
 namespace iLgs.Services
 {
-    public interface IParIcsUploadService: IUploadService
-    {        
+    public interface ICardUploadService : IUploadService
+    {
     }
 
-    public class ParIcsUploadService : UploadService, IParIcsUploadService
+    public class CardUploadService : UploadService, ICardUploadService
     {
-        public ParIcsUploadService(AppManEntities db) 
-            : base(db, "PAR")
-        {            
-        }
-        
-        private async Task<bool> IsPostedAsync(Guid? imageId)
+        public CardUploadService(AppManEntities db)
+            : base(db, "CARD")
         {
-            var result = await _db.PsCardItems.Where(w => w.GroupId == imageId).AnyAsync(a => a.ParPostedBy != "" && a.ParPostedBy != null);
+        }
+
+        private async ValueTask<bool> IsPostedAsync(Guid? psCardItemId)
+        {
+            var result = await _db.PsCardItems.Where(w => _db.PsCardItems.Where(x => x.Id == psCardItemId && x.GroupId == w.GroupId)
+                .Any(a => a.ParPostedBy != "" && a.ParPostedBy != null)).AnyAsync();
             return result;
         }
 
         public override async ValueTask<Upload> UploadAsync(IEnumerable<HttpPostedFileBase> files, Upload model, string user, DateTime date)
         {
-            if (await IsPostedAsync(model.ImageId))
+            if (await IsPostedAsync(model.PsCardItemId))
             {
                 throw new RecordAlreadyPostedException("Record is already posted, cannot update!");
             }
@@ -45,30 +42,30 @@ namespace iLgs.Services
             if (string.IsNullOrWhiteSpace(model.Description))
             {
                 throw new InvalidValueException("Description is Required!");
-            }            
+            }
 
-            return await base.UploadAsync(files, model, user, date);            
+            return await base.UploadAsync(files, model, user, date);
         }
 
         public override async ValueTask<Upload> UpdateAsync(Upload model, string user, DateTime date)
         {
-            if (await IsPostedAsync(model.ImageId))
+            if (await IsPostedAsync(model.PsCardItemId))
             {
                 throw new RecordAlreadyPostedException("Record is already posted, cannot update!");
             }
 
-            return await base.UpdateAsync(model, user, date);            
+            return await base.UpdateAsync(model, user, date);
         }
 
         public override async ValueTask<Upload> DeleteAsync(Upload model, string user, DateTime date)
         {
-            if (await IsPostedAsync(model.ImageId))
+            if (await IsPostedAsync(model.PsCardItemId))
             {
                 throw new RecordAlreadyPostedException("Record is already posted, cannot update!");
             }
 
             return await base.DeleteAsync(model, user, date);
-            
-        }        
+
+        }
     }
 }

@@ -35,6 +35,24 @@ namespace iLgs.Controllers
             return View();
         }
 
+        public async Task<ActionResult> Unit()
+        {
+            var code = "Unit";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Unit";
+            return View("Codextn", codeMast);
+        }
+
+        public async Task<ActionResult> UnitGroup()
+        {
+            var code = "UNIT-GROUP";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Unit Group";
+            return View("Codextn" ,codeMast);
+        }
+
         public async Task<ActionResult> Location()
         {
             var code = "Locations";

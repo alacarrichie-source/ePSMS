@@ -55,37 +55,38 @@ namespace iLgs.Utilities
 
         public static string GetDisplayName<T>(string propertyName)
         {
-            // First, check the derived model type
-            var displayName = GetDisplayNameFromType(typeof(T), propertyName);
+            return GetDisplayName(typeof(T), propertyName);
+            //// First, check the derived model type
+            //var displayName = GetDisplayNameFromType(typeof(T), propertyName);
 
-            if (!string.IsNullOrEmpty(displayName))
-            {
-                return displayName;
-            }
+            //if (!string.IsNullOrEmpty(displayName))
+            //{
+            //    return displayName;
+            //}
 
-            // If not found, check the base type recursively
-            var baseType = typeof(T).BaseType;
-            while (baseType != null)
-            {
-                displayName = GetDisplayNameFromType(baseType, propertyName);
-                if (!string.IsNullOrEmpty(displayName))
-                {
-                    return displayName;
-                }
+            //// If not found, check the base type recursively
+            //var baseType = typeof(T).BaseType;
+            //while (baseType != null)
+            //{
+            //    displayName = GetDisplayNameFromType(baseType, propertyName);
+            //    if (!string.IsNullOrEmpty(displayName))
+            //    {
+            //        return displayName;
+            //    }
 
-                baseType = baseType.BaseType;
-            }
+            //    baseType = baseType.BaseType;
+            //}
 
-            // Check for MetadataType attribute if defined on the derived class
-            var metadataType = typeof(T).GetCustomAttributes(typeof(MetadataTypeAttribute), true)
-                                        .FirstOrDefault() as MetadataTypeAttribute;
+            //// Check for MetadataType attribute if defined on the derived class
+            //var metadataType = typeof(T).GetCustomAttributes(typeof(MetadataTypeAttribute), true)
+            //                            .FirstOrDefault() as MetadataTypeAttribute;
 
-            if (metadataType != null)
-            {
-                displayName = GetDisplayNameFromType(metadataType.MetadataClassType, propertyName);
-            }
+            //if (metadataType != null)
+            //{
+            //    displayName = GetDisplayNameFromType(metadataType.MetadataClassType, propertyName);
+            //}
 
-            return displayName ?? propertyName; // Return property name if no display name found
+            //return displayName ?? propertyName; // Return property name if no display name found
         }
 
         private static string GetDisplayNameFromType(Type type, string propertyName)

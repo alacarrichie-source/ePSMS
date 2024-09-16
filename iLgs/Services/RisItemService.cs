@@ -13,6 +13,21 @@ using static iLgs.Models.CategoryEnum;
 
 namespace iLgs.Services
 {
+    public interface IRisItemService
+    {
+        IQueryable<RisItemEntryVM> GetByRisId(Guid? risId);
+        ValueTask<RisItem> GetByIdAsync(Guid? id);
+        ValueTask<RisItemEntryVM> GetVmByIdAsync(Guid? id);
+        ValueTask<RisItemEntryVM> GetEntryVmByIdAsync(Guid? id);
+        string PsNoDisplay(RisItemEntryVM model);
+        string GetDescription(RisItemEntryVM entry);
+        //string GetPsDescription(PsCardVM entry);
+
+        ValueTask<RisItemEntryVM> CreateAsync(RisItemEntryVM model, string user, DateTime date);
+        ValueTask<RisItemEntryVM> UpdateAsync(RisItemEntryVM model, string user, DateTime date);
+        ValueTask<RisItemEntryVM> DeleteAsync(RisItemEntryVM model, string user, DateTime date);
+    }
+
     public class RisItemService : IRisItemService
     {
         private readonly AppManEntities _db = new AppManEntities();

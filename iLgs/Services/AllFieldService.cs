@@ -720,17 +720,17 @@ namespace iLgs.Services
                     }
                     //stockNo += (!string.IsNullOrWhiteSpace(af.Brand) ? $"/{af.Brand}" : "/xx");
 
-                    if (string.IsNullOrWhiteSpace(af.Model_))
+                    if (af.Model_.IsNullOrWhiteSpaceX())
                     {
-                        if (string.IsNullOrWhiteSpace(af.Dimension))
+                        if (af.Dimension.IsNullOrWhiteSpaceX())
                         {
-                            if (string.IsNullOrWhiteSpace(af.Size))
+                            if (af.Size.IsNullOrWhiteSpaceX())
                             {
-                                if (string.IsNullOrWhiteSpace(af.Weight))
+                                if (af.Weight.IsNullOrWhiteSpaceX())
                                 {
-                                    if (string.IsNullOrWhiteSpace(af.Materials))
+                                    if (af.Materials.IsNullOrWhiteSpaceX())
                                     {
-                                        if (string.IsNullOrWhiteSpace(af.Capacity))
+                                        if (af.Capacity.IsNullOrWhiteSpaceX())
                                         {
                                             if (!string.IsNullOrWhiteSpace(af.Color))
                                             {
@@ -881,14 +881,21 @@ namespace iLgs.Services
                 {
                     if (!string.IsNullOrWhiteSpace(af.GenericName))
                     {
-                        var genName = Utility.ToProperCase(af.GenericName);
-                        if (genName.Length >= 3)
+                        if (af.GenericName.Equals("-"))
                         {
-                            stockNo += "/" + genName.Substring(0, 1) + genName.Substring(2, 1);
+                            stockNo += "/xx";
                         }
-                        else
+                        else 
                         {
-                            stockNo += "/" + genName.Substring(0, 1) + "X";
+                            var genName = Utility.ToProperCase(af.GenericName);
+                            if (genName.Length >= 3)
+                            {
+                                stockNo += "/" + genName.Substring(0, 1) + genName.Substring(2, 1);
+                            }
+                            else
+                            {
+                                stockNo += "/" + genName.Substring(0, 1) + "X";
+                            }
                         }
                     }
 
@@ -903,22 +910,40 @@ namespace iLgs.Services
                     {
                         if (!string.IsNullOrWhiteSpace(af.DosageStrength))
                         {
-                            stockNo += "/" + af.DosageStrength.Replace(" ", "").Trim();                            
+                            if (af.DosageStrength.Equals("-"))
+                            {
+                                stockNo += "/xx";
+                            }
+                            else
+                            {
+                                stockNo += "/" + af.DosageStrength.Replace(" ", "").Trim();
+                            }
                         }
                         if (!string.IsNullOrWhiteSpace(af.DosageForm))
                         {
-                            stockNo += "/" + af.DosageForm.PadRight(3, 'X').Substring(0, 3);                            
+                            if (af.DosageForm.Equals("-"))
+                            {
+                                stockNo += "/xx";
+                            }
+                            else
+                            {
+                                stockNo += "/" + af.DosageForm.PadRight(3, 'X').Substring(0, 3);
+                            }
                         }
                     }
 
-                    if (af.Multipliers.HasValue)
+                    if (af.Multipliers.HasValue && af.Multipliers > 0)
                     {
                         stockNo += "/" + af.Multipliers.ToString().Trim() + "'s";
+                    }
+                    else
+                    {
+                        stockNo += "/xx";
                     }
 
                     if (!string.IsNullOrWhiteSpace(af.Brand))
                     {
-                        if (af.Brand == "-")
+                        if (af.Brand.Equals("-"))
                         {
                             stockNo += "/xx";
                         }
@@ -927,10 +952,10 @@ namespace iLgs.Services
                             stockNo += "/" + af.Brand.Replace(" ", "").Trim();
                         }
                     }
-                    else
-                    {
-                        stockNo += "/xx";
-                    }
+                    //else
+                    //{
+                    //    stockNo += "/xx";
+                    //}
                 }
             }
             return stockNo;

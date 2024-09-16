@@ -12,11 +12,13 @@ namespace iLgs.Services
 {
     public interface IPropertyCardService : IPsCardService
     {
+        new IQueryable<PropertyCardVM> GetAll();
         ValueTask<PropertyCardVM> GetByIdAsync(Guid? id);
         ValueTask<ServiceResult<PropertyCardVM>> CreateAsync(PropertyCardVM model, string user, DateTime date);
         ValueTask<ServiceResult<PropertyCardVM>> UpdateAsync(PropertyCardVM model, string user, DateTime date);
         ValueTask<ServiceResult<PropertyCardVM>> DeleteAsync(PropertyCardVM model, string user, DateTime date);        
     }
+
     public class PropertyCardService : PsCardService, IPropertyCardService
     {
         private readonly IExceptionService<ServiceResult<PropertyCardVM>> _exceptionService = new ExceptionService<ServiceResult<PropertyCardVM>>();

@@ -43,7 +43,6 @@ namespace iLgs.Models
         public virtual DbSet<MenuAction> MenuActions { get; set; }
         public virtual DbSet<Supplier> Suppliers { get; set; }
         public virtual DbSet<Sequence> Sequences { get; set; }
-        public virtual DbSet<Upload> Uploads { get; set; }
         public virtual DbSet<Request> Requests { get; set; }
         public virtual DbSet<RISs> RISses { get; set; }
         public virtual DbSet<AIR> AIRs { get; set; }
@@ -95,5 +94,6 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
+        public virtual DbSet<Upload> Uploads { get; set; }
     }
 }

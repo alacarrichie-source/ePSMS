@@ -12,6 +12,7 @@ namespace iLgs.Services
 {
     public interface IStockCardService : IPsCardService
     {
+        new IQueryable<StockCardVM> GetAll();
         ValueTask<StockCardVM> GetByIdAsync(Guid? id);
         ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date);
         ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date);
@@ -145,6 +146,8 @@ namespace iLgs.Services
             //{
             //    return ServiceResult<StockCardVM>.Failure(result.Errors);
             //}
+
+            _validator.ValidateOnUpdate(model);
 
             var entity = await _db.PsCards.FindAsync(model.Id);
 

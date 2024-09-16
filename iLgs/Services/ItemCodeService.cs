@@ -22,7 +22,7 @@ namespace iLgs.Services
         IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item);
         IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item);
 
-        IQueryable<ItemCodePreviewVM> GetItemCodePreview();
+        IQueryable<ItemCodePreviewVM> GetItemCodePreview(string category);
 
         ValueTask<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date);
         ValueTask<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date);
@@ -121,9 +121,9 @@ namespace iLgs.Services
             return data;
         });
 
-        public IQueryable<ItemCodePreviewVM> GetItemCodePreview()
+        public IQueryable<ItemCodePreviewVM> GetItemCodePreview(string category)
         {
-            var data = db.Database.SqlQuery<ItemCodePreviewVM>("Exec ItemCodes_GetPreview").AsQueryable();
+            var data = db.Database.SqlQuery<ItemCodePreviewVM>("Exec ItemCodes_GetPreview {0}", category).AsQueryable();
             return data;
         }
 

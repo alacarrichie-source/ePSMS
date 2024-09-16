@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -12,29 +13,19 @@ namespace iLgs.Services
 {
     public interface IPsCardItemExtnService
     {
-        //IQueryable<PsCardItemExtn> GetAllByPsCardItemId(Guid? psCardItemId);
-        //ValueTask<PsCardItemExtn> GetByIdAsync(Guid? id);
-        //ValueTask<PsCardItemExtn> CreateAsync(PsCardItemExtn model, string user, DateTime date);
-        //ValueTask<PsCardItemExtn> UpdateAsync(PsCardItemExtn model, string user, DateTime date);
-        //ValueTask<PsCardItemExtn> DeleteAsync(PsCardItemExtn model, string user, DateTime date);
-
         IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get; }
-        IPsCardItemExtnOtherService PsCardItemExtnOther { get; }
-
-        //IQueryable<PsCardItemExtn> GetPsCardItemExtnForIcs(Guid? psCardItemId);
-
+        IPsCardItemExtnOtherService PsCardItemExtnOther { get; }        
         IQueryable<T> GetCardItemExtnForIcsPars<T>(Guid? psCardItemId) where T : PsCardItemExtn;
         IQueryable<PsCardItemExtn> GetCardItemExtnForIcsParsByType(Guid? psCardItemId);
+
+        string GetEndSeries(string startSeries, Guid? itemId);
+        string GetEndSeries(string startSeries, int qty);
     }
 
 
     public class PsCardItemExtnService : IPsCardItemExtnService
     {
-        private readonly AppManEntities _db = new AppManEntities();
-
-        //private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
-        //private readonly IExceptionService<PsCardItemExtn> _exceptionService = new ExceptionService<PsCardItemExtn>();
-
+        private readonly AppManEntities _db = new AppManEntities();        
         private IPsCardItemExtnVehicleService _psCardItemExtnVehicleService;
         private IPsCardItemExtnOtherService _psCardItemExtnOtherService;
 
@@ -51,11 +42,11 @@ namespace iLgs.Services
         public IQueryable<T> GetCardItemExtnForIcsPars<T>(Guid? psCardItemId) where T : PsCardItemExtn
         {
             var data = _db.PsCardItemExtns.OfType<T>().AsNoTracking()
-                        .Where(w => !w.IcsParItems.Any(a => a.PsCardItemExtnId == w.Id) 
-                            && (w.PsCardItemId == psCardItemId || 
+                        .Where(w => !w.IcsParItems.Any(a => a.PsCardItemExtnId == w.Id)
+                            && (w.PsCardItemId == psCardItemId ||
                                 // Get items from same PO of different CardItem (Due to Transfer of Item)
-                                _db.PsCardItems.Any(a => a.PoNo == w.PsCardItem.PoNo && a.PoDate == w.PsCardItem.PoDate 
-                                    && a.DeptId == w.PsCardItem.DeptId &&  a.PsCardId == w.PsCardItem.PsCardId && a.Id != psCardItemId)
+                                _db.PsCardItems.Any(a => a.PoNo == w.PsCardItem.PoNo && a.PoDate == w.PsCardItem.PoDate
+                                    && a.DeptId == w.PsCardItem.DeptId && a.PsCardId == w.PsCardItem.PsCardId && a.Id != psCardItemId)
                             )
                         )
                         .AsQueryable();
@@ -75,125 +66,45 @@ namespace iLgs.Services
                 case "ItemExtnVehicle":
                     return GetCardItemExtnForIcsPars<PsCardItemExtnVehicle>(psCardItemId);
                 default:
-                    return GetCardItemExtnForIcsPars<PsCardItemExtnOther>(psCardItemId);                
+                    return GetCardItemExtnForIcsPars<PsCardItemExtnOther>(psCardItemId);
             }
         }
 
-            //public IQueryable<PsCardItemExtnOther> GetCardItemExtn(Guid? psCardItemId)
-            //{
-            //    var data = _db.PsCardItemExtns.OfType<PsCardItemExtnOther>()
-            //        .Where(w => w.PsCardItemId == psCardItemId)
-            //        .AsQueryable();
-            //    return data;
-            //}
+        public string GetEndSeries(string startSeries, Guid? itemId)
+        {
+            var qty = _db.PsCardItems.Where(w => w.Id == itemId).AsNoTracking()
+                .Select(s => new
+                {
+                    Qty = (s.Qty ?? 0 + s.TransferIn ?? 0) - s.PsCardItemExtns.Count()
+                }).FirstOrDefault().Qty;
 
-            //public IQueryable<PsCardItemExtn> GetAllByPsCardItemId(Guid? psCardItemId) =>
-            //_exceptionService.TryCatch(() =>
-            //{
-            //    var data = _db.PsCardItemExtns.Where(w => w.PsCardItemId == psCardItemId).AsNoTracking();
-            //    return data;
-            //});
-
-            //public async ValueTask<PsCardItemExtn> GetByIdAsync(Guid? id)
-            //{
-            //    var data = await _db.PsCardItemExtns
-            //        .Include(i => i.PsCardItemExtnLand)
-            //        .Include(i => i.PsCardItemExtnBuilding)
-            //        .Include(i => i.PsCardItemExtnVehicle)
-            //        .Include(i => i.PsCardItemExtnOther)
-            //        .Where(w => w.Id == id)
-            //        .FirstOrDefaultAsync();
-            //    return data;
-            //}
-
-            //public ValueTask<PsCardItemExtn> CreateAsync(PsCardItemExtn model, string user, DateTime date) =>
-            //_exceptionService.TryCatch(async () =>
-            //{
-
-            //    model.Id = Guid.NewGuid();
-            //    model.InsertedBy = user;
-            //    model.UpdatedBy = user;
-            //    model.InsertedDt = date;
-            //    model.UpdatedDt = date;
-
-            //    PsCardItemExtn entity = new PsCardItemExtn()
-            //    {
-            //        Id = model.Id,
-            //        PsCardItemId = model.PsCardItemId,
-            //        LocationId = model.LocationId,
-            //        PropNo = model.PropNo,
-            //        PropYear = model.PropYear,
-            //        PropSeq = model.PropSeq,
-            //        CustItemNo = model.CustItemNo,
-            //        SeriesNo = model.SeriesNo,
-            //        Remarks = model.Remarks,
-            //        InsertedBy = model.InsertedBy,
-            //        InsertedDt = model.InsertedDt,
-            //        UpdatedBy = model.UpdatedBy,
-            //        UpdatedDt = model.UpdatedDt
-            //    };
-
-            //    _db.PsCardItemExtns.Add(entity);
-            //    await _db.SaveChangesAsync();
-            //    return model;
-            //});
-
-            //public ValueTask<PsCardItemExtn> UpdateAsync(PsCardItemExtn model, string user, DateTime date) =>
-            //_exceptionService.TryCatch(async () =>
-            //{
-            //    var entity = await GetByIdAsync(model.Id);
-
-            //    if (entity == null)
-            //    {
-            //        throw new RecordNotFoundException(model.Id);
-            //    }
-
-            //    model.UpdatedBy = user;
-            //    model.UpdatedDt = date;
-
-            //    entity.LocationId = model.LocationId;
-            //    entity.PropNo = model.PropNo;
-            //    entity.PropYear = model.PropYear;
-            //    entity.PropSeq = model.PropSeq;
-            //    entity.CustItemNo = model.CustItemNo;
-            //    entity.SeriesNo = model.SeriesNo;
-            //    entity.Remarks = model.Remarks;
-
-            //    entity.UpdatedBy = model.UpdatedBy;
-            //    entity.UpdatedDt = model.UpdatedDt;
-
-            //    _db.PsCardItemExtns.Attach(entity);
-            //    _db.Entry(entity).State = EntityState.Modified;
-            //    await _db.SaveChangesAsync();
-
-            //    return model;
-            //});
-
-            //public ValueTask<PsCardItemExtn> DeleteAsync(PsCardItemExtn model, string user, DateTime date) =>
-            //_exceptionService.TryCatch(async () =>
-            //{
-            //    PsCardItemExtn entity = await _db.PsCardItemExtns.FindAsync(model.Id);
-            //    if (entity == null)
-            //    {
-            //        throw new RecordNotFoundException(model.Id);
-            //    }
-
-            //    model.UpdatedBy = user;
-            //    model.UpdatedDt = date;
-
-            //    entity.UpdatedBy = model.UpdatedBy;
-            //    entity.UpdatedDt = model.UpdatedDt;
-
-            //    _db.PsCardItemExtns.Attach(entity);
-            //    _db.Entry(entity).State = EntityState.Modified;
-            //    await _db.SaveChangesAsync();
-
-            //    _db.PsCardItemExtns.Remove(entity);
-            //    _db.Entry(entity).State = EntityState.Deleted;
-            //    await _db.SaveChangesAsync();            
-
-            //    return model;
-            //});
-
+            return GetEndSeries(startSeries, qty);
         }
+
+        public string GetEndSeries(string startSeries, int qty)
+        {
+            // Regular expression to capture the numeric part at the end of the string
+            string pattern = @"(.*?)(\d+)$";
+            Match match = Regex.Match(startSeries, pattern);
+
+            if (match.Success)
+            {
+                // Extract the non-numeric part (prefix) and the numeric part (number)
+                string prefix = match.Groups[1].Value;  // 'AB-01-X-'
+                string numericPart = match.Groups[2].Value;  // '01'
+
+                int startNumber = int.Parse(numericPart);  // Convert '01' to 1
+
+                // Add the quantity to the start number
+                int endNumber = startNumber + qty - 1;
+
+                // Reassemble the series and maintain the same padding (based on the length of the numeric part)
+                int paddingLength = numericPart.Length;  // Get the length of the original numeric part
+                return $"{prefix}{endNumber.ToString($"D{paddingLength}")}";  // Dynamically format the number with the same number of digits
+            }
+
+            // If no match is found, return the start series as it is
+            return startSeries;
+        }
+    }
 }

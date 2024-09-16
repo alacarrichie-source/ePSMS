@@ -15,6 +15,7 @@ namespace iLgs.Models
         public int FileSize { get { return 10; } }
         //public string PathName { get { return (this.Directory + this.FileName).Replace("/", "\\"); } } 
         public string PathName { get { return this.Directory + this.FileName; } }
+        public Guid? PsCardItemId { get; set; }
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }

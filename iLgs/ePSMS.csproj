@@ -294,6 +294,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\CardUploadController.cs" />
     <Compile Include="Controllers\IcsSetController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
     <Compile Include="Controllers\IcsController.cs" />
@@ -588,6 +589,7 @@
     <Compile Include="Services\AirItemExtnVehicleService.cs" />
     <Compile Include="Services\AllFieldService.cs" />
     <Compile Include="Services\CardItemExtnService.cs" />
+    <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\DepartmentUserService.cs" />
     <Compile Include="Services\IcsParItemService.cs" />
     <Compile Include="Services\IcsParService.cs" />
@@ -626,6 +628,7 @@
     <Compile Include="Services\ServiceResult.cs" />
     <Compile Include="Services\StockCardService.cs" />
     <Compile Include="Services\ParIcsUploadService.cs" />
+    <Compile Include="Services\UploadService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
     <Compile Include="Services\Agents\IServiceAgent.cs" />
@@ -3904,6 +3907,9 @@
     <Content Include="Views\PropertyCard\EditorTemplates\_CardItemExtnOtherTemplate.cshtml" />
     <Content Include="Views\PropertyCard\EditorTemplates\_CardItemExtnVehicleTemplate.cshtml" />
     <Content Include="Views\Shared\DisplayTemplates\LabelDate.cshtml" />
+    <Content Include="Views\CardUpload\_Images.cshtml" />
+    <Content Include="Views\CardUpload\_ImagesAdd.cshtml" />
+    <Content Include="Views\CardUpload\EditorTemplates\_ImagesTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -114,6 +114,8 @@ namespace iLgs.Models
 
         [Display(Name = "Qty. Issued")]
         public Nullable<int> QtyIss { get; set; }
+
+        [Required]
         [Display(Name = "Qty. Balance")]
         public Nullable<int> QtyBal { get; set; }
 
@@ -132,15 +134,17 @@ namespace iLgs.Models
         [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
 
+        [Required]
         [Display(Name = "PO Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
+
         public Nullable<decimal> Amount { get; set; }
         [Display(Name = "Price Rate (%)")]
         public Nullable<decimal> PriceRate { get; set; }
         public string Remarks { get; set; }
 
         [Display(Name = "Originating PO Department")]
-        //[Required]
+        [Required]
         public Nullable<System.Guid> DeptId { get; set; }
 
         [Display(Name = "Location")]
@@ -149,6 +153,7 @@ namespace iLgs.Models
         [Display(Name = "Department Display")]
         public string DeptDisplay { get; set; }
 
+        [Required]
         public string Description { get; set; }
 
         [Display(Name = "Other Description")]
@@ -171,6 +176,7 @@ namespace iLgs.Models
         [Display(Name = "Remarks")]
         public string OtherRemarks { get; set; }
 
+        [Required]
         [Display(Name = "Inventory/For Distribution")]
         public string InvDist { get; set; }
 
@@ -298,7 +304,7 @@ namespace iLgs.Models
         // Transients
         public string Department { get; set; }
         public string Location { get; set; }
-        
+                
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
         public int? IssuedToSw { get; set; }        

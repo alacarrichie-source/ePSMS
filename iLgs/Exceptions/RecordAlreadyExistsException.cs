@@ -7,7 +7,7 @@ using System.Web.Services.Description;
 
 namespace iLgs.Exceptions
 {
-    public class RecordAlreadyExistsException : Exception, IException
+    public class RecordAlreadyExistsException : Xeption, IException
     {        
         public HttpStatusCode StatusCode()
         {

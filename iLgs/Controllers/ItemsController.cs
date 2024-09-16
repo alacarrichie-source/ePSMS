@@ -432,9 +432,9 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult ItemCodePreviewRead([DataSourceRequest] DataSourceRequest request)
+        public ActionResult ItemCodePreviewRead([DataSourceRequest] DataSourceRequest request, string category)
         {
-            var data = _itemCodeService.GetItemCodePreview();
+            var data = _itemCodeService.GetItemCodePreview(category);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -571,7 +571,7 @@ namespace iLgs.Controllers
         [Authorize]
         public JsonResult GetPropertyItemAccounts(string text)
         {
-            var model = _itemCodeService.GetItemAccountsByCategory("PPE", text);
+            var model = _itemCodeService.GetItemAccountsByCategory("P", text);
             return Json(model.Select(c => new
             {
                 Id = c.Id, Code = c.Code, Description = c.Description, Type = c.ItemType,

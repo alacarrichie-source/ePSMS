@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -42,6 +43,36 @@ namespace iLgs.Services
             return data;
         });
 
+        static List<string> GenerateSeries(string startSeries, string endSeries)
+        {
+            List<string> result = new List<string>();
+
+            // Regular expression to capture the numeric part at the end of the series
+            string pattern = @"(.*?)(\d+)$";
+            Match startMatch = Regex.Match(startSeries, pattern);
+            Match endMatch = Regex.Match(endSeries, pattern);
+
+            if (startMatch.Success && endMatch.Success)
+            {
+                // Extract the non-numeric part (the prefix) and numeric parts (the numbers)
+                string prefix = startMatch.Groups[1].Value;  // e.g., 'AB-01-X-'
+                int startNumber = int.Parse(startMatch.Groups[2].Value);  // Starting number
+                int endNumber = int.Parse(endMatch.Groups[2].Value);  // Ending number
+
+                // Determine the padding length based on the starting series
+                int paddingLength = startMatch.Groups[2].Value.Length;
+
+                // Loop through the range from start to end and generate the series
+                for (int i = startNumber; i <= endNumber; i++)
+                {
+                    // Reassemble the series and maintain the original padding
+                    result.Add($"{prefix}{i.ToString($"D{paddingLength}")}");
+                }
+            }
+
+            return result;
+        }
+
         public ValueTask<PsCardItemExtnOther> CreateAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             //if (await IsPostedAsync(model.PsCardItemId))
@@ -52,8 +83,9 @@ namespace iLgs.Services
             var psCardItem = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == model.PsCardItemId);
             var itemQty = (int)(psCardItem.Qty ?? 0) + (int)(psCardItem.TransferIn ?? 0);
             var itemExtns = _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().Where(w => w.PsCardItemId == model.PsCardItemId);
+            var itemExtnCount = itemExtns.Count();
 
-            if (itemExtns.Count() >= itemQty)
+            if (itemExtnCount >= itemQty)
             {
                 throw new InvalidValueException($"Cannot create more than {itemQty} record(s).");
             }
@@ -63,30 +95,42 @@ namespace iLgs.Services
                 throw new RecordAlreadyExistsException($"Serial No. {model.SerialNo} already exists!");
             }
 
-            model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            model.Id = Guid.NewGuid();
+            // Generate the series
+            List<string> seriesList = GenerateSeries(model.BegSerial, model.EndSerial);
 
-            var entity = new PsCardItemExtnOther()
+            // Output the series
+            foreach (var series in seriesList)
             {
-                Id = model.Id,
-                PsCardItemId = model.PsCardItemId,
-                ContentNo = model.ContentNo,
-                CustItemNo = model.CustItemNo,
-                SerialNo = model.SerialNo,
-                Condition = model.Condition,
-                InsertedBy = model.InsertedBy,
-                InsertedDt = model.InsertedDt,
-                UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
-            };
+                model.Id = Guid.NewGuid();
+                model.SerialNo = series;
 
-            _db.PsCardItemExtns.Add(entity);
-            await _db.SaveChangesAsync();
+                var entity = new PsCardItemExtnOther()
+                {
+                    Id = model.Id,
+                    PsCardItemId = model.PsCardItemId,
+                    ContentNo = model.ContentNo,
+                    CustItemNo = model.CustItemNo,
+                    SerialNo = model.SerialNo,
+                    Condition = model.Condition,
+                    InsertedBy = model.InsertedBy,
+                    InsertedDt = model.InsertedDt,
+                    UpdatedBy = model.UpdatedBy,
+                    UpdatedDt = model.UpdatedDt
+                };
+
+                _db.PsCardItemExtns.Add(entity);
+                await _db.SaveChangesAsync();
+
+                if (++itemExtnCount >= itemQty)
+                {
+                    break;
+                }
+            }
 
             return model;
         });
@@ -153,6 +197,6 @@ namespace iLgs.Services
         {
             var entity = await _db.AIRs.Where(w => w.AIRItems.Any(a => a.Id == PsCardItemId)).FirstOrDefaultAsync();
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
-        }
+        }        
     }
 }

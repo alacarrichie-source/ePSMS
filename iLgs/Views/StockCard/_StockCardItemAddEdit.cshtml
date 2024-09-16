@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.PsCardItem
+﻿@*@model iLgs.Models.PsCardItem
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
@@ -319,7 +319,7 @@
         e.preventDefault();
         $("#btnCancel_" + '@ViewData["cardId"]').closest(".k-window-content").data("kendoWindow").close();
     });
-</script>
+</script>*@
 
 
 

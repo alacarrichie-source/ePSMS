@@ -5,11 +5,11 @@
 @(Html.Kendo().Grid<iLgs.Models.Upload>()
     .Name("gridImages_" + @ViewData["imageId"])
     .Columns(col =>
-    {        
+    {
         col.Bound(p => p.Description).Title("")
                 .ClientTemplate(
                 @"<div class='upload-photo'
-                   style='background-image: url(" + @Url.Content("~/ParIcsUpload/PreviewUpload?id=#:Id#") + ");'></div></div>")
+                   style='background-image: url(" + @Url.Content("~/CardUpload/PreviewUpload?id=#:Id#") + ");'></div></div>")
                     .Width(70);
         col.Bound(p => p.Description).Width(100);
         //col.Bound(p => p.FileName).Width(50);
@@ -26,8 +26,8 @@
     toolbar.Template(@<text>
         @(Html.Kendo().Button().Name("btnUpload_" + @ViewData["imageId"]).Content("Upload")
             .HtmlAttributes(new { data_gridname = gridName })  // Add a data attribute
-            .Events(e => e.Click("onClickUpload"))            
-            )
+            .Events(e => e.Click("onClickUpload"))
+        )
     </text>);
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ImagesTemplate").Window(w => w.Width(500).Title("Edit")))
@@ -40,16 +40,16 @@
     .NoRecords()
     .DataSource(dataSource => dataSource
         .Ajax()
-        .PageSize(20)
-        .Events(events => events.Error("GridUploadError"))
+        .PageSize(10)
+        //.Events(events => events.Error("GridUploadError"))
         .Model(model =>
         {
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
         })
-            .Read(read => read.Action("_ImagesRead", "ParIcsUpload", new { imageId = @ViewData["imageId"] }))
-    .Update(update => update.Action("_ImagesUpdate", "ParIcsUpload"))
-    .Destroy(destroy => destroy.Action("_ImagesDestroy", "ParIcsUpload"))
+            .Read(read => read.Action("_ImagesRead", "CardUpload", new { imageId = @ViewData["imageId"] }))
+    .Update(update => update.Action("_ImagesUpdate", "CardUpload"))
+    .Destroy(destroy => destroy.Action("_ImagesDestroy", "CardUpload"))
     )
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .AutoBind(true)
@@ -81,3 +81,4 @@
         padding-left: 3px;
     }
 </style>
+

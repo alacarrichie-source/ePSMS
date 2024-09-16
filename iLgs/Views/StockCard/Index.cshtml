@@ -207,6 +207,7 @@
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnVehicleTemplate").Window(w => w.Width(500).Title("Item Details")))
     .Sortable()
     .NoRecords()
+    .ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax()
         .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
@@ -252,6 +253,7 @@
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnOtherTemplate").Window(w => w.Width(500).Title("Item Details")))
     .Sortable()
     .NoRecords()
+    .ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax()
         .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
@@ -274,6 +276,20 @@
     )
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .ToClientTemplate())
+</script>
+
+<script id="UploadedFiles" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+        .Name("tabStrip_#=Id#")
+        .HtmlAttributes(new { @class = "no-text-tabstrip" })
+        .TabPosition(TabStripTabPosition.Top)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .SelectedIndex(0)
+        .Items(items =>
+        {
+            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CardUpload", new { imageId = "#=Id#", psCardItemId = "#=PsCardItemId#" });
+        })
+        .ToClientTemplate())
 </script>
 
 <div id="windowcontainer"></div>
@@ -583,6 +599,14 @@
         word-wrap: break-word;
         word-break: break-all;
     }
+
+    .no-text-tabstrip .k-item .k-link {
+        padding: 0; /* Remove padding */
+        /* Move the text outside the visible area */
+        /*text-indent: -9999px;*/
+        overflow: hidden; /* Hide any overflow */
+        display: none;
+    }
 </style>
 
 
@@ -813,8 +837,8 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
 
-            var firstRow = this.tbody.find("tr.k-master-row").first();
-            this.expandRow(firstRow);
+            //var firstRow = this.tbody.find("tr.k-master-row").first();
+            //this.expandRow(firstRow);
 
             // Attach a handler to the "detailExpand" event
             this.bind("detailExpand", function (e) {
@@ -1071,25 +1095,30 @@
         $("#Description").val(description.trim()).trigger('change');
     }
 
-    function onDataBoundGridItemExtn(e) {
-        var grid = e.sender;
-        // Iterate over each row in the grid
-        grid.tbody.find("tr").each(function () {
-            var dataItem = grid.dataItem(this);
+    //function onDataBoundGridItemExtn(e) {
+    //    var grid = e.sender;
+    //    // Iterate over each row in the grid
+    //    grid.tbody.find("tr").each(function () {
+    //        var dataItem = grid.dataItem(this);
 
-            // Add condition based on your requirements to disable the row
-            if (dataItem.IsEnabled == false) {
-                // Disable the row
-                $(this).addClass("k-state-disabled");
-            }
-        });
-    }
+    //        // Add condition based on your requirements to disable the row
+    //        if (dataItem.IsEnabled == false) {
+    //            // Disable the row
+    //            $(this).addClass("k-state-disabled");
+    //        }
+    //    });
+
+    //    this.bind("detailExpand", function (e) {
+    //        // Select the expanded master row
+    //        this.select(e.masterRow);
+    //    });
+    //}
 
     // END CARD TEMPLATE
 
 
     // GRID ITEMS
-    
+
     function onDetailExpand(e) {
         // Find the corresponding row in the main grid and select it
         var mainGridRow = $(e.sender.wrapper).closest("tr").prev();
@@ -1335,6 +1364,11 @@
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
+
+            this.bind("detailExpand", function (e) {
+                // Select the expanded master row
+                this.select(e.masterRow);
+            });
         }
     }
 
@@ -1567,7 +1601,7 @@
 
     function onDataBoundGridItemExtn(e) {
         e.preventDefault();
-        
+
         if (selectedItemExtnId) {
             var dataItem = this.dataSource.get(selectedItemExtnId);
             if (dataItem) {
@@ -1577,8 +1611,14 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
         }
+
+        this.bind("detailExpand", function (e) {
+            // Select the expanded master row
+            this.select(e.masterRow);
+        });
     }
 
+    var selectedItemExtnQty = null;
     function onEditGridItemExtn(e) {
         e.preventDefault();
         selectedGrid = e.sender;
@@ -1593,11 +1633,14 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedItemExtnId = null;
-            e.model.set("PsCardItemId", parentModel.Id);
+            selectedItemExtnQty = parentModel.QtyBal;
+            e.model.set("PsCardItemId", parentModel.Id);            
+            $("#DIV_UPDATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
         } else {
             selectedItemExtnId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedItemExtnId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            $("#DIV_CREATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
         }
     }
 
@@ -1650,7 +1693,237 @@
             }
         }
     }
+
+    function UpdateEndSeries()
+    {
+        var begSeries = $("#BegSerial").val();
+        var itemId = $("#PsCardItemId").val();
+        var url = '@Url.Action("GetEndSeries", "StockCard")';
+        $.ajax({
+            url: url,
+            type: 'GET',
+            data: { startSeries: begSeries, itemId: itemId},
+            success: function(result) {
+                if (result.Errors == "")
+                {
+                    $("#EndSerial").val(result.EndSeries).trigger("change");
+                }                
+                else 
+                {
+                    alert(result.Errors);
+                }
+            }
+        });
+    }
+
     // END GRID ITEMEXTN
+
+    // GRID IMAGES
+    function onError(e) {
+        // invalid because the responseText is a raw string, not JSON
+        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
+        var err = e.XMLHttpRequest.responseText;
+        alert(err);
+    };
+
+    function GridUploadError(e) {
+        if (e.errors) {
+            //// Get the parent grid
+            var parentGrid = $("#gridItems").data("kendoGrid");
+
+            // Try to find the closest grid row
+            var row = $(e.target).closest("tr[data-uid]"); // Look for the row with a data-uid attribute
+
+            // Log the row for debugging
+            console.log("Row element:", row);
+
+            // Check if a valid row was found
+            if (row.length === 0) {
+                console.warn("No valid row found. The event target may not be within a grid row.");
+
+                // Provide a fallback: Try getting the parent row from a specific known container
+                var knownContainer = $("#gridItems"); // Replace with your grid's container
+                row = knownContainer.find("tr[data-uid]"); // Grab any row as a fallback
+
+                if (row.length === 0) {
+                    console.warn("No rows found in the parent grid.");
+                    return; // Exit if no rows are found
+                } else {
+                    console.warn("Fallback: Found rows in the parent grid but not the specific one.");
+                }
+            }
+
+            // Get the dataItem for the parent grid
+            var dataItem = parentGrid.dataItem(row);
+
+            // Log the retrieved dataItem
+            if (!dataItem) {
+                // Get the index of the row in the parent grid
+                var rowIndex = row.index();
+                console.log("Row index:", rowIndex);
+
+                // Attempt to access dataItem using the dataSource view
+                dataItem = parentGrid.dataSource.view()[rowIndex];
+
+                // Log the data item retrieved via index
+                console.log("Data Item found using index:", dataItem);
+            }
+
+
+            // Find the subgrid and refresh it
+            var subgridName = "gridImages_" + dataItem.GroupId; // Adjust based on how you identify the subgrid
+            var subgrid = $("#" + subgridName).data("kendoGrid");
+
+            if (subgrid) {
+                subgrid.dataSource.read(); // Refresh the subgrid
+            }
+
+            $.each(e.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                }
+            });
+        }
+    }
+
+    var selectedGridImagesItem = null;
+    function onEditGridImages(e) {
+        e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("ImageId", '@ViewData["imageId"]');
+        } else {
+            selectedGridImagesItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridImagesItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridImages(e) {
+        if (selectedGridImagesItem) {
+            var dataItem = this.dataSource.get(selectedGridImagesItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+
+        @*var trs = this.tbody.find('tr').each(
+           function () {
+               var item = this.dataItem($(this));
+
+               if ('@ViewBag.isAllowed' == 'False') {
+                   $('.k-grid-Upload', $("#gridImages")).remove();
+               }
+           }
+          );*@
+    }
+    function onDeleteGridImages(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+    function onClickUpload(e) {
+        var button = e.sender.element; // Use the sender's element;
+        // Retrieve the grid name from the data attribute
+        var gridName = $(button).data("gridname");
+        selectedGrid = $("#" + gridName).data("kendoGrid");
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        var imageId = parentModel.Id;
+        var psCardItemId = parentModel.PsCardItemId;
+
+        var myUrl = '@Url.Action("_ImagesAdd", "CardUpload")?imageId=' + imageId + '&psCardItemId=' + psCardItemId;
+        var myTitle = "Upload Images/Documents";
+        var width = 800;
+        var height = 650;
+
+        $("#windowcontainer").append("<div id='windowUpload'></div>");
+        var mywindow = $("#windowUpload")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function UploadPara(e) {
+        var data = JSON.stringify({ model: $("#formUpload").serialize() });
+        //alert(additional);
+        //e.data = JSON.parse(additional);
+        //$('#chkSMS').is(':checked');
+        e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val(), PsCardItemId: $("#PsCardItemId").val() }
+    }
+
+    function onClickPreview(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGridImagesItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("PreviewUpload", "CardUpload")?id=' + selectedGridImagesItem;
+        var myTitle = "Preview";
+        var width = 800;
+        var height = 650;
+
+        $("#windowcontainer").append("<div id='windowPreview'></div>");
+        var mywindow = $("#windowPreview")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function onUploadSuccess(e)
+    {
+        selectedGrid.dataSource.read();
+    }
+
+    // END GRID IMAGES
 </script>
 
 

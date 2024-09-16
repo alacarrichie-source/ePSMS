@@ -282,6 +282,10 @@ namespace iLgs.Services
 
                 throw CreateAndLogCriticalDependencyException(failedStorageException);
             }
+            catch (RecordAlreadyExistsException recordExistsException)
+            {
+                throw CreateAndLogValidationException(recordExistsException);
+            }
             catch (DuplicateKeyException duplicateKeyException)
             {
                 var alreadyExistsStudentException =

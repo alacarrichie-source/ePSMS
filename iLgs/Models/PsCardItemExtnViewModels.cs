@@ -9,6 +9,12 @@ namespace iLgs.Models
     [MetadataType(typeof(PsCardItemExtnOther.Metadata))]
     public partial class PsCardItemExtnOther : PsCardItemExtn
     {
+        [Display(Name = "Beginning Serial No.")]
+        public string BegSerial { get; set; }
+
+        [Display(Name = "Ending Serial No.")]
+        public string EndSerial { get; set; }
+
         internal sealed class Metadata
         {
             [Display(Name = "Serial No.")]

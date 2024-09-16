@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Utilities;
 using System;
@@ -16,6 +17,7 @@ namespace iLgs.Services.Validators
     public interface IStockCardValidator
     {
         void ValidateOnCreate(StockCardVM card);
+        void ValidateOnUpdate(StockCardVM card);
     }
 
     public class StockCardValidator : BaseValidator, IStockCardValidator
@@ -27,7 +29,7 @@ namespace iLgs.Services.Validators
         }
         public void ValidateOnCreate(StockCardVM card)
         {
-            ValidateCard(card);
+            ValidateCard(card);            
             Validate(
                 (Rule: IsInvalid(text: card.Fund), Parameter: Utility.GetDisplayName<StockCardVM>(nameof(StockCardVM.Fund))),
                 (Rule: IsInvalid(text: card.PsNo), Parameter: Utility.GetDisplayName<StockCardVM>(nameof(StockCardVM.PsNo)))
@@ -54,6 +56,30 @@ namespace iLgs.Services.Validators
             ValidateAllFields(card);
             //ValidateCreatedSignature(card);
             //ValidateCreatedDateIsRecent(card);
+            var ex = new InvalidModelException();
+            if (_db.PsCards.Any(a => a.PsNo == card.PsNo))
+            {
+                ex.UpsertDataList(Utility.GetDisplayName<StockCardVM>(nameof(card.PsNo)), "Already exits.");
+            }
+            ex.ThrowIfContainsErrors();
+        }
+        
+
+        public void ValidateOnUpdate(StockCardVM card)
+        {
+            ValidateCard(card);
+            Validate(
+                (Rule: IsInvalid(text: card.Fund), Parameter: Utility.GetDisplayName<StockCardVM>(nameof(StockCardVM.Fund))),
+                (Rule: IsInvalid(text: card.PsNo), Parameter: Utility.GetDisplayName<StockCardVM>(nameof(StockCardVM.PsNo)))                
+                );
+            ValidateAllFields(card);
+
+            var ex = new InvalidModelException();
+            if (_db.PsCards.Any(a => a.PsNo == card.PsNo && a.Id != card.Id))
+            {
+                ex.UpsertDataList(Utility.GetDisplayName<StockCardVM>(nameof(card.PsNo)), "Already exits.");
+            }
+            ex.ThrowIfContainsErrors();
         }
 
         public void ValidateAllFields(StockCardVM model)
@@ -67,26 +93,35 @@ namespace iLgs.Services.Validators
                 {
                     if (string.IsNullOrWhiteSpace(af.GenericName))
                     {
-                        ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.GenericName)), "Text is required.");
+                        ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.GenericName)), "Field is required.");
                     }
 
                     if (model.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
                     {
                         if (string.IsNullOrWhiteSpace(af.DosageVolume))
                         {
-                            ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.DosageVolume)), "Text is required.");
+                            ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.DosageVolume)), "Field is required.");
                         }
                     }
                     else
                     {
                         if (string.IsNullOrWhiteSpace(af.DosageStrength))
                         {
-                            ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.DosageStrength)), "Text is required.");
+                            ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.DosageStrength)), "Field is required.");
                         }
                         if (string.IsNullOrWhiteSpace(af.DosageForm))
                         {
-                            ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.DosageForm)), "Text is required.");
+                            ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.DosageForm)), "Field is required.");
                         }
+                        if (af.Multipliers == null)
+                        {
+                            ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Multipliers)), "Field is required.");
+                        }                        
+                    }
+
+                    if (string.IsNullOrWhiteSpace(af.Brand))
+                    {
+                        ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Brand)), "Field is required.");
                     }
                 }
                 else if (c == CatMachineries()
@@ -105,49 +140,52 @@ namespace iLgs.Services.Validators
                 {
                     if (string.IsNullOrWhiteSpace(af.Brand))
                     {
-                        ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Brand)), "Text is required.");
+                        ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Brand)), "Field is required.");
                     }
                     else
                     {
                         if (string.IsNullOrWhiteSpace(af.Model_))
                         {
-                            ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Model_)), "Text is required.");
+                            ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Model_)), "Field is required.");
                         }
                         else
                         {
-                            if (string.IsNullOrWhiteSpace(af.Dimension))
+                            if (af.Brand.IsNullOrWhiteSpaceX() || af.Model_.IsNullOrWhiteSpaceX())
                             {
-                                ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Dimension)), "Text is required.");
-                            }
-                            else
-                            {
-                                if (string.IsNullOrWhiteSpace(af.Size))
+                                if (string.IsNullOrWhiteSpace(af.Dimension))
                                 {
-                                    ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Size)), "Text is required.");
+                                    ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Dimension)), "Field is required.");
                                 }
                                 else
                                 {
-                                    if (string.IsNullOrWhiteSpace(af.Weight))
+                                    if (string.IsNullOrWhiteSpace(af.Size))
                                     {
-                                        ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Weight)), "Text is required.");
+                                        ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Size)), "Field is required.");
                                     }
                                     else
                                     {
-                                        if (string.IsNullOrWhiteSpace(af.Materials))
+                                        if (string.IsNullOrWhiteSpace(af.Weight))
                                         {
-                                            ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Materials)), "Text is required.");
+                                            ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Weight)), "Field is required.");
                                         }
                                         else
                                         {
-                                            if (string.IsNullOrWhiteSpace(af.Capacity))
+                                            if (string.IsNullOrWhiteSpace(af.Materials))
                                             {
-                                                ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Capacity)), "Text is required.");
+                                                ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Materials)), "Field is required.");
                                             }
                                             else
                                             {
-                                                if (af.Color.IsNullOrWhiteSpaceX())
+                                                if (string.IsNullOrWhiteSpace(af.Capacity))
                                                 {
-                                                    ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Color)), "Text is required.");
+                                                    ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Capacity)), "Field is required.");
+                                                }
+                                                else
+                                                {
+                                                    if (af.Color.IsNullOrWhiteSpaceX())
+                                                    {
+                                                        ex.UpsertDataList(Utility.GetDisplayName<AllField>(nameof(af.Color)), "Field is required.");
+                                                    }
                                                 }
                                             }
                                         }
@@ -180,6 +218,8 @@ namespace iLgs.Services.Validators
                 throw new NullException();
             }
         }
+
+
 
         //private static void ValidateAgainstStorageOnModify(StockCardVM input, StockCardVM storage)
         //{
