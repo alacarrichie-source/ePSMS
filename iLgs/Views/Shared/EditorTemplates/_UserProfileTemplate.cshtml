@@ -81,6 +81,16 @@
                 @Html.ValidationMessageFor(model => model.UserCode)
             </div>
         </div>
+
+        <br />
+        <div class="row">
+            <div class="col-md-12">                
+                <span>Active :&nbsp;</span>@(Html.Kendo().SwitchFor(Model => Model.Active)
+                    .Messages(c => c.Checked("YES").Unchecked("NO"))
+                )
+                @Html.ValidationMessageFor(model => model.Active)
+            </div>
+        </div>        
     }
 </div>
 
@@ -105,6 +115,25 @@
                 width: 82px;
                 border-left-width: 0;
             }
+
+    .k-switch .k-switch-label-on,
+    .k-switch .k-switch-label-off {
+        display: inline-block;
+        position: absolute;
+        top: 50%;
+    }
+
+    .k-switch .k-switch-label-on {
+        left: 5px;
+        opacity: 1;
+        color: white;
+    }
+
+    .k-switch .k-switch-label-off {
+        color: black;
+        left: 30px;
+        opacity: 1;
+    }
 </style>
 
 

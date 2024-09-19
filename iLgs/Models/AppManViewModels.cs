@@ -414,6 +414,8 @@ namespace iLgs.Models
 
         [Display(Name = "User Code")]
         public string UserCode { get; set; }
+
+        public bool Active { get; set; }
     }
 
     [MetadataType(typeof(UserCodeMetadata))]

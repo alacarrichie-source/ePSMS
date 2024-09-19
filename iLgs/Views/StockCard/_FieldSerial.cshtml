@@ -3,7 +3,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        @Html.LabelFor(m => m.AllField.SerialNo, "Serial No", htmlAttributes: new { @class = "col-md-2" })
+        @Html.LabelFor(m => m.AllField.SerialNo, htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().TextBoxFor(m => m.AllField.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.SerialNo)
@@ -13,7 +13,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        @Html.LabelFor(m => m.AllField.PropNo, "Property No", htmlAttributes: new { @class = "col-md-2" })
+        @Html.LabelFor(m => m.AllField.PropNo, htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().TextBoxFor(m => m.AllField.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.PropNo)
@@ -23,7 +23,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        @Html.LabelFor(m => m.AllField.PlateNo, "Plate No", htmlAttributes: new { @class = "col-md-2" })
+        @Html.LabelFor(m => m.AllField.PlateNo, htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().TextBoxFor(m => m.AllField.PlateNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.PlateNo)
@@ -33,7 +33,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        @Html.LabelFor(m => m.AllField.BodyNo, "Body No", htmlAttributes: new { @class = "col-md-2" })
+        @Html.LabelFor(m => m.AllField.BodyNo, htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().TextBoxFor(m => m.AllField.BodyNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.BodyNo)
@@ -43,7 +43,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        @Html.LabelFor(m => m.AllField.MVFileNo, "MV File No", htmlAttributes: new { @class = "col-md-2" })
+        @Html.LabelFor(m => m.AllField.MVFileNo, htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().TextBoxFor(m => m.AllField.MVFileNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.MVFileNo)
@@ -63,7 +63,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        @Html.LabelFor(m => m.AllField.Model_, "Model", htmlAttributes: new { @class = "col-md-2" })
+        @Html.LabelFor(m => m.AllField.Model_, htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().TextBoxFor(m => m.AllField.Model_).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.Model_)

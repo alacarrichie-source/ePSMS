@@ -112,17 +112,24 @@ namespace iLgs.Models
     public class RIS_VM
     {        
         public System.Guid Id { get; set; }
+
+        [Required]
         public string Fund { get; set; }
         public string Division { get; set; }
+
+        [Required]
         public string Office { get; set; }
         public string FPP { get; set; }
 
         [Display(Name = "RIS No.")]
         public string RisNo { get; set; }
 
+        [Required]
         [Display(Name = "RIS Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> RisDate { get; set; }
+
+        [Required]
         public string Purpose { get; set; }
 
         [Display(Name = "Requested by")]
@@ -180,6 +187,7 @@ namespace iLgs.Models
 
     public class RisItemCommonVM
     {
+        [Required]
         public string Description { get; set; }
 
         [Display(Name = "Other Description")]
@@ -208,6 +216,7 @@ namespace iLgs.Models
 
         public string ItemNo { get; set; }
 
+        [Required]
         public string Unit { get; set; }
         public Nullable<decimal> PriceRate { get; set; }
     }
@@ -216,9 +225,12 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisId { get; set; }
+
+        [Required]
         [Display(Name = "Item")]
         public Nullable<System.Guid> ItemCodeId { get; set; }        
 
+        [Required]
         [Display(Name = "Qty Req.")]
         public Nullable<int> QtyRequest { get; set; }
 

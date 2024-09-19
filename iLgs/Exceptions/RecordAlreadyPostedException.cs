@@ -6,7 +6,7 @@ using System.Web;
 
 namespace iLgs.Exceptions
 {
-    public class RecordAlreadyPostedException : Exception, IException
+    public class RecordAlreadyPostedException : Xeption, IException
     {
         public HttpStatusCode StatusCode()
         {

@@ -133,6 +133,17 @@ namespace iLgs.Controllers
             switch (result)
             {
                 case SignInStatus.Success:
+                    
+                    // Check if the user's claims already contain the custom ones, if not, add them
+                    var identity = await UserManager.CreateIdentityAsync(user, DefaultAuthenticationTypes.ApplicationCookie);
+
+                    // Add custom claims
+                    identity.AddClaim(new Claim("Active", user.Active.ToString()));
+                    
+                    // Sign in again with the updated identity
+                    AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                    AuthenticationManager.SignIn(new AuthenticationProperties { IsPersistent = model.RememberMe }, identity);
+
                     //var userID = (await UserManager.FindByNameAsync(model.Email)).Id;
                     //if (!await UserManager.IsEmailConfirmedAsync(userID))
                     //{
@@ -164,7 +175,7 @@ namespace iLgs.Controllers
                     //    Uri uri = new Uri(url);
                     //    string path = uri.AbsolutePath;
                     //    string websiteName = path.Trim('/');
-                    
+
                     //    foreach (var menu in allMenu)
                     //    {
                     //        if (!isLocalhost)
@@ -174,7 +185,7 @@ namespace iLgs.Controllers
                     //        }
                     //    }
                     //}
-                                       
+
                     //var menuTreeList = new List<TreeViewItemModel>();
                     //var menus = allMenu.Where(w => w.ParentId == 0);
 

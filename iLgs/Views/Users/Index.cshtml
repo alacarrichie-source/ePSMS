@@ -12,6 +12,7 @@
         col.Bound(c => c.Email).Width(100);
         col.Bound(c => c.NameFull).Width(150);
         col.Bound(c => c.Department).Width(70);
+        col.Bound(c => c.Active).ClientTemplate("#= Active ? 'Y' : 'N' #").Width(50);
         col.Command(command =>
         {
             command.Edit();

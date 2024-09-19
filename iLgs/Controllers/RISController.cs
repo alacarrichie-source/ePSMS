@@ -1,6 +1,8 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
 using iLgs.Agents.Services;
+using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Interfaces;
@@ -17,7 +19,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using static iLgs.Models.CategoryEnum;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Controllers
 {
@@ -25,20 +27,22 @@ namespace iLgs.Controllers
     public class RISController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
-        private IServiceAgent _sa;
+        private IRisService _risService;
         private IRisItemService _risItemService;
         private IRisItemUnitGroupService _risItemUnitGroupService;
         private IRisItemUnitGroupDescriptionService _risItemUnitGroupDescriptionService;
         private IRisItemUnitGroupDescriptionItemService _risItemUnitGroupDescriptionItemService;
+        private ICodextnService _codextnService;
         private IAllFieldService _allFieldService;
 
         public RISController()
         {
-            _sa = new ServiceAgent(_db);
+            _risService = new RisService(_db);
             _risItemService = new RisItemService(_db);
             _risItemUnitGroupService = new RisItemUnitGroupService(_db);
             _risItemUnitGroupDescriptionService = new RisItemUnitGroupDescriptionService(_db);
             _risItemUnitGroupDescriptionItemService = new RisItemUnitGroupDescriptionItemService(_db);
+            _codextnService = new CodextnService(_db);
             _allFieldService = new AllFieldService(_db);
         }
 
@@ -50,7 +54,7 @@ namespace iLgs.Controllers
 
         public ActionResult RISRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _sa.Ris.GetAll();
+            var data = _risService.GetAll();
 
             var result = new JsonNetResult
             {
@@ -78,18 +82,30 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _sa.Ris.CreateAsync(model, user, date);                    
+                    model = await _risService.CreateAsync(model, user, date);                    
                 }
+            }
+            catch(ValidationException validationException)
+                when(validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException") {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                } else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -112,20 +128,30 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _sa.Ris.UpdateAsync(model, user, date);
+                    model = await _risService.UpdateAsync(model, user, date);
                 }
+            }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -146,20 +172,30 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _sa.Ris.DeleteAsync(model, user, date);                    
+                    model = await _risService.DeleteAsync(model, user, date);                    
                 }
+            }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -182,7 +218,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _sa.Ris.PostAsync(risId, user, date);
+                    await _risService.PostAsync(risId, user, date);
                 }
             }
             catch (Exception e)
@@ -229,7 +265,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _sa.Ris.UnpostAsync(risId, user, date);
+                    await _risService.UnpostAsync(risId, user, date);
                 }
             }
             catch (Exception e)
@@ -285,39 +321,42 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowAdd || !access.AllowEdit)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await _sa.Ris.IsPrPostedAsync(model.Id))
-                {
-                    ModelState.AddModelError("RIS No.", "This RIS No has a posted PR, cannot update!");
-                }
-                else if (await _sa.Ris.IsPostedAsync((Guid)model.RisId))
-                {
-                    ModelState.AddModelError("RIS No.", "RIS Number already Posted, cannot update!");
-                }
-
+                
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
                     
-                    var entity = await _sa.RisItem.GetByIdAsync(model.Id);
+                    var entity = await _risItemService.GetByIdAsync(model.Id);
 
                     if (entity == null)
                     {
-                        model = await _sa.RisItem.CreateAsync(model, user, date);
+                        model = await _risItemService.CreateAsync(model, user, date);
                     }
                     else
                     {
-                        model = await _sa.RisItem.UpdateAsync(model, user, date);
+                        model = await _risItemService.UpdateAsync(model, user, date);
                     }
-
-                    //var risItemExtns = (List<RisItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridRisItemExtns, typeof(List<RisItemExtnVM>));
-                    //await _sa.RisItemExtn.SaveAsync(model.Id, risItemExtns, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }            
+            catch (ValidationException validationException)
+            {
+                var jErrors = validationException.GetFormattedErrorsAsJson();
+                return Json(new { Errors = jErrors }, JsonRequestBehavior.AllowGet);
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }            
             catch (Exception e)
             {
                 ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
@@ -340,7 +379,7 @@ namespace iLgs.Controllers
 
         public ActionResult _RISItemRead([DataSourceRequest] DataSourceRequest request, Guid? risId)
         {
-            var data = _sa.RisItem.GetByRisId(risId);
+            var data = _risItemService.GetByRisId(risId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -356,27 +395,44 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                else if (await _sa.Ris.IsWithPrAsync(model.Id))
-                {
-                    ModelState.AddModelError("DeleteError", "This RIS No has a PR, cannot delete!");
-                }
-                else if (await _sa.Ris.IsPostedAsync((Guid)model.RisId))
-                {
-                    ModelState.AddModelError("DeleteError", "RIS Number already Posted, cannot delete!");
-                }
+                //else if (await _risService.IsWithPrAsync(model.Id))
+                //{
+                //    ModelState.AddModelError("DeleteError", "This RIS No has a PR, cannot delete!");
+                //}
+                //else if (await _risService.IsPostedAsync((Guid)model.RisId))
+                //{
+                //    ModelState.AddModelError("DeleteError", "RIS Number already Posted, cannot delete!");
+                //}
 
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _sa.RisItem.DeleteAsync(model, user, date);
+                    model = await _risItemService.DeleteAsync(model, user, date);
                 }
+            }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -417,17 +473,27 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupService.CreateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("AddError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("AddError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -453,17 +519,27 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -488,17 +564,27 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupService.DeleteAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -540,17 +626,27 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupDescriptionService.CreateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("AdddError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("AddError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -576,17 +672,27 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupDescriptionService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -611,17 +717,27 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupDescriptionService.DeleteAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -669,17 +785,27 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupDescriptionItemService.CreateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("AddError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("AddError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -705,17 +831,27 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupDescriptionItemService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -740,17 +876,27 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupDescriptionItemService.DeleteAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -898,7 +1044,7 @@ namespace iLgs.Controllers
                 }
             }
 
-            var lgu = _sa.Codextn.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
             rpt.SetParameterValue("@cRisNo", risNo);
             rpt.SetParameterValue("LGU", lgu);
@@ -913,148 +1059,13 @@ namespace iLgs.Controllers
         {
             return View();
         }
-
-        //public ActionResult RequisitionRead([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    var data = _sa.PsCode.GetAll();
-        //    var result = new JsonNetResult
-        //    {
-        //        Data = data.ToDataSourceResult(request),
-        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-        //    };
-
-        //    return result;
-        //}
-
+        
         public ActionResult Cart(List<PsCodeVM> cartItems)
         {
             //var cartItems = JsonConvert.DeserializeObject<List<PsCodeVM>>(localStorage.getItem("cartItems")) ?? new List<OrderItem>();
             return View(cartItems);
         }
-
-        #region ISSUED
-        //public ActionResult _RISIssuedRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId)
-        //{
-        //    var data = _risIssuedService.GetByRisItemId(risItemId);
-
-        //    var result = new JsonNetResult
-        //    {
-        //        Data = data.ToDataSourceResult(request),
-        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-        //    };
-        //    return result;
-        //}
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> _RISIssuedCreate([DataSourceRequest] DataSourceRequest request, RisIssuedVM model)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
-        //        Access access = await accessTask;
-        //        if (!access.AllowAdd)
-        //        {
-        //            ModelState.AddModelError("", "Add Access Denied!");
-        //        }
-
-        //        if (model != null && ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            model = await _risIssuedService.CreateAsync(model, user, date);
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        if (e.GetType().Name == "ServiceException")
-        //        {
-        //            ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-        //                 "please contact tech support with this message: " + e.Message);
-        //        }
-        //        else
-        //        {
-        //            ModelState.AddModelError("", e.Message);
-        //        }
-        //    }
-
-        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        //}
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> _RISIssuedUpdate([DataSourceRequest] DataSourceRequest request, RisIssuedVM model)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
-        //        Access access = await accessTask;
-        //        if (!access.AllowEdit)
-        //        {
-        //            ModelState.AddModelError("", "Update Access Denied!");
-        //        }
-
-        //        if (ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            model = await _risIssuedService.UpdateAsync(model, user, date);
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        if (e.GetType().Name == "ServiceException")
-        //        {
-        //            ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-        //                 "please contact tech support with this message: " + e.Message);
-        //        }
-        //        else
-        //        {
-        //            ModelState.AddModelError("", e.Message);
-        //        }
-        //    }
-
-        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        //}
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> _RISIssuedDestroy([DataSourceRequest]DataSourceRequest request, RisIssuedVM model)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
-        //        Access access = await accessTask;
-        //        if (!access.AllowDelete)
-        //        {
-        //            ModelState.AddModelError("DeleteError", "Delete Access Denied!");
-        //        }
-        //        else
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            model = await _risIssuedService.DeleteAsync(model, user, date);
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        if (e.GetType().Name == "ServiceException")
-        //        {
-        //            ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-        //                 "please contact tech support with this message: " + e.Message);
-        //        }
-        //        else
-        //        {
-        //            ModelState.AddModelError("DeleteError", e.Message);
-        //        }
-        //    }
-
-        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        //}
-        #endregion  
-
+        
         [AcceptVerbs(HttpVerbs.Post)]
         public JsonResult GetDescription(RisItemEntryVM entry)
         {

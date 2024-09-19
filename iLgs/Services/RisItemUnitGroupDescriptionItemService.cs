@@ -22,29 +22,28 @@ namespace iLgs.Services
 
     public class RisItemUnitGroupDescriptionItemService : IRisItemUnitGroupDescriptionItemService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RisItemUnitGroupDescriptionItemVM> _vmExceptionService = new ExceptionService<RisItemUnitGroupDescriptionItemVM>();
         private readonly IExceptionService<RisItemUnitGroupAvailableVM> _vmUnitGroupAvailableExceptionService = new ExceptionService<RisItemUnitGroupAvailableVM>();
         private readonly IExceptionService<RisItemUnitGroupDescriptionItem> _exceptionService = new ExceptionService<RisItemUnitGroupDescriptionItem>();
-
+        
         public RisItemUnitGroupDescriptionItemService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;            
         }
-
 
         public ValueTask<RisItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id) =>
         _exceptionService.TryCatch(async () =>
         {
-            var data = await db.RisItemUnitGroupDescriptionItems.FindAsync(id);
+            var data = await _db.RisItemUnitGroupDescriptionItems.FindAsync(id);
             return data;
         });
 
         public IQueryable<RisItemUnitGroupDescriptionItemVM> GetByUnitGroupDescriptionId(Guid? unitGroupDescriptionId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = db.RisItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescriptionId)
+            var data = _db.RisItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescriptionId)
                 .Select(s => new RisItemUnitGroupDescriptionItemVM
                 {
                     Id = s.Id,
@@ -63,7 +62,7 @@ namespace iLgs.Services
         public IQueryable<RisItemUnitGroupAvailableVM> GetAvailableUnitGroupItem(Guid? risId) =>
         _vmUnitGroupAvailableExceptionService.TryCatch(() =>
         {
-            var data = db.RisItems.Where(w => w.RisId == risId && !w.RisItemUnitGroupDescriptionItems.Any(a => a.RisItemId == w.Id))
+            var data = _db.RisItems.Where(w => w.RisId == risId && !w.RisItemUnitGroupDescriptionItems.Any(a => a.RisItemId == w.Id))
             .Select(s => new RisItemUnitGroupAvailableVM
             {
                 Id = s.Id,
@@ -105,10 +104,10 @@ namespace iLgs.Services
                     UpdatedDt = model.UpdatedDt
                 };
 
-                db.RisItemUnitGroupDescriptionItems.Add(entity);
+                _db.RisItemUnitGroupDescriptionItems.Add(entity);
             }
 
-            await db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
             return model;
         });
 
@@ -118,18 +117,18 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            RisItemUnitGroupDescriptionItem entity = await db.RisItemUnitGroupDescriptionItems.FindAsync(model.Id);
+            RisItemUnitGroupDescriptionItem entity = await _db.RisItemUnitGroupDescriptionItems.FindAsync(model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.RisItemUnitGroupDescriptionItems.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.RisItemUnitGroupDescriptionItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.RisItemUnitGroupDescriptionItems.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.RisItemUnitGroupDescriptionItems.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -140,15 +139,15 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            RisItemUnitGroupDescriptionItem entity = await db.RisItemUnitGroupDescriptionItems.FindAsync(model.Id);
+            RisItemUnitGroupDescriptionItem entity = await _db.RisItemUnitGroupDescriptionItems.FindAsync(model.Id);
 
             entity.RisItemId = model.RisItemId;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.RisItemUnitGroupDescriptionItems.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.RisItemUnitGroupDescriptionItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
             return model;
         });
     }

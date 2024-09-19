@@ -96,11 +96,11 @@ namespace iLgs.Models
         [Display(Name = "Unit")]
         public string Unit { get; set; }
 
-        //[Display(Name = "Department")]
-        //public Nullable<System.Guid> DeptId { get; set; }
+        [Display(Name = "Department")]
+        public Nullable<System.Guid> DeptId { get; set; }
 
-        //[Display(Name = "Department Display")]
-        //public string Department { get; set; }
+        [Display(Name = "Department Display")]
+        public string Department { get; set; }
         public Nullable<int> Qty { get; set; }
 
         [Display(Name = "Location Code")]

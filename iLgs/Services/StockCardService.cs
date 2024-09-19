@@ -20,7 +20,6 @@ namespace iLgs.Services
     }
     public class StockCardService : PsCardService, IStockCardService
     {
-        private readonly IExceptionService<ServiceResult<StockCardVM>> _exceptionService = new ExceptionService<ServiceResult<StockCardVM>>();
         private readonly IExceptionService<StockCardVM> _vmExceptionService = new ExceptionService<StockCardVM>();
         private readonly IStockCardValidator _validator;        
 
@@ -171,15 +170,19 @@ namespace iLgs.Services
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            model.AllField.Id = model.Id;
-            model.AllField.UpdatedBy = user;
-            model.AllField.UpdatedDt = date;
-            entity.AllField = model.AllField;
+            //model.AllField.Id = model.Id;
+            //model.AllField.UpdatedBy = user;
+            //model.AllField.UpdatedDt = date;
+            //entity.AllField = model.AllField;
 
             //entity = SetItemEntity(entity, model);
 
             _db.PsCards.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
+
+            _db.AllFields.Attach(model.AllField);
+            _db.Entry(model.AllField).State = EntityState.Modified;
+
             await _db.SaveChangesAsync();
 
             return model;

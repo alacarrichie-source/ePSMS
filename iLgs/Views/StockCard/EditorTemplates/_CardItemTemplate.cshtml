@@ -69,7 +69,7 @@
                 <div class="col-md-9">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Office")
+                            .Placeholder("Select Department")
                             .DataTextField("Description")
                             .DataValueField("Id")
                             .ValuePrimitive(true)
@@ -78,7 +78,7 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "DEPARTMENTS", addAll = false });
+                                    read.Action("GetDepartments", "Getters");
                                 })
                                 .ServerFiltering(true);
                             })
@@ -107,7 +107,7 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="col-md-3">
-                    @Html.DisplayFor(model => model.LocationId, "Location Code", "Label")
+                    @Html.DisplayFor(model => model.LocationId, "Label")
                 </div>
                 <div class="col-md-9">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
@@ -170,7 +170,9 @@
                         })
                         .Columns(c =>
                         {
-                            c.Add().Field("Description").Title("Unit").Width("100%");
+                            c.Add().Field("Code").Title("Unit Code").Width("20%");
+                            c.Add().Field("Description").Title("Descriptioin").Width("60%");
+                            c.Add().Field("Desc2").Title("Category").Width("20%");
 
                         })
                         .Suggest(true)
@@ -183,7 +185,7 @@
                     @Html.DisplayFor(m => m.UnitCost, "Label")
                 </div>
                 <div class="col-md-9">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.UnitCost).Decimals(0).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().NumericTextBoxFor(m => m.UnitCost).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.UnitCost)
                 </div>
             </div>
@@ -277,7 +279,7 @@
                 <div class="col-md-9">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.InvDist)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                        .Placeholder("Select Remarks")
+                        .Placeholder("Select..")
                         .DataTextField("Description")
                         .DataValueField("Code")
                         .ValuePrimitive(true)

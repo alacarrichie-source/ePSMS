@@ -152,10 +152,10 @@ namespace iLgs.Controllers
 
             if (!string.IsNullOrEmpty(text))
             {
-                model = model.Where(p => p.Description.Contains(text));
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? ""}), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCodeList(string mastCode, bool addAll, string text)
@@ -449,7 +449,7 @@ namespace iLgs.Controllers
         public JsonResult GetDepartments(string text)
         {
 
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS");
+            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc3 != "N");
             
             if (!string.IsNullOrEmpty(text))
             {

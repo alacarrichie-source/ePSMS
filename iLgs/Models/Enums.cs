@@ -5,8 +5,17 @@ using System.Web;
 
 namespace iLgs.Models
 {
-    public class CategoryEnum
+    public static class Enums
     {
+        public enum CategoryGroup
+        {
+            LAND,
+            DRUGS,
+            SERIAL,
+            OTHERS,
+            NONE
+        }
+
         public enum Category
         {
             A, // Accountable Forms, Plates and Stickers

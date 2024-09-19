@@ -7,7 +7,7 @@ using iLgs.Models;
 using iLgs.Services.Interfaces;
 using System.Data.Entity;
 using iLgs.Exceptions;
-using static iLgs.Models.CategoryEnum;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services
 {

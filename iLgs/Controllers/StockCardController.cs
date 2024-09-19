@@ -18,7 +18,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using static iLgs.Models.CategoryEnum;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Controllers
 {
@@ -214,7 +214,6 @@ namespace iLgs.Controllers
                             ModelState.AddModelError(errorKey, "Access Denied!");
                         }
                     }
-
                 }
             }
             catch (ValidationException validationException)
@@ -224,7 +223,6 @@ namespace iLgs.Controllers
             }
             catch (ValidationException validationException)
             {
-                //ModelState.AddModelError(errorKey, validationException.InnerException);                
                 var jErrors = validationException.GetFormattedErrorsAsJson();
                 return Json(new { Errors = jErrors }, JsonRequestBehavior.AllowGet);
             }
@@ -244,41 +242,34 @@ namespace iLgs.Controllers
                     ModelState.AddModelError(errorKey, e.Message);
                 }
             }
-            
-            // Extracting all errors from ModelState, including inner exceptions if they exist
-            var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                          .Select(e =>
-                                          {
-                                              // Get the basic error message
-                                              var errorMessage = e.ErrorMessage;
 
-                                              // Check for an exception and add inner exception details if present
-                                              if (e.Exception != null)
-                                              {
-                                                  var exceptionMessage = e.Exception.Message;
-                                                  var innerExceptionMessage = e.Exception.InnerException?.Message;
+            var errors = ModelState.Where(ms => ms.Value.Errors.Any())
+                       .Select(ms => new
+                       {
+                           Key = ms.Key, // The field name
+                           Message = ms.Value.Errors.Select(e =>
+                           {
+                               var errorMessage = e.ErrorMessage;
+                               if (e.Exception != null)
+                               {
+                                   var exceptionMessage = e.Exception.Message;
+                                   var innerExceptionMessage = e.Exception.InnerException?.Message;
 
-                                                  // Append inner exception details if available
-                                                  errorMessage += $" Exception: {exceptionMessage}";
-                                                  if (innerExceptionMessage != null)
-                                                  {
-                                                      errorMessage += $" InnerException: {innerExceptionMessage}";
-                                                  }
-                                              }
+                                   // Append exception details
+                                   errorMessage += $" Exception: {exceptionMessage}";
+                                   if (innerExceptionMessage != null)
+                                   {
+                                       errorMessage += $" InnerException: {innerExceptionMessage}";
+                                   }
+                               }
 
-                                              return errorMessage;
-                                          })
-                                          .ToList();
+                               return errorMessage;
+                           }).ToList() // List of messages for the current field
+                       })
+                       .ToList();
 
             if (errors.Any())
             {
-            //    string allErrors = string.Join("; ", errors);
-            //    return Json(new { Errors = allErrors }, JsonRequestBehavior.DenyGet);
-
-            //    var errorMessages = ex.InnerException != null
-            //? ex.InnerException.Message
-            //: ex.Message;
-
                 return Json(new { Errors = errors }, JsonRequestBehavior.AllowGet);
             }
 
@@ -404,17 +395,26 @@ namespace iLgs.Controllers
                     model = await _stockCardService.PsCardItem.CreateAsync(model, user, date);
                 }
             }
-            catch (Exception e)
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
             {
-                if (e.GetType().Name == "ServiceException")
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
                 {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
+                    ModelState.AddModelError(error.Key, error.Message);
                 }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
+            catch (Exception e)
+            {                
+                ModelState.AddModelError("", e.Message);                
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -440,17 +440,27 @@ namespace iLgs.Controllers
                     model = await _stockCardService.PsCardItem.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -477,17 +487,27 @@ namespace iLgs.Controllers
                     // TO DO: update stocks
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -520,17 +540,27 @@ namespace iLgs.Controllers
                     model = await _stockCardService.PsCardItemIssuance.CreateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -556,17 +586,27 @@ namespace iLgs.Controllers
                     model = await _stockCardService.PsCardItemIssuance.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -594,17 +634,27 @@ namespace iLgs.Controllers
                     // TO DO: update stocks
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -622,38 +672,8 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
-            string partialView = "";
-            if (Enum.TryParse(model.ItemTypeCode, out Category c))
-            {
-                if (c == CatLands())
-                {
-                    partialView = "_FieldLand";
-                }
-                else if (c == CatMachineries()
-                    || c == CatTransportations()
-                    || c == CatFurnitures()
-                    || c == CatOtherProperties()
-                    || c == CatMedicals()
-                    || c == CatAgriculturals()
-                    || c == CatAnimalSupplies()
-                    || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies()
-                    || c == CatAccountableForms()
-                    || c == CatNonAccountableForns()
-                    || c == CatMilitaries()
-                    || c == CatOtherSupplies())
-                {
-                    partialView = "_FieldBrand";
-                }
-                else if (c == CatDrugs())
-                {
-                    partialView = "_FieldDrugs";
-                }
-                else if (c == CatRepairs())
-                {
-                    partialView = "_FieldSerial";
-                }
-            }
+            string partialView = _stockCardService.AllField.GetPartialField(model.ItemTypeCode, model.ItemCode);
+            
             return PartialView(partialView, model);
         }
 
@@ -667,38 +687,8 @@ namespace iLgs.Controllers
                 model = _stockCardService.PsCardItem.TransferItemField(data, model);
 
             }
-            string partialView = "";
-            if (Enum.TryParse(psCard.ItemTypeCode, out Category c))
-            {
-                if (c == CatLands())
-                {
-                    partialView = "_ItemFieldLand";
-                }
-                else if (c == CatMachineries()
-                    || c == CatTransportations()
-                    || c == CatFurnitures()
-                    || c == CatOtherProperties()
-                    || c == CatMedicals()
-                    || c == CatAgriculturals()
-                    || c == CatAnimalSupplies()
-                    || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies()
-                    || c == CatAccountableForms()
-                    || c == CatNonAccountableForns()
-                    || c == CatMilitaries()
-                    || c == CatOtherSupplies())
-                {
-                    partialView = "_ItemFieldBrand";
-                }
-                else if (c == CatDrugs())
-                {
-                    partialView = "_ItemFieldDrugs";
-                }
-                else if (c == CatRepairs())
-                {
-                    partialView = "_ItemFieldSerial";
-                }
-            }
+            string partialView = _stockCardService.AllField.GetPartialItemField(psCard.ItemTypeCode, psCard.ItemCode);
+            
             return PartialView(partialView, model);
         }
 
@@ -776,17 +766,27 @@ namespace iLgs.Controllers
                     // TO DO: save to stock card
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -814,17 +814,27 @@ namespace iLgs.Controllers
                     // TO DO: update stock card
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -849,19 +859,28 @@ namespace iLgs.Controllers
                     model = await _stockCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
-
+            }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -898,17 +917,27 @@ namespace iLgs.Controllers
                     // TO DO: save to stock card
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -936,17 +965,27 @@ namespace iLgs.Controllers
                     // TO DO: update stock card
                 }
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -973,17 +1012,27 @@ namespace iLgs.Controllers
                 }
 
             }
+            catch (ValidationException validationException)
+                when (validationException.InnerException is AlreadyExistsException)
+            {
+                ModelState.AddModelError("", validationException.InnerException);
+            }
+            catch (ValidationException validationException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
+                        "please contact tech support with this message: " + e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));

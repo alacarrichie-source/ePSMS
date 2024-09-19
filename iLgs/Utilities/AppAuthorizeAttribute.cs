@@ -7,12 +7,14 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using iLgs.Models;
+using iLgs.Extensions;
 using System.Net.Http;
 using System.Configuration;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Security.Claims;
 
 namespace iLgs.Utilities
 {
@@ -56,6 +58,13 @@ namespace iLgs.Utilities
             {
                 return false;
             }
+
+            //var claimsPrincipal = httpContext.User as ClaimsPrincipal;
+            //if (claimsPrincipal != null)
+            //{
+            //    bool isActive = claimsPrincipal.IsActive();
+            //    if (!isActive) return false;                                                
+            //}            
 
             HttpResponseMessage responseMessage = client.GetAsync("roles_/" + userId).Result;
             if (responseMessage.IsSuccessStatusCode)

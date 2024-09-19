@@ -94,7 +94,7 @@ namespace iLgs.Controllers
                             RCC = s.PsCardItem.Codextn.Code,
                             //s.PsCardItem.Codextn.Description,
                             StockNo = s.PsCardItem.PsCard.PsNo,
-                            ItemName = s.PsCardItem.PsCard.ItemCode.ItemType.Code == "W" ? s.PsCardItem.Description : s.PsCardItem.PsCard.Description,
+                            ItemName = s.PsCardItem.Description,
                             Unit = s.PsCardItem.Unit,
                             UnitCost = s.PsCardItem.UnitCost,
                             Qty = s.Qty,
@@ -108,9 +108,13 @@ namespace iLgs.Controllers
                     }
                     else
                     {
-                        var rsmiDateList = rsmiItemList.GroupBy(g => new { g.Date, g.Fund, g.RCC })
-                            .Select(s => new { s.Key.Date, s.Key.Fund, s.Key.RCC }).ToList();
-                        foreach(var rsmiDate in rsmiDateList)
+                        //var rsmiDateList = rsmiItemList.GroupBy(g => new { g.Date, g.Fund, g.RCC })
+                        //    .Select(s => new { s.Key.Date, s.Key.Fund, s.Key.RCC }).ToList();
+
+                        var rsmiDateList = rsmiItemList.GroupBy(g => new { g.Date, g.Fund})
+                            .Select(s => new { s.Key.Date, s.Key.Fund }).ToList();
+
+                        foreach (var rsmiDate in rsmiDateList)
                         {
                             var serialNo = NextSerialNo(rsmiDate.Date);
                             var entity = new RSMI()

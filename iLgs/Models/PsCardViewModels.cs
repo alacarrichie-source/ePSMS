@@ -22,7 +22,6 @@ namespace iLgs.Models
         [Required]
         public string Fund { get; set; }
 
-        //[Required]
         [MaxLength(900)]
         [Display(Name = "Item Description")]
         public string Description { get; set; }
@@ -81,14 +80,14 @@ namespace iLgs.Models
         public int? FieldGroupNo { get; set; }
     }
 
-    public class PsCardItemVM : IValidatableObject
+    public class PsCardItemVM 
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
         public Nullable<System.Guid> TransferRefId { get; set; }
 
-        [Display(Name = "PO Date")]
+        [Display(Name = "PO Date (MM/DD/YYYY)")]
         //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> PoDate { get; set; }
@@ -96,7 +95,7 @@ namespace iLgs.Models
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 
-        [Display(Name = "AIR Date")]
+        [Display(Name = "AIR Date (MM/DD/YYYY)")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
 
@@ -105,7 +104,7 @@ namespace iLgs.Models
         [Display(Name = "AIR No.")]
         public string AirNo { get; set; }
 
-        [Display(Name = "Issuance Date")]
+        [Display(Name = "Issuance Date (MM/DD/YYY)")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AirIssueDate { get; set; }
 
@@ -131,7 +130,7 @@ namespace iLgs.Models
         public Nullable<int> Days { get; set; }
 
         [Required]
-        [Display(Name = "Unit of Measurement")]
+        [Display(Name = "PO Unit of Measurement")]
         public string Unit { get; set; }
 
         [Required]
@@ -237,25 +236,25 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> TransDate { get; set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        {
-            if (!Qty.HasValue && !TransferIn.HasValue)
-            {
-                if (!Qty.HasValue)
-                {
-                    yield return new ValidationResult(
-                        "Either Qty or Transit-In must be provided.",
-                        new[] { nameof(Qty) }
-                    );
-                } else
-                {
-                    yield return new ValidationResult(
-                        "Either Qty or Transit-In must be provided.",
-                        new[] { nameof(TransferIn) }
-                    );
-                }
-            }
-        }
+        //public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        //{
+        //    if (!Qty.HasValue && !TransferIn.HasValue)
+        //    {
+        //        if (!Qty.HasValue)
+        //        {
+        //            yield return new ValidationResult(
+        //                "Either Qty or Transit-In must be provided.",
+        //                new[] { nameof(Qty) }
+        //            );
+        //        } else
+        //        {
+        //            yield return new ValidationResult(
+        //                "Either Qty or Transit-In must be provided.",
+        //                new[] { nameof(TransferIn) }
+        //            );
+        //        }
+        //    }
+        //}
 
         //public Codextn _Deparment { get; set; }
         //public Codextn _Location { get; set; }

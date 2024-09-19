@@ -68,7 +68,7 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "DEPARTMENTS", addAll = false });
+                                    read.Action("GetDepartments", "Getters");
                                 })
                                 .ServerFiltering(true);
                             })
@@ -152,7 +152,9 @@
                         })
                         .Columns(c =>
                         {
-                            c.Add().Field("Description").Title("Unit").Width("100%");
+                            c.Add().Field("Code").Title("Unit Code").Width("20%");
+                            c.Add().Field("Description").Title("Descriptioin").Width("60%");
+                            c.Add().Field("Desc2").Title("Category").Width("20%");
 
                         })
                         .Suggest(true)

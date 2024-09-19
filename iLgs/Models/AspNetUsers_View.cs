@@ -41,5 +41,6 @@ namespace iLgs.Models
         public string Division { get; set; }
         public string Section { get; set; }
         public string UserCode { get; set; }
+        public bool Active { get; set; }
     }
 }

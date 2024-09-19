@@ -243,7 +243,38 @@
                         $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
                     }
                     else {
-                        alert(result.Errors);
+                        // Clear previous error messages
+                        $('#ErrorContent .errors').empty();
+
+                        result.Errors.forEach(function (error) {
+                            var key = error.Key;
+                            var messages = error.Message; // Use Message from the JSON
+
+                            // Check if messages exists and is an array
+                            if (Array.isArray(messages)) {
+                                // Create the field name list item
+                                var errorListItem = $('<li></li>').text(key);
+
+                                // Create a nested unordered list for the messages
+                                var messageList = $('<ul></ul>');
+
+                                // Loop through each message and append it to the messageList
+                                messages.forEach(function (message) {
+                                    messageList.append($('<li></li>').text(message));
+                                });
+
+                                // Append the message list to the error list item
+                                errorListItem.append(messageList);
+
+                                // Append the error list item to the .errors container
+                                $('#ErrorContent .errors').append(errorListItem);
+                            } else {
+                                console.error(`Expected messages to be an array for field ${key}`);
+                            }
+                        });
+
+                        // Show the error content
+                        $('#ErrorContent').removeClass('hidden');
                     }
                     selectedId = result.Id;
                 },

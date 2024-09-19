@@ -100,17 +100,17 @@
                         .Columns(columns =>
                         {
                             columns.Bound(f => f.RisNo).Width(70);
-                            columns.Bound(f => f.RCC).Width(70);
-                            columns.Bound(f => f.StockNo).Width(70);
-                            columns.Bound(f => f.ItemName).Width(70);
-                            columns.Bound(f => f.Unit).Width(70);
-                            columns.Bound(f => f.Qty).Width(70)
-                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                            columns.Bound(f => f.RCC).Width(50);
+                            columns.Bound(f => f.StockNo).Width(100);
+                            columns.Bound(f => f.ItemName).Width(200);
+                            columns.Bound(f => f.Unit).Width(50);
                             columns.Bound(f => f.UnitCost).Width(70)
                                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                            columns.Bound(f => f.Qty).Width(50)
+                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                                .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" });                            
                             columns.Bound(f => f.Amount).Width(70)
                                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                                 .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
@@ -146,13 +146,13 @@
                         .Columns(columns =>
                         {
                             columns.Bound(f => f.StockNo).Width(70);
-                            columns.Bound(f => f.Qty).Width(70)
-                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                                .HeaderHtmlAttributes(new { style = "text-align:right;" });
                             columns.Bound(f => f.UnitCost).Width(70)
                                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                            columns.Bound(f => f.Qty).Width(70)
+                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                                .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" });                            
                             columns.Bound(f => f.TotalCost).Width(70)
                                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                                 .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })

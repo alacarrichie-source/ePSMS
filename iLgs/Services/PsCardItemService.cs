@@ -1,13 +1,14 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using static iLgs.Models.CategoryEnum;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services
 {
@@ -29,14 +30,15 @@ namespace iLgs.Services
     public class PsCardItemService : IPsCardItemService
     {
         private readonly AppManEntities _db = new AppManEntities();
-        private readonly IExceptionService<PsCardItemVM> _VmExceptionService = new ExceptionService<PsCardItemVM>();
+        private readonly IExceptionService<PsCardItemVM> _vmExceptionService = new ExceptionService<PsCardItemVM>();
         private readonly IExceptionService<ParIcsItemVm> _parIcsItemExceptionService = new ExceptionService<ParIcsItemVm>();
         private IPsCardItemExtnService _psCardItemExtnService;
-
+        private readonly IPsCardItemValidator _psCardItemValidator;
         public PsCardItemService(AppManEntities db)
         {
             _db = db;
             _psCardItemExtnService = new PsCardItemExtnService(db);
+            _psCardItemValidator = new PsCardItemValidator(db);
         }
 
         public IPsCardItemExtnService PsCardItemExtn { get { return _psCardItemExtnService = _psCardItemExtnService ?? new PsCardItemExtnService(_db); } }
@@ -98,7 +100,7 @@ namespace iLgs.Services
             return data;
         }
 
-        public IQueryable<PsCardItemVM> GetByCardId(Guid? cardId) => _VmExceptionService.TryCatch(() =>
+        public IQueryable<PsCardItemVM> GetByCardId(Guid? cardId) => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.PsCardItems
                 .Include(i => i.Codextn) // Department
@@ -159,38 +161,10 @@ namespace iLgs.Services
         {
             return await _db.PsCardItems.Where(w => w.Id == psCardItemId).Select(s => s.PsCard.ItemCode.ItemType.Code).FirstOrDefaultAsync();
         }
-
-        private void ValidateFields(PsCardItemVM model)
-        {
-            if (!model.Qty.HasValue && !model.TransferIn.HasValue)
-            {
-                throw new InvalidValueException("Quantity or Transfer-In is Required!");
-            }
-            
-            var category = _db.PsCards.Where(w => w.Id == model.PsCardId).Select(s => s.ItemCode.ItemType.Code).FirstOrDefault();
-            if (Enum.TryParse(category, out Category c))
-            {
-                if (model.DeptId == null)
-                {
-                    if (c != CatLands() && c != CatBuildings() && c != CatLandImprovements() && c != CatInfrastructures() && c != CatOtherProperties())
-                    {
-                        throw new InvalidValueException("Department is Required!");
-                    }
-                }
-
-                if (model.LocationId == null)
-                {
-                    if (c == CatLands() || c == CatBuildings() || c == CatLandImprovements() || c == CatInfrastructures() || c == CatOtherProperties())
-                    {
-                        throw new InvalidValueException("Location is Required!");
-                    }
-                }
-            }
-        }
-
-        public ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
-        {
-            ValidateFields(model);
+        
+        public ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        {            
+            _psCardItemValidator.ValidateOnCreate(model);
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -249,18 +223,14 @@ namespace iLgs.Services
             return model;
         });
 
-        public ValueTask<PsCardItemVM> UpdateAsync(PsCardItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemVM> UpdateAsync(PsCardItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            ValidateFields(model);
+            _psCardItemValidator.ValidateOnUpdate(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             var entity = await _db.PsCardItems.FindAsync(model.Id);
-            if (entity == null)
-            {
-                throw new RecordNotFoundException(model.Id);
-            }
 
             entity.PsCardId = model.PsCardId;
             entity.OrderItemId = model.OrderItemId;
@@ -306,9 +276,7 @@ namespace iLgs.Services
 
             return model;
         });
-
-        //PsCardItemUnitGroupDescriptionItem
-
+        
         public ValueTask<ParIcsItemVm> UpdateIsForICSAsync(ParIcsItemVm model, string user, DateTime date) => _parIcsItemExceptionService.TryCatch(async () =>
         {
             var entity = await _db.PsCardItems.FindAsync(model.Id);
@@ -412,7 +380,7 @@ namespace iLgs.Services
         });
 
 
-        public ValueTask<PsCardItemVM> DeleteAsync(PsCardItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemVM> DeleteAsync(PsCardItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             if (_db.PsCardItems.Any(a => a.Id == model.Id && a.PsCardItemTransfers.Any()))
             {

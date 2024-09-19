@@ -251,6 +251,7 @@ namespace iLgs.Controllers
 
                         var aspNetUser = db.AspNetUsers.Find(model.Id);
                         aspNetUser.Email = model.Email;
+                        aspNetUser.Active = model.Active;
                         db.AspNetUsers.Attach(aspNetUser);
                         db.Entry(aspNetUser).State = EntityState.Modified;
                         db.SaveChanges();

@@ -57,8 +57,8 @@ namespace iLgs.Utilities
             if (User != null && User.Identity.IsAuthenticated)
             {                
                 string userId = User.Identity.GetUserId();
+                               
                 
-
                 var allMenu = Task.Run(async () => await GetMainMenu(User.Identity.GetUserId())).Result;
 
 

@@ -7,7 +7,7 @@ using System.Web;
 namespace iLgs.Services.Validators
 {
     public class BaseValidator
-    {
+    {        
         protected static dynamic IsInvalid(Guid id) => new
         {
             Condition = id == Guid.Empty,

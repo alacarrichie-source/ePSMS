@@ -12,7 +12,7 @@ using System.Data.Entity.Infrastructure;
 using System.Web.Http.ModelBinding;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using static iLgs.Models.CategoryEnum;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services
 {

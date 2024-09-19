@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Utilities
 {
@@ -114,6 +115,46 @@ namespace iLgs.Utilities
             }
 
             return null;
+        }
+
+        public static CategoryGroup GetCategoryGroup(string itemTypeCode, string itemCode)
+        {
+            CategoryGroup retval = CategoryGroup.NONE;
+            if (Enum.TryParse(itemTypeCode, out Category c))
+            {
+                if (c == CatLands())
+                {
+                    retval = CategoryGroup.LAND;
+                }
+                else if (c == CatMachineries()
+                    || c == CatTransportations()
+                    || c == CatFurnitures()
+                    || c == CatOtherProperties()
+                    || c == CatMedicals()
+                    || c == CatAgriculturals()
+                    || c == CatAnimalSupplies()
+                    || c == CatConstructionMaterials()
+                    || c == CatOfficeSupplies()
+                    || c == CatAccountableForms()
+                    || c == CatNonAccountableForns()
+                    || c == CatMilitaries()
+                    || c == CatOtherSupplies())
+                {
+                    retval = CategoryGroup.OTHERS;
+                }
+                else if (c == CatDrugs())
+                {
+                    retval = CategoryGroup.DRUGS;
+                }
+                else if (c == CatRepairs())
+                {
+                    var index = itemCode.IndexOf('-');
+                    var itemNo = itemCode.Substring(index + 1);
+
+                    retval = CategoryGroup.SERIAL;
+                }
+            }
+            return retval;
         }
     }
 }

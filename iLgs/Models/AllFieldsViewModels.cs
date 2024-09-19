@@ -79,19 +79,19 @@ namespace iLgs.Models
             [Display(Name = "Vendor/Donor")]
             public string VendorDonor { get; set; }
 
-            [Display(Name = "Serial No.")]
+            [Display(Name = "Serial No. of the repair item")]
             public string SerialNo { get; set; }
 
-            [Display(Name = "Property No.")]
+            [Display(Name = "Property No. of the repair item")]
             public string PropNo { get; set; }
 
-            [Display(Name = "Plate No.")]
+            [Display(Name = "Plate No. of the repair item")]
             public string PlateNo { get; set; }
 
-            [Display(Name = "Body No.")]
+            [Display(Name = "Body No. of the repair item")]
             public string BodyNo { get; set; }
 
-            [Display(Name = "MV File No.")]
+            [Display(Name = "MV File No. of the repair item")]
             public string MVFileNo { get; set; }
 
             public string InsertedBy { get; set; }

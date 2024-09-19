@@ -6,7 +6,7 @@ using System.Web;
 
 namespace iLgs.Exceptions
 {
-    public class RecordRelationshipException : Exception, IException
+    public class RecordRelationshipException : Xeption, IException
     {
         public HttpStatusCode StatusCode()
         {

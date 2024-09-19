@@ -24,9 +24,9 @@ namespace iLgs.Exceptions
             data: exception.Data)
         { }
 
-        public Dictionary<string, List<string>> GetFormattedErrorsAsDictionary()
+        public IEnumerable<(string Key, string Message)> GetErrorsForModelState()
         {
-            var errors = new Dictionary<string, List<string>>();
+            var errors = new List<(string, string)>();
 
             foreach (DictionaryEntry error in Data)
             {
@@ -35,7 +35,10 @@ namespace iLgs.Exceptions
 
                 if (fieldErrors != null)
                 {
-                    errors.Add(fieldName, fieldErrors);
+                    foreach (var fieldError in fieldErrors)
+                    {
+                        errors.Add((fieldName, fieldError));
+                    }
                 }
             }
 
@@ -55,8 +58,8 @@ namespace iLgs.Exceptions
                 {
                     errorMessages.Add(new
                     {
-                        field = fieldName,
-                        messages = fieldErrors
+                        Key = fieldName,
+                        Message = fieldErrors
                     });
                 }
             }

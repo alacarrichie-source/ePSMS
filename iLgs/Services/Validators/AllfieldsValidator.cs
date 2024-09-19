@@ -1,78 +1,253 @@
 ﻿using FluentValidation;
 using iLgs.Models;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Web;
-using static iLgs.Models.CategoryEnum;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.Validators
-{    
-    public class AllFieldsValidator : AbstractValidator<PsCardVM>
+{
+    public interface IAllFieldsValidator
     {
+        void ValidateAllFields(AllField af, string category, string itemNo, InvalidModelException ex);
+    }
+
+    public class AllFieldsValidator : BaseValidator, IAllFieldsValidator
+    {
+        private delegate string GetDisplayNameDelegate(string propertyName);
+        private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly GetDisplayNameDelegate _getAllFieldDisplayName;
         private readonly AppManEntities _db;
+
         public AllFieldsValidator(AppManEntities db)
         {
             _db = db;
+            _getDisplayName = propertyName => Utility.GetDisplayName<StockCardVM>(propertyName);
+            _getAllFieldDisplayName = propertyName => Utility.GetDisplayName<AllField>(propertyName);
+        }
 
-            RuleFor(x => x.AllField).Custom((af, context) =>
+        private void ValidateFields(AllField af, List<string> f, InvalidModelException ex)
+        {
+            // Loop through the selected property names in the 'f' list
+            for (int i = 1; i < f.Count; i++) // Start from 1 and use f.Count for the loop condition
             {
-                var model = context.InstanceToValidate as PsCardVM;
+                // Get the current and previous property names from the list 'f'
+                var currentProperty = typeof(AllField).GetProperty(f[i - 1]);
+                var nextProperty = typeof(AllField).GetProperty(f[i]);
 
-                if (Enum.TryParse(model.ItemTypeCode, out Category c))
+                if (currentProperty == null || nextProperty == null)
                 {
-                    if (c == CatDrugs())
-                    {
-                        RuleFor(x => af.GenericName).NotEmpty().WithMessage("Generic Name is Required!");
+                    throw new InvalidOperationException("Invalid property name in the list.");
+                }
 
-                        if (model.ItemNo.StartsWith("5.1."))
-                        {
-                            RuleFor(x => af.DosageVolume).NotEmpty().WithMessage("Dosage Volume is Required!");
-                        }
-                        else
-                        {
-                            RuleFor(x => af.DosageStrength).NotEmpty().WithMessage("Dosage Strength is Required!");
-                            RuleFor(x => af.DosageForm).NotEmpty().WithMessage("Dosage Form is Required!");
-                        }
-                    }
-                    else if (IsMachineryOrOtherCategory(c))
-                    {
-                        RuleFor(x => af.Brand).NotEmpty().WithMessage("Brand is Required!");
-                        RuleFor(x => af.Model_).NotEmpty().WithMessage("Model is Required!");
-                        RuleFor(x => af.Dimension).NotEmpty().WithMessage("Dimension is Required!");
-                        RuleFor(x => af.Size).NotEmpty().WithMessage("Size is Required!");
-                        RuleFor(x => af.Weight).NotEmpty().WithMessage("Weight is Required!");
-                        RuleFor(x => af.Materials).NotEmpty().WithMessage("Materials is Required!");
-                        RuleFor(x => af.Capacity).NotEmpty().WithMessage("Capacity is Required!");
-                        RuleFor(x => af.Color).NotEmpty().WithMessage("Color is Required!");
+                // Get the values of the current and previous properties
+                var currentValue = (string)currentProperty.GetValue(af);
+                var nextValue = (string)nextProperty.GetValue(af);
 
-                        //RuleFor(x => af.Model_)
-                        //    .Must((m, size) => !string.IsNullOrWhiteSpace(af.Model_) || !string.IsNullOrWhiteSpace(af.Size) ||
-                        //                       !string.IsNullOrWhiteSpace(af.Dimension) || !string.IsNullOrWhiteSpace(af.Weight) ||
-                        //                       !string.IsNullOrWhiteSpace(af.Materials) || !string.IsNullOrWhiteSpace(af.Capacity) ||
-                        //                       !string.IsNullOrWhiteSpace(af.Color))
-                        //    .WithMessage("Model or Dimension or Size or Weight or Materials or Capacity or Color is Required!");
+                if (!string.IsNullOrEmpty(currentValue) && string.IsNullOrEmpty(nextValue))
+                {
+                    // Get the display name of the previous property
+                    var displayName = _getAllFieldDisplayName(nextProperty.Name);
+                    ex.UpsertDataList(displayName, "Field is required.");
+                }
+            }
+        }
+
+        public void ValidateAllFields(AllField af, string category, string itemNo, InvalidModelException ex)
+        {
+            var group = Utility.GetCategoryGroup(category, itemNo);
+            if (group == CategoryGroup.DRUGS)
+            {
+                if (string.IsNullOrWhiteSpace(af.GenericName))
+                {
+                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.GenericName)), "Field is required.");
+                }
+
+                if (itemNo.Length >= 4 && itemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
+                {
+                    if (string.IsNullOrWhiteSpace(af.DosageVolume))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.DosageVolume)), "Field is required.");
                     }
                 }
-            });
-        }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(af.DosageStrength))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.DosageStrength)), "Field is required.");
+                    }
+                    if (string.IsNullOrWhiteSpace(af.DosageForm))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.DosageForm)), "Field is required.");
+                    }
+                    if (af.Multipliers == null)
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Multipliers)), "Field is required.");
+                    }
+                }
 
-        private bool IsMachineryOrOtherCategory(Category c)
-        {
-            return c == CatMachineries()
-                || c == CatTransportations()
-                || c == CatFurnitures()
-                || c == CatOtherProperties()
-                || c == CatMedicals()
-                || c == CatAgriculturals()
-                || c == CatAnimalSupplies()
-                || c == CatConstructionMaterials()
-                || c == CatOfficeSupplies()
-                || c == CatAccountableForms()
-                || c == CatNonAccountableForns()
-                || c == CatMilitaries()
-                || c == CatOtherSupplies();
+                if (string.IsNullOrWhiteSpace(af.Brand))
+                {
+                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                }
+            }
+            else if (group == CategoryGroup.SERIAL)
+            {
+                List<string> f = new List<string>();
+                if (itemNo.Length >= 3 && itemNo.Substring(0, 3).Any(a => a.Equals("1.1") || a.Equals("2.1") || a.Equals("3.1") || a.Equals("4.1")
+                    || a.Equals("7.1") || a.Equals("8.1") || a.Equals("9.1")))
+                {
+                    f = new List<string>
+                        {
+                            "PropNo", "SerialNo"
+                        };
+                }
+                else if (itemNo.Length >= 4 && itemNo.Substring(0, 4).Any(a => a.Equals("5.1") || a.Equals("6.1.") || a.Equals("9.1.")))
+                {
+                    f = new List<string>
+                        {
+                            "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"
+                        };
+                }
+                else
+                {
+                    f = new List<string>
+                        {
+                            "Color", "Capacity", "Materials", "Weight", "Size", "Dimension", "Model_", "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"
+                        };
+                }
+                ValidateFields(af, f, ex);
+            }
+            else if (group == CategoryGroup.OTHERS)
+            {
+                if (string.IsNullOrWhiteSpace(af.Brand))
+                {
+                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(af.Model_))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+                    }
+                    else
+                    {
+                        if (af.Brand.IsNullOrWhiteSpaceX() || af.Model_.IsNullOrWhiteSpaceX())
+                        {
+                            if (string.IsNullOrWhiteSpace(af.Dimension))
+                            {
+                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Dimension)), "Field is required.");
+                            }
+                            else
+                            {
+                                if (string.IsNullOrWhiteSpace(af.Size))
+                                {
+                                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Size)), "Field is required.");
+                                }
+                                else
+                                {
+                                    if (string.IsNullOrWhiteSpace(af.Weight))
+                                    {
+                                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Weight)), "Field is required.");
+                                    }
+                                    else
+                                    {
+                                        if (string.IsNullOrWhiteSpace(af.Materials))
+                                        {
+                                            ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Materials)), "Field is required.");
+                                        }
+                                        else
+                                        {
+                                            if (string.IsNullOrWhiteSpace(af.Capacity))
+                                            {
+                                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Capacity)), "Field is required.");
+                                            }
+                                            else
+                                            {
+                                                if (af.Color.IsNullOrWhiteSpaceX())
+                                                {
+                                                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Color)), "Field is required.");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
+
+    //public class AllFieldsValidator : AbstractValidator<PsCardVM>
+    //{
+    //    private readonly AppManEntities _db;
+    //    public AllFieldsValidator(AppManEntities db)
+    //    {
+    //        _db = db;
+
+    //        RuleFor(x => x.AllField).Custom((af, context) =>
+    //        {
+    //            var model = context.InstanceToValidate as PsCardVM;
+
+    //            if (Enum.TryParse(model.ItemTypeCode, out Category c))
+    //            {
+    //                if (c == CatDrugs())
+    //                {
+    //                    RuleFor(x => af.GenericName).NotEmpty().WithMessage("Generic Name is Required!");
+
+    //                    if (model.ItemNo.StartsWith("5.1."))
+    //                    {
+    //                        RuleFor(x => af.DosageVolume).NotEmpty().WithMessage("Dosage Volume is Required!");
+    //                    }
+    //                    else
+    //                    {
+    //                        RuleFor(x => af.DosageStrength).NotEmpty().WithMessage("Dosage Strength is Required!");
+    //                        RuleFor(x => af.DosageForm).NotEmpty().WithMessage("Dosage Form is Required!");
+    //                    }
+    //                }
+    //                else if (IsMachineryOrOtherCategory(c))
+    //                {
+    //                    RuleFor(x => af.Brand).NotEmpty().WithMessage("Brand is Required!");
+    //                    RuleFor(x => af.Model_).NotEmpty().WithMessage("Model is Required!");
+    //                    RuleFor(x => af.Dimension).NotEmpty().WithMessage("Dimension is Required!");
+    //                    RuleFor(x => af.Size).NotEmpty().WithMessage("Size is Required!");
+    //                    RuleFor(x => af.Weight).NotEmpty().WithMessage("Weight is Required!");
+    //                    RuleFor(x => af.Materials).NotEmpty().WithMessage("Materials is Required!");
+    //                    RuleFor(x => af.Capacity).NotEmpty().WithMessage("Capacity is Required!");
+    //                    RuleFor(x => af.Color).NotEmpty().WithMessage("Color is Required!");
+
+    //                    //RuleFor(x => af.Model_)
+    //                    //    .Must((m, size) => !string.IsNullOrWhiteSpace(af.Model_) || !string.IsNullOrWhiteSpace(af.Size) ||
+    //                    //                       !string.IsNullOrWhiteSpace(af.Dimension) || !string.IsNullOrWhiteSpace(af.Weight) ||
+    //                    //                       !string.IsNullOrWhiteSpace(af.Materials) || !string.IsNullOrWhiteSpace(af.Capacity) ||
+    //                    //                       !string.IsNullOrWhiteSpace(af.Color))
+    //                    //    .WithMessage("Model or Dimension or Size or Weight or Materials or Capacity or Color is Required!");
+    //                }
+    //            }
+    //        });
+    //    }
+
+    //    private bool IsMachineryOrOtherCategory(Category c)
+    //    {
+    //        return c == CatMachineries()
+    //            || c == CatTransportations()
+    //            || c == CatFurnitures()
+    //            || c == CatOtherProperties()
+    //            || c == CatMedicals()
+    //            || c == CatAgriculturals()
+    //            || c == CatAnimalSupplies()
+    //            || c == CatConstructionMaterials()
+    //            || c == CatOfficeSupplies()
+    //            || c == CatAccountableForms()
+    //            || c == CatNonAccountableForns()
+    //            || c == CatMilitaries()
+    //            || c == CatOtherSupplies();
+    //    }
+    //}
 
 }

@@ -14,248 +14,22 @@ using System.Collections;
 
 namespace iLgs.Services
 {
+    public interface IExceptionService<T> where T : class
+    {
+        
+        ValueTask<T> TryCatch(Func<ValueTask<T>> returningFunction);
+        IQueryable<T> TryCatch(Func<IQueryable<T>> returningQueryableFunction);
+
+
+    }
     public class ExceptionService<T> : IExceptionService<T> where T : class
     {
-        //private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        //private delegate ValueTask<T> ReturningFunction();
-        //private delegate IQueryable<T> ReturningQueryableFunction();
         private readonly ILoggingService _loggingService;
 
         public ExceptionService()
         {
             _loggingService = new LoggingService();
-        }
-
-        //public ValueTask TryCatch(Func<ValueTask> nonReturningFunction)
-        //{
-        //    try
-        //    {
-        //        return nonReturningFunction();
-        //    }
-        //    catch (RecordNotFoundException notFoundException)
-        //    {
-        //        throw notFoundException;
-        //    }
-        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
-        //    {
-        //        throw recordAlreadyExistsException;
-        //    }
-        //    catch (InvalidValueException invalidValueException)
-        //    {
-        //        throw invalidValueException;
-        //    }
-        //    catch (RequiredFieldException requiredFieldException)
-        //    {
-        //        throw requiredFieldException;
-        //    }
-        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
-        //    {
-        //        throw recordAlreadyPostedException;
-        //    }
-        //    catch (RecordRelationshipException recordRelationshipExistsException)
-        //    {
-        //        throw recordRelationshipExistsException;
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-        //    {
-        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
-
-        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
-        //    }
-        //    catch (DbUpdateException dbUpdateException)
-        //    {
-        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-
-        //public async ValueTask TryCatch(Func<ValueTask> nonReturningFunction)
-        //{
-        //    try
-        //    {
-        //        await nonReturningFunction();
-        //    }
-        //    catch (RecordNotFoundException notFoundException)
-        //    {
-        //        throw notFoundException;
-        //    }
-        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
-        //    {
-        //        throw recordAlreadyExistsException;
-        //    }
-        //    catch (InvalidValueException invalidValueException)
-        //    {
-        //        throw invalidValueException;
-        //    }
-        //    catch (RequiredFieldException requiredFieldException)
-        //    {
-        //        throw requiredFieldException;
-        //    }
-        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
-        //    {
-        //        throw recordAlreadyPostedException;
-        //    }
-        //    catch (RecordRelationshipException recordRelationshipExistsException)
-        //    {
-        //        throw recordRelationshipExistsException;
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-        //    {
-        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
-
-        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
-        //    }
-        //    catch (DbUpdateException dbUpdateException)
-        //    {
-        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-
-        //public ValueTask<T> TryCatch(Func<ValueTask<T>> returningFunction)
-        //{
-        //    try
-        //    {
-        //        return returningFunction();
-        //    }
-        //    catch (RecordNotFoundException notFoundException)
-        //    {
-        //        throw notFoundException;
-        //    }
-        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
-        //    {
-        //        throw recordAlreadyExistsException;
-        //    }
-        //    catch (InvalidValueException invalidValueException)
-        //    {
-        //        throw invalidValueException;
-        //    }
-        //    catch (RequiredFieldException requiredFieldException)
-        //    {
-        //        throw requiredFieldException;
-        //    }
-        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
-        //    {
-        //        throw recordAlreadyPostedException;
-        //    }
-        //    catch (RecordRelationshipException recordRelationshipExistsException)
-        //    {
-        //        throw recordRelationshipExistsException;
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-        //    {
-        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
-
-        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
-        //    }
-        //    catch (DbUpdateException dbUpdateException)
-        //    {
-        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-
-        //public async ValueTask<T> TryCatch(Func<ValueTask<T>> returningFunction)
-        //{
-        //    try
-        //    {
-        //        return await returningFunction();
-        //    }
-        //    catch (RecordNotFoundException notFoundException)
-        //    {
-        //        throw notFoundException;
-        //    }
-        //    catch (RecordAlreadyExistsException recordAlreadyExistsException)
-        //    {
-        //        throw recordAlreadyExistsException;
-        //    }
-        //    catch (InvalidValueException invalidValueException)
-        //    {
-        //        throw invalidValueException;
-        //    }
-        //    catch (RequiredFieldException requiredFieldException)
-        //    {
-        //        throw requiredFieldException;
-        //    }
-        //    catch (RecordAlreadyPostedException recordAlreadyPostedException)
-        //    {
-        //        throw recordAlreadyPostedException;
-        //    }
-        //    catch (RecordRelationshipException recordRelationshipExistsException)
-        //    {
-        //        throw recordRelationshipExistsException;
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-        //    {
-        //        var recordLockedException = new RecordLockedException(dbUpdateConcurrencyException);
-
-        //        throw exceptions.CreateAndLogDependencyException(recordLockedException);
-        //    }
-        //    catch (DbUpdateException dbUpdateException)
-        //    {
-        //        throw exceptions.CreateAndLogDependencyException(dbUpdateException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
-
-        //public IQueryable<T> TryCatch(Func<IQueryable<T>> returningQueryableFunction)
-        //{
-        //    try
-        //    {
-        //        return returningQueryableFunction();
-        //    }
-        //    catch (SqlException sqlException)
-        //    {
-        //        throw exceptions.CreateAndLogCriticalDependencyException(sqlException);
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        var failedServiceException =
-        //            new FailedServiceException(exception);
-
-        //        throw exceptions.CreateAndLogServiceException(failedServiceException);
-        //    }
-        //}
+        }        
 
         public async ValueTask<T> TryCatch(Func<ValueTask<T>> returningFunction)
         {
@@ -281,6 +55,14 @@ namespace iLgs.Services
                     new FailedStorageException(sqlException);
 
                 throw CreateAndLogCriticalDependencyException(failedStorageException);
+            }
+            catch (RecordAlreadyPostedException alreadyPostedException)
+            {
+                throw CreateAndLogValidationException(alreadyPostedException);
+            }
+            catch (RecordRelationshipException relationshipException)
+            {
+                throw CreateAndLogValidationException(relationshipException);
             }
             catch (RecordAlreadyExistsException recordExistsException)
             {

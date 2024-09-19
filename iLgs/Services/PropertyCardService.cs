@@ -14,20 +14,20 @@ namespace iLgs.Services
     {
         new IQueryable<PropertyCardVM> GetAll();
         ValueTask<PropertyCardVM> GetByIdAsync(Guid? id);
-        ValueTask<ServiceResult<PropertyCardVM>> CreateAsync(PropertyCardVM model, string user, DateTime date);
-        ValueTask<ServiceResult<PropertyCardVM>> UpdateAsync(PropertyCardVM model, string user, DateTime date);
-        ValueTask<ServiceResult<PropertyCardVM>> DeleteAsync(PropertyCardVM model, string user, DateTime date);        
+        ValueTask<PropertyCardVM> CreateAsync(PropertyCardVM model, string user, DateTime date);
+        ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date);
+        ValueTask<PropertyCardVM> DeleteAsync(PropertyCardVM model, string user, DateTime date);        
     }
 
     public class PropertyCardService : PsCardService, IPropertyCardService
     {
-        private readonly IExceptionService<ServiceResult<PropertyCardVM>> _exceptionService = new ExceptionService<ServiceResult<PropertyCardVM>>();
+        private readonly IExceptionService<PropertyCardVM> _exceptionService = new ExceptionService<PropertyCardVM>();
         private readonly IExceptionService<PropertyCardVM> _vmExceptionService = new ExceptionService<PropertyCardVM>();
-        private readonly IValidationService<PropertyCardVM> _validationService;
+        private readonly IPropertyCardValidator _validator;
         
         public PropertyCardService(AppManEntities db) : base(db)
         {
-            _validationService = new ValidationService<PropertyCardVM>(new PropertyCardValidator(db));
+            _validator = new PropertyCardValidator(db);
         }
 
         public new IQueryable<PropertyCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
@@ -91,15 +91,17 @@ namespace iLgs.Services
             return data;
         });
 
-        public ValueTask<ServiceResult<PropertyCardVM>> CreateAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PropertyCardVM> CreateAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            var result = await _validationService.ValidateAsync(model, "Create");
-            if (!result.IsSuccess)
-            {
-                return ServiceResult<PropertyCardVM>.Failure(result.Errors);
-            }
+            //var result = await _validator.ValidateAsync(model, "Create");
+            //if (!result.IsSuccess)
+            //{
+            //    return ServiceResult<PropertyCardVM>.Failure(result.Errors);
+            //}
 
-            _allFieldService.ValidatePropertyCardAllField(model);
+            //_allFieldService.ValidatePropertyCardAllField(model);
+
+            _validator.ValidateOnCreate(model);
 
             model.Description = "Please see attachment.";
             model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
@@ -142,20 +144,22 @@ namespace iLgs.Services
             _db.PsCards.Add(entity);
             await _db.SaveChangesAsync();
 
-            return ServiceResult<PropertyCardVM>.Success(model);
+            return model;
         });
 
-        public ValueTask<ServiceResult<PropertyCardVM>> UpdateAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            var result = await _validationService.ValidateAsync(model, "Update");
-            if (!result.IsSuccess)
-            {
-                return ServiceResult<PropertyCardVM>.Failure(result.Errors);
-            }
+            //var result = await _validator.ValidateAsync(model, "Update");
+            //if (!result.IsSuccess)
+            //{
+            //    return ServiceResult<PropertyCardVM>.Failure(result.Errors);
+            //}
+
+            _validator.ValidateOnUpdate(model);
 
             var entity = await _db.PsCards.FindAsync(model.Id);
 
-            await _allFieldService.ValidatePsCardAllField(model);
+            //await _allFieldService.ValidatePsCardAllField(model);
 
             model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
             model.UpdatedBy = user;
@@ -186,11 +190,13 @@ namespace iLgs.Services
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            return ServiceResult<PropertyCardVM>.Success(model);
+            return model;
         });
 
-        public ValueTask<ServiceResult<PropertyCardVM>> DeleteAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PropertyCardVM> DeleteAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
+            _validator.ValidateOnDelete(model);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -207,7 +213,7 @@ namespace iLgs.Services
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
 
-            return ServiceResult<PropertyCardVM>.Success(model);
+            return model;
         });
     }
 }

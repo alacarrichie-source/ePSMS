@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -9,7 +10,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using static iLgs.Models.CategoryEnum;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services
 {
@@ -25,7 +26,7 @@ namespace iLgs.Services
 
         ValueTask<RisItemEntryVM> CreateAsync(RisItemEntryVM model, string user, DateTime date);
         ValueTask<RisItemEntryVM> UpdateAsync(RisItemEntryVM model, string user, DateTime date);
-        ValueTask<RisItemEntryVM> DeleteAsync(RisItemEntryVM model, string user, DateTime date);
+        ValueTask<RisItemEntryVM> DeleteAsync(RisItemEntryVM model, string user, DateTime date);        
     }
 
     public class RisItemService : IRisItemService
@@ -36,13 +37,15 @@ namespace iLgs.Services
         private readonly IExceptionService<RisItemEntryVM> _entryVmExceptionService = new ExceptionService<RisItemEntryVM>();
         private readonly IExceptionService<RisItem> _exceptionService = new ExceptionService<RisItem>();
         private IAllFieldService _allFieldService;
-
+        private IRisItemValidator _validator;
+        
         public RisItemService(AppManEntities db)
         {
             _db = db;
             _allFieldService = new AllFieldService(_db);
+            _validator = new RisItemValidator(_db);
         }
-
+        
         public ValueTask<RisItemEntryVM> GetVmByIdAsync(Guid? id) =>
         _entryVmExceptionService.TryCatch(async () =>
         {
@@ -70,24 +73,7 @@ namespace iLgs.Services
                     Remarks = s.Remarks,
                     InsertedDt = s.InsertedDt,
                     Department = s.RISs.Office,
-                    IsPosted = s.RISs.PostedDt != null,
-                    //FieldsAccountableForm = s.FieldsAccountableForm,
-                    //FieldsAgricultural = s.FieldsAgricultural,
-                    //FieldsAnimal = s.FieldsAnimal,
-                    //FieldsFurniture = s.FieldsFurniture,
-                    //FieldsLand = s.FieldsLand,
-                    //FieldsMachinery = s.FieldsMachinery,
-                    //FieldsMedical = s.FieldsMedical,
-                    //FieldsMedicine = s.FieldsMedicine,
-                    //FieldsMilitarySuuply = s.FieldsMilitarySuuply,
-                    //FieldsNonAccountableForm = s.FieldsNonAccountableForm,
-                    //FieldsOfficeSupply = s.FieldsOfficeSupply,
-                    //FieldsOther = s.FieldsOther,
-                    //FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
-                    //FieldsRepair = s.FieldsRepair,
-                    //FieldsTransportation = s.FieldsTransportation,
-                    //FieldsVehicle = s.FieldsVehicle,
-                    //FieldsConstruction = s.FieldsConstruction,
+                    IsPosted = s.RISs.PostedDt != null,                    
                     AllField = s.AllField,
                 }).FirstOrDefaultAsync();
             return data;
@@ -120,24 +106,7 @@ namespace iLgs.Services
                     Remarks = s.Remarks,
                     InsertedDt = s.InsertedDt,
                     Department = s.RISs.Office,
-                    IsPosted = s.RISs.PostedDt != null,
-                    //FieldsAccountableForm = s.FieldsAccountableForm,
-                    //FieldsAgricultural = s.FieldsAgricultural,
-                    //FieldsAnimal = s.FieldsAnimal,
-                    //FieldsFurniture = s.FieldsFurniture,
-                    //FieldsLand = s.FieldsLand,
-                    //FieldsMachinery = s.FieldsMachinery,
-                    //FieldsMedical = s.FieldsMedical,
-                    //FieldsMedicine = s.FieldsMedicine,
-                    //FieldsMilitarySuuply = s.FieldsMilitarySuuply,
-                    //FieldsNonAccountableForm = s.FieldsNonAccountableForm,
-                    //FieldsOfficeSupply = s.FieldsOfficeSupply,
-                    //FieldsOther = s.FieldsOther,
-                    //FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
-                    //FieldsRepair = s.FieldsRepair,
-                    //FieldsTransportation = s.FieldsTransportation,
-                    //FieldsVehicle = s.FieldsVehicle,
-                    //FieldsConstruction = s.FieldsConstruction,
+                    IsPosted = s.RISs.PostedDt != null,                    
                     AllField = s.AllField
                 }).FirstOrDefaultAsync();
             return data;
@@ -177,24 +146,7 @@ namespace iLgs.Services
                     Remarks = s.Remarks,
                     InsertedDt = s.InsertedDt,
                     Department = s.RISs.Office,
-                    IsPosted = s.RISs.PostedDt != null,
-                    //FieldsAccountableForm = s.FieldsAccountableForm,
-                    //FieldsAgricultural = s.FieldsAgricultural,
-                    //FieldsAnimal = s.FieldsAnimal,
-                    //FieldsFurniture = s.FieldsFurniture,
-                    //FieldsLand = s.FieldsLand,
-                    //FieldsMachinery = s.FieldsMachinery,
-                    //FieldsMedical = s.FieldsMedical,
-                    //FieldsMedicine = s.FieldsMedicine,
-                    //FieldsMilitarySuuply = s.FieldsMilitarySuuply,
-                    //FieldsNonAccountableForm = s.FieldsNonAccountableForm,
-                    //FieldsOfficeSupply = s.FieldsOfficeSupply,
-                    //FieldsOther = s.FieldsOther,
-                    //FieldsOtherSupplyMaterial = s.FieldsOtherSupplyMaterial,
-                    //FieldsRepair = s.FieldsRepair,
-                    //FieldsTransportation = s.FieldsTransportation,
-                    //FieldsVehicle = s.FieldsVehicle,
-                    //FieldsConstruction = s.FieldsConstruction,
+                    IsPosted = s.RISs.PostedDt != null,                    
                     AllField = s.AllField
                 });
             return data;
@@ -211,7 +163,7 @@ namespace iLgs.Services
         public ValueTask<RisItemEntryVM> CreateAsync(RisItemEntryVM model, string user, DateTime date) =>
         _entryVmExceptionService.TryCatch(async () =>
         {
-            ValidateFields(model);
+            _validator.ValidateOnCreate(model);            
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -260,28 +212,13 @@ namespace iLgs.Services
         public ValueTask<RisItemEntryVM> DeleteAsync(RisItemEntryVM model, string user, DateTime date) =>
         _entryVmExceptionService.TryCatch(async () =>
         {
+            _validator.ValidateOnDelete(model);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;            
 
             var entity = await _db.RisItems
                 .Include(i => i.AllField)
-                //.Include(i => i.FieldsAccountableForm)
-                //.Include(i => i.FieldsAgricultural)
-                //.Include(i => i.FieldsAnimal)
-                //.Include(i => i.FieldsFurniture)
-                //.Include(i => i.FieldsLand)
-                //.Include(i => i.FieldsMachinery)
-                //.Include(i => i.FieldsMedical)
-                //.Include(i => i.FieldsMedicine)
-                //.Include(i => i.FieldsMilitarySuuply)
-                //.Include(i => i.FieldsNonAccountableForm)
-                //.Include(i => i.FieldsOfficeSupply)
-                //.Include(i => i.FieldsOther)
-                //.Include(i => i.FieldsOtherSupplyMaterial)
-                //.Include(i => i.FieldsRepair)
-                //.Include(i => i.FieldsTransportation)
-                //.Include(i => i.FieldsVehicle)
-                //.Include(i => i.FieldsConstruction)
                 .Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
             entity.UpdatedBy = model.UpdatedBy;
@@ -301,30 +238,13 @@ namespace iLgs.Services
         public ValueTask<RisItemEntryVM> UpdateAsync(RisItemEntryVM model, string user, DateTime date) =>
         _entryVmExceptionService.TryCatch(async () =>
         {
-            ValidateFields(model);
+            _validator.ValidateOnUpdate(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             var entity = await _db.RisItems
                 .Include(i => i.AllField)
-                //.Include(i => i.FieldsAccountableForm)
-                //.Include(i => i.FieldsAgricultural)
-                //.Include(i => i.FieldsAnimal)
-                //.Include(i => i.FieldsFurniture)
-                //.Include(i => i.FieldsLand)
-                //.Include(i => i.FieldsMachinery)
-                //.Include(i => i.FieldsMedical)
-                //.Include(i => i.FieldsMedicine)
-                //.Include(i => i.FieldsMilitarySuuply)
-                //.Include(i => i.FieldsNonAccountableForm)
-                //.Include(i => i.FieldsOfficeSupply)
-                //.Include(i => i.FieldsOther)
-                //.Include(i => i.FieldsOtherSupplyMaterial)
-                //.Include(i => i.FieldsRepair)
-                //.Include(i => i.FieldsTransportation)
-                //.Include(i => i.FieldsVehicle)
-                //.Include(i => i.FieldsConstruction)
                 .Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
             model.PsNo = PsNo(model);

@@ -28,7 +28,7 @@
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select Item")
-                        .DataTextField("Description")
+                        .DataTextField("Article")
                         .DataValueField("Id")
                         .ValuePrimitive(true)
                         .Filter(FilterType.Contains)
@@ -96,7 +96,7 @@
         </div>
 
         <br />
-        <div class="row">
+        @*<div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.OtherDesc, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
@@ -104,7 +104,7 @@
                     @Html.ValidationMessageFor(m => m.OtherDesc)
                 </div>
             </div>
-        </div>
+        </div>*@
 
         <div class="row">
             <div class="col-md-12">
@@ -217,7 +217,37 @@
                         $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
                     }
                     else {
-                        alert(result.Errors);
+                        //// Clear previous error messages
+                        $('#ErrorContent .errors').empty();
+
+                        result.Errors.forEach(function (error) {
+                            var key = error.Key;
+                            var messages = error.Message; // Use Message from the JSON
+
+                            // Check if messages exists and is an array
+                            if (Array.isArray(messages)) {
+                                // Create the field name list item
+                                var errorListItem = $('<li></li>').text(key);
+
+                                // Create a nested unordered list for the messages
+                                var messageList = $('<ul></ul>');
+
+                                // Loop through each message and append it to the messageList
+                                messages.forEach(function (message) {
+                                    messageList.append($('<li></li>').text(message));
+                                });
+
+                                // Append the message list to the error list item
+                                errorListItem.append(messageList);
+
+                                // Append the error list item to the .errors container
+                                $('#ErrorContent .errors').append(errorListItem);
+                            } else {
+                                console.error(`Expected messages to be an array for field ${key}`);
+                            }
+                        });
+                        // Show the error content
+                        $('#ErrorContent').removeClass('hidden');
                     }
                 },
                 error: function (req, status, errorObj) {

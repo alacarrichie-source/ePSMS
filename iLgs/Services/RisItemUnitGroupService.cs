@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -16,36 +17,36 @@ namespace iLgs.Services
         ValueTask<RisItemUnitGroup> GetByIdAsync(Guid? id);
         ValueTask<RisItemUnitGroupVM> CreateAsync(RisItemUnitGroupVM model, string user, DateTime date);
         ValueTask<RisItemUnitGroupVM> UpdateAsync(RisItemUnitGroupVM model, string user, DateTime date);
-        ValueTask<RisItemUnitGroupVM> DeleteAsync(RisItemUnitGroupVM model, string user, DateTime date);
+        ValueTask<RisItemUnitGroupVM> DeleteAsync(RisItemUnitGroupVM model, string user, DateTime date);        
     }
 
     public class RisItemUnitGroupService : IRisItemUnitGroupService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RisItemUnitGroupVM> _vmExceptionService = new ExceptionService<RisItemUnitGroupVM>();
         private readonly IExceptionService<RisItemUnitGroup> _exceptionService = new ExceptionService<RisItemUnitGroup>();
-        private readonly IRisService _risService;
-        private readonly IRequestService _requestService;
+        //private readonly IRequestService _requestService;
+        private readonly IRisItemUnitGroupValidator _validator;
 
         public RisItemUnitGroupService(AppManEntities db)
         {
-            this.db = db;
-            _risService = new RisService(db);
-            _requestService = new RequestService(db);
-        }
-        
+            _db = db;
+            //_requestService = new RequestService(db);
+            _validator = new RisItemUnitGroupValidator(db);
+        }        
+
         public ValueTask<RisItemUnitGroup> GetByIdAsync(Guid? id) =>
         _exceptionService.TryCatch(async () =>
         {
-            var data = await db.RisItemUnitGroups.FindAsync(id);
+            var data = await _db.RisItemUnitGroups.FindAsync(id);
             return data;
         });
 
         public IQueryable<RisItemUnitGroupVM> GetByRisId(Guid? risId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = db.RisItemUnitGroups.Where(w => w.RisId == risId)
+            var data = _db.RisItemUnitGroups.Where(w => w.RisId == risId)
                 .Select(s => new RisItemUnitGroupVM
                 {
                     Id = s.Id,
@@ -60,11 +61,7 @@ namespace iLgs.Services
         public ValueTask<RisItemUnitGroupVM> CreateAsync(RisItemUnitGroupVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            if (await _risService.IsPostedAsync((Guid)model.RisId))
-            {
-                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }
-
+            _validator.ValidateOnCreate(model);            
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
@@ -83,8 +80,8 @@ namespace iLgs.Services
                 UpdatedDt = model.UpdatedDt
             };
 
-            db.RisItemUnitGroups.Add(entity);
-            await db.SaveChangesAsync();
+            _db.RisItemUnitGroups.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -92,31 +89,23 @@ namespace iLgs.Services
         public ValueTask<RisItemUnitGroupVM> DeleteAsync(RisItemUnitGroupVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            RisItemUnitGroup entity = await db.RisItemUnitGroups.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+            _validator.ValidateOnCreate(model);
 
-            if (entity == null)
-            {
-                throw new RecordNotFoundException(model.Id);
-            }
-            
-            if (await _risService.IsPostedAsync((Guid)model.RisId))
-            {
-                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }
-            
+            RisItemUnitGroup entity = await _db.RisItemUnitGroups.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;            
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.RisItemUnitGroups.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.RisItemUnitGroups.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.RisItemUnitGroups.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.RisItemUnitGroups.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -124,17 +113,8 @@ namespace iLgs.Services
         public ValueTask<RisItemUnitGroupVM> UpdateAsync(RisItemUnitGroupVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            RisItemUnitGroup entity = await db.RisItemUnitGroups.FindAsync(model.Id);
-            if (entity == null)
-            {
-                throw new RecordNotFoundException(model.Id);
-            }
-
-            if (await _risService.IsPostedAsync((Guid)model.RisId))
-            {
-                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }
-
+            RisItemUnitGroup entity = await _db.RisItemUnitGroups.FindAsync(model.Id);
+            
             model.UpdatedBy = user;
             model.UpdatedDt = date;            
 
@@ -144,9 +124,9 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.RisItemUnitGroups.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.RisItemUnitGroups.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
             return model;
         });        
     }

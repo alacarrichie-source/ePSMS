@@ -9,6 +9,20 @@ using System.Data.Entity;
 
 namespace iLgs.Services
 {
+    public interface ICodextnService
+    {
+        IQueryable<CodextnVM> GetByMastCode(string mastCode);
+        IQueryable<CodextnVM> GetByMastId(Guid mastId);
+        bool IsValidMastCodeId(string mastCode, Guid? id);
+        bool IsValidMastCodeCode(string mastCode, string code);
+        bool IsValidCodeDesc(string mainCode, string description);
+        ValueTask<bool> IsValidMastCodeIdAsync(string mastCode, Guid? id);
+        ValueTask<bool> IsValidCodeDescAsync(string mainCode, string description);
+        Task<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date);
+        Task<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date);
+        Task<CodextnVM> DeleteAsync(CodextnVM model, string user, DateTime date);
+    }
+
     public class CodextnService : ICodextnService
     {
         private readonly AppManEntities db = new AppManEntities();
@@ -19,7 +33,7 @@ namespace iLgs.Services
                 
         public IQueryable<CodextnVM> GetByMastCode(string mastCode)
         {            
-            var data = db.Codextns.Where(w => w.CodeMast.Code == mastCode)
+            var data = db.Codextns.Where(w => w.CodeMast.Code == mastCode).AsNoTracking()
                 .Select(s => new CodextnVM
                 {
                     Id = s.Id,
@@ -67,9 +81,29 @@ namespace iLgs.Services
             return data;
         }
 
+        public bool IsValidCodeDesc(string mainCode, string description)
+        {
+            return db.Codextns.Any(a => a.CodeMast.Code == mainCode && a.Description == description);
+        }
+
         public async ValueTask<bool> IsValidCodeDescAsync(string mainCode, string description)
         {
             return await db.Codextns.AnyAsync(a => a.CodeMast.Code == mainCode && a.Description == description);
+        }
+
+        public bool IsValidMastCodeCode(string mastCode, string code)
+        {
+            return db.Codextns.Any(a => a.CodeMast.Code == mastCode && a.Code == code);
+        }
+
+        public bool IsValidMastCodeId(string mastCode, Guid? id)
+        {
+            return db.Codextns.Any(a => a.CodeMast.Code == mastCode && a.Id == id);
+        }
+
+        public async ValueTask<bool> IsValidMastCodeIdAsync(string mastCode, Guid? id)
+        {
+            return await db.Codextns.AnyAsync(a => a.CodeMast.Code == mastCode && a.Id == id);
         }
 
         public async Task<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date)
