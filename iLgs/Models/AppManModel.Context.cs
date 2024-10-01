@@ -95,5 +95,8 @@ namespace iLgs.Models
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
+        public virtual DbSet<CardItemExtn> CardItemExtns { get; set; }
+        public virtual DbSet<CustodianReport> CustodianReports { get; set; }
+        public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
     }
 }

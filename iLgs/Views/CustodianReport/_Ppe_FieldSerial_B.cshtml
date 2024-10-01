@@ -1,0 +1,59 @@
+﻿@model iLgs.Models.CustodianReportItemPpeVM
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.SerialNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.SerialNo)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.PropNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.PropNo)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.PlateNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.PlateNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.PlateNo)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.BodyNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.BodyNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.BodyNo)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.MVFileNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.MVFileNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.MVFileNo)
+        </div>
+    </div>
+</div>
+
+

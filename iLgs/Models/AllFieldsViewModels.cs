@@ -32,7 +32,7 @@ namespace iLgs.Models
             [Display(Name = "Dosage Form")]
             public string DosageForm { get; set; }
 
-            [Display(Name = "Doage Volumne")]
+            [Display(Name = "Doage Volume")]
             public string DosageVolume { get; set; }
 
             public string Others { get; set; }

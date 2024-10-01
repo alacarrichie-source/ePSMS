@@ -1,0 +1,129 @@
+﻿@model iLgs.Models.CustodianReport
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.AccountGroup)
+    @Html.HiddenFor(model => model.DeptId)
+    @Html.HiddenFor(model => model.Department)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.AsOf, htmlAttributes: new { @class = "col-md-3" })
+                <div class="col-md-9">
+                    @(Html.Kendo().DatePickerFor(m => m.AsOf)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    )
+                    @Html.ValidationMessageFor(m => m.AsOf)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.Fund, htmlAttributes: new { @class = "col-md-3" })
+                <div class="col-md-9">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Fund")
+                            .DataTextField("Description")
+                            .DataValueField("Code")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "FUND", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.Fund)
+                </div>
+            </div>
+        </div>
+        <br />
+        
+        @*<div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(model => model.DeptId, htmlAttributes: new { @class = "col-md-3" })
+                <div class="col-md-9">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Department")
+                            .DataTextField("Description")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetUserDepartmentsAsync", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Events(e => e.Select("onSelectDeptId"))
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.DeptId)
+                </div>
+            </div>
+        </div>*@
+
+        <div id="EditDiv" class="hidden">
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.CertifiedCorrectBy, htmlAttributes: new { @class = "col-md-3" })
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(m => m.CertifiedCorrectBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.CertifiedCorrectBy)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.ApprovedBy, htmlAttributes: new { @class = "col-md-3" })
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(m => m.ApprovedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.ApprovedBy)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.VerifiedBy, htmlAttributes: new { @class = "col-md-3" })
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(m => m.VerifiedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.VerifiedBy)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </fieldset>
+}
+

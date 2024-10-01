@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.AllFields;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,7 @@ namespace iLgs.Services.Validators
         public void ValidateFieldsOnCreateUpdate(RisItemEntryVM model)
         {
             var ex = new InvalidModelException();
-            _allFieldsValidator.ValidateAllFields(model.AllField, model.PsType, model.ItemNo, ex);
+            _allFieldsValidator.ValidateAllFields(model.AllField, model.PsType, model.ItemCode, ex);
             if (!model.QtyRequest.HasValue || model.QtyRequest == 0)
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.QtyRequest)), "Field is required.");

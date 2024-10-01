@@ -58,11 +58,12 @@
 <nav id="main-nav">
     @if (Request.IsAuthenticated)
     {                
-        @*@RenderMenuItems((IEnumerable<TreeViewItemModel>)Session["MainMenuTree"]);*@
         @RenderMenuItems(menuTree);
-    }
-    @*<div class="footer-label">Copyright &copy; City Government of Las Pinas.</div>*@
+    }    
 </nav>
+@*<footer>
+    <p>Copyright &copy; City Government of Las Pinas.</p>
+</footer>*@    
 
 @helper   RenderMenuItems(IEnumerable<TreeViewItemModel> items)
 {
@@ -77,7 +78,6 @@ if (items != null)
                     {
                         // Recursively call the helper function for sub-items
                         @RenderSubMenuItems(item.Items);
-
                     }
                     else
                     {
@@ -116,6 +116,13 @@ if (subItems != null)
 }
 
 <style>
+    .offcanvas-nav footer {
+        padding: 1em;
+        background-color: #f8f8f8; 
+        border-top: 1px solid #ccc; 
+        text-align: center; 
+    }
+
     #name {
         font-weight: bold;
         font-size: 14px;

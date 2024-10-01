@@ -1,5 +1,7 @@
 ﻿using FluentValidation;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
@@ -8,19 +10,19 @@ using System.Reflection;
 using System.Web;
 using static iLgs.Models.Enums;
 
-namespace iLgs.Services.Validators
+namespace iLgs.Services.AllFields
 {
     public interface IAllFieldsValidator
     {
         void ValidateAllFields(AllField af, string category, string itemNo, InvalidModelException ex);
+        void ValidateAllFields(AllField af, string category, string itemNo, InvalidModelException ex, Enums.Module? module);
     }
 
     public class AllFieldsValidator : BaseValidator, IAllFieldsValidator
     {
-        private delegate string GetDisplayNameDelegate(string propertyName);
-        private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly GetDisplayNameDelegate _getAllFieldDisplayName;
         private readonly AppManEntities _db;
+        private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly GetDisplayNameDelegate _getAllFieldDisplayName;        
 
         public AllFieldsValidator(AppManEntities db)
         {
@@ -58,7 +60,12 @@ namespace iLgs.Services.Validators
 
         public void ValidateAllFields(AllField af, string category, string itemNo, InvalidModelException ex)
         {
-            var group = Utility.GetCategoryGroup(category, itemNo);
+            ValidateAllFields(af, category, itemNo, ex, null);
+        }
+
+        public void ValidateAllFields(AllField af, string category, string itemNo, InvalidModelException ex, Enums.Module? module)
+        {
+            var group = AllFieldsUtil.GetCategoryGroup(category, itemNo);
             if (group == CategoryGroup.DRUGS)
             {
                 if (string.IsNullOrWhiteSpace(af.GenericName))
@@ -66,7 +73,7 @@ namespace iLgs.Services.Validators
                     ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.GenericName)), "Field is required.");
                 }
 
-                if (itemNo.Length >= 4 && itemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
+                if (itemNo.Contains("-5.1.")) // Alcoh1ol
                 {
                     if (string.IsNullOrWhiteSpace(af.DosageVolume))
                     {
@@ -83,43 +90,57 @@ namespace iLgs.Services.Validators
                     {
                         ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.DosageForm)), "Field is required.");
                     }
-                    if (af.Multipliers == null)
-                    {
-                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Multipliers)), "Field is required.");
-                    }
                 }
 
-                if (string.IsNullOrWhiteSpace(af.Brand))
+                if (af.Multipliers == null)
                 {
-                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Multipliers)), "Field is required.");
                 }
+
+                if (module == Enums.Module.CARD)
+                {
+                    if (string.IsNullOrWhiteSpace(af.Brand))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                    }
+                }
+            }
+            else if (group == CategoryGroup.SERIAL_A)
+            {
+                List<string> f = new List<string>();
+                f = new List<string>
+                    {
+                        "PropNo", "SerialNo"
+                    };
+                ValidateFields(af, f, ex);
+            }
+            else if (group == CategoryGroup.SERIAL_B)
+            {
+                List<string> f = new List<string>();
+                f = new List<string>
+                    {
+                        "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"
+                    };
+                ValidateFields(af, f, ex);
+            }
+            else if (group == CategoryGroup.SERIAL_C)
+            {
+                List<string> f = new List<string>();
+                f = new List<string>
+                    {
+                        "Color", "Capacity", "Materials", "Weight", "Size", "Dimension", "Model_", "Brand", "PropNo", "SerialNo"
+                    };
+                ValidateFields(af, f, ex);
             }
             else if (group == CategoryGroup.SERIAL)
             {
                 List<string> f = new List<string>();
-                if (itemNo.Length >= 3 && itemNo.Substring(0, 3).Any(a => a.Equals("1.1") || a.Equals("2.1") || a.Equals("3.1") || a.Equals("4.1")
-                    || a.Equals("7.1") || a.Equals("8.1") || a.Equals("9.1")))
-                {
-                    f = new List<string>
-                        {
-                            "PropNo", "SerialNo"
-                        };
-                }
-                else if (itemNo.Length >= 4 && itemNo.Substring(0, 4).Any(a => a.Equals("5.1") || a.Equals("6.1.") || a.Equals("9.1.")))
-                {
-                    f = new List<string>
-                        {
-                            "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"
-                        };
-                }
-                else
-                {
-                    f = new List<string>
-                        {
-                            "Color", "Capacity", "Materials", "Weight", "Size", "Dimension", "Model_", "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"
-                        };
-                }
+                f = new List<string>
+                    {
+                        "Color", "Capacity", "Materials", "Weight", "Size", "Dimension", "Model_", "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"
+                    };
                 ValidateFields(af, f, ex);
+
             }
             else if (group == CategoryGroup.OTHERS)
             {
@@ -135,13 +156,13 @@ namespace iLgs.Services.Validators
                     }
                     else
                     {
-                        if (af.Brand.IsNullOrWhiteSpaceX() || af.Model_.IsNullOrWhiteSpaceX())
+                        if (string.IsNullOrWhiteSpace(af.Dimension))
                         {
-                            if (string.IsNullOrWhiteSpace(af.Dimension))
-                            {
-                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Dimension)), "Field is required.");
-                            }
-                            else
+                            ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Dimension)), "Field is required.");
+                        }
+                        else
+                        {
+                            if (af.Dimension.IsNullOrWhiteSpaceX())
                             {
                                 if (string.IsNullOrWhiteSpace(af.Size))
                                 {
@@ -149,34 +170,46 @@ namespace iLgs.Services.Validators
                                 }
                                 else
                                 {
-                                    if (string.IsNullOrWhiteSpace(af.Weight))
+                                    if (af.Size.IsNullOrWhiteSpaceX())
                                     {
-                                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Weight)), "Field is required.");
-                                    }
-                                    else
-                                    {
-                                        if (string.IsNullOrWhiteSpace(af.Materials))
+                                        if (string.IsNullOrWhiteSpace(af.Weight))
                                         {
-                                            ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Materials)), "Field is required.");
+                                            ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Weight)), "Field is required.");
                                         }
                                         else
                                         {
-                                            if (string.IsNullOrWhiteSpace(af.Capacity))
+                                            if (af.Weight.IsNullOrWhiteSpaceX())
                                             {
-                                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Capacity)), "Field is required.");
-                                            }
-                                            else
-                                            {
-                                                if (af.Color.IsNullOrWhiteSpaceX())
+                                                if (string.IsNullOrWhiteSpace(af.Materials))
                                                 {
-                                                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Color)), "Field is required.");
+                                                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Materials)), "Field is required.");
+                                                }
+                                                else
+                                                {
+                                                    if (af.Materials.IsNullOrWhiteSpaceX())
+                                                    {
+                                                        if (string.IsNullOrWhiteSpace(af.Capacity))
+                                                        {
+                                                            ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Capacity)), "Field is required.");
+                                                        }
+                                                        else
+                                                        {
+                                                            if (af.Capacity.IsNullOrWhiteSpaceX())
+                                                            {
+                                                                if (af.Color.IsNullOrWhiteSpaceX())
+                                                                {
+                                                                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Color)), "Field is required.");
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
+                        }                        
                     }
                 }
             }

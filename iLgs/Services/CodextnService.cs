@@ -6,6 +6,7 @@ using System.Web;
 using iLgs.Models;
 using System.Threading.Tasks;
 using System.Data.Entity;
+using iLgs.Controllers;
 
 namespace iLgs.Services
 {
@@ -16,6 +17,7 @@ namespace iLgs.Services
         bool IsValidMastCodeId(string mastCode, Guid? id);
         bool IsValidMastCodeCode(string mastCode, string code);
         bool IsValidCodeDesc(string mainCode, string description);
+        ValueTask<IQueryable<Codextn>> GetUserDepartmentsAsync(string userId);
         ValueTask<bool> IsValidMastCodeIdAsync(string mastCode, Guid? id);
         ValueTask<bool> IsValidCodeDescAsync(string mainCode, string description);
         Task<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date);
@@ -25,15 +27,26 @@ namespace iLgs.Services
 
     public class CodextnService : ICodextnService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db = new AppManEntities();
+        private readonly IUserService _userService;
+
         public CodextnService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;
+            _userService = new UserService(db);
+        }
+
+        public async ValueTask<IQueryable<Codextn>> GetUserDepartmentsAsync(string userId)
+        {
+            var IsAdmin = await _userService.IsAdmin(userId);
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS"
+                && (IsAdmin || w.DepartmentUsers.Any(a => a.UserId == userId)));
+            return data;
         }
                 
         public IQueryable<CodextnVM> GetByMastCode(string mastCode)
         {            
-            var data = db.Codextns.Where(w => w.CodeMast.Code == mastCode).AsNoTracking()
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == mastCode).AsNoTracking()
                 .Select(s => new CodextnVM
                 {
                     Id = s.Id,
@@ -58,7 +71,7 @@ namespace iLgs.Services
 
         public IQueryable<CodextnVM> GetByMastId(Guid mastId)
         {            
-            var data = db.Codextns.Where(w => w.MastId == mastId)
+            var data = _db.Codextns.Where(w => w.MastId == mastId)
                 .Select(s => new CodextnVM
                 {
                     Id = s.Id,
@@ -83,27 +96,27 @@ namespace iLgs.Services
 
         public bool IsValidCodeDesc(string mainCode, string description)
         {
-            return db.Codextns.Any(a => a.CodeMast.Code == mainCode && a.Description == description);
+            return _db.Codextns.Any(a => a.CodeMast.Code == mainCode && a.Description == description);
         }
 
         public async ValueTask<bool> IsValidCodeDescAsync(string mainCode, string description)
         {
-            return await db.Codextns.AnyAsync(a => a.CodeMast.Code == mainCode && a.Description == description);
+            return await _db.Codextns.AnyAsync(a => a.CodeMast.Code == mainCode && a.Description == description);
         }
 
         public bool IsValidMastCodeCode(string mastCode, string code)
         {
-            return db.Codextns.Any(a => a.CodeMast.Code == mastCode && a.Code == code);
+            return _db.Codextns.Any(a => a.CodeMast.Code == mastCode && a.Code == code);
         }
 
         public bool IsValidMastCodeId(string mastCode, Guid? id)
         {
-            return db.Codextns.Any(a => a.CodeMast.Code == mastCode && a.Id == id);
+            return _db.Codextns.Any(a => a.CodeMast.Code == mastCode && a.Id == id);
         }
 
         public async ValueTask<bool> IsValidMastCodeIdAsync(string mastCode, Guid? id)
         {
-            return await db.Codextns.AnyAsync(a => a.CodeMast.Code == mastCode && a.Id == id);
+            return await _db.Codextns.AnyAsync(a => a.CodeMast.Code == mastCode && a.Id == id);
         }
 
         public async Task<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date)
@@ -132,14 +145,14 @@ namespace iLgs.Services
                 UpdatedDt = model.UpdatedDt
             };
 
-            db.Codextns.Add(entity);
-            await db.SaveChangesAsync();
+            _db.Codextns.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }
         public async Task<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date)
         {
-            var entity = db.Codextns.Find(model.Id);
+            var entity = _db.Codextns.Find(model.Id);
 
             if (entity != null)
             {
@@ -157,9 +170,9 @@ namespace iLgs.Services
                 entity.UpdatedBy = model.UpdatedBy;
                 entity.UpdatedDt = model.UpdatedDt;
 
-                db.Codextns.Attach(entity);
-                db.Entry(entity).State = EntityState.Modified;
-                await db.SaveChangesAsync();
+                _db.Codextns.Attach(entity);
+                _db.Entry(entity).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
             }
             return model;
         }
@@ -169,18 +182,18 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            Codextn entity = await db.Codextns.FindAsync(model.Id);
+            Codextn entity = await _db.Codextns.FindAsync(model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.Codextns.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.Codextns.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.Codextns.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.Codextns.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -188,7 +201,7 @@ namespace iLgs.Services
         private string NextCode(Guid mastId)
         {
             //var data = db.Codextns.Where(w => w.MastId == mastId && IsNumeric(w.Code)).OrderByDescending(o => o.Code).FirstOrDefault();
-            var data = db.Database.SqlQuery<Codextn>("Select Top 1 * From Codextn Where MastId = {0} Order by Code Desc", mastId).FirstOrDefault();
+            var data = _db.Database.SqlQuery<Codextn>("Select Top 1 * From Codextn Where MastId = {0} Order by Code Desc", mastId).FirstOrDefault();
             if (data == null)
             {
                 return "0001";

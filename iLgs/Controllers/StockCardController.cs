@@ -5,6 +5,7 @@ using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Interfaces;
+using iLgs.Services.StockCards;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -672,7 +673,7 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
-            string partialView = _stockCardService.AllField.GetPartialField(model.ItemTypeCode, model.ItemCode);
+            string partialView = AllFieldsUtil.GetPartialField(model.ItemTypeCode, model.ItemCode);
             
             return PartialView(partialView, model);
         }
@@ -687,7 +688,7 @@ namespace iLgs.Controllers
                 model = _stockCardService.PsCardItem.TransferItemField(data, model);
 
             }
-            string partialView = _stockCardService.AllField.GetPartialItemField(psCard.ItemTypeCode, psCard.ItemCode);
+            string partialView = AllFieldsUtil.GetPartialItemField(psCard.ItemTypeCode, psCard.ItemCode);
             
             return PartialView(partialView, model);
         }

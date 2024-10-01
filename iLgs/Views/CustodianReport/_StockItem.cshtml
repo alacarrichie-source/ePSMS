@@ -1,0 +1,202 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.CustodianReportItemStockVM>()
+        .Name("gridItems_" + @ViewData["reportId"])
+        .Columns(col =>
+        {
+            col.Bound(c => c.Article).Width(70);
+            col.Bound(c => c.PoNo).Width(50);
+            col.Bound(c => c.PoDate).Width(50);
+            col.Bound(c => c.Unit).Width(50);
+            col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.Qty).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.LocationCode).Width(50);
+            col.Bound(c => c.Location).Width(70);
+            col.Bound(c => c.TransferIn).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.QtyBalance).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            //col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            //    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            //    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.PsNo).Width(70);
+            col.Bound(c => c.Description).Width(150);
+            col.Bound(c => c.GenericName).Hidden(true);
+            col.Command(command =>
+            {
+                command.Edit();
+                //command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
+                //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridItemDeleteClick").SendDataKeys(true);
+                command.Destroy();
+            }).Width(172);
+        })
+        .ToolBar(t =>
+        {
+            t.Create().Text("Add New Record");
+            //t.Excel();
+            //t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnAddNew_" + @ViewData["reportId"]).HtmlAttributes(new { @class = "k-grid-add-custom" });
+        })
+        //.Excel(excel => excel
+        //    .FileName("CustodianStocks.xlsx")
+        //    //.Filterable(true)            
+        //    .ProxyURL(Url.Action("Excel_Export_Save", "CustodianReport"))
+        //)
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_StockItemTemplate").Window(w => w.Width(1000).Title("Stock Items")))
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                //model.Field(p => p.AccountGroup).DefaultValue((int?)@ViewBag.AccountGroup).Editable(true);
+            })
+            .ServerOperation(true)
+            .Aggregates(a =>
+            {
+                a.Add(p => p.Qty).Sum();
+                a.Add(p => p.TransferIn).Sum();
+                a.Add(p => p.QtyBalance).Sum();
+                //a.Add(p => p.TotalCost).Sum();
+            })
+            .Sort(s =>
+            {
+                s.Add(a => a.InsertedDt);
+            })
+            .Read(read => read.Action("_StockItemRead", "CustodianReport", new { reportId = @ViewData["reportId"] }))
+            .Create(create => create.Action("_StockItemCreate", "CustodianReport"))
+            .Update(update => update.Action("_StockItemUpdate", "CustodianReport"))
+            .Destroy(destroy => destroy.Action("_StockItemDestroy", "CustodianReport"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItems")
+            .Edit("onEditGridItems")
+            .DataBound("onDataBoundGridItems")
+            //.Remove("onRemoveGridItems")
+            .Save("onSaveGridItems")
+        )
+        .AutoBind(true)
+)
+
+
+<script type="text/javascript">    
+    // item template
+
+    function DataItemCode() {
+        var text = $("#ItemCodeId").data("kendoMultiColumnComboBox").text();
+        return {
+            category: "S",
+            text: text
+        };
+    }
+
+    function onSelectItemCodeId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#Article").val(dataItem.Article).trigger("change");
+        $("#Item_Code").val(dataItem.Code).trigger("change");
+        $("#ItemType_Code").val(dataItem.Type).trigger("change");
+        $("#SubAccount").val(dataItem.MainDesc).trigger("change");
+        $("#Account").val(dataItem.TypeDesc).trigger("change");
+
+        RefreshDivs(dataItem);
+    }
+
+    function onDataBoundItemCodeId(e) {
+        var comboBox = this;
+        var selectedValue = comboBox.value();
+
+        if (selectedValue !== null && selectedValue !== undefined && selectedValue != "") {
+            var dataItem = comboBox.dataItem();
+            RefreshDivs(dataItem);
+        }
+    }
+
+    function RefreshDivs(dataItem) {
+        var fieldsContainer = $('#DIV_ALLFIELDS');
+
+        fieldsContainer.removeClass('hidden');
+        fieldsContainer.empty(); // Clear existing content
+
+        var url = '@Url.Action("LoadStockFields", "CustodianReport")';
+        var data = $("#form").serialize();
+
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: data,
+            success: function(data) {
+                fieldsContainer.html(data);
+            }
+        });
+    }
+
+    function resizeWindow() {
+        var mywindow = $("#window").data("kendoWindow");
+        if (mywindow) {
+            mywindow.setOptions({
+                width: "1000",
+                height: "auto"
+            });
+            mywindow.center(); // Optional: Center the window after resizing
+        }
+    }
+
+    function onSelectStockDeptId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#Department").val(dataItem.Description).trigger("change");
+        //$("#grid").data("kendoGrid").dataSource.read({deptId: dataItem.Id, accountGroup : '@ViewData["accountGroup"]'});
+    }
+
+    function onSelectLocationId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#LocationCode").val(dataItem.Code).trigger("change");
+        $("#Location").val(dataItem.Description).trigger("change");
+    }
+
+    function DataOfficerId() {
+        var text = $("#OfficerId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#OfficerId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            deptId: $("#LocationId").val(),
+            text: text
+        };
+    }
+
+    function onSelectLocationCode(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#LocationId").val(dataItem.Id).trigger("change");
+    }
+
+    function UpdateTotalBalance(e) {
+        var qty = $("#Qty").data("kendoNumericTextBox").value();
+        var transferIn = $("#TransferIn").data("kendoNumericTextBox").value();
+        var qtyBalance = qty + transferIn;
+
+        $("#QtyBalance").data("kendoNumericTextBox").value(qtyBalance);
+        $("#QtyBalance").data("kendoNumericTextBox").trigger("change");
+    }
+    // end item template
+</script>

@@ -1,4 +1,5 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,9 @@ namespace iLgs.Services.Validators
 {
     public class BaseValidator
     {        
+        protected InvalidModelException _imex = new InvalidModelException();
+        protected delegate string GetDisplayNameDelegate(string propertyName);
+
         protected static dynamic IsInvalid(Guid id) => new
         {
             Condition = id == Guid.Empty,

@@ -1,4 +1,5 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
@@ -10,25 +11,26 @@ using System.Reflection;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
-namespace iLgs.Services
+namespace iLgs.Services.AllFields
 {
     public interface IAllFieldService
     {
         IQueryable<AllField> GetAllByPsCardId(Guid? psCardId);
         IQueryable<AllField> GetAllByRisItemId(Guid? risItemId);
         //CategoryGroup GetCategoryGroup(string itemTypeCode, string itemCode);
-        string GetPartialField(string itemTypeCode, string itemCode);
-        string GetPartialItemField(string itemTypeCode, string itemCode);
+        //string GetPartialField(string itemTypeCode, string itemCode);
+        //string GetPartialItemField(string itemTypeCode, string itemCode);
         ValueTask<AllField> GetByIdAsync(Guid id);
         ValueTask<AllField> CreatePsCardFieldsAsync(PsCardVM model, string user, DateTime date);
         ValueTask<AllField> CreateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date);
         ValueTask<AllField> UpdatePsCardFieldsAsync(PsCardVM model, string user, DateTime date);
         ValueTask<AllField> UpdateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date);
         ValueTask<AllField> DeleteAsync(AllField model, string user, DateTime date);
-        
+
         string GetRisDescription(RisItemEntryVM model);
         string GetCardStockNo(PsCardVM model);
-        string GetRisStockNo(RisItemEntryVM model);        
+        string GetRisStockNo(RisItemEntryVM model);
+        string GetCustodianStockNo(CustodianReportItem model);
         void ValidateStockCardAllField(StockCardVM model);
         void ValidatePropertyCardAllField(PropertyCardVM model);
         void ValidateRisAllField(RisItemEntryVM model);
@@ -70,7 +72,7 @@ namespace iLgs.Services
             return data;
         });
 
-        public void  ValidatePsCardAllField(PsCardVM model)
+        public void ValidatePsCardAllField(PsCardVM model)
         {
             //return await _validationService.ValidateAsync(model, "Create");
             var ex = new InvalidModelException();
@@ -567,7 +569,7 @@ namespace iLgs.Services
         {
             string description = "";
             var af = model.AllField;
-            var group = Utility.GetCategoryGroup(model.PsType, model.ItemNo);
+            var group = AllFieldsUtil.GetCategoryGroup(model.PsType, model.ItemNo);
             if (group == CategoryGroup.LAND)
             {
                 description += af.Area.ToString() + "sqm";
@@ -722,64 +724,31 @@ namespace iLgs.Services
             return stockNo ?? "";
         }
 
+        public string GetCustodianStockNo(CustodianReportItem model)
+        {
+            string stockNo = model.Item_Code.Trim();
+            if (model.FromDonation == true)
+            {
+                stockNo = "FD" + stockNo;
+            }
+            
+            stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
+            
+            return stockNo ?? "";
+        }
+
         public bool IsBrandRequired(Category c)
         {
             return (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
                     || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
                     || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
                     || c == CatOtherSupplies() || c == CatRepairs()) || c == CatDrugs();
-        }                
-
-        public string GetPartialField(string itemTypeCode, string itemCode)
-        {
-            string partialName = "";
-            var value = Utility.GetCategoryGroup(itemTypeCode, itemCode);
-            if (value == CategoryGroup.LAND)
-            {
-                partialName = "_FieldLand";
-            }
-            else if (value == CategoryGroup.OTHERS)
-            {
-                partialName = "_FieldBrand";
-            }
-            else if (value == CategoryGroup.DRUGS)
-            {
-                partialName = "_FieldDrugs";
-            }
-            else if (value == CategoryGroup.SERIAL)
-            {
-                partialName = "_FieldSerial";
-            }
-            return partialName;
-        }
-
-        public string GetPartialItemField(string itemTypeCode, string itemCode)
-        {
-            string partialName = "";
-            var value = Utility.GetCategoryGroup(itemTypeCode, itemCode);
-            if (value == CategoryGroup.LAND)
-            {
-                partialName = "_ItemFieldLand";
-            }
-            else if (value == CategoryGroup.OTHERS)
-            {
-                partialName = "_ItemFieldBrand";
-            }
-            else if (value == CategoryGroup.DRUGS)
-            {
-                partialName = "_ItemFieldDrugs";
-            }
-            else if (value == CategoryGroup.SERIAL)
-            {
-                partialName = "_ItemFieldSerial";
-            }
-            return partialName;
         }
 
         public string GetStockNo(AllField af, string itemTypeCode, string itemCode)
         {
             string stockNo = "";
-            var group = Utility.GetCategoryGroup(itemTypeCode, itemCode);
+            var group = AllFieldsUtil.GetCategoryGroup(itemTypeCode, itemCode);
             if (group == CategoryGroup.LAND)
             {
                 stockNo += ((af.Area != null) ? $"/{af.Area}sqm" : "");
@@ -810,7 +779,7 @@ namespace iLgs.Services
                 {
                     if (!string.IsNullOrWhiteSpace(af.DosageVolume))
                     {
-                        stockNo += "/" + af.DosageVolume.Trim() + "'s";
+                        stockNo += $"/{af.DosageVolume}";
                     }
                 }
                 else
@@ -841,7 +810,7 @@ namespace iLgs.Services
 
                 if (af.Multipliers.HasValue && af.Multipliers > 0)
                 {
-                    stockNo += "/" + af.Multipliers.ToString().Trim() + "'s";
+                    stockNo += $"/{af.Multipliers}'s";
                 }
                 else
                 {
@@ -925,152 +894,208 @@ namespace iLgs.Services
                     stockNo += $"/{af.Model_}";
                 }
             }
-            else if (group == CategoryGroup.SERIAL)
+            else if (group == CategoryGroup.SERIAL_A)
             {
-                var index = itemCode.IndexOf('-');
-                var itemNo = itemCode.Substring(index + 1);
-
-                if (itemNo.Length >= 3 && itemNo.Substring(0, 3).Any(a => a.Equals("1.1") || a.Equals("2.1") || a.Equals("3.1") || a.Equals("4.1")
-                   || a.Equals("7.1") || a.Equals("8.1") || a.Equals("9.1")))
+                //  "PropNo", "SerialNo"
+                if (string.IsNullOrWhiteSpace(af.SerialNo))
                 {
-                    //  "PropNo", "SerialNo"
-                    if (string.IsNullOrWhiteSpace(af.SerialNo))
+                    if (string.IsNullOrWhiteSpace(af.PropNo))
                     {
-                        if (string.IsNullOrWhiteSpace(af.PropNo))
-                        {
-                            stockNo += $"/xx";
-                        }
-                        else
-                        {
-                            stockNo += $"/{af.PropNo}";
-                        }
+                        stockNo += $"/xx";
                     }
                     else
                     {
-                        stockNo += $"/{af.SerialNo}";
-                    }
-
-                }
-                else if (itemNo.Length >= 4 && itemNo.Substring(0, 4).Any(a => a.Equals("5.1") || a.Equals("6.1.") || a.Equals("9.1.")))
-                {
-                    // "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"
-                    if (string.IsNullOrWhiteSpace(af.SerialNo))
-                    {
-                        if (string.IsNullOrWhiteSpace(af.PropNo))
-                        {
-                            if (string.IsNullOrWhiteSpace(af.PlateNo))
-                            {
-                                if (string.IsNullOrWhiteSpace(af.BodyNo))
-                                {
-                                    if (!string.IsNullOrWhiteSpace(af.MVFileNo))
-                                    {
-                                        stockNo += $"/{af.MVFileNo}";
-                                    }
-                                }
-                                else
-                                {
-                                    stockNo += $"/{af.BodyNo}";
-                                }
-                            }
-                            else
-                            {
-                                stockNo += $"/{af.PlateNo.ToUpper()}";
-                            }
-                        }
-                        else
-                        {
-                            stockNo += $"/{af.PropNo}";
-                        }
-                    }
-                    else
-                    {
-                        stockNo += $"/{af.SerialNo}";
+                        stockNo += $"/{af.PropNo}";
                     }
                 }
                 else
                 {
-                    // "Color", "Capacity", "Materials", "Weight", "Size", "Dimension", "Model_", "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"                        
-                    if (string.IsNullOrWhiteSpace(af.SerialNo))
+                    stockNo += $"/{af.SerialNo}";
+                }
+            }
+            else if (group == CategoryGroup.SERIAL_B)
+            {
+                // "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"
+                if (string.IsNullOrWhiteSpace(af.SerialNo))
+                {
+                    if (string.IsNullOrWhiteSpace(af.PropNo))
                     {
-                        if (string.IsNullOrWhiteSpace(af.PropNo))
+                        if (string.IsNullOrWhiteSpace(af.PlateNo))
                         {
-                            if (string.IsNullOrWhiteSpace(af.PlateNo))
+                            if (string.IsNullOrWhiteSpace(af.BodyNo))
                             {
-                                if (string.IsNullOrWhiteSpace(af.BodyNo))
+                                if (!string.IsNullOrWhiteSpace(af.MVFileNo))
                                 {
-                                    if (string.IsNullOrWhiteSpace(af.MVFileNo))
-                                    {
-                                        if (string.IsNullOrWhiteSpace(af.Model_))
-                                        {
-                                            if (string.IsNullOrWhiteSpace(af.Dimension))
-                                            {
-                                                if (string.IsNullOrWhiteSpace(af.Size))
-                                                {
-                                                    if (string.IsNullOrWhiteSpace(af.Weight))
-                                                    {
-                                                        if (string.IsNullOrWhiteSpace(af.Materials))
-                                                        {
-                                                            if (string.IsNullOrWhiteSpace(af.Capacity))
-                                                            {
-                                                                if (!string.IsNullOrWhiteSpace(af.Color))
-                                                                {
-                                                                    stockNo += $"/{af.Color}";
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                stockNo += $"/{af.Capacity}";
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            stockNo += $"/{af.Materials}";
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        stockNo += $"/{af.Weight}";
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    stockNo += $"/{af.Size}";
-                                                }
-                                            }
-                                            else
-                                            {
-                                                stockNo += $"/{af.Dimension}";
-                                            }
-                                        }
-                                        else
-                                        {
-                                            stockNo += $"/{Utility.ToProperCase(af.Model_)}";
-                                        }
-                                    }
-                                    else
-                                    {
-                                        stockNo += $"/{af.MVFileNo}";
-                                    }
-                                }
-                                else
-                                {
-                                    stockNo += $"/{af.BodyNo}";
+                                    stockNo += $"/{af.MVFileNo}";
                                 }
                             }
                             else
                             {
-                                stockNo += $"/{af.PlateNo.ToUpper()}";
+                                stockNo += $"/{af.BodyNo}";
                             }
                         }
                         else
                         {
-                            stockNo += $"/{af.PropNo}";
+                            stockNo += $"/{af.PlateNo.ToUpper()}";
                         }
                     }
                     else
                     {
-                        stockNo += $"/{af.SerialNo}";
+                        stockNo += $"/{af.PropNo}";
                     }
+                }
+                else
+                {
+                    stockNo += $"/{af.SerialNo}";
+                }
+            }
+            else if (group == CategoryGroup.SERIAL_C)
+            {
+                // "Color", "Capacity", "Materials", "Weight", "Size", "Dimension", "Model_", "Brand", "PropNo", "SerialNo"                        
+                if (string.IsNullOrWhiteSpace(af.SerialNo))
+                {
+                    if (string.IsNullOrWhiteSpace(af.PropNo))
+                    {
+                        if (string.IsNullOrWhiteSpace(af.Model_))
+                        {
+                            if (string.IsNullOrWhiteSpace(af.Dimension))
+                            {
+                                if (string.IsNullOrWhiteSpace(af.Size))
+                                {
+                                    if (string.IsNullOrWhiteSpace(af.Weight))
+                                    {
+                                        if (string.IsNullOrWhiteSpace(af.Materials))
+                                        {
+                                            if (string.IsNullOrWhiteSpace(af.Capacity))
+                                            {
+                                                if (!string.IsNullOrWhiteSpace(af.Color))
+                                                {
+                                                    stockNo += $"/{af.Color}";
+                                                }
+                                            }
+                                            else
+                                            {
+                                                stockNo += $"/{af.Capacity}";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            stockNo += $"/{af.Materials}";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        stockNo += $"/{af.Weight}";
+                                    }
+                                }
+                                else
+                                {
+                                    stockNo += $"/{af.Size}";
+                                }
+                            }
+                            else
+                            {
+                                stockNo += $"/{af.Dimension}";
+                            }
+                        }
+                        else
+                        {
+                            stockNo += $"/{Utility.ToProperCase(af.Model_)}";
+                        }
+                    }
+                    else
+                    {
+                        stockNo += $"/{af.PropNo}";
+                    }
+                }
+                else
+                {
+                    stockNo += $"/{af.SerialNo}";
+                }
+            }
+            else if (group == CategoryGroup.SERIAL)
+            {
+                // "Color", "Capacity", "Materials", "Weight", "Size", "Dimension", "Model_", "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"                        
+                if (string.IsNullOrWhiteSpace(af.SerialNo))
+                {
+                    if (string.IsNullOrWhiteSpace(af.PropNo))
+                    {
+                        if (string.IsNullOrWhiteSpace(af.PlateNo))
+                        {
+                            if (string.IsNullOrWhiteSpace(af.BodyNo))
+                            {
+                                if (string.IsNullOrWhiteSpace(af.MVFileNo))
+                                {
+                                    if (string.IsNullOrWhiteSpace(af.Model_))
+                                    {
+                                        if (string.IsNullOrWhiteSpace(af.Dimension))
+                                        {
+                                            if (string.IsNullOrWhiteSpace(af.Size))
+                                            {
+                                                if (string.IsNullOrWhiteSpace(af.Weight))
+                                                {
+                                                    if (string.IsNullOrWhiteSpace(af.Materials))
+                                                    {
+                                                        if (string.IsNullOrWhiteSpace(af.Capacity))
+                                                        {
+                                                            if (!string.IsNullOrWhiteSpace(af.Color))
+                                                            {
+                                                                stockNo += $"/{af.Color}";
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            stockNo += $"/{af.Capacity}";
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        stockNo += $"/{af.Materials}";
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    stockNo += $"/{af.Weight}";
+                                                }
+                                            }
+                                            else
+                                            {
+                                                stockNo += $"/{af.Size}";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            stockNo += $"/{af.Dimension}";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        stockNo += $"/{Utility.ToProperCase(af.Model_)}";
+                                    }
+                                }
+                                else
+                                {
+                                    stockNo += $"/{af.MVFileNo}";
+                                }
+                            }
+                            else
+                            {
+                                stockNo += $"/{af.BodyNo}";
+                            }
+                        }
+                        else
+                        {
+                            stockNo += $"/{af.PlateNo.ToUpper()}";
+                        }
+                    }
+                    else
+                    {
+                        stockNo += $"/{af.PropNo}";
+                    }
+                }
+                else
+                {
+                    stockNo += $"/{af.SerialNo}";
                 }
             }
 

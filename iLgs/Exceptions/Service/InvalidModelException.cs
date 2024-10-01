@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace iLgs.Services.Validators
+namespace iLgs.Exceptions.Service
 {
     public class InvalidModelException : Xeption
     {

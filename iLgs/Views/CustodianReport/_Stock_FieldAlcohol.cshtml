@@ -1,0 +1,47 @@
+﻿@model iLgs.Models.CustodianReportItemStockVM
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.GenericName, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.GenericName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.GenericName)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.DosageVolume, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.DosageVolume).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.DosageVolume)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.Multipliers, "LabelInt")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().MaskedTextBoxFor(m => m.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription"))
+                .Mask("999999999")  // Adjust the number of 0s to fit your requirement -->
+                .PromptChar(" "))
+            @Html.ValidationMessageFor(m => m.Multipliers)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.Brand, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.Brand)
+        </div>
+    </div>
+</div>

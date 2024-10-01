@@ -1,7 +1,10 @@
 ﻿using iLgs.Models;
+using iLgs.Services;
+using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
@@ -9,7 +12,15 @@ namespace iLgs.Controllers
 {
     public class GettersController : Controller
     {
-        private AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
+        private readonly ICodextnService _codextnService;
+
+        public GettersController()
+        {
+            _db = new AppManEntities();
+            _codextnService = new CodextnService(_db);
+        }
+
         //public ActionResult GetSysCodeList(string text)
         //{
 
@@ -34,7 +45,7 @@ namespace iLgs.Controllers
         public ActionResult GetDepartmentList(string text)
         {
 
-            var model = db.Database.SqlQuery<GetDepartmentVM>("Select distinct case when Isnull(Department, '')  = '' then 'NONE' else Department end as Department From UserProfiles").AsQueryable();
+            var model = _db.Database.SqlQuery<GetDepartmentVM>("Select distinct case when Isnull(Department, '')  = '' then 'NONE' else Department end as Department From UserProfiles").AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 text = text.Trim();
@@ -54,7 +65,7 @@ namespace iLgs.Controllers
         public ActionResult GetSignatories(string department, string text)
         {
             department = string.IsNullOrWhiteSpace(department) ? "" : department.Trim();
-            var model = db.AccountableOfficers.Where(w => w.Codextn.CodeMast.Code == "DEPARTMENTS" && w.Codextn.Description == department && w.LocationId == w.Codextn.Id).AsQueryable();
+            var model = _db.AccountableOfficers.Where(w => w.Codextn.CodeMast.Code == "DEPARTMENTS" && w.Codextn.Description == department && w.LocationId == w.Codextn.Id).AsQueryable();
             if (!string.IsNullOrWhiteSpace(text))
             {
                 model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text));
@@ -67,7 +78,7 @@ namespace iLgs.Controllers
         public ActionResult GetAccountableOfficers(string department, string text)
         {
             department = string.IsNullOrWhiteSpace(department) ? "" : department.Trim();
-            var model = db.AccountableOfficers.Where(w => w.Codextn.CodeMast.Code == "LOCATIONS" && w.Codextn.Description == department && w.LocationId == w.Codextn.Id).AsQueryable();
+            var model = _db.AccountableOfficers.Where(w => w.Codextn.CodeMast.Code == "LOCATIONS" && w.Codextn.Description == department && w.LocationId == w.Codextn.Id).AsQueryable();
             if (!string.IsNullOrWhiteSpace(text))
             {
                 model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text));
@@ -79,7 +90,7 @@ namespace iLgs.Controllers
 
         public ActionResult GetAccountableOfficersByDeptId(Guid? deptId, string text)
         {
-            var model = db.AccountableOfficers.Where(w => w.LocationId == deptId).AsQueryable();
+            var model = _db.AccountableOfficers.Where(w => w.LocationId == deptId).AsQueryable();
             if (!string.IsNullOrWhiteSpace(text))
             {
                 model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text));
@@ -92,7 +103,7 @@ namespace iLgs.Controllers
         public ActionResult GetUserNameList(string text)
         {
 
-            var model = db.AspNetUsers.Include("UserProfiles").AsQueryable();
+            var model = _db.AspNetUsers.Include("UserProfiles").AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 text = text.Trim();
@@ -112,7 +123,7 @@ namespace iLgs.Controllers
         public ActionResult GetDeptUserList(string text)
         {
 
-            var model = db.AspNetUsers.Include("UserProfiles").AsQueryable();
+            var model = _db.AspNetUsers.Include("UserProfiles").AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 text = text.Trim();
@@ -122,13 +133,28 @@ namespace iLgs.Controllers
             var retModel = model.Select(c => new { Id = c.Id, Email = c.Email, UserName = c.UserName, NameFull = c.UserProfile.NameFull }).ToList();            
 
             return Json(retModel, JsonRequestBehavior.AllowGet);
+        }
+
+        public async Task<ActionResult> GetUserDepartmentsAsync(string text)
+        {
+            var userId = User.Identity.GetUserId();
+            var model = await _codextnService.GetUserDepartmentsAsync(userId);
+            if (!string.IsNullOrEmpty(text))
+            {
+                text = text.Trim();
+                model = model.Where(p => p.Code.Contains(text) || p.Description.Contains(text));
+            }
+
+            var retModel = model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description }).ToList();
+
+            return Json(retModel, JsonRequestBehavior.AllowGet);
 
         }
 
         public ActionResult GetRoleList(string text)
         {
 
-            var model = db.AspNetRoles.AsQueryable();
+            var model = _db.AspNetRoles.AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 text = text.Trim();
@@ -148,7 +174,7 @@ namespace iLgs.Controllers
         public JsonResult GetCodes(string mastCode, string text)
         {
 
-            var model = db.Codextns.Where(w => w.CodeMast.Code == mastCode);
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == mastCode);
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -161,7 +187,7 @@ namespace iLgs.Controllers
         public JsonResult GetCodeList(string mastCode, bool addAll, string text)
         {
 
-            var model = db.Codextns.Where(w => w.CodeMast.Code == mastCode).OrderBy(o => o.Code).AsQueryable();
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == mastCode).OrderBy(o => o.Code).AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
@@ -179,7 +205,7 @@ namespace iLgs.Controllers
         public JsonResult GetInvDistList(string text)
         {
 
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS").OrderByDescending(o => o.Desc2).AsQueryable();
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS").OrderByDescending(o => o.Desc2).AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
@@ -193,7 +219,7 @@ namespace iLgs.Controllers
         public JsonResult GetSupplier(string text)
         {
 
-            var model = db.Suppliers.AsQueryable();
+            var model = _db.Suppliers.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {                
@@ -219,7 +245,7 @@ namespace iLgs.Controllers
         public JsonResult GetPrNos(string text)
         {
 
-            var model = db.Requests.Where(w => w.SubmittedBy != null).AsQueryable();
+            var model = _db.Requests.Where(w => w.SubmittedBy != null).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -232,7 +258,7 @@ namespace iLgs.Controllers
         public JsonResult GetPrNoWithRemainingItems(Guid? orderId, string text)
         {
             orderId = orderId ?? Guid.Empty;
-            var model = db.Requests.Where(w => w.SubmittedBy != null).AsQueryable();
+            var model = _db.Requests.Where(w => w.SubmittedBy != null).AsQueryable();
             if (orderId == Guid.Empty)
             {
                 model = model.Where(w => w.RequestItems.Any(a => !a.OrderItems.Any()));
@@ -254,7 +280,7 @@ namespace iLgs.Controllers
         public JsonResult GetRisNos(string text)
         {
 
-            var model = db.RISses.Where(w => w.PostedBy != null).AsQueryable();
+            var model = _db.RISses.Where(w => w.PostedBy != null).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -270,7 +296,7 @@ namespace iLgs.Controllers
         public JsonResult GetRisNosWithNoPr(Guid? prId, string text)
         {
             prId = prId ?? Guid.Empty;
-            var model = db.RISses.Where(w => w.PostedBy != null).AsQueryable();
+            var model = _db.RISses.Where(w => w.PostedBy != null).AsQueryable();
             if (prId == Guid.Empty)
             {
                 model = model.Where(w => !w.Requests.Any());
@@ -302,7 +328,7 @@ namespace iLgs.Controllers
         public JsonResult GetPrItems(Guid prId, string text)
         {
 
-            var model = db.RequestItems.Where(w => w.PrId == prId).AsQueryable();
+            var model = _db.RequestItems.Where(w => w.PrId == prId).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -327,7 +353,7 @@ namespace iLgs.Controllers
 
         public JsonResult GetPrItemsWithNoPo(string mode, Guid prId, string text)
         {
-            var model = db.RequestItems.Where(w => w.PrId == prId);
+            var model = _db.RequestItems.Where(w => w.PrId == prId);
             if (mode == "A")
             {
                 model = model.Where(w => !w.OrderItems.Any());
@@ -357,7 +383,7 @@ namespace iLgs.Controllers
 
         public JsonResult GetPoNos(string text)
         {
-            var model = db.Orders.AsQueryable();
+            var model = _db.Orders.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -370,7 +396,7 @@ namespace iLgs.Controllers
         public JsonResult GetPoNosWithoutPr(Guid? airId, string text)
         {
             airId = airId ?? Guid.Empty;
-            var model = db.Orders.Where(w => w.PostedBy != null).AsQueryable();
+            var model = _db.Orders.Where(w => w.PostedBy != null).AsQueryable();
             if (airId == Guid.Empty)
             {
                 model = model.Where(w => !w.AIRs.Any());
@@ -391,7 +417,7 @@ namespace iLgs.Controllers
         public JsonResult GetRisPoNos(string text)
         {
 
-            var model = db.Orders.AsQueryable();
+            var model = _db.Orders.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -404,7 +430,7 @@ namespace iLgs.Controllers
         public JsonResult GetPoItems(Guid orderId, string text)
         {
 
-            var model = db.OrderItems.Where(w => w.OrderId == orderId).AsQueryable();
+            var model = _db.OrderItems.Where(w => w.OrderId == orderId).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -449,7 +475,7 @@ namespace iLgs.Controllers
         public JsonResult GetDepartments(string text)
         {
 
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc3 != "N");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc3 != "N");
             
             if (!string.IsNullOrEmpty(text))
             {
@@ -462,7 +488,7 @@ namespace iLgs.Controllers
         public JsonResult GetIssuedTo(string text)
         {
 
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-TO");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-TO");
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -475,7 +501,7 @@ namespace iLgs.Controllers
         public JsonResult GetLocations(string text)
         {
 
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS");
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -487,8 +513,8 @@ namespace iLgs.Controllers
 
         public JsonResult GetSections(string department, string text)
         {
-            var deptCode = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Code.StartsWith(deptCode));
+            var deptCode = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Code.StartsWith(deptCode));
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -500,8 +526,8 @@ namespace iLgs.Controllers
 
         public JsonResult GetRequestedBy(string department, string text)
         {
-            var deptCode = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Code.StartsWith(deptCode));
+            var deptCode = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Code.StartsWith(deptCode));
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -513,8 +539,8 @@ namespace iLgs.Controllers
 
         public JsonResult GetReceivedBy(string department, string text)
         {
-            var deptCode = db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Code.StartsWith(deptCode));
+            var deptCode = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Code.StartsWith(deptCode));
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -526,7 +552,7 @@ namespace iLgs.Controllers
 
         public JsonResult GetApprovedBy(string text)
         {
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "APPROVED-BY");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "APPROVED-BY");
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -537,7 +563,7 @@ namespace iLgs.Controllers
         }
         public JsonResult GetCustodians(string text)
         {
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "CUSTODIANS");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "CUSTODIANS");
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -549,7 +575,7 @@ namespace iLgs.Controllers
 
         public JsonResult GetOfficers(string text)
         {
-            var model = db.Codextns.Where(w => w.CodeMast.Code == "OFFICERS");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "OFFICERS");
 
             if (!string.IsNullOrEmpty(text))
             {

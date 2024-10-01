@@ -31,7 +31,6 @@ namespace iLgs.Utilities
         protected HttpClient client;
 
         //The URL of the WEB API Service
-        //string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
         string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
 
         //The HttpClient Class, this will be used for performing 
@@ -45,12 +44,7 @@ namespace iLgs.Utilities
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             this.InitMenu = true;
         }
-
-        //protected override void OnAuthorization(AuthorizationContext filterContext)
-        //{
-        //    base.OnAuthorization(filterContext);            
-        //}
-
+        
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             ViewData["MenuTreeList"] = null;
@@ -116,22 +110,21 @@ namespace iLgs.Utilities
             {
                 var children = allMenus.Where(w => w.ParentId == menu.ChildId).OrderBy(o => o.Description);
                 var hasChildren = children.Any();
-                var items = new List<TreeViewItemModel>();
-                
+                var items = new List<TreeViewItemModel>();                
+
                 if (hasChildren)
                 {
-                    items = GetMenuTree(allMenus, children);
+                    items = GetMenuTree(allMenus, children);                                        
                 }
                 
-
                 var node = new TreeViewItemModel()
                 {
                     Id = menu.ChildId.ToString(),
                     Expanded = false,
                     Text = menu.Description,
                     HasChildren = hasChildren,
-                    Url = hasChildren ? null : "/" + menu.Controller.Trim() + "/" + menu.Action.Trim(),
-                    Items = items                
+                    Url = hasChildren ? null : $"/{menu.Controller}/{menu.Action}",
+                    Items = items
                 };
 
                 menuTree.Add(node);

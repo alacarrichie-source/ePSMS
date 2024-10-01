@@ -7,11 +7,24 @@ namespace iLgs.Models
 {
     public static class Enums
     {
+        public enum CustodianAccountGroup
+        {
+            STOCK = 1,
+            PPE = 2,
+            VEHICLE = 3,
+            LAND = 4,
+            BUILDING = 5
+        }
+
         public enum CategoryGroup
         {
             LAND,
             DRUGS,
             SERIAL,
+            SERIAL_A,
+            SERIAL_B,
+            SERIAL_C,
+            SERIAL_D,
             OTHERS,
             NONE
         }
@@ -65,5 +78,20 @@ namespace iLgs.Models
         public static Category CatConstructionInProgress() => Category.Y;
         public static Category CatOtherProperties() => Category.Z;
 
+        public enum Module
+        {
+            CARD,
+            RIS,
+            REQUEST,
+            ORDER,
+            AIR
+        }
+
+        public enum Mode
+        {
+            ADD,
+            EDIT,
+            DELETE
+        }
     }
 }

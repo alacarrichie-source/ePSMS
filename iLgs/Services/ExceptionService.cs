@@ -60,6 +60,10 @@ namespace iLgs.Services
             {
                 throw CreateAndLogValidationException(alreadyPostedException);
             }
+            catch (RecordNotYetPostedException notYetPostedException)
+            {
+                throw CreateAndLogValidationException(notYetPostedException);
+            }
             catch (RecordRelationshipException relationshipException)
             {
                 throw CreateAndLogValidationException(relationshipException);
@@ -123,6 +127,16 @@ namespace iLgs.Services
 
             return validationException;
         }
+
+        private ValidationException CreateAndLogAlreadyExistsException(Xeption exception)
+        {
+            var validationException = new ValidationException(exception);
+            //_loggingService.LogError(validationException);
+
+            return validationException;
+        }
+
+
         private DependencyValidationException CreateAndLogDependencyValidationException(Xeption exception)
 
         {

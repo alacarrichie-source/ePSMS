@@ -1,0 +1,13 @@
+﻿@*@model iLgs.Models.CustodianReportItem
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.Area, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.Area).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.Area)
+        </div>
+    </div>
+</div>*@

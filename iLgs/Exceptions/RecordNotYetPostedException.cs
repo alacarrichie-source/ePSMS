@@ -3,7 +3,7 @@ using System.Net;
 
 namespace iLgs.Exceptions
 {
-    public class RecordNotYetPostedException : Exception, IException
+    public class RecordNotYetPostedException : Xeption, IException
     {
         public HttpStatusCode StatusCode()
         {

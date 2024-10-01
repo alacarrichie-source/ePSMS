@@ -1,0 +1,60 @@
+﻿@model iLgs.Models.CustodianReportItemPpeVM
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.GenericName, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.GenericName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.GenericName)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.DosageStrength, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.DosageStrength).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.DosageStrength)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.DosageForm, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.DosageForm).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.DosageForm)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.Multipliers, "LabelInt")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().MaskedTextBoxFor(m => m.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription"))
+                .Mask("999999999")  // Adjust the number of 0s to fit your requirement -->
+                .PromptChar(" "))
+            @Html.ValidationMessageFor(m => m.Multipliers)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.Brand, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.Brand)
+        </div>
+    </div>
+</div>
+

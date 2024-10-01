@@ -20,6 +20,7 @@ namespace iLgs.Models
             this.PsCards = new HashSet<PsCard>();
             this.RisItems = new HashSet<RisItem>();
             this.RPCIItems = new HashSet<RPCIItem>();
+            this.CustodianReportItems = new HashSet<CustodianReportItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -45,5 +46,7 @@ namespace iLgs.Models
         public virtual ICollection<RisItem> RisItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCIItem> RPCIItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CustodianReportItem> CustodianReportItems { get; set; }
     }
 }

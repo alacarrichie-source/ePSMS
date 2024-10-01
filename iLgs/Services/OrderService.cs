@@ -13,6 +13,7 @@ using System.Web.Http.ModelBinding;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using static iLgs.Models.Enums;
+using iLgs.Services.AllFields;
 
 namespace iLgs.Services
 {

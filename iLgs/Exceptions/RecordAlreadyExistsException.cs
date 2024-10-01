@@ -19,10 +19,15 @@ namespace iLgs.Exceptions
             return Message;
         }
 
-        public string Key { get; set; }
+        public string Key { get; set; }        
 
         public RecordAlreadyExistsException()
         : base(message: "Record already exists.") { }
+        
+        public RecordAlreadyExistsException(Xeption exception)
+            : base(message: "Invalid input, contact support.", innerException: exception,
+            data: exception.Data)
+        { }
 
         public RecordAlreadyExistsException(Guid id)
             : base(message: string.Format("Record with id: {0} already exists.", id)) { }

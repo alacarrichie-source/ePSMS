@@ -213,18 +213,11 @@ namespace iLgs.Controllers
                 var children = allMenus.Where(w => w.ParentId == menu.ChildId).OrderBy(o => o.Description);
                 var hasChildren = children.Any();
                 var items = new List<TreeViewItemModel>();
-                //Dictionary<string, string> attribute;
-
+                
                 if (hasChildren)
                 {
-                    items = GetMenuTree(allMenus, children);
-                    //attribute = new Dictionary<string, string>() { { "class", "root-nav expand" } };
-                }
-                //else
-                //{
-                //    attribute = new Dictionary<string, string>() { { "class", "k-drawer-item" } };
-                //}
-
+                    items = GetMenuTree(allMenus, children);               
+                }                
 
                 var node = new TreeViewItemModel()
                 {
@@ -233,8 +226,7 @@ namespace iLgs.Controllers
                     Text = menu.Description,
                     HasChildren = hasChildren,
                     Url = hasChildren ? null : "/" + menu.Controller.Trim() + "/" + menu.Action.Trim(),
-                    Items = items
-                    //HtmlAttributes = attribute
+                    Items = items                    
                 };
 
                 menuTree.Add(node);

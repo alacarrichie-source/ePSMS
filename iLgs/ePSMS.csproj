@@ -49,6 +49,9 @@
       <HintPath>..\packages\Antlr.3.4.1.9004\lib\Antlr3.Runtime.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="ClosedXML, Version=0.102.3.0, Culture=neutral, PublicKeyToken=fd1eb21b62ae805b, processorArchitecture=MSIL">
+      <HintPath>..\packages\ClosedXML.0.102.3\lib\netstandard2.0\ClosedXML.dll</HintPath>
+    </Reference>
     <Reference Include="CrystalDecisions.CrystalReports.Engine">
       <HintPath>..\..\..\..\program files (x86)\sap businessobjects\crystal reports for .net framework 4.0\common\sap businessobjects enterprise xi 4.0\win32_x86\dotnet\CrystalDecisions.CrystalReports.Engine.dll</HintPath>
     </Reference>
@@ -295,6 +298,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\CardUploadController.cs" />
+    <Compile Include="Controllers\CustodianReportController.cs" />
     <Compile Include="Controllers\IcsSetController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
     <Compile Include="Controllers\IcsController.cs" />
@@ -364,6 +368,9 @@
     <Compile Include="Models\AspNetUsers_View.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\CardItemExtn.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\CategoryDictionary.cs" />
     <Compile Include="Models\CodeMast.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -371,6 +378,13 @@
     <Compile Include="Models\Codextn.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\CustodianReport.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CustodianReportItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CustodianViewwModels.cs" />
     <Compile Include="Models\DepartmentUser.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -560,6 +574,12 @@
     <Compile Include="Models\UserProfile.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Reports\CustodianStock.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CustodianStock.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Reports\ItemCode.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -588,9 +608,18 @@
     <Compile Include="Services\AirItemExtnOtherService.cs" />
     <Compile Include="Services\AirItemExtnService.cs" />
     <Compile Include="Services\AirItemExtnVehicleService.cs" />
-    <Compile Include="Services\AllFieldService.cs" />
+    <Compile Include="Services\AllFields\AllFieldService.cs" />
     <Compile Include="Services\CardItemExtnService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemPpeService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemPpeValidator.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemStockValidator.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemVehicleService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemVehicleValidator.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemStockService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportValidator.cs" />
     <Compile Include="Services\DepartmentUserService.cs" />
     <Compile Include="Services\IcsParItemService.cs" />
     <Compile Include="Services\IcsParService.cs" />
@@ -627,7 +656,7 @@
     <Compile Include="Services\RpcPpeItemService.cs" />
     <Compile Include="Services\RpcPpeService.cs" />
     <Compile Include="Services\ServiceResult.cs" />
-    <Compile Include="Services\StockCardService.cs" />
+    <Compile Include="Services\StockCards\StockCardService.cs" />
     <Compile Include="Services\ParIcsUploadService.cs" />
     <Compile Include="Services\UploadService.cs" />
     <Compile Include="Services\UserService.cs" />
@@ -852,7 +881,7 @@
     <Compile Include="Services\ValidatorService.cs" />
     <Compile Include="Services\Validators\AirItemExtnVehicleValidator.cs" />
     <Compile Include="Services\Validators\AirItemValidator.cs" />
-    <Compile Include="Services\Validators\AllFieldsValidator.cs" />
+    <Compile Include="Services\AllFields\AllFieldsValidator.cs" />
     <Compile Include="Services\Validators\CombinedValidatorSelector.cs" />
     <Compile Include="Services\Validators\BaseValidator.cs" />
     <Compile Include="Services\Validators\IcsParItemValidator.cs" />
@@ -864,8 +893,9 @@
     <Compile Include="Services\Validators\RisItemValidator.cs" />
     <Compile Include="Services\Validators\RisItemUnitGroupValidator.cs" />
     <Compile Include="Services\Validators\RisValidator.cs" />
-    <Compile Include="Services\Validators\StockCardValidator.cs" />
+    <Compile Include="Services\StockCards\StockCardValidator.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="Utilities\AllFieldsUtil.cs" />
     <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
     <Compile Include="Controllers\BaseConroller.cs" />
     <Compile Include="Utilities\StringExtensions.cs" />
@@ -1416,6 +1446,9 @@
     <Content Include="Content\Sidebar\src\scss\_theme-default.scss" />
     <Content Include="Content\Sidebar\src\scss\_toggle.scss" />
     <Content Include="Department-Codes %2897%29.xls" />
+    <Content Include="App_Data\CustodianStockTemplate.xlsx" />
+    <Content Include="App_Data\CustodianPpeTemplate.xlsx" />
+    <Content Include="App_Data\CustodianTranspoTemplate.xlsx" />
     <None Include="Properties\PublishProfiles\ePsms %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
@@ -3915,9 +3948,42 @@
     <Content Include="Views\CardUpload\_Images.cshtml" />
     <Content Include="Views\CardUpload\_ImagesAdd.cshtml" />
     <Content Include="Views\CardUpload\EditorTemplates\_ImagesTemplate.cshtml" />
+    <Content Include="Views\StockCard\_FieldAlcohol.cshtml" />
+    <Content Include="Views\StockCard\_FieldSerial_A.cshtml" />
+    <Content Include="Views\StockCard\_FieldSerial_B.cshtml" />
+    <Content Include="Views\StockCard\_FieldSerial_C.cshtml" />
+    <Content Include="Views\CustodianReport\Index.cshtml" />
+    <Content Include="Views\CustodianReport\_StockItem.cshtml" />
+    <Content Include="Views\CustodianReport\EditorTemplates\_CustodianReportTemplate.cshtml" />
+    <Content Include="Views\CustodianReport\EditorTemplates\_StockItemTemplate.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldAlcohol.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldBrand.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldDrugs.cshtml" />
+    <Content Include="Views\CustodianReport\_FieldLand.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldSerial.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldSerial_A.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldSerial_B.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldSerial_C.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\LabelInt.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\LabelDecimal.cshtml" />
+    <Content Include="Views\CustodianReport\_PpeItem.cshtml" />
+    <Content Include="Views\CustodianReport\EditorTemplates\_PpeItemTemplate.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldDrugs.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldAlcohol.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldBrand.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldSerial.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldSerial_A.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldSerial_B.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldSerial_C.cshtml" />
+    <Content Include="Views\CustodianReport\_VehicleItem.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldSerial.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldSerial_A.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldSerial_B.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldSerial_C.cshtml" />
+    <Content Include="Views\CustodianReport\EditorTemplates\_VehicleItemTemplate.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldBrand.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="App_Data\" />
     <Folder Include="Exceptions\Orders\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Cards\" />
@@ -3999,6 +4065,10 @@
     <Content Include="Reports\RpcPpe.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RpcPpe.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\CustodianStock.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>CustodianStock.cs</LastGenOutput>
     </Content>
     <EmbeddedResource Include="Reports\PropertyCard.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>

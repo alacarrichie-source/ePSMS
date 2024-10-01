@@ -1,0 +1,784 @@
+﻿@{
+    //ViewBag.Title = "Custodian Report";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+<br />
+<div class="row">
+    <div class="col-md-4">
+        @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().MultiColumnComboBox()
+                .Name("deptId")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .Placeholder("Select Department")
+                .DataTextField("Description")
+                .DataValueField("Id")
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetUserDepartmentsAsync", "Getters");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Columns(c =>
+                {
+                    c.Add().Field("Code").Title("Code").Width("30%");
+                    c.Add().Field("Description").Title("Description").Width("70%");
+                })
+                .Events(e => e.Select("onSelectDeptId"))
+                .Suggest(true)
+            )
+        </div>
+    </div>
+</div>
+
+<br />
+
+@(Html.Kendo().Grid<iLgs.Models.CustodianReport>()
+    .Name("grid")
+    .HtmlAttributes(new { @class = "max-grid" })
+    .Columns(col =>
+    {
+        col.Bound(c => c.AsOf).Width(50);
+        col.Bound(c => c.Fund).Width(70);
+        col.Bound(c => c.Department).Width(100);
+        col.Bound(c => c.CertifiedCorrectBy).Width(70);
+        col.Bound(c => c.PostedBy).Width(70);
+        col.Bound(c => c.PostedDt).Width(70);
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+        }).Width(150);
+    })
+    .ToolBar(t =>
+    {
+        t.Create().Text("Add New Record");
+        t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Search();
+    })
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CustodianReportTemplate").Window(w => w.Width(500).Title("Custodian Report")))
+    .Search(s =>
+    {
+        s.Field(o => o.AsOf, "contains");
+        s.Field(o => o.Fund, "contains");
+        s.Field(o => o.Department, "contains");
+    })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+    )
+    .Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    .Scrollable()
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Sortable()
+    .ClientDetailTemplateId("Details")
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Events(events => events.Error("GridError").RequestEnd("onGridRequestEnd"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            model.Field(p => p.AccountGroup).DefaultValue((int)@ViewBag.AccountGroup);
+        })
+        .Read(read => read.Action("Read", "CustodianReport").Data("DataGrid"))
+        .Create(create => create.Action("Create", "CustodianReport"))
+        .Update(update => update.Action("Update", "CustodianReport"))
+        .Destroy(destroy => destroy.Action("Destroy", "CustodianReport"))
+    )
+    .Events(events => events
+        .Change("onChangeGrid")
+        .Edit("onEditGrid")
+        .DataBound("onDataBoundGrid")
+        )
+        .AutoBind(false)
+)
+
+<script id="Details" type="text/x-kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+    .Name("tabStrip_#=Id#")
+    //.HtmlAttributes(new { @class = "no-text-tabstrip" })
+    .TabPosition(TabStripTabPosition.Top)
+    .Animation(animation =>
+    {
+        animation.Open(config =>
+        {
+            config.Fade(FadeDirection.In);
+        });
+    })
+    .SelectedIndex(0)
+    //.Events(e => e.Select("onSelectTab"))
+    .Items(items =>
+    {
+        items.Add().Text("Items")
+            .Selected(true)
+            .LoadContentFrom("_ReportItem", "CustodianReport", new { reportId = "#=Id#", accountGroup = @ViewBag.AccountGroup });
+    }).ToClientTemplate())
+</script>
+
+@(Html.Kendo().Notification()
+        .Name("popupNotification")
+        .Events(e => e.Show("onShowNotification"))
+)
+
+<div id="windowcontainer"></div>
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+
+    .k-window-content {
+        overflow-x: hidden;
+    }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .k-floating-label-container {
+        width: 100%;
+    }
+
+    #span_ {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: fit-content;
+    }
+
+    .no-text-tabstrip .k-item .k-link {
+        padding: 0; /* Remove padding */
+        text-indent: -9999px; /* Move the text outside the visible area */
+        overflow: hidden; /* Hide any overflow */
+    }
+
+    .card-body {
+        flex: 1 1 auto;
+        padding: 1rem 1rem;
+        /*min-height: 100px;*/
+    }
+
+    .card-header {
+        padding: 0.5rem 1rem;
+        margin-bottom: 0;
+        background-color: rgba(0,0,0,.03);
+        border-bottom: 1px solid rgba(0,0,0,.125);
+    }
+
+    .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        word-wrap: break-word;
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid rgba(0,0,0,.125);
+        border-radius: 0.25rem;
+    }
+</style>
+
+
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    <li>
+        #=field#
+        <ul>
+            # for (var i = 0; i < messages.length; ++i) { #
+            <li>#= messages[i] #</li>
+            # } #
+        </ul>
+    </li>
+    # } #
+</script>
+
+
+<script type="text/javascript">
+    // Attach click event to the custom export button
+   $(".k-grid-btnExport").click(function (e) {
+        e.preventDefault();
+        // Get the selected row's data (assuming a single selection model)
+        var grid = $("#grid").data("kendoGrid");
+        var selectedRow = grid.select();
+        var selectedData = grid.dataItem(selectedRow);
+
+        if (selectedData) {
+            // Get the ID of the selected row
+            var reportId = selectedData.Id;
+
+            // Construct the URL for the Excel export
+            var url = "@Url.Action("ExcelExport", "CustodianReport")" + "?reportId=" + reportId;
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+        } else {
+            alert("Please select a row to export.");
+        }
+    });
+
+    //function reloadTab(idx) {
+    //    var ts = $("#tabStrip").data("kendoTabStrip");
+    //    if (idx == 0) {
+    //        ts.contentHolder(idx).load("../Orders/_OrderItem?orderId=" + selectedId);
+    //    } else {
+    //        ts.contentHolder(idx).load("../Orders/_UnitGroup?orderId=" + selectedItem);
+    //    }
+    //}
+    function onSelectDeptId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#grid").data("kendoGrid").dataSource.read({deptId: dataItem.Id, accountGroup : '@ViewBag.AccountGroup'});
+    }
+
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    }
+
+    function onSelectTab(e) {
+        var ts = this;
+        for (var idx = 0; ; ++idx) {
+            var tab = ts.contentElement(idx);
+            if (tab == null)
+                break;
+            if (tab == e.contentElement) {
+                if (idx == 0) {
+                    ts.contentHolder(idx).load("../CustodianReport/_StockItem?reportId=" + selectedId);
+                }
+            }
+            else {
+                //all other tabs
+                $(tab).html("");
+            }
+        }
+    }
+
+    function onShowNotification(e) {
+        if (e.sender.getNotifications().length == 1) {
+            e.element.parent().css({ zIndex: 22222 });
+        }
+    }
+
+    function GridError(args) {
+        if (args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    $(document).ready(function () {
+        var grid = $("#grid").data("kendoGrid");
+        //grid.wrapper.find(".k-grid-add").prop("disabled", true); // Disable the ADD button
+        grid.wrapper.find(".k-grid-add").hide(); // Hide the ADD button by default        
+        grid.wrapper.find(".k-grid-btnExport").hide();
+        grid.wrapper.find(".k-grid-btnPrintPO").hide();
+        grid.wrapper.find(".k-grid-btnPostPO").hide();
+        grid.wrapper.find(".k-grid-btnUnpostPO").hide();
+    });
+
+    function onGridRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                selectedGrid.dataSource.read();
+            }
+            if (e.type == "create") {
+                var responseData = e.response;
+                var newRecord = responseData.Data[0];
+                selectedId = newRecord.Id;
+            }
+        }
+    }
+
+    var selectedGrid = null;
+    var selectedId = null;
+    var selectedAsOf = null;
+    var selecteItemId = null;
+    var postedBy = null;
+
+    function onChangeGrid(e) {
+        var selectedData = this.dataItem(this.select());
+        var grid = $("#grid");
+
+        selectedId = selectedData.Id;
+        selectedAsOf = selectedData.AsOf;
+        selectedItemId = null;
+        postedBy = selectedData.PostedBy;
+
+        if (postedBy) {
+            $(".k-grid-btnUnpostPO", grid).show();
+            $(".k-grid-btnPostPO", grid).hide();
+        } else {
+            $(".k-grid-btnUnpostPO", grid).hide();
+            $(".k-grid-btnPostPO", grid).show();
+        }
+    }
+
+    function onDataBoundGrid(e) {
+        if (selectedId) {
+            var dataItem = this.dataSource.get(selectedId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+
+            // Attach a handler to the "detailExpand" event
+            this.bind("detailExpand", function (e) {
+                // Select the expanded master row
+                this.select(e.masterRow);
+            });
+        }
+
+        this.wrapper.find(".k-grid-add").show();
+
+        if (this.dataSource.data().length == 0) {
+            $(".k-grid-btnExport", grid).hide();
+            $(".k-grid-btnPrintPO", grid).hide();
+            $(".k-grid-btnPostPO", grid).hide();
+            $(".k-grid-btnUnpostPO", grid).hide();
+        }
+        else {
+            $(".k-grid-btnExport", grid).show();
+            $(".k-grid-btnPrintPO", grid).show();
+            $(".k-grid-btnPostPO", grid).show();
+        }
+    }
+
+    function onEditGrid(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            var deptId = $("#deptId").data("kendoMultiColumnComboBox").value();
+            var department = $("#deptId").data("kendoMultiColumnComboBox").text();
+            this.select(row);
+            selectedId = null;
+            selectedAsOf = null;
+            e.container.find("[id=EditDiv]").addClass('hidden');
+            e.model.set("DeptId", deptId);
+            e.model.set("Department", department);
+        } else {
+            selectedId = e.model.get("Id");
+            //selectedAsOf = e.model.get("AsOf");
+            var rowitem = selectedGrid.dataSource.get(selectedId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            //$("#AsOf").data("kendoDatePicker").enable(false);
+            //$("#Fund").data("kendoMultiColumnComboBox").enable(false);
+            //$("#FromDonation").data("kendoCheckBox").enable(false);
+            //$("#InvDist").data("kendoComboBox").enable(false);
+            //$("#ItemTypeId").data("kendoMultiColumnComboBox").enable(false);
+            e.container.find("[id=EditDiv]").removeClass('hidden');
+        }
+    }
+
+    function onSaveGrid(e) {
+        //e.preventDefault();
+        if (e.model.isNew()) {
+            alert('new');
+        } else {
+            alert('edit');
+        }
+    }
+
+    function onGridDeleteClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        const tr = $(e.currentTarget).closest("tr");
+        const dataItem = this.dataItem(tr);
+        const rowitem = this.dataSource.get(dataItem.Id);
+        this.select($('[data-uid=' + rowitem.uid + ']'));
+        this.removeRow(tr);
+    }
+
+    function onGridItemDeleteClick(e) {
+        //e.preventDefault();
+        //selectedGrid = this;
+        //const tr = $(e.currentTarget).closest("tr");
+        //const dataItem = this.dataItem(tr);
+        //const rowitem = this.dataSource.get(dataItem.Id);
+        //this.select($('[data-uid=' + rowitem.uid + ']'));
+        //this.removeRow(tr);
+         e.preventDefault();
+        selectedGrid = this; // Reference to the current grid
+        const tr = $(e.currentTarget).closest("tr"); // Find the closest row
+        const dataItem = selectedGrid.dataItem(tr); // Get the data item for the row
+
+        // Optional: Show a confirmation dialog before deletion
+        if (confirm("Are you sure you want to delete this item?")) {
+            // Remove the item from the DataSource
+            selectedGrid.dataSource.remove(dataItem);
+
+            // Remove the row from the grid
+            selectedGrid.removeRow(tr);
+
+            // Sync the DataSource if you're using server-side operations
+            selectedGrid.dataSource.sync();
+        }
+    }
+
+    function DataGrid() {
+        return {
+            deptId: $("#deptId").val(),
+            accountGroup: '@ViewBag.AccountGroup'
+        };
+    }
+
+    // Grid Item
+    function GridItemError(args) {
+        if (args.errors) {
+            var validationError = true;
+            var selectedGrid = $("#gridItems_" + selectedId).data("kendoGrid");
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    function onChangeGridItems(e) {
+        var selectedData = this.dataItem(this.select());
+        selecteItemId = selectedData.Id;
+    }
+
+    function onDataBoundGridItems(e) {
+        e.preventDefault();
+        if (selecteItemId) {
+            var dataItem = this.dataSource.get(selecteItemId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onEditGridItems(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        //the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedItemId = null;
+            e.model.set("ReportId", parentModel.Id);
+        } else {
+            selectedItemId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedItemId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+
+        e.model.set("AccountGroup", parentModel.AccountGroup);
+    }
+
+    function onGridItemsRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
+            }
+        }
+    }
+
+    function onRemoveGridItems(e) { // triggers after confirm
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        //the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+    }
+
+    function onSaveGridItems(e) {
+        // Prevent default Kendo UI save event
+        e.preventDefault();
+        var url = null;
+
+        if (e.model.isNew()) {
+            url = '@Url.Action("_StockItemCreate", "CustodianReport")';
+        } else {
+            url = '@Url.Action("_StockItemUpdate", "CustodianReport")';
+        }
+
+        SaveGridItems(url);
+    }
+    // end grid items
+
+    $(".k-grid-btnPostPO").click(function (e) {
+        e.preventDefault();
+        if (postedBy) {
+            alert("Recored already posted by " + postedBy);
+        }
+        else {
+            var msg = "Post Selected record?";
+
+            if (confirm(msg)) {
+                var popupNotification = $("#popupNotification").data("kendoNotification");
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("Post", "CustodianReport")',
+                    data: { reportId: selectedId },
+                    async: true,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($(document.body), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($(document.body), false);
+                        if (result.Errors == "") {
+                            popupNotification.show("Record successfully posted...", "info");
+                            $("#grid").data("kendoGrid").dataSource.read();
+                        } else {
+                            displayErrors(result.Errors);
+                            return false;
+                        }
+                    },
+                    error: function (req, status, errorObj) {
+                        disabled.attr('disabled', 'disabled');
+                        alert(req.responseText);
+                        return false;
+                    }
+                });
+            }
+        }
+    });
+
+    function displayErrors(errors) {
+        if (errors.length > 0) {
+            // Concatenate all error messages into a single string
+            var allErrors = errors.join('\n');
+            alert(allErrors);
+        }
+    }
+
+    $(".k-grid-btnUnpostPO").click(function (e) {
+        e.preventDefault();
+        var msg = "Unpost Selected Record?";
+
+        if (confirm(msg)) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("Unpost", "CustodianReport")',
+                data: { reportId: selectedId },
+                async: true,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    if (result.Errors == "") {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    } else {
+                        alert(result.Errors);
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+        }
+    });
+
+    $(".k-grid-btnPrintPO").click(function (e) {
+        e.preventDefault();
+        var url = '@Url.Action("CustodianRpt", "CustodianReport")?id=' + selectedId + '&accountGroup=@ViewBag.AccountGroup';
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    });
+
+    function onSelectItemId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#Account").val(dataItem.Description).trigger("change");
+    }
+
+    // PPE item
+    function onSaveGridItemsPpe(e) {
+        // Prevent default Kendo UI save event
+        e.preventDefault();
+        var url = null;
+
+        if (e.model.isNew()) {
+            url = '@Url.Action("_PpeItemCreate", "CustodianReport")';
+        } else {
+            url = '@Url.Action("_PpeItemUpdate", "CustodianReport")';
+        }
+
+        SaveGridItems(url);
+    }
+    // END PPE item
+
+
+    // PPE item
+    function onSaveGridItemsVehicle(e) {
+        // Prevent default Kendo UI save event
+        e.preventDefault();
+        var url = null;
+
+        if (e.model.isNew()) {
+            url = '@Url.Action("_VehicleItemCreate", "CustodianReport")';
+        } else {
+            url = '@Url.Action("_VehicleItemUpdate", "CustodianReport")';
+        }
+
+        SaveGridItems(url);
+    }
+    // END PPE item
+
+
+    // COMMON for ITEMS
+    function SaveGridItems(url)
+    {
+        var popupNotification = $("#popupNotification").data("kendoNotification");
+        var reportId = $("#ReportId").val();
+        var formData = $("#form").serialize();
+        var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+        // Make an AJAX call to submit the data
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: formData,
+            success: function (response) {
+                disabled.attr('disabled', 'disabled');
+                if (response.Errors) {
+                    // Clear previous errors
+                    $("#ErrorContent .errors").empty();
+                    var errorMsg = "";
+                    // Populate errors into the template
+                    for (var field in response.Errors) {
+                        var messages = response.Errors[field].errors;
+                        var html = kendo.template($("#validationMessageTemplate").html())({
+                            field: field,
+                            messages: messages
+                        });
+                        $("#ErrorContent .errors").append(html);
+                        errorMsg += html;
+                    }
+                    popupNotification.show(errorMsg, "error");
+                    // Show the error content
+                    $("#ErrorContent").removeClass("hidden");
+                } else {
+                    // Handle validation errors if any
+                    $("#gridItems_" + reportId).data("kendoGrid").dataSource.read();
+                }
+            },
+            error: function (xhr, status, error) {
+                e.sender.trigger("error", {
+                    errors: [error]
+                });
+                alert("An error occurred: " + error);
+            }
+        });
+    }
+
+    function UpdateDescription(e)
+    {
+        var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+        var data = $("#form").serialize();
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GetStockNo", "CustodianReport")',
+            data: data,
+            beforeSend: function () {
+                window.kendo.ui.progress($(document.body), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($(document.body), false);
+                $("#PsNo").val(result.StockNo).trigger("change");
+                disabled.attr('disabled', 'disabled')
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+            }
+        });
+    }
+    // END COMMON
+</script>
+
+

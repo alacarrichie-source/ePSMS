@@ -135,6 +135,7 @@
                         {
                             model.Id(p => p.Code);
                         })
+                    .Sort(s => s.Add(a => a.Code))
                     .Read(read => read.Action("MenuAccessActionRead", "MenuAccessAction").Data("GridExtnData"))
                 )
                 .Selectable(s => s.Mode(GridSelectionMode.Single))

@@ -2,6 +2,8 @@
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.AllFields;
+using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
@@ -12,7 +14,7 @@ using System.Threading.Tasks;
 using System.Web;
 using static iLgs.Models.Enums;
 
-namespace iLgs.Services.Validators
+namespace iLgs.Services.StockCards
 {
     public interface IStockCardValidator
     {
@@ -66,7 +68,7 @@ namespace iLgs.Services.Validators
             _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
             if (_db.PsCards.Any(a => a.PsNo == model.PsNo))
             {
-                ex.UpsertDataList(_getDisplayName(nameof(model.PsNo)), "Already exits.");
+                ex.UpsertDataList(_getDisplayName(nameof(model.PsNo)), "Already exists.");
             }
             ex.ThrowIfContainsErrors();
         }
@@ -84,7 +86,7 @@ namespace iLgs.Services.Validators
             _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
             if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Id != model.Id))
             {
-                ex.UpsertDataList(Utility.GetDisplayName<StockCardVM>(nameof(model.PsNo)), "Already exits.");
+                ex.UpsertDataList(Utility.GetDisplayName<StockCardVM>(nameof(model.PsNo)), "Already exists.");
             }
             ex.ThrowIfContainsErrors();
         }

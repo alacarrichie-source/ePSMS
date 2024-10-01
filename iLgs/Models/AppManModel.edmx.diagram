@@ -88,18 +88,22 @@
         <AssociationConnector Association="AppManModel.FK_RequestItemUnitGroupDescriptions_RequestItemUnitGroups" />
         <AssociationConnector Association="AppManModel.FK_RequestItemUnitGroups_RisItemUnitGroups" />
       </Diagram>
-      <Diagram DiagramId="0a18cc5b62d44966aa30d686ae3dff77" Name="RPCI" >
-        <EntityTypeShape EntityType="AppManModel.RPCEFFOPPEItem" Width="1.5" PointX="8" PointY="1" />
-        <EntityTypeShape EntityType="AppManModel.RPCEFFOPPE" Width="1.5" PointX="5.75" PointY="1" />
+      <Diagram DiagramId="0a18cc5b62d44966aa30d686ae3dff77" Name="RPCI" ZoomLevel="102" >
+        <EntityTypeShape EntityType="AppManModel.RPCEFFOPPEItem" Width="1.5" PointX="13" PointY="10" />
+        <EntityTypeShape EntityType="AppManModel.RPCEFFOPPE" Width="1.5" PointX="10.75" PointY="10" />
         <AssociationConnector Association="AppManModel.FK_RPCEFFOPPEItems_RPCEFFOPPEs" />
-        <EntityTypeShape EntityType="AppManModel.RpcPpeItem" Width="1.5" PointX="3" PointY="7" />
-        <EntityTypeShape EntityType="AppManModel.RpcPpe" Width="1.5" PointX="0.75" PointY="8.5" />
+        <EntityTypeShape EntityType="AppManModel.RpcPpeItem" Width="1.5" PointX="13" PointY="1.125" />
+        <EntityTypeShape EntityType="AppManModel.RpcPpe" Width="1.5" PointX="10.75" PointY="2.625" />
         <AssociationConnector Association="AppManModel.FK_RpcPpeItems_RpcPpes" />
-        <EntityTypeShape EntityType="AppManModel.RPCI" Width="1.5" PointX="5.375" PointY="8.5" />
-        <EntityTypeShape EntityType="AppManModel.RPCIItem" Width="1.5" PointX="7.625" PointY="7" />
+        <EntityTypeShape EntityType="AppManModel.RPCI" Width="1.5" PointX="0.75" PointY="4.5" />
+        <EntityTypeShape EntityType="AppManModel.RPCIItem" Width="1.5" PointX="3" PointY="1.375" />
         <AssociationConnector Association="AppManModel.FK_RPCIItems_RPCIs1" />
-        <EntityTypeShape EntityType="AppManModel.RPCIDepLoc" Width="1.5" PointX="7.625" PointY="15.75" />
+        <EntityTypeShape EntityType="AppManModel.RPCIDepLoc" Width="1.5" PointX="3" PointY="10.125" />
         <AssociationConnector Association="AppManModel.FK_RPCIDepLocs_RPCIs" />
+        <EntityTypeShape EntityType="AppManModel.CardItemExtn" Width="1.5" PointX="0.75" PointY="13.75" />
+        <EntityTypeShape EntityType="AppManModel.CustodianReport" Width="1.5" PointX="5.75" PointY="7.625" />
+        <EntityTypeShape EntityType="AppManModel.CustodianReportItem" Width="1.5" PointX="8" PointY="1.625" />
+        <AssociationConnector Association="AppManModel.FK_CustodianReportItems_CustodianReports" />
       </Diagram>
       <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" ZoomLevel="83" >
         <EntityTypeShape EntityType="AppManModel.AccountableOfficer" Width="1.5" PointX="0.75" PointY="0.75" />
