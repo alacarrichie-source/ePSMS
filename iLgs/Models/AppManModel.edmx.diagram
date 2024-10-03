@@ -88,7 +88,7 @@
         <AssociationConnector Association="AppManModel.FK_RequestItemUnitGroupDescriptions_RequestItemUnitGroups" />
         <AssociationConnector Association="AppManModel.FK_RequestItemUnitGroups_RisItemUnitGroups" />
       </Diagram>
-      <Diagram DiagramId="0a18cc5b62d44966aa30d686ae3dff77" Name="RPCI" ZoomLevel="102" >
+      <Diagram DiagramId="0a18cc5b62d44966aa30d686ae3dff77" Name="RPCI" ZoomLevel="78" >
         <EntityTypeShape EntityType="AppManModel.RPCEFFOPPEItem" Width="1.5" PointX="13" PointY="10" />
         <EntityTypeShape EntityType="AppManModel.RPCEFFOPPE" Width="1.5" PointX="10.75" PointY="10" />
         <AssociationConnector Association="AppManModel.FK_RPCEFFOPPEItems_RPCEFFOPPEs" />
@@ -102,7 +102,7 @@
         <AssociationConnector Association="AppManModel.FK_RPCIDepLocs_RPCIs" />
         <EntityTypeShape EntityType="AppManModel.CardItemExtn" Width="1.5" PointX="0.75" PointY="13.75" />
         <EntityTypeShape EntityType="AppManModel.CustodianReport" Width="1.5" PointX="5.75" PointY="7.625" />
-        <EntityTypeShape EntityType="AppManModel.CustodianReportItem" Width="1.5" PointX="8" PointY="1.625" />
+        <EntityTypeShape EntityType="AppManModel.CustodianReportItem" Width="1.5" PointX="8" PointY="1.5" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportItems_CustodianReports" />
       </Diagram>
       <Diagram DiagramId="9e750c59dd4246769d993adf7c4bec3e" Name="Cards" ZoomLevel="83" >

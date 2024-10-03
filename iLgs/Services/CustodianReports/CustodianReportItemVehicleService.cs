@@ -12,6 +12,7 @@ namespace iLgs.Services.CustodianReports
     {
         new ValueTask<CustodianReportItemVehicleVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportItemVehicleVM> GetAll(Guid? reportId);
+        IQueryable<CustodianReportItemVehicleVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup);
         ValueTask<CustodianReportItemVehicleVM> CreateAsync(CustodianReportItemVehicleVM model, string user, DateTime date);
         ValueTask<CustodianReportItemVehicleVM> UpdateAsync(CustodianReportItemVehicleVM model, string user, DateTime date);
         ValueTask<CustodianReportItemVehicleVM> DeleteAsync(CustodianReportItemVehicleVM model, string user, DateTime date);
@@ -35,7 +36,10 @@ namespace iLgs.Services.CustodianReports
                 .Select(s => new CustodianReportItemVehicleVM
                 {
                     Id = s.Id,
+                    MainDeptId = s.CustodianReport.DeptId,
+                    AccountGroup = s.CustodianReport.AccountGroup,
                     ReportId = s.ReportId,
+                    Fund = s.Fund,
                     CustodianItemNo = s.CustodianItemNo,
                     SeriesNo = s.SeriesNo,
                     FromDonation = s.FromDonation,
@@ -82,7 +86,6 @@ namespace iLgs.Services.CustodianReports
                     SerialNo = s.SerialNo,
                     OldPropNo = s.OldPropNo,
                     PropNo = s.PropNo,
-                    YearModel = s.YearModel,
                     PlateNo = s.PlateNo,
                     BodyNo = s.BodyNo,
                     MVFileNo = s.MVFileNo,
@@ -100,8 +103,6 @@ namespace iLgs.Services.CustodianReports
                     Condition = s.Condition,
                     Remarks = s.Remarks,
                     ParNo = s.ParNo,
-                    AreNo = s.AreNo,
-                    MrNo = s.MrNo,
                     ParIssuedTo = s.ParIssuedTo,
                     AccountableOfficer = s.AccountableOfficer,
                     UpcomingPar = s.UpcomingPar,
@@ -122,7 +123,10 @@ namespace iLgs.Services.CustodianReports
                 .Select(s => new CustodianReportItemVehicleVM
                 {
                     Id = s.Id,
+                    MainDeptId = s.CustodianReport.DeptId,
+                    AccountGroup = s.CustodianReport.AccountGroup,
                     ReportId = s.ReportId,
+                    Fund = s.Fund,
                     CustodianItemNo = s.CustodianItemNo,
                     SeriesNo = s.SeriesNo,
                     FromDonation = s.FromDonation,
@@ -186,8 +190,6 @@ namespace iLgs.Services.CustodianReports
                     Condition = s.Condition,
                     Remarks = s.Remarks,
                     ParNo = s.ParNo,
-                    AreNo = s.AreNo,
-                    MrNo = s.MrNo,
                     ParIssuedTo = s.ParIssuedTo,
                     AccountableOfficer = s.AccountableOfficer,
                     UpcomingPar = s.UpcomingPar,
@@ -197,6 +199,94 @@ namespace iLgs.Services.CustodianReports
                     ItemType_Code = s.ItemCode.ItemType.Code,
                     Item_Code = s.ItemCode.Code
                 });
+            return data;
+        }
+
+        public IQueryable<CustodianReportItemVehicleVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup)
+        {
+            var data = _db.CustodianReportItems
+                .AsNoTracking()
+                .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
+                .Select(s => new CustodianReportItemVehicleVM
+                {
+                    Id = s.Id,
+                    MainDeptId = s.CustodianReport.DeptId,
+                    AccountGroup = s.CustodianReport.AccountGroup,
+                    ReportId = s.ReportId,
+                    Fund = s.Fund,
+                    CustodianItemNo = s.CustodianItemNo,
+                    SeriesNo = s.SeriesNo,
+                    FromDonation = s.FromDonation,
+                    InvDist = s.InvDist,
+                    Account = s.Account,
+                    ItemCodeId = s.ItemCodeId,
+                    SubAccount = s.SubAccount,
+                    Article = s.Article,
+                    PoNo = s.PoNo,
+                    PoDate = s.PoDate,
+                    AirNo = s.AirNo,
+                    AirDate = s.AirDate,
+                    AcqDate = s.AcqDate,
+                    UnitCost = s.UnitCost,
+                    Unit = s.Unit,
+                    SetLotNo = s.SetLotNo,
+                    DeptId = s.DeptId,
+                    Department = s.Department,
+                    LocationId = s.LocationId,
+                    LocationCode = s.LocationCode,
+                    Location = s.Location,
+                    SubLocation = s.SubLocation,
+                    Qty = s.Qty,
+                    TransferIn = s.TransferIn,
+                    QtyBalance = s.QtyBalance,
+                    TotalCost = s.TotalCost,
+                    OldAmount = s.OldAmount,
+                    OldPsNo = s.OldPsNo,
+                    PsNo = s.PsNo,
+                    Description = s.Description,
+                    Brand = s.Brand,
+                    Model_ = s.Model_,
+                    Dimension = s.Dimension,
+                    Size = s.Size,
+                    Weight = s.Weight,
+                    Materials = s.Materials,
+                    Capacity = s.Capacity,
+                    Color = s.Color,
+                    GenericName = s.GenericName,
+                    DosageStrength = s.DosageStrength,
+                    DosageForm = s.DosageForm,
+                    DosageVolume = s.DosageVolume,
+                    Multipliers = s.Multipliers,
+                    SerialNo = s.SerialNo,
+                    OldPropNo = s.OldPropNo,
+                    PropNo = s.PropNo,
+                    PlateNo = s.PlateNo,
+                    BodyNo = s.BodyNo,
+                    MVFileNo = s.MVFileNo,
+                    EngineNo = s.EngineNo,
+                    ChasisNo = s.ChasisNo,
+                    CRN = s.CRN,
+                    CRDate = s.CRDate,
+                    OrNo = s.OrNo,
+                    OrDate = s.OrDate,
+                    InsPolicyNo = s.InsPolicyNo,
+                    ConductionNo = s.ConductionNo,
+                    ItemSerialNo = s.ItemSerialNo,
+                    OtherDesc = s.OtherDesc,
+                    OtherQty = s.OtherQty,
+                    Condition = s.Condition,
+                    Remarks = s.Remarks,
+                    ParNo = s.ParNo,
+                    ParIssuedTo = s.ParIssuedTo,
+                    AccountableOfficer = s.AccountableOfficer,
+                    UpcomingPar = s.UpcomingPar,
+                    Type = s.Type,
+                    InsertedBy = s.InsertedBy,
+                    InsertedDt = s.InsertedDt,
+                    ItemType_Code = s.ItemCode.ItemType.Code,
+                    Item_Code = s.ItemCode.Code
+                });
+
             return data;
         }
 

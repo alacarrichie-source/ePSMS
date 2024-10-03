@@ -11,6 +11,7 @@
     @Html.HiddenFor(model => model.LocationCode)
     @Html.HiddenFor(model => model.ItemType_Code)
     @Html.HiddenFor(model => model.Item_Code)
+    @Html.HiddenFor(model => model.MainDeptId)
     @Html.HiddenFor(model => model.AccountGroup)
 
 
@@ -21,6 +22,28 @@
     </div>
 
     <fieldset>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.CustodianItemNo, "LabelInt")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.CustodianItemNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.CustodianItemNo)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.SubLocation, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.SubLocation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.SubLocation)
+                </div>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-md-12">
                 <div class="col-md-12">
@@ -472,18 +495,6 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="col-md-3">
-                    @Html.DisplayFor(m => m.SubLocation, "Label")
-                </div>
-                <div class="col-md-9">
-                    @(Html.Kendo().TextBoxFor(m => m.SubLocation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.SubLocation)
-                </div>
-            </div>            
-        </div>        
-
-        <div class="row">
-            <div class="col-md-6">
-                <div class="col-md-3">
                     @Html.DisplayFor(m => m.InvDist, "Label")
                 </div>
                 <div class="col-md-9">
@@ -519,14 +530,48 @@
                 <div class="col-md-9">
                     @(Html.Kendo().TextBoxFor(m => m.Condition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Condition)
-                </div>
+                </div>                
+            </div>
+        </div>
 
+        <div class="row">
+            <div class="col-md-6">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.Remarks, "Label")
                 </div>
                 <div class="col-md-9">
                     @(Html.Kendo().TextBoxFor(m => m.Remarks).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Remarks)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.Fund, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Fund")
+                            .DataTextField("Description")
+                            .DataValueField("Code")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetCodeList", "Getters", new { mastCode = "FUND", addAll = false });
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(model => model.Fund)
                 </div>
             </div>
         </div>

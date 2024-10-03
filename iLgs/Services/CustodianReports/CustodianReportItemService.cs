@@ -21,7 +21,7 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportItem> CreateAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date);
-        MemoryStream ProcessExcelFile(Guid id, string templateFilePath, CustodianAccountGroup accountGroup);
+        MemoryStream ProcessExcelFile(Guid id, string templateFilePath, int? accountGroup);
     }
 
     public class CustodianReportItemService : ICustodianReportItemService
@@ -64,6 +64,23 @@ namespace iLgs.Services.CustodianReports
             model.InsertedDt = date;
             model.UpdatedBy = user;
             model.UpdatedDt = date;
+
+            var custodianReport = await _db.CustodianReports.Where(w => w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
+            if (custodianReport == null)
+            {
+                custodianReport = new CustodianReport();
+                custodianReport.Id = Guid.NewGuid();
+                custodianReport.DeptId = model.MainDeptId;
+                custodianReport.AccountGroup = model.AccountGroup;
+                custodianReport.InsertedBy = user;
+                custodianReport.InsertedDt = date;
+                custodianReport.UpdatedBy = user;
+                custodianReport.UpdatedDt = date;
+                _db.CustodianReports.Add(custodianReport);
+                await _db.SaveChangesAsync();                
+            }
+
+            model.ReportId = custodianReport.Id;
 
             var entity = new CustodianReportItem();
             MapModelToEntityFields(entity, model, Mode.ADD);
@@ -173,6 +190,7 @@ namespace iLgs.Services.CustodianReports
             MapFormattedAllField(model);
 
             entity.ReportId = model.ReportId;
+            entity.Fund = model.Fund;
             entity.CustodianItemNo = model.CustodianItemNo;
             entity.SeriesNo = model.SeriesNo;
             entity.FromDonation = model.FromDonation;
@@ -247,7 +265,7 @@ namespace iLgs.Services.CustodianReports
             entity.UpdatedDt = model.UpdatedDt;
         }
 
-        public MemoryStream ProcessExcelFile(Guid id, string templateFilePath, CustodianAccountGroup accountGroup)
+        public MemoryStream ProcessExcelFile(Guid id, string templateFilePath, int? accountGroup)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -255,11 +273,11 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new FileNotFoundException("The template file does not exist.", templateFilePath);
             }
-            if (accountGroup == CustodianAccountGroup.STOCK)
+            if (accountGroup == (int?)CustodianAccountGroup.STOCK)
             {
                 return ProcessExcelFileStockTemplate(id, templateFilePath);
             }
-            else if (accountGroup == CustodianAccountGroup.PPE)
+            else if (accountGroup == (int?)CustodianAccountGroup.PPE)
             {
                 return ProcessExcelFilePpeTemplate(id, templateFilePath);
             }

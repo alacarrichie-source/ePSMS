@@ -1,5 +1,4 @@
 ﻿@{
-    //ViewBag.Title = "Custodian Report";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 <br />
@@ -581,7 +580,7 @@
                 $.ajax({
                     type: "POST",
                     url: '@Url.Action("Post", "CustodianReport")',
-                    data: { reportId: selectedId },
+                    data: { id: selectedId },
                     async: true,
                     beforeSend: function () {
                         window.kendo.ui.progress($(document.body), true);
@@ -622,7 +621,7 @@
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("Unpost", "CustodianReport")',
-                data: { reportId: selectedId },
+                data: { id: selectedId },
                 async: true,
                 beforeSend: function () {
                     window.kendo.ui.progress($(document.body), true);

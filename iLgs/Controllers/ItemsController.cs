@@ -606,6 +606,78 @@ namespace iLgs.Controllers
         }
 
         [Authorize]
+        public JsonResult GetCustodianItemPpe(string text)
+        {
+            var model = _itemCodeService.GetCustodianItemPpe(text);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                Code = c.Code,
+                Description = c.Description,
+                Type = c.ItemType,
+                TypeDesc = c.Account,
+                ItemNo = c.ItemNo,
+                MainDesc = c.MainDesc,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode
+            }), JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize]
+        public JsonResult GetCustodianItemStocks(string text)
+        {
+            var model = _itemCodeService.GetCustodianItemStocks(text);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                Code = c.Code,
+                Description = c.Description,
+                Type = c.ItemType,
+                TypeDesc = c.Account,
+                ItemNo = c.ItemNo,
+                MainDesc = c.MainDesc,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode
+            }), JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize]
+        public JsonResult GetCustodianItemVehicle(string text)
+        {
+            var model = _itemCodeService.GetCustodianItemVehicle(text);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                Code = c.Code,
+                Description = c.Description,
+                Type = c.ItemType,
+                TypeDesc = c.Account,
+                ItemNo = c.ItemNo,
+                MainDesc = c.MainDesc,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode
+            }), JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize]
         public JsonResult GetRpciAccounts(string text)
         {
             var model = _itemTypeService.GetRpciAccounts(text);

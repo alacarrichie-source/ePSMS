@@ -45,25 +45,25 @@ namespace iLgs.Controllers
         public ActionResult Stock()
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
-            ViewBag.AccountGroup = CustodianAccountGroup.STOCK;
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.STOCK;
             ViewBag.Title = "Custodian Report - Stocks";
-            return View("Index");
+            return View();
         }
 
         public ActionResult Ppe()
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
-            ViewBag.AccountGroup = CustodianAccountGroup.PPE;
-            ViewBag.Title = "Custodian Report - PPE";
-            return View("Index");
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.PPE;
+            ViewBag.Title = "Custodian Report - Other PPE";
+            return View();
         }
 
         public ActionResult Transpo()
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
-            ViewBag.AccountGroup = CustodianAccountGroup.VEHICLE;
-            ViewBag.Title = "Custodian Report - Transportation Equipement";
-            return View("Index");
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.VEHICLE;
+            ViewBag.Title = "Custodian Report - Transportation Equipment";
+            return View();
         }
 
 
@@ -79,7 +79,7 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid? deptId, CustodianAccountGroup? accountGroup)
+        public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
         {
             var data = _custodianReportService.GetAllByDepartmentAccountGroup(deptId, accountGroup);
 
@@ -269,6 +269,7 @@ namespace iLgs.Controllers
                         select error.ErrorMessage;
 
             var errorList = query.ToList();
+
             if (errorList.Count() > 0)
             {
                 return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
@@ -333,19 +334,19 @@ namespace iLgs.Controllers
         #endregion
 
 
-        public ActionResult _ReportItem(Guid reportId, CustodianAccountGroup? accountGroup)
+        public ActionResult _ReportItem(Guid reportId, int? accountGroup)
         {
             string partialView = "";
 
-            if (accountGroup == CustodianAccountGroup.STOCK)
+            if (accountGroup == (int?)CustodianAccountGroup.STOCK)
             {
                 partialView = "_StockItem";
             }
-            else if (accountGroup == CustodianAccountGroup.PPE)
+            else if (accountGroup == (int?)CustodianAccountGroup.PPE)
             {
                 partialView = "_PpeItem";
             }
-            else if (accountGroup == CustodianAccountGroup.VEHICLE)
+            else if (accountGroup == (int?)CustodianAccountGroup.VEHICLE)
             {
                 partialView = "_VehicleItem";
             }
@@ -356,9 +357,9 @@ namespace iLgs.Controllers
         }
 
         #region STOCK ITEM
-        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, Guid? reportId)
+        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
         {
-            var data = _custodianReportItemStockService.GetAll(reportId);
+            var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(deptId, accountGroup);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -499,9 +500,9 @@ namespace iLgs.Controllers
 
 
         #region PPE ITEMS
-        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, Guid? reportId)
+        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
         {
-            var data = _custodianReportItemPpeService.GetAll(reportId);
+            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(deptId, accountGroup);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -641,9 +642,9 @@ namespace iLgs.Controllers
         #endregion
 
         #region VEHICLE ITEMS
-        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, Guid? reportId)
+        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
         {
-            var data = _custodianReportItemVehicleService.GetAll(reportId);
+            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(deptId, accountGroup);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -785,7 +786,7 @@ namespace iLgs.Controllers
 
         #region PRINTOUTS
 
-        public ActionResult CustodianStockRpt(Guid? id, CustodianAccountGroup accountGroup)
+        public ActionResult CustodianStockRpt(Guid? id, int? accountGroup)
         {
             //var rpci = _db.RPCIs.Find(id);
             string stringname = _db.Database.Connection.ConnectionString.ToString();
@@ -797,7 +798,7 @@ namespace iLgs.Controllers
             string db_ = decoder.InitialCatalog;
 
             ReportClass rpt = new ReportClass();
-            if (accountGroup == CustodianAccountGroup.STOCK)
+            if (accountGroup == (int?)CustodianAccountGroup.STOCK)
             {
                 rpt.FileName = Server.MapPath(Url.Content("~/Reports/CustodianReportStock.rpt"));
             }
@@ -913,7 +914,7 @@ namespace iLgs.Controllers
                 }
 
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportItemService.ProcessExcelFile(reportId, templateFilePath, (CustodianAccountGroup)report.AccountGroup);
+                var stream = _custodianReportItemService.ProcessExcelFile(reportId, templateFilePath, report.AccountGroup);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");                
             }

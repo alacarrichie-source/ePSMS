@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services
 {
@@ -21,8 +22,11 @@ namespace iLgs.Services
         IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item);
         IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item);
         IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item);
-
         IQueryable<ItemCodePreviewVM> GetItemCodePreview(string category);
+        IQueryable<ItemCodeVM> GetCustodianItemPpe(string item);
+        IQueryable<ItemCodeVM> GetCustodianItemStocks(string item);
+        IQueryable<ItemCodeVM> GetCustodianItemVehicle(string item);
+
 
         ValueTask<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date);
         ValueTask<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date);
@@ -94,6 +98,24 @@ namespace iLgs.Services
         public IQueryable<ItemCodeVM> GetItems(string item) => _VmExceptionService.TryCatch(() =>
         {
             var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", item).AsQueryable();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetCustodianItemPpe(string item) => _VmExceptionService.TryCatch(() =>
+        {
+            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.PPE, item).AsQueryable();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetCustodianItemStocks(string item) => _VmExceptionService.TryCatch(() =>
+        {
+            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.STOCK, item).AsQueryable();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetCustodianItemVehicle(string item) => _VmExceptionService.TryCatch(() =>
+        {
+            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.VEHICLE, item).AsQueryable();
             return data;
         });
 

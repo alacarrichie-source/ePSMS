@@ -22,7 +22,7 @@ namespace iLgs.Services.AllFields
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly GetDisplayNameDelegate _getAllFieldDisplayName;        
+        private readonly GetDisplayNameDelegate _getAllFieldDisplayName;
 
         public AllFieldsValidator(AppManEntities db)
         {
@@ -156,49 +156,52 @@ namespace iLgs.Services.AllFields
                     }
                     else
                     {
-                        if (string.IsNullOrWhiteSpace(af.Dimension))
+                        if (af.Model_.IsNullOrWhiteSpaceX())
                         {
-                            ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Dimension)), "Field is required.");
-                        }
-                        else
-                        {
-                            if (af.Dimension.IsNullOrWhiteSpaceX())
+                            if (string.IsNullOrWhiteSpace(af.Dimension))
                             {
-                                if (string.IsNullOrWhiteSpace(af.Size))
+                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Dimension)), "Field is required.");
+                            }
+                            else
+                            {
+                                if (af.Dimension.IsNullOrWhiteSpaceX())
                                 {
-                                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Size)), "Field is required.");
-                                }
-                                else
-                                {
-                                    if (af.Size.IsNullOrWhiteSpaceX())
+                                    if (string.IsNullOrWhiteSpace(af.Size))
                                     {
-                                        if (string.IsNullOrWhiteSpace(af.Weight))
+                                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Size)), "Field is required.");
+                                    }
+                                    else
+                                    {
+                                        if (af.Size.IsNullOrWhiteSpaceX())
                                         {
-                                            ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Weight)), "Field is required.");
-                                        }
-                                        else
-                                        {
-                                            if (af.Weight.IsNullOrWhiteSpaceX())
+                                            if (string.IsNullOrWhiteSpace(af.Weight))
                                             {
-                                                if (string.IsNullOrWhiteSpace(af.Materials))
+                                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Weight)), "Field is required.");
+                                            }
+                                            else
+                                            {
+                                                if (af.Weight.IsNullOrWhiteSpaceX())
                                                 {
-                                                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Materials)), "Field is required.");
-                                                }
-                                                else
-                                                {
-                                                    if (af.Materials.IsNullOrWhiteSpaceX())
+                                                    if (string.IsNullOrWhiteSpace(af.Materials))
                                                     {
-                                                        if (string.IsNullOrWhiteSpace(af.Capacity))
+                                                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Materials)), "Field is required.");
+                                                    }
+                                                    else
+                                                    {
+                                                        if (af.Materials.IsNullOrWhiteSpaceX())
                                                         {
-                                                            ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Capacity)), "Field is required.");
-                                                        }
-                                                        else
-                                                        {
-                                                            if (af.Capacity.IsNullOrWhiteSpaceX())
+                                                            if (string.IsNullOrWhiteSpace(af.Capacity))
                                                             {
-                                                                if (af.Color.IsNullOrWhiteSpaceX())
+                                                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Capacity)), "Field is required.");
+                                                            }
+                                                            else
+                                                            {
+                                                                if (af.Capacity.IsNullOrWhiteSpaceX())
                                                                 {
-                                                                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Color)), "Field is required.");
+                                                                    if (af.Color.IsNullOrWhiteSpaceX())
+                                                                    {
+                                                                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Color)), "Field is required.");
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -209,7 +212,7 @@ namespace iLgs.Services.AllFields
                                     }
                                 }
                             }
-                        }                        
+                        }
                     }
                 }
             }

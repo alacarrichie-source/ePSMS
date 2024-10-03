@@ -14,12 +14,12 @@ namespace iLgs.Models
         {
             public System.Guid Id { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "As of Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> AsOf { get; set; }
 
-            [Required]
+            //[Required]
             public string Fund { get; set; }
 
             //[Required]
@@ -65,12 +65,15 @@ namespace iLgs.Models
         public string Item_Code { get; set; }
 
         public AllField AllField;
+        public Guid? MainDeptId { get; set; } 
         public int? AccountGroup { get; set; }        
         
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }
             public Nullable<System.Guid> ReportId { get; set; }
+
+            public string Fund { get; set; }
 
             [Display(Name = "Custodian Item No.")]
             public Nullable<int> CustodianItemNo { get; set; }
@@ -267,10 +270,10 @@ namespace iLgs.Models
     
     public class CustodianReportItemStockVM : CustodianReportItem
     {
-        [Display(Name = "Old Stock No.")]
+        [Display(Name = "Old Stock Card No.")]
         public new string OldPsNo { get => base.OldPsNo; set => base.OldPsNo = value; }
 
-        [Display(Name = "Stock No.")]
+        [Display(Name = "Stock Card No.")]
         public new string PsNo { get => base.PsNo; set => base.PsNo = value; }
 
         [Display(Name = "Qty In")]
@@ -279,7 +282,7 @@ namespace iLgs.Models
         [Display(Name = "Transit In")]
         public new Nullable<int> TransferIn { get => base.TransferIn; set => base.TransferIn = value; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Balance")]
         public new Nullable<int> QtyBalance { get => base.QtyBalance; set => base.QtyBalance = value; }
     }
@@ -296,10 +299,10 @@ namespace iLgs.Models
 
     public partial class CustodianReportItemVehicleVM : CustodianReportItem
     {
-        [Display(Name = "Property No.")]
+        [Display(Name = "Property Card No.")]
         public new string PsNo { get => base.PsNo; set => base.PsNo = value; }
 
-        [Display(Name = "Old Property No.")]
+        [Display(Name = "Old Property Card No.")]
         public new string OldPsNo { get => base.OldPsNo; set => base.OldPsNo = value; }
     }
 

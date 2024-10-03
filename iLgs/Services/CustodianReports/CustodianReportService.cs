@@ -18,8 +18,8 @@ namespace iLgs.Services.CustodianReports
     public interface ICustodianReportService
     {
         IQueryable<CustodianReport> GetAll();
-        IQueryable<CustodianReport> GetAllByAccountGroup(CustodianAccountGroup? custodianAccountGroup);
-        IQueryable<CustodianReport> GetAllByDepartmentAccountGroup(Guid? deptId, CustodianAccountGroup? custodianAccountGroup);
+        IQueryable<CustodianReport> GetAllByAccountGroup(int? accountGroup);
+        IQueryable<CustodianReport> GetAllByDepartmentAccountGroup(Guid? deptId, int? accountGroup);
         ValueTask<CustodianReport> GetByIdAsync(Guid? id);
         ValueTask<CustodianReport> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReport> UnPostAsync(Guid id, string user, DateTime date);
@@ -65,17 +65,17 @@ namespace iLgs.Services.CustodianReports
             return data;
         });
 
-        public IQueryable<CustodianReport> GetAllByAccountGroup(CustodianAccountGroup? custodianAccountGroup) =>
+        public IQueryable<CustodianReport> GetAllByAccountGroup(int? accountGroup) =>
         _exceptionService.TryCatch(() =>
         {
-            var data = _db.CustodianReports.AsNoTracking().Where(w => w.AccountGroup == (int?)custodianAccountGroup).AsQueryable();
+            var data = _db.CustodianReports.AsNoTracking().Where(w => w.AccountGroup == accountGroup).AsQueryable();
             return data;
         });
 
-        public IQueryable<CustodianReport> GetAllByDepartmentAccountGroup(Guid? deptId, CustodianAccountGroup? custodianAccountGroup) =>
+        public IQueryable<CustodianReport> GetAllByDepartmentAccountGroup(Guid? deptId, int? accountGroup) =>
         _exceptionService.TryCatch(() =>
         {
-            var data = _db.CustodianReports.AsNoTracking().Where(w => w.DeptId == deptId && w.AccountGroup == (int?)custodianAccountGroup).AsQueryable();
+            var data = _db.CustodianReports.AsNoTracking().Where(w => w.DeptId == deptId && w.AccountGroup == accountGroup).AsQueryable();
             return data;
         });
 

@@ -16,6 +16,7 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> ReportId { get; set; }
+        public string Fund { get; set; }
         public Nullable<int> CustodianItemNo { get; set; }
         public string SeriesNo { get; set; }
         public Nullable<bool> FromDonation { get; set; }
