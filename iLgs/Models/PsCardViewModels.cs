@@ -146,7 +146,7 @@ namespace iLgs.Models
         [Required]
         public Nullable<System.Guid> DeptId { get; set; }
 
-        [Display(Name = "Location")]
+        [Display(Name = "Location Code")]
         public Nullable<System.Guid> LocationId { get; set; }
 
         [Display(Name = "Department Display")]

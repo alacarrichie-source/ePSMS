@@ -586,6 +586,12 @@
       <DependentUpon>ItemCode.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Reports\PropertyCard.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PropertyCard.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Reports\Rpceffoppe.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -603,6 +609,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>RpcPpe.rpt</DependentUpon>
       <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\StockCard.cs">
+      <DependentUpon>StockCard.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Services\AccountableOfficerService.cs" />
     <Compile Include="Services\AirItemExtnOtherService.cs" />
@@ -812,12 +824,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Rsmi.rpt</DependentUpon>
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Reports\StockCard.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>StockCard.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Reports\UserAccess.cs">
@@ -1460,6 +1466,10 @@
     <Content Include="Reports\Rpci.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Rpci.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\StockCard.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>StockCard.cs</LastGenOutput>
     </Content>
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -4041,10 +4051,6 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Pr_1.cs</LastGenOutput>
     </Content>
-    <Content Include="Reports\StockCard.rpt">
-      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
-      <LastGenOutput>StockCard.cs</LastGenOutput>
-    </Content>
     <Content Include="Reports\Ris.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Ris.cs</LastGenOutput>
@@ -4073,10 +4079,10 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>CustodianStock.cs</LastGenOutput>
     </Content>
-    <EmbeddedResource Include="Reports\PropertyCard.rpt">
+    <Content Include="Reports\PropertyCard.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>PropertyCard.cs</LastGenOutput>
-    </EmbeddedResource>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

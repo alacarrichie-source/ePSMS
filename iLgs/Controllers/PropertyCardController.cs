@@ -797,7 +797,7 @@ namespace iLgs.Controllers
             string db_ = decoder.InitialCatalog;
 
             ReportClass rpt = new ReportClass();
-            rpt.FileName = Server.MapPath(Url.Content("~/Reports/StockCard.rpt"));
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/PropertyCard.rpt"));
             rpt.SetDatabaseLogon(un, pw, svr, db_);
 
             rpt.Load();
