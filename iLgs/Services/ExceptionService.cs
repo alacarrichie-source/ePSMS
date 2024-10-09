@@ -49,6 +49,10 @@ namespace iLgs.Services
             {
                 throw CreateAndLogValidationException(nullException);
             }
+            catch (ArgumentOutOfRangeException outOfRangeException)
+            {
+                throw CreateAndLogValidationException(outOfRangeException);
+            }
             catch (SqlException sqlException)
             {
                 var failedStorageException =
@@ -58,6 +62,7 @@ namespace iLgs.Services
             }
             catch (RecordAlreadyPostedException alreadyPostedException)
             {
+                //throw CreateAndLogLockedException(alreadyPostedException);
                 throw CreateAndLogValidationException(alreadyPostedException);
             }
             catch (RecordNotYetPostedException notYetPostedException)
@@ -81,7 +86,7 @@ namespace iLgs.Services
             }
             catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
             {
-                var lockedStudentException = new LockedException(dbUpdateConcurrencyException);
+                var lockedStudentException = new RecordLockedException(dbUpdateConcurrencyException);
 
                 throw CreateAndLogDependencyException(lockedStudentException);
             }
@@ -134,6 +139,25 @@ namespace iLgs.Services
             //_loggingService.LogError(validationException);
 
             return validationException;
+        }
+
+        private ValidationException CreateAndLogValidationException(Exception exception)
+        {
+            var validationException = new ValidationException(exception);
+            //_loggingService.LogError(validationException);
+
+            return validationException;
+        }
+
+        private RecordLockedException CreateAndLogLockedException(Xeption exception)
+
+        {
+            var lockedException =
+                new RecordLockedException(exception);
+
+            //_loggingService.LogError(dependencyValidationException);
+
+            return lockedException;
         }
 
 

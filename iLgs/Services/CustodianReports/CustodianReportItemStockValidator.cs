@@ -42,6 +42,7 @@ namespace iLgs.Services.CustodianReports
         public void ValidateOnUpdate(CustodianReportItemStockVM model)
         {
             ValidateIfNull(model);
+            //ValidateIfPosted(model);
             ValidateFieldsOnCreateUpdate(model);
         }
 
@@ -137,6 +138,23 @@ namespace iLgs.Services.CustodianReports
             if (model is null)
             {
                 throw new NullException();
+            }
+        }
+
+        private void ValidateIfPosted(CustodianReportItemStockVM entity)
+        {
+            if (entity.PostedDt != null)
+            {
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}";
+                throw new RecordAlreadyPostedException(msg);
+            }
+        }
+
+        private void ValidateIfNotPosted(CustodianReportItemStockVM entity)
+        {
+            if (entity.PostedDt == null)
+            {
+                throw new RecordNotYetPostedException($"Record is not yet posted!");
             }
         }
     }

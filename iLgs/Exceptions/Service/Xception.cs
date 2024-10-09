@@ -55,7 +55,7 @@ namespace iLgs.Exceptions
 
         public void AddData(IDictionary dictionary)
         {
-            if (dictionary == null)
+            if (dictionary == null || dictionary.Count == 0)
             {
                 return;
             }

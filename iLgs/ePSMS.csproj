@@ -298,8 +298,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\CardUploadController.cs" />
+    <Compile Include="Controllers\CustodianReportBldgController.cs" />
     <Compile Include="Controllers\CustodianReportController.cs" />
+    <Compile Include="Controllers\CustodianReportLandController.cs" />
     <Compile Include="Controllers\IcsSetController.cs" />
+    <Compile Include="Controllers\ItemHelperController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
     <Compile Include="Controllers\IcsController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
@@ -312,12 +315,10 @@
     <Compile Include="Controllers\RpcPpeController.cs" />
     <Compile Include="Controllers\StockCardController.cs" />
     <Compile Include="Controllers\ParIcsUploadController.cs" />
-    <Compile Include="Controllers\_StockCardController.cs" />
     <Compile Include="Exceptions\Service\AlreadyExistsException.cs" />
     <Compile Include="Exceptions\Service\DependencyValidatorException.cs" />
     <Compile Include="Exceptions\Service\DuplicateKeyException.cs" />
     <Compile Include="Exceptions\Service\FailedStorageException.cs" />
-    <Compile Include="Exceptions\Service\LockedException.cs" />
     <Compile Include="Exceptions\Service\NotFoundException.cs" />
     <Compile Include="Exceptions\Service\NullException.cs" />
     <Compile Include="Exceptions\Service\Xception.cs" />
@@ -381,7 +382,13 @@
     <Compile Include="Models\CustodianReport.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\CustodianReportBldgItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\CustodianReportItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CustodianReportLandItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\CustodianViewwModels.cs" />
@@ -623,12 +630,14 @@
     <Compile Include="Services\AllFields\AllFieldService.cs" />
     <Compile Include="Services\CardItemExtnService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportBldgItemService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemPpeService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemPpeValidator.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemStockValidator.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemVehicleService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemVehicleValidator.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportLandItemService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemStockService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportValidator.cs" />
@@ -1452,9 +1461,11 @@
     <Content Include="Content\Sidebar\src\scss\_theme-default.scss" />
     <Content Include="Content\Sidebar\src\scss\_toggle.scss" />
     <Content Include="Department-Codes %2897%29.xls" />
-    <Content Include="App_Data\CustodianStockTemplate.xlsx" />
-    <Content Include="App_Data\CustodianPpeTemplate.xlsx" />
-    <Content Include="App_Data\CustodianTranspoTemplate.xlsx" />
+    <Content Include="App_Data\CustodianSuppliesTemplate.xlsx" />
+    <Content Include="App_Data\CustodianEquipmentTemplate.xlsx" />
+    <Content Include="App_Data\CustodianVehiclesTemplate.xlsx" />
+    <Content Include="App_Data\CustodianStructureTemplate.xlsx" />
+    <Content Include="App_Data\CustodianLandTemplate.xlsx" />
     <None Include="Properties\PublishProfiles\ePsms %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
@@ -3995,6 +4006,10 @@
     <Content Include="Views\CustodianReport\Stock.cshtml" />
     <Content Include="Views\CustodianReport\Ppe.cshtml" />
     <Content Include="Views\CustodianReport\Transpo.cshtml" />
+    <Content Include="Views\CustodianReportLand\Index.cshtml" />
+    <Content Include="Views\CustodianReportLand\EditorTemplates\_LandItemTemplate.cshtml" />
+    <Content Include="Views\CustodianReportBldg\Index.cshtml" />
+    <Content Include="Views\CustodianReportBldg\EditorTemplates\_BldgItemTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4002,6 +4017,7 @@
     <Folder Include="Views\Cards\" />
     <Folder Include="Views\Getters\" />
     <Folder Include="Views\Issuances\" />
+    <Folder Include="Views\ItemHelper\" />
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
     <Folder Include="Views\PsCard\" />
@@ -4104,7 +4120,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

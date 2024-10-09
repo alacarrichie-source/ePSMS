@@ -279,7 +279,7 @@
         if (args.errors) {
             var validationError = true;
             $.each(args.errors, function (propertyName) {
-                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError" || propertyName == "GridError") {
                     alert(this.errors);
                     validationError = false;
                     selectedGrid.dataSource.read();
@@ -714,9 +714,10 @@
     function SaveGridItems(url)
     {
         var popupNotification = $("#popupNotification").data("kendoNotification");
+        var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
         var reportId = $("#ReportId").val();
         var formData = $("#form").serialize();
-        var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+        
         // Make an AJAX call to submit the data
         $.ajax({
             type: 'POST',

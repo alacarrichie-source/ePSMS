@@ -63,7 +63,7 @@
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetItems", "Items");
+                                read.Action("GetItems", "ItemHelper");
                             })
                             .ServerFiltering(true);
                         })
@@ -411,7 +411,7 @@
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetItems", "Items");
+                                read.Action("GetItems", "ItemHelper");
                             })
                             .ServerFiltering(true);
                         })

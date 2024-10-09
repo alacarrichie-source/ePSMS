@@ -46,7 +46,7 @@ namespace iLgs.Controllers
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.STOCK;
-            ViewBag.Title = "Custodian Report - Stocks";
+            ViewBag.Title = "Custodian Report - Supplies";
             return View();
         }
 
@@ -54,7 +54,7 @@ namespace iLgs.Controllers
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.PPE;
-            ViewBag.Title = "Custodian Report - Other PPE";
+            ViewBag.Title = "Custodian Report - Equipment";
             return View();
         }
 
@@ -62,10 +62,9 @@ namespace iLgs.Controllers
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.VEHICLE;
-            ViewBag.Title = "Custodian Report - Transportation Equipment";
+            ViewBag.Title = "Custodian Report - Vehicles";
             return View();
-        }
-
+        }        
 
         #region CUSTODIAN REPORT
         // GET: Index
@@ -233,14 +232,14 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
-                    ModelState.AddModelError("Access", "Add Access Denied!");
+                    ModelState.AddModelError("GridError", "Access Denied!");
                 }
                 else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _custodianReportService.PostAsync(id, user, date);
+                    await _custodianReportItemService.PostAsync(id, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -287,14 +286,14 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
                 {
-                    ModelState.AddModelError("Access", "Add Access Denied!");
+                    ModelState.AddModelError("GridError", "Access Denied!");
                 }
                 else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _custodianReportService.UnPostAsync(id, user, date);
+                    await _custodianReportItemService.UnPostAsync(id, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -902,15 +901,15 @@ namespace iLgs.Controllers
                 var report = await _custodianReportService.GetByIdAsync(reportId);
                 if (report.AccountGroup == (int?)CustodianAccountGroup.STOCK)
                 {
-                    exportFileName = "CustodianStock";                    
+                    exportFileName = "CustodianSupplies";                    
                 }
                 else if (report.AccountGroup == (int?)CustodianAccountGroup.PPE)
                 {
-                    exportFileName = "CustodianPpe";
+                    exportFileName = "CustodianEquipment";
                 }
                 else if (report.AccountGroup == (int?)CustodianAccountGroup.VEHICLE)
                 {
-                    exportFileName = "CustodianTranspo";
+                    exportFileName = "CustodianVehicles";
                 }
 
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");

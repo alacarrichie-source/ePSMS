@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
 using System;
@@ -21,6 +22,8 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportItem> CreateAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date);
+        ValueTask<CustodianReportItem> PostAsync(Guid id, string user, DateTime date);
+        ValueTask<CustodianReportItem> UnPostAsync(Guid id, string user, DateTime date);
         MemoryStream ProcessExcelFile(Guid id, string templateFilePath, int? accountGroup);
     }
 
@@ -57,7 +60,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         });
 
-        public virtual ValueTask<CustodianReportItem> CreateAsync(CustodianReportItem model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public virtual async ValueTask<CustodianReportItem> CreateAsync(CustodianReportItem model, string user, DateTime date) 
         {
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -89,14 +92,17 @@ namespace iLgs.Services.CustodianReports
             await _db.SaveChangesAsync();
 
             return model;
-        });
+        }
 
-        public virtual ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public virtual async ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date) 
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             var entity = await _db.CustodianReportItems.FindAsync(model.Id);
+            ValidateRecord(entity);
+            ValidateIfPosted(entity);
+
             MapModelToEntityFields(entity, model, Mode.EDIT);            
 
             _db.CustodianReportItems.Attach(entity);
@@ -104,14 +110,15 @@ namespace iLgs.Services.CustodianReports
             await _db.SaveChangesAsync();
 
             return model;
-        });
+        }
 
-        public virtual ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {
+        public virtual async ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date)         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             var entity = await _db.CustodianReportItems.FindAsync(model.Id);
+            ValidateRecord(entity);
+            ValidateIfPosted(entity);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -124,6 +131,42 @@ namespace iLgs.Services.CustodianReports
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
             return model;
+        }
+
+        public virtual ValueTask<CustodianReportItem> PostAsync(Guid id, string user, DateTime date) =>
+        _exceptionService.TryCatch(async () =>
+        {
+            var entity = await _db.CustodianReportItems.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateIfPosted(entity);
+            
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.CustodianReportItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return entity;
+        });
+
+        public virtual ValueTask<CustodianReportItem> UnPostAsync(Guid id, string user, DateTime date) =>
+        _exceptionService.TryCatch(async () =>
+        {
+            var entity = await _db.CustodianReportItems.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateIfNotPosted(entity);
+            
+            entity.PostedBy = "";
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.CustodianReportItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return entity;
         });
 
         protected AllField SetAllField(CustodianReportItem custodianReportItem)
@@ -261,8 +304,11 @@ namespace iLgs.Services.CustodianReports
             entity.AccountableOfficer = model.AccountableOfficer;            
             entity.UpcomingPar = model.UpcomingPar;
             entity.Type = model.Type;
+            entity.Annex = model.Annex;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
+            //entity.PostedBy = model.PostedBy;
+            //entity.PostedDt = model.PostedDt;
         }
 
         public MemoryStream ProcessExcelFile(Guid id, string templateFilePath, int? accountGroup)
@@ -339,6 +385,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.PlateNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.BodyNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.MVFileNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
                 }
 
                 // Create a MemoryStream to save the output
@@ -406,7 +453,8 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
                     ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);                    
+                    ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
                 }
 
                 // Create a MemoryStream to save the output
@@ -417,7 +465,7 @@ namespace iLgs.Services.CustodianReports
                 memoryStream.Position = 0;
                 return memoryStream;
             }
-        }
+        }        
 
         private MemoryStream ProcessExcelFileVehicleTemplate(Guid id, string templateFilePath)
         {
@@ -481,7 +529,8 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
                     ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);                    
+                    ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
                 }
 
                 // Create a MemoryStream to save the output
@@ -491,6 +540,39 @@ namespace iLgs.Services.CustodianReports
                 // Reset the stream position to the beginning before returning
                 memoryStream.Position = 0;
                 return memoryStream;
+            }
+        }
+
+        private void ValidateIfNull(CustodianReportItem model)
+        {
+            if (model is null)
+            {
+                throw new NullException();
+            }
+        }
+
+        private void ValidateRecord(CustodianReportItem entity)
+        {
+            if (entity == null)
+            {
+                throw new NotFoundException(entity.Id);
+            }
+        }
+
+        private void ValidateIfPosted(CustodianReportItem entity)
+        {
+            if (entity.PostedDt != null)
+            {
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
+        }
+
+        private void ValidateIfNotPosted(CustodianReportItem entity)
+        {
+            if (entity.PostedDt == null)
+            {
+                throw new RecordNotYetPostedException($"Record is not yet posted!");
             }
         }
     }

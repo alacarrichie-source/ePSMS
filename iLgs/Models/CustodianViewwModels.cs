@@ -73,6 +73,7 @@ namespace iLgs.Models
             public System.Guid Id { get; set; }
             public Nullable<System.Guid> ReportId { get; set; }
 
+            [Required]
             public string Fund { get; set; }
 
             [Display(Name = "Custodian Item No.")]
@@ -224,7 +225,7 @@ namespace iLgs.Models
             [Display(Name = "Insurance Policy No.")]
             public string InsPolicyNo { get; set; }
 
-            [Display(Name = "Cunduction Sticker No.")]
+            [Display(Name = "Conduction Sticker No.")]
             public string ConductionNo { get; set; }
 
             [Display(Name = "Item Serial No.")]
@@ -258,13 +259,18 @@ namespace iLgs.Models
 
             public string Type { get; set; }
 
-            [Display(Name = "Year Model")]
-            public Nullable<int> YearModel { get; set; }
-
+            [Required]            
+            public string Annex { get; set; }
             public string InsertedBy { get; set; }
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }
             public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+            [Display(Name = "Posted By")]
+            public string PostedBy { get; set; }
+
+            [Display(Name = "Posted Date")]
+            public Nullable<System.DateTime> PostedDt { get; set; }
         }
     }
     
@@ -297,13 +303,402 @@ namespace iLgs.Models
         
     }
 
-    public partial class CustodianReportItemVehicleVM : CustodianReportItem
+    public class CustodianReportItemVehicleVM : CustodianReportItem
     {
         [Display(Name = "Property Card No.")]
         public new string PsNo { get => base.PsNo; set => base.PsNo = value; }
 
         [Display(Name = "Old Property Card No.")]
         public new string OldPsNo { get => base.OldPsNo; set => base.OldPsNo = value; }
+
+        [Required]
+        [Display(Name = "Year Model")]        
+        public new Nullable<int> YearModel { get => base.YearModel; set => base.YearModel = value; }
+
+        //[Required]
+        //[Display(Name = "Plate No.")]
+        //public new string PlateNo { get => base.PlateNo; set => base.PlateNo = value; }
+
+        [Required]
+        [Display(Name = "Body No.")]
+        public new string BodyNo { get => base.BodyNo; set => base.BodyNo = value; }
+
+        [Required]
+        [Display(Name = "CRN")]
+        public new string CRN { get => base.CRN; set => base.CRN = value; }
+
+        [Required]
+        [Display(Name = "CR Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public new Nullable<System.DateTime> CRDate { get => base.CRDate; set => base.CRDate = value; }
+
+        [Required]
+        [Display(Name = "MV File No.")]
+        public new string MVFileNo { get => base.MVFileNo; set => base.MVFileNo = value; }
+
     }
 
+    [MetadataType(typeof(CustodianReportLandItem.Metadata))]
+    public partial class CustodianReportLandItem
+    {
+        public CustodianReportLandItem()
+        {
+            this.AllField = new AllField();
+        }
+
+        public string ItemType_Code { get; set; }
+        public string Item_Code { get; set; }
+
+        public AllField AllField;
+        public Guid? MainDeptId { get; set; }
+        public int? AccountGroup { get; set; }
+
+        internal sealed class Metadata
+        {
+            public System.Guid Id { get; set; }
+            public Nullable<System.Guid> ReportId { get; set; }
+            public string Fund { get; set; }
+
+            [Display(Name = "Custodian Item No.")]
+            public Nullable<int> CustodianItemNo { get; set; }
+
+            [Display(Name = "Series No.")]
+            public string SeriesNo { get; set; }
+
+            [Display(Name = "From Donation")]
+            public Nullable<bool> FromDonation { get; set; }
+            public string Account { get; set; }
+
+            [Display(Name = "Article")]
+            public Nullable<System.Guid> ItemCodeId { get; set; }
+
+            [Display(Name = "Sub-Account")]
+            public string SubAccount { get; set; }
+            public string Article { get; set; }
+
+            [Display(Name = "Location Code")]
+            public Nullable<System.Guid> LocationId { get; set; }
+
+            [Display(Name = "Location")]
+            public string LocationCode { get; set; }
+            public string Location { get; set; }
+            public string Type { get; set; }
+            public string Condition { get; set; }
+            public string Description { get; set; }
+
+            [Display(Name = "Sub-Location")]
+            public string SubLocation { get; set; }
+
+            [Display(Name = "Land ID Number")]
+            public string PIN { get; set; }
+            public string Address { get; set; }
+
+            [Display(Name = "Landmarks")]
+            public string LandMarks { get; set; }
+
+            [Required]
+            [Display(Name = "Area (sqm)")]
+            public Nullable<decimal> Area { get; set; }
+
+            [Required]
+            [Display(Name = "Price per sqm.")]
+            public Nullable<decimal> PricePerSqm { get; set; }
+
+            [Display(Name = "Market Value")]
+            public Nullable<decimal> MarketValue { get; set; }
+
+            [Display(Name = "Property Card No.")]
+            public string PsNo { get; set; }
+
+            [Display(Name = "Property No.")]
+            public string PropNo { get; set; }
+
+            [Display(Name = "Old Property No.")]
+            public string OldPropNo { get; set; }
+
+            [Display(Name = "Acquisition Cost")]
+            public Nullable<decimal> AcqCost { get; set; }
+
+            [Display(Name = "Old Amounts")]
+            public Nullable<decimal> OldAmount { get; set; }
+
+            [Display(Name = "Acquisition Date")]
+            public Nullable<System.DateTime> AcqDate { get; set; }
+
+            [Display(Name = "Vendor/Donor")]
+            public string Vendor { get; set; }
+
+            [Display(Name = "Representative")]
+            public string Representative { get; set; }
+
+            [Display(Name = "TCT No.")]
+            public string TctNo { get; set; }
+
+            [Required]
+            [Display(Name = "Old TCT No.")]
+            public string OldTctNo { get; set; }
+
+            [Display(Name = "DRP No.")]
+            public string DRPNo { get; set; }
+
+            [Display(Name = "Date Regs.")]
+            public Nullable<System.DateTime> DRPDate { get; set; }
+
+            [Display(Name = "Old DRP No.")]
+            public string OldDRPNo { get; set; }
+
+            [Display(Name = "Date Regs.")]
+            public Nullable<System.DateTime> OldDRPDate { get; set; }
+            public string Remarks { get; set; }
+
+            [Display(Name = "Capital Gains Tax (CGT)")]
+            public Nullable<decimal> CGT { get; set; }
+
+            [Display(Name = "CGT Transfer Tax")]
+            public Nullable<decimal> CGTTransferTax { get; set; }
+
+            [Display(Name = "CGT Surcharge")]
+            public Nullable<decimal> CGTSurcharge { get; set; }
+
+            [Display(Name = "CGT Interest")]
+            public Nullable<decimal> CGTInterest { get; set; }
+
+            [Display(Name = "CGT Compromise")]
+            public Nullable<decimal> CGTCompromise { get; set; }
+
+            [Display(Name = "Document Stamp Tax (DST)")]
+            public Nullable<decimal> DST { get; set; }
+
+            [Display(Name = "DST Transfer TAx")]
+            public Nullable<decimal> DSTTransferTax { get; set; }
+
+            [Display(Name = "DST Surcharge")]
+            public Nullable<decimal> DSTSurcharge { get; set; }
+
+            [Display(Name = "DST Interest")]
+            public Nullable<decimal> DSTInterest { get; set; }
+
+            [Display(Name = "DST Compromise")]
+            public Nullable<decimal> DSTCompromise { get; set; }
+
+            [Display(Name = "Transfer Tax")]
+            public Nullable<decimal> TransferTax { get; set; }
+
+            public Nullable<decimal> Surcharge { get; set; }
+            public Nullable<decimal> Interest { get; set; }
+
+            [Display(Name = "Confirmation Fee")]
+            public Nullable<decimal> ConfirmationFee { get; set; }
+
+            [Display(Name = "Transfer Regs. Fee")]
+            public Nullable<decimal> TransferRegsFee { get; set; }
+
+            [Display(Name = "Real Property Tax")]
+            public Nullable<decimal> RealPropertyFee { get; set; }
+            public Nullable<decimal> VAT { get; set; }
+
+            [Display(Name = "Estate Fee")]
+            public Nullable<decimal> EstateFee { get; set; }
+            public Nullable<decimal> Titling { get; set; }
+
+            [Display(Name = "Certificattion Fee")]
+            public Nullable<decimal> CertificationFee { get; set; }
+            public Nullable<decimal> Relocation { get; set; }
+            public Nullable<decimal> Surveying { get; set; }
+
+            [Display(Name = "Incidental Expense")]
+            public Nullable<decimal> IncidentalExpenses { get; set; }
+
+            [Display(Name = "Capital Outlay or Expense")]
+            public string CapitalOutlayOrExpense { get; set; }
+
+            [MaxLength(1)]
+            public string Annex { get; set; }
+            public string InsertedBy { get; set; }
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+            [Display(Name = "Posted By")]
+            public string PostedBy { get; set; }
+
+            [Display(Name = "Posted Date")]
+            public Nullable<System.DateTime> PostedDt { get; set; }
+        }
+    }
+
+    public class CustodianReportLandItemVM : CustodianReportLandItem
+    {
+
+    }
+
+    [MetadataType(typeof(CustodianReportBldgItem.Metadata))]
+    public partial class CustodianReportBldgItem
+    {
+        public CustodianReportBldgItem()
+        {
+            this.AllField = new AllField();
+        }
+
+        public string ItemType_Code { get; set; }
+        public string Item_Code { get; set; }
+
+        public AllField AllField;
+        public Guid? MainDeptId { get; set; }
+        public int? AccountGroup { get; set; }
+        internal sealed class Metadata
+        {
+            public System.Guid Id { get; set; }
+            public Nullable<System.Guid> ReportId { get; set; }
+            public string Fund { get; set; }
+
+            [Display(Name = "Custodian Item No.")]
+            public Nullable<int> CustodianItemNo { get; set; }
+
+            [Display(Name = "Series No.")]
+            public string SeriesNo { get; set; }
+
+            [Display(Name = "From Donation")]
+            public Nullable<bool> FromDonation { get; set; }
+            public string Account { get; set; }
+
+            [Display(Name = "Article")]
+            public Nullable<System.Guid> ItemCodeId { get; set; }
+
+            [Display(Name = "Sub-Acount")]
+            public string SubAccount { get; set; }
+            public string Article { get; set; }
+
+            [Display(Name = "Building Item")]
+            public string BldgItem { get; set; }
+
+            [Display(Name = "PO No.")]
+            public string PoNo { get; set; }
+
+            [Display(Name = "PO Date")]
+            public Nullable<System.DateTime> PoDate { get; set; }
+
+            [Display(Name = "Acquisition Cost")]
+            public Nullable<decimal> AcqCost { get; set; }
+
+            [Display(Name = "Department")]
+            public Nullable<System.Guid> DeptId { get; set; }
+            public string Department { get; set; }
+
+            [Display(Name = "Location Code")]
+            public Nullable<System.Guid> LocationId { get; set; }
+
+            [Display(Name = "Location Code")]
+            public string LocationCode { get; set; }
+
+            [Display(Name = "Location/Barangay")]
+            public string Location { get; set; }
+
+            [Display(Name = "Sub-Location/Address")]
+            public string SubLocation { get; set; }
+
+            [Display(Name = "Engineering Project Name")]
+            public string ProjectName { get; set; }
+
+            [Display(Name = "Property Card No.")]
+            public string PsNo { get; set; }
+
+            [Display(Name = "Acquisition Month")]
+            public Nullable<int> AcqMonth { get; set; }
+
+            [Display(Name = "Acquisition Year")]
+            public Nullable<int> AcqYear { get; set; }
+
+            [Display(Name = "Acquisition Day")]
+            public Nullable<int> AcqDay { get; set; }
+
+            [Display(Name = "Date Acquisition/Construction")]
+            public Nullable<System.DateTime> AcqDate { get; set; }
+
+            [Display(Name = "Property Number")]
+            public string PropNo { get; set; }
+
+            [Display(Name = "Old Amounts")]
+            public Nullable<decimal> OldAmount { get; set; }
+
+            [Display(Name = "Building/Structure Type")]
+            public string BuildingType { get; set; }
+
+            [Display(Name = "Building Area (sqm)")]
+            public Nullable<decimal> Area { get; set; }
+
+            [Display(Name = "Total Amount")]
+            public Nullable<decimal> TotalAmount { get; set; }
+
+            [Required]
+            [Display(Name = "Phase No.")]
+            public string PhaseNo { get; set; }
+
+            [Display(Name = "Phase Amount MOOE")]
+            public Nullable<decimal> PhaseAmountMooe { get; set; }
+
+            [Required]
+            [Display(Name = "Phase Amount Capital Outlay")]
+            public Nullable<decimal> PhaseAmountCo { get; set; }
+
+            [Display(Name = "Start Year")]
+            public Nullable<int> StartYear { get; set; }
+
+            [Display(Name = "Start Month")]
+            public Nullable<int> StartMonth { get; set; }
+
+            [Display(Name = "Start Day")]
+            public Nullable<int> StartDay { get; set; }
+
+            [Display(Name = "Start Date")]
+            public Nullable<System.DateTime> StartDate { get; set; }
+
+            [Display(Name = "Target Year")]
+            public Nullable<int> TargetYear { get; set; }
+
+            [Display(Name = "Target Month")]
+            public Nullable<int> TargetMonth { get; set; }
+
+            [Display(Name = "Target Day")]
+            public Nullable<int> TargetDay { get; set; }
+
+            [Display(Name = "Target Date")]
+            public Nullable<System.DateTime> TargetDate { get; set; }
+
+            [Display(Name = "Percent Complete")]
+            public Nullable<decimal> PercentComplete { get; set; }
+
+            [Display(Name = "Completion Year")]
+            public Nullable<int> CompletionYear { get; set; }
+
+            [Display(Name = "Completion Month")]
+            public Nullable<int> CompletionMonth { get; set; }
+
+            [Display(Name = "Completion Day")]
+            public Nullable<int> CompletionDay { get; set; }
+
+            [Display(Name = "Completion Date")]
+            public Nullable<System.DateTime> CompletionDate { get; set; }
+
+            public string Status { get; set; }
+            public string Condition { get; set; }
+            public string Remarks { get; set; }
+            public string Annex { get; set; }
+            public string InsertedBy { get; set; }
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+            [Display(Name = "Posted By")]
+            public string PostedBy { get; set; }
+
+            [Display(Name = "Posted Date")]
+            public Nullable<System.DateTime> PostedDt { get; set; }
+        }
+    }
+
+    public class CustodianReportBldgItemVM : CustodianReportBldgItem
+    {
+
+    }
 }

@@ -31,6 +31,8 @@ namespace iLgs.Services.AllFields
         string GetCardStockNo(PsCardVM model);
         string GetRisStockNo(RisItemEntryVM model);
         string GetCustodianStockNo(CustodianReportItem model);
+        string GetCustodianStockNo(CustodianReportLandItem model);
+        string GetCustodianStockNo(CustodianReportBldgItem model);
         void ValidateStockCardAllField(StockCardVM model);
         void ValidatePropertyCardAllField(PropertyCardVM model);
         void ValidateRisAllField(RisItemEntryVM model);
@@ -74,89 +76,9 @@ namespace iLgs.Services.AllFields
 
         public void ValidatePsCardAllField(PsCardVM model)
         {
-            //return await _validationService.ValidateAsync(model, "Create");
             var ex = new InvalidModelException();
             _validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
-            ex.ThrowIfContainsErrors();
-
-            //var af = model.AllField;
-            //if (Enum.TryParse(model.ItemTypeCode, out Category c))
-            //{
-            //    if (c == CatDrugs())
-            //    {
-            //        if (string.IsNullOrWhiteSpace(af.GenericName))
-            //        {
-            //            throw new InvalidValueException("Generic Name is Required!");
-            //        }
-
-
-            //        if (model.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
-            //        {
-            //            if (string.IsNullOrWhiteSpace(af.DosageVolume))
-            //            {
-            //                throw new InvalidValueException("Dosage Volume is Required!");
-            //            }
-            //        }
-            //        else
-            //        {
-            //            if (string.IsNullOrWhiteSpace(af.DosageStrength))
-            //            {
-            //                throw new InvalidValueException("Dosage Strength is Required!");
-            //            }
-            //            if (string.IsNullOrWhiteSpace(af.DosageForm))
-            //            {
-            //                throw new InvalidValueException("Dosage Form is Required!");
-            //            }
-            //        }
-            //    }
-            //    else if (c == CatMachineries()
-            //        || c == CatTransportations()
-            //        || c == CatFurnitures()
-            //        || c == CatOtherProperties()
-            //        || c == CatMedicals()
-            //        || c == CatAgriculturals()
-            //        || c == CatAnimalSupplies()
-            //        || c == CatConstructionMaterials()
-            //        || c == CatOfficeSupplies()
-            //        || c == CatAccountableForms()
-            //        || c == CatNonAccountableForns()
-            //        || c == CatMilitaries()
-            //        || c == CatOtherSupplies())
-            //    {
-            //        if (string.IsNullOrWhiteSpace(af.Brand))
-            //        {
-            //            throw new InvalidValueException("Brand is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Model_))
-            //        {
-            //            throw new InvalidValueException("Model is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Dimension))
-            //        {
-            //            throw new InvalidValueException("Dimension is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Size))
-            //        {
-            //            throw new InvalidValueException("Size is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Weight))
-            //        {
-            //            throw new InvalidValueException("Weight is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Materials))
-            //        {
-            //            throw new InvalidValueException("Materials is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Capacity))
-            //        {
-            //            throw new InvalidValueException("Capacity is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Color))
-            //        {
-            //            throw new InvalidValueException("Color is required!");
-            //        }
-            //    }
-            //}
+            ex.ThrowIfContainsErrors();            
         }
 
         public void ValidateStockCardAllField(StockCardVM model)
@@ -164,89 +86,6 @@ namespace iLgs.Services.AllFields
             var ex = new InvalidModelException();
             _validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
             ex.ThrowIfContainsErrors();
-
-            //var af = model.AllField;
-            //if (Enum.TryParse(model.ItemTypeCode, out Category c))
-            //{
-            //    if (c == CatDrugs())
-            //    {
-            //        if (string.IsNullOrWhiteSpace(af.GenericName))
-            //        {
-            //            throw new InvalidValueException("Generic Name is Required!");
-            //        }
-
-            //        //if (string.IsNullOrWhiteSpace(af.Brand))
-            //        //{
-            //        //    throw new InvalidValueException("Brand is Required!");
-            //        //}
-
-            //        if (model.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
-            //        {
-            //            if (string.IsNullOrWhiteSpace(af.DosageVolume))
-            //            {
-            //                throw new InvalidValueException("Dosage Volume is Required!");
-            //            }
-            //        }
-            //        else
-            //        {
-            //            if (string.IsNullOrWhiteSpace(af.DosageStrength))
-            //            {
-            //                throw new InvalidValueException("Dosage Strength is Required!");
-            //            }
-            //            if (string.IsNullOrWhiteSpace(af.DosageForm))
-            //            {
-            //                throw new InvalidValueException("Dosage Form is Required!");
-            //            }
-            //        }
-            //    }
-            //    else if (c == CatMachineries()
-            //        || c == CatTransportations()
-            //        || c == CatFurnitures()
-            //        || c == CatOtherProperties()
-            //        || c == CatMedicals()
-            //        || c == CatAgriculturals()
-            //        || c == CatAnimalSupplies()
-            //        || c == CatConstructionMaterials()
-            //        || c == CatOfficeSupplies()
-            //        || c == CatAccountableForms()
-            //        || c == CatNonAccountableForns()
-            //        || c == CatMilitaries()
-            //        || c == CatOtherSupplies())
-            //    {
-            //        if (string.IsNullOrWhiteSpace(af.Brand))
-            //        {
-            //            throw new InvalidValueException("Brand is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Model_) )
-            //        {
-            //            throw new InvalidValueException("Model is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Dimension))
-            //        {
-            //            throw new InvalidValueException("Dimension is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Size))
-            //        {
-            //            throw new InvalidValueException("Size is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Weight))
-            //        {
-            //            throw new InvalidValueException("Weight is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Materials))
-            //        {
-            //            throw new InvalidValueException("Materials is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Capacity))
-            //        {
-            //            throw new InvalidValueException("Capacity is required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Color))
-            //        {
-            //            throw new InvalidValueException("Color is required!");
-            //        }                    
-            //    }
-            //}
         }
 
         public void ValidatePropertyCardAllField(PropertyCardVM model)
@@ -254,67 +93,6 @@ namespace iLgs.Services.AllFields
             var ex = new InvalidModelException();
             _validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
             ex.ThrowIfContainsErrors();
-
-            //var af = model.AllField;
-            //if (Enum.TryParse(model.ItemTypeCode, out Category c))
-            //{
-            //    if (c == CatDrugs())
-            //    {
-            //        if (string.IsNullOrWhiteSpace(af.GenericName))
-            //        {
-            //            throw new InvalidValueException("Generic Name is Required!");
-            //        }
-
-            //        //if (string.IsNullOrWhiteSpace(af.Brand))
-            //        //{
-            //        //    throw new InvalidValueException("Brand is Required!");
-            //        //}
-
-            //        if (model.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
-            //        {
-            //            if (string.IsNullOrWhiteSpace(af.DosageVolume))
-            //            {
-            //                throw new InvalidValueException("Dosage Volume is Required!");
-            //            }
-            //        }
-            //        else
-            //        {
-            //            if (string.IsNullOrWhiteSpace(af.DosageStrength))
-            //            {
-            //                throw new InvalidValueException("Dosage Strength is Required!");
-            //            }
-            //            if (string.IsNullOrWhiteSpace(af.DosageForm))
-            //            {
-            //                throw new InvalidValueException("Dosage Form is Required!");
-            //            }
-            //        }
-            //    }
-            //    else if (c == CatMachineries()
-            //        || c == CatTransportations()
-            //        || c == CatFurnitures()
-            //        || c == CatOtherProperties()
-            //        || c == CatMedicals()
-            //        || c == CatAgriculturals()
-            //        || c == CatAnimalSupplies()
-            //        || c == CatConstructionMaterials()
-            //        || c == CatOfficeSupplies()
-            //        || c == CatAccountableForms()
-            //        || c == CatNonAccountableForns()
-            //        || c == CatMilitaries()
-            //        || c == CatOtherSupplies())
-            //    {
-            //        if (string.IsNullOrWhiteSpace(af.Brand))
-            //        {
-            //            throw new InvalidValueException("Brand is Required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Model_) && string.IsNullOrWhiteSpace(af.Size) && string.IsNullOrWhiteSpace(af.Dimension)
-            //            && string.IsNullOrWhiteSpace(af.Weight) && string.IsNullOrWhiteSpace(af.Materials) && string.IsNullOrWhiteSpace(af.Capacity)
-            //            && string.IsNullOrWhiteSpace(af.Color))
-            //        {
-            //            throw new InvalidValueException("Model or Dimension or Size or Weight or Materials or Capacity or Color is Required!");
-            //        }
-            //    }
-            //}
         }
 
         public void ValidateRisAllField(RisItemEntryVM model)
@@ -322,56 +100,6 @@ namespace iLgs.Services.AllFields
             var ex = new InvalidModelException();
             _validator.ValidateAllFields(model.AllField, model.PsType, model.ItemNo, ex);
             ex.ThrowIfContainsErrors();
-
-            //var af = model.AllField;
-            //if (Enum.TryParse(model.PsType, out Category c))
-            //{
-            //    if (c == CatDrugs())
-            //    {
-            //        if (string.IsNullOrWhiteSpace(af.GenericName))
-            //        {
-            //            throw new InvalidValueException("Generic Name is Required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Brand))
-            //        {
-            //            throw new InvalidValueException("Brand is Required!");
-            //        }
-            //        if (model.ItemNo.Substring(0, 4) == "5.1.") // Alcoh1ol
-            //        {
-            //            if (string.IsNullOrWhiteSpace(af.DosageVolume))
-            //            {
-            //                throw new InvalidValueException("Dosage Volume is Required!");
-            //            }
-            //        }
-            //        else
-            //        {
-            //            if (string.IsNullOrWhiteSpace(af.DosageStrength))
-            //            {
-            //                throw new InvalidValueException("Dosage Strength is Required!");
-            //            }
-            //            if (string.IsNullOrWhiteSpace(af.DosageForm))
-            //            {
-            //                throw new InvalidValueException("Dosage Form is Required!");
-            //            }
-            //        }
-            //    }
-            //    else if (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
-            //    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
-            //    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
-            //    || c == CatOtherSupplies())
-            //    {
-            //        if (string.IsNullOrWhiteSpace(af.Brand))
-            //        {
-            //            throw new InvalidValueException("Brand is Required!");
-            //        }
-            //        if (string.IsNullOrWhiteSpace(af.Model_) && string.IsNullOrWhiteSpace(af.Size) && string.IsNullOrWhiteSpace(af.Dimension)
-            //            && string.IsNullOrWhiteSpace(af.Weight) && string.IsNullOrWhiteSpace(af.Materials) && string.IsNullOrWhiteSpace(af.Capacity)
-            //            && string.IsNullOrWhiteSpace(af.Color))
-            //        {
-            //            throw new InvalidValueException("Model or Dimension or Size or Weight or Materials or Capacity or Color is Required!");
-            //        }
-            //    }
-            //}
         }
 
         public ValueTask<AllField> CreatePsCardFieldsAsync(PsCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
@@ -734,6 +462,32 @@ namespace iLgs.Services.AllFields
             
             stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
             
+            return stockNo ?? "";
+        }
+
+        public string GetCustodianStockNo(CustodianReportLandItem model)
+        {
+            string stockNo = model.Item_Code.Trim();
+            if (model.FromDonation == true)
+            {
+                stockNo = "FD" + stockNo;
+            }
+
+            stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
+
+            return stockNo ?? "";
+        }
+
+        public string GetCustodianStockNo(CustodianReportBldgItem model)
+        {
+            string stockNo = model.Item_Code.Trim();
+            if (model.FromDonation == true)
+            {
+                stockNo = "FD" + stockNo;
+            }
+
+            stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
+
             return stockNo ?? "";
         }
 

@@ -71,6 +71,8 @@ namespace iLgs.Services
                     TransferIn = s.TransferIn,
                     TransferOut = s.TransferOut,
                     QtyIss = s.QtyIss,
+                    QtyInBalance = s.QtyInBalance,
+                    TransferInBalance = s.TransferInBalance,
                     TotalBalance = s.TotalBalance,
                     AcqCost = s.AcqCost,
                     OldStockNo = s.OldStockNo,
@@ -134,6 +136,8 @@ namespace iLgs.Services
                 LocationName = model.LocationName,
                 TransferIn = model.TransferIn,
                 TransferOut = model.TransferOut,
+                QtyInBalance = model.QtyInBalance,
+                TransferInBalance = model.TransferInBalance,
                 TotalBalance = model.TotalBalance,
                 AcqCost = model.AcqCost,
                 OldStockNo = model.OldStockNo,
@@ -188,6 +192,8 @@ namespace iLgs.Services
             entity.LocationName = model.LocationName;
             entity.TransferIn = model.TransferIn;
             entity.TransferOut = model.TransferOut;
+            entity.QtyInBalance = model.QtyInBalance;
+            entity.TransferInBalance = model.TransferInBalance;
             entity.TotalBalance = model.TotalBalance;
             entity.AcqCost = model.AcqCost;
             entity.OldStockNo = model.OldStockNo;

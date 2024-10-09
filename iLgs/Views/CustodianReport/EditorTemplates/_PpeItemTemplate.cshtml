@@ -13,7 +13,8 @@
     @Html.HiddenFor(model => model.Item_Code)
     @Html.HiddenFor(model => model.MainDeptId)
     @Html.HiddenFor(model => model.AccountGroup)
-
+    @*@Html.HiddenFor(model => model.PostedBy)
+    @Html.HiddenFor(model => model.PostedDt)*@
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -61,7 +62,7 @@
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetStockItemAccounts", "Items");
+                                read.Action("GetCustodianItemPpe", "ItemHelper");
                             })
                             .ServerFiltering(true);
                         })
@@ -576,6 +577,17 @@
             </div>
         </div>
 
+        <div class="row">
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.Annex, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().MaskedTextBoxFor(m => m.Annex).Mask("L").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Annex)
+                </div>
+            </div>
+        </div>
     </fieldset>
 }
 

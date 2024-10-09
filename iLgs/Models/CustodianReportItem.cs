@@ -87,10 +87,13 @@ namespace iLgs.Models
         public string AccountableOfficer { get; set; }
         public string UpcomingPar { get; set; }
         public string Type { get; set; }
+        public string Annex { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public string PostedBy { get; set; }
+        public Nullable<System.DateTime> PostedDt { get; set; }
     
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }

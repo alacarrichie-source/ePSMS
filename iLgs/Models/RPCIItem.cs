@@ -33,6 +33,8 @@ namespace iLgs.Models
         public Nullable<int> TransferIn { get; set; }
         public Nullable<int> TransferOut { get; set; }
         public Nullable<int> QtyIss { get; set; }
+        public Nullable<int> QtyInBalance { get; set; }
+        public Nullable<int> TransferInBalance { get; set; }
         public Nullable<int> TotalBalance { get; set; }
         public Nullable<decimal> AcqCost { get; set; }
         public string OldStockNo { get; set; }

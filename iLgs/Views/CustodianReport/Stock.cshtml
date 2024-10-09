@@ -45,35 +45,37 @@
             col.Bound(c => c.PoNo).Width(50);
             col.Bound(c => c.PoDate).Width(50);
             col.Bound(c => c.Unit).Width(50);
-            col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Qty).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            //col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            //    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            //col.Bound(c => c.Qty).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            //    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { style = "text-align:right;" })
+            //    .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.LocationCode).Width(50);
             col.Bound(c => c.Location).Width(70);
-            col.Bound(c => c.TransferIn).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            //col.Bound(c => c.TransferIn).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            //    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { style = "text-align:right;" })
+            //    .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.QtyBalance).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { style = "text-align:right;" })
+                //.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.PsNo).Width(70);
             col.Bound(c => c.Description).Width(150);
-            col.Bound(c => c.GenericName).Hidden(true);
+            col.Bound(c => c.Annex).Width(50);
+            //col.Bound(c => c.GenericName).Hidden(true);
             //col.Bound(c => c.InsertedDt).Width(70);
             col.Command(command =>
             {
                 command.Edit();
-                command.Destroy();
+                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+                //command.Destroy();
             }).Width(172);
         })
         .ToolBar(t =>
         {
             t.Create().Text("Add New Record");
             t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport").HtmlAttributes(new { @class = "k-button", href = "" });
-            //t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
-            //t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Search();
         })
         .Search(s =>
@@ -99,6 +101,7 @@
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Scrollable()
         .Sortable()
+        .Groupable()
         .DataSource(dataSource => dataSource
             .Ajax()
             .PageSize(20)
@@ -108,12 +111,12 @@
                 model.Id(p => p.Id);
                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
             })
-            .Aggregates(a =>
-            {
-                a.Add(p => p.Qty).Sum();
-                a.Add(p => p.TransferIn).Sum();
-                a.Add(p => p.QtyBalance).Sum();
-            })
+            //.Aggregates(a =>
+            //{
+            //    a.Add(p => p.Qty).Sum();
+            //    a.Add(p => p.TransferIn).Sum();
+            //    a.Add(p => p.QtyBalance).Sum();
+            //})
             .Sort(s =>
             {
                 s.Add(a => a.InsertedDt);
@@ -247,8 +250,8 @@
         var grid = $("#grid").data("kendoGrid");
         grid.wrapper.find(".k-grid-add").hide(); // Hide the ADD button by default
         grid.wrapper.find(".k-grid-btnExport").hide();
-        grid.wrapper.find(".k-grid-btnPostPO").hide();
-        grid.wrapper.find(".k-grid-btnUnpostPO").hide();
+        grid.wrapper.find(".k-grid-btnPost").hide();
+        grid.wrapper.find(".k-grid-btnUnpost").hide();
     });
 
     function onShowNotification(e) {
@@ -261,7 +264,7 @@
         if (args.errors) {
             var validationError = true;
             $.each(args.errors, function (propertyName) {
-                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError" || propertyName == "GridError") {
                     alert(this.errors);
                     validationError = false;
                     selectedGrid.dataSource.read();
@@ -311,15 +314,15 @@
         var grid = $("#grid");
 
         selectedId = selectedData.Id;
-        //postedBy = selectedData.PostedBy;
+        postedBy = selectedData.PostedBy;
 
-        //if (postedBy) {
-        //    $(".k-grid-btnUnpostPO", grid).show();
-        //    $(".k-grid-btnPostPO", grid).hide();
-        //} else {
-        //    $(".k-grid-btnUnpostPO", grid).hide();
-        //    $(".k-grid-btnPostPO", grid).show();
-        //}
+        if (postedBy) {
+            $(".k-grid-btnUnpost", grid).show();
+            $(".k-grid-btnPost", grid).hide();
+        } else {
+            $(".k-grid-btnUnpost", grid).hide();
+            $(".k-grid-btnPost", grid).show();
+        }
     }
 
     function onDataBoundGrid(e) {
@@ -343,12 +346,12 @@
 
         if (this.dataSource.data().length == 0) {
             $(".k-grid-btnExport", grid).hide();
-            $(".k-grid-btnPostPO", grid).hide();
-            $(".k-grid-btnUnpostPO", grid).hide();
+            $(".k-grid-btnPost", grid).hide();
+            $(".k-grid-btnUnpost", grid).hide();
         }
         else {
             $(".k-grid-btnExport", grid).show();
-            $(".k-grid-btnPostPO", grid).show();
+            //$(".k-grid-btnPost", grid).show();
         }
     }
 
@@ -379,6 +382,16 @@
         }
     }
 
+    function onGridDeleteClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        const tr = $(e.currentTarget).closest("tr");
+        const dataItem = this.dataItem(tr);
+        const rowitem = this.dataSource.get(dataItem.Id);
+        this.select($('[data-uid=' + rowitem.uid + ']'));
+        this.removeRow(tr);
+    }
+
     function onSaveGrid(e) {
         // Prevent default Kendo UI save event
         e.preventDefault();
@@ -395,9 +408,9 @@
 
     function SaveGridItems(url)
     {
-        var popupNotification = $("#popupNotification").data("kendoNotification");
-        var formData = $("#form").serialize();
+        var popupNotification = $("#popupNotification").data("kendoNotification");        
         var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+        var formData = $("#form").serialize();
         // Make an AJAX call to submit the data
         $.ajax({
             type: 'POST',
@@ -436,7 +449,7 @@
         });
     }
 
-    $(".k-grid-btnPostPO").click(function (e) {
+    $(".k-grid-btnPost").click(function (e) {
         e.preventDefault();
         if (postedBy) {
             alert("Recored already posted by " + postedBy);
@@ -482,7 +495,7 @@
         }
     }
 
-    $(".k-grid-btnUnpostPO").click(function (e) {
+    $(".k-grid-btnUnpost").click(function (e) {
         e.preventDefault();
         var msg = "Unpost Selected Record?";
 

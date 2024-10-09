@@ -86,6 +86,12 @@ namespace iLgs.Services.CustodianReports
                 ex.UpsertDataList(_getDisplayName(nameof(model.UnitCost)), "Field is required.");
             }
 
+            if (string.IsNullOrWhiteSpace(model.PlateNo) && string.IsNullOrWhiteSpace(model.ConductionNo))
+            {
+                ex.UpsertDataList($"{_getDisplayName(nameof(model.PlateNo))} or {_getDisplayName(nameof(model.ConductionNo))}", "Field is required.");
+            }
+
+
             //if (model.DeptId != null)
             //{
             //    if (model.LocationId != null)

@@ -6,7 +6,7 @@ using System.Web;
 
 namespace iLgs.Exceptions
 {
-    public class RecordLockedException : Exception, IException
+    public class RecordLockedException : Xeption, IException
     {
         public HttpStatusCode StatusCode()
         {
@@ -17,6 +17,9 @@ namespace iLgs.Exceptions
         {
             return Message;
         }
+
+        public RecordLockedException(Xeption innerException)
+            : base("Locked record exception, please try again later.", innerException) { }
 
         public RecordLockedException(Exception innerException)
             : base("Locked record exception, please try again later.", innerException) { }

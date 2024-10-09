@@ -19,6 +19,11 @@ namespace iLgs.Exceptions
             return Message;
         }
 
+        public ValidationException(Exception exception)
+            : base(message: "Invalid input, contact support.", innerException: exception,
+            data: exception.Data)
+        { }
+
         public ValidationException(Xeption exception)
             : base(message: "Invalid input, contact support.", innerException: exception,
             data: exception.Data)

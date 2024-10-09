@@ -36,25 +36,21 @@
 
 <br />
 
-@(Html.Kendo().Grid<iLgs.Models.CustodianReportItemVehicleVM>()
+@(Html.Kendo().Grid<iLgs.Models.CustodianReportBldgItemVM>()
         .HtmlAttributes(new { @class = "custom-max-grid" })
         .Name("grid")
         .Columns(col =>
         {
             col.Bound(c => c.Article).Width(70);
-            col.Bound(c => c.PoNo).Width(50);
-            col.Bound(c => c.PoDate).Width(50);
-            col.Bound(c => c.Unit).Width(50);
-            col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.LocationCode).Width(50);
             col.Bound(c => c.Location).Width(70);
-            col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            col.Bound(c => c.AcqCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.PsNo).Width(70);
-            col.Bound(c => c.Description).Width(150);
-            col.Bound(c => c.Annex).Width(50);
+            col.Bound(c => c.ProjectName).Width(150);
+            col.Bound(c => c.BldgItem).Width(100);
+            col.Bound(c => c.BuildingType).Width(100);
             //col.Bound(c => c.InsertedDt).Width(70);
             col.Command(command =>
             {
@@ -74,11 +70,10 @@
         .Search(s =>
         {
             s.Field(o => o.Article, "contains");
-            s.Field(o => o.PoNo, "contains");
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
         })
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_VehicleItemTemplate").Window(w => w.Width(1000).Title("Transportation Items")))
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_BldgItemTemplate").Window(w => w.Width(1000).Title("Structure Item")))
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -106,16 +101,16 @@
             })
             .Aggregates(a =>
             {
-                a.Add(p => p.TotalCost).Sum();
+                a.Add(p => p.AcqCost).Sum();
             })
             .Sort(s =>
             {
                 s.Add(a => a.InsertedDt);
             })
-            .Read(read => read.Action("_VehicleItemRead", "CustodianReport").Data("DataGrid"))
-            .Create(create => create.Action("_VehicleItemCreate", "CustodianReport"))
-            .Update(update => update.Action("_VehicleItemUpdate", "CustodianReport"))
-            .Destroy(destroy => destroy.Action("_VehicleItemDestroy", "CustodianReport"))
+            .Read(read => read.Action("_ItemRead", "CustodianReportBldg").Data("DataGrid"))
+            .Create(create => create.Action("_ItemCreate", "CustodianReportBldg"))
+            .Update(update => update.Action("_ItemUpdate", "CustodianReportBldg"))
+            .Destroy(destroy => destroy.Action("_ItemDestroy", "CustodianReportBldg"))
         )
         .Events(events => events
             .Change("onChangeGrid")
@@ -224,7 +219,7 @@
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExport", "CustodianReport")" + "?reportId=" + reportId;
+            var url = "@Url.Action("ExcelExport", "CustodianReportBldg")" + "?reportId=" + reportId;
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -276,7 +271,6 @@
             }
         }
     }
-
 
     function onSelectDeptId(e) {
         var dataItem = this.dataItem(e.item.index());
@@ -388,9 +382,9 @@
         var url = null;
 
         if (e.model.isNew()) {
-            url = '@Url.Action("_VehicleItemCreate", "CustodianReport")';
+            url = '@Url.Action("_ItemCreate", "CustodianReportBldg")';
         } else {
-            url = '@Url.Action("_VehicleItemUpdate", "CustodianReport")';
+            url = '@Url.Action("_ItemUpdate", "CustodianReportBldg")';
         }
 
         SaveGridItems(url);
@@ -399,8 +393,8 @@
     function SaveGridItems(url)
     {
         var popupNotification = $("#popupNotification").data("kendoNotification");
-        var formData = $("#form").serialize();
         var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+        var formData = $("#form").serialize();        
         // Make an AJAX call to submit the data
         $.ajax({
             type: 'POST',
@@ -451,7 +445,7 @@
                 var popupNotification = $("#popupNotification").data("kendoNotification");
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("Post", "CustodianReport")',
+                    url: '@Url.Action("Post", "CustodianReportBldg")',
                     data: { id: selectedId },
                     async: true,
                     beforeSend: function () {
@@ -492,7 +486,7 @@
         if (confirm(msg)) {
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("Unpost", "CustodianReport")',
+                url: '@Url.Action("Unpost", "CustodianReportBldg")',
                 data: { id: selectedId },
                 async: true,
                 beforeSend: function () {
@@ -515,7 +509,7 @@
 
     $(".k-grid-btnPrint").click(function (e) {
         e.preventDefault();
-        var url = '@Url.Action("CustodianRpt", "CustodianReport")?id=' + selectedId + '&accountGroup=@ViewBag.AccountGroup';
+        var url = '@Url.Action("CustodianRpt", "CustodianReportBldg")?id=' + selectedId + '&accountGroup=@ViewBag.AccountGroup';
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -562,7 +556,8 @@
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
         $("#Account").val(dataItem.TypeDesc).trigger("change");
 
-        RefreshDivs(dataItem);
+       // RefreshDivs(dataItem);
+        UpdateDescription();
     }
 
     function onDataBoundItemCodeId(e) {
@@ -573,7 +568,9 @@
             var dataItem = comboBox.dataItem();
             $("#SubAccount").val(dataItem.MainDesc).trigger("change");
             $("#Account").val(dataItem.TypeDesc).trigger("change");
-            RefreshDivs(dataItem);
+            //RefreshDivs(dataItem);
+
+            UpdateDescription();
         }
     }
 
@@ -583,7 +580,7 @@
         fieldsContainer.removeClass('hidden');
         fieldsContainer.empty(); // Clear existing content
 
-        var url = '@Url.Action("LoadStockFields", "CustodianReport")';
+        var url = '@Url.Action("LoadStockFields", "CustodianReportBldg")';
         var data = $("#form").serialize();
 
         $.ajax({
@@ -653,7 +650,7 @@
 
         $.ajax({
             type: "POST",
-            url: '@Url.Action("GetStockNo", "CustodianReport")',
+            url: '@Url.Action("GetStockNo", "CustodianReportBldg")',
             data: data,
             beforeSend: function () {
                 window.kendo.ui.progress($(document.body), true);
@@ -671,4 +668,5 @@
     // end item template
 
 </script>
+
 

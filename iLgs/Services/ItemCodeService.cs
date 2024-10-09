@@ -26,6 +26,8 @@ namespace iLgs.Services
         IQueryable<ItemCodeVM> GetCustodianItemPpe(string item);
         IQueryable<ItemCodeVM> GetCustodianItemStocks(string item);
         IQueryable<ItemCodeVM> GetCustodianItemVehicle(string item);
+        IQueryable<ItemCodeVM> GetCustodianItemLand(string item);
+        IQueryable<ItemCodeVM> GetCustodianItemBldg(string item);
 
 
         ValueTask<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date);
@@ -116,6 +118,18 @@ namespace iLgs.Services
         public IQueryable<ItemCodeVM> GetCustodianItemVehicle(string item) => _VmExceptionService.TryCatch(() =>
         {
             var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.VEHICLE, item).AsQueryable();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetCustodianItemLand(string item) => _VmExceptionService.TryCatch(() =>
+        {
+            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.LAND, item).AsQueryable();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetCustodianItemBldg(string item) => _VmExceptionService.TryCatch(() =>
+        {
+            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.BUILDING, item).AsQueryable();
             return data;
         });
 

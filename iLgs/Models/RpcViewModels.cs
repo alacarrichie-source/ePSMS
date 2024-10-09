@@ -119,7 +119,13 @@ namespace iLgs.Models
 
         [Display(Name = "Qty Iss.")]
         public Nullable<int> QtyIss { get; set; }
-        
+
+        [Display(Name = "In Balance")]
+        public Nullable<int> QtyInBalance { get; set; }
+
+        [Display(Name = "Transfer In Balance")]
+        public Nullable<int> TransferInBalance { get; set; }
+
         [Display(Name = "Total Balance")]
         public Nullable<int> TotalBalance { get; set; }
 
