@@ -56,10 +56,10 @@ namespace iLgs.Models
     [MetadataType(typeof(CustodianReportItem.Metadata))]
     public partial class CustodianReportItem
     {
-        public CustodianReportItem()
-        {
-            this.AllField = new AllField();            
-        }
+        //public CustodianReportItem()
+        //{
+        //    this.AllField = new AllField();            
+        //}
 
         public string ItemType_Code { get; set; }
         public string Item_Code { get; set; }
@@ -341,10 +341,10 @@ namespace iLgs.Models
     [MetadataType(typeof(CustodianReportLandItem.Metadata))]
     public partial class CustodianReportLandItem
     {
-        public CustodianReportLandItem()
-        {
-            this.AllField = new AllField();
-        }
+        //public CustodianReportLandItem()
+        //{
+        //    this.AllField = new AllField();
+        //}
 
         public string ItemType_Code { get; set; }
         public string Item_Code { get; set; }
@@ -535,10 +535,10 @@ namespace iLgs.Models
     [MetadataType(typeof(CustodianReportBldgItem.Metadata))]
     public partial class CustodianReportBldgItem
     {
-        public CustodianReportBldgItem()
-        {
-            this.AllField = new AllField();
-        }
+        //public CustodianReportBldgItem()
+        //{
+        //    this.AllField = new AllField();
+        //}
 
         public string ItemType_Code { get; set; }
         public string Item_Code { get; set; }
@@ -665,7 +665,7 @@ namespace iLgs.Models
             [Display(Name = "Target Date")]
             public Nullable<System.DateTime> TargetDate { get; set; }
 
-            [Display(Name = "Percent Complete")]
+            [Display(Name = "Percent Complete (%)")]
             public Nullable<decimal> PercentComplete { get; set; }
 
             [Display(Name = "Completion Year")]
@@ -694,6 +694,8 @@ namespace iLgs.Models
 
             [Display(Name = "Posted Date")]
             public Nullable<System.DateTime> PostedDt { get; set; }
+            public Nullable<double> Latitude { get; set; }
+            public Nullable<double> Longitude { get; set; }
         }
     }
 

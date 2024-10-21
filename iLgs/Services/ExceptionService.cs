@@ -11,6 +11,8 @@ using iLgs.Models;
 using iLgs.Exceptions.Service;
 using iLgs.Services.Validators;
 using System.Collections;
+using System.Data.Entity.Validation;
+using System.Data;
 
 namespace iLgs.Services
 {
@@ -53,6 +55,14 @@ namespace iLgs.Services
             {
                 throw CreateAndLogValidationException(outOfRangeException);
             }
+            //catch (DbEntityValidationException dbEntityValidationException)
+            //{
+            //    // Manually create a new DbEntityValidationException with a custom inner exception
+            //    var newInnerException = new Exception(dbEntityValidationException.Message); // This is the custom inner exception
+            //    var newDbEntityValidationException = new DbEntityValidationException("Validation failed for one or more entities.", dbEntityValidationException.EntityValidationErrors, newInnerException);
+                
+            //    throw CreateAndLogValidationException(newInnerException);
+            //}
             catch (SqlException sqlException)
             {
                 var failedStorageException =
@@ -134,6 +144,14 @@ namespace iLgs.Services
         }
 
         private ValidationException CreateAndLogAlreadyExistsException(Xeption exception)
+        {
+            var validationException = new ValidationException(exception);
+            //_loggingService.LogError(validationException);
+
+            return validationException;
+        }
+
+        private ValidationException CreateAndLogValidationException(DbEntityValidationException exception)
         {
             var validationException = new ValidationException(exception);
             //_loggingService.LogError(validationException);

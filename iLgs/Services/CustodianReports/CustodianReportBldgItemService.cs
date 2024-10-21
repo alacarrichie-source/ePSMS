@@ -3,6 +3,7 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Services.CustodianUploads;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -26,17 +27,18 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportBldgItemVM> CreateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> UpdateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date);
-        ValueTask<CustodianReportBldgItemVM> PostAsync(Guid id, string user, DateTime date);
-        ValueTask<CustodianReportBldgItemVM> UnPostAsync(Guid id, string user, DateTime date);
+        ValueTask<CustodianReportBldgItem> PostAsync(Guid id, string user, DateTime date);
+        ValueTask <CustodianReportBldgItem> UnPostAsync(Guid id, string user, DateTime date);
         MemoryStream ProcessExcelFile(Guid id, string templateFilePath);
     }
 
     public class CustodianReportBldgItemService : BaseValidator, ICustodianReportBldgItemService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<CustodianReportBldgItemVM> _exceptionService = new ExceptionService<CustodianReportBldgItemVM>();
+        private readonly IExceptionService<CustodianReportBldgItemVM> _vmExceptionService = new ExceptionService<CustodianReportBldgItemVM>();
+        private readonly IExceptionService<CustodianReportBldgItem> _exceptionService = new ExceptionService<CustodianReportBldgItem>();
         private readonly ICustodianReportItemPpeValidator _validator;
-        private readonly IAllFieldService _allFieldService;
+        private readonly IAllFieldService _allFieldService;        
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public CustodianReportBldgItemService(AppManEntities db)
@@ -106,6 +108,10 @@ namespace iLgs.Services.CustodianReports
             Annex = s.Annex,
             InsertedBy = s.InsertedBy,
             InsertedDt = s.InsertedDt,
+            PostedBy = s.PostedBy,
+            PostedDt = s.PostedDt,
+            Longitude = s.Longitude,
+            Latitude = s.Latitude,
             ItemType_Code = s.ItemCode.ItemType.Code,
             Item_Code = s.ItemCode.Code
         };
@@ -117,7 +123,7 @@ namespace iLgs.Services.CustodianReports
         }
 
         public ValueTask<CustodianReportBldgItemVM> GetByIdAsync(Guid id) =>
-        _exceptionService.TryCatch(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var data = await _db.CustodianReportBldgItems
                 .Where(w => w.Id == id)
@@ -146,7 +152,7 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateRequired(CustodianReportBldgItemVM model)
         {
-            if (!string.IsNullOrWhiteSpace(model.PhaseNo))
+            if (string.IsNullOrWhiteSpace(model.PhaseNo))
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseNo)), "Field is required.");
             }
@@ -167,7 +173,7 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        public ValueTask<CustodianReportBldgItemVM> CreateAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportBldgItemVM> CreateAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateRequired(model);
@@ -205,7 +211,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportBldgItemVM> UpdateAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportBldgItemVM> UpdateAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateRequired(model);
@@ -226,7 +232,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
 
@@ -251,12 +257,18 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportBldgItemVM> PostAsync(Guid id, string user, DateTime date) =>
+        public ValueTask<CustodianReportBldgItem> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.CustodianReportBldgItems.FindAsync(id);
             ValidateRecord(entity);
             ValidateIfPosted(entity);
+
+            ICustodianBldgUploadService uploadService = new CustodianBldgUploadService(_db);
+            if (!uploadService.GetAllByImageId(id).Any())
+            {
+                throw new NotFoundException("No upload images found for this record, cannot post!");
+            }
             
             entity.PostedBy = user;
             entity.PostedDt = date;
@@ -266,10 +278,10 @@ namespace iLgs.Services.CustodianReports
             _db.CustodianReportBldgItems.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
-            return (CustodianReportBldgItemVM)entity;
+            return entity;
         });
 
-        public ValueTask<CustodianReportBldgItemVM> UnPostAsync(Guid id, string user, DateTime date) =>
+        public ValueTask<CustodianReportBldgItem> UnPostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.CustodianReportBldgItems.FindAsync(id);
@@ -284,7 +296,7 @@ namespace iLgs.Services.CustodianReports
             _db.CustodianReportBldgItems.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
-            return (CustodianReportBldgItemVM)entity;
+            return entity;
         });
 
         private AllField SetAllField(CustodianReportBldgItem custodianReportItem)
@@ -369,6 +381,8 @@ namespace iLgs.Services.CustodianReports
             entity.UpdatedDt = model.UpdatedDt;
             entity.PostedBy = model.PostedBy;
             entity.PostedDt = model.PostedDt;
+            entity.Latitude = model.Latitude;
+            entity.Longitude = model.Longitude;
         }
 
         public MemoryStream ProcessExcelFile(Guid id, string templateFilePath)

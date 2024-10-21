@@ -144,17 +144,19 @@ namespace iLgs.Services.AllFields
             }
             else if (group == CategoryGroup.OTHERS)
             {
-                if (string.IsNullOrWhiteSpace(af.Brand))
+                if (module == Enums.Module.CARD || module == Enums.Module.ORDER)
                 {
-                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                    if (string.IsNullOrWhiteSpace(af.Brand))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                    }
+                }
+               
+                if (string.IsNullOrWhiteSpace(af.Model_))
+                {
+                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
                 }
                 else
-                {
-                    if (string.IsNullOrWhiteSpace(af.Model_))
-                    {
-                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
-                    }
-                    else
                     {
                         if (af.Model_.IsNullOrWhiteSpaceX())
                         {
@@ -213,8 +215,7 @@ namespace iLgs.Services.AllFields
                                 }
                             }
                         }
-                    }
-                }
+                    }                
             }
         }
     }

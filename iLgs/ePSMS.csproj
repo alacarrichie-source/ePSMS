@@ -298,9 +298,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\CardUploadController.cs" />
+    <Compile Include="Controllers\CustodianDisposalController.cs" />
+    <Compile Include="Controllers\CustodianIirupController.cs" />
     <Compile Include="Controllers\CustodianReportBldgController.cs" />
     <Compile Include="Controllers\CustodianReportController.cs" />
     <Compile Include="Controllers\CustodianReportLandController.cs" />
+    <Compile Include="Controllers\DollarRateController.cs" />
     <Compile Include="Controllers\IcsSetController.cs" />
     <Compile Include="Controllers\ItemHelperController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
@@ -379,6 +382,20 @@
     <Compile Include="Models\Codextn.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\CustodianDisposal.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CustodianDisposalItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CustodianDisposalViewModels.cs" />
+    <Compile Include="Models\CustodianIIRUP.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CustodianIirupItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CustodianIirupViewModels.cs" />
     <Compile Include="Models\CustodianReport.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -391,10 +408,14 @@
     <Compile Include="Models\CustodianReportLandItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\CustodianViewwModels.cs" />
+    <Compile Include="Models\CustodianViewModels.cs" />
     <Compile Include="Models\DepartmentUser.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\DollarRate.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DollarRateViewModels.cs" />
     <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\ErrorLog.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -630,6 +651,10 @@
     <Compile Include="Services\AllFields\AllFieldService.cs" />
     <Compile Include="Services\CardItemExtnService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
+    <Compile Include="Services\CustodianDisposal_\CustodianDisposalItemService.cs" />
+    <Compile Include="Services\CustodianDisposal_\CustodianDisposalService.cs" />
+    <Compile Include="Services\CustodianIirup\CustodianIirupItemService.cs" />
+    <Compile Include="Services\CustodianIirup\CustodianIirupService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportBldgItemService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemPpeService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemPpeValidator.cs" />
@@ -641,7 +666,9 @@
     <Compile Include="Services\CustodianReports\CustodianReportService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemStockService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportValidator.cs" />
+    <Compile Include="Services\CustodianUploads\CustodianBldgUploadService.cs" />
     <Compile Include="Services\DepartmentUserService.cs" />
+    <Compile Include="Services\DollarRate_\DollarRateService.cs" />
     <Compile Include="Services\IcsParItemService.cs" />
     <Compile Include="Services\IcsParService.cs" />
     <Compile Include="Services\IcsService.cs" />
@@ -1466,6 +1493,7 @@
     <Content Include="App_Data\CustodianVehiclesTemplate.xlsx" />
     <Content Include="App_Data\CustodianStructureTemplate.xlsx" />
     <Content Include="App_Data\CustodianLandTemplate.xlsx" />
+    <Content Include="App_Data\CustodianIrrupTemplate.xlsx" />
     <None Include="Properties\PublishProfiles\ePsms %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
@@ -4010,11 +4038,30 @@
     <Content Include="Views\CustodianReportLand\EditorTemplates\_LandItemTemplate.cshtml" />
     <Content Include="Views\CustodianReportBldg\Index.cshtml" />
     <Content Include="Views\CustodianReportBldg\EditorTemplates\_BldgItemTemplate.cshtml" />
+    <Content Include="Views\CustodianDisposal\Index.cshtml" />
+    <Content Include="Views\CustodianDisposal\EditorTemplates\_CustodianDisposalTemplate.cshtml" />
+    <Content Include="Views\CustodianDisposal\_Item.cshtml" />
+    <Content Include="Views\CustodianDisposal\_ItemAddEdit.cshtml" />
+    <Content Include="Views\CustodianIirup\Index.cshtml" />
+    <Content Include="Views\CustodianIirup\EditorTemplates\_CustodianIirupTemplate.cshtml" />
+    <Content Include="Views\CustodianIirup\_Item.cshtml" />
+    <Content Include="Views\CustodianIirup\_itemAddEdit.cshtml" />
+    <Content Include="Views\DollarRate\Index.cshtml" />
+    <Content Include="Views\DollarRate\EditorTemplates\_DollarRateTemplate.cshtml" />
+    <Content Include="Views\CustodianIirup\EditorTemplates\_ItemDetailTemplate.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\LabelBool.cshtml" />
+    <Content Include="Views\CustodianIirup\EditorTemplates\_ShowAcqMonth.cshtml" />
+    <Content Include="Views\CustodianIirup\EditorTemplates\_ShowAcqDay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\LabelDouble.cshtml" />
+    <Content Include="Views\CustodianReportBldg\_Images.cshtml" />
+    <Content Include="Views\CustodianReportBldg\_ImagesAdd.cshtml" />
+    <Content Include="Views\CustodianReportBldg\EditorTemplates\_ImagesTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Cards\" />
+    <Folder Include="Views\CustodianUpload\" />
     <Folder Include="Views\Getters\" />
     <Folder Include="Views\Issuances\" />
     <Folder Include="Views\ItemHelper\" />
@@ -4120,7 +4167,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

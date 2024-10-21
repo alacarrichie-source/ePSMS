@@ -1538,6 +1538,12 @@
         var transferOut = $("#TransferOut").data("kendoNumericTextBox").value();
         var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();
 
+        qty = qty == null ? 0 : qty;
+        qtyIss = qtyIss == null ? 0 : qtyIss;
+        transferIn = transferIn == null ? 0 : transferIn;
+        transferOut = transferOut == null ? 0 : transferOut;
+        unitCost = unitCost == null ? 0 : unitCost;
+
         var balance = (qty + transferIn) - (qtyIss + transferOut);
         var amount = (qty + transferIn) * unitCost;
 

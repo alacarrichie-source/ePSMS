@@ -20,5 +20,8 @@ namespace iLgs.Exceptions.Service
     
         public NotFoundException(Guid id)
             : base(message: $"Couldn't find record with id: {id}.") { }
+
+        public NotFoundException(string msg)
+            : base(message: msg) { }
     }
 }

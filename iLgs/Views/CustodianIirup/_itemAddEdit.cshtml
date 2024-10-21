@@ -1,0 +1,117 @@
+﻿@model iLgs.Models.CustodianIirupItem
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CustodianIirupId)
+    @Html.HiddenFor(model => model.GridItems)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row">
+            <div class="col-md-12">
+                @(Html.Kendo().Grid<iLgs.Models.CustodianDisposal>()
+                    .Name("gridSelections")
+                    .Columns(col =>
+                    {
+                        col.Select().Width(30);
+                        col.Bound(c => c.Department).Width(50);
+                        col.Bound(c => c.TransmittalNo).Width(70);
+                        col.Bound(c => c.RequestedBy).Width(70);
+                        col.Bound(c => c.RequestedDt).Width(70);                        
+                    })
+                    .PersistSelection(true)
+                    .NoRecords()
+                    .Navigatable()
+                    .Scrollable(s => s.Height(320))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+                        })
+                        .Read(read => read.Action("_AvaialbleItemRead", "CustodianIirup"))
+                    )
+                    .Events(events => events.DataBound("onDataBoundGridSelection"))
+                )
+            </div>
+        </div>
+
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                <span id="span_">
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave"))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+                </span>
+            </div>
+        </div>
+    </fieldset>
+}
+
+<script type="text/javascript">
+    $("#btnSave").click(function (e) {
+        e.preventDefault();
+
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+
+            // Get reference to Grid object
+            var grid = $("#gridSelections").data("kendoGrid");
+            // Get selected rows
+            var sel = $("input:checked", grid.tbody).closest("tr");
+            // Get data item for each
+
+            var selectedIds = grid.selectedKeyNames().join(",");
+
+            $("#GridItems").val(selectedIds);
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_ItemSave", "CustodianIirup")',
+                data: $("#form").serialize(),
+                async: true,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    if (result.Errors == "") {
+                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                    }
+                    else {
+                        alert(result.Errors);
+                    }
+                }, error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+            disabled.attr('disabled', 'disabled');
+        }
+    });
+
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+</script>
+
+
+
+
+
+
+
+
+

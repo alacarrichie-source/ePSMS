@@ -17,6 +17,7 @@ namespace iLgs.Services.CustodianReports
     public interface ICustodianReportItemService
     {
         IQueryable<CustodianReportItem> GetByReportId(Guid? reportId);
+        IQueryable<CustodianReportItem> GetAvailableItemsForDisposal(Guid? deptId);
         ValueTask<CustodianReportItem> GetByIdAsync(Guid id);
         string GetStockNo(CustodianReportItem model);
         ValueTask<CustodianReportItem> CreateAsync(CustodianReportItem model, string user, DateTime date);
@@ -57,6 +58,18 @@ namespace iLgs.Services.CustodianReports
         _exceptionService.TryCatch(() =>
         {
             var data = _db.CustodianReportItems.AsNoTracking().Where(w => w.ReportId == reportId).AsQueryable();
+            return data;
+        });
+
+        public IQueryable<CustodianReportItem> GetAvailableItemsForDisposal(Guid? deptId) =>
+        _exceptionService.TryCatch(() =>
+        {
+            var data = _db.CustodianReportItems.AsNoTracking()
+                .Where(w => w.DeptId == deptId 
+                    && (w.Annex == "A" || w.Annex == "B")
+                    && !w.CustodianDisposalItems.Any())
+                .AsQueryable();
+            
             return data;
         });
 

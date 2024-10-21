@@ -90,6 +90,7 @@
         .Scrollable()
         .Sortable()
         .Groupable()
+        .ClientDetailTemplateId("UploadedFiles")
         .DataSource(dataSource => dataSource
             .Ajax()
             .PageSize(20)
@@ -125,6 +126,21 @@
         .Name("popupNotification")
         .Events(e => e.Show("onShowNotification"))
 )
+
+<script id="UploadedFiles" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+        .Name("tabStrip_#=Id#")
+        .HtmlAttributes(new { @class = "no-text-tabstrip" })
+        .TabPosition(TabStripTabPosition.Top)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .SelectedIndex(0)
+        .Items(items =>
+        {
+            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReportBldg", new { imageId = "#=Id#" });
+        })
+        .ToClientTemplate())
+</script>
+
 
 <div id="windowcontainer"></div>
 
@@ -249,7 +265,7 @@
         if (args.errors) {
             var validationError = true;
             $.each(args.errors, function (propertyName) {
-                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError" || propertyName == "GridError") {
                     alert(this.errors);
                     validationError = false;
                     selectedGrid.dataSource.read();
@@ -394,7 +410,7 @@
     {
         var popupNotification = $("#popupNotification").data("kendoNotification");
         var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
-        var formData = $("#form").serialize();        
+        var formData = $("#form").serialize();
         // Make an AJAX call to submit the data
         $.ajax({
             type: 'POST',
@@ -462,7 +478,6 @@
                         }
                     },
                     error: function (req, status, errorObj) {
-                        disabled.attr('disabled', 'disabled');
                         alert(req.responseText);
                         return false;
                     }
@@ -666,6 +681,219 @@
         });
     }
     // end item template
+
+    // GRID IMAGES
+    function GridUploadError(e) {
+        if (e.errors) {            
+            //// Get the parent grid
+            //var parentGrid = $("#grid").data("kendoGrid");
+            
+            //// Try to find the closest grid row
+            //var row = $(e.target).closest("tr[data-uid]"); // Look for the row with a data-uid attribute
+
+            //// Log the row for debugging
+            //console.log("Row element:", row);
+
+            //// Check if a valid row was found
+            //if (row.length === 0) {
+            //    console.warn("No valid row found. The event target may not be within a grid row.");
+
+            //    // Provide a fallback: Try getting the parent row from a specific known container
+            //    var knownContainer = $("#gridItems"); // Replace with your grid's container
+            //    row = knownContainer.find("tr[data-uid]"); // Grab any row as a fallback
+
+            //    if (row.length === 0) {
+            //        console.warn("No rows found in the parent grid.");
+            //        return; // Exit if no rows are found
+            //    } else {
+            //        console.warn("Fallback: Found rows in the parent grid but not the specific one.");
+            //    }
+            //}
+
+            //// Get the dataItem for the parent grid
+            //var dataItem = parentGrid.dataItem(row);
+
+            //// Log the retrieved dataItem
+            //if (!dataItem) {
+            //    // Get the index of the row in the parent grid
+            //    var rowIndex = row.index();
+            //    console.log("Row index:", rowIndex);
+
+            //    // Attempt to access dataItem using the dataSource view
+            //    dataItem = parentGrid.dataSource.view()[rowIndex];
+
+            //    // Log the data item retrieved via index
+            //    console.log("Data Item found using index:", dataItem);
+            //}
+
+
+            // Find the subgrid and refresh it
+            //var subgridName = "gridImages_" + dataItem.Id; // Adjust based on how you identify the subgrid
+            //var subgrid = $("#" + subgridName).data("kendoGrid");
+            var subgrid = $("#gridImages_" + selectedId).data("kendoGrid");
+
+            if (subgrid) {
+                subgrid.dataSource.read(); // Refresh the subgrid
+            }
+
+            $.each(e.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                }
+            });
+        }
+    }
+
+
+    var selectedGridImagesItem = null;
+    function onEditGridImages(e) {
+        e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("ImageId", '@ViewData["imageId"]');
+        } else {
+            selectedGridImagesItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridImagesItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridImages(e) {
+        if (selectedGridImagesItem) {
+            var dataItem = this.dataSource.get(selectedGridImagesItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+
+        @*var trs = this.tbody.find('tr').each(
+           function () {
+               var item = this.dataItem($(this));
+
+               if ('@ViewBag.isAllowed' == 'False') {
+                   $('.k-grid-Upload', $("#gridImages")).remove();
+               }
+           }
+          );*@
+    }
+    function onDeleteGridImages(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+
+    function onClickUpload(e) {
+        //var gridName = $(e.sender.element).data("gridname");
+
+        var button = e.sender.element; // Use the sender's element;        
+        // Retrieve the grid name from the data attribute
+        var gridName = $(button).data("gridname");
+        selectedGrid = $("#" + gridName).data("kendoGrid");
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        var imageId = parentModel.id;
+
+        var myUrl = '@Url.Action("_ImagesAdd", "CustodianReportBldg")?imageId=' + imageId;
+        var myTitle = "Upload Images/Documents";
+        var width = 800;
+        var height = 650;
+
+
+        $("#windowcontainer").append("<div id='windowUpload'></div>");
+        var mywindow = $("#windowUpload")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function UploadPara(e) {
+        var data = JSON.stringify({ model: $("#formUpload").serialize() });
+        //alert(additional);
+        //e.data = JSON.parse(additional);
+        //$('#chkSMS').is(':checked');
+        e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val() }
+    }
+
+    function onClickPreview(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGridImagesItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("PreviewUpload", "CustodianReportBldg")?id=' + selectedGridImagesItem;
+        var myTitle = "Preview";
+        var width = 800;
+        var height = 650;
+
+
+        $("#windowcontainer").append("<div id='windowPreview'></div>");
+        var mywindow = $("#windowPreview")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function onError(e) {
+        // invalid because the responseText is a raw string, not JSON
+        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
+        var err = e.XMLHttpRequest.responseText;
+        alert(err);
+    };
+
+    function onUploadSuccess(e)
+    {
+        selectedGrid.dataSource.read();
+    }
+
+    // END GRID IMAGES
 
 </script>
 

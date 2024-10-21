@@ -19,7 +19,7 @@ namespace iLgs.Services.CustodianReports
     {
         IQueryable<CustodianReport> GetAll();
         IQueryable<CustodianReport> GetAllByAccountGroup(int? accountGroup);
-        IQueryable<CustodianReport> GetAllByDepartmentAccountGroup(Guid? deptId, int? accountGroup);
+        IQueryable<CustodianReport> GetAllByDepartmentAccountGroup(Guid? deptId, int? accountGroup);        
         ValueTask<CustodianReport> GetByIdAsync(Guid? id);
         ValueTask<CustodianReport> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReport> UnPostAsync(Guid id, string user, DateTime date);
@@ -78,8 +78,7 @@ namespace iLgs.Services.CustodianReports
             var data = _db.CustodianReports.AsNoTracking().Where(w => w.DeptId == deptId && w.AccountGroup == accountGroup).AsQueryable();
             return data;
         });
-
-
+        
         public ValueTask<CustodianReport> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
@@ -102,6 +101,12 @@ namespace iLgs.Services.CustodianReports
         {
             _validator.ValidateOnUnpost(id);
             var entity = await _db.CustodianReports.FindAsync(id);
+
+            //// check if in disposal
+            //if(_db.CustodianReportItems.Where(w => w.Report`Id == id && w.CustodianDisposalItems.Any()).Any())
+            //{
+            //    throw new RecordAlreadyExistsException("Record already in disposal entry, cannot unpost!");
+            //}
 
             entity.PostedBy = "";
             entity.PostedDt = null;

@@ -1,0 +1,96 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.CustodianIirupItem>()
+        .Name("gridItems_" + @ViewData["iirupId"])
+        .Columns(col =>
+        {
+            col.Bound(c => c.CustodianDisposal.Department).Width(100);
+            col.Bound(c => c.CustodianDisposal.TransmittalNo).Width(70);
+            col.Bound(c => c.CustodianDisposal.RequestedBy).Width(70);
+            col.Bound(c => c.CustodianDisposal.RequestedDt).Width(50)
+                .ClientTemplate("#= kendo.toString(kendo.parseDate(CustodianDisposal.RequestedDt), 'MM/dd/yyyy') #");
+            col.Command(command =>
+            {
+                command.Destroy();
+            }).Width(172);
+        })
+        .ToolBar(t =>
+        {
+            t.Template(@<text>
+                @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["iirupId"]).Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddItem")))
+            </text>);
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .ClientDetailTemplateId("ItemExtnDetails")
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .ServerOperation(true)
+            .Sort(s =>
+            {
+                s.Add(a => a.InsertedDt);
+            })
+            .Read(read => read.Action("_ItemRead", "CustodianIirup", new { iirupId = @ViewData["iirupId"] }))
+            .Create(create => create.Action("_ItemCreate", "CustodianIirup"))
+            .Destroy(destroy => destroy.Action("_ItemDestroy", "CustodianIirup"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItems")
+            //.Edit("onEditGridItems")
+            .DataBound("onDataBoundGridItems")
+        //.Remove("onRemoveGridItems")
+        //.Save("onSaveGridItemsVehicle")
+        )
+        .AutoBind(true)
+)
+
+
+<script type="text/javascript">
+    // item template
+
+    function resizeWindow() {
+        var mywindow = $("#window").data("kendoWindow");
+        if (mywindow) {
+            mywindow.setOptions({
+                width: "1000",
+                height: "auto"
+            });
+            mywindow.center(); // Optional: Center the window after resizing
+        }
+    }
+
+    function onChangeGridItemAvailable(arg) {
+        $("#GridItems").val(this.selectedKeyNames().join(",")).trigger("change");
+    }
+
+    // end item template
+
+    // grid selection
+    function onDataBoundGridSelection(e) {
+        if (this.dataSource.data().length == 0) {
+            $("#btnSave").hide();
+        }
+        else {
+            $("#btnSave").show();
+        }
+    }
+    // end grid selection
+</script>
+
+

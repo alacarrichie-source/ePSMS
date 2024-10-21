@@ -69,29 +69,6 @@ namespace iLgs.Exceptions
         public void AddData(string key, params string[] values)
         {
             Data.Add(key, values);
-        }
-
-        //public bool DataEquals(IDictionary dictionary)
-        //{
-        //    foreach (DictionaryEntry item in dictionary)
-        //    {
-        //        bool num = !Data.Contains(item.Key);
-        //        bool flag = CompareData(Data[item.Key], dictionary[item.Key]);
-        //        if (num || flag)
-        //        {
-        //            return false;
-        //        }
-        //    }
-
-        //    return true;
-        //}
-
-        // Need FluentAssertion
-        //private bool CompareData(object firstObject, object secondObject)
-        //{
-        //    AssertionScope assertionScope = new AssertionScope();
-        //    firstObject.Should().BeEquivalentTo(secondObject, "");
-        //    return assertionScope.HasFailures();
-        //}
+        }        
     }
 }

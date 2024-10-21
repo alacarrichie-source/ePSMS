@@ -1,0 +1,45 @@
+﻿@model iLgs.Models.DollarRate
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.AsOf, "LabelDate")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().DatePickerFor(m => m.AsOf).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.AsOf)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.Value, "LabelDecimal")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.Value).Decimals(4).Format("{0:n4}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Value)
+                </div>
+            </div>
+        </div>        
+    </fieldset>
+}
+
+
+
+

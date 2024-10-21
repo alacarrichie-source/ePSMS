@@ -14,6 +14,12 @@ namespace iLgs.Models
     
     public partial class CustodianReportItem
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public CustodianReportItem()
+        {
+            this.CustodianDisposalItems = new HashSet<CustodianDisposalItem>();
+        }
+    
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> ReportId { get; set; }
         public string Fund { get; set; }
@@ -99,5 +105,7 @@ namespace iLgs.Models
         public virtual Codextn Codextn1 { get; set; }
         public virtual CustodianReport CustodianReport { get; set; }
         public virtual ItemCode ItemCode { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CustodianDisposalItem> CustodianDisposalItems { get; set; }
     }
 }

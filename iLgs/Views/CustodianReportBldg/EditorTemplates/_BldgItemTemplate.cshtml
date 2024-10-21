@@ -338,7 +338,7 @@
                     @Html.DisplayFor(m => m.TargetYear, "LabelInt")
                 </div>
                 <div class="col-md-9">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.TargetYear).Decimals(0).Format("{0:n0}").Max(9999).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().NumericTextBoxFor(m => m.TargetYear).Decimals(0).Format("{0:0}").Max(9999).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.TargetYear)
                 </div>
             </div>
@@ -348,7 +348,7 @@
                     @Html.DisplayFor(m => m.TargetMonth, "LabelInt")
                 </div>
                 <div class="col-md-9">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.TargetMonth).Decimals(0).Format("{0:n0}").Min(1).Max(12).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().NumericTextBoxFor(m => m.TargetMonth).Decimals(0).Format("{0:0}").Min(1).Max(12).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.TargetMonth)
                 </div>
             </div>
@@ -360,7 +360,7 @@
                     @Html.DisplayFor(m => m.PercentComplete, "LabelDecimal")
                 </div>
                 <div class="col-md-9">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.PercentComplete).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().NumericTextBoxFor(m => m.PercentComplete).Decimals(2).Format("{0:n2}%").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                    
                     @Html.ValidationMessageFor(m => m.PercentComplete)
                 </div>
             </div>
@@ -436,6 +436,29 @@
                 <div class="col-md-9">
                     @(Html.Kendo().TextBoxFor(m => m.Remarks).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Remarks)
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.Longitude, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.Longitude).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Longitude)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.Latitude, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.Latitude).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Latitude)
                 </div>
             </div>
         </div>

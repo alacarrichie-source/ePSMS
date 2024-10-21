@@ -95,10 +95,15 @@ namespace iLgs.Models
         public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
         public virtual DbSet<CardItemExtn> CardItemExtns { get; set; }
-        public virtual DbSet<CustodianReport> CustodianReports { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
+        public virtual DbSet<CustodianDisposal> CustodianDisposals { get; set; }
         public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
         public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
+        public virtual DbSet<CustodianReport> CustodianReports { get; set; }
+        public virtual DbSet<CustodianIirupItem> CustodianIirupItems { get; set; }
+        public virtual DbSet<CustodianIIRUP> CustodianIIRUPs { get; set; }
+        public virtual DbSet<CustodianDisposalItem> CustodianDisposalItems { get; set; }
+        public virtual DbSet<DollarRate> DollarRates { get; set; }
         public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
     }
 }

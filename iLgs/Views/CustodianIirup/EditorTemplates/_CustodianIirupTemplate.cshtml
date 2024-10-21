@@ -1,0 +1,129 @@
+﻿@model iLgs.Models.CustodianIIRUP
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.AsOf, "LabelDate")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().DatePickerFor(m => m.AsOf).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.AsOf)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.Chairman, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.Chairman).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Chairman)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.ChairmanTitle, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.ChairmanTitle).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.ChairmanTitle)
+                </div>
+            </div>
+        </div> 
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.ViceChairman, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.ViceChairman).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.ViceChairman)
+                </div>
+            </div>
+        </div> 
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.ViceChairmanTitle, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.ViceChairmanTitle).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.ViceChairmanTitle)
+                </div>
+            </div>
+        </div> 
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.Member, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.Member).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Member)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.MemberTitle, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.MemberTitle).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.MemberTitle)
+                </div>
+            </div>
+        </div> 
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.Officer, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.Officer).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Officer)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.OfficerTitle, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.OfficerTitle).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.OfficerTitle)
+                </div>
+            </div>
+        </div> 
+
+    </fieldset>
+}
+
+
+

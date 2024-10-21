@@ -1,0 +1,111 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.CustodianDisposalItem>()
+        .Name("gridItems_" + @ViewData["disposalId"])
+        .Columns(col =>
+        {
+            col.Bound(c => c.CustodianReportItem.Account).Width(50);
+            col.Bound(c => c.CustodianReportItem.SubAccount).Width(50);
+            col.Bound(c => c.CustodianReportItem.Article).Width(70);
+            col.Bound(c => c.CustodianReportItem.Description).Width(70);
+            col.Bound(c => c.CustodianReportItem.Brand).Width(50);
+            col.Bound(c => c.CustodianReportItem.PropNo).Width(50);
+            //col.Bound(c => c.CustodianReportItem.Model_).Width(50);
+            //col.Bound(c => c.CustodianReportItem.Dimension).Width(50);
+            //col.Bound(c => c.CustodianReportItem.Size).Width(50);
+            //col.Bound(c => c.CustodianReportItem.Materials).Width(50);
+            //col.Bound(c => c.CustodianReportItem.Weight).Width(50);
+            //col.Bound(c => c.CustodianReportItem.Color).Width(50);
+            //col.Bound(c => c.CustodianReportItem.SerialNo).Width(50);
+            //col.Bound(c => c.CustodianReportItem.PlateNo).Width(50);
+            //col.Bound(c => c.CustodianReportItem.ConductionNo).Width(50);
+            //col.Bound(c => c.CustodianReportItem.EngineNo).Width(50);
+            //col.Bound(c => c.CustodianReportItem.BodyNo).Width(50);
+            col.Bound(c => c.InsertedBy).Width(70);
+            col.Command(command =>
+            {
+                //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridItemDeleteClick").SendDataKeys(true);
+                command.Destroy();
+            }).Width(172);
+        })
+        .ToolBar(t =>
+        {
+            //t.Create().Text("Add New Record");
+            //t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnAddNew_" + @ViewData["disposaltId"]).HtmlAttributes(new { @class = "k-grid-add-custom" }).Events(e => e.Click("onClickBtnAddOrderItem"));
+            t.Template(@<text>
+                @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["disposalId"]).Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddItem")))
+            </text>);
+        })
+        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CustodianDisposalItemTemplate").Window(w => w.Width(1000).Title("Vehicle Items")))
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .ServerOperation(true)
+            .Sort(s =>
+            {
+                s.Add(a => a.InsertedDt);
+            })
+            .Read(read => read.Action("_ItemRead", "CustodianDisposal", new { disposalId = @ViewData["disposalId"] }))
+            .Create(create => create.Action("_ItemCreate", "CustodianDisposal"))
+            .Destroy(destroy => destroy.Action("_ItemDestroy", "CustodianDisposal"))
+        )
+        .Events(events => events
+            .Change("onChangeGridItems")
+            //.Edit("onEditGridItems")
+            .DataBound("onDataBoundGridItems")
+        //.Remove("onRemoveGridItems")
+        //.Save("onSaveGridItemsVehicle")
+        )
+        .AutoBind(true)
+)
+
+
+<script type="text/javascript">
+    // item template    
+
+    function resizeWindow() {
+        var mywindow = $("#window").data("kendoWindow");
+        if (mywindow) {
+            mywindow.setOptions({
+                width: "1000",
+                height: "auto"
+            });
+            mywindow.center(); // Optional: Center the window after resizing
+        }
+    }    
+
+    function onChangeGridItemAvailable(arg) {
+        $("#GridItems").val(this.selectedKeyNames().join(",")).trigger("change");
+    }
+
+    // end item template
+
+    // grid selection
+    function onDataBoundGridSelection(e) {
+        if (this.dataSource.data().length == 0) {
+            $("#btnSave").hide();
+        }
+        else {
+            $("#btnSave").show();
+        }
+    }
+    // end grid selection
+</script>
+
