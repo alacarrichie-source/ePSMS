@@ -11,14 +11,14 @@ namespace iLgs.Services
 {
     public class DirectoryService : IDirectoryService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
         public DirectoryService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;
         }
         public string GetItemImageDirectory()
         {
-            var dir = db.Codextns.Where(w => w.CodeMast.Code == "DIRS" && w.Code == "IMAGE-ITEMS").FirstOrDefault();
+            var dir = _db.Codextns.Where(w => w.CodeMast.Code == "DIRS" && w.Code == "IMAGE-ITEMS").FirstOrDefault();
             if (dir != null)
             {
                 return dir.Description.Trim();

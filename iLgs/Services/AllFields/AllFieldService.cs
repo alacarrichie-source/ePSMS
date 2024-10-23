@@ -53,7 +53,7 @@ namespace iLgs.Services.AllFields
         public AllFieldService(AppManEntities db)
         {
             _db = db;
-            _validator = new AllFieldsValidator(db);
+            _validator = new AllFieldsValidator(_db);
         }
 
         public IQueryable<AllField> GetAllByPsCardId(Guid? psCardId) => _exceptionService.TryCatch(() =>

@@ -30,7 +30,7 @@ namespace iLgs.Services.CustodianReports
 
     public class CustodianReportService : ICustodianReportService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<CustodianReport> _exceptionService = new ExceptionService<CustodianReport>();
         private readonly ICustodianReportValidator _validator;
@@ -39,8 +39,8 @@ namespace iLgs.Services.CustodianReports
         public CustodianReportService(AppManEntities db)
         {
             _db = db;
-            _validator = new CustodianReportValidator(db);
-            _userService = new UserService(db);
+            _validator = new CustodianReportValidator(_db);
+            _userService = new UserService(_db);
         }
 
         public ValueTask<CustodianReport> GetByIdAsync(Guid? id) =>

@@ -22,15 +22,15 @@ namespace iLgs.Services
 
     public class ParItemService : IParItemService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
 
         public ParItemService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;
         }
         public IQueryable<PARItemVM> GetAll(Guid? parId)
         {
-            var data = db.PARItems.Where(w => w.ParId == parId)
+            var data = _db.PARItems.Where(w => w.ParId == parId)
                 .Select(s => new PARItemVM
                 {
                     Id = s.Id,
@@ -48,7 +48,7 @@ namespace iLgs.Services
 
         public async Task<PARItemVM> GetVmByIdAsync(Guid? itemId)
         {
-            var data = await db.PARItems.Where(w => w.Id == itemId)
+            var data = await _db.PARItems.Where(w => w.Id == itemId)
                 .Select(s => new PARItemVM
                 {
                     Id = s.Id,
@@ -65,7 +65,7 @@ namespace iLgs.Services
 
         public async Task<Models.PARItem> GetByIdAsync(Guid? itemId)
         {
-            return await db.PARItems.FindAsync(itemId);
+            return await _db.PARItems.FindAsync(itemId);
         }
 
         public async Task<PARItemVM> CreateAsync(PARItemVM model, string user, DateTime date)
@@ -88,8 +88,8 @@ namespace iLgs.Services
                 UpdatedDt = model.UpdatedDt
             };
 
-            db.PARItems.Add(entity);
-            await db.SaveChangesAsync();
+            _db.PARItems.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -99,7 +99,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await db.PARItems.FindAsync(model.Id);
+            var entity = await _db.PARItems.FindAsync(model.Id);
 
             entity.ParId = model.ParId;
             entity.OrderItemId = model.OrderItemId;
@@ -107,9 +107,9 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.PARItems.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.PARItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -119,18 +119,18 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await db.PARItems.FindAsync(model.Id);
+            var entity = await _db.PARItems.FindAsync(model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.PARItems.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.PARItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.PARItems.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.PARItems.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         }        

@@ -26,7 +26,7 @@ namespace iLgs.Services
 
     public class OrderItemService : IOrderItemService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly IExceptionService<OrderItemVM> _VmExceptionService = new ExceptionService<OrderItemVM>();
         private ICodextnService _codextnService;
         private IAllFieldService _allFieldService;
@@ -34,10 +34,10 @@ namespace iLgs.Services
         
         public OrderItemService(AppManEntities db)
         {
-            this._db = db;
-            _codextnService = new CodextnService(db);
-            _allFieldService = new AllFieldService(db);
-            _orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(db);
+            _db = db;
+            _codextnService = new CodextnService(_db);
+            _allFieldService = new AllFieldService(_db);
+            _orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
         }
 
         public ValueTask<OrderItemVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>

@@ -12,20 +12,20 @@ namespace iLgs.Services
 {
     public class AirInvoiceService : IAirInvoiceService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<AIRInvoiceVM> _vmExceptionService = new ExceptionService<AIRInvoiceVM>();
         private readonly IExceptionService<AIRInvoice> _exceptionService = new ExceptionService<AIRInvoice>();
 
         public AirInvoiceService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;
         }
 
         public IQueryable<AIRInvoiceVM> GetVmByAirId(Guid? airId) =>
        _vmExceptionService.TryCatch(() =>
        {
-           var data = db.AIRInvoices.Where(w => w.AirId == airId)
+           var data = _db.AIRInvoices.Where(w => w.AirId == airId)
                .Select(s => new AIRInvoiceVM
                {
                    Id = s.Id,
@@ -41,7 +41,7 @@ namespace iLgs.Services
         public ValueTask<AIRInvoiceVM> GetVmByIdAsync(Guid? id) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            var data = await db.AIRInvoices.Where(w => w.Id == id)
+            var data = await _db.AIRInvoices.Where(w => w.Id == id)
                .Select(s => new AIRInvoiceVM
                {
                    Id = s.Id,
@@ -81,8 +81,8 @@ namespace iLgs.Services
                 UpdatedDt = model.UpdatedDt
             };
 
-            db.AIRInvoices.Add(entity);
-            await db.SaveChangesAsync();
+            _db.AIRInvoices.Add(entity);
+            await _db.SaveChangesAsync();
 
             await UpdateAIR(model.AirId, user, date);            
 
@@ -91,7 +91,7 @@ namespace iLgs.Services
 
         private async ValueTask UpdateAIR(Guid? airId, string user, DateTime date)
         {
-            var invoices = await db.AIRInvoices.Where(w => w.AirId == airId).OrderBy(o => o.InvoiceNo).ToListAsync();
+            var invoices = await _db.AIRInvoices.Where(w => w.AirId == airId).OrderBy(o => o.InvoiceNo).ToListAsync();
             string invoiceNo = "";
             DateTime? invoiceDate = null;
             if (invoices.Any())
@@ -105,15 +105,15 @@ namespace iLgs.Services
                 invoiceDate = invoices.GroupBy(g => g.InvoiceDate).Min(m => m.Key);
             }            
 
-            var air = await db.AIRs.FindAsync(airId);
+            var air = await _db.AIRs.FindAsync(airId);
             air.UpdatedBy = user;
             air.UpdatedDt = date;
             air.InvoiceNo = invoiceNo;
             air.InvoiceDate = invoiceDate;            
 
-            db.AIRs.Attach(air);
-            db.Entry(air).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.AIRs.Attach(air);
+            _db.Entry(air).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
         }
 
         public ValueTask<AIRInvoiceVM> UpdateAsync(AIRInvoiceVM model, string user, DateTime date) =>
@@ -126,7 +126,7 @@ namespace iLgs.Services
 
             await ValidateOnUpdate(model);
 
-            AIRInvoice entity = await db.AIRInvoices.FindAsync(model.Id);
+            AIRInvoice entity = await _db.AIRInvoices.FindAsync(model.Id);
 
             if (entity == null)
             {
@@ -139,9 +139,9 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.AIRInvoices.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.AIRInvoices.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             await UpdateAIR(model.AirId, user, date);
 
@@ -159,7 +159,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            AIRInvoice entity = await db.AIRInvoices.FindAsync(model.Id);
+            AIRInvoice entity = await _db.AIRInvoices.FindAsync(model.Id);
 
             if (entity == null)
             {
@@ -169,13 +169,13 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.AIRInvoices.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.AIRInvoices.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.AIRInvoices.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.AIRInvoices.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             await UpdateAIR(model.AirId, user, date);
 
@@ -201,7 +201,7 @@ namespace iLgs.Services
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }
 
-            if (await db.AIRInvoices.AnyAsync(a => a.InvoiceNo == model.InvoiceNo && a.AirId == model.AirId))
+            if (await _db.AIRInvoices.AnyAsync(a => a.InvoiceNo == model.InvoiceNo && a.AirId == model.AirId))
             {
                 throw new RecordAlreadyExistsException(string.Format("Invoice Number {0} already exists", model.InvoiceNo));
             }                                    
@@ -214,7 +214,7 @@ namespace iLgs.Services
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }
 
-            if (await db.AIRInvoices.AnyAsync(a => a.InvoiceNo == model.InvoiceNo && a.Id != model.Id))
+            if (await _db.AIRInvoices.AnyAsync(a => a.InvoiceNo == model.InvoiceNo && a.Id != model.Id))
             {
                 throw new RecordAlreadyExistsException(string.Format("Invoice Number {0} already exists", model.InvoiceNo));
             }
@@ -222,7 +222,7 @@ namespace iLgs.Services
 
         private async ValueTask<bool> IsPostedAsync(Guid? airId)
         {
-            var entity = await db.AIRs.FindAsync(airId);
+            var entity = await _db.AIRs.FindAsync(airId);
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
         }
 

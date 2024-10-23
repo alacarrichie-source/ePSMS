@@ -29,8 +29,8 @@ namespace iLgs.Services.CustodianReports
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportItemVehicleVM>(propertyName);
-            _codextnService = new CodextnService(db);
-            _allFieldsValidator = new AllFieldsValidator(db);
+            _codextnService = new CodextnService(_db);
+            _allFieldsValidator = new AllFieldsValidator(_db);
         }
 
         public void ValidateOnCreate(CustodianReportItemVehicleVM model)

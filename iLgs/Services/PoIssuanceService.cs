@@ -24,15 +24,15 @@ namespace iLgs.Services.Interfaces
     public class PoIssuanceService : IPoIssuanceService
     {
         private decimal _parPrice = 50000;
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private IUserService _userService;
         private readonly IExceptionService<RisIssuedVM> _vmExceptionService = new ExceptionService<RisIssuedVM>();        
         private readonly IExceptionService<PsCardItemVM> _psCardItemVMrExceptionService = new ExceptionService<PsCardItemVM>();
 
         public PoIssuanceService(AppManEntities db)
         {
-            this._db = db;
-            this._userService = new UserService(db);
+            _db = db;
+            _userService = new UserService(_db);
         }
 
         public async ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId)

@@ -21,7 +21,7 @@ namespace iLgs.Services
 
     public class OrderItemUnitGroupService : IOrderItemUnitGroupService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<OrderItemUnitGroupVM> _vmExceptionService = new ExceptionService<OrderItemUnitGroupVM>();
         private readonly IExceptionService<OrderItemUnitGroup> _exceptionService = new ExceptionService<OrderItemUnitGroup>();
@@ -30,7 +30,7 @@ namespace iLgs.Services
         public OrderItemUnitGroupService(AppManEntities db)
         {
             _db = db;
-            _orderService = new OrderService(db);
+            _orderService = new OrderService(_db);
         }
 
         public ValueTask<OrderItemUnitGroup> GetByIdAsync(Guid? id) =>

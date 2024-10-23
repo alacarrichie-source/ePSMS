@@ -30,7 +30,7 @@ namespace iLgs.Services.CustodianReports
 
     public class CustodianReportItemService : ICustodianReportItemService
     {
-        protected readonly AppManEntities _db = new AppManEntities();
+        protected readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<CustodianReportItem> _exceptionService = new ExceptionService<CustodianReportItem>();
         protected readonly IAllFieldService _allFieldService;
@@ -38,7 +38,7 @@ namespace iLgs.Services.CustodianReports
         public CustodianReportItemService(AppManEntities db)
         {
             _db = db;
-            _allFieldService = new AllFieldService(db);
+            _allFieldService = new AllFieldService(_db);
         }
 
         public ValueTask<CustodianReportItem> GetByIdAsync(Guid id) =>

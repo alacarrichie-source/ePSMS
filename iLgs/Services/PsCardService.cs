@@ -39,7 +39,7 @@ namespace iLgs.Services
 
     public class PsCardService : IPsCardService
     {
-        protected readonly AppManEntities _db = new AppManEntities();
+        protected readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<PsCardVM> _vmExceptionService = new ExceptionService<PsCardVM>();
         private readonly IExceptionService<PsCard> _exceptionService = new ExceptionService<PsCard>();
@@ -50,9 +50,9 @@ namespace iLgs.Services
         public PsCardService(AppManEntities db)
         {
             _db = db;
-            _allFieldService = new AllFieldService(db);
-            _psCardItemService = new PsCardItemService(db);
-            _psCardItemIssuanceService = new PsCardItemIssuanceService(db);
+            _allFieldService = new AllFieldService(_db);
+            _psCardItemService = new PsCardItemService(_db);
+            _psCardItemIssuanceService = new PsCardItemIssuanceService(_db);
         }
 
         //public IStockCardService StockCard { get { return _stockCardService = _stockCardService ?? new StockCardService(_db); } }

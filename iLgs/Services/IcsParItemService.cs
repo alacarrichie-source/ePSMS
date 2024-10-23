@@ -28,7 +28,7 @@ namespace iLgs.Services
 
     public class IcsParItemService : IIcsParItemService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<ServiceResult<IcsParItem>> _exceptionService = new ExceptionService<ServiceResult<IcsParItem>>();
         private readonly IValidationService<IcsParItem> _validationService;
@@ -36,7 +36,7 @@ namespace iLgs.Services
         public IcsParItemService(AppManEntities db)
         {
             _db = db;
-            _validationService = new ValidationService<IcsParItem>(new IcsParItemValidator(db));
+            _validationService = new ValidationService<IcsParItem>(new IcsParItemValidator(_db));
         }
 
         public IQueryable<IcsParItem> GetAllByIcsParId(Guid? icsParId) 

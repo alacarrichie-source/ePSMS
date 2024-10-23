@@ -11,14 +11,14 @@ namespace iLgs.Services
 {
     public class RequestService : IRequestService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
         public RequestService(AppManEntities db)
         {
-            this.db = db;        
+            _db = db;        
         }
         public IQueryable<RequestVM> GetAll()
         {
-            return db.Requests
+            return _db.Requests
                 .Select(s => new RequestVM
                 {
                     Id = s.Id,
@@ -48,27 +48,27 @@ namespace iLgs.Services
 
         public async Task<Request> GetByIdAsync(Guid? prId)
         {
-            return await db.Requests.FindAsync(prId);
+            return await _db.Requests.FindAsync(prId);
         }
 
         public async Task<bool> IsAnyPrNoAsync(Guid id, string prNo)
         {
-            return await db.Requests.AnyAsync(a => a.Id != id && a.PrNo == prNo);
+            return await _db.Requests.AnyAsync(a => a.Id != id && a.PrNo == prNo);
         }
 
         public async Task<bool> IsAnyRisNoAsync(Guid id, string risNo)
         {
-            return await db.Requests.AnyAsync(a => a.Id != id && a.RISs.RisNo == risNo);
+            return await _db.Requests.AnyAsync(a => a.Id != id && a.RISs.RisNo == risNo);
         }
 
         public async Task<Request> GetByPrNoAsync(string prNo)
         {
-            return await db.Requests.Where(w => w.PrNo == prNo).FirstOrDefaultAsync();
+            return await _db.Requests.Where(w => w.PrNo == prNo).FirstOrDefaultAsync();
         }
 
         public async Task<bool> IsPostedAsync(Guid? requestId)
         {
-            var entity = await db.Requests.FindAsync(requestId);
+            var entity = await _db.Requests.FindAsync(requestId);
             if (entity == null)
             {
                 return false;
@@ -81,17 +81,17 @@ namespace iLgs.Services
 
         public async Task<bool> IsWithPOAsync(Guid? requestId)
         {
-            return await db.Orders.AnyAsync(a => a.PrId == requestId);
+            return await _db.Orders.AnyAsync(a => a.PrId == requestId);
         }
 
         public async Task<bool> IsPoPostedAsync(Guid? requestId)
         {
-            return await db.Orders.AnyAsync(a => a.PrId == requestId && !(a.PostedBy == "" || a.PostedBy == null));
+            return await _db.Orders.AnyAsync(a => a.PrId == requestId && !(a.PostedBy == "" || a.PostedBy == null));
         }
 
         public async Task<bool> IsWithInvalidUnitCostAsync(Guid? requestId)
         {
-            return await db.RequestItems.AnyAsync(a => a.PrId == requestId && (a.UnitCost == null || a.UnitCost == 0));
+            return await _db.RequestItems.AnyAsync(a => a.PrId == requestId && (a.UnitCost == null || a.UnitCost == 0));
         }
 
         public async Task<RequestVM> CreateAsync(RequestVM model, string user, DateTime date)
@@ -134,7 +134,7 @@ namespace iLgs.Services
             };
 
             // include items during add
-            var risItems = db.RisItems.Where(w => w.RisId == model.RisId).ToList();
+            var risItems = _db.RisItems.Where(w => w.RisId == model.RisId).ToList();
             foreach (var risItem in risItems)
             {
                 RequestItem requestItem = new RequestItem()
@@ -170,7 +170,7 @@ namespace iLgs.Services
             }
 
             // Unit Groups
-            var unitGroups = await db.RisItemUnitGroups.Include(i => i.RisItemUnitGroupDescriptions).Where(w => w.RisId == model.RisId).OrderBy(o => o.InsertedDt).ToListAsync();
+            var unitGroups = await _db.RisItemUnitGroups.Include(i => i.RisItemUnitGroupDescriptions).Where(w => w.RisId == model.RisId).OrderBy(o => o.InsertedDt).ToListAsync();
             foreach(var unitGroup in unitGroups)
             {
                 var unitGroupDt = DateTime.Now;
@@ -199,7 +199,7 @@ namespace iLgs.Services
                         UpdatedDt = groupDescriptionDt
                     };
 
-                    var risItemUnitGroupDescriptionItems = await db.RisItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
+                    var risItemUnitGroupDescriptionItems = await _db.RisItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
                     foreach(var unitGroupDescriptionItem in risItemUnitGroupDescriptionItems)
                     {
                         var groupDescriptionItemDt = DateTime.Now;
@@ -221,8 +221,8 @@ namespace iLgs.Services
                 entity.RequestItemUnitGroups.Add(requestItemUnitGroup);
             }
 
-            db.Requests.Add(entity);
-            await db.SaveChangesAsync();
+            _db.Requests.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -232,23 +232,23 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await db.Requests.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+            var entity = await _db.Requests.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
             // if there's a change of requisition item
             if (entity.RisId != model.RisId)
             {
-                var requestItems = db.RequestItems.Where(w => w.PrId == model.Id);
+                var requestItems = _db.RequestItems.Where(w => w.PrId == model.Id);
                 await requestItems.ForEachAsync(f => {
                     f.UpdatedBy = model.UpdatedBy;
                     f.UpdatedDt = model.UpdatedDt;
                 });
-                await db.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
-                db.RequestItems.RemoveRange(requestItems);
-                await db.SaveChangesAsync();
+                _db.RequestItems.RemoveRange(requestItems);
+                await _db.SaveChangesAsync();
                 
                 // include items during add
-                var risItems = db.RisItems.Where(w => w.RisId == model.RisId).ToList();
+                var risItems = _db.RisItems.Where(w => w.RisId == model.RisId).ToList();
                 foreach (var risItem in risItems)
                 {
                     RequestItem requestItem = new RequestItem()
@@ -294,9 +294,9 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
             
-            db.Requests.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.Requests.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -307,18 +307,18 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await db.Requests.FindAsync(model.Id);
+            var entity = await _db.Requests.FindAsync(model.Id);
 
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            db.Requests.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.Requests.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.Requests.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.Requests.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -326,7 +326,7 @@ namespace iLgs.Services
 
         public async Task PostAsync(Guid requestId, string user, DateTime date)
         {
-            var entity = await db.Requests.FindAsync(requestId);
+            var entity = await _db.Requests.FindAsync(requestId);
             if (entity != null)
             {
                 entity.SubmittedBy = user;
@@ -334,15 +334,15 @@ namespace iLgs.Services
                 entity.UpdatedBy = user;
                 entity.UpdatedDt = date;
 
-                db.Requests.Attach(entity);
-                db.Entry(entity).State = EntityState.Modified;
-                await db.SaveChangesAsync();
+                _db.Requests.Attach(entity);
+                _db.Entry(entity).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
             }
         }
 
         public async Task UnpostAsync(Guid requestId, string user, DateTime date)
         {
-            var entity = await db.Requests.FindAsync(requestId);
+            var entity = await _db.Requests.FindAsync(requestId);
             if (entity != null)
             {
                 entity.SubmittedBy = null;
@@ -350,9 +350,9 @@ namespace iLgs.Services
                 entity.UpdatedBy = user;
                 entity.UpdatedDt = date;
 
-                db.Requests.Attach(entity);
-                db.Entry(entity).State = EntityState.Modified;
-                await db.SaveChangesAsync();
+                _db.Requests.Attach(entity);
+                _db.Entry(entity).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
             }
         }
 
@@ -367,7 +367,7 @@ namespace iLgs.Services
             // yyyy-mm-9999
             // 123456789012
 
-            var data = db.Requests.Where(w => w.PrDate.Value.Year == prDate.Year).OrderByDescending(o => o.PrNo).FirstOrDefault();
+            var data = _db.Requests.Where(w => w.PrDate.Value.Year == prDate.Year).OrderByDescending(o => o.PrNo).FirstOrDefault();
             if (data == null)
             {
                 return keyName + "-" + "0001";

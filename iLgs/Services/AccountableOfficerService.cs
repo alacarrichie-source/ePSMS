@@ -20,7 +20,7 @@ namespace iLgs.Services
 
     public class AccountableOfficerService : IAccountableOfficerService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<AccountableOfficerVM> _vmExceptionService = new ExceptionService<AccountableOfficerVM>();
         private readonly IExceptionService<AccountableOfficer> _exceptionService = new ExceptionService<AccountableOfficer>();

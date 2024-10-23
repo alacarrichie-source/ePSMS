@@ -27,20 +27,21 @@ namespace iLgs.Services
 
     public class CodextnService : ICodextnService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly IUserService _userService;
 
         public CodextnService(AppManEntities db)
         {
             _db = db;
-            _userService = new UserService(db);
+            _userService = new UserService(_db);
         }
 
         public async ValueTask<IQueryable<Codextn>> GetUserDepartmentsAsync(string userId)
         {
             var IsAdmin = await _userService.IsAdmin(userId);
             var data = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS"
-                && (IsAdmin || w.DepartmentUsers.Any(a => a.UserId == userId)));
+                && w.Desc3 != "N"
+                && (IsAdmin || w.DepartmentUsers.Any(a => a.UserId == userId))).AsNoTracking();
             return data;
         }
                 

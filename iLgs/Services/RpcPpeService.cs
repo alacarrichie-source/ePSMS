@@ -23,7 +23,7 @@ namespace iLgs.Services
 
     public class RpcPpeService : IRpcPpeService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RpcPpeVM> _vmExceptionService = new ExceptionService<RpcPpeVM>();
         private readonly IExceptionService<RpcPpe> _exceptionService = new ExceptionService<RpcPpe>();
@@ -32,7 +32,7 @@ namespace iLgs.Services
         public RpcPpeService(AppManEntities db)
         {
             _db = db;
-            _orderService = new OrderService(db);
+            _orderService = new OrderService(_db);
         }
 
         public ValueTask<RpcPpe> GetByIdAsync(Guid? id) =>

@@ -58,7 +58,7 @@ namespace iLgs.Services
 
     public class ParService : IParService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private decimal _parPrice = 50000;
 
         private IIcsParItemService _icsParItemService;
@@ -72,11 +72,11 @@ namespace iLgs.Services
         public ParService(AppManEntities db)
         {
             _db = db;
-            _icsParItemService = new IcsParItemService(db);
-            _psCardService = new PsCardService(db);
-            _psCardItemService = new PsCardItemService(db);
-            _psCardItemExtnService = new PsCardItemExtnService(db);
-            _psCardItemIssaunceService = new PsCardItemIssuanceService(db);
+            _icsParItemService = new IcsParItemService(_db);
+            _psCardService = new PsCardService(_db);
+            _psCardItemService = new PsCardItemService(_db);
+            _psCardItemExtnService = new PsCardItemExtnService(_db);
+            _psCardItemIssaunceService = new PsCardItemIssuanceService(_db);
         }
 
         public IIcsParItemService IcsParItem { get { return _icsParItemService = _icsParItemService ?? new IcsParItemService(_db); } }

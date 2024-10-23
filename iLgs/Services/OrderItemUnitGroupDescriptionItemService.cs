@@ -22,7 +22,7 @@ namespace iLgs.Services
 
     public class OrderItemUnitGroupDescriptionItemService : IOrderItemUnitGroupDescriptionItemService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<OrderItemUnitGroupDescriptionItemVM> _vmExceptionService = new ExceptionService<OrderItemUnitGroupDescriptionItemVM>();
         private readonly IExceptionService<OrderItemUnitGroupDescriptionItem> _exceptionService = new ExceptionService<OrderItemUnitGroupDescriptionItem>();

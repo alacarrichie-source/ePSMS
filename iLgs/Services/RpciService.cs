@@ -26,7 +26,7 @@ namespace iLgs.Services
 
     public class RpciService : IRpciService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RPCI_VM> _vmExceptionService = new ExceptionService<RPCI_VM>();
         private readonly IExceptionService<RPCI> _exceptionService = new ExceptionService<RPCI>();
@@ -35,7 +35,7 @@ namespace iLgs.Services
         public RpciService(AppManEntities db)
         {
             _db = db;
-            _orderService = new OrderService(db);
+            _orderService = new OrderService(_db);
         }
 
         public ValueTask<RPCI> GetByIdAsync(Guid? id) =>

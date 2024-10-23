@@ -3,6 +3,7 @@ using iLgs.Services;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -12,12 +13,11 @@ namespace iLgs.Controllers
 {
     public class GettersController : Controller
     {
-        private readonly AppManEntities _db;
+        private readonly AppManEntities _db = new AppManEntities();
         private readonly ICodextnService _codextnService;
 
         public GettersController()
         {
-            _db = new AppManEntities();
             _codextnService = new CodextnService(_db);
         }
 
@@ -174,7 +174,7 @@ namespace iLgs.Controllers
         public JsonResult GetCodes(string mastCode, string text)
         {
 
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == mastCode);
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == mastCode).AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -187,7 +187,7 @@ namespace iLgs.Controllers
         public JsonResult GetCodeList(string mastCode, bool addAll, string text)
         {
 
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == mastCode).OrderBy(o => o.Code).AsQueryable();
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == mastCode).AsNoTracking().OrderBy(o => o.Code).AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
@@ -205,7 +205,7 @@ namespace iLgs.Controllers
         public JsonResult GetInvDistList(string text)
         {
 
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS").OrderByDescending(o => o.Desc2).AsQueryable();
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "PS-REMARKS").AsNoTracking().OrderByDescending(o => o.Desc2).AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
@@ -219,7 +219,7 @@ namespace iLgs.Controllers
         public JsonResult GetSupplier(string text)
         {
 
-            var model = _db.Suppliers.AsQueryable();
+            var model = _db.Suppliers.AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {                
@@ -245,7 +245,7 @@ namespace iLgs.Controllers
         public JsonResult GetPrNos(string text)
         {
 
-            var model = _db.Requests.Where(w => w.SubmittedBy != null).AsQueryable();
+            var model = _db.Requests.AsNoTracking().Where(w => w.SubmittedBy != null).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -258,7 +258,7 @@ namespace iLgs.Controllers
         public JsonResult GetPrNoWithRemainingItems(Guid? orderId, string text)
         {
             orderId = orderId ?? Guid.Empty;
-            var model = _db.Requests.Where(w => w.SubmittedBy != null).AsQueryable();
+            var model = _db.Requests.Where(w => w.SubmittedBy != null).AsNoTracking().AsQueryable();
             if (orderId == Guid.Empty)
             {
                 model = model.Where(w => w.RequestItems.Any(a => !a.OrderItems.Any()));
@@ -280,7 +280,7 @@ namespace iLgs.Controllers
         public JsonResult GetRisNos(string text)
         {
 
-            var model = _db.RISses.Where(w => w.PostedBy != null).AsQueryable();
+            var model = _db.RISses.Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -296,7 +296,7 @@ namespace iLgs.Controllers
         public JsonResult GetRisNosWithNoPr(Guid? prId, string text)
         {
             prId = prId ?? Guid.Empty;
-            var model = _db.RISses.Where(w => w.PostedBy != null).AsQueryable();
+            var model = _db.RISses.Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
             if (prId == Guid.Empty)
             {
                 model = model.Where(w => !w.Requests.Any());
@@ -328,7 +328,7 @@ namespace iLgs.Controllers
         public JsonResult GetPrItems(Guid prId, string text)
         {
 
-            var model = _db.RequestItems.Where(w => w.PrId == prId).AsQueryable();
+            var model = _db.RequestItems.Where(w => w.PrId == prId).AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -353,7 +353,7 @@ namespace iLgs.Controllers
 
         public JsonResult GetPrItemsWithNoPo(string mode, Guid prId, string text)
         {
-            var model = _db.RequestItems.Where(w => w.PrId == prId);
+            var model = _db.RequestItems.Where(w => w.PrId == prId).AsNoTracking();
             if (mode == "A")
             {
                 model = model.Where(w => !w.OrderItems.Any());
@@ -383,7 +383,7 @@ namespace iLgs.Controllers
 
         public JsonResult GetPoNos(string text)
         {
-            var model = _db.Orders.AsQueryable();
+            var model = _db.Orders.AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -396,7 +396,7 @@ namespace iLgs.Controllers
         public JsonResult GetPoNosWithoutPr(Guid? airId, string text)
         {
             airId = airId ?? Guid.Empty;
-            var model = _db.Orders.Where(w => w.PostedBy != null).AsQueryable();
+            var model = _db.Orders.Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
             if (airId == Guid.Empty)
             {
                 model = model.Where(w => !w.AIRs.Any());
@@ -417,7 +417,7 @@ namespace iLgs.Controllers
         public JsonResult GetRisPoNos(string text)
         {
 
-            var model = _db.Orders.AsQueryable();
+            var model = _db.Orders.AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -430,7 +430,7 @@ namespace iLgs.Controllers
         public JsonResult GetPoItems(Guid orderId, string text)
         {
 
-            var model = _db.OrderItems.Where(w => w.OrderId == orderId).AsQueryable();
+            var model = _db.OrderItems.Where(w => w.OrderId == orderId).AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -475,7 +475,7 @@ namespace iLgs.Controllers
         public JsonResult GetDepartments(string text)
         {
 
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc3 != "N");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc3 != "N").AsNoTracking();
             
             if (!string.IsNullOrEmpty(text))
             {
@@ -488,7 +488,7 @@ namespace iLgs.Controllers
         public JsonResult GetIssuedTo(string text)
         {
 
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-TO");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-TO").AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -501,7 +501,7 @@ namespace iLgs.Controllers
         public JsonResult GetLocations(string text)
         {
 
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS").AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -514,7 +514,7 @@ namespace iLgs.Controllers
         public JsonResult GetSections(string department, string text)
         {
             var deptCode = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Code.StartsWith(deptCode));
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Code.StartsWith(deptCode)).AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -527,7 +527,7 @@ namespace iLgs.Controllers
         public JsonResult GetRequestedBy(string department, string text)
         {
             var deptCode = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Code.StartsWith(deptCode));
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Code.StartsWith(deptCode)).AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -540,7 +540,7 @@ namespace iLgs.Controllers
         public JsonResult GetReceivedBy(string department, string text)
         {
             var deptCode = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description == department).FirstOrDefault()?.Code.Trim() + "-";
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Code.StartsWith(deptCode));
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "REQUEST-BY" && w.Code.StartsWith(deptCode)).AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -552,7 +552,7 @@ namespace iLgs.Controllers
 
         public JsonResult GetApprovedBy(string text)
         {
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "APPROVED-BY");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "APPROVED-BY").AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -563,7 +563,7 @@ namespace iLgs.Controllers
         }
         public JsonResult GetCustodians(string text)
         {
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "CUSTODIANS");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "CUSTODIANS").AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -575,7 +575,7 @@ namespace iLgs.Controllers
 
         public JsonResult GetOfficers(string text)
         {
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "OFFICERS");
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "OFFICERS").AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {

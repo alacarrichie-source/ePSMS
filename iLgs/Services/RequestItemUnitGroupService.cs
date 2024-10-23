@@ -31,8 +31,8 @@ namespace iLgs.Services
         public RequestItemUnitGroupService(AppManEntities db)
         {
             _db = db;
-            _risService = new RisService(db);
-            _requestService = new RequestService(db);
+            _risService = new RisService(_db);
+            _requestService = new RequestService(_db);
         }
 
         public ValueTask<RequestItemUnitGroup> GetByIdAsync(Guid? id) =>

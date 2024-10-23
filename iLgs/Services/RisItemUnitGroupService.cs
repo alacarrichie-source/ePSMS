@@ -22,7 +22,7 @@ namespace iLgs.Services
 
     public class RisItemUnitGroupService : IRisItemUnitGroupService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RisItemUnitGroupVM> _vmExceptionService = new ExceptionService<RisItemUnitGroupVM>();
         private readonly IExceptionService<RisItemUnitGroup> _exceptionService = new ExceptionService<RisItemUnitGroup>();
@@ -33,7 +33,7 @@ namespace iLgs.Services
         {
             _db = db;
             //_requestService = new RequestService(db);
-            _validator = new RisItemUnitGroupValidator(db);
+            _validator = new RisItemUnitGroupValidator(_db);
         }        
 
         public ValueTask<RisItemUnitGroup> GetByIdAsync(Guid? id) =>

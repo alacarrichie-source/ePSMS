@@ -22,12 +22,12 @@ namespace iLgs.Services
 
     public class AirItemExtnOtherService : IAirItemExtnOtherService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly IExceptionService<AIRItemExtnOther> _exceptionService = new ExceptionService<AIRItemExtnOther>();        
 
         public AirItemExtnOtherService(AppManEntities db)
         {
-            this._db = db;
+            _db = db;
         }
 
         public IQueryable<AIRItemExtnOther> GetByAirItemId(Guid? airItemId)

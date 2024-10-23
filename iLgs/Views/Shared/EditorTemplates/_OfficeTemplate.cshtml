@@ -8,7 +8,8 @@
     {
         source.Read(read =>
         {
-            read.Action("GetCodes", "Getters", new { mastCode = "DEPARTMENTS", text = "" });
+            //read.Action("GetCodes", "Getters", new { mastCode = "DEPARTMENTS", text = "" });
+            read.Action("GetDepartments", "Getters");
         })
         .ServerFiltering(false);
     })

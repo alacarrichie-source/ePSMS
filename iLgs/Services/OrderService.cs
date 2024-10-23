@@ -39,7 +39,7 @@ namespace iLgs.Services
 
     public class OrderService : IOrderService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<OrderVM> _orderVmExceptionService = new ExceptionService<OrderVM>();
         private readonly IExceptionService<Order> _orderExceptionService = new ExceptionService<Order>();
@@ -47,13 +47,13 @@ namespace iLgs.Services
 
         public OrderService(AppManEntities db)
         {
-            this.db = db;
-            _allFieldService = new AllFieldService(db);
+            _db = db;
+            _allFieldService = new AllFieldService(_db);
         }
 
         public IQueryable<OrderVM> GetAll() => _orderVmExceptionService.TryCatch(() =>
         {
-            var data = db.Orders.AsNoTracking()
+            var data = _db.Orders.AsNoTracking()
                 .Select(s => new OrderVM
                 {
                     Id = s.Id,
@@ -62,7 +62,7 @@ namespace iLgs.Services
                     PrDate = s.Request.PrDate,
                     PoDate = s.PoDate,
                     PoMode = s.PoMode,
-                    PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC-MODE").FirstOrDefault().Description,
+                    PoModeDesc = _db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC-MODE").FirstOrDefault().Description,
                     PrNo = s.Request.PrNo,
                     Department = s.Request.RISs.Office,
                     SupplierId = s.SupplierId,
@@ -90,7 +90,7 @@ namespace iLgs.Services
 
         public IQueryable<OrderVM> GetAllParOrders() => _orderVmExceptionService.TryCatch(() =>
         {
-            var data = db.Orders.AsNoTracking()
+            var data = _db.Orders.AsNoTracking()
                 .Where(w => w.PostedBy != null && w.AIRs.Any(a => a.PostedBy != null))
                 .Select(s => new OrderVM
                 {
@@ -109,38 +109,38 @@ namespace iLgs.Services
 
         public ValueTask<Order> GetByIdAsync(Guid orderId) => _orderExceptionService.TryCatch(async () =>
         {
-            return await db.Orders.FindAsync(orderId);
+            return await _db.Orders.FindAsync(orderId);
         });
 
         public async ValueTask<bool> GetAnyPoNoAsync(Guid id, string poNo)
         {
-            return await db.Orders.AnyAsync(a => a.Id != id && a.PoNo == poNo);
+            return await _db.Orders.AnyAsync(a => a.Id != id && a.PoNo == poNo);
         }
 
         public ValueTask<Order> GetByPoNoAsync(string poNo) => _orderExceptionService.TryCatch(async () =>
         {
-            return await db.Orders.Where(w => w.PoNo == poNo).FirstOrDefaultAsync();
+            return await _db.Orders.Where(w => w.PoNo == poNo).FirstOrDefaultAsync();
         });
 
         public async ValueTask<bool> GetAnyParsAsync(Guid id)
         {
-            return await db.PARs.AnyAsync(a => a.OrderId == id);
+            return await _db.PARs.AnyAsync(a => a.OrderId == id);
         }
 
         public async ValueTask<bool> GetAnyAirsAsync(Guid id)
         {
-            return await db.AIRs.AnyAsync(a => a.OrderId == id);
+            return await _db.AIRs.AnyAsync(a => a.OrderId == id);
         }
 
         public async ValueTask<bool> IsPostedAsync(Guid orderId)
         {
-            var entity = await db.Orders.FindAsync(orderId);
+            var entity = await _db.Orders.FindAsync(orderId);
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
         }
 
         public async ValueTask<int> GetNotPostedAsync(DateTime asOf)
         {
-            return await db.Orders.Where(w => w.PoDate <= asOf && w.PostedDt == null).CountAsync();
+            return await _db.Orders.Where(w => w.PoDate <= asOf && w.PostedDt == null).CountAsync();
         }
 
         public ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch(async () =>
@@ -183,7 +183,7 @@ namespace iLgs.Services
             };
 
             // include items during add, PR Items not yet in Order Items
-            var requestItems = db.RequestItems.Include(i => i.RisItem)
+            var requestItems = _db.RequestItems.Include(i => i.RisItem)
                 .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToList();
             foreach (var requestItem in requestItems)
             {
@@ -207,7 +207,7 @@ namespace iLgs.Services
             }
 
             // Unit Groups
-            var unitGroups = await db.RequestItemUnitGroups.Include(i => i.RequestItemUnitGroupDescriptions).Where(w => w.PrId == model.PrId).OrderBy(o => o.InsertedDt).ToListAsync();
+            var unitGroups = await _db.RequestItemUnitGroups.Include(i => i.RequestItemUnitGroupDescriptions).Where(w => w.PrId == model.PrId).OrderBy(o => o.InsertedDt).ToListAsync();
             foreach (var unitGroup in unitGroups)
             {
                 var unitGroupDt = DateTime.Now;
@@ -238,7 +238,7 @@ namespace iLgs.Services
                         UpdatedDt = groupDescriptionDt
                     };
 
-                    var requestItemUnitGroupDescriptionItems = await db.RequestItemUnitGroupDescriptionItems.Where(w => w.RequestItemUnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
+                    var requestItemUnitGroupDescriptionItems = await _db.RequestItemUnitGroupDescriptionItems.Where(w => w.RequestItemUnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
                     foreach (var unitGroupDescriptionItem in requestItemUnitGroupDescriptionItems)
                     {
                         var groupDescriptionItemDt = DateTime.Now;
@@ -260,8 +260,8 @@ namespace iLgs.Services
                 entity.OrderItemUnitGroups.Add(orderItemUnitGroup);
             }
 
-            db.Orders.Add(entity);
-            await db.SaveChangesAsync();
+            _db.Orders.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -273,24 +273,24 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await db.Orders.FindAsync(model.Id);
+            var entity = await _db.Orders.FindAsync(model.Id);
 
             // if there's a change of request item
             if (entity.PrId != model.PrId)
             {
-                var orderItems = db.OrderItems.Where(w => w.OrderId == model.Id);
+                var orderItems = _db.OrderItems.Where(w => w.OrderId == model.Id);
                 await orderItems.ForEachAsync(f =>
                 {
                     f.UpdatedBy = model.UpdatedBy;
                     f.UpdatedDt = model.UpdatedDt;
                 });
-                await db.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
-                db.OrderItems.RemoveRange(orderItems);
-                await db.SaveChangesAsync();
+                _db.OrderItems.RemoveRange(orderItems);
+                await _db.SaveChangesAsync();
 
                 // include items during add, PR Items not yet in Order Items
-                var prItemList = db.RequestItems.Include(i => i.RisItem)
+                var prItemList = _db.RequestItems.Include(i => i.RisItem)
                     .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToList();
                 foreach (var prItem in prItemList)
                 {
@@ -333,9 +333,9 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.Orders.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.Orders.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -345,28 +345,28 @@ namespace iLgs.Services
         {
             await ValidateOnDestroy(model);
 
-            var unitGroups = db.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
+            var unitGroups = _db.OrderItemUnitGroups.Where(w => w.OrderId == model.Id);
             if (unitGroups.Any())
             {
-                db.OrderItemUnitGroups.RemoveRange(unitGroups);
-                await db.SaveChangesAsync();
+                _db.OrderItemUnitGroups.RemoveRange(unitGroups);
+                await _db.SaveChangesAsync();
             }
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await db.Orders.FindAsync(model.Id);
+            var entity = await _db.Orders.FindAsync(model.Id);
 
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            db.Orders.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.Orders.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.Orders.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.Orders.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -374,7 +374,7 @@ namespace iLgs.Services
         public ValueTask<Order> PostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
             //var entity = await db.Orders.FindAsync(orderId);
-            var entity = await db.Orders.Include(i => i.Request.RISs.RisItems).Where(w => w.Id == orderId).FirstOrDefaultAsync();
+            var entity = await _db.Orders.Include(i => i.Request.RISs.RisItems).Where(w => w.Id == orderId).FirstOrDefaultAsync();
             if (entity == null)
             {
                 throw new RecordNotFoundException(orderId);
@@ -385,15 +385,15 @@ namespace iLgs.Services
             entity.PostedBy = user;
             entity.PostedDt = date;
             
-            db.Orders.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.Orders.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
             return entity;
         });
 
         public ValueTask<Order> UnpostAsync(Guid orderId, string user, DateTime date) => _orderExceptionService.TryCatch(async () =>
         {
-            var entity = await db.Orders.FindAsync(orderId);
+            var entity = await _db.Orders.FindAsync(orderId);
 
             if (entity == null)
             {
@@ -407,9 +407,9 @@ namespace iLgs.Services
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            db.Orders.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.Orders.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
             return entity;
             ///*
             //    * Delete the following records onUnpost:
@@ -473,7 +473,7 @@ namespace iLgs.Services
             // yyyy-mm-9999
             // 123456789012
 
-            var order = db.Orders.Where(w => w.PoDate.Value.Year == poDate.Year).OrderByDescending(o => o.PoNo).FirstOrDefault();
+            var order = _db.Orders.Where(w => w.PoDate.Value.Year == poDate.Year).OrderByDescending(o => o.PoNo).FirstOrDefault();
             if (order == null)
             {
                 return keyName + "-" + "0001";
@@ -489,13 +489,13 @@ namespace iLgs.Services
 
         private async ValueTask ValidateOnCreate(OrderVM model)
         {
-            if (await db.Orders.AnyAsync(a => a.PoNo == model.PoNo))
+            if (await _db.Orders.AnyAsync(a => a.PoNo == model.PoNo))
             {
                 throw new RecordAlreadyExistsException(string.Format("PO Number {0} already exists", model.PoNo));
             }
             else
             {
-                var pr = await db.Requests.FindAsync(model.PrId);
+                var pr = await _db.Requests.FindAsync(model.PrId);
                 if (pr == null)
                 {
                     throw new RecordNotFoundException(model.PrId);
@@ -512,7 +512,7 @@ namespace iLgs.Services
 
         private async ValueTask ValidateOnUpdate(OrderVM model)
         {
-            var order = await db.Orders.FindAsync(model.Id);
+            var order = await _db.Orders.FindAsync(model.Id);
             if (order == null)
             {
                 throw new RecordNotFoundException(model.Id);
@@ -530,7 +530,7 @@ namespace iLgs.Services
             }
 
 
-            var pr = await db.Requests.FindAsync(model.PrId);
+            var pr = await _db.Requests.FindAsync(model.PrId);
             if (pr == null)
             {
                 throw new RecordRelationshipException(string.Format("PR Number {0} does exists!", model.PrNo));
@@ -544,7 +544,7 @@ namespace iLgs.Services
 
         private async ValueTask ValidateOnDestroy(OrderVM model)
         {
-            var order = await db.Orders.FindAsync(model.Id);
+            var order = await _db.Orders.FindAsync(model.Id);
             if (order == null)
             {
                 throw new RecordNotFoundException(model.Id);
@@ -573,12 +573,12 @@ namespace iLgs.Services
                 throw new PoNumberAlreadyPostedException(entity.PoNo);
             }
 
-            var idList = await db.OrderItems.Where(w => w.OrderId == entity.Id).GroupBy(g => g.RequestItem.Request.Id)
+            var idList = await _db.OrderItems.Where(w => w.OrderId == entity.Id).GroupBy(g => g.RequestItem.Request.Id)
                 .Select(s => s.Key).ToListAsync();
 
             foreach (var id in idList)
             {
-                var request = await db.Requests.FindAsync(id);
+                var request = await _db.Requests.FindAsync(id);
                 if (request == null)
                 {
                     throw new RecordNotFoundException(id);
@@ -592,7 +592,7 @@ namespace iLgs.Services
                 }
             }
 
-            var orderItems = await db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode.ItemType).Where(w => w.OrderId == entity.Id).ToListAsync();        
+            var orderItems = await _db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode.ItemType).Where(w => w.OrderId == entity.Id).ToListAsync();        
             foreach (var orderItem in orderItems)
             {
                 if (Enum.TryParse(orderItem.RequestItem.RisItem.ItemCode.ItemType.Code, out Category c))
@@ -617,7 +617,7 @@ namespace iLgs.Services
                 throw new RecordNotYetPostedException(string.Format("PO Number {0} not yet posted..", entity.PoNo));
             }
 
-            var airs = await db.AIRs.Where(w => w.OrderId == entity.Id && w.PostedDt != null).ToListAsync();
+            var airs = await _db.AIRs.Where(w => w.OrderId == entity.Id && w.PostedDt != null).ToListAsync();
 
             foreach (var air in airs)
             {

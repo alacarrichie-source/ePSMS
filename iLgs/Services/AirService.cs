@@ -31,7 +31,7 @@ namespace iLgs.Services
 
     public class AirService : IAirService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly IExceptionService<AIR_VM> _VmExceptionService = new ExceptionService<AIR_VM>();
         private readonly IExceptionService<AIR> _ExceptionService = new ExceptionService<AIR>();
 
@@ -40,7 +40,7 @@ namespace iLgs.Services
         public AirService(AppManEntities db)
         {
             _db = db;
-            _airItemService = new AirItemService(db);
+            _airItemService = new AirItemService(_db);
         }
 
         public IQueryable<AIR_VM> GetAll() => _VmExceptionService.TryCatch(() =>

@@ -21,7 +21,7 @@ namespace iLgs.Services
 
     public class RequestItemUnitGroupDescriptionService : IRequestItemUnitGroupDescriptionService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RequestItemUnitGroupDescriptionVM> _vmExceptionService = new ExceptionService<RequestItemUnitGroupDescriptionVM>();
         private readonly IExceptionService<RequestItemUnitGroupDescription> _exceptionService = new ExceptionService<RequestItemUnitGroupDescription>();

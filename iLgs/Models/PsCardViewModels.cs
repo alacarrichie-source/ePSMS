@@ -87,7 +87,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderItemId { get; set; }
         public Nullable<System.Guid> TransferRefId { get; set; }
 
-        [Display(Name = "PO Date (MM/DD/YYYY)")]
+        [Display(Name = "PO Date (mm/dd/yyyy)")]
         //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> PoDate { get; set; }
@@ -95,7 +95,7 @@ namespace iLgs.Models
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 
-        [Display(Name = "AIR Date (MM/DD/YYYY)")]
+        [Display(Name = "AIR Date (mm/dd/yyyy)")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
 
@@ -104,7 +104,7 @@ namespace iLgs.Models
         [Display(Name = "AIR No.")]
         public string AirNo { get; set; }
 
-        [Display(Name = "Issuance Date (MM/DD/YYY)")]
+        [Display(Name = "Issuance Date (mm/dd/yyyy)")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AirIssueDate { get; set; }
 

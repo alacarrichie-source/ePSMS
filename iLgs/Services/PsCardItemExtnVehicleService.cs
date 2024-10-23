@@ -25,12 +25,12 @@ namespace iLgs.Services
 
     public class PsCardItemExtnVehicleService : IPsCardItemExtnVehicleService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly IExceptionService<PsCardItemExtnVehicle> _exceptionService = new ExceptionService<PsCardItemExtnVehicle>();
 
         public PsCardItemExtnVehicleService(AppManEntities db)
         {
-            this._db = db;
+            _db = db;
         }
 
         public IQueryable<PsCardItemExtnVehicle> GetByPsCardItemId(Guid? psCardItemId)

@@ -16,7 +16,7 @@ namespace iLgs.Services
     }
     public class AirItemExtnService : IAirItemExtnService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
 
         private IAirItemExtnVehicleService _airItemExtnVehicleService;
         private IAirItemExtnOtherService _airItemExtnOtherService;
@@ -24,8 +24,8 @@ namespace iLgs.Services
         public AirItemExtnService(AppManEntities db)
         {
             _db = db;
-            _airItemExtnVehicleService = new AirItemExtnVehicleService(db);
-            _airItemExtnOtherService = new AirItemExtnOtherService(db);
+            _airItemExtnVehicleService = new AirItemExtnVehicleService(_db);
+            _airItemExtnOtherService = new AirItemExtnOtherService(_db);
         }
 
         public IAirItemExtnVehicleService AirItemExtnVehicle { get { return _airItemExtnVehicleService = _airItemExtnVehicleService ?? new AirItemExtnVehicleService(_db); } }

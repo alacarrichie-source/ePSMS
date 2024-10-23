@@ -32,7 +32,7 @@ namespace iLgs.Services
         protected string _subDir = "";
         protected string _directory = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["UPLOAD_URL"].ToString()).DataSource;
         protected string[] _supportedTypes = new[] { "xlsx", "xls", "docx", "doc", "pdf", "jpg", "jpeg", "png" };
-        protected AppManEntities _db = new AppManEntities();
+        protected AppManEntities _db;
 
         public UploadService(AppManEntities db)
         {

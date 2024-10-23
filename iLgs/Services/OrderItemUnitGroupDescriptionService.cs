@@ -21,7 +21,7 @@ namespace iLgs.Services
 
     public class OrderItemUnitGroupDescriptionService : IOrderItemUnitGroupDescriptionService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<OrderItemUnitGroupDescriptionVM> _vmExceptionService = new ExceptionService<OrderItemUnitGroupDescriptionVM>();
         private readonly IExceptionService<OrderItemUnitGroupDescription> _exceptionService = new ExceptionService<OrderItemUnitGroupDescription>();

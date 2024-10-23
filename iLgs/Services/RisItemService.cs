@@ -32,7 +32,7 @@ namespace iLgs.Services
 
     public class RisItemService : IRisItemService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RisItemVM> _vmExceptionService = new ExceptionService<RisItemVM>();
         private readonly IExceptionService<RisItemEntryVM> _entryVmExceptionService = new ExceptionService<RisItemEntryVM>();

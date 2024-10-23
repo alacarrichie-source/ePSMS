@@ -28,7 +28,7 @@ namespace iLgs.Services
 
     public class AirItemService : IAirItemService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly IExceptionService<ServiceResult<AIRItemVM>> _vmExceptionService = new ExceptionService<ServiceResult<AIRItemVM>>();
         private readonly IValidationService<AIRItemVM> _validationService;
 

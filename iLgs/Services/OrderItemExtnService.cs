@@ -10,16 +10,16 @@ namespace iLgs.Services
 {
     public class OrderItemExtnService : IOrderItemExtnService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
 
         public OrderItemExtnService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;
         }
 
         public IQueryable<OrderItemExtnVM> GetAll()
         {
-            var data = db.OrderItemExtns
+            var data = _db.OrderItemExtns
                 .Select(s => new OrderItemExtnVM
                 {
                     Id = s.Id,
@@ -37,12 +37,12 @@ namespace iLgs.Services
             IQueryable<RequestItemExtnVM> requestItemExtns = null;
             if (mode == "E")
             {
-                orderItemExtns = db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItemId, psType).AsQueryable();
+                orderItemExtns = _db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItemId, psType).AsQueryable();
             }
             else
             {
                 var orderItemExtnList = new List<OrderItemExtnVM>();
-                requestItemExtns = db.Database.SqlQuery<RequestItemExtnVM>("Exec RequestItemExtnService_GetBatchInfo {0}, {1}", requestItemId, psType).AsQueryable();
+                requestItemExtns = _db.Database.SqlQuery<RequestItemExtnVM>("Exec RequestItemExtnService_GetBatchInfo {0}, {1}", requestItemId, psType).AsQueryable();
                 foreach(var rix in requestItemExtns)
                 {
                     OrderItemExtnVM orderItemExtn = new OrderItemExtnVM()
@@ -67,34 +67,34 @@ namespace iLgs.Services
 
         public IQueryable<OrderItemExtnVM> GetBatchInfo(Guid? orderItemId, string psType)
         {            
-            var orderItemExtns = db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItemId, psType).AsQueryable();
+            var orderItemExtns = _db.Database.SqlQuery<OrderItemExtnVM>("Exec OrderItemExtnService_GetBatchInfo {0}, {1}", orderItemId, psType).AsQueryable();
             return orderItemExtns;
         }
 
         public async Task SaveAsync(Guid orderItemId, List<OrderItemExtnVM> orderItemExtnList, string user, DateTime date)
         {
             // log updates
-            var existingOrderItemExtns = db.OrderItemExtns.Where(w => w.OrderItemId == orderItemId).ToList();
+            var existingOrderItemExtns = _db.OrderItemExtns.Where(w => w.OrderItemId == orderItemId).ToList();
             foreach (var orderItemExtn in existingOrderItemExtns)
             {
-                var entity = await db.OrderItemExtns.FindAsync(orderItemExtn.Id);
+                var entity = await _db.OrderItemExtns.FindAsync(orderItemExtn.Id);
                 if (entity != null)
                 {
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;                    
-                    db.OrderItemExtns.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
-                    await db.SaveChangesAsync();
+                    _db.OrderItemExtns.Attach(entity);
+                    _db.Entry(entity).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
 
-                    db.OrderItemExtns.Remove(entity);
-                    db.Entry(entity).State = EntityState.Deleted;
-                    await db.SaveChangesAsync();
+                    _db.OrderItemExtns.Remove(entity);
+                    _db.Entry(entity).State = EntityState.Deleted;
+                    await _db.SaveChangesAsync();
                 }
             }
 
             foreach (var orderItemExtn in orderItemExtnList)
             {
-                var entity = await db.OrderItemExtns.Where(w => w.OrderItemId == orderItemId && w.ItemKey == orderItemExtn.ItemKey).FirstOrDefaultAsync();
+                var entity = await _db.OrderItemExtns.Where(w => w.OrderItemId == orderItemId && w.ItemKey == orderItemExtn.ItemKey).FirstOrDefaultAsync();
                 if (entity == null)
                 {
                     entity = new iLgs.Models.OrderItemExtn()
@@ -111,7 +111,7 @@ namespace iLgs.Services
                         UpdatedDt = date
                     };
 
-                    db.OrderItemExtns.Add(entity);
+                    _db.OrderItemExtns.Add(entity);
                 }
                 else
                 {
@@ -120,11 +120,11 @@ namespace iLgs.Services
                     entity.UpdatedBy = user;
                     entity.UpdatedDt = date;
 
-                    db.OrderItemExtns.Attach(entity);
-                    db.Entry(entity).State = EntityState.Modified;
+                    _db.OrderItemExtns.Attach(entity);
+                    _db.Entry(entity).State = EntityState.Modified;
                 }
             }
-            await db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
         }
 
         public Task UpdateBatchAsync(List<OrderItemExtnVM> orderExtnList, string user, DateTime date)

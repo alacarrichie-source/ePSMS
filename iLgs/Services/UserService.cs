@@ -16,27 +16,27 @@ namespace iLgs.Controllers
 {
     public class UserService : IUserService
     {
-        private static string sysCode = "PSMS";
-        private static string sysAdmin = "PSMS_ADMIN";
+        private static string _sysCode = "PSMS";
+        private static string _sysAdmin = "PSMS_ADMIN";
 
-        private readonly AppManEntities db = new AppManEntities();
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private HttpClient client;
-        private string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
+        private readonly AppManEntities _db = new AppManEntities();
+        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
+        private HttpClient _client;
+        private string _iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
 
         public UserService(AppManEntities db)
         {
-            this.db = db;
-            this.client = new HttpClient();
-            this.client.BaseAddress = new Uri(iLgsApiUrl);
-            this.client.DefaultRequestHeaders.Accept.Clear();
-            this.client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _db = db;
+            _client = new HttpClient();
+            _client.BaseAddress = new Uri(_iLgsApiUrl);
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         public async ValueTask<bool> UserInRole(string userId, string role)
         {
             bool retVal = false;
-            HttpResponseMessage responseMessage = await client.GetAsync("roles_/" + userId + "/" + role).ConfigureAwait(false);
+            HttpResponseMessage responseMessage = await _client.GetAsync("roles_/" + userId + "/" + role).ConfigureAwait(false);
             if (responseMessage.IsSuccessStatusCode)
             {
                 var responseData = responseMessage.Content.ReadAsStringAsync().Result;
@@ -51,7 +51,7 @@ namespace iLgs.Controllers
         public async ValueTask<bool> IsAdmin(string userId)
         {
             var isAdmin = await UserInRole(userId, "ADMIN");
-            var isSysAdmin = await UserInRole(userId, sysAdmin);
+            var isSysAdmin = await UserInRole(userId, _sysAdmin);
             return isAdmin || isSysAdmin;
         }
     }

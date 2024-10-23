@@ -13,20 +13,20 @@ namespace iLgs.Services
     
     public class DepartmentUserService : IDepartmentUserService
     {
-        private readonly AppManEntities db = new AppManEntities();
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
+        private readonly AppManEntities _db;
+        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<DepartmentUserVM> _vmExceptionService = new ExceptionService<DepartmentUserVM>();
         private readonly IExceptionService<DepartmentUser> _exceptionService = new ExceptionService<DepartmentUser>();
 
         public DepartmentUserService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;
         }
 
         public IQueryable<DepartmentUserVM> GetAllByDeptId(Guid? deptId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = db.DepartmentUsers.Where(w => w.DeptId == deptId)
+            var data = _db.DepartmentUsers.Where(w => w.DeptId == deptId)
                 .Select(s => new DepartmentUserVM
                 {
                     Id = s.Id,
@@ -43,7 +43,7 @@ namespace iLgs.Services
         public ValueTask<DepartmentUserVM> CreateAsync(DepartmentUserVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            if (db.DepartmentUsers.Any(a => a.DeptId == model.DeptId && a.UserId == a.UserId))
+            if (_db.DepartmentUsers.Any(a => a.DeptId == model.DeptId && a.UserId == a.UserId))
             {
                 throw new RecordAlreadyExistsException("User already exists in this Department");
             }
@@ -70,15 +70,15 @@ namespace iLgs.Services
                 UpdatedDt = model.UpdatedDt
             };
 
-            db.DepartmentUsers.Add(entity);
-            await db.SaveChangesAsync();            
+            _db.DepartmentUsers.Add(entity);
+            await _db.SaveChangesAsync();            
             return model;
         });
 
         public ValueTask<DepartmentUserVM> DeleteAsync(DepartmentUserVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            if (db.DepartmentUsers.Find(model.Id) == null)
+            if (_db.DepartmentUsers.Find(model.Id) == null)
             {
                 throw new RecordNotFoundException(model.Id);
             }
@@ -86,30 +86,30 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            DepartmentUser entity = await db.DepartmentUsers.FindAsync(model.Id);
+            DepartmentUser entity = await _db.DepartmentUsers.FindAsync(model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.DepartmentUsers.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.DepartmentUsers.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.DepartmentUsers.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();            
+            _db.DepartmentUsers.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();            
             return model;
         });
 
         public ValueTask<DepartmentUserVM> UpdateAsync(DepartmentUserVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {            
-            if (db.DepartmentUsers.Find(model.Id) == null)
+            if (_db.DepartmentUsers.Find(model.Id) == null)
             {
                 throw new RecordNotFoundException(model.Id);
             }
 
-            if (db.DepartmentUsers.Any(a => a.DeptId == model.Id && a.UserId == model.UserId && a.Id != model.Id))
+            if (_db.DepartmentUsers.Any(a => a.DeptId == model.Id && a.UserId == model.UserId && a.Id != model.Id))
             {
                 throw new RecordAlreadyExistsException("User already exist in this department!");
             }
@@ -117,15 +117,15 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            DepartmentUser entity = await db.DepartmentUsers.FindAsync(model.Id);
+            DepartmentUser entity = await _db.DepartmentUsers.FindAsync(model.Id);
 
             entity.UserId = model.UserId;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.DepartmentUsers.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.DepartmentUsers.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
             
             return model;
         });

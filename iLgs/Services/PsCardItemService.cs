@@ -29,7 +29,7 @@ namespace iLgs.Services
 
     public class PsCardItemService : IPsCardItemService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly IExceptionService<PsCardItemVM> _vmExceptionService = new ExceptionService<PsCardItemVM>();
         private readonly IExceptionService<ParIcsItemVm> _parIcsItemExceptionService = new ExceptionService<ParIcsItemVm>();
         private IPsCardItemExtnService _psCardItemExtnService;
@@ -37,8 +37,8 @@ namespace iLgs.Services
         public PsCardItemService(AppManEntities db)
         {
             _db = db;
-            _psCardItemExtnService = new PsCardItemExtnService(db);
-            _psCardItemValidator = new PsCardItemValidator(db);
+            _psCardItemExtnService = new PsCardItemExtnService(_db);
+            _psCardItemValidator = new PsCardItemValidator(_db);
         }
 
         public IPsCardItemExtnService PsCardItemExtn { get { return _psCardItemExtnService = _psCardItemExtnService ?? new PsCardItemExtnService(_db); } }

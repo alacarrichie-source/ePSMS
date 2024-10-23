@@ -37,7 +37,7 @@ namespace iLgs.Services
 
     public class RisService : IRisService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RIS_VM> _risVmExceptionService = new ExceptionService<RIS_VM>();
         private readonly IExceptionService<RISs> _risExceptionService = new ExceptionService<RISs>();
@@ -51,7 +51,7 @@ namespace iLgs.Services
         public RisService(AppManEntities db)
         {
             _db = db;            
-            _validator = new RisValidator(db);
+            _validator = new RisValidator(_db);
             //_risItemService = new RisItemService(db);
             //_risItemUnitGroupService = new RisItemUnitGroupService(db);
             //_risItemUnitGroupDescriptionService = new RisItemUnitGroupDescriptionService(db);

@@ -30,7 +30,7 @@ namespace iLgs.Services.Validators
         {
             _db = db;            
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemVM>(propertyName);
-            _codextnService = new CodextnService(db);
+            _codextnService = new CodextnService(_db);
         }
 
         public void ValidateOnCreate(PsCardItemVM cardItem)

@@ -3,6 +3,7 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Services.CustodianUploads;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -41,7 +42,7 @@ namespace iLgs.Services.CustodianReports
         public CustodianReportLandItemService(AppManEntities db)
         {
             _db = db;
-            _allFieldService = new AllFieldService(db);
+            _allFieldService = new AllFieldService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportLandItemVM>(propertyName);
         }
         
@@ -114,6 +115,8 @@ namespace iLgs.Services.CustodianReports
             Annex = s.Annex,
             InsertedBy = s.InsertedBy,
             InsertedDt = s.InsertedDt,
+            PostedBy = s.PostedBy,
+            PostedDt = s.PostedDt,
             ItemType_Code = s.ItemCode.ItemType.Code,
             Item_Code = s.ItemCode.Code
         };
@@ -243,6 +246,12 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportLandItems.FindAsync(id);
             ValidateRecord(entity);
             ValidateIfPosted(entity);
+
+            ICustodianLandUploadService uploadService = new CustodianLandUploadService(_db);
+            if (!uploadService.GetAllByImageId(id).Any())
+            {
+                throw new NotFoundException("No uploaded images found for this record, cannot post!");
+            }
 
             entity.PostedBy = user;
             entity.PostedDt = date;
@@ -448,12 +457,12 @@ namespace iLgs.Services.CustodianReports
                 _imex.UpsertDataList(_getDisplayName(nameof(model.PricePerSqm)), "Field is required.");
             }
 
-            if (!string.IsNullOrWhiteSpace(model.Vendor))
+            if (string.IsNullOrWhiteSpace(model.Vendor))
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.Vendor)), "Field is required.");
             }
 
-            if (!string.IsNullOrWhiteSpace(model.OldTctNo))
+            if (string.IsNullOrWhiteSpace(model.OldTctNo))
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.OldTctNo)), "Field is required.");
             }

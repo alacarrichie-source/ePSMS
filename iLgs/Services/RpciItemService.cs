@@ -22,7 +22,7 @@ namespace iLgs.Services
 
     public class RpciItemService : IRpciItemService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RPCIItem> _exceptionService = new ExceptionService<RPCIItem>();
         private readonly IExceptionService<RPCIItemVM> _vmExceptionService = new ExceptionService<RPCIItemVM>();
@@ -31,7 +31,7 @@ namespace iLgs.Services
         public RpciItemService(AppManEntities db)
         {
             _db = db;
-            _orderService = new OrderService(db);
+            _orderService = new OrderService(_db);
         }
 
         public ValueTask<RPCIItem> GetByIdAsync(Guid? id) =>

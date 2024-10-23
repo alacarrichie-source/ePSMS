@@ -441,17 +441,7 @@
         </div>
 
 
-        <div class="row">
-            <div class="col-md-6">
-                <div class="col-md-3">
-                    @Html.DisplayFor(m => m.Longitude, "Label")
-                </div>
-                <div class="col-md-9">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.Longitude).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.Longitude)
-                </div>
-            </div>
-
+        <div class="row">            
             <div class="col-md-6">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.Latitude, "Label")
@@ -459,6 +449,16 @@
                 <div class="col-md-9">
                     @(Html.Kendo().NumericTextBoxFor(m => m.Latitude).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Latitude)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.Longitude, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.Longitude).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Longitude)
                 </div>
             </div>
         </div>

@@ -32,7 +32,7 @@ namespace iLgs.Services.CustodianDisposal_
 
     public class CustodianDisposalService : BaseValidator, ICustodianDisposalService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<CustodianDisposal> _exceptionService = new ExceptionService<CustodianDisposal>();
         private readonly GetDisplayNameDelegate _getDisplayName;

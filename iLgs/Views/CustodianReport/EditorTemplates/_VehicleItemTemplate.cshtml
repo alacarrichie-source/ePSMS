@@ -535,7 +535,8 @@
                                 {
                                     source.Read(read =>
                                     {
-                                        read.Action("GetCodeList", "Getters", new { mastCode = "DEPARTMENTS", addAll = false });
+                                        //read.Action("GetCodeList", "Getters", new { mastCode = "DEPARTMENTS", addAll = false });
+                                        read.Action("GetDepartments", "Getters");
                                     })
                                     .ServerFiltering(true);
                                 })

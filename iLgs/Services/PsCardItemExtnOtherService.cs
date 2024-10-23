@@ -23,12 +23,12 @@ namespace iLgs.Services
 
     public class PsCardItemExtnOtherService : IPsCardItemExtnOtherService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly IExceptionService<PsCardItemExtnOther> _exceptionService = new ExceptionService<PsCardItemExtnOther>();
 
         public PsCardItemExtnOtherService(AppManEntities db)
         {
-            this._db = db;
+            _db = db;
         }
 
         public IQueryable<PsCardItemExtnOther> GetByPsCardItemId(Guid? psCardItemId)

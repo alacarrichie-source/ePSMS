@@ -44,8 +44,8 @@ namespace iLgs.Services.CustodianReports
         public CustodianReportBldgItemService(AppManEntities db)
         {
             _db = db;
-            _validator = new CustodianReportItemPpeValidator(db);
-            _allFieldService = new AllFieldService(db);
+            _validator = new CustodianReportItemPpeValidator(_db);
+            _allFieldService = new AllFieldService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemVM>(propertyName);
         }
 
@@ -267,7 +267,7 @@ namespace iLgs.Services.CustodianReports
             ICustodianBldgUploadService uploadService = new CustodianBldgUploadService(_db);
             if (!uploadService.GetAllByImageId(id).Any())
             {
-                throw new NotFoundException("No upload images found for this record, cannot post!");
+                throw new NotFoundException("No uploaded images found for this record, cannot post!");
             }
             
             entity.PostedBy = user;

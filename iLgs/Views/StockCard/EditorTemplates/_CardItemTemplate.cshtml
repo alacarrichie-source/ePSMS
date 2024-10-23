@@ -276,6 +276,18 @@
 
             <div class="col-md-6">
                 <div class="col-md-3">
+                    @Html.DisplayFor(m => m.OtherDesc, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(5).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.OtherDesc)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">            
+            <div class="col-md-6">
+                <div class="col-md-3">
                     @Html.DisplayFor(m => m.InvDist, "Label")
                 </div>
                 <div class="col-md-9">

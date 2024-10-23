@@ -9,16 +9,16 @@ namespace iLgs.Services
 {
     public class ItemFieldService : IItemFieldService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
 
         public ItemFieldService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;
         }
 
         public IQueryable<ItemFieldVM> GetAll()
         {
-            var data = db.ItemFields
+            var data = _db.ItemFields
                 .Select(s => new ItemFieldVM
                 {
                     Id = s.Id,
@@ -32,7 +32,7 @@ namespace iLgs.Services
 
         public IQueryable<ItemFieldVM> GetAllbyItemTypeId(Guid? itemTypeId)
         {
-            var data = db.ItemFields.Where(w => w.ItemTypeId == itemTypeId)
+            var data = _db.ItemFields.Where(w => w.ItemTypeId == itemTypeId)
                 .Select(s => new ItemFieldVM
                 {
                     Id = s.Id,
@@ -46,7 +46,7 @@ namespace iLgs.Services
 
         public async Task<ItemField> GetByIdAsync(Guid id)
         {
-            var data = await db.ItemFields.FindAsync(id);
+            var data = await _db.ItemFields.FindAsync(id);
             return data;
         }
 
@@ -72,8 +72,8 @@ namespace iLgs.Services
                 UpdatedDt = date
             };
 
-            db.ItemFields.Add(entity);
-            await db.SaveChangesAsync();
+            _db.ItemFields.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -83,7 +83,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ItemField entity = await db.ItemFields.FindAsync(model.Id);
+            ItemField entity = await _db.ItemFields.FindAsync(model.Id);
 
             entity.ItemTypeId = model.ItemTypeId;
             entity.FieldNo = model.FieldNo;
@@ -91,9 +91,9 @@ namespace iLgs.Services
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            db.ItemFields.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.ItemFields.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -103,18 +103,18 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ItemField entity = await db.ItemFields.FindAsync(model.Id);
+            ItemField entity = await _db.ItemFields.FindAsync(model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.ItemFields.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.ItemFields.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.ItemFields.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.ItemFields.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         }

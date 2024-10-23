@@ -29,7 +29,7 @@ namespace iLgs.Services.CustodianReports
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReport>(propertyName);
-            _codextnService = new CodextnService(db);
+            _codextnService = new CodextnService(_db);
         }
 
         public void ValidateOnCreate(CustodianReport model)

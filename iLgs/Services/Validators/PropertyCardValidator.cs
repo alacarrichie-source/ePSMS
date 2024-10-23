@@ -33,7 +33,7 @@ namespace iLgs.Services.Validators
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PropertyCardVM>(propertyName);
-            _allFieldsValidator = new AllFieldsValidator(db);
+            _allFieldsValidator = new AllFieldsValidator(_db);
         }
         public void ValidateOnCreate(PropertyCardVM model)
         {
@@ -44,7 +44,7 @@ namespace iLgs.Services.Validators
                 );
 
             var ex = new InvalidModelException();
-            _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
+            _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
             if (_db.PsCards.Any(a => a.PsNo == model.PsNo))
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.PsNo)), "Already exits.");
@@ -62,7 +62,7 @@ namespace iLgs.Services.Validators
                 );
 
             var ex = new InvalidModelException();
-            _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
+            _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
             if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Id != model.Id))
             {
                 ex.UpsertDataList(Utility.GetDisplayName<PropertyCardVM>(nameof(model.PsNo)), "Already exits.");

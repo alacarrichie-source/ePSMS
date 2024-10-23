@@ -21,7 +21,7 @@ namespace iLgs.Services
 
     public class PsCardItemLocationService : IPsCardItemLocationService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<PsCardItemLocation> _exceptionService = new ExceptionService<PsCardItemLocation>();
 

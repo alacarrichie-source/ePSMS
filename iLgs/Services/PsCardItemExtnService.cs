@@ -25,15 +25,15 @@ namespace iLgs.Services
 
     public class PsCardItemExtnService : IPsCardItemExtnService
     {
-        private readonly AppManEntities _db = new AppManEntities();        
+        private readonly AppManEntities _db;        
         private IPsCardItemExtnVehicleService _psCardItemExtnVehicleService;
         private IPsCardItemExtnOtherService _psCardItemExtnOtherService;
 
         public PsCardItemExtnService(AppManEntities db)
         {
             _db = db;
-            _psCardItemExtnVehicleService = new PsCardItemExtnVehicleService(db);
-            _psCardItemExtnOtherService = new PsCardItemExtnOtherService(db);
+            _psCardItemExtnVehicleService = new PsCardItemExtnVehicleService(_db);
+            _psCardItemExtnOtherService = new PsCardItemExtnOtherService(_db);
         }
 
         public IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get { return _psCardItemExtnVehicleService = _psCardItemExtnVehicleService ?? new PsCardItemExtnVehicleService(_db); } }

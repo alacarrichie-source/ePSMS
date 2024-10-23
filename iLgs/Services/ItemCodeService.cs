@@ -37,18 +37,18 @@ namespace iLgs.Services
 
     public class ItemCodeService : IItemCodeService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly IExceptionService<ItemCodeVM> _VmExceptionService = new ExceptionService<ItemCodeVM>();
         private readonly IExceptionService<ItemCode> _ExceptionService = new ExceptionService<ItemCode>();
 
         public ItemCodeService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;
         }
 
         public IQueryable<ItemCodeVM> GetAll()
         {
-            var data = db.ItemCodes.AsNoTracking()
+            var data = _db.ItemCodes.AsNoTracking()
                 .Select(s => new ItemCodeVM
                 {
                     Id = s.Id,
@@ -70,7 +70,7 @@ namespace iLgs.Services
 
         public IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId)
         {
-            var data = db.ItemCodes.Where(w => w.ItemTypeId == itemTypeId).AsNoTracking().ToList()
+            var data = _db.ItemCodes.Where(w => w.ItemTypeId == itemTypeId).AsNoTracking().ToList()
                 .Select(s => new ItemCodeVM
                 {
                     Id = s.Id,
@@ -93,73 +93,79 @@ namespace iLgs.Services
 
         public ValueTask<ItemCode> GetByIdAsync(Guid id) => _ExceptionService.TryCatch(async () =>
         {
-            var data = await db.ItemCodes.FindAsync(id);
+            var data = await _db.ItemCodes.FindAsync(id);
             return data;
         });
 
         public IQueryable<ItemCodeVM> GetItems(string item) => _VmExceptionService.TryCatch(() =>
         {
-            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", item).AsQueryable();
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", item).AsQueryable().AsNoTracking();
             return data;
         });
 
         public IQueryable<ItemCodeVM> GetCustodianItemPpe(string item) => _VmExceptionService.TryCatch(() =>
         {
-            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.PPE, item).AsQueryable();
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.PPE, item).AsQueryable().AsNoTracking();
             return data;
         });
 
-        public IQueryable<ItemCodeVM> GetCustodianItemStocks(string item) => _VmExceptionService.TryCatch(() =>
+        //public IQueryable<ItemCodeVM> GetCustodianItemStocks(string item) => _VmExceptionService.TryCatch(() =>
+        //{
+        //    var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.STOCK, item).AsQueryable().AsNoTracking();
+        //    return data;
+        //});
+
+        public IQueryable<ItemCodeVM> GetCustodianItemStocks(string item) 
         {
-            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.STOCK, item).AsQueryable();
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.STOCK, item).AsQueryable().AsNoTracking();
             return data;
-        });
+        }
 
         public IQueryable<ItemCodeVM> GetCustodianItemVehicle(string item) => _VmExceptionService.TryCatch(() =>
         {
-            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.VEHICLE, item).AsQueryable();
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.VEHICLE, item).AsQueryable().AsNoTracking();
             return data;
         });
 
         public IQueryable<ItemCodeVM> GetCustodianItemLand(string item) => _VmExceptionService.TryCatch(() =>
         {
-            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.LAND, item).AsQueryable();
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.LAND, item).AsQueryable().AsNoTracking();
             return data;
         });
 
         public IQueryable<ItemCodeVM> GetCustodianItemBldg(string item) => _VmExceptionService.TryCatch(() =>
         {
-            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.BUILDING, item).AsQueryable();
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", (int)CustodianAccountGroup.BUILDING, item).AsQueryable().AsNoTracking();
             return data;
         });
 
         public IQueryable<ItemCodeVM> GetItemAccounts(string item) => _VmExceptionService.TryCatch(() =>
         {
-            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts '', {0}", item).AsQueryable();
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts '', {0}", item).AsQueryable().AsNoTracking();
             return data;
         });
 
         public IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item) => _VmExceptionService.TryCatch(() =>
         {
-            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts {0}, {1}", category, item).AsQueryable();
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts {0}, {1}", category, item).AsQueryable().AsNoTracking();
             return data;
         });
 
         public IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item) => _VmExceptionService.TryCatch(() =>
         {
-            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItemsByCategory {0}, {1}", category, item).AsQueryable();
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItemsByCategory {0}, {1}", category, item).AsQueryable().AsNoTracking();
             return data;
         });
 
         public IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item) => _VmExceptionService.TryCatch(() =>
         {
-            var data = db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItemsByTypeCode {0}, {1}", typeCode, item).AsQueryable();
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItemsByTypeCode {0}, {1}", typeCode, item).AsQueryable().AsNoTracking();
             return data;
         });
 
         public IQueryable<ItemCodePreviewVM> GetItemCodePreview(string category)
         {
-            var data = db.Database.SqlQuery<ItemCodePreviewVM>("Exec ItemCodes_GetPreview {0}", category).AsQueryable();
+            var data = _db.Database.SqlQuery<ItemCodePreviewVM>("Exec ItemCodes_GetPreview {0}", category).AsQueryable().AsNoTracking();
             return data;
         }
 
@@ -236,8 +242,8 @@ namespace iLgs.Services
                 UpdatedDt = date
             };
 
-            db.ItemCodes.Add(entity);
-            await db.SaveChangesAsync();
+            _db.ItemCodes.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
 
@@ -250,7 +256,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ItemCode entity = await db.ItemCodes.FindAsync(model.Id);
+            ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
 
             model.Code = GetItemCode(model.ItemTypeId, model.ItemNo, model.Description);
             model.ItemNoIndex = ItemNoIndex(model.ItemNo);
@@ -269,9 +275,9 @@ namespace iLgs.Services
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
-            db.ItemCodes.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.ItemCodes.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -281,18 +287,18 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ItemCode entity = await db.ItemCodes.FindAsync(model.Id);
+            ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.ItemCodes.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.ItemCodes.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.ItemCodes.Remove(entity);
-            db.Entry(entity).State = EntityState.Deleted;
-            await db.SaveChangesAsync();
+            _db.ItemCodes.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
 
             return model;
         });
@@ -300,7 +306,7 @@ namespace iLgs.Services
 
         private string GetItemCode(Guid? itemTypeId, string itemNo, string description)
         {
-            var itemType = db.ItemTypes.Find(itemTypeId);
+            var itemType = _db.ItemTypes.Find(itemTypeId);
             //string exemptionPattern = @"[-.]+|\[.*?\]|\(.*?\)";
             //string itemCode = Regex.Replace(itemNo, exemptionPattern, "");
             //if (string.IsNullOrWhiteSpace(description))

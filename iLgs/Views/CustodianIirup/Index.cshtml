@@ -92,7 +92,7 @@
     //.Events(e => e.Select("onSelectTab"))
     .Items(items =>
     {
-        items.Add().Text("Items")
+        items.Add().Text("Transmittals")
             .Selected(true)
             .LoadContentFrom("_Item", "CustodianIirup", new { iirupId = "#=Id#" });
     }).ToClientTemplate())
@@ -106,42 +106,65 @@
 <div id="windowcontainer"></div>
 
 <script id="ItemExtnDetails" type="text/kendo-tmpl">
-    @(Html.Kendo().Grid<iLgs.Models.CustodianDisposalItem>()
-    .Name("gridItemExtn_#=Id#")
-    .Columns(col =>
-    {
-        col.Bound(c => c.CustodianReportItem.Account).Width(100);
-        col.Bound(c => c.CustodianReportItem.SubAccount).Width(100);
-        col.Bound(c => c.CustodianReportItem.Article).Width(100);
-        col.Bound(c => c.ArticleDisplay).Width(100);
-        col.Bound(c => c.ReplCost).Width(100);        
-        col.Command(command =>
+    @(Html.Kendo().TabStrip()
+        .Name("tabStrip_#=Id#")
+        //.HtmlAttributes(new { @class = "no-text-tabstrip" })
+        .TabPosition(TabStripTabPosition.Top)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .SelectedIndex(0)
+        .Items(items =>
         {
-            command.Edit();
-        }).Width(100);
-    })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ItemDetailTemplate").Window(w => w.Width(800).Title("Item Details")))
-    .Sortable()
-    .NoRecords()
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .Events(events => events.Error("GridError")//.RequestEnd("onRequestEndGridItemExtn")
+            items.Add().Text("Items").Selected(true).Content(@<text>
+            @(Html.Kendo().Grid<iLgs.Models.CustodianDisposalItem>()
+                .Name("gridItemExtn_#=Id#")
+                .Columns(col =>
+                {
+                    col.Bound(c => c.CustodianReportItem.Account).Width(100);
+                    col.Bound(c => c.CustodianReportItem.SubAccount).Width(100);
+                    col.Bound(c => c.CustodianReportItem.Article).Width(100);
+                    col.Bound(c => c.ArticleDisplay).Width(100);
+                    col.Bound(c => c.ReplCost).Width(100);
+                    col.Command(command =>
+                    {
+                        command.Edit();
+                    }).Width(100);
+                })
+                .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ItemDetailTemplate").Window(w => w.Width(800).Title("Item Details")))
+                .Pageable(pager => pager
+                    .Input(false)
+                    .Numeric(true)
+                    .Info(true)
+                    .PreviousNext(true)
+                    .Refresh(true)
+                    .PageSizes(true)
+                    .ButtonCount(5)
+                )
+                .Sortable()
+                .NoRecords()
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Events(events => events.Error("GridError")//.RequestEnd("onRequestEndGridItemExtn")
+                    )
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+                    })
+                    .Read(read => read.Action("_ItemExtnRead", "CustodianIirup", new { custodianDisposalId = "#=CustodianDisposalId#" }))
+                    .Update(update => update.Action("_ItemExtnUpdate", "CustodianIirup"))
+                )
+                .Events(events => events
+                    .Change("onChangeGridItemExtn")
+                    .Edit("onEditGridItemExtn")
+                    .DataBound("onDataBoundGridItemExtn")
+                )
+                .Selectable(s => s.Mode(GridSelectionMode.Single)).ToClientTemplate()
         )
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        </text>);
+            items.Add().Text("Uploads").LoadContentFrom("_Images", "CustodianIirup", new { imageId = "#=Id#" });
         })
-        .Read(read => read.Action("_ItemExtnRead", "CustodianIirup", new { custodianDisposalId = "#=CustodianDisposalId#" }))
-        .Update(update => update.Action("_ItemExtnUpdate", "CustodianIirup"))        
-    )
-    .Events(events => events
-        .Change("onChangeGridItemExtn")
-        .Edit("onEditGridItemExtn")
-        .DataBound("onDataBoundGridItemExtn")        
-    )
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .ToClientTemplate())
+        .ToClientTemplate()
+)
 </script>
 
 <style>
@@ -239,7 +262,7 @@
             alert("Please select a row to export.");
         }
     });
-    
+
     function columnTemplate(data) {
         return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
     }
@@ -381,14 +404,14 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedId = null;
-            selectedAsOf = null;            
+            selectedAsOf = null;
         } else {
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
-            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));            
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
     }
-    
+
     function onGridDeleteClick(e) {
         e.preventDefault();
         selectedGrid = this;
@@ -417,7 +440,7 @@
             selectedGrid.dataSource.sync();
         }
     }
-    
+
     // Grid Item
     function GridItemError(args) {
         if (args.errors) {
@@ -812,6 +835,220 @@
         }
     }
     // END GRID ITEMEXTN
+
+    // GRID IMAGES
+    function GridUploadError(e) {
+        if (e.errors) {
+            //// Get the parent grid
+            //var parentGrid = $("#grid").data("kendoGrid");
+
+            //// Try to find the closest grid row
+            //var row = $(e.target).closest("tr[data-uid]"); // Look for the row with a data-uid attribute
+
+            //// Log the row for debugging
+            //console.log("Row element:", row);
+
+            //// Check if a valid row was found
+            //if (row.length === 0) {
+            //    console.warn("No valid row found. The event target may not be within a grid row.");
+
+            //    // Provide a fallback: Try getting the parent row from a specific known container
+            //    var knownContainer = $("#gridItems"); // Replace with your grid's container
+            //    row = knownContainer.find("tr[data-uid]"); // Grab any row as a fallback
+
+            //    if (row.length === 0) {
+            //        console.warn("No rows found in the parent grid.");
+            //        return; // Exit if no rows are found
+            //    } else {
+            //        console.warn("Fallback: Found rows in the parent grid but not the specific one.");
+            //    }
+            //}
+
+            //// Get the dataItem for the parent grid
+            //var dataItem = parentGrid.dataItem(row);
+
+            //// Log the retrieved dataItem
+            //if (!dataItem) {
+            //    // Get the index of the row in the parent grid
+            //    var rowIndex = row.index();
+            //    console.log("Row index:", rowIndex);
+
+            //    // Attempt to access dataItem using the dataSource view
+            //    dataItem = parentGrid.dataSource.view()[rowIndex];
+
+            //    // Log the data item retrieved via index
+            //    console.log("Data Item found using index:", dataItem);
+            //}
+
+
+            // Find the subgrid and refresh it
+            //var subgridName = "gridImages_" + dataItem.Id; // Adjust based on how you identify the subgrid
+            //var subgrid = $("#" + subgridName).data("kendoGrid");
+            var subgrid = $("#gridImages_" + selectedId).data("kendoGrid");
+
+            if (subgrid) {
+                subgrid.dataSource.read(); // Refresh the subgrid
+            }
+
+            $.each(e.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                }
+            });
+        }
+    }
+
+
+    var selectedGridImagesItem = null;
+    function onEditGridImages(e) {
+        e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("ImageId", '@ViewData["imageId"]');
+        } else {
+            selectedGridImagesItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridImagesItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridImages(e) {
+        if (selectedGridImagesItem) {
+            var dataItem = this.dataSource.get(selectedGridImagesItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+
+        @*var trs = this.tbody.find('tr').each(
+           function () {
+               var item = this.dataItem($(this));
+
+               if ('@ViewBag.isAllowed' == 'False') {
+                   $('.k-grid-Upload', $("#gridImages")).remove();
+               }
+           }
+          );*@
+    }
+    function onDeleteGridImages(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+
+    function onClickUpload(e) {
+        //var gridName = $(e.sender.element).data("gridname");
+
+        var button = e.sender.element; // Use the sender's element;
+        // Retrieve the grid name from the data attribute
+        var gridName = $(button).data("gridname");
+        selectedGrid = $("#" + gridName).data("kendoGrid");
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        var imageId = parentModel.id;
+
+        var myUrl = '@Url.Action("_ImagesAdd", "CustodianReportBldg")?imageId=' + imageId;
+        var myTitle = "Upload Images/Documents";
+        var width = 800;
+        var height = 650;
+
+
+        $("#windowcontainer").append("<div id='windowUpload'></div>");
+        var mywindow = $("#windowUpload")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function UploadPara(e) {
+        var data = JSON.stringify({ model: $("#formUpload").serialize() });
+        //alert(additional);
+        //e.data = JSON.parse(additional);
+        //$('#chkSMS').is(':checked');
+        e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val() }
+    }
+
+    function onClickPreview(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGridImagesItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("PreviewUpload", "CustodianReportBldg")?id=' + selectedGridImagesItem;
+        var myTitle = "Preview";
+        var width = 800;
+        var height = 650;
+
+
+        $("#windowcontainer").append("<div id='windowPreview'></div>");
+        var mywindow = $("#windowPreview")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function onError(e) {
+        // invalid because the responseText is a raw string, not JSON
+        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
+        var err = e.XMLHttpRequest.responseText;
+        alert(err);
+    };
+
+    function onUploadSuccess(e)
+    {
+        selectedGrid.dataSource.read();
+    }
+
+    // END GRID IMAGES
+
 </script>
 
 

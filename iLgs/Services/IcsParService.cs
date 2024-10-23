@@ -20,7 +20,7 @@ namespace iLgs.Services
 
     public class IcsParService : IIcsParService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();        
         private readonly IExceptionService<IcsPar> _exceptionService = new ExceptionService<IcsPar>();
 

@@ -22,11 +22,11 @@ namespace iLgs.Services
 
     public class ItemTypeService : IItemTypeService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db ;
 
         public ItemTypeService(AppManEntities db)
         {
-            this._db = db;
+            _db = db;
         }
 
         public IQueryable<ItemTypeVM> GetAll()

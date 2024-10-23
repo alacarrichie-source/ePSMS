@@ -14,8 +14,8 @@ namespace iLgs.Services.AllFields
 {
     public interface IAllFieldsValidator
     {
-        void ValidateAllFields(AllField af, string category, string itemNo, InvalidModelException ex);
-        void ValidateAllFields(AllField af, string category, string itemNo, InvalidModelException ex, Enums.Module? module);
+        void ValidateAllFields(AllField af, string category, string itemCode, InvalidModelException ex);
+        void ValidateAllFields(AllField af, string category, string itemCode, InvalidModelException ex, Enums.Module? module);
     }
 
     public class AllFieldsValidator : BaseValidator, IAllFieldsValidator
@@ -58,14 +58,14 @@ namespace iLgs.Services.AllFields
             }
         }
 
-        public void ValidateAllFields(AllField af, string category, string itemNo, InvalidModelException ex)
+        public void ValidateAllFields(AllField af, string category, string itemCode, InvalidModelException ex)
         {
-            ValidateAllFields(af, category, itemNo, ex, null);
+            ValidateAllFields(af, category, itemCode, ex, null);
         }
 
-        public void ValidateAllFields(AllField af, string category, string itemNo, InvalidModelException ex, Enums.Module? module)
+        public void ValidateAllFields(AllField af, string category, string itemCode, InvalidModelException ex, Enums.Module? module)
         {
-            var group = AllFieldsUtil.GetCategoryGroup(category, itemNo);
+            var group = AllFieldsUtil.GetCategoryGroup(category, itemCode);
             if (group == CategoryGroup.DRUGS)
             {
                 if (string.IsNullOrWhiteSpace(af.GenericName))
@@ -73,7 +73,7 @@ namespace iLgs.Services.AllFields
                     ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.GenericName)), "Field is required.");
                 }
 
-                if (itemNo.Contains("-5.1.")) // Alcoh1ol
+                if (itemCode.Contains("-5.1.")) // Alcoh1ol
                 {
                     if (string.IsNullOrWhiteSpace(af.DosageVolume))
                     {

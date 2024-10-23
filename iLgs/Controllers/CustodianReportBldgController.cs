@@ -24,14 +24,13 @@ namespace iLgs.Controllers
 {
     public class CustodianReportBldgController : BaseController
     {
-        private AppManEntities _db ;
+        private AppManEntities _db = new AppManEntities();
         private ICustodianReportService _custodianReportService;
         private ICustodianReportBldgItemService _custodianReportBldgItemService;
         private ICustodianBldgUploadService _uploadService;
         
         public CustodianReportBldgController()
         {
-            _db = new AppManEntities();
             _custodianReportService = new CustodianReportService(_db);
             _custodianReportBldgItemService = new CustodianReportBldgItemService(_db);
             _uploadService = new CustodianBldgUploadService(_db);        

@@ -649,7 +649,6 @@
     <Compile Include="Services\AirItemExtnService.cs" />
     <Compile Include="Services\AirItemExtnVehicleService.cs" />
     <Compile Include="Services\AllFields\AllFieldService.cs" />
-    <Compile Include="Services\CardItemExtnService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\CustodianDisposal_\CustodianDisposalItemService.cs" />
     <Compile Include="Services\CustodianDisposal_\CustodianDisposalService.cs" />
@@ -667,6 +666,8 @@
     <Compile Include="Services\CustodianReports\CustodianReportItemStockService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportValidator.cs" />
     <Compile Include="Services\CustodianUploads\CustodianBldgUploadService.cs" />
+    <Compile Include="Services\CustodianUploads\CustodianIirupUploadService.cs" />
+    <Compile Include="Services\CustodianUploads\CustodianLandUploadService.cs" />
     <Compile Include="Services\DepartmentUserService.cs" />
     <Compile Include="Services\DollarRate_\DollarRateService.cs" />
     <Compile Include="Services\IcsParItemService.cs" />
@@ -677,12 +678,7 @@
     <Compile Include="Services\OrderItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\OrderItemUnitGroupService.cs" />
-    <Compile Include="Services\PropertyCardItemService.cs" />
-    <Compile Include="Services\PropertyCardPpeService.cs" />
     <Compile Include="Services\PropertyCardService.cs" />
-    <Compile Include="Services\PropertyCardVehicleService.cs" />
-    <Compile Include="Services\PropertyItemService.cs" />
-    <Compile Include="Services\PropertyService.cs" />
     <Compile Include="Services\PsCardItemExtnOtherService.cs" />
     <Compile Include="Services\PsCardItemExtnService.cs" />
     <Compile Include="Services\PsCardItemExtnVehicleService.cs" />
@@ -690,7 +686,6 @@
     <Compile Include="Services\PsCardItemLocationService.cs" />
     <Compile Include="Services\PsCardItemService.cs" />
     <Compile Include="Services\PsCardService.cs" />
-    <Compile Include="Services\PsItemIssuanceService.cs" />
     <Compile Include="Services\RequestItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\RequestItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\RequestItemUnitGroupService.cs" />
@@ -709,7 +704,6 @@
     <Compile Include="Services\UploadService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
-    <Compile Include="Services\Agents\IServiceAgent.cs" />
     <Compile Include="Services\Agents\ServiceAgent.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
@@ -906,18 +900,14 @@
     <Compile Include="Services\PoIssuanceService.cs" />
     <Compile Include="Services\ItemCodeService.cs" />
     <Compile Include="Services\ItemFieldService.cs" />
-    <Compile Include="Services\ItemService.cs" />
     <Compile Include="Services\ItemTypeService.cs" />
     <Compile Include="Services\OrderItemExtnService.cs" />
     <Compile Include="Services\OrderItemService.cs" />
     <Compile Include="Services\OrderService.cs" />
     <Compile Include="Services\ParItemService.cs" />
     <Compile Include="Services\ParService.cs" />
-    <Compile Include="Services\PsCodeService.cs" />
     <Compile Include="Services\RequestItemService.cs" />
     <Compile Include="Services\RequestService.cs" />
-    <Compile Include="Services\RisIssuedService.cs" />
-    <Compile Include="Services\RisItemExtnService.cs" />
     <Compile Include="Services\RisItemService.cs" />
     <Compile Include="Services\RisService.cs" />
     <Compile Include="Services\ValidatorService.cs" />
@@ -4056,6 +4046,12 @@
     <Content Include="Views\CustodianReportBldg\_Images.cshtml" />
     <Content Include="Views\CustodianReportBldg\_ImagesAdd.cshtml" />
     <Content Include="Views\CustodianReportBldg\EditorTemplates\_ImagesTemplate.cshtml" />
+    <Content Include="Views\CustodianIirup\_Images.cshtml" />
+    <Content Include="Views\CustodianIirup\_ImagesAdd.cshtml" />
+    <Content Include="Views\CustodianIirup\EditorTemplates\_ImagesTemplate.cshtml" />
+    <Content Include="Views\CustodianReportLand\_Images.cshtml" />
+    <Content Include="Views\CustodianReportLand\_ImagesAdd.cshtml" />
+    <Content Include="Views\CustodianReportLand\EditorTemplates\_ImagesTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4167,7 +4163,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

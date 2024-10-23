@@ -11,16 +11,16 @@ namespace iLgs.Services
 {
     public class RequestItemService : IRequestItemService
     {
-        private readonly AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
 
         public RequestItemService(AppManEntities db)
         {
-            this.db = db;
+            _db = db;
         }
 
         public IQueryable<RequestItemVM> GetByPrId(Guid? prId)
         {
-            var data = db.RequestItems.Where(w => w.PrId == prId)
+            var data = _db.RequestItems.Where(w => w.PrId == prId)
                 .Select(s => new RequestItemVM
                 {
                     Id = s.Id,
@@ -46,7 +46,7 @@ namespace iLgs.Services
 
         public async Task<RequestItemVM> GetVmByIdAsync(Guid? id)
         {
-            var data = await db.RequestItems.Where(w => w.Id == id)
+            var data = await _db.RequestItems.Where(w => w.Id == id)
                 .Select(s => new RequestItemVM
                 {
                     Id = s.Id,
@@ -73,7 +73,7 @@ namespace iLgs.Services
 
         public async Task<RequestItem> GetByIdAsync(Guid? id)
         {
-            var data = await db.RequestItems.FindAsync(id);                
+            var data = await _db.RequestItems.FindAsync(id);                
             return data;
         }        
 
@@ -99,8 +99,8 @@ namespace iLgs.Services
                 UpdatedDt = model.UpdatedDt
             };
 
-            db.RequestItems.Add(entity);
-            await db.SaveChangesAsync();
+            _db.RequestItems.Add(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }
@@ -110,17 +110,17 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            RequestItem entity = await db.RequestItems.FindAsync(model.Id);
+            RequestItem entity = await _db.RequestItems.FindAsync(model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.RequestItems.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.RequestItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
-            db.RequestItems.Remove(entity);
-            await db.SaveChangesAsync();
+            _db.RequestItems.Remove(entity);
+            await _db.SaveChangesAsync();
 
             return model;
         }        
@@ -130,7 +130,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            RequestItem entity = await db.RequestItems.FindAsync(model.Id);
+            RequestItem entity = await _db.RequestItems.FindAsync(model.Id);
             entity.Qty = model.Qty;
             entity.UnitCost = model.UnitCost;
             entity.TotalCost = model.TotalCost;
@@ -138,9 +138,9 @@ namespace iLgs.Services
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
-            db.RequestItems.Attach(entity);
-            db.Entry(entity).State = EntityState.Modified;
-            await db.SaveChangesAsync();
+            _db.RequestItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
 
             return model;
         }

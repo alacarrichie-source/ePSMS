@@ -26,9 +26,9 @@ namespace iLgs.Services.Validators
         public RisItemUnitGroupValidator(AppManEntities db)
         {
             _db = db;
-            _risService = new RisService(db);
+            _risService = new RisService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<RisItemUnitGroupVM>(propertyName);
-            _codextnService = new CodextnService(db);
+            _codextnService = new CodextnService(_db);
         }
 
         public void ValidateOnCreate(RisItemUnitGroupVM model)

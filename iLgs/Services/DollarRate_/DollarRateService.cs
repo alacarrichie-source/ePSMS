@@ -31,7 +31,7 @@ namespace iLgs.Services.DollarRate_
 
     public class DollarRateService : BaseValidator, IDollarRateService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<DollarRate> _exceptionService = new ExceptionService<DollarRate>();
         private readonly GetDisplayNameDelegate _getDisplayName;

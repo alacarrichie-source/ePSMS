@@ -22,7 +22,7 @@ namespace iLgs.Services
 
     public class RisItemUnitGroupDescriptionItemService : IRisItemUnitGroupDescriptionItemService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RisItemUnitGroupDescriptionItemVM> _vmExceptionService = new ExceptionService<RisItemUnitGroupDescriptionItemVM>();
         private readonly IExceptionService<RisItemUnitGroupAvailableVM> _vmUnitGroupAvailableExceptionService = new ExceptionService<RisItemUnitGroupAvailableVM>();

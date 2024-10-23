@@ -3,6 +3,7 @@ using iLgs.Controllers;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.CustodianUploads;
 using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
@@ -31,7 +32,7 @@ namespace iLgs.Services.CustodianIirup
 
     public class CustodianIirupService : BaseValidator, ICustodianIirupService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<CustodianIIRUP> _exceptionService = new ExceptionService<CustodianIIRUP>();
         private readonly GetDisplayNameDelegate _getDisplayName;
@@ -64,7 +65,18 @@ namespace iLgs.Services.CustodianIirup
 
             ValidateRecord(entity);
             ValidateIfPosted(entity);
+            ValidateFields(entity, Mode.POST);
 
+            ICustodianIirupUploadService uploadService = new CustodianIirupUploadService(_db);
+            var irrupItems = await _db.CustodianIirupItems.Include(i => i.CustodianDisposal).Where(w => w.CustodianIirupId == entity.Id).ToListAsync();
+            foreach(var item in irrupItems)
+            {
+                if (!uploadService.GetAllByImageId(item.Id).Any())
+                {
+                    throw new NotFoundException($"No uploaded images found for Transmittal No. [{item.CustodianDisposal.TransmittalNo}], cannot post!");
+                }
+            }
+            
             entity.PostedBy = user;
             entity.PostedDt = date;
             entity.UpdatedBy = user;
@@ -82,7 +94,7 @@ namespace iLgs.Services.CustodianIirup
             var entity = await _db.CustodianIIRUPs.FindAsync(id);
             ValidateRecord(entity);
             ValidateIfNotPosted(entity);
-
+            
             entity.PostedBy = "";
             entity.PostedDt = null;
             entity.UpdatedBy = user;
@@ -98,7 +110,7 @@ namespace iLgs.Services.CustodianIirup
         _exceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
-            ValidateFields(model);
+            ValidateFields(model, Mode.ADD);
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -123,7 +135,7 @@ namespace iLgs.Services.CustodianIirup
            var entity = await _db.CustodianIIRUPs.FindAsync(model.Id);
            ValidateRecord(entity);
            ValidateIfPosted(entity);
-           ValidateFields(model);
+           ValidateFields(model, Mode.EDIT);
 
            model.UpdatedBy = user;
            model.UpdatedDt = date;
@@ -264,52 +276,63 @@ namespace iLgs.Services.CustodianIirup
             }
         }
 
-        private void ValidateFields(CustodianIIRUP model)
+        private void ValidateFields(CustodianIIRUP model, Mode mode)
         {
             if (!model.AsOf.HasValue)
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.AsOf)), "Field is required.");
             }
 
-            //if (string.IsNullOrWhiteSpace(model.Chairman))
-            //{
-            //    _imex.UpsertDataList(_getDisplayName(nameof(model.Chairman)), "Field is required.");
-            //}
+            if (mode == Mode.POST)
+            {
+                if (string.IsNullOrWhiteSpace(model.Chairman))
+                {
+                    var chairman = _getDisplayName(nameof(model.Chairman));
+                    _imex.UpsertDataList(chairman, $"{chairman} Field is required.");
+                }
 
-            //if (string.IsNullOrWhiteSpace(model.ChairmanTitle))
-            //{
-            //    _imex.UpsertDataList(_getDisplayName(nameof(model.ChairmanTitle)), "Field is required.");
-            //}
+                if (string.IsNullOrWhiteSpace(model.ChairmanTitle))
+                {
+                    var chairmanTitle = _getDisplayName(nameof(model.ChairmanTitle));
+                    _imex.UpsertDataList(chairmanTitle, $"{chairmanTitle} Field is required.");
+                }
 
-            //if (string.IsNullOrWhiteSpace(model.ViceChairman))
-            //{
-            //    _imex.UpsertDataList(_getDisplayName(nameof(model.ViceChairman)), "Field is required.");
-            //}
+                if (string.IsNullOrWhiteSpace(model.ViceChairman))
+                {
+                    var vice = _getDisplayName(nameof(model.ViceChairman));
+                    _imex.UpsertDataList(vice, $"{vice} Field is required.");
+                }
 
-            //if (string.IsNullOrWhiteSpace(model.ViceChairmanTitle))
-            //{
-            //    _imex.UpsertDataList(_getDisplayName(nameof(model.ViceChairmanTitle)), "Field is required.");
-            //}
+                if (string.IsNullOrWhiteSpace(model.ViceChairmanTitle))
+                {
+                    var viceTitle = _getDisplayName(nameof(model.ViceChairmanTitle));
+                    _imex.UpsertDataList(viceTitle, $"{viceTitle} Field is required.");
+                }
 
-            //if (string.IsNullOrWhiteSpace(model.Member))
-            //{
-            //    _imex.UpsertDataList(_getDisplayName(nameof(model.Member)), "Field is required.");
-            //}
+                if (string.IsNullOrWhiteSpace(model.Member))
+                {
+                    var member = _getDisplayName(nameof(model.Member));
+                    _imex.UpsertDataList(member, $"{member} Field is required.");
+                }
 
-            //if (string.IsNullOrWhiteSpace(model.MemberTitle))
-            //{
-            //    _imex.UpsertDataList(_getDisplayName(nameof(model.MemberTitle)), "Field is required.");
-            //}
+                if (string.IsNullOrWhiteSpace(model.MemberTitle))
+                {
+                    var memberTitle = _getDisplayName(nameof(model.MemberTitle));
+                    _imex.UpsertDataList(memberTitle, $"{memberTitle} Field is required.");
+                }
 
-            //if (string.IsNullOrWhiteSpace(model.Officer))
-            //{
-            //    _imex.UpsertDataList(_getDisplayName(nameof(model.Officer)), "Field is required.");
-            //}
+                if (string.IsNullOrWhiteSpace(model.Officer))
+                {
+                    var officer = _getDisplayName(nameof(model.Officer));
+                    _imex.UpsertDataList(officer, $"{officer} Field is required.");
+                }
 
-            //if (string.IsNullOrWhiteSpace(model.OfficerTitle))
-            //{
-            //    _imex.UpsertDataList(_getDisplayName(nameof(model.OfficerTitle)), "Field is required.");
-            //}
+                if (string.IsNullOrWhiteSpace(model.OfficerTitle))
+                {
+                    var officerTitle = _getDisplayName(nameof(model.OfficerTitle));
+                    _imex.UpsertDataList(officerTitle, $"{officerTitle} Field is required.");
+                }
+            }
 
             _imex.ThrowIfContainsErrors();
         }

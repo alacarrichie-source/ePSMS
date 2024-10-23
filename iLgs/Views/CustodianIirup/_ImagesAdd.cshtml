@@ -1,0 +1,47 @@
+﻿@model iLgs.Models.Upload
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formUpload", id = "formUpload" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.ImageId)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <div class="row">
+        @Html.LabelFor(m => m.Description, new { @class = "text-right col-md-1  " })
+        <div class="col-md-10">
+            @(Html.Kendo().TextBoxFor(m => m.Description).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.Description)
+        </div>
+    </div>
+
+    <br />
+
+    <div>You can only upload <strong>XLS</strong>,<strong>PDF</strong>, <strong>GIF</strong>, <strong>JPG</strong>, <strong>PNG</strong> files.</div>
+    <div>Maximum allowed file size is <strong>@ViewData["fileSize"]MB</strong>.</div>
+    @(Html.Kendo().Upload()
+            .Name("files")
+            .Async(a => a
+            .Save("_ImagesUpload", "CustodianIirup")
+                .AutoUpload(false)
+            )
+        .Events(e => e.Upload("UploadPara").Remove("UploadPara")
+            .Success("onUploadSuccess")
+            .Error("onError"))
+        .Validation(validation =>
+        {
+            validation.MaxFileSize(10240000);
+            validation.AllowedExtensions(new string[] { ".xlsx", ".xls", ".docx", ".doc", ".pdf", ".gif", ".jpg", ".jpeg", ".png" });
+        })
+    )
+}
+
+
+
+

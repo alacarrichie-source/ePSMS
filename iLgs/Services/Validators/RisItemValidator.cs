@@ -30,8 +30,8 @@ namespace iLgs.Services.Validators
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RisItemEntryVM>(propertyName);
-            _codextnService = new CodextnService(db);
-            _allFieldsValidator = new AllFieldsValidator(db);
+            _codextnService = new CodextnService(_db);
+            _allFieldsValidator = new AllFieldsValidator(_db);
         }
 
         public void ValidateOnCreate(RisItemEntryVM model)

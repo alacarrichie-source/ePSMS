@@ -28,7 +28,7 @@ namespace iLgs.Services.Validators
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RIS_VM>(propertyName);
-            _codextnService = new CodextnService(db);
+            _codextnService = new CodextnService(_db);
         }
 
         public void ValidateOnCreate(RIS_VM model)

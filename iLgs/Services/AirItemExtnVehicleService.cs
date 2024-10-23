@@ -34,7 +34,7 @@ namespace iLgs.Services
 
     public class AirItemExtnVehicleService : IAirItemExtnVehicleService
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly IExceptionService<ServiceResult<AIRItemExtnVehicle>> _exceptionService = new ExceptionService<ServiceResult<AIRItemExtnVehicle>>();
         private readonly IValidationService<AIRItemExtnVehicle> _validationService;
 

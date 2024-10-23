@@ -91,7 +91,8 @@ namespace iLgs.Models
         {
             ADD,
             EDIT,
-            DELETE
+            DELETE,
+            POST
         }
     }
 }
