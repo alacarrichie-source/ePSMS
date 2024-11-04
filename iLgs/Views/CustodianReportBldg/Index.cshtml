@@ -660,8 +660,24 @@
 
     function UpdateDescription(e)
     {
+        //var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+        //var data = $("#form").serialize();
+
+        // Check the checkbox state explicitly
+        var fromDonationChecked = $("#FromDonation").is(":checked");  // Adjust #FromDonation selector as needed
+        //alert(fromDonationChecked); // For debugging purposes
+
+        // Enable all disabled inputs, serialize data, and manually set the correct checkbox value
         var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
-        var data = $("#form").serialize();
+        var data = $("#form").serializeArray();  // Serialize to array to remove/add specific fields
+
+        // Remove any existing "FromDonation" field in case it was included by `serialize`
+        data = data.filter(function (item) { return item.name !== "FromDonation"; });
+        // Add "FromDonation" with the correct checked value
+        data.push({ name: "FromDonation", value: fromDonationChecked });
+
+        // Convert array to query string format
+        data = $.param(data);
 
         $.ajax({
             type: "POST",

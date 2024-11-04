@@ -1,4 +1,7 @@
 ﻿@model iLgs.Models.PsCardItemIssuanceVM
+@{ 
+    ViewBag.Mode = Model.Id == Guid.Empty ? "ADD" : "EDIT";
+}
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
@@ -7,14 +10,11 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardItemId)
-    @*@Html.HiddenFor(model => model.IssuedTo)*@
-    @*@Html.HiddenFor(model => model.RefIssuedId)*@
-    @*@Html.HiddenFor(model => model.Location)
-        @Html.HiddenFor(model => model.Officer)*@
     @Html.HiddenFor(model => model.UnitCost)
     @Html.HiddenFor(model => model.IssuedToCode)
     @Html.HiddenFor(model => model.IssuedToDescription)
-
+    @Html.HiddenFor(model => model.SelectedIds)
+    
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
             <ul class="errors"></ul>
@@ -22,6 +22,15 @@
     </div>
 
     <fieldset>
+        <div class="row">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.IssuedDate, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().DatePickerFor(m => m.IssuedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.IssuedDate)
+                </div>
+            </div>
+        </div>
 
         <div class="row">
             <div class="col-md-12">
@@ -119,68 +128,7 @@
             </div>
         </div>
 
-        @*<div class="row">
-            <div class="row">
-                <div class="col-md-offset-1">
-                    @(Html.Kendo().RadioButtonFor(m => m.IssuedToSw).Value(1).Label("Issue to Department").HtmlAttributes(new { @onchange = "onChangeOpt();" }))
-                </div>
-            </div>
-        </div>
-        <div id="OptDept">
-            <div class="row">
-                <div class="col-md-12">
-                    @Html.Label("", htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Department")
-                            .DataTextField("Description")
-                            .DataValueField("Id")
-                            .ValuePrimitive(true)
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "DEPARTMENTS", addAll = false });
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Code").Title("Code").Width("30%");
-                                c.Add().Field("Description").Title("Description").Width("70%");
-                            })
-                            .Suggest(true)
-                        )
-                        @Html.ValidationMessageFor(model => model.DeptId)
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <br />
-        <div class="row">
-            <div class="row">
-                <div class="col-md-offset-1">
-                    @(Html.Kendo().RadioButtonFor(m => m.IssuedToSw).Value(2).Label("Issue to Stakeholders")
-                        .HtmlAttributes(new { onchange = "onChangeOpt();" })
-                    )
-                </div>
-            </div>
-        </div>*@
-
-        <br />
-
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.IssuedDate, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(m => m.IssuedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IssuedDate)
-                </div>
-            </div>
-        </div>
 
         <div class="row">
             <div class="col-md-12">
@@ -204,7 +152,94 @@
             </div>
         </div>
 
+        <br />
+        <div id="DIV_SELECTION">
+            <div class="row" style="padding-left:20px;padding-right:20px;">
+                @ViewBag.Mode
+                <h4>Available Items:</h4>
+                @RenderGridSelections();
+            </div>
+        </div>        
+
     </fieldset>
+}
+
+@helper RenderGridSelections()
+{
+    if ((string)@ViewData["ItemExtnName"] == "ItemExtnOther")
+    {
+            @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnOther>()
+                .Name("gridSelections")
+                .Columns(col =>
+                {
+                    col.Select().Width(30);
+                    col.Bound(c => c.SerialNo).Width(100);
+                })
+                .Filterable()
+                .NoRecords()
+                .Resizable(r => r.Columns(true))
+                .Selectable(s => s.Mode(GridSelectionMode.Multiple))
+                .Sortable()
+                .Scrollable(s => s.Height(200))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Events(events => events.Error("GridError"))
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                    })
+                    .Sort(s =>
+                    {
+                        s.Add(a => a.SerialNo);
+                    })
+                    .Read(read => read.Action("_ItemExtnOtherSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"], mode = ViewBag.Mode }))
+                )
+                .Events(e => e.Change("onChangeGridSelection").DataBound("onDataBoundGridSelection"))
+                .AutoBind(true)
+            )
+    }
+    else if ((string)@ViewData["ItemExtnName"] == "ItemExtnVehicle")
+    {
+            @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicle>()
+            .Name("gridSelections")
+            .Columns(col =>
+            {
+                col.Select().Width(30).Visible(ViewBag.Mode == "ADD");
+                col.Bound(c => c.YearModel).Width(50);
+                col.Bound(c => c.PlateNo).Width(50);
+                col.Bound(c => c.BodyNo).Width(70);
+                col.Bound(c => c.EngineNo).Width(70);
+                col.Bound(c => c.ChasisNo).Width(70);
+                col.Bound(c => c.Color).Width(50);
+                col.Bound(c => c.CRN).Width(70);
+                col.Bound(c => c.CRDate).Width(50);
+                col.Bound(c => c.MVFileNo).Width(70);
+            })
+            .Filterable()
+            .NoRecords()
+            .Resizable(r => r.Columns(true))
+            .Selectable(s => s.Mode(GridSelectionMode.Multiple))
+            .Sortable()
+            .Scrollable(s => s.Height(200))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Events(events => events.Error("GridError"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                })
+                .Sort(s =>
+                {
+                    s.Add(a => a.PlateNo);
+                })
+                .Read(read => read.Action("_ItemExtnVehicleSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"], mode = ViewBag.Mode }))
+            )
+            .Events(e => e.Change("onChangeGridSelection").DataBound("onDataBoundGridSelection"))
+            .AutoBind(true)
+            )
+    }
 }
 
 

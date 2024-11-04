@@ -348,14 +348,15 @@ namespace iLgs.Services.CustodianReports
 
         private MemoryStream ProcessExcelFileStockTemplate(Guid id, string templateFilePath)
         {
-            int row = 15;
+            int row = 8;
             int col = 0;
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Where(w => w.ReportId == id).ToList();
+                var reportItemList = _db.CustodianReportItems.Where(w => w.ReportId == id).ToList();                
                 foreach (var reportItem in reportItemList)
                 {
+                    ws.Row(4).Cell(2).SetValue(reportItem.Department);
                     row++;
                     col = 0;
                     ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
@@ -413,7 +414,7 @@ namespace iLgs.Services.CustodianReports
 
         private MemoryStream ProcessExcelFilePpeTemplate(Guid id, string templateFilePath)
         {
-            int row = 11;
+            int row = 8;
             int col = 0;
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
@@ -421,6 +422,7 @@ namespace iLgs.Services.CustodianReports
                 var reportItemList = _db.CustodianReportItems.Where(w => w.ReportId == id).ToList();
                 foreach (var reportItem in reportItemList)
                 {
+                    ws.Row(4).Cell(2).SetValue(reportItem.Department);
                     row++;
                     col = 0;
                     ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
@@ -482,7 +484,7 @@ namespace iLgs.Services.CustodianReports
 
         private MemoryStream ProcessExcelFileVehicleTemplate(Guid id, string templateFilePath)
         {
-            int row = 10;
+            int row = 8;
             int col = 0;
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
@@ -490,6 +492,7 @@ namespace iLgs.Services.CustodianReports
                 var reportItemList = _db.CustodianReportItems.Where(w => w.ReportId == id).ToList();
                 foreach (var reportItem in reportItemList)
                 {
+                    ws.Row(4).Cell(2).SetValue(reportItem.Department);
                     row++;
                     col = 0;
                     ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);

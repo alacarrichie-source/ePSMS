@@ -83,6 +83,7 @@ namespace iLgs.Models
     public class PsCardItemVM 
     {
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> GroupId { get; set; }
         public Nullable<System.Guid> PsCardId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
         public Nullable<System.Guid> TransferRefId { get; set; }
@@ -178,7 +179,7 @@ namespace iLgs.Models
         [Required]
         [Display(Name = "Inventory/For Distribution")]
         public string InvDist { get; set; }
-
+        
         [Display(Name = "Mode of Acquisition")]
         public string AcqMode { get; set; }
 
@@ -212,6 +213,8 @@ namespace iLgs.Models
         public string PrevPsNo { get; set; }
 
         // Transients
+        [Display(Name = "Inventory/For Distribution")]
+        public string InvDistDesc { get; set; }
         public string Article { get; set; }
 
         [Display(Name = "Department")]
@@ -236,29 +239,9 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> TransDate { get; set; }
 
-        //public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        //{
-        //    if (!Qty.HasValue && !TransferIn.HasValue)
-        //    {
-        //        if (!Qty.HasValue)
-        //        {
-        //            yield return new ValidationResult(
-        //                "Either Qty or Transit-In must be provided.",
-        //                new[] { nameof(Qty) }
-        //            );
-        //        } else
-        //        {
-        //            yield return new ValidationResult(
-        //                "Either Qty or Transit-In must be provided.",
-        //                new[] { nameof(TransferIn) }
-        //            );
-        //        }
-        //    }
-        //}
+        public bool? IsWithItemExtn { get; set; } = false;
 
-        //public Codextn _Deparment { get; set; }
-        //public Codextn _Location { get; set; }
-
+        public string SelectedIds { get; set; }        
     }
 
     public class PsCardItemIssuanceVM
@@ -306,7 +289,9 @@ namespace iLgs.Models
                 
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
-        public int? IssuedToSw { get; set; }        
+        public int? IssuedToSw { get; set; }
+
+        public string SelectedIds { get; set; }
     }
 
     public class FieldSw

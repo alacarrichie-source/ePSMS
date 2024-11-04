@@ -14,15 +14,12 @@ namespace iLgs.Models
         {
             public System.Guid Id { get; set; }
 
-            //[Required]
             [Display(Name = "As of Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> AsOf { get; set; }
 
-            //[Required]
             public string Fund { get; set; }
 
-            //[Required]
             [Display(Name = "Department")]
             public Nullable<System.Guid> DeptId { get; set; }
             public string Department { get; set; }
@@ -73,7 +70,7 @@ namespace iLgs.Models
             public System.Guid Id { get; set; }
             public Nullable<System.Guid> ReportId { get; set; }
 
-            [Required]
+            //[Required]
             public string Fund { get; set; }
 
             [Display(Name = "Custodian Item No.")]
@@ -85,13 +82,10 @@ namespace iLgs.Models
             [Display(Name = "From Donation")]
             public Nullable<bool> FromDonation { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Inventory/For Distribution")]
             public string InvDist { get; set; }
 
-            //[Required]
-            //[Display(Name = "Account")]
-            //public Nullable<System.Guid> ItemTypeId { get; set; }
             public string Account { get; set; }
 
             [Required]
@@ -120,19 +114,19 @@ namespace iLgs.Models
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> AcqDate { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Unit Cost")]
             public Nullable<decimal> UnitCost { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Unit of Measurement")]
             public string Unit { get; set; }
 
             [Display(Name = "Set/Lot No.")]
             public string SetLotNo { get; set; }
 
-            [Required]
-            [Display(Name = "Originating O.R. Department")]
+            //[Required]
+            [Display(Name = "Originating P.O. Department")]
             public Nullable<System.Guid> DeptId { get; set; }
 
             [Display(Name = "Department Display")]
@@ -147,14 +141,14 @@ namespace iLgs.Models
             [Display(Name = "Sub-Location")]
             public string SubLocation { get; set; }
 
-            [Display(Name = "Total Amount")]
+            [Display(Name = "Acquisition Cost")]
             public Nullable<decimal> TotalCost { get; set; }
 
-            [Display(Name = "Old Amount")]
+            [Display(Name = "Old Amounts (Recorded in RPCPPE)")]
             public Nullable<decimal> OldAmount { get; set; }
             
 
-            [Required]
+            //[Required]
             public string Description { get; set; }
             public string Brand { get; set; }
 
@@ -248,7 +242,7 @@ namespace iLgs.Models
             [Display(Name = "MR No.")]
             public string MrNo { get; set; }
 
-            [Display(Name = "Issued To")]
+            [Display(Name = "PAR/ICS Issued To")]
             public string ParIssuedTo { get; set; }
 
             [Display(Name = "Accountable Officer")]
@@ -259,7 +253,7 @@ namespace iLgs.Models
 
             public string Type { get; set; }
 
-            [Required]            
+            //[Required]            
             public string Annex { get; set; }
             public string InsertedBy { get; set; }
             public Nullable<System.DateTime> InsertedDt { get; set; }
@@ -288,7 +282,6 @@ namespace iLgs.Models
         [Display(Name = "Transit In")]
         public new Nullable<int> TransferIn { get => base.TransferIn; set => base.TransferIn = value; }
 
-        //[Required]
         [Display(Name = "Balance")]
         public new Nullable<int> QtyBalance { get => base.QtyBalance; set => base.QtyBalance = value; }
     }
@@ -311,28 +304,24 @@ namespace iLgs.Models
         [Display(Name = "Old Property Card No.")]
         public new string OldPsNo { get => base.OldPsNo; set => base.OldPsNo = value; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Year Model")]        
         public new Nullable<int> YearModel { get => base.YearModel; set => base.YearModel = value; }
-
+        
         //[Required]
-        //[Display(Name = "Plate No.")]
-        //public new string PlateNo { get => base.PlateNo; set => base.PlateNo = value; }
-
-        [Required]
         [Display(Name = "Body No.")]
         public new string BodyNo { get => base.BodyNo; set => base.BodyNo = value; }
 
-        [Required]
+        //[Required]
         [Display(Name = "CRN")]
         public new string CRN { get => base.CRN; set => base.CRN = value; }
 
-        [Required]
+        //[Required]
         [Display(Name = "CR Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public new Nullable<System.DateTime> CRDate { get => base.CRDate; set => base.CRDate = value; }
 
-        [Required]
+        //[Required]
         [Display(Name = "MV File No.")]
         public new string MVFileNo { get => base.MVFileNo; set => base.MVFileNo = value; }
 
@@ -396,11 +385,11 @@ namespace iLgs.Models
             [Display(Name = "Landmarks")]
             public string LandMarks { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Area (sqm)")]
             public Nullable<decimal> Area { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Price per sqm.")]
             public Nullable<decimal> PricePerSqm { get; set; }
 
@@ -419,7 +408,7 @@ namespace iLgs.Models
             [Display(Name = "Acquisition Cost")]
             public Nullable<decimal> AcqCost { get; set; }
 
-            [Display(Name = "Old Amounts")]
+            [Display(Name = "Old Amounts (Recorded in RPCPPE)")]
             public Nullable<decimal> OldAmount { get; set; }
 
             [Display(Name = "Acquisition Date")]
@@ -434,7 +423,7 @@ namespace iLgs.Models
             [Display(Name = "TCT No.")]
             public string TctNo { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Old TCT No.")]
             public string OldTctNo { get; set; }
 
@@ -618,7 +607,7 @@ namespace iLgs.Models
             [Display(Name = "Property Number")]
             public string PropNo { get; set; }
 
-            [Display(Name = "Old Amounts")]
+            [Display(Name = "Old Amounts (Recorded in RPCPPE)")]
             public Nullable<decimal> OldAmount { get; set; }
 
             [Display(Name = "Building/Structure Type")]
@@ -627,17 +616,17 @@ namespace iLgs.Models
             [Display(Name = "Building Area (sqm)")]
             public Nullable<decimal> Area { get; set; }
 
-            [Display(Name = "Total Amount")]
+            [Display(Name = "Acquisition Cost")]
             public Nullable<decimal> TotalAmount { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Phase No.")]
             public string PhaseNo { get; set; }
 
             [Display(Name = "Phase Amount MOOE")]
             public Nullable<decimal> PhaseAmountMooe { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Phase Amount Capital Outlay")]
             public Nullable<decimal> PhaseAmountCo { get; set; }
 

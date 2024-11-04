@@ -8,6 +8,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services
 {
@@ -27,10 +28,12 @@ namespace iLgs.Services
     {
         private readonly AppManEntities _db;
         private readonly IExceptionService<PsCardItemExtnVehicle> _exceptionService = new ExceptionService<PsCardItemExtnVehicle>();
+        private readonly IPsCardItemTransactionService _psCardItemTransactionService;
 
         public PsCardItemExtnVehicleService(AppManEntities db)
         {
             _db = db;
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
         }
 
         public IQueryable<PsCardItemExtnVehicle> GetByPsCardItemId(Guid? psCardItemId)
@@ -67,11 +70,6 @@ namespace iLgs.Services
         
         public ValueTask<PsCardItemExtnVehicle> CreateAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            //if (await IsPostedAsync(model.pPsCardItemId))
-            //{
-            //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            //}
-
             ValidatorService.ValidateModel<PsCardItemExtn>(model);
 
             var psCardItem = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == model.PsCardItemId);
@@ -88,58 +86,43 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
-
-            model.Id = Guid.NewGuid();
-
-            var entity = new PsCardItemExtnVehicle()
-            {
-                Id = model.Id,
-                SeriesNo = model.SeriesNo,
-                YearModel = model.YearModel,
-                PlateNo = model.PlateNo,
-                BodyNo = model.BodyNo,
-                EngineNo = model.EngineNo,
-                ChasisNo = model.ChasisNo,
-                Color = model.Color,
-                CRN = model.CRN,
-                CRDate = model.CRDate,
-                MVFileNo = model.MVFileNo,
-                OrNo = model.OrNo,
-                OrDate = model.OrDate,
-                NetWeight = model.NetWeight,
-                InsPolicyNo = model.InsPolicyNo,
-                ParReissuance = model.ParReissuance,
-                Condition = model.Condition,
-                SubLocation = model.SubLocation,
-                ConductionNo = model.ConductionNo,
-                ContentNo = model.ContentNo,
-                CustItemNo = model.CustItemNo,
-                PsCardItemId = model.PsCardItemId,
-                InsertedBy = model.InsertedBy,
-                InsertedDt = model.InsertedDt,
-                UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
-            };
+            
+            var entity = new PsCardItemExtnVehicle();            
+            MapModelToEntityFields(entity, model, Mode.ADD);
 
             _db.PsCardItemExtns.Add(entity);
             await _db.SaveChangesAsync();
+
+            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
+
+            return model;
+        });
+        
+
+        public ValueTask<PsCardItemExtnVehicle> UpdateAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {            
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            MapModelToEntityFields(entity, model, Mode.EDIT);
+            
+            _db.PsCardItemExtns.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
 
             return model;
         });
 
         public ValueTask<PsCardItemExtnVehicle> DeleteAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            //if (await IsPostedAsync(model.PsCardItemId))
-            //{
-            //    throw new RecordAlreadyPostedException("Record already posted, cannot delete!");
-            //}
-
             // check in Par/Ics
             if (await _db.IcsParItems.AnyAsync(a => a.PsCardItemExtnId == model.Id))
             {
                 throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
             }
-
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -160,17 +143,14 @@ namespace iLgs.Services
             return model;
         });
 
-        public ValueTask<PsCardItemExtnVehicle> UpdateAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public void MapModelToEntityFields(PsCardItemExtnVehicle entity, PsCardItemExtnVehicle model, Mode mode)
         {
-            //if (await IsPostedAsync(model.PsCardItemId))
-            //{
-            //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            //}
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            if (mode == Mode.ADD)
+            {
+                entity.Id = model.Id;
+                entity.InsertedBy = model.InsertedBy;
+                entity.InsertedDt = model.InsertedDt;
+            }
 
             entity.SeriesNo = model.SeriesNo;
             entity.YearModel = model.YearModel;
@@ -193,20 +173,8 @@ namespace iLgs.Services
             entity.ContentNo = model.ContentNo;
             entity.CustItemNo = model.CustItemNo;
             entity.PsCardItemId = model.PsCardItemId;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.PsCardItemExtns.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            return model;
-        });
-
-        //private async ValueTask<bool> IsPostedAsync(Guid? psCardItemId)
-        //{
-        //    var entity = await _db.PsCards.Where(w => w.PsCardItems.Any(a => a.Id == psCardItemId)).FirstOrDefaultAsync();
-        //    return !string.IsNullOrWhiteSpace(entity.PostedBy);
-        //}
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+        }
     }
 }

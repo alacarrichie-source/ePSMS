@@ -83,14 +83,12 @@ namespace iLgs.Models
         public virtual DbSet<AIRItem> AIRItems { get; set; }
         public virtual DbSet<AllField> AllFields { get; set; }
         public virtual DbSet<IcsParItem> IcsParItems { get; set; }
-        public virtual DbSet<IcsPar> IcsPars { get; set; }
         public virtual DbSet<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
-        public virtual DbSet<PsCardItemLocation> PsCardItemLocations { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
         public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
@@ -105,5 +103,7 @@ namespace iLgs.Models
         public virtual DbSet<CustodianDisposalItem> CustodianDisposalItems { get; set; }
         public virtual DbSet<DollarRate> DollarRates { get; set; }
         public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
+        public virtual DbSet<IcsPar> IcsPars { get; set; }
+        public virtual DbSet<PsCardItemTransaction> PsCardItemTransactions { get; set; }
     }
 }

@@ -68,7 +68,7 @@
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetPropertyItemAccounts;
+                                read.Action("GetPropertyItemAccounts", "ItemHelper");
                             })
                             .ServerFiltering(true);
                         })

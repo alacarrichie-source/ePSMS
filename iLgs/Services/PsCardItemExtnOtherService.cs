@@ -25,10 +25,12 @@ namespace iLgs.Services
     {
         private readonly AppManEntities _db;
         private readonly IExceptionService<PsCardItemExtnOther> _exceptionService = new ExceptionService<PsCardItemExtnOther>();
+        private readonly IPsCardItemTransactionService _psCardItemTransactionService;
 
         public PsCardItemExtnOtherService(AppManEntities db)
         {
             _db = db;
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
         }
 
         public IQueryable<PsCardItemExtnOther> GetByPsCardItemId(Guid? psCardItemId)
@@ -126,6 +128,8 @@ namespace iLgs.Services
                 _db.PsCardItemExtns.Add(entity);
                 await _db.SaveChangesAsync();
 
+                await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
+
                 if (++itemExtnCount >= itemQty)
                 {
                     break;
@@ -189,6 +193,8 @@ namespace iLgs.Services
             _db.PsCardItemExtns.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
+
+            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
 
             return model;
         });

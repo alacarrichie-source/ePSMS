@@ -12,22 +12,24 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PsCardItemLocation
+    public partial class PsCardItemTransaction
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemExtnId { get; set; }
-        public Nullable<System.DateTime> TransDate { get; set; }
-        public string TransType { get; set; }
-        public Nullable<System.Guid> TransId { get; set; }
-        public Nullable<System.Guid> LocationId { get; set; }
-        public string LocationCode { get; set; }
-        public string Location { get; set; }
+        public Nullable<System.Guid> PsCardItemId { get; set; }
+        public Nullable<System.Guid> PsCardItemIssuanceId { get; set; }
+        public Nullable<System.Guid> PsCardItemTransferId { get; set; }
+        public Nullable<System.Guid> IcsParId { get; set; }
+        public string Remarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        public virtual IcsPar IcsPar { get; set; }
         public virtual PsCardItemExtn PsCardItemExtn { get; set; }
         public virtual PsCardItemIssuance PsCardItemIssuance { get; set; }
+        public virtual PsCardItem PsCardItem { get; set; }
+        public virtual PsCardItemTransfer PsCardItemTransfer { get; set; }
     }
 }

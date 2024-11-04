@@ -24,7 +24,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual IcsPar IcsPar { get; set; }
         public virtual PsCardItemExtn PsCardItemExtn { get; set; }
+        public virtual IcsPar IcsPar { get; set; }
     }
 }

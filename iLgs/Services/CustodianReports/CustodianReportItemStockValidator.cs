@@ -58,69 +58,69 @@ namespace iLgs.Services.CustodianReports
             _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemType_Code, model.Item_Code, ex, Enums.Module.CARD);
 
 
-            if (model.DeptId == null)
-            {
-                ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Field is required.");
-            }
-            else
-            {
-                if (!_codextnService.IsValidMastCodeId("DEPARTMENTS", model.DeptId))
-                {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Invalid value");
-                }
-            }
+            //if (model.DeptId == null)
+            //{
+            //    ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Field is required.");
+            //}
+            //else
+            //{
+            //    if (!_codextnService.IsValidMastCodeId("DEPARTMENTS", model.DeptId))
+            //    {
+            //        ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Invalid value");
+            //    }
+            //}
 
-            if (string.IsNullOrWhiteSpace(model.Unit))
-            {
-                ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Field is required.");
-            }
-            else
-            {
-                if (!_codextnService.IsValidMastCodeCode("UNIT", model.Unit))
-                {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid value");
-                }
-            }
+            //if (string.IsNullOrWhiteSpace(model.Unit))
+            //{
+            //    ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Field is required.");
+            //}
+            //else
+            //{
+            //    if (!_codextnService.IsValidMastCodeCode("UNIT", model.Unit))
+            //    {
+            //        ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid value");
+            //    }
+            //}
 
-            if (!model.UnitCost.HasValue)
-            {
-                ex.UpsertDataList(_getDisplayName(nameof(model.UnitCost)), "Field is required.");
-            }
+            //if (!model.UnitCost.HasValue)
+            //{
+            //    ex.UpsertDataList(_getDisplayName(nameof(model.UnitCost)), "Field is required.");
+            //}
 
-            if (model.DeptId != null)
-            {
-                if (model.LocationId != null)
-                {
-                    if (!model.TransferIn.HasValue)
-                    {
-                        ex.UpsertDataList(_getDisplayName(nameof(model.TransferIn)), "Field is required.");
-                    }
-                }
-                else
-                {
-                    if (!model.Qty.HasValue)
-                    {
-                        ex.UpsertDataList(_getDisplayName(nameof(model.Qty)), "Field is required.");
-                    }
-                }
-            }
+            //if (model.DeptId != null)
+            //{
+            //    if (model.LocationId != null)
+            //    {
+            //        if (!model.TransferIn.HasValue)
+            //        {
+            //            ex.UpsertDataList(_getDisplayName(nameof(model.TransferIn)), "Field is required.");
+            //        }
+            //    }
+            //    else
+            //    {
+            //        if (!model.Qty.HasValue)
+            //        {
+            //            ex.UpsertDataList(_getDisplayName(nameof(model.Qty)), "Field is required.");
+            //        }
+            //    }
+            //}
 
-            if (string.IsNullOrWhiteSpace(model.Description))
-            {
-                ex.UpsertDataList(_getDisplayName(nameof(model.Description)), "Field is required.");
-            }
+            //if (string.IsNullOrWhiteSpace(model.Description))
+            //{
+            //    ex.UpsertDataList(_getDisplayName(nameof(model.Description)), "Field is required.");
+            //}
 
-            if (string.IsNullOrWhiteSpace(model.InvDist))
-            {
-                ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Field is required.");
-            }
-            else
-            {
-                if (!_codextnService.IsValidMastCodeCode("PS-REMARKS", model.InvDist))
-                {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Invalid value");
-                }
-            }
+            //if (string.IsNullOrWhiteSpace(model.InvDist))
+            //{
+            //    ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Field is required.");
+            //}
+            //else
+            //{
+            //    if (!_codextnService.IsValidMastCodeCode("PS-REMARKS", model.InvDist))
+            //    {
+            //        ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Invalid value");
+            //    }
+            //}
 
             ex.ThrowIfContainsErrors();
         }

@@ -229,7 +229,7 @@
 
         <br />
         <div class="row">
-            <div class="col-md-6">
+            @*<div class="col-md-6">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.OldPsNo, "Label")
                 </div>
@@ -237,7 +237,7 @@
                     @(Html.Kendo().TextBoxFor(m => m.OldPsNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.OldPsNo)
                 </div>
-            </div>
+            </div>*@
 
             <div class="col-md-6">
                 <div class="col-md-3">
@@ -579,6 +579,16 @@
         </div>
 
         <div class="row">
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.SetLotNo, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.SetLotNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.SetLotNo)
+                </div>
+            </div>
+
             <div class="col-md-6">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.Annex, "Label")

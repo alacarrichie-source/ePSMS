@@ -1,0 +1,34 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicle>()
+    .Name("gridItemExtn_" + @ViewData["CardItemId"])
+    .Columns(col =>
+    {
+        col.Bound(c => c.YearModel).Width(100);
+        col.Bound(c => c.PlateNo).Width(100);
+        col.Bound(c => c.BodyNo).Width(50);
+        col.Bound(c => c.EngineNo).Width(50);
+        col.Bound(c => c.ChasisNo).Width(50);
+        col.Bound(c => c.Color).Width(50);
+        col.Bound(c => c.CRN).Width(50);
+        col.Bound(c => c.CRDate).Width(50).Format("{0:MM/dd/yyyy}");
+        col.Bound(c => c.MVFileNo).Width(50);
+        col.Bound(c => c.OrNo).Width(50);
+        col.Bound(c => c.OrDate).Width(50).Format("{0:MM/dd/yyyy}");
+        col.Bound(c => c.NetWeight).Width(50);
+        col.Bound(c => c.InsPolicyNo).Width(50);
+        col.Bound(c => c.SubLocation).Width(50);
+    })
+    .Sortable()
+    .NoRecords()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Events(events => events.Error("GridError")
+        )
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        })
+        .Read(read => read.Action("_ItemExtnVehicleRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"] }))
+    )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+)

@@ -1,7 +1,10 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.PARs;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -37,7 +40,7 @@ namespace iLgs.Services
         IPsCardItemIssuanceService PsCardItemIssaunce { get; }
     }
 
-    public class IcsService : IIcsService
+    public class IcsService : BaseValidator, IIcsService
     {
         private readonly AppManEntities _db;
         private decimal _parPrice = 50000;
@@ -50,6 +53,7 @@ namespace iLgs.Services
         private readonly IExceptionService<GenerateIcsParVM> _generateParExceptionService = new ExceptionService<GenerateIcsParVM>();
         private readonly IExceptionService<PsCardItem> _postExceptionService = new ExceptionService<PsCardItem>();
         private readonly IExceptionService<PsCardItemUnitGroupDescriptionItem> _psCardItemUnitGroupDescriptionItemService = new ExceptionService<PsCardItemUnitGroupDescriptionItem>();
+        private readonly GetDisplayNameDelegate _getDisplayName;
 
         public IcsService(AppManEntities db)
         {
@@ -59,6 +63,7 @@ namespace iLgs.Services
             _psCardItemService = new PsCardItemService(_db);
             _psCardItemExtnService = new PsCardItemExtnService(_db);
             _psCardItemIssaunceService = new PsCardItemIssuanceService(_db);
+            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemVM>(propertyName);
         }
 
         public IIcsParItemService IcsParItem { get { return _icsParItemService = _icsParItemService ?? new IcsParItemService(_db); } }
@@ -358,7 +363,7 @@ namespace iLgs.Services
 
             if (cardItem == null)
             {
-                throw new RecordNotFoundException((Guid)model.PsCardItemId);
+                throw new NotFoundException((Guid)model.PsCardItemId);
             }
 
             if (cardItem.IsConsumable == true)
@@ -736,7 +741,7 @@ namespace iLgs.Services
             var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
             if (entity.Count() == 0)
             {
-                throw new RecordNotFoundException(groupId);
+                throw new NotFoundException((Guid)groupId);
             }
 
             var psCardItem = entity.FirstOrDefault(f => f.TransferRefId == null);
@@ -769,7 +774,7 @@ namespace iLgs.Services
 
             if (entity.Count() == 0)
             {
-                throw new RecordNotFoundException(groupId);
+                throw new NotFoundException((Guid)groupId);
             }
 
             //await ValidateOnUnpost(entity);

@@ -38,7 +38,7 @@
             t.Create().Text("Add New Record");
             //t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnAddNew_" + @ViewData["reportId"]).HtmlAttributes(new { @class = "k-grid-add-custom" });
         })
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PpeItemTemplate").Window(w => w.Width(1000).Title("PPE Items")))
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PpeItemTemplate").Window(w => w.Width(1000).Title("Equipment Items")))
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)

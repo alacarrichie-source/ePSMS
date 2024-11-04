@@ -1,4 +1,6 @@
-﻿using iLgs.Exceptions.PARs;
+﻿using iLgs.Exceptions;
+using iLgs.Exceptions.PARs;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Interfaces;
@@ -19,18 +21,23 @@ namespace iLgs.Controllers
     [AppAuthorize("POISSUANCE")]
     public class PoIssuanceController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
+        private AppManEntities _db;
         private IPoIssuanceService _poIssuanceService;
+        private IPsCardService _psCardService;
         private IPsCardItemService _psCardItemService;
         private IPsCardItemIssuanceService _psCardItemIssuanceService;
         private IIcsParItemService _icsParItemService;
+        private IPsCardItemTransactionService _psCardItemTransactionService;
         
         public PoIssuanceController()
         {
+            _db = new AppManEntities();
             _poIssuanceService = new PoIssuanceService(_db);
+            _psCardService = new PsCardService(_db);
             _psCardItemService = new PsCardItemService(_db);
             _psCardItemIssuanceService = new PsCardItemIssuanceService(_db);
             _icsParItemService = new IcsParItemService(_db);
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
         }
 
         // GET: PoIssuance
@@ -58,6 +65,8 @@ namespace iLgs.Controllers
             ViewData["CardItemId"] = cardItemId;
             ViewData["UnitCost"] = unitCost;
             ViewData["DeptId"] = deptId;
+            ViewData["ItemExtnName"] = _psCardService.GetItemExtnName(cardItemId);
+
             return PartialView();
         }
         
@@ -94,17 +103,25 @@ namespace iLgs.Controllers
                     model = await _psCardItemIssuanceService.CreateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -130,17 +147,25 @@ namespace iLgs.Controllers
                     model = await _psCardItemIssuanceService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -165,29 +190,93 @@ namespace iLgs.Controllers
                     model = await _psCardItemIssuanceService.DeleteAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("DeleteError", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
+        #region ITEMEXTN
+        public ActionResult _getItemExtn(Guid? cardItemId)
+        {
+            ViewData["CardItemId"] = cardItemId;
+            var itemExtnName = _psCardService.GetItemExtnName(cardItemId);
+
+            return PartialView($"_{itemExtnName}");
+        }
+
+        public ActionResult _ItemExtnOtherRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        {
+            var data = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.GetByPsCardItemId(cardItemId);
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        public ActionResult _ItemExtnVehicleRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        {
+            var data = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.GetByPsCardItemId(cardItemId);
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+        
+        public ActionResult _ItemExtnVehicleSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId, string mode)
+        {
+            var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnForVehicleIssuanceSelection(cardItemId, mode);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        public ActionResult _ItemExtnOtherSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId, string mode)
+        {
+            var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnForOtherIssuanceSelection(cardItemId, mode);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        #endregion
+
         #region TRANSFER
         public async Task<ActionResult> _Transfer(Guid? cardItemId)
-        {
-            ViewData["cardItemId"] = cardItemId;
-            var model =  await _psCardItemService.GetByIdAsync(cardItemId);            
+        {            
+            var model =  await _psCardItemService.GetByIdAsync(cardItemId);
+
+            ViewData["CardItemId"] = cardItemId;
+            ViewBag.ItemExtnName = _psCardService.GetItemExtnName(cardItemId);
 
             return PartialView(model);
+        }
+
+        public ActionResult _TransferSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        {
+            var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnForIssuanceByType(cardItemId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -210,17 +299,25 @@ namespace iLgs.Controllers
                     model = await _poIssuanceService.TransferAsync(model, user, date);                    
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -257,17 +354,25 @@ namespace iLgs.Controllers
                     await _poIssuanceService.PostAsync(psCardItemIssuanceId, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -275,6 +380,7 @@ namespace iLgs.Controllers
                         select error.ErrorMessage;
 
             var errorList = query.ToList();
+
             if (errorList.Count() > 0)
             {
                 return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
@@ -303,17 +409,25 @@ namespace iLgs.Controllers
                     await _poIssuanceService.UnpostAsync(psCardItemIssuanceId, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (DependencyException dependencyException)
+            {
+                ModelState.AddModelError("", dependencyException);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -321,6 +435,7 @@ namespace iLgs.Controllers
                         select error.ErrorMessage;
 
             var errorList = query.ToList();
+
             if (errorList.Count() > 0)
             {
                 return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
@@ -432,5 +547,12 @@ namespace iLgs.Controllers
         }
 
         #endregion        
+
+        public async Task<JsonResult> IsSelected(Guid? psCardItemExtnId, Guid? refId)
+        {
+
+            var isSelected = await _psCardItemTransactionService.IsSelectedIssuanceAsync(psCardItemExtnId, refId, "ISSUANCE");
+            return Json(new { Errors = "", IsSelected = isSelected }, JsonRequestBehavior.AllowGet);
+        }
     }
 }

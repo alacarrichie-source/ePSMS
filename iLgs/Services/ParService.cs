@@ -1,7 +1,10 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.PARs;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -56,7 +59,7 @@ namespace iLgs.Services
         IPsCardItemIssuanceService PsCardItemIssaunce { get; }        
     }
 
-    public class ParService : IParService
+    public class ParService : BaseValidator, IParService
     {
         private readonly AppManEntities _db;
         private decimal _parPrice = 50000;
@@ -68,6 +71,7 @@ namespace iLgs.Services
         private IPsCardItemIssuanceService _psCardItemIssaunceService;
         private readonly IExceptionService<GenerateIcsParVM> _generateParExceptionService = new ExceptionService<GenerateIcsParVM>();
         private readonly IExceptionService<PsCardItem> _postExceptionService = new ExceptionService<PsCardItem>();
+        private readonly GetDisplayNameDelegate _getDisplayName;
 
         public ParService(AppManEntities db)
         {
@@ -77,6 +81,7 @@ namespace iLgs.Services
             _psCardItemService = new PsCardItemService(_db);
             _psCardItemExtnService = new PsCardItemExtnService(_db);
             _psCardItemIssaunceService = new PsCardItemIssuanceService(_db);
+            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemVM>(propertyName);
         }
 
         public IIcsParItemService IcsParItem { get { return _icsParItemService = _icsParItemService ?? new IcsParItemService(_db); } }
@@ -376,6 +381,10 @@ namespace iLgs.Services
                 throw new InvalidValueException(string.Format("Cannot generate more than the available balance."));
             }
 
+            if (model.SelectedIds == null) {
+                throw new InvalidValueException(string.Format("No selected items, cannot generate."));
+            }
+
             var selectedIds = model.SelectedIds.Split(',');
             if (selectedIds.Count() == 0)
             {
@@ -532,7 +541,7 @@ namespace iLgs.Services
             var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
             if (entity.Count() == 0)
             {
-                throw new RecordNotFoundException(groupId);
+                throw new NotFoundException((Guid)groupId);
             }
 
             var psCardItem = entity.FirstOrDefault(f => f.TransferRefId == null);
@@ -547,7 +556,7 @@ namespace iLgs.Services
             }
 
             await ValidateUploadAsync(groupId);
-            return entity.FirstOrDefault();
+            //return entity.FirstOrDefault();
 
             //await ValidateOnPost(entity);
 
@@ -568,7 +577,7 @@ namespace iLgs.Services
 
             if (entity.Count() == 0)
             {
-                throw new RecordNotFoundException(groupId);
+                throw new NotFoundException((Guid)groupId);
             }
 
             //await ValidateOnUnpost(entity);
@@ -583,5 +592,45 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
             return entity.FirstOrDefault();
         });
+
+        private void ValidateRecord(PsCardItem entity)
+        {
+            if (entity == null)
+            {
+                throw new NotFoundException(entity.Id);
+            }
+        }
+
+        //private void ValidateIfPosted(PsCardItem entity)
+        //{
+        //    if (entity.PostedDt != null)
+        //    {
+        //        var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+        //        throw new RecordAlreadyPostedException(msg);
+        //    }
+        //}
+
+        //private void ValidateIfNotPosted(PsCardItem entity)
+        //{
+        //    if (entity.PostedDt == null)
+        //    {
+        //        throw new RecordNotYetPostedException($"Record is not yet posted!");
+        //    }
+        //}
+
+        //private void ValidateFields(PsCardItem model)
+        //{
+        //    //if (string.IsNullOrWhiteSpace(model.PhaseNo))
+        //    //{
+        //    //    _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseNo)), "Field is required.");
+        //    //}
+
+        //    //if (!model.PhaseAmountCo.HasValue)
+        //    //{
+        //    //    _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseAmountCo)), "Field is required.");
+        //    //}
+
+        //    //_imex.ThrowIfContainsErrors();
+        //}
     }
 }

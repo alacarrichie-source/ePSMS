@@ -15,8 +15,8 @@
             {
                 info.Bound(f => f.PoNo).Width(50);
                 info.Bound(f => f.PoDate).Width(50);
-                info.Bound(f => f.AirNo).Width(50);
-                info.Bound(f => f.AirDate).Width(50);
+                //info.Bound(f => f.AirNo).Width(50);
+                //info.Bound(f => f.AirDate).Width(50);
             }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
         );
         columns.Bound(f => f.UnitCost).Width(50).Title("PO<br>Unit Cost")
@@ -76,6 +76,7 @@
             .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
             .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
             .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(f => f.InvDistDesc).Width(50).Title("Inventory / <br>For Distribution");
     })
     .ToolBar(t =>
     {
@@ -154,9 +155,11 @@
             .SelectedIndex(0)
             .Items(items =>
             {
-                items.Add().Text("Issued Items")
+                items.Add().Text("Issuances")
                     .Selected(true)
                     .LoadContentFrom("_Issuance", "PoIssuance", new { cardItemId = "#=Id#", unitCost = "#=UnitCost#", deptId = "#=DeptId#" });
+                items.Add().Text("Items")
+                    .LoadContentFrom("_getItemExtn", "PoIssuance", new { cardItemId = "#=Id#" });
                 //items.Add().Text("PARs")
                 //    .LoadContentFrom("_Pars", "PoIssuance", new { cardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
                 //items.Add().Text("ICS")
@@ -705,7 +708,7 @@
 
         if (issuedTo.includes("Department"))
         {
-            $("#DIV_DEPARTMENT").removeClass("hidden");            
+            $("#DIV_DEPARTMENT").removeClass("hidden");
             $("#DIV_LOCATION").addClass("hidden");
         }
         else if (issuedTo == "Location" || issuedTo == "Disposal") {
@@ -736,6 +739,26 @@
             $("#DIV_LOCATION").addClass("hidden");
             $("#DIV_DEPARTMENT").addClass("hidden");
         }
+    }
+
+    function RefreshDivs(dataItem) {
+        //var selectedValue = this.value();
+        var fieldsContainer = $('#DIV_ALLFIELDS');
+
+        fieldsContainer.empty(); // Clear existing content
+
+        var url = '@Url.Action("LoadFields", "PoIssuance")';
+        var data = $("#form").serialize();
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: data,
+            success: function(data) {
+                fieldsContainer.html(data);
+                resizeWindow();
+            }
+        });
     }
 
     function UpdateBalance(e) {
@@ -1076,6 +1099,52 @@
 
         $("#IssuedToCode").val(dataItem.Code).trigger("change");
         $("#IssuedToDescription").val(dataItem.Description).trigger("change");
+    }
+
+    function onChangeGridSelection(e) {
+        // Get the Kendo grid instance
+        var grid = $("#gridSelections").data("kendoGrid");
+
+        // Get all selected rows
+        var selectedRows = grid.select();
+
+        // Gather the IDs of the selected items
+        var selectedIds = selectedRows.map(function () {
+            var dataItem = grid.dataItem(this);
+            return dataItem.Id;
+        }).get();
+
+        var countSelectedIds = selectedIds.length;
+        $("#Qty").data("kendoNumericTextBox").value(countSelectedIds);
+        $("#Qty").data("kendoNumericTextBox").trigger("change");
+
+        // Update the hidden field with the selected IDs
+        $("#selectedIds").val(selectedIds.join(","));
+    }
+
+    function onDataBoundGridSelection(e) {
+        var grid = this;
+        var psCardItemExtnId = selectedItemId;
+
+        // Iterate over each data item and check the checkbox if Id is in the pre-selected list
+        grid.items().each(function () {
+            var dataItem = grid.dataItem(this);
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("IsSelected", "PoIssuance")',
+                data: { psCardItemExtnId: psCardItemExtnId, refId: dataItem.Id },
+                async: true,
+                success: function (result) {
+                    if (result.Errors == "" && result.IsSelected == true) {
+                        grid.select(this); // Select the row if Id is in the pre-selected list                        
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });            
+        });
     }
     // END ISSUANCE TEMPLATE
 </script>

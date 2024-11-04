@@ -47,6 +47,10 @@ namespace iLgs.Services
             {
                 throw CreateAndLogValidationException(invalidException);
             }
+            catch (InvalidValueException invalidValueException)
+            {
+                throw CreateAndLogValidationException(invalidValueException);
+            }
             catch (NotFoundException nullException)
             {
                 throw CreateAndLogValidationException(nullException);

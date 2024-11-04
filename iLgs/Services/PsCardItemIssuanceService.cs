@@ -27,10 +27,12 @@ namespace iLgs.Services
         private readonly AppManEntities _db;
         private readonly IExceptionService<PsCardItemIssuanceVM> _VmExceptionService = new ExceptionService<PsCardItemIssuanceVM>();
         private readonly IExceptionService<PsCardItemIssuance> _ExceptionService = new ExceptionService<PsCardItemIssuance>();
+        private readonly IPsCardItemTransactionService _psCardItemTransactionService;
 
         public PsCardItemIssuanceService(AppManEntities db)
         {
             _db = db;
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
         }        
 
         public ValueTask<PsCardItemIssuanceVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
@@ -58,9 +60,9 @@ namespace iLgs.Services
             return data;
         });
 
-        public IQueryable<PsCardItemIssuanceVM> GetByCardItemId(Guid? PsCardItemId) => _VmExceptionService.TryCatch(() =>
+        public IQueryable<PsCardItemIssuanceVM> GetByCardItemId(Guid? cardItemId) => _VmExceptionService.TryCatch(() =>
         {
-            var data = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == PsCardItemId).AsNoTracking()
+            var data = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == cardItemId).AsNoTracking()
                 .Select(s => new PsCardItemIssuanceVM
                 {
                     Id = s.Id,
@@ -82,6 +84,11 @@ namespace iLgs.Services
                 });
             return data;
         });
+
+        //public IQueryable GetVehicleSelection(Guid? cardItemId)
+        //{
+        //    var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == cardItemId);
+        //}
 
         private async ValueTask ValidateFieldsAsync(PsCardItemIssuanceVM model)
         {
@@ -177,6 +184,8 @@ namespace iLgs.Services
 
             _db.PsCardItemIssuances.Add(entity);
             await _db.SaveChangesAsync();
+
+            //await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "ISSUANCE", user, date);
 
             await UpdatePsItems(model.PsCardItemId, user, date);
 

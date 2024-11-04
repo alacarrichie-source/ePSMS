@@ -18,12 +18,16 @@ namespace iLgs.Models
         public IcsPar()
         {
             this.IcsParItems = new HashSet<IcsParItem>();
+            this.PsCardItemTransactions = new HashSet<PsCardItemTransaction>();
         }
     
         public System.Guid Id { get; set; }
         public string RefNo { get; set; }
         public Nullable<System.DateTime> RefDate { get; set; }
         public string RefType { get; set; }
+        public Nullable<System.Guid> LocationId { get; set; }
+        public string LocationCode { get; set; }
+        public string Location { get; set; }
         public string ReceivedBy { get; set; }
         public string ReceivedByPosition { get; set; }
         public Nullable<System.DateTime> ReceivedDate { get; set; }
@@ -41,5 +45,7 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IcsParItem> IcsParItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemTransaction> PsCardItemTransactions { get; set; }
     }
 }

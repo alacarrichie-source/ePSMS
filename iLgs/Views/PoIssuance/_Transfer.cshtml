@@ -16,6 +16,9 @@
     @Html.HiddenFor(model => model.TransferIn)
     @Html.HiddenFor(model => model.QtyIss)
     @Html.HiddenFor(model => model.InvDist)
+    @Html.HiddenFor(model => model.IsWithItemExtn)
+    @Html.HiddenFor(model => model.GroupId)
+    @Html.HiddenFor(model => model.SelectedIds)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -203,76 +206,44 @@
                 </div>
             </div>
         </div>        
+        
 
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.TransferOut, htmlAttributes: new { @class = "col-md-12" })
+        @if (Model.IsWithItemExtn == true)
+        {
+            @RenderGridSelections();
+        }
+        else
+        {
+            <div class="row">
                 <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.TransferOut).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    @Html.LabelFor(m => m.TransferOut, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.TransferOut).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Events(e => e.Change("UpdateBalance"))
-                    )
-                    @Html.ValidationMessageFor(m => m.TransferOut)
+                        )
+                        @Html.ValidationMessageFor(m => m.TransferOut)
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.RemBalance, htmlAttributes: new { @class = "col-md-12" })
+            <div class="row">
                 <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.RemBalance).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                    @Html.ValidationMessageFor(m => m.RemBalance)
+                    @Html.LabelFor(m => m.RemBalance, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.RemBalance).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
+                        @Html.ValidationMessageFor(m => m.RemBalance)
+                    </div>
                 </div>
             </div>
-        </div>        
+        }
 
-        @*<div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.Remarks, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Remarks)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Remarks")
-                            .DataTextField("Description")
-                            .DataValueField("Description")
-                            .ValuePrimitive(true)
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "PS-REMARKS", addAll = false });
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Description").Title("Description").Width("100%");
-                            })
-                            .Suggest(true)
-                            .Enable(false)
-                    )
-                    @Html.ValidationMessageFor(m => m.Remarks)
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(5).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                    @Html.ValidationMessageFor(m => m.Description)
-                </div>
-            </div>
-        </div>*@
 
         <br />
         <div class="row">
             <div class="col-md-12">
                 <span id="span_">
-                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave_" + @ViewData["cardItemId"]))
-                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel_" + @ViewData["cardItemId"]))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave_" + @ViewData["CardItemId"]))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel_" + @ViewData["CardItemId"]))
                 </span>
             </div>
         </div>
@@ -280,14 +251,103 @@
     </fieldset>
 }
 
+@helper RenderGridSelections()
+{
+if (@ViewBag.ItemExtnName == "ItemExtnOther")
+{
+        @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnOther>()
+            .Name("gridSelections")
+            .Columns(col =>
+            {
+                col.Select().Width(30);
+                col.Bound(c => c.SerialNo).Width(100);
+            })
+            .Filterable()
+            .NoRecords()
+            .Resizable(r => r.Columns(true))
+            .Selectable(s => s.Mode(GridSelectionMode.Multiple))
+            .Sortable()
+            .Scrollable(s => s.Height(200))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Events(events => events.Error("GridError"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                })
+                .Sort(s =>
+                {
+                    s.Add(a => a.SerialNo);
+                })
+                .Read(read => read.Action("_TransferSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"] }))
+            )
+            .AutoBind(true)
+        )
+}
+else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
+{
+        @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicle>()
+            .Name("gridSelections")
+            .Columns(col =>
+            {
+                col.Select().Width(30);
+                col.Bound(c => c.YearModel).Width(50);
+                col.Bound(c => c.PlateNo).Width(50);
+                col.Bound(c => c.BodyNo).Width(70);
+                col.Bound(c => c.EngineNo).Width(70);
+                col.Bound(c => c.ChasisNo).Width(70);
+                col.Bound(c => c.Color).Width(50);
+                col.Bound(c => c.CRN).Width(70);
+                col.Bound(c => c.CRDate).Width(50);
+                col.Bound(c => c.MVFileNo).Width(70);
+            })
+            .Filterable()
+            .NoRecords()
+            .Resizable(r => r.Columns(true))
+            .Selectable(s => s.Mode(GridSelectionMode.Multiple))
+            .Sortable()
+            .Scrollable(s => s.Height(200))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Events(events => events.Error("GridError"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                })
+                .Sort(s =>
+                {
+                    s.Add(a => a.PlateNo);
+                })
+                .Read(read => read.Action("_TransferSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"] }))
+            )
+            .AutoBind(true)
+        )
+}
+}
+
 
 <script type="text/javascript">
-    $("#btnSave_" + '@ViewData["cardItemId"]').click(function (e) {
+    $("#btnSave_" + '@ViewData["CardItemId"]').click(function (e) {
         e.preventDefault();
 
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+
+            if ($("#IsWithItemExtn").val() == "True") {
+                // Get reference to Grid object
+                var grid = $("#gridSelections").data("kendoGrid");
+                // Get selected rows
+                var sel = $("input:checked", grid.tbody).closest("tr");
+                // Get data item for each
+
+                var selectedIds = grid.selectedKeyNames().join(",");
+
+                $("#SelectedIds").val(selectedIds);                
+            }
+            
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("_TransferSave", "PoIssuance")',
@@ -298,7 +358,7 @@
                 success: function (result) {
                     window.kendo.ui.progress($("#form"), false);
                     if (result.Errors == "") {
-                        $("#btnSave_" + '@ViewData["cardItemId"]').closest(".k-window-content").data("kendoWindow").close();
+                        $("#btnSave_" + '@ViewData["CardItemId"]').closest(".k-window-content").data("kendoWindow").close();
                     }
                     else {
                         alert(result.Errors);
@@ -312,9 +372,9 @@
         }
     });
 
-    $("#btnCancel_" +  '@ViewData["cardItemId"]').click(function (e) {
+    $("#btnCancel_" +  '@ViewData["CardItemId"]').click(function (e) {
         e.preventDefault();
-        $("#btnCancel_" + '@ViewData["cardItemId"]').closest(".k-window-content").data("kendoWindow").close();
+        $("#btnCancel_" + '@ViewData["CardItemId"]').closest(".k-window-content").data("kendoWindow").close();
     });
 
     
