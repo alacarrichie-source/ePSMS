@@ -17,7 +17,8 @@
         {
             command.Edit();
             command.Destroy();
-            command.Custom("Preview").Click("onClickPreview");
+            command.Custom("Preview").IconClass("k-icon k-i-eye").Click("onClickPreview");
+            command.Custom("Download").IconClass("k-icon k-i-download").Click("onClickDownload");
         }).Width(100);
 
     })

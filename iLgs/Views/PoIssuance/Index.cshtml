@@ -1119,7 +1119,7 @@
         $("#Qty").data("kendoNumericTextBox").trigger("change");
 
         // Update the hidden field with the selected IDs
-        $("#selectedIds").val(selectedIds.join(","));
+        $("#SelectedIds").val(selectedIds.join(",")).trigger("change");
     }
 
     function onDataBoundGridSelection(e) {

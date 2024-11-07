@@ -30,6 +30,7 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportLandItemVM> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReportLandItemVM> UnPostAsync(Guid id, string user, DateTime date);
         MemoryStream ProcessExcelFile(Guid id, string templateFilePath);
+        MemoryStream ProcessExcelAnnexFile(Guid id, string templateFilePath);
     }
 
     public class CustodianReportLandItemService : BaseValidator, ICustodianReportLandItemService
@@ -45,7 +46,7 @@ namespace iLgs.Services.CustodianReports
             _allFieldService = new AllFieldService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportLandItemVM>(propertyName);
         }
-        
+
         private static Expression<Func<CustodianReportLandItem, CustodianReportLandItemVM>> CustodianReportLandItemProjection
         = s => new CustodianReportLandItemVM
         {
@@ -66,7 +67,7 @@ namespace iLgs.Services.CustodianReports
             SubLocation = s.SubLocation,
             Address = s.Address,
             LandMarks = s.LandMarks,
-            Area = s.Area,            
+            Area = s.Area,
             PricePerSqm = s.PricePerSqm,
             MarketValue = s.MarketValue,
             PsNo = s.PsNo,
@@ -111,7 +112,7 @@ namespace iLgs.Services.CustodianReports
             Account = s.Account,
             ItemCodeId = s.ItemCodeId,
             SubAccount = s.SubAccount,
-            Article = s.Article,            
+            Article = s.Article,
             Annex = s.Annex,
             InsertedBy = s.InsertedBy,
             InsertedDt = s.InsertedDt,
@@ -154,14 +155,14 @@ namespace iLgs.Services.CustodianReports
 
             return data;
         }
-        
+
         public ValueTask<CustodianReportLandItemVM> CreateAsync(CustodianReportLandItemVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
 
             ValidateIfNull(model);
             ValidateRequired(model);
 
-            model.AllField = SetAllField(model);                       
+            model.AllField = SetAllField(model);
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.InsertedDt = date;
@@ -236,13 +237,13 @@ namespace iLgs.Services.CustodianReports
             _db.CustodianReportLandItems.Remove(entity);
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
-            
+
             return model;
         });
 
         public ValueTask<CustodianReportLandItemVM> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
-        {            
+        {
             var entity = await _db.CustodianReportLandItems.FindAsync(id);
             ValidateRecord(entity);
             ValidateIfPosted(entity);
@@ -287,7 +288,7 @@ namespace iLgs.Services.CustodianReports
             AllField allField = new AllField()
             {
                 Area = custodianReportItem.Area
-                
+
             };
             return allField;
         }
@@ -295,7 +296,7 @@ namespace iLgs.Services.CustodianReports
         private void MapFormattedAllField(CustodianReportLandItem model)
         {
             model.AllField = SetAllField(model);
-            model.Area = model.AllField.Area;            
+            model.Area = model.AllField.Area;
         }
 
         private void MapModelToEntityFields(CustodianReportLandItem entity, CustodianReportLandItem model, Mode mode)
@@ -390,16 +391,18 @@ namespace iLgs.Services.CustodianReports
 
         private MemoryStream ProcessExcelFileTemplate(Guid id, string templateFilePath)
         {
-            int row = 10;
+            int row = 8;
             int col = 0;
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportLandItems.Where(w => w.ReportId == id).ToList();
+                var reportItemList = _db.CustodianReportLandItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).ToList();
                 foreach (var reportItem in reportItemList)
                 {
+                    ws.Row(4).Cell(2).SetValue(reportItem.CustodianReport.Codextn.Description);
                     row++;
                     col = 0;
+                    ws.Row(row).InsertRowsBelow(1);
                     ws.Row(row).Cell(++col).SetValue(reportItem.PIN);
                     ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
@@ -432,7 +435,77 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.OldDRPNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.OldDRPDate);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Fund);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);                    
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
+                }
+
+                // Create a MemoryStream to save the output
+                var memoryStream = new MemoryStream();
+                wb.SaveAs(memoryStream);
+
+                // Reset the stream position to the beginning before returning
+                memoryStream.Position = 0;
+                return memoryStream;
+            }
+        }
+
+        public MemoryStream ProcessExcelAnnexFile(Guid id, string templateFilePath)
+        {
+            // Load the template file
+            FileInfo templateFile = new FileInfo(templateFilePath);
+            if (!templateFile.Exists)
+            {
+                throw new FileNotFoundException("The template file does not exist.", templateFilePath);
+            }
+            return ProcessExcelFileAnnexTemplate(id, templateFilePath);
+        }
+
+        private MemoryStream ProcessExcelFileAnnexTemplate(Guid id, string templateFilePath)
+        {
+            int row = 10;
+            int col = 0;
+            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
+            {
+                var ws = wb.Worksheet(1);
+                var reportItemList = _db.CustodianReportLandItems.Where(w => w.ReportId == id).ToList();
+                foreach (var reportItem in reportItemList)
+                {
+                    ws.Row(4).Cell(2).SetValue("");
+                    row++;
+                    col = 0;
+                    ws.Row(row).InsertRowsBelow(1);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.PIN);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
+                    ws.Row(row).Cell(++col).SetValue($"{reportItem.Type} / {reportItem.Condition} / {reportItem.Description}");
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Location);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.LandMarks);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Area);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.PricePerSqm);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.MarketValue);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqCost);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
+                    if (reportItem.FromDonation == true)
+                    {
+                        ws.Row(row).Cell(++col).SetValue("From Donation");
+                    }
+                    else
+                    {
+                        ws.Row(row).Cell(++col).SetValue("Purchased");
+                    }
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Vendor);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Representative);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.TctNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.OldTctNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.DRPNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.DRPDate);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.OldDRPNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.OldDRPDate);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Fund);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
                 }
 
                 // Create a MemoryStream to save the output
@@ -447,25 +520,25 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateRequired(CustodianReportLandItemVM model)
         {
-            if (!model.Area.HasValue)
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.Area)), "Field is required.");
-            }
+            //if (!model.Area.HasValue)
+            //{
+            //    _imex.UpsertDataList(_getDisplayName(nameof(model.Area)), "Field is required.");
+            //}
 
-            if (!model.PricePerSqm.HasValue)
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.PricePerSqm)), "Field is required.");
-            }
+            //if (!model.PricePerSqm.HasValue)
+            //{
+            //    _imex.UpsertDataList(_getDisplayName(nameof(model.PricePerSqm)), "Field is required.");
+            //}
 
-            if (string.IsNullOrWhiteSpace(model.Vendor))
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.Vendor)), "Field is required.");
-            }
+            //if (string.IsNullOrWhiteSpace(model.Vendor))
+            //{
+            //    _imex.UpsertDataList(_getDisplayName(nameof(model.Vendor)), "Field is required.");
+            //}
 
-            if (string.IsNullOrWhiteSpace(model.OldTctNo))
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.OldTctNo)), "Field is required.");
-            }
+            //if (string.IsNullOrWhiteSpace(model.OldTctNo))
+            //{
+            //    _imex.UpsertDataList(_getDisplayName(nameof(model.OldTctNo)), "Field is required.");
+            //}
 
             _imex.ThrowIfContainsErrors();
         }

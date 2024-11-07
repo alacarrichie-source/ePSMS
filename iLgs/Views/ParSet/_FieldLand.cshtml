@@ -4,7 +4,7 @@
     <div class="col-md-6">
         @Html.LabelFor(m => m.PIN, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.PIN).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @(Html.Kendo().TextBoxFor(m => m.PIN).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(m => m.PIN)
         </div>
     </div>

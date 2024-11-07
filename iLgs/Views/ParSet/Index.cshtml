@@ -254,8 +254,10 @@
                     .Columns(col =>
                     {
                         col.Bound(c => c.IcsPar.RefNo).Title("PAR No.").Width(70);
-                        col.Bound(c => c.IcsPar.RefDate).Title("PAR Date").Width(70).Format("{0:MM/dd/yyyy}");
+                        col.Bound(c => c.IcsPar.RefDate).Title("PAR Date").Width(70)
+                            .ClientTemplate("#= kendo.toString(kendo.parseDate(IcsPar.RefDate), 'MM/dd/yyyy') #");                            
                         col.Bound(c => c.PsCardItemExtn.PropNo).Title("Property No.").Width(70);
+                        col.Bound(c => c.IcsPar.Location).Width(70);
                         col.Command(command =>
                         {
                             //command.Edit();

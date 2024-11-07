@@ -4,6 +4,7 @@ using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Interfaces;
+using iLgs.Services.ParIcs;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -21,13 +22,13 @@ namespace iLgs.Controllers
     [AppAuthorize("POISSUANCE")]
     public class PoIssuanceController : BaseController
     {
-        private AppManEntities _db;
-        private IPoIssuanceService _poIssuanceService;
-        private IPsCardService _psCardService;
-        private IPsCardItemService _psCardItemService;
-        private IPsCardItemIssuanceService _psCardItemIssuanceService;
-        private IIcsParItemService _icsParItemService;
-        private IPsCardItemTransactionService _psCardItemTransactionService;
+        private readonly AppManEntities _db;
+        private readonly IPoIssuanceService _poIssuanceService;
+        private readonly IPsCardService _psCardService;
+        private readonly IPsCardItemService _psCardItemService;
+        private readonly IPsCardItemIssuanceService _psCardItemIssuanceService;
+        private readonly IIcsParItemService _icsParItemService;
+        private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         
         public PoIssuanceController()
         {
@@ -114,11 +115,7 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
+            }            
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -159,10 +156,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -194,10 +187,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("DeleteError", e.Message);
@@ -227,9 +216,9 @@ namespace iLgs.Controllers
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
         
-        public ActionResult _ItemExtnVehicleSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId, string mode)
+        public ActionResult _ItemExtnVehicleSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
         {
-            var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnForVehicleIssuanceSelection(cardItemId, mode);
+            var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnForVehicleIssuanceSelection(cardItemId);
 
             var result = new JsonNetResult
             {
@@ -240,9 +229,9 @@ namespace iLgs.Controllers
             return result;
         }
 
-        public ActionResult _ItemExtnOtherSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId, string mode)
+        public ActionResult _ItemExtnOtherSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
         {
-            var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnForOtherIssuanceSelection(cardItemId, mode);
+            var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnForOtherIssuanceSelection(cardItemId);
 
             var result = new JsonNetResult
             {
@@ -311,10 +300,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -366,10 +351,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -420,10 +401,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {

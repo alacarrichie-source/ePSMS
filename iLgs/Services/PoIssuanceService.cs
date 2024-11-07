@@ -291,7 +291,8 @@ namespace iLgs.Services.Interfaces
                             psCardItemExtn.UpdatedDt = date;
                             await _db.SaveChangesAsync();
 
-                            await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, psCardItemTransfer.Id, "TRANSIT", user, date);
+                            //await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, psCardItemTransfer.Id, "TRANSIT", user, date);
+                            await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, entity.Id, "TRANSIT", user, date);
                         }                        
                     }
                     // Commit the transaction if all operations succeed

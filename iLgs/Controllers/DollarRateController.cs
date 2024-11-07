@@ -16,11 +16,12 @@ namespace iLgs.Controllers
 {
     public class DollarRateController : BaseController
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly IDollarRateService _dollarRateService;
 
         public DollarRateController()
         {
+            _db = new AppManEntities();
             _dollarRateService = new DollarRateService(_db);            
         }
 
@@ -75,10 +76,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -119,10 +116,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -150,21 +143,9 @@ namespace iLgs.Controllers
                     model = await _dollarRateService.DeleteAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -204,10 +185,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
@@ -258,10 +235,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {

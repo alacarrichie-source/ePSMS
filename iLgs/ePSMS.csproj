@@ -307,11 +307,9 @@
     <Compile Include="Controllers\IcsSetController.cs" />
     <Compile Include="Controllers\ItemHelperController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
-    <Compile Include="Controllers\IcsController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PropertyCardPpeController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
-    <Compile Include="Controllers\PropertiesController.cs" />
     <Compile Include="Controllers\PropertyCardTranspoControoller.cs" />
     <Compile Include="Controllers\RpceffoppeController.cs" />
     <Compile Include="Controllers\RpciController.cs" />
@@ -672,9 +670,9 @@
     <Compile Include="Services\CustodianUploads\CustodianReportUploadService.cs" />
     <Compile Include="Services\DepartmentUserService.cs" />
     <Compile Include="Services\DollarRate_\DollarRateService.cs" />
-    <Compile Include="Services\IcsParItemService.cs" />
-    <Compile Include="Services\IcsParService.cs" />
-    <Compile Include="Services\IcsService.cs" />
+    <Compile Include="Services\ParIcs\IcsParItemService.cs" />
+    <Compile Include="Services\ParIcs\IcsParService.cs" />
+    <Compile Include="Services\ParIcs\IcsService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\LoggingService.cs" />
     <Compile Include="Services\OrderItemUnitGroupDescriptionItemService.cs" />
@@ -702,7 +700,7 @@
     <Compile Include="Services\RpcPpeService.cs" />
     <Compile Include="Services\ServiceResult.cs" />
     <Compile Include="Services\StockCards\StockCardService.cs" />
-    <Compile Include="Services\ParIcsUploadService.cs" />
+    <Compile Include="Services\ParIcs\ParIcsUploadService.cs" />
     <Compile Include="Services\UploadService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
@@ -722,7 +720,6 @@
     <Compile Include="Controllers\CodesController.cs" />
     <Compile Include="Controllers\GettersController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Controllers\IssuedsController.cs" />
     <Compile Include="Controllers\ItemsController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\MenuAccessActionController.cs" />
@@ -731,7 +728,6 @@
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\OrdersController.cs" />
     <Compile Include="Controllers\ParItemsController.cs" />
-    <Compile Include="Controllers\PARsController.cs" />
     <Compile Include="Controllers\QueryController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\RequestsController.cs" />
@@ -906,8 +902,8 @@
     <Compile Include="Services\OrderItemExtnService.cs" />
     <Compile Include="Services\OrderItemService.cs" />
     <Compile Include="Services\OrderService.cs" />
-    <Compile Include="Services\ParItemService.cs" />
-    <Compile Include="Services\ParService.cs" />
+    <Compile Include="Services\ParIcs\ParItemService.cs" />
+    <Compile Include="Services\ParIcs\ParService.cs" />
     <Compile Include="Services\RequestItemService.cs" />
     <Compile Include="Services\RequestService.cs" />
     <Compile Include="Services\RisItemService.cs" />
@@ -4170,7 +4166,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

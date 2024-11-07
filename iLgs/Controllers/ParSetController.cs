@@ -6,6 +6,7 @@ using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Interfaces;
+using iLgs.Services.ParIcs;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -24,14 +25,15 @@ namespace iLgs.Controllers
     [AppAuthorize("PARSET")]
     public class ParSetController : BaseController
     {
-        private AppManEntities db = new AppManEntities();
-        private IParService _parService;
-        private ICodextnService _codextnService;
+        private readonly AppManEntities _db;
+        private readonly IParService _parService;
+        private readonly ICodextnService _codextnService;
 
         public ParSetController()
         {
-            _parService = new ParService(db);
-            _codextnService = new CodextnService(db);
+            _db = new AppManEntities();
+            _parService = new ParService(_db);
+            _codextnService = new CodextnService(_db);
         }
 
         // GET: PARs
@@ -85,7 +87,7 @@ namespace iLgs.Controllers
             rpt.Refresh();
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            string conString = db.Database.Connection.ConnectionString.ToString();
+            string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
 
             string un = decoder.UserID;
@@ -191,16 +193,12 @@ namespace iLgs.Controllers
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
                 {
-                    ModelState.AddModelError(error.Key, error.Message);
+                    ModelState.AddModelError("UpdateError", error.Message);
                 }
             }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("UpdateError", dependencyException);
             }
             catch (Exception e)
             {
@@ -281,10 +279,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -335,10 +329,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
@@ -419,16 +409,12 @@ namespace iLgs.Controllers
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
                 {
-                    ModelState.AddModelError(error.Key, error.Message);
+                    ModelState.AddModelError("UpdateError", error.Message);
                 }
             }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("UpdateError", dependencyException);
             }
             catch (Exception e)
             {
@@ -485,10 +471,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -524,10 +506,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -590,10 +568,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -646,7 +620,6 @@ namespace iLgs.Controllers
             return result;
         }
         #endregion
-
 
         public ActionResult GetAllPo(string text)
         {

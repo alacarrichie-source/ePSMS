@@ -152,15 +152,15 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateRequired(CustodianReportBldgItemVM model)
         {
-            if (string.IsNullOrWhiteSpace(model.PhaseNo))
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseNo)), "Field is required.");
-            }
+            //if (string.IsNullOrWhiteSpace(model.PhaseNo))
+            //{
+            //    _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseNo)), "Field is required.");
+            //}
 
-            if (!model.PhaseAmountCo.HasValue)
-            {
-                _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseAmountCo)), "Field is required.");
-            }
+            //if (!model.PhaseAmountCo.HasValue)
+            //{
+            //    _imex.UpsertDataList(_getDisplayName(nameof(model.PhaseAmountCo)), "Field is required.");
+            //}
 
             _imex.ThrowIfContainsErrors();
         }
@@ -398,16 +398,18 @@ namespace iLgs.Services.CustodianReports
 
         private MemoryStream ProcessExcelFileTemplate(Guid id, string templateFilePath)
         {
-            int row = 9;
+            int row = 8;
             int col = 0;
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportBldgItems.Where(w => w.ReportId == id).ToList();
+                var reportItemList = _db.CustodianReportBldgItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).ToList();
                 foreach (var reportItem in reportItemList)
                 {
+                    ws.Row(3).Cell(3).SetValue(reportItem.CustodianReport.Codextn.Description);
                     row++;
                     col = 0;
+                    ws.Row(row).InsertRowsBelow(1);
                     ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);

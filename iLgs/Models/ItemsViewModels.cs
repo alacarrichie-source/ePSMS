@@ -134,6 +134,10 @@ namespace iLgs.Models
     public class ItemCodePreviewVM
     {
         public Guid Id { get; set; }
+
+        [Display(Name = "Account Group")]
+
+        public string GroupCode { get; set; }
         public string Category { get; set; }
 
         [Display(Name = "Code")]

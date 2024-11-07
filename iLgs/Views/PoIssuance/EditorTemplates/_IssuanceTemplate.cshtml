@@ -193,7 +193,7 @@
                     {
                         s.Add(a => a.SerialNo);
                     })
-                    .Read(read => read.Action("_ItemExtnOtherSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"], mode = ViewBag.Mode }))
+                    .Read(read => read.Action("_ItemExtnOtherSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"] }))
                 )
                 .Events(e => e.Change("onChangeGridSelection").DataBound("onDataBoundGridSelection"))
                 .AutoBind(true)
@@ -201,16 +201,20 @@
     }
     else if ((string)@ViewData["ItemExtnName"] == "ItemExtnVehicle")
     {
-            @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicle>()
+            @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicleVm>()
             .Name("gridSelections")
             .Columns(col =>
             {
                 col.Select().Width(30).Visible(ViewBag.Mode == "ADD");
+                col.Bound(c => c.LocationCode).Width(50);
+                col.Bound(c => c.Location).Width(70);
+                col.Bound(c => c.ParIcsNo).Width(70);
+                col.Bound(c => c.ParIcsDate).Width(70);
                 col.Bound(c => c.YearModel).Width(50);
                 col.Bound(c => c.PlateNo).Width(50);
-                col.Bound(c => c.BodyNo).Width(70);
-                col.Bound(c => c.EngineNo).Width(70);
-                col.Bound(c => c.ChasisNo).Width(70);
+                //col.Bound(c => c.BodyNo).Width(70);
+                //col.Bound(c => c.EngineNo).Width(70);
+                //col.Bound(c => c.ChasisNo).Width(70);
                 col.Bound(c => c.Color).Width(50);
                 col.Bound(c => c.CRN).Width(70);
                 col.Bound(c => c.CRDate).Width(50);
@@ -234,7 +238,7 @@
                 {
                     s.Add(a => a.PlateNo);
                 })
-                .Read(read => read.Action("_ItemExtnVehicleSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"], mode = ViewBag.Mode }))
+                .Read(read => read.Action("_ItemExtnVehicleSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"] }))
             )
             .Events(e => e.Change("onChangeGridSelection").DataBound("onDataBoundGridSelection"))
             .AutoBind(true)

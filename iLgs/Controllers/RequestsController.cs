@@ -16,28 +16,29 @@ using CrystalDecisions.Shared;
 using System.Data.SqlClient;
 using System.IO;
 using System.Collections.Generic;
+using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 
 namespace iLgs.Controllers
 {
     [AppAuthorize("REQUESTS")]
     public class RequestsController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
-        private IOrderService _orderService;
-        private IRequestService _requestService;
-        private IRequestItemService _requestItemService;
-        //private IRisItemExtnService _risItemExtnService;
-        private ICodextnService _codextnService;
-        private IRequestItemUnitGroupService _unitGroupService;
-        private IRequestItemUnitGroupDescriptionService _unitGroupDescriptionService;
-        private IRequestItemUnitGroupDescriptionItemService _unitGroupDescriptionItemService;
+        private readonly AppManEntities _db ;
+        private readonly IOrderService _orderService;
+        private readonly IRequestService _requestService;
+        private readonly IRequestItemService _requestItemService;
+        private readonly ICodextnService _codextnService;
+        private readonly IRequestItemUnitGroupService _unitGroupService;
+        private readonly IRequestItemUnitGroupDescriptionService _unitGroupDescriptionService;
+        private readonly IRequestItemUnitGroupDescriptionItemService _unitGroupDescriptionItemService;
 
         public RequestsController()
         {
+            _db = new AppManEntities();
             _orderService = new OrderService(_db);
             _requestService = new RequestService(_db);
             _requestItemService = new RequestItemService(_db);
-            //_risItemExtnService = new RisItemExtnService(_db);
             _codextnService = new CodextnService(_db);
             _unitGroupService = new RequestItemUnitGroupService(_db);
             _unitGroupDescriptionService = new RequestItemUnitGroupDescriptionService(_db);
@@ -92,10 +93,21 @@ namespace iLgs.Controllers
                     model = await _requestService.CreateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -137,10 +149,21 @@ namespace iLgs.Controllers
                     model = await _requestService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -169,10 +192,13 @@ namespace iLgs.Controllers
                     model = await _requestService.DeleteAsync(model, user, date);                    
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -232,10 +258,21 @@ namespace iLgs.Controllers
                     }                    
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -282,12 +319,14 @@ namespace iLgs.Controllers
 
                     model = await _requestItemService.DeleteAsync(model, user, date);                    
                 }
-
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -325,10 +364,21 @@ namespace iLgs.Controllers
                     await _requestService.PostAsync(requestId, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -376,10 +426,21 @@ namespace iLgs.Controllers
                     await _requestService.UnpostAsync(requestId, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -394,24 +455,7 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
-
-        //#region REQUEST ITEM EXTNS
-
-        //public ActionResult _RequestItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? requestItemId, string psType)
-        //{
-        //    var data = _risItemExtnService.GetBatchInfo(requestItemId, psType);
-        //    var result = new JsonNetResult
-        //    {
-        //        Data = data.ToDataSourceResult(request),
-        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-        //    };
-
-        //    return result;
-        //}
-
-        //#endregion
-
+        
         #region UNIT GROUP
         public ActionResult _UnitGroup(Guid requestId)
         {
@@ -446,17 +490,21 @@ namespace iLgs.Controllers
                     model = await _unitGroupService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("UpdateError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -481,17 +529,13 @@ namespace iLgs.Controllers
                     model = await _unitGroupService.DeleteAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -533,17 +577,21 @@ namespace iLgs.Controllers
                     model = await _unitGroupDescriptionService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("UpdateError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -579,17 +627,21 @@ namespace iLgs.Controllers
                     model = await _unitGroupDescriptionItemService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("UpdateError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));

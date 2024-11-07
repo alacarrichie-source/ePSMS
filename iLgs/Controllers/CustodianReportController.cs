@@ -25,17 +25,18 @@ namespace iLgs.Controllers
     [AppAuthorize("CUSTODIANREPORT")]
     public class CustodianReportController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
-        private ICustodianReportService _custodianReportService;
-        private ICustodianReportItemService _custodianReportItemService;
-        private ICustodianReportItemStockService _custodianReportItemStockService;
-        private ICustodianReportItemPpeService _custodianReportItemPpeService;
-        private ICustodianReportItemVehicleService _custodianReportItemVehicleService;
-        private ICodextnService _codextnService;
-        private ICustodianReportUploadService _uploadService;
+        private readonly AppManEntities _db;
+        private readonly ICustodianReportService _custodianReportService;
+        private readonly ICustodianReportItemService _custodianReportItemService;
+        private readonly ICustodianReportItemStockService _custodianReportItemStockService;
+        private readonly ICustodianReportItemPpeService _custodianReportItemPpeService;
+        private readonly ICustodianReportItemVehicleService _custodianReportItemVehicleService;
+        private readonly ICodextnService _codextnService;
+        private readonly ICustodianReportUploadService _uploadService;
 
         public CustodianReportController()
         {
+            _db = new AppManEntities();
             _custodianReportService = new CustodianReportService(_db);
             _custodianReportItemService = new CustodianReportItemService(_db);
             _custodianReportItemStockService = new CustodianReportItemStockService(_db);
@@ -127,10 +128,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -171,10 +168,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -202,25 +195,13 @@ namespace iLgs.Controllers
                     model = await _custodianReportService.DeleteAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", e.Message);
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -256,10 +237,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
@@ -311,10 +288,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -332,9 +305,7 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
-
         #endregion
-
 
         public ActionResult _ReportItem(Guid reportId, int? accountGroup)
         {
@@ -398,10 +369,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -442,10 +409,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -475,21 +438,9 @@ namespace iLgs.Controllers
                     // TO DO: update stocks
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("DeleteError", error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -499,7 +450,6 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
         #endregion
-
 
         #region PPE ITEMS
         public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
@@ -541,10 +491,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -585,10 +531,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -618,21 +560,9 @@ namespace iLgs.Controllers
                     // TO DO: update stocks
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("DeleteError", error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -683,10 +613,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -704,7 +630,7 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
-                    ModelState.AddModelError("UpdateError", "Access Denied!");
+                    ModelState.AddModelError("Access", "Access Denied!");
                 }
 
                 if (ModelState.IsValid)
@@ -726,10 +652,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
@@ -760,21 +682,9 @@ namespace iLgs.Controllers
                     // TO DO: update stocks
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("DeleteError", error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -926,6 +836,36 @@ namespace iLgs.Controllers
             }
         }
 
+        public async Task<ActionResult> ExcelExportAnnex(Guid reportId, string annex)
+        {
+            try
+            {
+                string exportFileName = "";
+                var report = await _custodianReportService.GetByIdAsync(reportId);
+                if (report.AccountGroup == (int?)CustodianAccountGroup.STOCK)
+                {
+                    exportFileName = $"CustodianSupplies-Annex-{annex}";
+                }
+                else if (report.AccountGroup == (int?)CustodianAccountGroup.PPE)
+                {
+                    exportFileName = $"CustodianEquipment-Annex-{annex}";
+                }
+                else if (report.AccountGroup == (int?)CustodianAccountGroup.VEHICLE)
+                {
+                    exportFileName = $"CustodianVehicles-Annex-{annex}";
+                }
+
+                var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
+                var stream = _custodianReportItemService.ProcessExcelFileAnnex(reportId, templateFilePath, report.AccountGroup, annex);
+
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(500, ex.Message);
+            }
+        }
+
         #region UPLOADS
         public ActionResult _Images(Guid? imageId)
         {
@@ -976,21 +916,9 @@ namespace iLgs.Controllers
                     model = await _uploadService.DeleteAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("DeleteError", error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -1034,10 +962,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("UpdateError", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("UpdateError", e.Message);
@@ -1079,10 +1003,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("AddError", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("AddError", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("AddError", e.Message);
@@ -1101,6 +1021,28 @@ namespace iLgs.Controllers
             return Content("");
         }
 
+        public ActionResult DownloadFile(string fileName)
+        {
+            try
+            {
+                
+                // Call the service to get the file bytes
+                byte[] fileBytes = _uploadService.DownloadFile(fileName);
+
+                // Return the file as a download
+                return File(fileBytes, MimeMapping.GetMimeMapping(fileName), fileName);
+            }
+            catch (FileNotFoundException ex)
+            {
+                // Handle file not found case
+                return HttpNotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions
+                return new HttpStatusCodeResult(500, "Error downloading file: " + ex.Message);
+            }
+        }    
 
         public async Task<ActionResult> PreviewUpload(Guid id)
         {

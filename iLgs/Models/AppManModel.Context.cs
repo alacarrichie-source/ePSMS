@@ -81,7 +81,6 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<PsCardItemUnitGroup> PsCardItemUnitGroups { get; set; }
         public virtual DbSet<AIRItem> AIRItems { get; set; }
-        public virtual DbSet<AllField> AllFields { get; set; }
         public virtual DbSet<IcsParItem> IcsParItems { get; set; }
         public virtual DbSet<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
@@ -105,5 +104,6 @@ namespace iLgs.Models
         public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
         public virtual DbSet<IcsPar> IcsPars { get; set; }
         public virtual DbSet<PsCardItemTransaction> PsCardItemTransactions { get; set; }
+        public virtual DbSet<AllField> AllFields { get; set; }
     }
 }

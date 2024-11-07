@@ -30,6 +30,5 @@ namespace iLgs.Models
         public virtual PsCardItemExtn PsCardItemExtn { get; set; }
         public virtual PsCardItemIssuance PsCardItemIssuance { get; set; }
         public virtual PsCardItem PsCardItem { get; set; }
-        public virtual PsCardItemTransfer PsCardItemTransfer { get; set; }
     }
 }

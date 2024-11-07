@@ -149,6 +149,8 @@ namespace iLgs.Services.CustodianReports
                 model.AllField = SetAllField(model);
             }
 
+            SetDefaultValues(model);
+
             _validator.ValidateOnCreate(model);
             await base.CreateAsync(model, user, date);
             return model;
@@ -160,6 +162,9 @@ namespace iLgs.Services.CustodianReports
             {
                 model.AllField = SetAllField(model);
             }
+
+            SetDefaultValues(model);
+
             _validator.ValidateOnUpdate(model);
             await base.UpdateAsync(model, user, date);
             return model;
@@ -172,5 +177,9 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
+        private void SetDefaultValues(CustodianReportItemVehicleVM model)
+        {
+            model.InvDist = "I";
+        }
     }
 }

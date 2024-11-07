@@ -325,6 +325,11 @@ namespace iLgs.Services
                         }
                     }
 
+                    // manually remove transaction log
+                    var psCardItemTransacctions = _db.PsCardItemTransactions.Where(w => w.PsCardItemId == entity.Id);
+                    _db.PsCardItemTransactions.RemoveRange(psCardItemTransacctions);
+                    await _db.SaveChangesAsync();
+
                     entity.UpdatedBy = model.UpdatedBy;
                     entity.UpdatedDt = model.UpdatedDt;
 

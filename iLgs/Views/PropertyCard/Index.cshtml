@@ -1590,6 +1590,7 @@
         });
     }
 
+    var selectedItemExtnQty = null;
     function onEditGridItemExtn(e) {
         e.preventDefault();
         selectedGrid = e.sender;
@@ -1604,11 +1605,14 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedItemExtnId = null;
+            selectedItemExtnQty = parentModel.QtyBal;
             e.model.set("PsCardItemId", parentModel.Id);
+            $("#DIV_UPDATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
         } else {
             selectedItemExtnId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedItemExtnId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+            $("#DIV_CREATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
         }
     }
 
@@ -1660,6 +1664,28 @@
                 });
             }
         }
+    }
+
+    function UpdateEndSeries()
+    {
+        var begSeries = $("#BegSerial").val();
+        var itemId = $("#PsCardItemId").val();
+        var url = '@Url.Action("GetEndSeries", "StockCard")';
+        $.ajax({
+            url: url,
+            type: 'GET',
+            data: { startSeries: begSeries, itemId: itemId},
+            success: function(result) {
+                if (result.Errors == "")
+                {
+                    $("#EndSerial").val(result.EndSeries).trigger("change");
+                }
+                else
+                {
+                    alert(result.Errors);
+                }
+            }
+        });
     }
     // END GRID ITEMEXTN
 

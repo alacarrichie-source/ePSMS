@@ -326,7 +326,7 @@
     }
 
     function onDataBoundGrid(e) {
-        if (selectedId) {
+        if (selectedId && selectedId != "00000000-0000-0000-0000-000000000000") {
             var dataItem = this.dataSource.get(selectedId);
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
@@ -700,10 +700,10 @@
 
     // GRID IMAGES
     function GridUploadError(e) {
-        if (e.errors) {            
+        if (e.errors) {
             //// Get the parent grid
             //var parentGrid = $("#grid").data("kendoGrid");
-            
+
             //// Try to find the closest grid row
             //var row = $(e.target).closest("tr[data-uid]"); // Look for the row with a data-uid attribute
 
@@ -818,7 +818,7 @@
     function onClickUpload(e) {
         //var gridName = $(e.sender.element).data("gridname");
 
-        var button = e.sender.element; // Use the sender's element;        
+        var button = e.sender.element; // Use the sender's element;
         // Retrieve the grid name from the data attribute
         var gridName = $(button).data("gridname");
         selectedGrid = $("#" + gridName).data("kendoGrid");
@@ -876,7 +876,6 @@
         var width = 800;
         var height = 650;
 
-
         $("#windowcontainer").append("<div id='windowPreview'></div>");
         var mywindow = $("#windowPreview")
                 .kendoWindow({
@@ -895,6 +894,28 @@
         mywindow.refresh({ url: myUrl });
         mywindow.center();
         mywindow.open();
+    }
+
+    function onClickDownload(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        if (dataItem) {
+            window.kendo.ui.progress($(document.body), true);
+            var fileName = dataItem.FileName;
+            var url = '@Url.Action("DownloadFile", "CustodianReportBldg")?fileName=' + fileName;
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row to export.");
+        }
     }
 
     function onError(e) {

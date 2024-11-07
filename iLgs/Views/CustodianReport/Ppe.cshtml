@@ -78,7 +78,7 @@
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
         })
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PpeItemTemplate").Window(w => w.Width(1000).Title("Other PPE Items")))
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_PpeItemTemplate").Window(w => w.Width(1000).Title("Equipment Item")))
         .Pageable(pager => pager
             .Input(false)
             .Numeric(true)
@@ -330,8 +330,9 @@
         }
     }
 
+    
     function onDataBoundGrid(e) {
-        if (selectedId) {
+        if (selectedId && selectedId != "00000000-0000-0000-0000-000000000000") {
             var dataItem = this.dataSource.get(selectedId);
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
@@ -441,6 +442,11 @@
                     // Show the error content
                     $("#ErrorContent").removeClass("hidden");
                 } else {
+                    // Save the inserted record ID if available
+                    if (response.Data && response.Data[0] && response.Data[0].Id) {
+                        selectedId = response.Data[0].Id; // Save the ID of the new record
+                    }
+
                     // Handle validation errors if any
                     $("#grid").data("kendoGrid").dataSource.read();
                 }
@@ -854,6 +860,28 @@
         mywindow.refresh({ url: myUrl });
         mywindow.center();
         mywindow.open();
+    }
+
+    function onClickDownload(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        if (dataItem) {
+            window.kendo.ui.progress($(document.body), true);
+            var fileName = dataItem.FileName;
+            var url = '@Url.Action("DownloadFile", "CustodianReport")?fileName=' + fileName;
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row to export.");
+        }
     }
 
     function onError(e) {

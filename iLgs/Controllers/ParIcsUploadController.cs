@@ -1,5 +1,8 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
+using iLgs.Models;
 using iLgs.Services;
+using iLgs.Services.ParIcs;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -17,11 +20,12 @@ namespace iLgs.Controllers
     [AppAuthorize("PARSET", "ICSSET")]
     public class ParIcsUploadController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
-        private IParIcsUploadService _uploadService;
+        private readonly AppManEntities _db;
+        private readonly IParIcsUploadService _uploadService;
 
         public ParIcsUploadController()
         {
+            _db = new AppManEntities();
             _uploadService = new ParIcsUploadService(_db);            
         }
 
@@ -30,7 +34,6 @@ namespace iLgs.Controllers
             ViewData["imageId"] = imageId;
             return PartialView();
         }
-
 
         public ActionResult _ImagesAdd(Guid? imageId)
         {
@@ -74,17 +77,13 @@ namespace iLgs.Controllers
                     model = await _uploadService.DeleteAsync(model, user, date);                    
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -111,17 +110,21 @@ namespace iLgs.Controllers
                     model = await _uploadService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("UpdateError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -147,18 +150,21 @@ namespace iLgs.Controllers
                     model = await _uploadService.UploadAsync(files, model, user, date);
                 }             
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var vErrors = validationException.GetErrorsForModelState();
+                foreach (var error in vErrors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("AddError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);                    
-                }
-                else
-                {
-                    ModelState.AddModelError("AddError", e.Message);
-                }
-
+                ModelState.AddModelError("", e.Message);
             }
 
             var errors = ModelState.Values.SelectMany(v => v.Errors)

@@ -68,7 +68,6 @@ namespace iLgs.Services
                 .Include(i => i.PsCardItem)
                 .Include(i => i.PsCardItemExtn)
                 .Include(i => i.PsCardItemIssuance)
-                .Include(i => i.PsCardItemTransfer)
                 .Include(i => i.IcsPar)
                 .Where(w => w.Id == id)
                 .FirstOrDefaultAsync();
@@ -84,20 +83,20 @@ namespace iLgs.Services
             Guid? psCardItemIssuanceId = null;
             Guid? icsParId = null;
 
-            if (remarks == "CARD")
+            if (remarks == "CARD" || remarks == "TRANSIT")
             {
                 entity = await _db.PsCardItemTransactions
                     .Where(w => w.PsCardItemExtnId == psCardItemExtnId && w.PsCardItemId == refId)
                     .SingleOrDefaultAsync();
                 psCardItemId = refId;
             }
-            else if (remarks == "TRANSIT")
-            {
-                entity = await _db.PsCardItemTransactions
-                    .Where(w => w.PsCardItemExtnId == psCardItemExtnId && w.PsCardItemTransferId == refId)
-                    .SingleOrDefaultAsync();
-                psCardItemTransferId = refId;
-            }
+            //else if (remarks == "TRANSIT")
+            //{
+            //    entity = await _db.PsCardItemTransactions
+            //        .Where(w => w.PsCardItemExtnId == psCardItemExtnId && w.PsCardItemTransferId == refId)
+            //        .SingleOrDefaultAsync();
+            //    psCardItemTransferId = refId;
+            //}
             else if (remarks == "ISSUANCE" || remarks == "TRANSFER")
             {
                 entity = await _db.PsCardItemTransactions
@@ -129,14 +128,22 @@ namespace iLgs.Services
                     IcsParId = icsParId,
                     Remarks = remarks,
                     InsertedBy = user,
-                    InsertedDt = date
-                };
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };                
+
+                _db.PsCardItemTransactions.Add(entity);                
+            }
+            else
+            {
+                entity.UpdatedBy = user;
+                entity.UpdatedDt = date;
+
+                _db.PsCardItemTransactions.Attach(entity);
+                _db.Entry(entity).State = EntityState.Modified;
             }
 
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.PsCardItemTransactions.Add(entity);
             await _db.SaveChangesAsync();
             return entity;
         });

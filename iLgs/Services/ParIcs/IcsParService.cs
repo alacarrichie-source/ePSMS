@@ -7,8 +7,9 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using static iLgs.Models.Enums;
 
-namespace iLgs.Services
+namespace iLgs.Services.ParIcs
 {
     public interface IIcsParService
     {
@@ -45,17 +46,8 @@ namespace iLgs.Services
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            IcsPar entity = new IcsPar()
-            {
-                Id = model.Id,
-                RefNo = model.RefNo,
-                RefDate = model.RefDate,
-                RefType = model.RefType,
-                InsertedBy = model.InsertedBy,
-                InsertedDt = model.InsertedDt,
-                UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
-            };
+            var entity = new IcsPar();
+            MapModelToEntityFields(entity, model, Mode.ADD);
 
             _db.IcsPars.Add(entity);
             await _db.SaveChangesAsync();
@@ -71,25 +63,8 @@ namespace iLgs.Services
                 throw new RecordNotFoundException(model.Id);
             }
 
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;            
-
-            entity.RefNo = model.RefNo;
-            entity.RefDate = model.RefDate;
-            entity.RefType = model.RefType;
-            entity.ReceivedBy = model.ReceivedBy;
-            entity.ReceivedByPosition = model.ReceivedByPosition;
-            entity.ReceivedDate = model.ReceivedDate;
-            entity.ReceivedDept = model.ReceivedDept;
-            entity.IssuedBy = model.IssuedBy;
-            entity.IssuedByPosition = model.IssuedByPosition;
-            entity.IssuedDate = model.IssuedDate;
-            entity.IssuedDept = model.IssuedDept;
-            entity.PostedBy = model.PostedBy;
-            entity.PostedDt = model.PostedDt;
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
+            MapModelToEntityFields(entity, model, Mode.EDIT);
+            
             _db.IcsPars.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
@@ -122,5 +97,34 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
             return model;
         });
+
+        public void MapModelToEntityFields(IcsPar entity, IcsPar model, Mode mode)
+        {
+            if (mode == Mode.ADD)
+            {
+                entity.Id = model.Id;
+                entity.InsertedBy = model.InsertedBy;
+                entity.InsertedDt = model.InsertedDt;
+            }
+
+            entity.LocationId = model.LocationId;
+            entity.LocationCode = model.LocationCode;
+            entity.Location = model.Location;
+            entity.RefNo = model.RefNo;
+            entity.RefDate = model.RefDate;
+            entity.RefType = model.RefType;            
+            entity.ReceivedBy = model.ReceivedBy;
+            entity.ReceivedByPosition = model.ReceivedByPosition;
+            entity.ReceivedDate = model.ReceivedDate;
+            entity.ReceivedDept = model.ReceivedDept;
+            entity.IssuedBy = model.IssuedBy;
+            entity.IssuedByPosition = model.IssuedByPosition;
+            entity.IssuedDate = model.IssuedDate;
+            entity.IssuedDept = model.IssuedDept;
+            entity.PostedBy = model.PostedBy;
+            entity.PostedDt = model.PostedDt;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+        }
     }
 }

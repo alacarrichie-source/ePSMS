@@ -27,17 +27,18 @@ namespace iLgs.Controllers
     [AppAuthorize("RIS")]
     public class RISController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
-        private IRisService _risService;
-        private IRisItemService _risItemService;
-        private IRisItemUnitGroupService _risItemUnitGroupService;
-        private IRisItemUnitGroupDescriptionService _risItemUnitGroupDescriptionService;
-        private IRisItemUnitGroupDescriptionItemService _risItemUnitGroupDescriptionItemService;
-        private ICodextnService _codextnService;
-        private IAllFieldService _allFieldService;
+        private readonly AppManEntities _db;
+        private readonly IRisService _risService;
+        private readonly IRisItemService _risItemService;
+        private readonly IRisItemUnitGroupService _risItemUnitGroupService;
+        private readonly IRisItemUnitGroupDescriptionService _risItemUnitGroupDescriptionService;
+        private readonly IRisItemUnitGroupDescriptionItemService _risItemUnitGroupDescriptionItemService;
+        private readonly ICodextnService _codextnService;
+        private readonly IAllFieldService _allFieldService;
 
         public RISController()
         {
+            _db = new AppManEntities();
             _risService = new RisService(_db);
             _risItemService = new RisItemService(_db);
             _risItemUnitGroupService = new RisItemUnitGroupService(_db);
@@ -86,12 +87,7 @@ namespace iLgs.Controllers
                     model = await _risService.CreateAsync(model, user, date);                    
                 }
             }
-            catch(ValidationException validationException)
-                when(validationException.InnerException is AlreadyExistsException)
-            {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
@@ -99,14 +95,13 @@ namespace iLgs.Controllers
                     ModelState.AddModelError(error.Key, error.Message);
                 }
             }
-            catch (DependencyException dependencyException)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -132,12 +127,7 @@ namespace iLgs.Controllers
                     model = await _risService.UpdateAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
-            {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
@@ -145,14 +135,13 @@ namespace iLgs.Controllers
                     ModelState.AddModelError(error.Key, error.Message);
                 }
             }
-            catch (DependencyException dependencyException)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -177,26 +166,12 @@ namespace iLgs.Controllers
                 }
             }
             catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
             {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -222,17 +197,21 @@ namespace iLgs.Controllers
                     await _risService.PostAsync(risId, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -269,17 +248,21 @@ namespace iLgs.Controllers
                     await _risService.UnpostAsync(risId, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -344,24 +327,21 @@ namespace iLgs.Controllers
                     }
                 }
             }
-            catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
-                ModelState.AddModelError("", validationException.InnerException);
-            }            
-            catch (ValidationException validationException)
-            {
-                var jErrors = validationException.GetFormattedErrorsAsJson();
-                return Json(new { Errors = jErrors }, JsonRequestBehavior.AllowGet);
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
             }
-            catch (DependencyException dependencyException)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", dependencyException);
-            }            
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -396,15 +376,6 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                //else if (await _risService.IsWithPrAsync(model.Id))
-                //{
-                //    ModelState.AddModelError("DeleteError", "This RIS No has a PR, cannot delete!");
-                //}
-                //else if (await _risService.IsPostedAsync((Guid)model.RisId))
-                //{
-                //    ModelState.AddModelError("DeleteError", "RIS Number already Posted, cannot delete!");
-                //}
-
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -414,26 +385,12 @@ namespace iLgs.Controllers
                 }
             }
             catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
             {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -474,12 +431,7 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupService.CreateAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
-            {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
@@ -487,14 +439,13 @@ namespace iLgs.Controllers
                     ModelState.AddModelError(error.Key, error.Message);
                 }
             }
-            catch (DependencyException dependencyException)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -520,12 +471,7 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupService.UpdateAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
-            {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
@@ -533,14 +479,13 @@ namespace iLgs.Controllers
                     ModelState.AddModelError(error.Key, error.Message);
                 }
             }
-            catch (DependencyException dependencyException)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -566,26 +511,12 @@ namespace iLgs.Controllers
                 }
             }
             catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
             {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -627,12 +558,7 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupDescriptionService.CreateAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
-            {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
@@ -640,14 +566,13 @@ namespace iLgs.Controllers
                     ModelState.AddModelError(error.Key, error.Message);
                 }
             }
-            catch (DependencyException dependencyException)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -673,12 +598,7 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupDescriptionService.UpdateAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
-            {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
@@ -686,14 +606,13 @@ namespace iLgs.Controllers
                     ModelState.AddModelError(error.Key, error.Message);
                 }
             }
-            catch (DependencyException dependencyException)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -719,26 +638,12 @@ namespace iLgs.Controllers
                 }
             }
             catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
             {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -786,12 +691,7 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupDescriptionItemService.CreateAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
-            {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
@@ -799,14 +699,13 @@ namespace iLgs.Controllers
                     ModelState.AddModelError(error.Key, error.Message);
                 }
             }
-            catch (DependencyException dependencyException)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -832,12 +731,7 @@ namespace iLgs.Controllers
                     model = await _risItemUnitGroupDescriptionItemService.UpdateAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
-            {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
@@ -845,14 +739,13 @@ namespace iLgs.Controllers
                     ModelState.AddModelError(error.Key, error.Message);
                 }
             }
-            catch (DependencyException dependencyException)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -878,26 +771,12 @@ namespace iLgs.Controllers
                 }
             }
             catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
             {
-                ModelState.AddModelError("", validationException.InnerException);
-            }
-            catch (ValidationException validationException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                        "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));

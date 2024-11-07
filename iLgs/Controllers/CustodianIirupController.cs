@@ -26,7 +26,7 @@ namespace iLgs.Controllers
 {
     public class CustodianIirupController : BaseController
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICustodianDisposalService _custodianDisposalService;
         private readonly ICustodianDisposalItemService _custodianDisposalItemService;        
         private readonly ICustodianIirupService _custodianIirupService;
@@ -36,6 +36,7 @@ namespace iLgs.Controllers
 
         public CustodianIirupController()
         {
+            _db = new AppManEntities();
             _custodianDisposalService = new CustodianDisposalService(_db);
             _custodianDisposalItemService = new CustodianDisposalItemService(_db);
             _custodianIirupService = new CustodianIirupService(_db);
@@ -95,10 +96,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -139,10 +136,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -170,21 +163,9 @@ namespace iLgs.Controllers
                     model = await _custodianIirupService.DeleteAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -224,10 +205,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
@@ -278,10 +255,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
@@ -337,17 +310,21 @@ namespace iLgs.Controllers
                     model = await _custodianIirupItemService.SaveAsync(model, user, date);                    
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -398,21 +375,9 @@ namespace iLgs.Controllers
                     // TO DO: update stocks
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("DeleteError", error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -478,10 +443,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -540,21 +501,9 @@ namespace iLgs.Controllers
                     model = await _uploadService.DeleteAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("DeleteError", error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -597,10 +546,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("UpdateError", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("UpdateError", e.Message);
@@ -640,10 +585,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("AddError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("AddError", dependencyException);
             }
             catch (Exception e)
             {

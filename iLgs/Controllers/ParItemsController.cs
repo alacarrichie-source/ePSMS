@@ -1,6 +1,8 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Interfaces;
+using iLgs.Services.ParIcs;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -17,14 +19,15 @@ namespace iLgs.Controllers
 {
     public class ParItemsController : BaseController
     {
-        private AppManEntities db = new AppManEntities();
-        private IParService parService;
-        private IParItemService parItemService;
+        private readonly AppManEntities _db;
+        private readonly IParService _parService;
+        private readonly IParItemService _parItemService;
 
         public ParItemsController()
         {
-            this.parService = new ParService(db);
-            this.parItemService = new ParItemService(db);
+            _db = new AppManEntities();
+            _parService = new ParService(_db);
+            _parItemService = new ParItemService(_db);
         }
 
         public ActionResult _Item(Guid parId)
@@ -35,7 +38,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _ItemAddEdit(Guid parId, Guid? parItemId)
         {
-            var data = await parItemService.GetVmByIdAsync(parItemId);
+            var data = await _parItemService.GetVmByIdAsync(parItemId);
             if (data == null)
             {
                 data = new PARItemVM()
@@ -47,66 +50,13 @@ namespace iLgs.Controllers
             ViewData["parItemId"] = parItemId;
             return PartialView(data);
         }
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> Save(PARItemVM model)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "pars");
-        //        Access access = await accessTask;
-        //        if (!access.AllowPost)
-        //        {
-        //            ModelState.AddModelError("Access", "Access Denied!");
-        //        }
-        //        else if (await parService.IsPostedAsync((Guid)model.ParId))
-        //        {
-        //            ModelState.AddModelError("PAR No.", "PAR Number already Posted, cannot update!");
-        //        }
-
-        //        if (model != null && ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            var entity = await parItemService.GetByIdAsync(model.Id);
-
-        //            if (entity == null)
-        //            {
-        //                model = await parItemService.CreateAsync(model, user, date);
-        //            }
-        //            else
-        //            {
-        //                model = await parItemService.UpdateAsync(model, user, date);
-        //            }                    
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-        //             "please contact tech support with this message: " + e.Message);
-        //    }
-
-        //    var query = from state in ModelState.Values
-        //                from error in state.Errors
-        //                select error.ErrorMessage;
-
-        //    var errorList = query.ToList();
-        //    if (errorList.Count() > 0)
-        //    {
-        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-        //    }
-
-        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        //}
-
+        
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid? parId)
         {
-            var data = parItemService.GetAll(parId);
+            var data = _parItemService.GetAll(parId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
-
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, PARItemVM model)
@@ -119,24 +69,23 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
                 }
-                //else if (await parService.IsPostedAsync((Guid)model.ParId))
-                //{
-                //    ModelState.AddModelError("DeleteError", "PAR Number already Posted, cannot update!");
-                //}
-
+                
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await parItemService.DeleteAsync(model, user, date);
+                    model = await _parItemService.DeleteAsync(model, user, date);
                 }
 
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));

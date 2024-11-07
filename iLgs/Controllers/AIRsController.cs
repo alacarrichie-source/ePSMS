@@ -19,28 +19,29 @@ using iLgs.Services;
 using System.IO;
 using iLgs.Agents.Services;
 using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 
 namespace iLgs.Controllers
 {
     [AppAuthorize("AIRS")]
     public class AIRsController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
-        private IAirService airService;
-        private IAirItemService airItemService;
-        private ICodextnService codextnService;
-        private IOrderService orderService;
-        private IOrderItemExtnService orderItemExtnService;
-
+        private AppManEntities _db;
+        private IAirService _airService;
+        private IAirItemService _airItemService;
+        private ICodextnService _codextnService;
+        private IOrderService _orderService;
+        private IOrderItemExtnService _orderItemExtnService;
         private IServiceAgent _sa;
 
         public AIRsController()
         {
-            this.airService = new AirService(_db);
-            this.airItemService = new AirItemService(_db);
-            this.codextnService = new CodextnService(_db);
-            this.orderService = new OrderService(_db);
-            this.orderItemExtnService = new OrderItemExtnService(_db);
+            _db = new AppManEntities();
+            _airService = new AirService(_db);
+            _airItemService = new AirItemService(_db);
+            _codextnService = new CodextnService(_db);
+            _orderService = new OrderService(_db);
+            _orderItemExtnService = new OrderItemExtnService(_db);
             _sa = new ServiceAgent(_db);
         }
 
@@ -52,7 +53,7 @@ namespace iLgs.Controllers
 
         public ActionResult AIRRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = airService.GetAll();
+            var data = _airService.GetAll();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -74,13 +75,13 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("", "Add Access Denied!");
                 }
 
-                if (await airService.GetByAirNoAsync(model.AIRNo) != null)
+                if (await _airService.GetByAirNoAsync(model.AIRNo) != null)
                 {
                     ModelState.AddModelError("AIR No.", "AIR No. already exists!");
                 }
                 else
                 {
-                    var order = await orderService.GetByIdAsync((Guid)model.OrderId);
+                    var order = await _orderService.GetByIdAsync((Guid)model.OrderId);
                     if (order == null)
                     {
                         ModelState.AddModelError("PO No.", "Invalid PO No.!");
@@ -103,20 +104,24 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airService.CreateAsync(model, user, date);                    
+                    model = await _airService.CreateAsync(model, user, date);                    
                 }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -134,13 +139,13 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("", "Update Access Denied!");
                 }
 
-                if (await airService.GetAnyAirNoAsync(model.Id, model.AIRNo))
+                if (await _airService.GetAnyAirNoAsync(model.Id, model.AIRNo))
                 {
                     ModelState.AddModelError("AIR No", "AIR No. already exists!");
                 }
                 else
                 {
-                    var order = await orderService.GetByIdAsync((Guid)model.OrderId);
+                    var order = await _orderService.GetByIdAsync((Guid)model.OrderId);
                     if (order == null)
                     {
                         ModelState.AddModelError("PO No", "Invalid PO No.!");
@@ -164,20 +169,24 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airService.UpdateAsync(model, user, date);
+                    model = await _airService.UpdateAsync(model, user, date);
                 }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -198,20 +207,16 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
-                    model = await airService.DeleteAsync(model, user, date);                    
+                    model = await _airService.DeleteAsync(model, user, date);                    
                 }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -222,7 +227,7 @@ namespace iLgs.Controllers
             var model = new AIR_VM();
             if (airId != null)
             {
-                model = await airService.GetVmByIdAsync((Guid)airId);
+                model = await _airService.GetVmByIdAsync((Guid)airId);
                 model.Mode = "E";
             }
             else
@@ -256,18 +261,23 @@ namespace iLgs.Controllers
                     return Json(new { Errors = "", Model = model });
                 }
             }
-            catch (Exception e)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
-                if (e.GetType().Name == "ServiceException")
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
                 {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
+                    ModelState.AddModelError(error.Key, error.Message);
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
             return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
         }
 
@@ -297,17 +307,21 @@ namespace iLgs.Controllers
                     model = await _sa.AirInvoice.CreateAsync(model, user, date);                    
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -333,17 +347,21 @@ namespace iLgs.Controllers
                     model = await _sa.AirInvoice.UpdateAsync(model, user, date);                    
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -368,17 +386,13 @@ namespace iLgs.Controllers
                     model = await _sa.AirInvoice.DeleteAsync(model, user, date);                                        
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("GridError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("GridError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -392,7 +406,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _AIRItemAddEdit(Guid airId, Guid? airItemId)
         {
-            var result = await airItemService.GetByIdAsync(airItemId);
+            var result = await _airItemService.GetByIdAsync(airItemId);
             var data = result.Data;
             if (data == null)
             {
@@ -422,7 +436,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await airService.IsPostedAsync((Guid)model.AirId))
+                else if (await _airService.IsPostedAsync((Guid)model.AirId))
                 {
                     ModelState.AddModelError("AIR No.", "AIR Number already Posted, cannot update!");
                 }
@@ -432,7 +446,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await airItemService.UpdateAsync(model, user, date);
+                    var result = await _airItemService.UpdateAsync(model, user, date);
                     if (!result.IsSuccess)
                     {
                         return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
@@ -467,7 +481,7 @@ namespace iLgs.Controllers
 
         public ActionResult _AIRItemRead([DataSourceRequest] DataSourceRequest request, Guid? airId)
         {
-            var data = airItemService.GetByAirId(airId);            
+            var data = _airItemService.GetByAirId(airId);            
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
@@ -488,7 +502,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await airItemService.CreateAsync(model, user, date);
+                    var result = await _airItemService.CreateAsync(model, user, date);
                     if (result.IsSuccess)
                     {
                         return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
@@ -530,7 +544,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await airItemService.UpdateAsync(model, user, date);
+                    var result = await _airItemService.UpdateAsync(model, user, date);
                     if (result.IsSuccess)
                     {
                         return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
@@ -571,7 +585,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await airItemService.DeleteAsync(model, user, date);
+                    var result = await _airItemService.DeleteAsync(model, user, date);
                     if (result.IsSuccess)
                     {
                         return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
@@ -600,7 +614,7 @@ namespace iLgs.Controllers
         #region ITEMEXTN VEHICLES
         public ActionResult _AIRItemExtnVehicleRead([DataSourceRequest] DataSourceRequest request, Guid? airItemId)
         {
-            var data = airItemService.AirItemExtn.AirItemExtnVehicle.GetByAirItemId(airItemId);
+            var data = _airItemService.AirItemExtn.AirItemExtnVehicle.GetByAirItemId(airItemId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
@@ -621,7 +635,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await airItemService.AirItemExtn.AirItemExtnVehicle.CreateAsync(model, user, date);
+                    var result = await _airItemService.AirItemExtn.AirItemExtnVehicle.CreateAsync(model, user, date);
                     if (result.IsSuccess)
                     {
                         model = result.Data;
@@ -668,7 +682,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await airItemService.AirItemExtn.AirItemExtnVehicle.UpdateAsync(model, user, date);
+                    var result = await _airItemService.AirItemExtn.AirItemExtnVehicle.UpdateAsync(model, user, date);
                     if (result.IsSuccess)
                     {
                         model = result.Data;
@@ -714,7 +728,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await airItemService.AirItemExtn.AirItemExtnVehicle.DeleteAsync(model, user, date);
+                    var result = await _airItemService.AirItemExtn.AirItemExtnVehicle.DeleteAsync(model, user, date);
                     if (result.IsSuccess)
                     {
                         return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
@@ -745,7 +759,7 @@ namespace iLgs.Controllers
         #region ITEMEXTN OTHERS
         public ActionResult _AIRItemExtnOtherRead([DataSourceRequest] DataSourceRequest request, Guid? airItemId)
         {
-            var data = airItemService.AirItemExtn.AirItemExtnOther.GetByAirItemId(airItemId);
+            var data = _airItemService.AirItemExtn.AirItemExtnOther.GetByAirItemId(airItemId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
@@ -766,21 +780,25 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airItemService.AirItemExtn.AirItemExtnOther.CreateAsync(model, user, date);
+                    model = await _airItemService.AirItemExtn.AirItemExtnOther.CreateAsync(model, user, date);
                     // TO DO: save to stock card
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -803,22 +821,26 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airItemService.AirItemExtn.AirItemExtnOther.UpdateAsync(model, user, date);
+                    model = await _airItemService.AirItemExtn.AirItemExtnOther.UpdateAsync(model, user, date);
 
                     // TO DO: update stock card
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -840,22 +862,18 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await airItemService.AirItemExtn.AirItemExtnOther.DeleteAsync(model, user, date);
+                    model = await _airItemService.AirItemExtn.AirItemExtnOther.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
 
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("GridError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("GridError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -942,7 +960,7 @@ namespace iLgs.Controllers
                 }
             }
 
-            var lgu = codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
             rpt.SetParameterValue("@cAirNo", airNo);
             rpt.SetParameterValue("LGU", lgu);
@@ -971,20 +989,24 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await airService.PostAsync(airId, user, date);
+                    await _airService.PostAsync(airId, user, date);
                 }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                if (e is ServiceException se)
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                             "please contact tech support with this message: " + se.Message);                    
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -1011,11 +1033,11 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                else if (await airService.GetByIdAsync(airId) == null)
+                else if (await _airService.GetByIdAsync(airId) == null)
                 {
                     ModelState.AddModelError("AIR", "Invalid AIR Id");
                 }
-                else if (!(await airService.IsPostedAsync(airId)))
+                else if (!(await _airService.IsPostedAsync(airId)))
                 {
                     ModelState.AddModelError("AIR No.", "AIR Number not yet posted, cannot unpost!");
                 }
@@ -1025,20 +1047,24 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await airService.UnpostAsync(airId, user, date);
+                    await _airService.UnpostAsync(airId, user, date);
                 }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -1056,7 +1082,7 @@ namespace iLgs.Controllers
 
         public ActionResult _OrderItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? orderItemId, string psType)
         {
-            var data = orderItemExtnService.GetBatchInfo(orderItemId, psType);
+            var data = _orderItemExtnService.GetBatchInfo(orderItemId, psType);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -1067,12 +1093,10 @@ namespace iLgs.Controllers
             return result;
         }
 
-
         [HttpPost]
         public ActionResult GetItemExtnTemplate(Guid? id)
         {
-
-            string itemExtnName = airItemService.GetItemExtnName(id);            
+            string itemExtnName = _airItemService.GetItemExtnName(id);            
 
             return Json(new { Errors = "", ItemExtnName = itemExtnName}, JsonRequestBehavior.AllowGet);
 

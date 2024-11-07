@@ -24,7 +24,7 @@ namespace iLgs.Controllers
 {
     public class CustodianDisposalController : BaseController
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianReportItemService _custodianReportItemService;
         private readonly ICustodianDisposalService _custodianDisposalService;
@@ -33,6 +33,7 @@ namespace iLgs.Controllers
 
         public CustodianDisposalController()
         {
+            _db = new AppManEntities();
             _custodianReportService = new CustodianReportService(_db);
             _custodianReportItemService = new CustodianReportItemService(_db);
             _custodianDisposalService = new CustodianDisposalService(_db);
@@ -91,10 +92,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -135,10 +132,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -166,21 +159,9 @@ namespace iLgs.Controllers
                     model = await _custodianDisposalService.DeleteAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -220,10 +201,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
@@ -274,10 +251,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
@@ -337,17 +310,21 @@ namespace iLgs.Controllers
                     //await orderItemExtnService.SaveAsync(model.Id, orderItemExtns, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -398,21 +375,9 @@ namespace iLgs.Controllers
                     // TO DO: update stocks
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("DeleteError", error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -421,25 +386,7 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
-
-        //public async Task<ActionResult> ExcelExport(Guid reportId)
-        //{
-        //    try
-        //    {
-        //        string exportFileName = "CustodianLand";
-
-        //        var report = await _custodianDisposalService.GetByIdAsync(reportId);
-        //        var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-        //        var stream = _custodianDisposalItemService.ProcessExcelFile(reportId, templateFilePath);
-
-        //        return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new HttpStatusCodeResult(500, ex.Message);
-        //    }
-        //}
-
+        
         [HttpPost]
         public async Task<JsonResult> VerifyDepartment(Guid? id)
         {

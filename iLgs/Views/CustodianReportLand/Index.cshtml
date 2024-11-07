@@ -324,7 +324,7 @@
     }
 
     function onDataBoundGrid(e) {
-        if (selectedId) {
+        if (selectedId && selectedId != "00000000-0000-0000-0000-000000000000") {
             var dataItem = this.dataSource.get(selectedId);
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
@@ -871,7 +871,6 @@
         var width = 800;
         var height = 650;
 
-
         $("#windowcontainer").append("<div id='windowPreview'></div>");
         var mywindow = $("#windowPreview")
                 .kendoWindow({
@@ -890,6 +889,28 @@
         mywindow.refresh({ url: myUrl });
         mywindow.center();
         mywindow.open();
+    }
+
+    function onClickDownload(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        if (dataItem) {
+            window.kendo.ui.progress($(document.body), true);
+            var fileName = dataItem.FileName;
+            var url = '@Url.Action("DownloadFile", "CustodianReportLand")?fileName=' + fileName;
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row to export.");
+        }
     }
 
     function onError(e) {

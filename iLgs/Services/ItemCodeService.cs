@@ -165,6 +165,11 @@ namespace iLgs.Services
 
         public IQueryable<ItemCodePreviewVM> GetItemCodePreview(string category)
         {
+            if (category == "ALL")
+            {
+                category = "";
+            }
+
             var data = _db.Database.SqlQuery<ItemCodePreviewVM>("Exec ItemCodes_GetPreview {0}", category).AsQueryable().AsNoTracking();
             return data;
         }

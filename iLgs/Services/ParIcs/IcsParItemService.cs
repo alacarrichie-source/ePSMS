@@ -10,7 +10,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace iLgs.Services
+namespace iLgs.Services.ParIcs
 {
     public interface IIcsParItemService
     {

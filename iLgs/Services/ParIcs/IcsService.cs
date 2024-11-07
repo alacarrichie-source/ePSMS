@@ -10,7 +10,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace iLgs.Services
+namespace iLgs.Services.ParIcs
 {
     public interface IIcsService
     {
@@ -54,6 +54,7 @@ namespace iLgs.Services
         private readonly IExceptionService<PsCardItem> _postExceptionService = new ExceptionService<PsCardItem>();
         private readonly IExceptionService<PsCardItemUnitGroupDescriptionItem> _psCardItemUnitGroupDescriptionItemService = new ExceptionService<PsCardItemUnitGroupDescriptionItem>();
         private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly IPsCardItemTransactionService _psCardItemTransactionService;
 
         public IcsService(AppManEntities db)
         {
@@ -64,6 +65,7 @@ namespace iLgs.Services
             _psCardItemExtnService = new PsCardItemExtnService(_db);
             _psCardItemIssaunceService = new PsCardItemIssuanceService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemVM>(propertyName);
+            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
         }
 
         public IIcsParItemService IcsParItem { get { return _icsParItemService = _icsParItemService ?? new IcsParItemService(_db); } }
@@ -513,10 +515,7 @@ namespace iLgs.Services
                 _db.Entry(psCardItemExtn).State = EntityState.Modified;
                 await _db.SaveChangesAsync();
 
-                // TO DO:
-                // Save to PsCardItemLocations
-
-
+                await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsParId, "ICS", user, date);
             }
             return model;
         });
@@ -688,6 +687,8 @@ namespace iLgs.Services
                     _db.IcsParItems.Add(icsParItem);
                     _db.Entry(icsParItem).State = EntityState.Added;
                     await _db.SaveChangesAsync();
+
+                    await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, icsParId, "ICS", user, date);
                 }
             }
             return model;

@@ -453,7 +453,26 @@
                     @Html.DisplayFor(m => m.Condition, "Label")
                 </div>
                 <div class="col-md-9">
-                    @(Html.Kendo().TextBoxFor(m => m.Condition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Condition)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select Condition")
+                        .DataTextField("Description")
+                        .DataValueField("Description")
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetConditions", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Description").Title("Condition").Width("100%");
+                        })
+                        .Suggest(true)
+                    )
                     @Html.ValidationMessageFor(m => m.Condition)
                 </div>
             </div>

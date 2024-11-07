@@ -24,13 +24,14 @@ namespace iLgs.Controllers
 {
     public class CustodianReportBldgController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
-        private ICustodianReportService _custodianReportService;
-        private ICustodianReportBldgItemService _custodianReportBldgItemService;
-        private ICustodianBldgUploadService _uploadService;
+        private readonly AppManEntities _db;
+        private readonly ICustodianReportService _custodianReportService;
+        private readonly ICustodianReportBldgItemService _custodianReportBldgItemService;
+        private readonly ICustodianBldgUploadService _uploadService;
         
         public CustodianReportBldgController()
         {
+            _db = new AppManEntities();
             _custodianReportService = new CustodianReportService(_db);
             _custodianReportBldgItemService = new CustodianReportBldgItemService(_db);
             _uploadService = new CustodianBldgUploadService(_db);        
@@ -68,7 +69,6 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("Access", "Add Access Denied!");
                 }
 
-
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -88,10 +88,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
@@ -133,10 +129,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -164,25 +156,13 @@ namespace iLgs.Controllers
                     model = await _custodianReportService.DeleteAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", e.Message);
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -218,10 +198,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
@@ -272,10 +248,6 @@ namespace iLgs.Controllers
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
             }
             catch (Exception e)
             {
@@ -335,10 +307,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -379,10 +347,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("", e.Message);
@@ -412,21 +376,9 @@ namespace iLgs.Controllers
                     // TO DO: update stocks
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("DeleteError", error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -486,21 +438,9 @@ namespace iLgs.Controllers
                     model = await _uploadService.DeleteAsync(model, user, date);
                 }
             }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("DeleteError", error.Message);
-                }
-            }
             catch (ValidationException validationException)
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("DeleteError", dependencyException);
             }
             catch (Exception e)
             {
@@ -544,10 +484,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("UpdateError", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("UpdateError", e.Message);
@@ -589,10 +525,6 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("AddError", validationException.InnerException.Message);
             }
-            catch (DependencyException dependencyException)
-            {
-                ModelState.AddModelError("AddError", dependencyException);
-            }
             catch (Exception e)
             {
                 ModelState.AddModelError("AddError", e.Message);
@@ -611,6 +543,27 @@ namespace iLgs.Controllers
             return Content("");
         }
 
+        public ActionResult DownloadFile(string fileName)
+        {
+            try
+            {
+                // Call the service to get the file bytes
+                byte[] fileBytes = _uploadService.DownloadFile(fileName);
+
+                // Return the file as a download
+                return File(fileBytes, MimeMapping.GetMimeMapping(fileName), fileName);
+            }
+            catch (FileNotFoundException ex)
+            {
+                // Handle file not found case
+                return HttpNotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions
+                return new HttpStatusCodeResult(500, "Error downloading file: " + ex.Message);
+            }
+        }
 
         public async Task<ActionResult> PreviewUpload(Guid id)
         {

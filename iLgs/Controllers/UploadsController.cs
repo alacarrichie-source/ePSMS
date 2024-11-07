@@ -20,11 +20,12 @@ namespace iLgs.Controllers
 {
     public class UploadsController : BaseController
     {
-        private AppManEntities db = new AppManEntities();
-        private IDirectoryService directoryService;
+        private readonly AppManEntities _db;
+        private readonly IDirectoryService _directoryService;
         public UploadsController()
         {
-            this.directoryService = new DirectoryService(db);
+            _db = new AppManEntities();
+            _directoryService = new DirectoryService(_db);
         }
         // GET: Uploads
         public ActionResult Index()
@@ -40,7 +41,7 @@ namespace iLgs.Controllers
 
         public ActionResult UploadRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = db.Uploads.AsQueryable();
+            var data = _db.Uploads.AsQueryable();
 
             var result = new JsonNetResult
             {
@@ -64,15 +65,15 @@ namespace iLgs.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    var entity = db.Uploads.Find(model.Id);
+                    var entity = _db.Uploads.Find(model.Id);
 
-                    db.Uploads.Attach(entity);
+                    _db.Uploads.Attach(entity);
                     // Delete the entity
-                    db.Uploads.Remove(entity);
+                    _db.Uploads.Remove(entity);
                     // Or use DeleteObject if using a previous version of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    await db.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
                     //db.Configuration.ValidateOnSaveEnabled = true;  
 
                     var directory = model.VirtualDirectory;
@@ -115,7 +116,7 @@ namespace iLgs.Controllers
                 if (ModelState.IsValid)
                 {
 
-                    var entity = db.Uploads.Find(model.Id);
+                    var entity = _db.Uploads.Find(model.Id);
 
                     if (entity != null)
                     {
@@ -124,8 +125,8 @@ namespace iLgs.Controllers
                         entity.UpdatedBy = user;
                         entity.UpdatedDt = System.DateTime.Now;
 
-                        db.Uploads.Attach(entity);
-                        await db.SaveChangesAsync();
+                        _db.Uploads.Attach(entity);
+                        await _db.SaveChangesAsync();
                     }
                 }
             }
@@ -195,8 +196,8 @@ namespace iLgs.Controllers
                                 UpdatedDt = date
                             };
 
-                            db.Uploads.Add(entity);
-                            await db.SaveChangesAsync();
+                            _db.Uploads.Add(entity);
+                            await _db.SaveChangesAsync();
                         }
                     }
                     return Content("");
@@ -219,7 +220,7 @@ namespace iLgs.Controllers
             var physicalPath = "";
             var fileName = "";
 
-            var images = db.Uploads.Find(id);
+            var images = _db.Uploads.Find(id);
 
             fileName = images.FileName;
             physicalPath = Path.Combine(Server.MapPath(directory), fileName);
@@ -241,7 +242,7 @@ namespace iLgs.Controllers
 
         public FileResult GetProductImage(string productId)
         {
-            string networkImagePath = directoryService.GetItemImageDirectory() + productId + ".jpg";
+            string networkImagePath = _directoryService.GetItemImageDirectory() + productId + ".jpg";
             byte[] imageBytes = System.IO.File.ReadAllBytes(networkImagePath);
             return File(imageBytes, "image/jpeg");
         }
@@ -272,7 +273,7 @@ namespace iLgs.Controllers
                 else
                 {
 
-                    string imageDir = directoryService.GetItemImageDirectory();
+                    string imageDir = _directoryService.GetItemImageDirectory();
 
                     var supportedTypes = new[] { "jpg", "jpeg", "png" };
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -300,7 +301,7 @@ namespace iLgs.Controllers
                             
                             file.SaveAs(physicalPath);
 
-                            var entity = await db.Uploads.Where(w => w.ImageId == model.ImageId).FirstOrDefaultAsync();
+                            var entity = await _db.Uploads.Where(w => w.ImageId == model.ImageId).FirstOrDefaultAsync();
                             if (entity == null)
                             {
                                 entity = new iLgs.Models.Upload()
@@ -316,7 +317,7 @@ namespace iLgs.Controllers
                                     UpdatedBy = user,
                                     UpdatedDt = date
                                 };
-                                db.Uploads.Add(entity);
+                                _db.Uploads.Add(entity);
                             }
                             else
                             {
@@ -326,10 +327,10 @@ namespace iLgs.Controllers
                                 entity.Description = model.Description;
                                 entity.UpdatedBy = user;
                                 entity.UpdatedDt = date;
-                                db.Uploads.Attach(entity);
-                                db.Entry(entity).State = EntityState.Modified;
+                                _db.Uploads.Attach(entity);
+                                _db.Entry(entity).State = EntityState.Modified;
                             }
-                            await db.SaveChangesAsync();
+                            await _db.SaveChangesAsync();
                         }
                     }
                     return Content("");

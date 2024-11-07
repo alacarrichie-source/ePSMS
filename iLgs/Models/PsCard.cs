@@ -40,8 +40,8 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual ItemCode ItemCode { get; set; }
-        public virtual AllField AllField { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItem> PsCardItems { get; set; }
+        public virtual AllField AllField { get; set; }
     }
 }

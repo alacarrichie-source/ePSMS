@@ -14,9 +14,9 @@
         //col.Bound(c => c.PostedBy).Width(50);        
         col.Command(command =>
         {
-            command.Edit();
-            //command.Destroy();
-            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItems").SendDataKeys(true);
+            //command.Edit();
+            command.Destroy();
+            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItems").SendDataKeys(true);
         }).Width(100);
     })
     .ToolBar(t =>
@@ -57,7 +57,7 @@
         //.Group(g => g.Add(a => a.RefType))
         .Read(read => read.Action("_IssuanceRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"] }))
         .Create(create => create.Action("_IssuanceCreate", "PoIssuance"))
-        .Update(update => update.Action("_IssuanceUpdate", "PoIssuance"))
+        //.Update(update => update.Action("_IssuanceUpdate", "PoIssuance"))
         .Destroy(destroy => destroy.Action("_IssuanceDestroy", "PoIssuance"))
     )
     .Selectable(s => s.Mode(GridSelectionMode.Single))

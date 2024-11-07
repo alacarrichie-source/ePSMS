@@ -24,6 +24,7 @@ namespace iLgs.Services
         ValueTask<Upload> UpdateAsync(Upload model, string user, DateTime date);
         ValueTask<Upload> DeleteAsync(Upload model, string user, DateTime date);
 
+        byte[] DownloadFile(string fileName);
         Task<bool> IsFileNameExistAsync(string fileName);
     }
 
@@ -146,6 +147,29 @@ namespace iLgs.Services
                 await _db.SaveChangesAsync();
             }
             return model;
+        }
+        
+        public byte[] DownloadFile(string fileName)
+        {
+            try
+            {
+                // Define the file path
+                string filePath = Path.Combine(_directory, fileName);
+
+                // Check if the file exists
+                if (!System.IO.File.Exists(filePath))
+                {
+                    throw new FileNotFoundException("File not found.", fileName);
+                }
+
+                // Read the file as a byte array
+                return System.IO.File.ReadAllBytes(filePath);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception and rethrow it or return null
+                throw new InvalidOperationException("Error downloading file: " + ex.Message);
+            }
         }
 
         public virtual async ValueTask<Upload> UpdateAsync(Upload model, string user, DateTime date)

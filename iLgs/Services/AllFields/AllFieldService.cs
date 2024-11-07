@@ -38,7 +38,7 @@ namespace iLgs.Services.AllFields
         void ValidateRisAllField(RisItemEntryVM model);
         string GetStockNo(AllField af, string itemTypeCode, string itemCode);
         bool IsBrandRequired(Category c);
-        bool IsNoIcs(Guid? itemCodeId);
+        //bool IsNoIcs(Guid? itemCodeId);
         AllField ChangeAllFieldCase(AllField allField);
 
         //ValueTask<ServiceResult<PsCardVM>> ValidatePsCardAllField(PsCardVM model);
@@ -385,7 +385,8 @@ namespace iLgs.Services.AllFields
 
         public bool IsNoIcs(Guid? itemCodeId)
         {
-            return _db.ItemCodes.Where(w => w.Id == itemCodeId && (w.IsConsumable == "Y" || w.IsIncorporated == "Y" || w.ForDistribution == "Y")).Any();
+            return false;
+            //return _db.ItemCodes.Where(w => w.Id == itemCodeId && (w.IsConsumable == "Y" || w.IsIncorporated == "Y" || w.ForDistribution == "Y")).Any();
         }
 
         public string GetRisStockNo(RisItemEntryVM model)
@@ -449,6 +450,7 @@ namespace iLgs.Services.AllFields
             {
                 stockNo += GetStockNo(model.AllField, model.ItemTypeCode, model.ItemCode);
             }
+
             return stockNo ?? "";
         }
 

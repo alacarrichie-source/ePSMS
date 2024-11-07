@@ -10,7 +10,14 @@ using System.Web;
 
 namespace iLgs.Services
 {
-    
+    public interface IDepartmentUserService
+    {
+        IQueryable<DepartmentUserVM> GetAllByDeptId(Guid? deptId);
+        ValueTask<DepartmentUserVM> CreateAsync(DepartmentUserVM model, string user, DateTime date);
+        ValueTask<DepartmentUserVM> UpdateAsync(DepartmentUserVM model, string user, DateTime date);
+        ValueTask<DepartmentUserVM> DeleteAsync(DepartmentUserVM model, string user, DateTime date);
+    }
+
     public class DepartmentUserService : IDepartmentUserService
     {
         private readonly AppManEntities _db;
@@ -43,15 +50,15 @@ namespace iLgs.Services
         public ValueTask<DepartmentUserVM> CreateAsync(DepartmentUserVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            if (_db.DepartmentUsers.Any(a => a.DeptId == model.DeptId && a.UserId == a.UserId))
-            {
-                throw new RecordAlreadyExistsException("User already exists in this Department");
-            }
-
             if (model.UserId == null)
             {
                 throw new InvalidValueException("{0} is Required", nameof(model.UserId));
             }
+
+            if (_db.DepartmentUsers.Any(a => a.DeptId == model.DeptId && a.UserId == model.UserId))
+            {
+                throw new RecordAlreadyExistsException("User already exists in this Department");
+            }            
 
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -109,7 +116,7 @@ namespace iLgs.Services
                 throw new RecordNotFoundException(model.Id);
             }
 
-            if (_db.DepartmentUsers.Any(a => a.DeptId == model.Id && a.UserId == model.UserId && a.Id != model.Id))
+            if (_db.DepartmentUsers.Any(a => a.DeptId == model.DeptId && a.UserId == model.UserId && a.Id != model.Id))
             {
                 throw new RecordAlreadyExistsException("User already exist in this department!");
             }

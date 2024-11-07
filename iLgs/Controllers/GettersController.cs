@@ -184,6 +184,21 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? ""}), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetCategory(string text)
+        {
+
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "PS-CATEGORY").AsNoTracking();            
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
+            }
+
+            var retModel = model.Select(c => new GetCodeListVM { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }).ToList();
+            retModel.Insert(0, new GetCodeListVM { Id = Guid.Empty, Code = "ALL", Description = "ALL", Desc2 = "", Desc3 = "" });            
+
+            return Json(retModel, JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetCodeList(string mastCode, bool addAll, string text)
         {
 
@@ -584,7 +599,31 @@ namespace iLgs.Controllers
 
             return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
         }
-        
+
+        public JsonResult GetConditions(string text)
+        {
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "CONDITIONS").AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetConditionBldg(string text)
+        {
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "CONDITION-B").AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+        }
+
     }
 
     public class GetSysCodeVM

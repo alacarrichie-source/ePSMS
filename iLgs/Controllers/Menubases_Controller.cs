@@ -147,7 +147,7 @@ namespace iLgs.Controllers
         public IQueryable<Menubase> GetUserMenubases(string userId, string sysCode)
         {
             //var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.Accessfiles.Where(a => a.ChildId == p.ChildId && a.UserId == userId).Any());
-            var menu = db.Menubases.Include(i => i.MenuAccesses).Where(w => w.SysCode == sysCode && w.MenuAccesses.Any(a => a.UserId == userId && a.MenuId == w.ChildId));
+            var menu = db.Menubases.Include(i => i.MenuAccesses).Where(w => w.SysCode == sysCode && w.MenuAccesses.Any(a => a.UserId == userId && a.MenuId == w.ChildId && a.IsAllowed == true));
             return menu;
         }
 

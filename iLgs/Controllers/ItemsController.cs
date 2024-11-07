@@ -1,5 +1,7 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
+using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Interfaces;
@@ -21,7 +23,7 @@ namespace iLgs.Controllers
     [AppAuthorize("ITEMS")]
     public class ItemsController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
+        private AppManEntities _db;
         private IItemTypeService _itemTypeService;
         private IItemCodeService _itemCodeService;
         private IItemFieldService _itemFieldService;
@@ -31,6 +33,7 @@ namespace iLgs.Controllers
 
         public ItemsController()
         {
+            _db = new AppManEntities();
             _itemTypeService = new ItemTypeService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _itemFieldService = new ItemFieldService(_db);
@@ -80,18 +83,23 @@ namespace iLgs.Controllers
                     model = await _itemTypeService.CreateAsync(model, user, date);
                 }
             }
-            catch (Exception e)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
-                if (e.GetType().Name == "ServiceException")
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
                 {
-                    ModelState.AddModelError("AddError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("AddError", e.Message);
+                    ModelState.AddModelError("AddError", error.Message);
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("AddError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("AddError", e.Message);
+            }
+
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
@@ -115,17 +123,21 @@ namespace iLgs.Controllers
                     model = await _itemTypeService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("UpdateError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -150,17 +162,13 @@ namespace iLgs.Controllers
                     model = await _itemTypeService.DeleteAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -207,17 +215,21 @@ namespace iLgs.Controllers
                     model = await _itemCodeService.CreateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("AddError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("AddError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("AddError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("AddError", e.Message);
-                }
+                ModelState.AddModelError("AddError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -246,17 +258,21 @@ namespace iLgs.Controllers
                     model = await _itemCodeService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("UpdateError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -281,18 +297,15 @@ namespace iLgs.Controllers
                     model = await _itemCodeService.DeleteAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("DeleteError", e.Message);
             }
+
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
         #endregion
@@ -337,18 +350,23 @@ namespace iLgs.Controllers
                     model = await _itemFieldService.CreateAsync(model, user, date);
                 }
             }
-            catch (Exception e)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
-                if (e.GetType().Name == "ServiceException")
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
                 {
-                    ModelState.AddModelError("AddError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("AddError", e.Message);
+                    ModelState.AddModelError("AddError", error.Message);
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("AddError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("AddError", e.Message);
+            }
+
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
@@ -375,17 +393,21 @@ namespace iLgs.Controllers
                     model = await _itemFieldService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("UpdateError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -410,18 +432,15 @@ namespace iLgs.Controllers
                     model = await _itemFieldService.DeleteAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("DeleteError", e.Message);
             }
+
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
         #endregion
@@ -474,48 +493,8 @@ namespace iLgs.Controllers
                 PsStockId = stockId
             };
             return PartialView(model);
-        }
-
-
-        //public async Task<ActionResult> _QueryOrderItemRead([DataSourceRequest] DataSourceRequest request, Guid psId)
-        //{
-
-        //    var data = db.OrderItems.Where(w => w.RequestItem.RisItem.PsCode.Id == psId && !w.PsItems.Any(a => a.OrderItemId == w.Id))
-        //        .Select(s => new QueryOrderItemsVM
-        //        {
-        //            Id = s.Id,
-        //            PsNo = s.RequestItem.RisItem.PsCode.PsNo,
-        //            ItemName = s.RequestItem.RisItem.PsCode.ItemName,
-        //            PoDate = s.Order.PoDate,
-        //            PoNo = s.Order.PoNo,
-        //            Qty = s.Qty
-        //        });
-
-        //    var result = new JsonNetResult
-        //    {
-        //        Data = await data.ToDataSourceResultAsync(request),
-        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-        //    };
-        //    return result;
-        //}
-
-
-        #region ISSUED
-        //public ActionResult _RISIssuedRead([DataSourceRequest] DataSourceRequest request, string poNo, string stockNo)
-        //{
-        //    var data = _risIssuedService.GetByPoNoStockNo(poNo, stockNo);
-
-        //    var result = new JsonNetResult
-        //    {
-        //        Data = data.ToDataSourceResult(request),
-        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-        //    };
-        //    return result;
-        //}
-        #endregion
-
+        }        
+        
         public FileResult GetProductImage(Guid imageId)
         {
             var upload = _db.Uploads.Where(w => w.ImageId == imageId).FirstOrDefault();

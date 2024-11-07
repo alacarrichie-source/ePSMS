@@ -11,12 +11,13 @@ namespace iLgs.Controllers
     [Authorize]
     public class ItemHelperController : Controller
     {
-        private AppManEntities _db = new AppManEntities();
-        private IItemTypeService _itemTypeService;
-        private IItemCodeService _itemCodeService;
+        private readonly AppManEntities _db;
+        private readonly IItemTypeService _itemTypeService;
+        private readonly IItemCodeService _itemCodeService;
         
         public ItemHelperController()
         {
+            _db = new AppManEntities();
             _itemTypeService = new ItemTypeService(_db);
             _itemCodeService = new ItemCodeService(_db);        
         }

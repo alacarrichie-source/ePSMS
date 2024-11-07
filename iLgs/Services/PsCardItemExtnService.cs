@@ -17,14 +17,16 @@ namespace iLgs.Services
         IPsCardItemExtnOtherService PsCardItemExtnOther { get; }        
         IQueryable<T> GetCardItemExtnForIcsPars<T>(Guid? psCardItemId) where T : PsCardItemExtn;
         IQueryable<T> GetCardItemExtnForIssuance<T>(Guid? psCardItemId) where T : PsCardItemExtn;
-        IQueryable<T> GetCardItemExtnForIssuanceSelection<T>(Guid? psCardItemId, string mode) where T : PsCardItemExtn;
+        IQueryable<T> GetCardItemExtnForIssuanceSelection<T>(Guid? psCardItemId) where T : PsCardItemExtn;
 
+        ValueTask<PsCardItemExtnParVm> GetCardItemExtnParAsync(Guid? psCardItemExtnId);
+        ValueTask<PsCardItemExtnLocationVm> GetCardItemExtnLocationAsync(Guid? psCardItemExtnId);
         IQueryable<PsCardItemExtn> GetCardItemExtnForIcsParsByType(Guid? psCardItemId);
         IQueryable<PsCardItemExtn> GetCardItemExtnForIssuanceByType(Guid? psCardItemId);
-        IQueryable<PsCardItemExtn> GetCardItemExtnForVehicleIssuanceSelection(Guid? psCardItemId, string mode);
-        IQueryable<PsCardItemExtn> GetCardItemExtnForOtherIssuanceSelection(Guid? psCardItemId, string mode);
-        IQueryable<PsCardItemExtn> GetCardItemExtnForLandIssuanceSelection(Guid? psCardItemId, string mode);
-        IQueryable<PsCardItemExtn> GetCardItemExtnForBldgIssuanceSelection(Guid? psCardItemId, string mode);
+        IQueryable<PsCardItemExtnVehicleVm> GetCardItemExtnForVehicleIssuanceSelection(Guid? psCardItemId);
+        IQueryable<PsCardItemExtn> GetCardItemExtnForOtherIssuanceSelection(Guid? psCardItemId);
+        IQueryable<PsCardItemExtn> GetCardItemExtnForLandIssuanceSelection(Guid? psCardItemId);
+        IQueryable<PsCardItemExtn> GetCardItemExtnForBldgIssuanceSelection(Guid? psCardItemId);
 
         string GetEndSeries(string startSeries, Guid? itemId);
         string GetEndSeries(string startSeries, int qty);
@@ -49,15 +51,31 @@ namespace iLgs.Services
 
         public IQueryable<T> GetCardItemExtnForIcsPars<T>(Guid? psCardItemId) where T : PsCardItemExtn
         {
+            //var data = _db.PsCardItemExtns.OfType<T>().AsNoTracking()
+            //            .Where(w => !w.IcsParItems.Any(a => a.PsCardItemExtnId == w.Id)
+            //                && (w.PsCardItemId == psCardItemId ||
+            //                    // Get items from same PO of different CardItem (Due to Transfer of Item)
+            //                    _db.PsCardItems.Any(a => a.PoNo == w.PsCardItem.PoNo && a.PoDate == w.PsCardItem.PoDate
+            //                        && a.DeptId == w.PsCardItem.DeptId && a.PsCardId == w.PsCardItem.PsCardId && a.Id != psCardItemId)
+            //                )
+            //            )
+            //            .AsQueryable();
             var data = _db.PsCardItemExtns.OfType<T>().AsNoTracking()
                         .Where(w => !w.IcsParItems.Any(a => a.PsCardItemExtnId == w.Id)
-                            && (w.PsCardItemId == psCardItemId ||
-                                // Get items from same PO of different CardItem (Due to Transfer of Item)
-                                _db.PsCardItems.Any(a => a.PoNo == w.PsCardItem.PoNo && a.PoDate == w.PsCardItem.PoDate
-                                    && a.DeptId == w.PsCardItem.DeptId && a.PsCardId == w.PsCardItem.PsCardId && a.Id != psCardItemId)
+                            && (w.PsCardItemId == psCardItemId
                             )
                         )
                         .AsQueryable();
+
+            //var data = _db.PsCardItemExtns.OfType<T>().AsNoTracking()
+            //            .Where(w => !w.IcsParItems.Any(a => a.PsCardItemExtnId == w.Id)
+            //                && (//w.PsCardItemId == psCardItemId ||
+            //                    // Get items from same PO of different CardItem (Due to Transfer of Item)
+            //                    _db.PsCardItems.Any(a => a.PoNo == w.PsCardItem.PoNo && a.PoDate == w.PsCardItem.PoDate
+            //                        && a.DeptId == w.PsCardItem.DeptId && a.PsCardId == w.PsCardItem.PsCardId && a.Id != psCardItemId)
+            //                )
+            //            )
+            //            .AsQueryable();
             return data;
         }
 
@@ -103,37 +121,90 @@ namespace iLgs.Services
             }
         }
 
-        public IQueryable<T> GetCardItemExtnForIssuanceSelection<T>(Guid? psCardItemId, string mode) where T : PsCardItemExtn
+        public IQueryable<T> GetCardItemExtnForIssuanceSelection<T>(Guid? psCardItemId) where T : PsCardItemExtn
         {
             var data = _db.PsCardItemExtns.OfType<T>().AsNoTracking()
                         .Include(i => i.PsCardItemTransactions)
+                        .Include(i => i.IcsParItems)
                         .Where(w => w.PsCardItemId == psCardItemId)
-                        .AsQueryable();
-            if (mode == "EDIT")
-            {
-                data = data.Where(w => !w.PsCardItemTransactions.Any());
-            }
+                        .AsQueryable();            
             return data;
         }
-        
-        public IQueryable<PsCardItemExtn> GetCardItemExtnForVehicleIssuanceSelection(Guid? psCardItemId, string mode)
+        public async ValueTask<PsCardItemExtnParVm> GetCardItemExtnParAsync(Guid? psCardItemExtnId)
         {
-            return GetCardItemExtnForIssuanceSelection<PsCardItemExtnVehicle>(psCardItemId, mode);            
+            var data = await _db.PsCardItemExtns.AsNoTracking()
+                        .Where(w => w.Id == psCardItemExtnId)
+                        .Select(s => new PsCardItemExtnParVm
+                        {
+                            Id = s.Id,
+                            ParIcsNo = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.RefNo,
+                            ParIcsDate = s.IcsParItems.FirstOrDefault() == null ? null : s.IcsParItems.FirstOrDefault().IcsPar.RefDate
+                        }).FirstOrDefaultAsync();                        
+            return data;
         }
 
-        public IQueryable<PsCardItemExtn> GetCardItemExtnForOtherIssuanceSelection(Guid? psCardItemId, string mode)
+        public async ValueTask<PsCardItemExtnLocationVm> GetCardItemExtnLocationAsync(Guid? psCardItemExtnId)
         {
-            return GetCardItemExtnForIssuanceSelection<PsCardItemExtnOther>(psCardItemId, mode);
+            var data = await _db.PsCardItemExtns.AsNoTracking()
+                        .Where(w => w.Id == psCardItemExtnId)
+                        .Select(s => new PsCardItemExtnLocationVm
+                        {
+                            Id = s.Id,
+                            LocationId = s.IcsParItems.FirstOrDefault() == null ? null : s.IcsParItems.FirstOrDefault().IcsPar.LocationId,
+                            Location = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.Location,
+                            LocationCode = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.LocationCode,                            
+                        }).FirstOrDefaultAsync();
+            return data;
         }
 
-        public IQueryable<PsCardItemExtn> GetCardItemExtnForLandIssuanceSelection(Guid? psCardItemId, string mode)
+        public IQueryable<PsCardItemExtnVehicleVm> GetCardItemExtnForVehicleIssuanceSelection(Guid? psCardItemId)
         {
-            return GetCardItemExtnForIssuanceSelection<PsCardItemExtnLand>(psCardItemId, mode);
+            var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
+                        .Include(i => i.IcsParItems)
+                        .Where(w => w.PsCardItemId == psCardItemId && !w.PsCardItemTransactions.Any(a => a.Remarks == "ISSUANCE"))
+                        .Select(s => new PsCardItemExtnVehicleVm
+                        {
+                            Id = s.Id, 
+                            YearModel = s.YearModel,
+                            PlateNo = s.PlateNo,
+                            BodyNo = s.BodyNo,
+                            EngineNo = s.EngineNo,
+                            ChasisNo = s.ChasisNo,
+                            Color = s.Color,
+                            CRN = s.CRN,
+                            CRDate = s.CRDate,
+                            MVFileNo = s.MVFileNo,
+                            OrNo = s.OrNo,
+                            OrDate = s.OrDate,
+                            NetWeight = s.NetWeight,
+                            InsPolicyNo = s.InsPolicyNo,
+                            ParReissuance = s.ParReissuance,
+                            Condition = s.Condition,
+                            SubLocation = s.SubLocation,
+                            ConductionNo = s.ConductionNo,
+                            LocationId = s.IcsParItems.FirstOrDefault() == null ? null : s.IcsParItems.FirstOrDefault().IcsPar.LocationId,
+                            Location = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.Location,
+                            LocationCode = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.LocationCode,
+                            ParIcsNo = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.RefNo,
+                            ParIcsDate = s.IcsParItems.FirstOrDefault() == null ? null : s.IcsParItems.FirstOrDefault().IcsPar.RefDate
+                        })
+                        .AsQueryable();
+            return data;            
         }
 
-        public IQueryable<PsCardItemExtn> GetCardItemExtnForBldgIssuanceSelection(Guid? psCardItemId, string mode)
+        public IQueryable<PsCardItemExtn> GetCardItemExtnForOtherIssuanceSelection(Guid? psCardItemId)
         {
-            return GetCardItemExtnForIssuanceSelection<PsCardItemExtnBuilding>(psCardItemId, mode);
+            return GetCardItemExtnForIssuanceSelection<PsCardItemExtnOther>(psCardItemId);
+        }
+
+        public IQueryable<PsCardItemExtn> GetCardItemExtnForLandIssuanceSelection(Guid? psCardItemId)
+        {
+            return GetCardItemExtnForIssuanceSelection<PsCardItemExtnLand>(psCardItemId);
+        }
+
+        public IQueryable<PsCardItemExtn> GetCardItemExtnForBldgIssuanceSelection(Guid? psCardItemId)
+        {
+            return GetCardItemExtnForIssuanceSelection<PsCardItemExtnBuilding>(psCardItemId);
         }
 
         public string GetEndSeries(string startSeries, Guid? itemId)

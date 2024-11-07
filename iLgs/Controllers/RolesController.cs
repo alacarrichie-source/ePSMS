@@ -61,13 +61,14 @@ namespace iLgs.Controllers
             }
             else
             {
-                return Json(db.AspNetRoles.Where(w => db.AspNetUserRoles.Where(x => x.UserId == userId && x.RoleId == w.Id && x.RoleId.Contains("_admin")).Any()
-                            ||
-                            db.AspNetUserRoles.Where(x => x.UserId == userId && x.RoleId == w.Id
-                                && db.AspNetUserRoles.Where(y => y.UserId == x.UserId && y.RoleId.Contains("_admin") && y.RoleId.Contains(x.RoleId)).Any()
-                            ).Any()
-                        ).ToDataSourceResult(request));
-                
+                //return Json(db.AspNetRoles.Where(w => db.AspNetUserRoles.Where(x => x.UserId == userId && x.RoleId == w.Id && x.RoleId.Contains("_admin")).Any()
+                //            ||
+                //            db.AspNetUserRoles.Where(x => x.UserId == userId && x.RoleId == w.Id
+                //                && db.AspNetUserRoles.Where(y => y.UserId == x.UserId && y.RoleId.Contains("_admin") && y.RoleId.Contains(x.RoleId)).Any()
+                //            ).Any()
+                //        ).ToDataSourceResult(request));                
+                var data = db.AspNetRoles.Where(w => w.Id != "admin" && db.AspNetUserRoles.Any(a => a.UserId == userId && a.RoleId.Contains(w.Id)));
+                return Json(data.ToDataSourceResult(request));
             }
         }
 

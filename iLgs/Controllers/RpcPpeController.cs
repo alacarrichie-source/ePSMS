@@ -17,19 +17,21 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Collections.Generic;
 using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 
 namespace iLgs.Controllers
 {
     [AppAuthorize("RPCPPE")]
     public class RpcPpeController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
-        private IRpcPpeService _rpcService;
-        private IRpcPpeItemService _rpcItemService;
-        private ICodextnService _codextnService;
+        private readonly AppManEntities _db;
+        private readonly IRpcPpeService _rpcService;
+        private readonly IRpcPpeItemService _rpcItemService;
+        private readonly ICodextnService _codextnService;
 
         public RpcPpeController()
         {
+            _db = new AppManEntities();
             _rpcService = new RpcPpeService(_db);
             _rpcItemService = new RpcPpeItemService(_db);
             _codextnService = new CodextnService(_db);
@@ -76,17 +78,21 @@ namespace iLgs.Controllers
                     model = await _rpcService.CreateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -112,17 +118,21 @@ namespace iLgs.Controllers
                     model = await _rpcService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -147,17 +157,13 @@ namespace iLgs.Controllers
                     model = await _rpcService.DeleteAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -167,27 +173,7 @@ namespace iLgs.Controllers
         {
             ViewData["rpcId"] = rpcId;
             return PartialView();
-        }
-        //public async Task<ActionResult> _RpciItemAddEdit(Guid orderId, Guid? orderItemId)
-        //{
-        //    var data = await _rpciItemService.GetByIdAsync(orderItemId);
-        //    if (data == null)
-        //    {
-        //        data = new OrderItemVM()
-        //        {
-        //            Id = Guid.NewGuid(),
-        //            OrderId = orderId,
-        //            Mode = "A"
-        //        };
-        //    }
-        //    else
-        //    {
-        //        data.Mode = "E";
-        //    }
-        //    ViewData["orderItemId"] = orderItemId;
-        //    return PartialView(data);
-        //}
-
+        }        
 
         public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, Guid? rpcId)
         {
@@ -216,10 +202,21 @@ namespace iLgs.Controllers
                     model = await _rpcItemService.CreateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -245,17 +242,21 @@ namespace iLgs.Controllers
                     model = await _rpcItemService.UpdateAsync(model, user, date);
                 }
             }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("UpdateError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("UpdateError", e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -282,17 +283,13 @@ namespace iLgs.Controllers
                     // TO DO: update stocks
                 }
             }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError("DeleteError", "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError("DeleteError", e.Message);
-                }
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
-namespace iLgs.Services
+namespace iLgs.Services.ParIcs
 {
     public interface IParIcsUploadService: IUploadService
     {        
