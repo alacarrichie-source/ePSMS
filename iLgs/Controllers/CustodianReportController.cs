@@ -34,6 +34,8 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly ICustodianReportUploadService _uploadService;
 
+        private readonly string _stockId, _ppeId, _transpoId;
+
         public CustodianReportController()
         {
             _db = new AppManEntities();
@@ -44,6 +46,9 @@ namespace iLgs.Controllers
             _custodianReportItemVehicleService = new CustodianReportItemVehicleService(_db);
             _codextnService = new CodextnService(_db);
             _uploadService = new CustodianReportUploadService(_db);
+            _stockId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.STOCK);
+            _ppeId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.PPE);
+            _transpoId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.VEHICLE);
         }
 
         public ActionResult Stock()
@@ -82,137 +87,138 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
-        {
-            var data = _custodianReportService.GetAllByDepartmentAccountGroup(deptId, accountGroup);
+        //public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
+        //{
+        //    var data = _custodianReportService.GetAllByDepartmentAccountGroup(deptId, accountGroup);
 
-            var result = new JsonNetResult
-            {
-                Data = data.ToDataSourceResult(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
-            return result;
-        }
+        //    var result = new JsonNetResult
+        //    {
+        //        Data = data.ToDataSourceResult(request),
+        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+        //    };
+        //    return result;
+        //}
+
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> Create([DataSourceRequest] DataSourceRequest request, CustodianReport model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+        //        Access access = await accessTask;
+        //        if (!access.AllowAdd)
+        //        {
+        //            ModelState.AddModelError("Access", "Add Access Denied!");
+        //        }
+
+
+        //        if (model != null && ModelState.IsValid)
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
+
+        //            model = await _custodianReportService.CreateAsync(model, user, date);
+        //        }
+        //    }
+        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+        //    {
+        //        var errors = validationException.GetErrorsForModelState();
+        //        foreach (var error in errors)
+        //        {
+        //            ModelState.AddModelError(error.Key, error.Message);
+        //        }
+        //    }
+        //    catch (ValidationException validationException)
+        //    {
+        //        ModelState.AddModelError("", validationException.InnerException.Message);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("", e.Message);
+        //    }
+
+        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        //}
+
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> Update([DataSourceRequest] DataSourceRequest request, CustodianReport model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+        //        Access access = await accessTask;
+        //        if (!access.AllowEdit)
+        //        {
+        //            ModelState.AddModelError("Access", "Update Access Denied!");
+        //        }
+
+        //        if (ModelState.IsValid)
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
+
+        //            model = await _custodianReportService.UpdateAsync(model, user, date);
+        //        }
+        //    }
+        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+        //    {
+        //        var errors = validationException.GetErrorsForModelState();
+        //        foreach (var error in errors)
+        //        {
+        //            ModelState.AddModelError(error.Key, error.Message);
+        //        }
+        //    }
+        //    catch (ValidationException validationException)
+        //    {
+        //        ModelState.AddModelError("", validationException.InnerException.Message);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("", e.Message);
+        //    }
+
+        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        //}
+
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, CustodianReport model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+        //        Access access = await accessTask;
+        //        if (!access.AllowDelete)
+        //        {
+        //            ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+        //        }
+        //        else
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
+
+        //            model = await _custodianReportService.DeleteAsync(model, user, date);
+        //        }
+        //    }
+        //    catch (ValidationException validationException)
+        //    {
+        //        ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("DeleteError", e.Message);
+        //    }
+
+        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        //}
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Create([DataSourceRequest] DataSourceRequest request, CustodianReport model)
+        public async Task<ActionResult> Post(Guid id, int? accountGroup)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
-                Access access = await accessTask;
-                if (!access.AllowAdd)
-                {
-                    ModelState.AddModelError("Access", "Add Access Denied!");
-                }
-
-
-                if (model != null && ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    model = await _custodianReportService.CreateAsync(model, user, date);
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", e.Message);
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Update([DataSourceRequest] DataSourceRequest request, CustodianReport model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
-                Access access = await accessTask;
-                if (!access.AllowEdit)
-                {
-                    ModelState.AddModelError("Access", "Update Access Denied!");
-                }
-
-                if (ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    model = await _custodianReportService.UpdateAsync(model, user, date);
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", e.Message);
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, CustodianReport model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
-                Access access = await accessTask;
-                if (!access.AllowDelete)
-                {
-                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
-                }
-                else
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    model = await _custodianReportService.DeleteAsync(model, user, date);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("DeleteError", e.Message);
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Post(Guid id)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -258,11 +264,12 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> UnPost(Guid id)
+        public async Task<ActionResult> UnPost(Guid id, int? accountGroup)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
                 Access access = await accessTask;
                 if (!access.AllowUnpost)
                 {
@@ -341,8 +348,8 @@ namespace iLgs.Controllers
         public async Task<ActionResult> _StockItemCreate([DataSourceRequest] DataSourceRequest request, CustodianReportItemStockVM model)
         {
             try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+            {                
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -382,7 +389,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -422,7 +429,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -464,7 +471,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -504,7 +511,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -544,7 +551,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -586,7 +593,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -626,7 +633,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -666,7 +673,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -698,8 +705,15 @@ namespace iLgs.Controllers
 
         #region PRINTOUTS
 
-        public ActionResult CustodianStockRpt(Guid? id, int? accountGroup)
+        public async Task<ActionResult> CustodianStockRpt(Guid? id, int? accountGroup)
         {
+            Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+            Access access = await accessTask;
+            if (!access.AllowDelete)
+            {
+                return new HttpStatusCodeResult(401, "Access Denied");
+            }
+
             //var rpci = _db.RPCIs.Find(id);
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
@@ -806,10 +820,18 @@ namespace iLgs.Controllers
             return File(fileContents, contentType, fileName);
         }
 
-        public async Task<ActionResult> ExcelExport(Guid reportId)
+        public async Task<ActionResult> ExcelExport(Guid reportId, int? accountGroup)
         {
             try
             {
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    return new HttpStatusCodeResult(401, "Access Denied");
+                }
+
                 string exportFileName = "";
                 var report = await _custodianReportService.GetByIdAsync(reportId);
                 if (report.AccountGroup == (int?)CustodianAccountGroup.STOCK)
@@ -873,7 +895,6 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-
         public ActionResult _ImagesAdd(Guid? imageId)
         {
             var model = new Models.Upload()
@@ -896,12 +917,13 @@ namespace iLgs.Controllers
             };
             return result;
         }
-
-        public async Task<ActionResult> _ImagesDestroy([DataSourceRequest]DataSourceRequest request, Models.Upload model)
+        
+        public async Task<ActionResult> _ImagesDestroy([DataSourceRequest]DataSourceRequest request, Models.Upload model, int? accountGroup)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -925,17 +947,16 @@ namespace iLgs.Controllers
                 ModelState.AddModelError("DeleteError", e.Message);
             }
 
-
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ImagesUpdate([DataSourceRequest] DataSourceRequest request, Models.Upload model)
+        public async Task<ActionResult> _ImagesUpdate([DataSourceRequest] DataSourceRequest request, Models.Upload model, int? accountGroup)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -971,12 +992,12 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-
-        public async Task<ActionResult> _ImagesUpload(IEnumerable<HttpPostedFileBase> files, Models.Upload model)
+        public async Task<ActionResult> _ImagesUpload(IEnumerable<HttpPostedFileBase> files, Models.Upload model, int? accountGroup)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -1024,8 +1045,7 @@ namespace iLgs.Controllers
         public ActionResult DownloadFile(string fileName)
         {
             try
-            {
-                
+            {                
                 // Call the service to get the file bytes
                 byte[] fileBytes = _uploadService.DownloadFile(fileName);
 

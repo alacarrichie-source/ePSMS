@@ -344,17 +344,47 @@ namespace iLgs.Controllers
                 ModelState.AddModelError("", e.Message);
             }
 
-            var query = from state in ModelState.Values
-                        from error in state.Errors
-                        select error.ErrorMessage;
+            //var query = from state in ModelState.Values
+            //            from error in state.Errors
+            //            select error.ErrorMessage;
 
-            var errorList = query.ToList();
-            if (errorList.Count() > 0)
+            //var errorList = query.ToList();
+            //if (errorList.Count() > 0)
+            //{
+            //    return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            //}
+
+            var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
+                       .Select(ms => new
+                       {
+                           Key = ms.Key, // The field name
+                           Message = ms.Value.Errors.Select(e =>
+                           {
+                               var errorMessage = e.ErrorMessage;
+                               if (e.Exception != null)
+                               {
+                                   var exceptionMessage = e.Exception.Message;
+                                   var innerExceptionMessage = e.Exception.InnerException?.Message;
+
+                                   // Append exception details
+                                   errorMessage += $" Exception: {exceptionMessage}";
+                                   if (innerExceptionMessage != null)
+                                   {
+                                       errorMessage += $" InnerException: {innerExceptionMessage}";
+                                   }
+                               }
+
+                               return errorMessage;
+                           }).ToList() // List of messages for the current field
+                       })
+                       .ToList();
+
+            if (errorList.Any())
             {
-                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+                return Json(new { Errors = errorList }, JsonRequestBehavior.AllowGet);
             }
 
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
         }
 
 

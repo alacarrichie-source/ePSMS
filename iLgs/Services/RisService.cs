@@ -18,6 +18,7 @@ namespace iLgs.Services
         ValueTask<RISs> GetByRisNoAsync(string risNo);
         ValueTask<RISs> GetByOrderIdAsync(Guid orderId);
         ValueTask<bool> GetAnyRisNoAsync(Guid risId, string risNo);
+        bool IsPosted(Guid risId);
         ValueTask<bool> IsPostedAsync(Guid risId);
         ValueTask<bool> IsPrPostedAsync(Guid risId);
         ValueTask<bool> IsWithPrAsync(Guid risId);
@@ -141,6 +142,12 @@ namespace iLgs.Services
         public async ValueTask<bool> IsPostedAsync(Guid risId)
         {
             var entity = await _db.RISses.FindAsync(risId);
+            return !string.IsNullOrWhiteSpace(entity.PostedBy);
+        }
+
+        public bool IsPosted(Guid risId)
+        {
+            var entity = _db.RISses.Find(risId);
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
         }
 

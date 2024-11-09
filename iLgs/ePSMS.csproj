@@ -3816,8 +3816,6 @@
     <Content Include="Views\Shared\EditorTemplates\_RefDateTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_QtyTemplate.cshtml" />
     <Content Include="Views\Items\_QueryOrderItems.cshtml" />
-    <Content Include="Views\RIS_\Index.cshtml" />
-    <Content Include="Views\RIS_\EditorTemplates\_RISTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_DaysTemplate.cshtml" />
     <Content Include="Views\RSMI\Index.cshtml" />
     <Content Include="Views\RSMI\_RSMIAdd.cshtml" />
@@ -4055,6 +4053,7 @@
     <Content Include="Views\CustodianReport\EditorTemplates\_ImagesTemplate.cshtml" />
     <Content Include="Views\CustodianReport\_Images.cshtml" />
     <Content Include="Views\CustodianReport\_ImagesAdd.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\LabelGuid.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

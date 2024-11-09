@@ -240,7 +240,7 @@
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExport", "CustodianReport")" + "?reportId=" + reportId;
+            var url = "@Url.Action("ExcelExport", "CustodianReport")" + "?reportId=" + reportId + '&accountGroup=@ViewBag.AccountGroup';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -330,7 +330,7 @@
         }
     }
 
-    
+
     function onDataBoundGrid(e) {
         if (selectedId && selectedId != "00000000-0000-0000-0000-000000000000") {
             var dataItem = this.dataSource.get(selectedId);
@@ -473,7 +473,7 @@
                 $.ajax({
                     type: "POST",
                     url: '@Url.Action("Post", "CustodianReport")',
-                    data: { id: selectedId },
+                    data: { id: selectedId, accountGroup:'@ViewBag.AccountGroup' },
                     async: true,
                     beforeSend: function () {
                         window.kendo.ui.progress($(document.body), true);
@@ -514,7 +514,7 @@
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("Unpost", "CustodianReport")',
-                data: { id: selectedId },
+                data: { id: selectedId, accountGroup: '@ViewBag.AccountGroup' },
                 async: true,
                 beforeSend: function () {
                     window.kendo.ui.progress($(document.body), true);

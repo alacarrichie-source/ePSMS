@@ -21,6 +21,8 @@ namespace iLgs.Services.CustodianReports
         IQueryable<CustodianReport> GetAllByAccountGroup(int? accountGroup);
         IQueryable<CustodianReport> GetAllByDepartmentAccountGroup(Guid? deptId, int? accountGroup);        
         ValueTask<CustodianReport> GetByIdAsync(Guid? id);
+        string GetAccountGroupMenuId(CustodianAccountGroup accountGroup);
+        string GetAccountGroupMenuId(int? accountGroup);
         ValueTask<CustodianReport> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReport> UnPostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReport> CreateAsync(CustodianReport model, string user, DateTime date);
@@ -78,7 +80,30 @@ namespace iLgs.Services.CustodianReports
             var data = _db.CustodianReports.AsNoTracking().Where(w => w.DeptId == deptId && w.AccountGroup == accountGroup).AsQueryable();
             return data;
         });
-        
+
+        public string GetAccountGroupMenuId(CustodianAccountGroup accountGroup)
+        {            
+            return GetAccountGroupMenuId((int?)accountGroup);
+        }
+
+        public string GetAccountGroupMenuId(int? accountGroup)
+        {
+            string menuId = "";
+            if (accountGroup == (int?)CustodianAccountGroup.PPE)
+            {
+                menuId = "custodian_report_ppe";                                                
+            }
+            else if (accountGroup == (int?)CustodianAccountGroup.STOCK)
+            {
+                menuId = "custodian_report_stock";
+            }
+            else if (accountGroup == (int?)CustodianAccountGroup.VEHICLE)
+            {
+                menuId = "custodian_report_vehicle";
+            }
+            return menuId;
+        }
+
         public ValueTask<CustodianReport> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {

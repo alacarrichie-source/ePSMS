@@ -573,7 +573,7 @@
         $("#ItemCode").val(dataItem.Code).trigger("change");
         $("#PsType").val(dataItem.Type).trigger("change");
         $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
-        $("#ItemType").val(dataItem.Description).trigger("change");
+        $("#ItemType").val(dataItem.Article).trigger("change");
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
         $("#SubAccountCode").val(dataItem.MainDescCode).trigger("change");
 
@@ -583,6 +583,7 @@
     function RefreshDivs(dataItem) {
         var fieldsContainer = $('#DIV_ALLFIELDS');
 
+        fieldsContainer.removeClass('hidden');
         fieldsContainer.empty(); // Clear existing content
 
         var url = '@Url.Action("LoadFields", "RIS")';

@@ -17,12 +17,11 @@ namespace iLgs.Services.Validators
     }
 
     public class RisItemUnitGroupValidator : BaseValidator, IRisItemUnitGroupValidator
-    {
-        private delegate string GetDisplayNameDelegate(string propertyName);
+    {        
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
-        private IRisService _risService;
+        private readonly IRisService _risService;
         public RisItemUnitGroupValidator(AppManEntities db)
         {
             _db = db;
@@ -55,7 +54,8 @@ namespace iLgs.Services.Validators
 
         public void ValidateIfPosted(Guid risId)
         {
-            if (_risService.IsPostedAsync(risId).Result)
+            var isPosted = _risService.IsPosted(risId);
+            if (isPosted)
             {
                 throw new RecordAlreadyPostedException();
             }
