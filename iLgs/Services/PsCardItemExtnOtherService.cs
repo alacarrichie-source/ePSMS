@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -26,11 +27,13 @@ namespace iLgs.Services
         private readonly AppManEntities _db;
         private readonly IExceptionService<PsCardItemExtnOther> _exceptionService = new ExceptionService<PsCardItemExtnOther>();
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
+        private readonly IPsCardItemExtnValidator _psCardItemExtnValidator;
 
         public PsCardItemExtnOtherService(AppManEntities db)
         {
             _db = db;
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _psCardItemExtnValidator = new PsCardItemExtnValidator(_db);
         }
 
         public IQueryable<PsCardItemExtnOther> GetByPsCardItemId(Guid? psCardItemId)
@@ -141,10 +144,7 @@ namespace iLgs.Services
 
         public ValueTask<PsCardItemExtnOther> DeleteAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            //if (await IsPostedAsync(model.PsCardItemId))
-            //{
-            //    throw new RecordAlreadyPostedException("Record already posted, cannot delete!");
-            //}
+            _psCardItemExtnValidator.ValidateOnDelete(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;

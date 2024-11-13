@@ -306,6 +306,7 @@
     <Compile Include="Controllers\DollarRateController.cs" />
     <Compile Include="Controllers\IcsSetController.cs" />
     <Compile Include="Controllers\ItemHelperController.cs" />
+    <Compile Include="Controllers\LocationController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
     <Compile Include="Controllers\PropertyCardPpeController.cs" />
@@ -649,6 +650,7 @@
     <Compile Include="Services\AirItemExtnVehicleService.cs" />
     <Compile Include="Services\AllFields\AllFieldService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
+    <Compile Include="Services\Codes\LocationService.cs" />
     <Compile Include="Services\CustodianDisposal_\CustodianDisposalItemService.cs" />
     <Compile Include="Services\CustodianDisposal_\CustodianDisposalService.cs" />
     <Compile Include="Services\CustodianIirup\CustodianIirupItemService.cs" />
@@ -869,7 +871,7 @@
     <Compile Include="Services\AirInvoiceService.cs" />
     <Compile Include="Services\AirItemService.cs" />
     <Compile Include="Services\AirService.cs" />
-    <Compile Include="Services\CodextnService.cs" />
+    <Compile Include="Services\Codes\CodextnService.cs" />
     <Compile Include="Services\DirectoryService.cs" />
     <Compile Include="Services\ExceptionService.cs" />
     <Compile Include="Services\GmailEmailService.cs" />
@@ -918,6 +920,7 @@
     <Compile Include="Exceptions\Service\InvalidModelException.cs" />
     <Compile Include="Services\Validators\ParSetValidator.cs" />
     <Compile Include="Services\Validators\PropertyCardValidator.cs" />
+    <Compile Include="Services\Validators\PsCArdItemExtnValidator.cs" />
     <Compile Include="Services\Validators\PsCardItemExtnVehicleValidator.cs" />
     <Compile Include="Services\Validators\PsCardItemValidator.cs" />
     <Compile Include="Services\Validators\RisItemValidator.cs" />
@@ -3864,7 +3867,7 @@
     <Content Include="Views\Shared\EditorTemplates\_QtyBalTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_FundTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_OfficeTemplate.cshtml" />
-    <Content Include="Views\Codes\EditorTemplates\_CodeTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_CodeTemplate.cshtml" />
     <Content Include="Views\RIS\_RISItemUnitGroup.cshtml" />
     <Content Include="Views\RIS\EditorTemplates\_RisUnitGroupDescriptionItemTemplate.cshtml" />
     <Content Include="Views\Requests\_UnitGroup.cshtml" />
@@ -3890,7 +3893,7 @@
     <Content Include="Views\Shared\EditorTemplates\_IssuedDateTemplate.cshtml" />
     <Content Include="Views\Items\EditorTemplates\_CategoryTemplate.cshtml" />
     <Content Include="Views\Codes\_AccountableOfficers.cshtml" />
-    <Content Include="Views\Codes\EditorTemplates\_DateAssumptionTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_DateAssumptionTemplate.cshtml" />
     <Content Include="Views\PropertyCardPpe\EditorTemplates\_CardTemplate.cshtml" />
     <Content Include="Views\PropertyCardPpe\_MachineryEquipment.cshtml" />
     <Content Include="Views\RpcPpe\Index.cshtml" />
@@ -3905,7 +3908,7 @@
     <Content Include="Views\StockCard\Index.cshtml" />
     <Content Include="Views\StockCard\EditorTemplates\x_CardTemplate.cshtml" />
     <Content Include="Views\StockCard\EditorTemplates\_CardItemTemplate.cshtml" />
-    <Content Include="Views\Codes\Location.cshtml" />
+    <None Include="Views\Location\Index.cshtml" />
     <Content Include="Views\StockCard\_StockCardAddEdit.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_LocationTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_PoDateTemplate.cshtml" />
@@ -4054,6 +4057,10 @@
     <Content Include="Views\CustodianReport\_Images.cshtml" />
     <Content Include="Views\CustodianReport\_ImagesAdd.cshtml" />
     <Content Include="Views\Shared\DisplayTemplates\LabelGuid.cshtml" />
+    <Content Include="Views\RIS\EditorTemplates\_UnitTemplate.cshtml" />
+    <Content Include="Views\Location\_DepartmentUsers.cshtml" />
+    <Content Include="Views\Location\_AccountableOfficers.cshtml" />
+    <Content Include="Views\Location\EditorTemplates\_DepartmentUserTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

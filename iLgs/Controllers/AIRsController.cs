@@ -20,6 +20,7 @@ using System.IO;
 using iLgs.Agents.Services;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
+using iLgs.Services.Codes;
 
 namespace iLgs.Controllers
 {

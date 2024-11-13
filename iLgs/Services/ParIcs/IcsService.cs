@@ -449,6 +449,9 @@ namespace iLgs.Services.ParIcs
                         icsPar = new IcsPar()
                         {
                             Id = (Guid)icsParId,
+                            LocationId = model.LocationId,
+                            LocationCode = model.LocationCode,
+                            Location = model.Location,
                             RefNo = refNo,
                             RefDate = model.Date,
                             RefType = model.RefType,
@@ -640,6 +643,9 @@ namespace iLgs.Services.ParIcs
                             icsPar = new IcsPar()
                             {
                                 Id = (Guid)icsParId,
+                                LocationId = model.LocationId,
+                                LocationCode = model.LocationCode,
+                                Location = model.Location,
                                 RefNo = refNo,
                                 RefDate = model.Date,
                                 RefType = model.RefType,
@@ -729,6 +735,20 @@ namespace iLgs.Services.ParIcs
             return refType == "P" ? "PAR" : "ICS";
         }
 
+        private async Task<bool> IsWwithUploadAsync(Guid? groupId)
+        {
+            var result = await _db.Uploads.AnyAsync(a => a.ImageId == groupId);
+            return result;
+        }
+
+        private async Task ValidateUploadAsync(Guid? groupId)
+        {
+            if (!await IsWwithUploadAsync(groupId))
+            {
+                throw new InvalidValueException("No uploaded files found, cannot post!");
+            }
+        }
+
         public ValueTask<PsCardItemUnitGroupDescriptionItem> UpdateNoICSAsync(PsCardItemUnitGroupDescriptionItem model, string user, DateTime date)
         => _psCardItemUnitGroupDescriptionItemService.TryCatch(async () =>
         {
@@ -757,6 +777,7 @@ namespace iLgs.Services.ParIcs
             }
 
             //await ValidateOnPost(entity);
+            await ValidateUploadAsync(groupId);
 
             await entity.ForEachAsync(f =>
             {

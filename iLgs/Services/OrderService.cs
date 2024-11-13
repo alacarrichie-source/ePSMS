@@ -14,6 +14,9 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using static iLgs.Models.Enums;
 using iLgs.Services.AllFields;
+using iLgs.Exceptions.Service;
+using iLgs.Services.Validators;
+using iLgs.Utilities;
 
 namespace iLgs.Services
 {
@@ -37,18 +40,20 @@ namespace iLgs.Services
         ValueTask<Order> UnpostAsync(Guid orderId, string user, DateTime date);
     }
 
-    public class OrderService : IOrderService
+    public class OrderService : BaseValidator, IOrderService
     {
         private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<OrderVM> _orderVmExceptionService = new ExceptionService<OrderVM>();
         private readonly IExceptionService<Order> _orderExceptionService = new ExceptionService<Order>();
         private IAllFieldService _allFieldService;
+        private readonly GetDisplayNameDelegate _getDisplayName;
 
         public OrderService(AppManEntities db)
         {
             _db = db;
             _allFieldService = new AllFieldService(_db);
+            _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
         }
 
         public IQueryable<OrderVM> GetAll() => _orderVmExceptionService.TryCatch(() =>
@@ -568,9 +573,11 @@ namespace iLgs.Services
         
         private async ValueTask ValidateOnPost(Order entity)
         {
+            var ex = new InvalidModelException();
             if (!string.IsNullOrWhiteSpace(entity.PostedBy))
             {
-                throw new PoNumberAlreadyPostedException(entity.PoNo);
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
             }
 
             var idList = await _db.OrderItems.Where(w => w.OrderId == entity.Id).GroupBy(g => g.RequestItem.Request.Id)
@@ -581,13 +588,13 @@ namespace iLgs.Services
                 var request = await _db.Requests.FindAsync(id);
                 if (request == null)
                 {
-                    throw new RecordNotFoundException(id);
+                    throw new NotFoundException(id);
                 }
                 else
                 {
                     if (string.IsNullOrWhiteSpace(request.SubmittedBy))
                     {
-                        throw new PurchaseRequestNotYetPostedException(request.PrNo);
+                        throw new RecordNotYetPostedException("Record is not yet posted.");
                     }
                 }
             }
@@ -599,8 +606,8 @@ namespace iLgs.Services
                 {
                     if (string.IsNullOrWhiteSpace(orderItem.Brand) && _allFieldService.IsBrandRequired(c))
                     {
-                        throw new RequiredFieldException(nameof(orderItem.Brand), orderItem.RequestItem.RisItem.ItemName);
-                        //throw new InvalidValueException($"Brand is required for {orderItem.RequestItem.RisItem.ItemName}");
+                        var msg = $"Field is Required for {orderItem.RequestItem.RisItem.ItemName}";
+                        ex.UpsertDataList(_getDisplayName(nameof(orderItem.Brand)), msg);                        
                     }                    
                 }        
                 if (string.IsNullOrWhiteSpace(orderItem.StockNo))
@@ -608,6 +615,7 @@ namespace iLgs.Services
                     throw new InvalidValueException("All items must have a valid Stock No.");
                 }
             }
+            ex.ThrowIfContainsErrors();
         }
 
         private async ValueTask ValidateOnUnpost(Order entity)

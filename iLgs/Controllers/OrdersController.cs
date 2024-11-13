@@ -18,6 +18,7 @@ using System.IO;
 using System.Collections.Generic;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
+using iLgs.Services.Codes;
 
 namespace iLgs.Controllers
 {
@@ -640,26 +641,21 @@ namespace iLgs.Controllers
                     await _orderService.PostAsync(orderId, user, date);
                 }
             }
-            catch (RecordNotFoundException e)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
-                ModelState.AddModelError("", e.Message);
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
             }
-            catch (PoNumberAlreadyPostedException e)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", e.Message);
-            }
-            catch (RequiredFieldException e)
-            {
-                ModelState.AddModelError("", e.Message);
-            }
-            catch (PurchaseRequestNotYetPostedException e)
-            {
-                ModelState.AddModelError("", e.Message);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values

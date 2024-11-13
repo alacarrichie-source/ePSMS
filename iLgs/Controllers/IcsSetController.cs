@@ -2,8 +2,10 @@
 using CrystalDecisions.Shared;
 using iLgs.Exceptions;
 using iLgs.Exceptions.PARs;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
+using iLgs.Services.Codes;
 using iLgs.Services.Interfaces;
 using iLgs.Services.ParIcs;
 using iLgs.Utilities;
@@ -296,26 +298,21 @@ namespace iLgs.Controllers
                     await _icsService.PostAsync(groupId, user, date);
                 }
             }
-            catch (RecordNotFoundException e)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
-                ModelState.AddModelError("", e.Message);
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
             }
-            catch (RecordAlreadyPostedException e)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", e.Message);
-            }
-            catch (InvalidValueException e)
-            {
-                ModelState.AddModelError("", e.Message);
-            }
-            catch (RequiredFieldException e)
-            {
-                ModelState.AddModelError("", e.Message);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values
@@ -351,22 +348,21 @@ namespace iLgs.Controllers
                     await _icsService.UnPostAsync(groupId, user, date);
                 }
             }
-            catch (RecordNotFoundException e)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
-                ModelState.AddModelError("", e.Message);
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
             }
-            catch (RecordNotYetPostedException e)
+            catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", e.Message);
-            }
-            catch (RequiredFieldException e)
-            {
-                ModelState.AddModelError("", e.Message);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", "Unable to save changes, Try again, and if the problem persists " +
-                     "please contact tech support with this message: " + e.Message);
+                ModelState.AddModelError("", e.Message);
             }
 
             var query = from state in ModelState.Values

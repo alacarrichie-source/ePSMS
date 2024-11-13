@@ -32,10 +32,10 @@ namespace iLgs.Services.ParIcs
 
         public override async ValueTask<Upload> UploadAsync(IEnumerable<HttpPostedFileBase> files, Upload model, string user, DateTime date)
         {
-            if (await IsPostedAsync(model.ImageId))
-            {
-                throw new RecordAlreadyPostedException("Record is already posted, cannot update!");
-            }
+            //if (await IsPostedAsync(model.ImageId))
+            //{
+            //    throw new RecordAlreadyPostedException("Record is already posted, cannot update!");
+            //}
 
             if (files == null || !files.Any())
             {

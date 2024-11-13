@@ -1,5 +1,6 @@
 ﻿using iLgs.Models;
 using iLgs.Services;
+using iLgs.Services.Codes;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -169,6 +170,19 @@ namespace iLgs.Controllers
 
             return Json(retModel, JsonRequestBehavior.AllowGet);
 
+        }
+
+        public JsonResult GetUnits(string text)
+        {
+
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "UNIT").AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Desc2).ThenBy(t => t.Description), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetCodes(string mastCode, string text)

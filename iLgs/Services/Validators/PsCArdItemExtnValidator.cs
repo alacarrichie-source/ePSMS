@@ -1,8 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.AllFields;
-using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -10,54 +8,64 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace iLgs.Services.CustodianReports
+namespace iLgs.Services.Validators
 {
-    public interface ICustodianReportItemPpeValidator
+    public interface IPsCardItemExtnValidator
     {
-        void ValidateOnCreate(CustodianReportItemPpeVM model);
-        void ValidateOnUpdate(CustodianReportItemPpeVM model);
-        void ValidateOnDelete(CustodianReportItemPpeVM model);
+        void ValidateOnCreate(PsCardItemExtn model);
+        void ValidateOnUpdate(PsCardItemExtn model);
+        void ValidateOnDelete(PsCardItemExtn model);
     }
 
-    public class CustodianReportItemPpeValidator : BaseValidator, ICustodianReportItemPpeValidator
+    public class PsCardItemExtnValidator : BaseValidator, IPsCardItemExtnValidator
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly ICodextnService _codextnService;
-        private readonly IAllFieldsValidator _allFieldsValidator;
-
-        public CustodianReportItemPpeValidator(AppManEntities db)
+        
+        public PsCardItemExtnValidator(AppManEntities db)
         {
             _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportItemPpeVM>(propertyName);
-            _codextnService = new CodextnService(_db);
-            _allFieldsValidator = new AllFieldsValidator(_db);
+            _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtn>(propertyName);            
         }
 
-        public void ValidateOnCreate(CustodianReportItemPpeVM model)
+        public void ValidateOnCreate(PsCardItemExtn model)
         {
             ValidateIfNull(model);
             ValidateFieldsOnCreateUpdate(model);
         }
 
-        public void ValidateOnUpdate(CustodianReportItemPpeVM model)
+        public void ValidateOnUpdate(PsCardItemExtn model)
         {
             ValidateIfNull(model);
             ValidateFieldsOnCreateUpdate(model);
         }
 
-        public void ValidateOnDelete(CustodianReportItemPpeVM model)
+        public void ValidateOnDelete(PsCardItemExtn model)
         {
             ValidateIfNull(model);
             ValidateRecord(model.Id);
+
+            // check in Par/Ics
+            if (_db.IcsParItems.Any(a => a.PsCardItemExtnId == model.Id))
+            {
+                throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
+            }
+
+            var transactions = _db.PsCardItemTransactions.Where(a => a.PsCardItemExtnId == a.Id && a.Remarks != "CARD")
+                .GroupBy(g => g.Remarks)
+                .Select(s => s.Key);
+            if (transactions.Any())
+            {
+                string remarks = string.Join("/", transactions);
+                throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
+            }
+
         }
 
-        public void ValidateFieldsOnCreateUpdate(CustodianReportItemPpeVM model)
+        public void ValidateFieldsOnCreateUpdate(PsCardItemExtn model)
         {
             var ex = new InvalidModelException();
-            _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemType_Code, model.Item_Code, ex, Enums.Module.CARD);
-
-
+            
             //if (model.DeptId == null)
             //{
             //    ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Field is required.");
@@ -109,13 +117,13 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateRecord(Guid id)
         {
-            if (!_db.CustodianReportItems.Any(a => a.Id == id))
+            if (!_db.PsCardItemExtns.Any(a => a.Id == id))
             {
                 throw new NotFoundException(id);
             }
         }
 
-        private static void ValidateIfNull(CustodianReportItemPpeVM model)
+        private static void ValidateIfNull(PsCardItemExtn model)
         {
             if (model is null)
             {

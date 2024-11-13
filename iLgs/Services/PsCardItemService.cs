@@ -263,11 +263,8 @@ namespace iLgs.Services
         });
 
         public ValueTask<PsCardItemVM> DeleteAsync(PsCardItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
-        {
-            if (_db.PsCardItems.Any(a => a.Id == model.Id && a.PsCardItemTransfers.Any()))
-            {
-                throw new RecordRelationshipException("Items of this record were transfered to other department/location, cannot delete!");
-            }
+        {            
+            _psCardItemValidator.ValidateOnDelete(model);
 
             using (var transaction = _db.Database.BeginTransaction())
             {

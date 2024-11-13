@@ -1,0 +1,35 @@
+﻿@model string
+
+@*@(Html.Kendo().ComboBoxFor(m => m)
+    .Name("Unit")
+    .DataTextField("Text")  // The field to display in the dropdown
+    .DataValueField("Value") // The field for the underlying value
+    .DataSource(source => source
+        .Read(read => read.Action("GetUnits", "YourController")) // Replace with your action
+    )
+    .Filter("contains") // Optional filtering
+    .Placeholder("Select a unit...")
+)*@
+
+@(Html.Kendo().MultiColumnComboBoxFor(m => m)
+    .Name("Unit")
+    .Placeholder("Select unit")
+    .DataTextField("Description")
+    .DataValueField("Code")
+    .ValuePrimitive(true)
+    .Filter(FilterType.Contains)
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("GetCodes", "Getters", new { mastCode = "UNIT-GROUP", text = "" });
+        })
+        .ServerFiltering(true);
+    })
+    .Columns(c =>
+    {
+        c.Add().Field("Description").Title("Unit").Width("100%");
+
+    })
+    .Suggest(true)
+)

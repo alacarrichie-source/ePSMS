@@ -24,20 +24,20 @@
     <fieldset>
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.CustodianItemNo, "LabelInt")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.CustodianItemNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.CustodianItemNo)
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.SeriesNo, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.SeriesNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.SeriesNo)
                 </div>
@@ -86,20 +86,20 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.Account, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.Account).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Account)
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.SubAccount, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.SubAccount).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.SubAccount)
                 </div>
@@ -108,10 +108,10 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.BldgItem, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.BldgItem).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.BldgItem)
                 </div>
@@ -120,10 +120,10 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(model => model.LocationId, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Location")
@@ -152,11 +152,11 @@
             </div>
 
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.Location, "Label")
                 </div>
-                <div class="col-md-9">
-                    @(Html.Kendo().TextBoxFor(m => m.Location).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                <div class="col-md-8">
+                    @(Html.Kendo().TextBoxFor(m => m.Location).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Location)
                 </div>
             </div>
@@ -164,10 +164,10 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.SubLocation, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.SubLocation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.SubLocation)
                 </div>
@@ -176,20 +176,20 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.ProjectName, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.ProjectName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.ProjectName)
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.BuildingType, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.BuildingType).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.BuildingType)
                 </div>
@@ -198,10 +198,10 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.Area, "LabelDecimal")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.Area).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Area)
                 </div>
@@ -211,10 +211,10 @@
         <br />
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.Label("")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().CheckBoxFor(m => m.FromDonation).Events(e => e.Change("UpdateDescription")))
                     @Html.ValidationMessageFor(m => m.FromDonation)
                 </div>
@@ -224,20 +224,20 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.PsNo, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.PsNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PsNo)
                 </div>
             </div>
         
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.AcqDate, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().DatePickerFor(m => m.AcqDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.AcqDate)
                 </div>
@@ -246,20 +246,20 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.PropNo, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PropNo)
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.OldAmount, "LabelDecimal")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.OldAmount).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.OldAmount)
                 </div>
@@ -268,20 +268,20 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.AcqCost, "LabelDecimal")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.AcqCost).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.AcqCost)
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.PhaseNo, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.PhaseNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PhaseNo)
                 </div>
@@ -290,20 +290,20 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.PhaseAmountCo, "LabelDecimal")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.PhaseAmountCo).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PhaseAmountCo)
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.TotalAmount, "LabelDecimal")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.TotalAmount).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.TotalAmount)
                 </div>
@@ -312,10 +312,10 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.PhaseAmountMooe, "LabelDecimal")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.PhaseAmountMooe).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PhaseAmountMooe)
                 </div>
@@ -324,30 +324,30 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.StartDate, "LabelDate")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().DatePickerFor(m => m.StartDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.StartDate)
                 </div>
             </div>
 
             <div class="col-md-3">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.TargetYear, "LabelInt")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.TargetYear).Decimals(0).Format("{0:0}").Max(9999).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.TargetYear)
                 </div>
             </div>
 
             <div class="col-md-3">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.TargetMonth, "LabelInt")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.TargetMonth).Decimals(0).Format("{0:0}").Min(1).Max(12).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.TargetMonth)
                 </div>
@@ -356,20 +356,20 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.PercentComplete, "LabelDecimal")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.PercentComplete).Decimals(2).Format("{0:n2}%").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                    
                     @Html.ValidationMessageFor(m => m.PercentComplete)
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.CompletionDate, "LabelDate")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().DatePickerFor(m => m.CompletionDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.CompletionDate)
                 </div>
@@ -378,20 +378,20 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.Status, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.Status).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Status)
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.Fund, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Fund")
@@ -420,10 +420,10 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.Condition, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.Condition)
                                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                                 .Placeholder("Select Condition")
@@ -449,10 +449,10 @@
             </div>
 
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.Remarks, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.Remarks).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Remarks)
                 </div>
@@ -462,20 +462,20 @@
 
         <div class="row">            
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.Latitude, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.Latitude).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Latitude)
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.Longitude, "Label")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.Longitude).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Longitude)
                 </div>
@@ -484,11 +484,11 @@
 
         <div class="row">
             <div class="col-md-6">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     @Html.DisplayFor(m => m.Annex, "Label")
                 </div>
-                <div class="col-md-9">
-                    @(Html.Kendo().MaskedTextBoxFor(m => m.Annex).Mask("L").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                <div class="col-md-8">
+                    @(Html.Kendo().MaskedTextBoxFor(m => m.Annex).PromptChar(" ").Mask("L").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Annex)
                 </div>
             </div>

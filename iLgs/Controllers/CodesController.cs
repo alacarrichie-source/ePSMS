@@ -14,6 +14,7 @@ using iLgs.Services.Interfaces;
 using iLgs.Services;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
+using iLgs.Services.Codes;
 
 namespace iLgs.Controllers
 {
@@ -53,6 +54,15 @@ namespace iLgs.Controllers
             ViewData["code"] = code;
             ViewData["title"] = "Unit Group";
             return View("Codextn" ,codeMast);
+        }        
+
+        public async Task<ActionResult> Department()
+        {
+            var code = "Departments";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Departments";
+            return View(codeMast);
         }
 
         public async Task<ActionResult> Location()
@@ -61,15 +71,6 @@ namespace iLgs.Controllers
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "Locations";
-            return View(codeMast);
-        }
-
-        public async Task<ActionResult> Department()
-        {
-            var code = "Departments";
-            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
-            ViewData["code"] = code;
-            ViewData["title"] = "Departments";
             return View(codeMast);
         }
 
@@ -429,7 +430,7 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
+        }        
 
         #region DEPARTMENT USERS
         public ActionResult _DepartmentUsers(Guid deptId)

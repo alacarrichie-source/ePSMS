@@ -4,7 +4,7 @@
         {
             col.Bound(c => c.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")                
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.Unit).Width(100);
+            col.Bound(c => c.Unit).EditorTemplateName("_UnitTemplate").Width(100);
             col.Bound(c => c.InsertedDt).Width(100);
             col.Command(command =>
             {
@@ -38,7 +38,7 @@
         .ClientDetailTemplateId("GroupDescriptions")
         .DataSource(dataSource => dataSource
             .Ajax()
-            .Events(events => events.Error("GridError").RequestEnd("onGridItemUnitGroupsRequestEnd"))
+            .Events(events => events.Error("InlineGridError").RequestEnd("onGridItemUnitGroupsRequestEnd"))
             .Model(model =>
             {
                 model.Id(p => p.Id);

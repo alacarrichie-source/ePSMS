@@ -29,6 +29,8 @@ namespace iLgs.Services
         IQueryable<ItemCodeVM> GetCustodianItemLand(string item);
         IQueryable<ItemCodeVM> GetCustodianItemBldg(string item);
 
+        bool? IsProperty(Guid? id);
+        string GetInvDist(Guid? id);
 
         ValueTask<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date);
         ValueTask<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date);
@@ -39,11 +41,11 @@ namespace iLgs.Services
     {
         private readonly AppManEntities _db;
         private readonly IExceptionService<ItemCodeVM> _VmExceptionService = new ExceptionService<ItemCodeVM>();
-        private readonly IExceptionService<ItemCode> _ExceptionService = new ExceptionService<ItemCode>();
+        private readonly IExceptionService<ItemCode> _ExceptionService = new ExceptionService<ItemCode>();        
 
         public ItemCodeService(AppManEntities db)
         {
-            _db = db;
+            _db = db;            
         }
 
         public IQueryable<ItemCodeVM> GetAll()
@@ -172,6 +174,25 @@ namespace iLgs.Services
 
             var data = _db.Database.SqlQuery<ItemCodePreviewVM>("Exec ItemCodes_GetPreview {0}", category).AsQueryable().AsNoTracking();
             return data;
+        }
+
+        public bool? IsProperty(Guid? id)
+        {
+            var itemCode = _db.ItemCodes.Include(i => i.ItemType).Where(w => w.Id == id).AsNoTracking().FirstOrDefault();
+            if (itemCode != null)
+            {
+                return itemCode.ItemType.Category != "S";
+            }
+            return false;
+        }
+
+        public string GetInvDist(Guid? id)
+        {
+            if (IsProperty(id) == true)
+            {
+                return "I";
+            }
+            return "D";
         }
 
         private void ValidateFields(ItemCodeVM model)

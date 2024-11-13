@@ -31,7 +31,7 @@ namespace iLgs.Services
         private readonly AppManEntities _db;
         private readonly IExceptionService<ServiceResult<AIRItemVM>> _vmExceptionService = new ExceptionService<ServiceResult<AIRItemVM>>();
         private readonly IValidationService<AIRItemVM> _validationService;
-
+        
         private IAirItemExtnService _airItemExtnService;
 
         public AirItemService(AppManEntities db)
@@ -218,7 +218,7 @@ namespace iLgs.Services
             {                                
                 if (_db.AIRItems.Any(a => a.Id == airItemId && a.InvDist == "I" && a.AIRItemExtns.OfType<AIRItemExtnVehicle>().Count() < a.Qty))
                 {
-                    throw new InvalidValueException("Incomplete item quantity contents detected.");
+                    throw new InvalidValueException("Incomplete item quantity details detected.");
                 }
 
                 //var airItemExtnVehicles = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItem.Id == airItemId).ToList();
@@ -231,7 +231,7 @@ namespace iLgs.Services
             {
                 if (_db.AIRItems.Any(a => a.Id == airItemId && a.InvDist == "I" && a.AIRItemExtns.OfType<AIRItemExtnOther>().Count() < a.Qty))
                 {
-                    throw new InvalidValueException("Incomplete item quantity contents detected.");
+                    throw new InvalidValueException("Incomplete item quantity details detected.");
                 }
 
                 //var airItemExtnOthers = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItem.Id == airItemId).ToList();

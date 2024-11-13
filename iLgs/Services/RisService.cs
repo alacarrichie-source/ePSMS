@@ -349,6 +349,11 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
+            if (string.IsNullOrWhiteSpace(model.RisNo))
+            {
+                model.RisNo = NextRisNo((DateTime)model.RisDate);
+            }
+
             var entity = await _db.RISses.FindAsync(model.Id);
 
             entity.Fund = model.Fund;

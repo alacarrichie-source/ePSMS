@@ -107,56 +107,6 @@
     })
 )
 
-
-@*<div id="main-div">
-    <div class="div-pane row">
-        <div class="col-md-12">
-            @RenderOrderItems()
-        </div>
-    </div>
-    <br />
-    <div class="div-pane row">
-        <div class="col-md-12">
-            @RenderOrderItemSet()
-        </div>
-    </div>
-    <br />
-    <div class="div-pane row">
-        <div class="col-md-12">
-            @RenderPars()
-        </div>
-    </div>
-</div>*@
-
-
-@*@(Html.Kendo().ExpansionPanel()
-    .Name("itemPanel")
-    .Title("Individual Item")
-    .Expanded(true)
-    .Content(@<text>
-        @RenderOrderItems()
-    </text>)
-)
-
-@(Html.Kendo().ExpansionPanel()
-    .Name("itemSetPanel")
-    .Title("Item Set")
-    .Expanded(true)
-    .Content(@<text>
-        @RenderOrderItemSet()
-    </text>)
-)
-
-@(Html.Kendo().ExpansionPanel()
-    .Name("icsPanel")
-    .Title("ICS")
-    .Expanded(true)
-    .Content(@<text>
-        @RenderPars()
-    </text>)
-)*@
-
-
 @helper RenderOrders()
 {
     @(Html.Kendo().Grid<iLgs.Models.ParIcsPOGroupVM>()
@@ -270,12 +220,15 @@
     .ToolBar(t =>
     {
     t.Template(@<text>
-@(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate ICS").Events(e => e.Click("onClickBtnAddPar")))
+    @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate ICS").Events(e => e.Click("onClickBtnAddPar")))
+    @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_").Events(e => e.Click("onClickBtnPostPar")))
+    @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_").Events(e => e.Click("onClickBtnUnpostPar")))
     </text>);
     })
     .Sortable()
     //.Scrollable()
     .NoRecords()
+    .ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax()
         .Events(events => events.Error("GridError")
@@ -426,7 +379,22 @@
     )
 }
 
-                <script id="Details" type="text/kendo-tmpl">
+<script id="UploadedFiles" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+        .Name("tabStrip_#=GroupId#")
+        .HtmlAttributes(new { @class = "no-text-tabstrip" })
+        .TabPosition(TabStripTabPosition.Top)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .SelectedIndex(0)
+        .Items(items =>
+        {
+            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "ParIcsUpload", new { imageId = "#=GroupId#" });
+        })
+        .ToClientTemplate())
+</script>
+
+
+<script id="Details" type="text/kendo-tmpl">
                     @(Html.Kendo().TabStrip()
     .Name("tabStrip_#=Id#")
     .HtmlAttributes(new { @class = "no-text-tabstrip" })
@@ -635,93 +603,135 @@
 
 
 
-                @(Html.Kendo().Notification()
-        .Name("popupNotification")
-        .Events(e => e.Show("onShowNotification"))
-                )
+@(Html.Kendo().Notification()
+    .Name("popupNotification")
+    .Events(e => e.Show("onShowNotification"))
+)
 
-                <div id="windowcontainer"></div>
+<div id="windowcontainer"></div>
 
-                <style>
-                                .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
-                                    width: auto;
-                                }
+<style>
+    .k-edit-form-container, .k-widget .k-window, .k-popup-edit-form .k-window-content .k-content {
+        width: auto;
+    }
 
-                                .k-window-content {
-                                    overflow-x: hidden;
-                                }
+    .k-window-content {
+        overflow-x: hidden;
+    }
 
-                                .k-grid .k-grid-search {
-                                    display: flex;
-                                    margin-left: auto;
-                                    margin-right: 0;
-                                }
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
 
-                                .k-floating-label-container {
-                                    width: 100%;
-                                }
+    .k-floating-label-container {
+        width: 100%;
+    }
 
-                                #span_ {
-                                    display: flex;
-                                    margin-left: auto;
-                                    margin-right: 0;
-                                    width: fit-content;
-                                }
+    #span_ {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: fit-content;
+    }
 
-                                .no-text-tabstrip .k-item .k-link {
-                                    padding: 0; /* Remove padding */
-                                    text-indent: -9999px; /* Move the text outside the visible area */
-                                    overflow: hidden; /* Hide any overflow */
-                                }
+    .no-text-tabstrip .k-item .k-link {
+        padding: 0; /* Remove padding */
+        text-indent: -9999px; /* Move the text outside the visible area */
+        overflow: hidden; /* Hide any overflow */
+    }
 
-                                /*#grid .k-grid-content {
-                        height: calc(100vh - 180px) !important;
-                    }*/
+     /*#grid .k-grid-content {
+        height: calc(100vh - 180px) !important;
+    }*/
 
-                                #div-splitter {
-                                    /*overflow-y: auto;*/
-                                    height: calc(100vh - 180px) !important;
-                                }
+    #div-splitter {
+        /*overflow-y: auto;*/
+        height: calc(100vh - 180px) !important;
+    }
 
-                                .h-pane-content {
-                                    height: 98%;
-                                    padding: 0 10px;
-                                }
+    .h-pane-content {
+        height: 98%;
+        padding: 0 10px;
+    }
 
-                                .div-pane {
-                                    height: 100%;
-                                    padding: 0 10px;
-                                }
+    .div-pane {
+        height: 100%;
+        padding: 0 10px;
+    }
 
-                                .k-switch .k-switch-label-on,
-                                .k-switch .k-switch-label-off {
-                                    display: inline-block;
-                                    /*position: absolute;*/
-                                    text-align: center;
-                                    top: 50%;
-                                    /*transform: translateY(-50%);*/
-                                }
-                </style>
+    #main-div {
+        height: 100%;
+    }
+
+    .div-render {
+        padding: 0 10px 10px;
+    }
+
+    .disabled-row {
+        background-color: #f0f0f0; /* Light gray background */
+        /*color: #a0a0a0;*/ /* Gray text */
+        /*color: red;*/
+        opacity: 0.5;
+        /*pointer-events: none;*/ /* Prevent clicking */
+    }
+
+    /* Default style for PanelBar header */
+    #panelbar .k-link {
+        background-color: #f8f9fa; /* Default color for header */
+        color: #333; /* Default text color for header */
+    }
+
+    /* Style for the PanelBar header when hovered */
+    #panelbar .k-item:hover > .k-link {
+        background-color: #0056b3 !important; /* Desired hover color for the header */
+        color: white !important; /* Text color change for header */
+    }
+
+    /* Active state style for selected PanelBar item */
+    #panelbar > .k-item.k-state-active > .k-link {
+        background-color: rgba(13, 110, 253, .25); /* Active color for header */
+        color: black;
+    }
+
+    /* Prevent hover color from affecting div-render content */
+    .div-render {
+        background-color: transparent; /* Ensure no background color for content */
+    }
+
+    /* Kendo Grid styles should not change */
+    .k-grid, .k-grid-header, .k-grid-content {
+        background-color: inherit !important; /* Ensure grid background remains unaffected */
+        color: inherit !important; /* Ensure grid text color remains unaffected */
+    }
+
+    /* Specific styles for Kendo Grid headers to avoid hover interference */
+    .k-grid-header th {
+        background-color: inherit !important; /* Ensure header background remains unaffected */
+        color: inherit !important; /* Ensure text color remains unaffected */
+    }
+</style>
 
 
-                <script type="text/x-kendo-template" id="validationMessageTemplate">
-                    # if (messages.length) { #
-                    @*<li>
-                            #=field#
-                            <ul>
-                                # for (var i = 0; i < messages.length; ++i) { #
-                                <li>#= messages[i] #</li>
-                                # } #
-                            </ul>
-                        </li>*@
-                    # for (var i = 0; i < messages.length; ++i) { #
-                    <li>#= messages[i] #</li>
-                    # } #
-                    # } #
-                </script>
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    @*<li>
+            #=field#
+            <ul>
+                # for (var i = 0; i < messages.length; ++i) { #
+                <li>#= messages[i] #</li>
+                # } #
+            </ul>
+        </li>*@
+    # for (var i = 0; i < messages.length; ++i) { #
+    <li>#= messages[i] #</li>
+    # } #
+    # } #
+</script>
 
 
-                <script type="text/javascript">
+<script type="text/javascript">
     function onSelectPoNo(e) {
         var dataItem = this.dataItem(e.item.index());
 
@@ -1446,10 +1456,13 @@
         parGrid.dataSource.read();
 
         postedBy = selectedData.ParPostedBy
+        //alert(postedBy);
         if (postedBy) {
+            //alert('a');
             $("#btnUnpost_").show();
             $("#btnPost_").hide();
         } else {
+            //alert('b');
             $("#btnUnpost_").hide();
             $("#btnPost_").show();
         }
@@ -1681,6 +1694,72 @@
     // END GRID ITEM PAR
 
     // GRID IMAGES
+    function onError(e) {
+        // invalid because the responseText is a raw string, not JSON
+        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
+        var err = e.XMLHttpRequest.responseText;
+        alert(err);
+    };
+
+    function GridUploadError(e) {
+        if (e.errors) {            
+            //// Get the parent grid
+            var parentGrid = $("#gridItems").data("kendoGrid");
+            
+            // Try to find the closest grid row
+            var row = $(e.target).closest("tr[data-uid]"); // Look for the row with a data-uid attribute
+
+            // Log the row for debugging
+            console.log("Row element:", row);
+
+            // Check if a valid row was found
+            if (row.length === 0) {
+                console.warn("No valid row found. The event target may not be within a grid row.");
+
+                // Provide a fallback: Try getting the parent row from a specific known container
+                var knownContainer = $("#gridItems"); // Replace with your grid's container
+                row = knownContainer.find("tr[data-uid]"); // Grab any row as a fallback
+
+                if (row.length === 0) {
+                    console.warn("No rows found in the parent grid.");
+                    return; // Exit if no rows are found
+                } else {
+                    console.warn("Fallback: Found rows in the parent grid but not the specific one.");
+                }
+            }
+
+            // Get the dataItem for the parent grid
+            var dataItem = parentGrid.dataItem(row);
+
+            // Log the retrieved dataItem
+            if (!dataItem) {
+                // Get the index of the row in the parent grid
+                var rowIndex = row.index();
+                console.log("Row index:", rowIndex);
+
+                // Attempt to access dataItem using the dataSource view
+                dataItem = parentGrid.dataSource.view()[rowIndex];
+
+                // Log the data item retrieved via index
+                console.log("Data Item found using index:", dataItem);
+            }
+
+            // Find the subgrid and refresh it
+            var subgridName = "gridImages_" + dataItem.GroupId; // Adjust based on how you identify the subgrid
+            var subgrid = $("#" + subgridName).data("kendoGrid");
+
+            if (subgrid) {
+                subgrid.dataSource.read(); // Refresh the subgrid
+            }
+
+            $.each(e.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                }
+            });
+        }
+    }
+
     var selectedGridImagesItem = null;
     function onEditGridImages(e) {
         e.preventDefault();

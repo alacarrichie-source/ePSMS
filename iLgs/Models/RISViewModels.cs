@@ -132,21 +132,27 @@ namespace iLgs.Models
         [Required]
         public string Purpose { get; set; }
 
+        [Required]
         [Display(Name = "Requested by")]
         public string RequestedBy { get; set; }
 
+        [Required]
         [Display(Name = "Designation")]
         public string RequestedByDesignation { get; set; }
 
+        [Required]
         [Display(Name = "Date")]
         public Nullable<System.DateTime> RequestedDate { get; set; }
 
+        [Required]
         [Display(Name = "Approved by")]
         public string ApprovedBy { get; set; }
 
+        [Required]
         [Display(Name = "Designation")]
         public string ApprovedByDesignation { get; set; }
 
+        [Required]
         [Display(Name = "Date")]
         public Nullable<System.DateTime> ApprovedDate { get; set; }
 

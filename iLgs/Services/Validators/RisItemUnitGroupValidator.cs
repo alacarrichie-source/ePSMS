@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
@@ -65,17 +66,23 @@ namespace iLgs.Services.Validators
         {
             var ex = new InvalidModelException();
 
-            //if (string.IsNullOrWhiteSpace(model.Fund))
-            //{
-            //    ex.UpsertDataList(_getDisplayName(nameof(model.Fund)), "Field is required.");
-            //}
-            //else
-            //{
-            //    if (!_codextnService.IsValidMastCodeCode("UNIT", model.Fund))
-            //    {
-            //        ex.UpsertDataList(_getDisplayName(nameof(model.Fund)), "Invalid value");
-            //    }
-            //}
+            if (!model.Qty.HasValue || model.Qty == 0)
+            {
+                ex.UpsertDataList(_getDisplayName(nameof(model.Qty)), "Field is required.");
+            }
+
+
+            if (string.IsNullOrWhiteSpace(model.Unit))
+            {
+                ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Field is required.");
+            }
+            else
+            {
+                if (!_codextnService.IsValidMastCodeCode("UNIT-GROUP", model.Unit))
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid value");
+                }
+            }
 
             //if (string.IsNullOrWhiteSpace(model.Office))
             //{

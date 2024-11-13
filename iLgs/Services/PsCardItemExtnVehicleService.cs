@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -29,11 +30,13 @@ namespace iLgs.Services
         private readonly AppManEntities _db;
         private readonly IExceptionService<PsCardItemExtnVehicle> _exceptionService = new ExceptionService<PsCardItemExtnVehicle>();
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
+        private readonly IPsCardItemExtnValidator _psCardItemExtnValidator;
 
         public PsCardItemExtnVehicleService(AppManEntities db)
         {
             _db = db;
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _psCardItemExtnValidator = new PsCardItemExtnValidator(_db);
         }
 
         public IQueryable<PsCardItemExtnVehicle> GetByPsCardItemId(Guid? psCardItemId)
@@ -67,7 +70,7 @@ namespace iLgs.Services
                 throw new InvalidValueException("Plate Number is required!");
             }
         }
-        
+
         public ValueTask<PsCardItemExtnVehicle> CreateAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             ValidatorService.ValidateModel<PsCardItemExtn>(model);
@@ -86,8 +89,8 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
-            
-            var entity = new PsCardItemExtnVehicle();            
+
+            var entity = new PsCardItemExtnVehicle();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
             _db.PsCardItemExtns.Add(entity);
@@ -97,16 +100,16 @@ namespace iLgs.Services
 
             return model;
         });
-        
+
 
         public ValueTask<PsCardItemExtnVehicle> UpdateAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {            
+        {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
             MapModelToEntityFields(entity, model, Mode.EDIT);
-            
+
             _db.PsCardItemExtns.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
@@ -117,28 +120,43 @@ namespace iLgs.Services
         });
 
         public ValueTask<PsCardItemExtnVehicle> DeleteAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {
-            // check in Par/Ics
-            if (await _db.IcsParItems.AnyAsync(a => a.PsCardItemExtnId == model.Id))
+        {            
+            _psCardItemExtnValidator.ValidateOnDelete(model);
+
+            using (var transaction = _db.Database.BeginTransaction())
             {
-                throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
+                try
+                {
+                    // Delete References
+                    var itemTransactions = _db.PsCardItemTransactions.Where(w => w.PsCardItemExtnId == model.Id);
+                    _db.PsCardItemTransactions.RemoveRange(itemTransactions);
+                    await _db.SaveChangesAsync();
+
+                    model.UpdatedBy = user;
+                    model.UpdatedDt = date;
+
+                    var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+
+                    entity.UpdatedBy = model.UpdatedBy;
+                    entity.UpdatedDt = model.UpdatedDt;
+
+                    _db.PsCardItemExtns.Attach(entity);
+                    _db.Entry(entity).State = EntityState.Modified;
+                    await _db.SaveChangesAsync();
+
+                    _db.PsCardItemExtns.Remove(entity);
+                    _db.Entry(entity).State = EntityState.Deleted;
+                    await _db.SaveChangesAsync();
+
+                    transaction.Commit();
+                }
+                catch (Exception)
+                {
+                    // Rollback the transaction if any operation fails
+                    transaction.Rollback();
+                    throw;
+                }
             }
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
-
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            _db.PsCardItemExtns.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            _db.PsCardItemExtns.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
 
             return model;
         });

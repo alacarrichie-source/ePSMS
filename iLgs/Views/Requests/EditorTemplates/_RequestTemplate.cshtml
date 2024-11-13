@@ -227,7 +227,7 @@
             <div class="col-md-6">
                 @Html.LabelFor(model => model.RequestedDesig, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.RequestedDesig).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(model => model.RequestedDesig).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.RequestedDesig)
                 </div>
             </div>
@@ -265,7 +265,7 @@
             <div class="col-md-6">
                 @Html.LabelFor(model => model.AvaialbilityDesig, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.AvaialbilityDesig).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(model => model.AvaialbilityDesig).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.AvaialbilityDesig)
                 </div>
             </div>
@@ -327,7 +327,7 @@
             <div class="col-md-6">
                 @Html.LabelFor(model => model.ApprovedDesig, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(model => model.ApprovedDesig).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(model => model.ApprovedDesig).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.ApprovedDesig)
                 </div>
             </div>

@@ -197,6 +197,21 @@
     //        });
     //    dataArea.height(gridHeight - otherElementsHeight);
     //});
+    function InlineGridError(e) {
+        if (e.errors) {
+            let message = "Errors:\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
+                    });
+                }
+            });
+
+            alert(message); // You can replace this with any other UI method to display errors            
+        }
+    }
 
     function GridError(args) {
         if (args.errors) {
@@ -1005,6 +1020,13 @@
     function onEditGridItemUnitGroups(e) {
         e.preventDefault();
         selectedGrid = e.sender;
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
@@ -1065,6 +1087,14 @@
     function onEditGridItemUnitGroupDescriptions(e) {
         e.preventDefault();
         selectedGrid = e.sender;
+
+        //// the master row for this detail
+        //var parentRow = this.wrapper.closest("tr").prev();
+        //var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+
+        //parentGrid.select(parentRow);
+
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);

@@ -139,7 +139,7 @@ namespace iLgs.Controllers
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
-                    ModelState.AddModelError("AdddError", "Upload Access Denied!");
+                    ModelState.AddModelError("AddError", "Upload Access Denied!");
                 }
 
                 if (ModelState.IsValid)

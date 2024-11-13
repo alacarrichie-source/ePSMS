@@ -2,6 +2,7 @@
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace iLgs.Services.Validators
     {
         void ValidateOnCreate(PsCardItemVM cardItem);
         void ValidateOnUpdate(PsCardItemVM cardItem);
+        void ValidateOnDelete(PsCardItemVM cardItem);
     }
 
     public class PsCardItemValidator : BaseValidator, IPsCardItemValidator
@@ -44,6 +46,22 @@ namespace iLgs.Services.Validators
             ValidateCard(cardItem);
             ValidateRecord(cardItem.Id);
             ValidateFieldsOnCreateUpdate(cardItem);
+        }
+
+        public void ValidateOnDelete(PsCardItemVM cardItem)
+        {
+            ValidateCard(cardItem);
+            ValidateRecord(cardItem.Id);
+
+            if (_db.PsCardItems.Any(a => a.Id == cardItem.Id && a.PsCardItemTransfers.Any()))
+            {
+                throw new RecordRelationshipException("Items of this record were transfered to other department/location, cannot delete!");
+            }
+
+            if (_db.PsCardItems.Any(a => a.Id == cardItem.Id && a.PsCardItemExtns.Any(a2 => a2.IcsParItems.Any())))
+            {
+                throw new RecordRelationshipException("Items of this record already have PAR/ICS, cannot delete!");
+            }
         }
 
         public void ValidateFieldsOnCreateUpdate(PsCardItemVM cardItem)

@@ -10,9 +10,9 @@
                 .ClientTemplate(
                 @"<div class='upload-photo'
                    style='background-image: url(" + @Url.Content("~/CustodianReport/PreviewUpload?id=#:Id#") + ");'></div></div>")
-                    .Width(70);
+                    .Width(30);
         col.Bound(p => p.Description).Width(100);
-        //col.Bound(p => p.FileName).Width(50);
+        col.Bound(p => p.FileName).Width(100);
         col.Command(command =>
         {
             command.Edit();

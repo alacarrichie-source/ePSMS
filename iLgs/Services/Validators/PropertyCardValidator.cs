@@ -73,6 +73,10 @@ namespace iLgs.Services.Validators
         public void ValidateOnDelete(PropertyCardVM model)
         {
             ValidateCard(model);
+            if (_db.PsCardItems.Any(a => a.PsCardId == model.Id))
+            {
+                throw new RecordRelationshipException("Cannot delete card with items, please delete the items first.");
+            }
         }
 
         private static void ValidateCard(PropertyCardVM card)

@@ -34,13 +34,14 @@ namespace iLgs.Services
         private readonly AppManEntities _db;
         private readonly IExceptionService<AIR_VM> _VmExceptionService = new ExceptionService<AIR_VM>();
         private readonly IExceptionService<AIR> _ExceptionService = new ExceptionService<AIR>();
-
-        private IAirItemService _airItemService;
+        private readonly IAirItemService _airItemService;
+        private readonly IItemCodeService _itemCodeService;
 
         public AirService(AppManEntities db)
         {
             _db = db;
             _airItemService = new AirItemService(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
 
         public IQueryable<AIR_VM> GetAll() => _VmExceptionService.TryCatch(() =>
@@ -650,7 +651,7 @@ namespace iLgs.Services
             model.InsertedDt = date;
             model.UpdatedBy = user;
             model.UpdatedDt = date;
-
+            
             var entity = new AIR()
             {
                 Id = model.Id,
@@ -675,16 +676,18 @@ namespace iLgs.Services
             };
 
             // include items during add
-            var orderItems = _db.OrderItems.Where(w => w.OrderId == model.OrderId).ToList();
+            var orderItems = _db.OrderItems.Include(i => i.RequestItem.RisItem).Where(w => w.OrderId == model.OrderId).AsNoTracking().ToList();
             foreach (var orderItem in orderItems)
             {
 
+                var invDist = "I"; //_itemCodeService.GetInvDist(orderItem.RequestItem.RisItem.ItemCodeId);
                 AIRItem airItem = new AIRItem()
                 {
                     Id = Guid.NewGuid(),
                     AirId = entity.Id,
                     OrderItemId = orderItem.Id,
                     Qty = orderItem.Qty,
+                    InvDist = invDist,
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
@@ -724,15 +727,17 @@ namespace iLgs.Services
                 await _db.SaveChangesAsync();
 
                 // include items during add
-                var orderItems = _db.OrderItems.Where(w => w.OrderId == model.OrderId).ToList();
+                var orderItems = _db.OrderItems.Where(w => w.OrderId == model.OrderId).AsNoTracking().ToList();
                 foreach (var orderItem in orderItems)
                 {
+                    var invDist = "I"; // _itemCodeService.GetInvDist(orderItem.RequestItem.RisItem.ItemCodeId);
                     AIRItem airItem = new AIRItem()
                     {
                         Id = Guid.NewGuid(),
                         AirId = entity.Id,
                         OrderItemId = orderItem.Id,
-                        Qty = orderItem.Qty,
+                        Qty = orderItem.Qty,                        
+                        InvDist = invDist,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,

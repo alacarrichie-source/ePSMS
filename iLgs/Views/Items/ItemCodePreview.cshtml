@@ -42,6 +42,7 @@
     .Columns(col =>
     {
         col.Bound(c => c.GroupCode).Width(50);
+        col.Bound(c => c.ItemNoIndex).Width(50);
         col.Bound(c => c.Code).Width(50);
         col.Bound(c => c.Account).Width(100);
         col.Bound(c => c.SubAccount1).Width(100);
@@ -56,6 +57,7 @@
     .Search(s =>
     {
         s.Field(o => o.GroupCode, "contains");
+        s.Field(o => o.ItemNoIndex, "contains");
         s.Field(o => o.Code, "contains");
         s.Field(o => o.Account, "contains");
         s.Field(o => o.SubAccount1, "contains");

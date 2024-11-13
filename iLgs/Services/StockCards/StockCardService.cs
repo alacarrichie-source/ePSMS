@@ -190,6 +190,8 @@ namespace iLgs.Services.StockCards
 
         public ValueTask<StockCardVM> DeleteAsync(StockCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
+            _validator.ValidateOnDelete(model);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 

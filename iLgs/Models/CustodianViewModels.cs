@@ -150,14 +150,14 @@ namespace iLgs.Models
 
             //[Required]
             public string Description { get; set; }
-            public string Brand { get; set; }
+            //public string Brand { get; set; }
 
-            [Display(Name = "Model")]
-            public string Model_ { get; set; }
+            //[Display(Name = "Model")]
+            //public string Model_ { get; set; }
             public string Dimension { get; set; }
             public string Size { get; set; }
 
-            [Display(Name = "Net Weight")]
+            //[Display(Name = "Net Weight")]
             public string Weight { get; set; }
             public string Materials { get; set; }
             public string Capacity { get; set; }
@@ -284,6 +284,9 @@ namespace iLgs.Models
 
         [Display(Name = "Balance")]
         public new Nullable<int> QtyBalance { get => base.QtyBalance; set => base.QtyBalance = value; }
+
+        [Display(Name = "Model")]
+        public new string Model_ { get => base.Model_; set => base.Model_ = value; }
     }
 
     public class CustodianReportItemPpeVM : CustodianReportItem
@@ -293,7 +296,15 @@ namespace iLgs.Models
 
         [Display(Name = "Old Property Card No.")]
         public new string OldPsNo { get => base.OldPsNo; set => base.OldPsNo = value; }
-        
+
+        [Display(Name = "Weight")]
+        public new string Weight { get => base.Weight; set => base.Weight = value; }
+
+        [Display(Name = "Brand")]
+        public new string Brand { get => base.Brand; set => base.Brand = value; }
+
+        [Display(Name = "Model")]
+        public new string Model_ { get => base.Model_; set => base.Model_ = value; }
     }
 
     public class CustodianReportItemVehicleVM : CustodianReportItem
@@ -324,6 +335,15 @@ namespace iLgs.Models
         //[Required]
         [Display(Name = "MV File No.")]
         public new string MVFileNo { get => base.MVFileNo; set => base.MVFileNo = value; }
+
+        [Display(Name = "Net Weight")]
+        public new string Weight { get => base.Weight; set => base.Weight = value; }
+
+        [Display(Name = "Brand/Make")]
+        public new string Brand { get => base.Brand; set => base.Brand = value; }
+
+        [Display(Name = "Model/Series")]
+        public new string Model_ { get => base.Model_; set => base.Model_ = value; }
 
     }
 

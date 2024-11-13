@@ -140,6 +140,9 @@ namespace iLgs.Models
         public string GroupCode { get; set; }
         public string Category { get; set; }
 
+        [Display(Name = "Code Index")]
+        public string ItemNoIndex { get; set; }
+
         [Display(Name = "Code")]
         public string Code { get; set; }
 

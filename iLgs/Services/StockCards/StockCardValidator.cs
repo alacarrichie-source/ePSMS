@@ -20,6 +20,7 @@ namespace iLgs.Services.StockCards
     {
         void ValidateOnCreate(StockCardVM model);
         void ValidateOnUpdate(StockCardVM model);
+        void ValidateOnDelete(StockCardVM model);
     }
 
     public class StockCardValidator : BaseValidator, IStockCardValidator
@@ -90,7 +91,16 @@ namespace iLgs.Services.StockCards
             }
             ex.ThrowIfContainsErrors();
         }
-        
+
+        public void ValidateOnDelete(StockCardVM model)
+        {
+            ValidateCard(model);
+            if (_db.PsCardItems.Any(a => a.PsCardId == model.Id))
+            {
+                throw new RecordRelationshipException("Cannot delete card with items, please delete the items first.");
+            }
+        }
+
         //private void ValidateCourseOnModify(Course course)
         //{
         //    ValidateCourseOnCreate(course);

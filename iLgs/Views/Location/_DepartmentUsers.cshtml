@@ -1,0 +1,64 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.DepartmentUserVM>()
+    .Name("gridUsers_" + @ViewData["DeptId"])
+    .HtmlAttributes(new { @class = "max-grid" })
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.UserName).Width(70);
+        columns.Bound(o => o.Email).Width(100);
+        columns.Bound(o => o.NameFull).Width(100);
+        columns.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+        }).Width(120);
+    })
+    .ToolBar(t =>
+    {
+        t.Create().Text("Add New Record");
+        t.Search();
+    })
+    .Search(s =>
+    {
+        s.Field(o => o.UserName, "contains");
+        s.Field(o => o.Email, "contains");
+        s.Field(o => o.NameFull, "contains");
+    })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+    )
+    .Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    //.Scrollable()
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Sortable()
+    .Editable()
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_DepartmentUserTemplate").Window(w => w.Width(500).Title("Users")))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Events(events => events.Error("GridError"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            model.Field(p => p.DeptId).DefaultValue(@ViewData["DeptId"]);
+        })
+        .Read(read => read.Action("_DepartmentUserRead", "Location", new { deptId = @ViewData["DeptId"] }))
+        .Create(create => create.Action("_DepartmentUserCreate", "Location"))
+        .Update(update => update.Action("_DepartmentUserUpdate", "Location"))
+        .Destroy(destroy => destroy.Action("_DepartmentUserDestroy", "Location"))
+    )
+    .Events(events => events
+        .Change("onChangeGridUsers")
+        .Edit("onEditGridUsers")
+        .DataBound("onDataBoundGridUsers")
+    )
+    .AutoBind(true)
+)
