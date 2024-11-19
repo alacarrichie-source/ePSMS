@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianReports
 {
@@ -25,13 +26,13 @@ namespace iLgs.Services.CustodianReports
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
         private readonly IAllFieldsValidator _allFieldsValidator;
-
+        
         public CustodianReportItemStockValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportItemStockVM>(propertyName);
             _codextnService = new CodextnService(_db);
-            _allFieldsValidator = new AllFieldsValidator(_db);
+            _allFieldsValidator = new AllFieldsValidator(_db);        
         }
 
         public void ValidateOnCreate(CustodianReportItemStockVM model)
@@ -43,14 +44,12 @@ namespace iLgs.Services.CustodianReports
         public void ValidateOnUpdate(CustodianReportItemStockVM model)
         {
             ValidateIfNull(model);
-            //ValidateIfPosted(model);
             ValidateFieldsOnCreateUpdate(model);
         }
 
         public void ValidateOnDelete(CustodianReportItemStockVM model)
         {
-            ValidateIfNull(model);
-            ValidateRecord(model.Id);
+            ValidateIfNull(model);            
         }
 
         public void ValidateFieldsOnCreateUpdate(CustodianReportItemStockVM model)
@@ -125,15 +124,7 @@ namespace iLgs.Services.CustodianReports
 
             ex.ThrowIfContainsErrors();
         }
-
-        private void ValidateRecord(Guid id)
-        {
-            if (!_db.CustodianReportItems.Any(a => a.Id == id))
-            {
-                throw new NotFoundException(id);
-            }
-        }
-
+        
         private static void ValidateIfNull(CustodianReportItemStockVM model)
         {
             if (model is null)

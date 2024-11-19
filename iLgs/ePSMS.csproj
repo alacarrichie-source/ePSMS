@@ -312,6 +312,7 @@
     <Compile Include="Controllers\PropertyCardPpeController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
     <Compile Include="Controllers\PropertyCardTranspoControoller.cs" />
+    <Compile Include="Controllers\PsCategoryController.cs" />
     <Compile Include="Controllers\RpceffoppeController.cs" />
     <Compile Include="Controllers\RpciController.cs" />
     <Compile Include="Controllers\RpcPpeController.cs" />
@@ -402,6 +403,9 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\CustodianReportItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CustodianReportItemIssuance.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\CustodianReportLandItem.cs">
@@ -651,11 +655,17 @@
     <Compile Include="Services\AllFields\AllFieldService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\Codes\LocationService.cs" />
+    <Compile Include="Services\Codes\PsCategoryService.cs" />
     <Compile Include="Services\CustodianDisposal_\CustodianDisposalItemService.cs" />
     <Compile Include="Services\CustodianDisposal_\CustodianDisposalService.cs" />
     <Compile Include="Services\CustodianIirup\CustodianIirupItemService.cs" />
     <Compile Include="Services\CustodianIirup\CustodianIirupService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportBldgItemService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemIssuanceAreService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemIssuanceIcsService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemIssuanceMrService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemIssuanceParService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemIssuanceService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemPpeService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemPpeValidator.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemService.cs" />
@@ -1485,6 +1495,11 @@
     <Content Include="App_Data\CustodianStructureTemplate.xlsx" />
     <Content Include="App_Data\CustodianLandTemplate.xlsx" />
     <Content Include="App_Data\CustodianIrrupTemplate.xlsx" />
+    <Content Include="App_Data\CustodianEquipmentAnnexTemplate.xlsx" />
+    <Content Include="App_Data\CustodianLandAnnexTemplate.xlsx" />
+    <Content Include="App_Data\CustodianStructureAnnexTemplate.xlsx" />
+    <Content Include="App_Data\CustodianSuppliesAnnexTemplate.xlsx" />
+    <Content Include="App_Data\CustodianVehiclesAnnexTemplate.xlsx" />
     <None Include="Properties\PublishProfiles\ePsms %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
@@ -3493,7 +3508,9 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
-    <Content Include="Views\Web.config" />
+    <Content Include="Views\Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
@@ -3908,7 +3925,7 @@
     <Content Include="Views\StockCard\Index.cshtml" />
     <Content Include="Views\StockCard\EditorTemplates\x_CardTemplate.cshtml" />
     <Content Include="Views\StockCard\EditorTemplates\_CardItemTemplate.cshtml" />
-    <None Include="Views\Location\Index.cshtml" />
+    <Content Include="Views\Location\Index.cshtml" />
     <Content Include="Views\StockCard\_StockCardAddEdit.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_LocationTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_PoDateTemplate.cshtml" />
@@ -4061,6 +4078,19 @@
     <Content Include="Views\Location\_DepartmentUsers.cshtml" />
     <Content Include="Views\Location\_AccountableOfficers.cshtml" />
     <Content Include="Views\Location\EditorTemplates\_DepartmentUserTemplate.cshtml" />
+    <Content Include="Views\PsCategory\Index.cshtml" />
+    <Content Include="Views\PsCategory\_CategoryUsers.cshtml" />
+    <Content Include="Views\PsCategory\EditorTemplates\_CategoryUserTemplate.cshtml" />
+    <Content Include="Views\CustodianReport\_PpeParIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_PpeIcsIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_PpeAreIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_ParMrIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_StockIcsIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_VehicleIcsIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_VehicleAreIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_VehicleParIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_PpeMrIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_VehicleMrIssuance.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

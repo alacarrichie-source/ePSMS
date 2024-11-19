@@ -47,7 +47,7 @@ namespace iLgs.Services.Codes
             var IsAdmin = await _userService.IsAdmin(userId);
             var data = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS"
                 && w.Desc3 != "N"
-                && (IsAdmin || w.DepartmentUsers.Any(a => a.UserId == userId))).AsNoTracking();
+                && (IsAdmin || w.DepartmentUsers.Any(a => a.UserId == userId))).AsNoTracking().OrderBy(o => o.Description);
             return data;
         }
                 

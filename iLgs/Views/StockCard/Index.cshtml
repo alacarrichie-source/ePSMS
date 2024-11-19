@@ -999,6 +999,8 @@
         //UpdateDescription(e);
 
         RefreshDivs(dataItem);
+
+        setTimeout(UpdateDescription, 500);
     }
 
     function RefreshDivs(dataItem) {
@@ -1640,7 +1642,7 @@
             this.select(row);
             selectedItemExtnId = null;
             selectedItemExtnQty = parentModel.QtyBal;
-            e.model.set("PsCardItemId", parentModel.Id);            
+            e.model.set("PsCardItemId", parentModel.Id);
             $("#DIV_UPDATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
         } else {
             selectedItemExtnId = e.model.get("Id");
@@ -1713,8 +1715,8 @@
                 if (result.Errors == "")
                 {
                     $("#EndSerial").val(result.EndSeries).trigger("change");
-                }                
-                else 
+                }
+                else
                 {
                     alert(result.Errors);
                 }

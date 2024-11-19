@@ -62,9 +62,9 @@ namespace iLgs.Models
         public string Item_Code { get; set; }
 
         public AllField AllField;
-        public Guid? MainDeptId { get; set; } 
-        public int? AccountGroup { get; set; }        
-        
+        public Guid? MainDeptId { get; set; }
+        public int? AccountGroup { get; set; }
+
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }
@@ -74,7 +74,7 @@ namespace iLgs.Models
             public string Fund { get; set; }
 
             [Display(Name = "Custodian Item No.")]
-            public Nullable<int> CustodianItemNo { get; set; }
+            public Nullable<decimal> CustodianItemNo { get; set; }
 
             [Display(Name = "Series No.")]
             public string SeriesNo { get; set; }
@@ -146,7 +146,7 @@ namespace iLgs.Models
 
             [Display(Name = "Old Amounts (Recorded in RPCPPE)")]
             public Nullable<decimal> OldAmount { get; set; }
-            
+
 
             //[Required]
             public string Description { get; set; }
@@ -228,7 +228,7 @@ namespace iLgs.Models
             [Display(Name = "Other Particulars")]
             public string OtherDesc { get; set; }
 
-            [Display(Name = "Other Qty")]
+            [Display(Name = "Other Particulars (Qty)")]
             public Nullable<int> OtherQty { get; set; }
             public string Condition { get; set; }
             public string Remarks { get; set; }
@@ -236,19 +236,41 @@ namespace iLgs.Models
             [Display(Name = "PAR No.")]
             public string ParNo { get; set; }
 
+            [Display(Name = "PAR Issued To")]
+            public string ParIssuedTo { get; set; }
+
+            [Display(Name = "PAR Accountable Officer")]
+            public string AccountableOfficer { get; set; }
+
             [Display(Name = "ARE No.")]
             public string AreNo { get; set; }
+
+            [Display(Name = "ARE Issued To")]
+            public string AreIssuedTo { get; set; }
+
+            [Display(Name = "ARE Accountable Officer")]
+            public string AreOfficer { get; set; }
 
             [Display(Name = "MR No.")]
             public string MrNo { get; set; }
 
-            [Display(Name = "PAR/ICS Issued To")]
-            public string ParIssuedTo { get; set; }
+            [Display(Name = "MR Issued To")]
+            public string MrIssuedTo { get; set; }
 
-            [Display(Name = "Accountable Officer")]
-            public string AccountableOfficer { get; set; }
+            [Display(Name = "MR Accountable Officer")]
+            public string MrOfficer { get; set; }
 
-            [Display(Name = "Upcoming PAR")]
+            [Display(Name = "ICS No.")]
+            public string IcsNo { get; set; }
+
+            [Display(Name = "ICS Issued To")]
+            public string IcsIssuedTo { get; set; }
+
+            [Display(Name = "ICS Accountable Officer")]
+            public string IcsOfficer { get; set; }
+
+
+            [Display(Name = "Upcoming PAR Accountable Officer")]
             public string UpcomingPar { get; set; }
 
             public string Type { get; set; }
@@ -267,7 +289,7 @@ namespace iLgs.Models
             public Nullable<System.DateTime> PostedDt { get; set; }
         }
     }
-    
+
     public class CustodianReportItemStockVM : CustodianReportItem
     {
         [Display(Name = "Old Stock Card No.")]
@@ -316,15 +338,15 @@ namespace iLgs.Models
         public new string OldPsNo { get => base.OldPsNo; set => base.OldPsNo = value; }
 
         //[Required]
-        [Display(Name = "Year Model")]        
+        [Display(Name = "Year Model")]
         public new Nullable<int> YearModel { get => base.YearModel; set => base.YearModel = value; }
-        
+
         //[Required]
         [Display(Name = "Body No.")]
         public new string BodyNo { get => base.BodyNo; set => base.BodyNo = value; }
 
         //[Required]
-        [Display(Name = "CRN")]
+        [Display(Name = "CR No.")]
         public new string CRN { get => base.CRN; set => base.CRN = value; }
 
         //[Required]
@@ -369,7 +391,7 @@ namespace iLgs.Models
             public string Fund { get; set; }
 
             [Display(Name = "Custodian Item No.")]
-            public Nullable<int> CustodianItemNo { get; set; }
+            public Nullable<decimal> CustodianItemNo { get; set; }
 
             [Display(Name = "Series No.")]
             public string SeriesNo { get; set; }
@@ -428,7 +450,7 @@ namespace iLgs.Models
             [Display(Name = "Acquisition Cost")]
             public Nullable<decimal> AcqCost { get; set; }
 
-            [Display(Name = "Old Amounts (Recorded in RPCPPE)")]
+            [Display(Name = "Old Amounts (in RPCPPE)")]
             public Nullable<decimal> OldAmount { get; set; }
 
             [Display(Name = "Acquisition Date")]
@@ -562,7 +584,7 @@ namespace iLgs.Models
             public string Fund { get; set; }
 
             [Display(Name = "Custodian Item No.")]
-            public Nullable<int> CustodianItemNo { get; set; }
+            public Nullable<decimal> CustodianItemNo { get; set; }
 
             [Display(Name = "Series No.")]
             public string SeriesNo { get; set; }
@@ -711,5 +733,95 @@ namespace iLgs.Models
     public class CustodianReportBldgItemVM : CustodianReportBldgItem
     {
 
+    }
+
+    public partial class CustodianReportItemIssuance
+    {
+        //public System.Guid Id { get; set; }
+        //public Nullable<System.Guid> ReportItemId { get; set; }
+        //public string RefType { get; set; }
+        //public string RefNo { get; set; }
+
+        //[Display(Name = "Issued To")]
+        //public string IssuedTo { get; set; }
+
+        //[Display(Name = "Accountable Officer")]
+        //public string AccountableOfficer { get; set; }
+        //public string InsertedBy { get; set; }
+        //public Nullable<System.DateTime> InsertedDt { get; set; }
+        //public string UpdatedBy { get; set; }
+        //public Nullable<System.DateTime> UpdatedDt { get; set; }
+    }
+
+    [MetadataType(typeof(CustodianReportItemIssuanceParVM.Metadata))]
+    public class CustodianReportItemIssuanceParVM : CustodianReportItemIssuance
+    {
+        internal sealed class Metadata
+        {
+            [Display(Name = "PAR No.")]
+            [Required]
+            public string RefNo { get; set; }
+
+            [Display(Name = "Issued To")]
+            public string IssuedTo { get; set; }
+
+            [Required]
+            [Display(Name = "Accountable Officer")]
+            public string AccountableOfficer { get; set; }
+        }
+    }
+
+    [MetadataType(typeof(CustodianReportItemIssuanceIcsVM.Metadata))]
+    public class CustodianReportItemIssuanceIcsVM : CustodianReportItemIssuance
+    {
+        internal sealed class Metadata
+        {
+            [Required]
+            [Display(Name = "ICS No.")]
+            public string RefNo { get; set; }
+
+            [Display(Name = "Issued To")]
+            public string IssuedTo { get; set; }
+
+            [Required]
+            [Display(Name = "Accountable Officer")]
+            public string AccountableOfficer { get; set; }
+        }
+    }
+
+    [MetadataType(typeof(CustodianReportItemIssuanceMrVM.Metadata))]
+    public class CustodianReportItemIssuanceMrVM : CustodianReportItemIssuance
+    {
+        internal sealed class Metadata
+        {
+            [Required]
+            [Display(Name = "MR No.")]
+            public string RefNo { get; set; }
+
+            [Display(Name = "Issued To")]
+            public string IssuedTo { get; set; }
+
+            [Required]
+            [Display(Name = "Accountable Officer")]
+            public string AccountableOfficer { get; set; }
+        }
+    }
+
+    [MetadataType(typeof(CustodianReportItemIssuanceAreVM.Metadata))]
+    public class CustodianReportItemIssuanceAreVM : CustodianReportItemIssuance
+    {
+        internal sealed class Metadata
+        {
+            [Required]
+            [Display(Name = "ARE No.")]
+            public string RefNo { get; set; }
+
+            [Display(Name = "Issued To")]
+            public string IssuedTo { get; set; }
+
+            [Required]
+            [Display(Name = "Accountable Officer")]
+            public string AccountableOfficer { get; set; }
+        }
     }
 }

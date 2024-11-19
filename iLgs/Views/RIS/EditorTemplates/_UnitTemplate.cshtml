@@ -28,7 +28,9 @@
     })
     .Columns(c =>
     {
-        c.Add().Field("Description").Title("Unit").Width("100%");
+        c.Add().Field("Code").Title("Code").Width("20%");
+        c.Add().Field("Description").Title("Description").Width("40%").Template("#= columnTemplate(data.Description) #");
+        c.Add().Field("Desc2").Title("Category").Width("40%").Template("#= columnTemplate(data.Desc2) #");
 
     })
     .Suggest(true)

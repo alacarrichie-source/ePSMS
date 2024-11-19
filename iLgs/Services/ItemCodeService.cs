@@ -23,6 +23,7 @@ namespace iLgs.Services
         IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item);
         IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item);
         IQueryable<ItemCodePreviewVM> GetItemCodePreview(string category);
+        IQueryable<ItemCodePreviewVM> GetItemCodePreviewByUser(string category, string userId);
         IQueryable<ItemCodeVM> GetCustodianItemPpe(string item);
         IQueryable<ItemCodeVM> GetCustodianItemStocks(string item);
         IQueryable<ItemCodeVM> GetCustodianItemVehicle(string item);
@@ -173,6 +174,17 @@ namespace iLgs.Services
             }
 
             var data = _db.Database.SqlQuery<ItemCodePreviewVM>("Exec ItemCodes_GetPreview {0}", category).AsQueryable().AsNoTracking();
+            return data;
+        }
+
+        public IQueryable<ItemCodePreviewVM> GetItemCodePreviewByUser(string category, string userId)
+        {
+            if (category == "ALL")
+            {
+                category = "";
+            }
+
+            var data = _db.Database.SqlQuery<ItemCodePreviewVM>("Exec ItemCodes_GetPreview {0}, {1}", category, userId).AsQueryable().AsNoTracking();
             return data;
         }
 

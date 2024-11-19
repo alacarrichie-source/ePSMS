@@ -30,19 +30,18 @@ namespace iLgs.Services.CustodianReports
     }
 
     public class CustodianReportItemService : ICustodianReportItemService
-    {
-        private string _annex_a_hdg = "INVENTORY COUNT FORM - ";
-        private string _annex_b_hdg = "INVENTORY COUNT FORM - ";
-
+    {        
         protected readonly AppManEntities _db;
+        protected readonly IAllFieldService _allFieldService;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<CustodianReportItem> _exceptionService = new ExceptionService<CustodianReportItem>();
-        protected readonly IAllFieldService _allFieldService;
+        private readonly IUserService _userService;
 
         public CustodianReportItemService(AppManEntities db)
         {
             _db = db;
             _allFieldService = new AllFieldService(_db);
+            _userService = new UserService(_db);
         }
 
         public ValueTask<CustodianReportItem> GetByIdAsync(Guid id) =>
@@ -119,6 +118,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportItems.FindAsync(model.Id);
             ValidateRecord(entity);
             ValidateIfPosted(entity);
+            ValidateUser(entity, model);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);            
 
@@ -315,10 +315,17 @@ namespace iLgs.Services.CustodianReports
             entity.Condition = model.Condition;
             entity.Remarks = model.Remarks;
             entity.ParNo = model.ParNo;
+            entity.IcsNo = model.IcsNo;
             entity.AreNo = model.AreNo;
             entity.MrNo = model.MrNo;
             entity.ParIssuedTo = model.ParIssuedTo;
-            entity.AccountableOfficer = model.AccountableOfficer;            
+            entity.IcsIssuedTo = model.IcsIssuedTo;
+            entity.AreIssuedTo = model.AreIssuedTo;
+            entity.MrIssuedTo = model.MrIssuedTo;
+            entity.AccountableOfficer = model.AccountableOfficer;
+            entity.IcsOfficer = model.IcsOfficer;
+            entity.AreOfficer = model.AreOfficer;
+            entity.MrOfficer = model.MrOfficer;
             entity.UpcomingPar = model.UpcomingPar;
             entity.Type = model.Type;
             entity.Annex = model.Annex;
@@ -574,30 +581,47 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new FileNotFoundException("The template file does not exist.", templateFilePath);
             }
+            string hdg = "";
+           
+            if (annex == "A")
+            {
+                hdg = "(INVENTORY COUNT FORM)";
+            }
+            else if (annex == "B")
+            {
+                hdg = "(LIST OF PPEs, FOUND AT STATION)";
+            }
+            else if (annex == "C")
+            {
+                hdg = "(LIST OF NON-EXISTING/MISSING PPEs)";
+            }
+
             if (accountGroup == (int?)CustodianAccountGroup.STOCK)
             {
-                return ProcessExcelFileStockAnnexTemplate(id, templateFilePath, annex);
+                return ProcessExcelFileStockAnnexTemplate(id, templateFilePath, hdg, annex);
             }
             else if (accountGroup == (int?)CustodianAccountGroup.PPE)
             {
-                return ProcessExcelFilePpeAnnexTemplate(id, templateFilePath, annex);
+                return ProcessExcelFilePpeAnnexTemplate(id, templateFilePath, hdg, annex);
             }
             else
             {
-                return ProcessExcelFileVehicleAnnexTemplate(id, templateFilePath, annex);
+                return ProcessExcelFileVehicleAnnexTemplate(id, templateFilePath, hdg, annex);
             }
         }
 
-        private MemoryStream ProcessExcelFileStockAnnexTemplate(Guid id, string templateFilePath, string annex)
+        private MemoryStream ProcessExcelFileStockAnnexTemplate(Guid id, string templateFilePath, string hdg, string annex)
         {
             int row = 8;
             int col = 0;
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).ToList();
+                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).ToList();
                 foreach (var reportItem in reportItemList)
                 {
+                    ws.Row(1).Cell(1).SetValue($"ANNEX {annex}");
+                    ws.Row(3).Cell(1).SetValue(hdg);
                     ws.Row(4).Cell(2).SetValue(reportItem.CustodianReport.Codextn.Description);
                     row++;
                     col = 0;
@@ -660,16 +684,18 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private MemoryStream ProcessExcelFilePpeAnnexTemplate(Guid id, string templateFilePath, string annex)
+        private MemoryStream ProcessExcelFilePpeAnnexTemplate(Guid id, string templateFilePath, string hdg, string annex)
         {
             int row = 8;
             int col = 0;
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).ToList();
+                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).ToList();
                 foreach (var reportItem in reportItemList)
                 {
+                    ws.Row(1).Cell(1).SetValue($"ANNEX {annex}");
+                    ws.Row(3).Cell(1).SetValue(hdg);
                     ws.Row(4).Cell(2).SetValue(reportItem.CustodianReport.Codextn.Description);
                     row++;
                     col = 0;
@@ -718,7 +744,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                    //ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
                 }
 
                 // Create a MemoryStream to save the output
@@ -731,16 +757,18 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private MemoryStream ProcessExcelFileVehicleAnnexTemplate(Guid id, string templateFilePath, string annex)
+        private MemoryStream ProcessExcelFileVehicleAnnexTemplate(Guid id, string templateFilePath, string hdg, string annex)
         {
             int row = 8;
             int col = 0;
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).ToList();
+                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).ToList();
                 foreach (var reportItem in reportItemList)
                 {
+                    ws.Row(1).Cell(1).SetValue($"ANNEX {annex}");
+                    ws.Row(3).Cell(1).SetValue(hdg);
                     ws.Row(4).Cell(2).SetValue(reportItem.CustodianReport.Codextn.Description);
                     row++;
                     col = 0;
@@ -796,7 +824,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                    //ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
                 }
 
                 // Create a MemoryStream to save the output
@@ -841,5 +869,17 @@ namespace iLgs.Services.CustodianReports
                 throw new RecordNotYetPostedException($"Record is not yet posted!");
             }
         }
+
+        private void ValidateUser(CustodianReportItem entity, CustodianReportItem model)        
+        {
+            if (entity.InsertedBy != model.UpdatedBy)
+            {
+                var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+                if (!isAdmin)
+                {
+                    throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
+                }
+            }
+        }        
     }
 }

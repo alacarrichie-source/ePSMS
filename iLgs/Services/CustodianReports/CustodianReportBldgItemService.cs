@@ -30,6 +30,7 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportBldgItem> PostAsync(Guid id, string user, DateTime date);
         ValueTask <CustodianReportBldgItem> UnPostAsync(Guid id, string user, DateTime date);
         MemoryStream ProcessExcelFile(Guid id, string templateFilePath);
+        MemoryStream ProcessExcelFileAnnex(Guid id, string templateFilePath, string annex);
     }
 
     public class CustodianReportBldgItemService : BaseValidator, ICustodianReportBldgItemService
@@ -40,12 +41,14 @@ namespace iLgs.Services.CustodianReports
         private readonly ICustodianReportItemPpeValidator _validator;
         private readonly IAllFieldService _allFieldService;        
         private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly IUserService _userService;
 
         public CustodianReportBldgItemService(AppManEntities db)
         {
             _db = db;
             _validator = new CustodianReportItemPpeValidator(_db);
             _allFieldService = new AllFieldService(_db);
+            _userService = new UserService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemVM>(propertyName);
         }
 
@@ -222,6 +225,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportBldgItems.FindAsync(model.Id);
             ValidateRecord(entity);
             ValidateIfPosted(entity);
+            //ValidateUser(entity, model);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
 
@@ -460,6 +464,99 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
+        public MemoryStream ProcessExcelFileAnnex(Guid id, string templateFilePath, string annex)
+        {
+            // Load the template file
+            FileInfo templateFile = new FileInfo(templateFilePath);
+            if (!templateFile.Exists)
+            {
+                throw new FileNotFoundException("The template file does not exist.", templateFilePath);
+            }
+            return ProcessExcelFileAnnexTemplate(id, templateFilePath, annex);
+        }
+
+        private MemoryStream ProcessExcelFileAnnexTemplate(Guid id, string templateFilePath, string annex)
+        {
+            int row = 8;
+            int col = 0;
+
+            string hdg = "";
+
+            if (annex == "A")
+            {
+                hdg = "(INVENTORY COUNT FORM)";
+            }
+            else if (annex == "B")
+            {
+                hdg = "(LIST OF PPEs, FOUND AT STATION)";
+            }
+            else if (annex == "C")
+            {
+                hdg = "(LIST OF NON-EXISTING/MISSING PPEs)";
+            }
+
+            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
+            {
+                var ws = wb.Worksheet(1);
+                var reportItemList = _db.CustodianReportBldgItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).ToList();
+                foreach (var reportItem in reportItemList)
+                {
+                    ws.Row(1).Cell(1).SetValue($"ANNEX {annex}");
+                    ws.Row(3).Cell(1).SetValue(hdg);
+                    ws.Row(4).Cell(3).SetValue(reportItem.CustodianReport.Codextn.Description);
+                    row++;
+                    col = 0;
+                    ws.Row(row).InsertRowsBelow(1);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
+                    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    ws.Row(row).Cell(++col).SetValue(reportItem.BldgItem);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Location);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.ProjectName);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.BuildingType);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Area);
+                    if (reportItem.FromDonation == true)
+                    {
+                        ws.Row(row).Cell(++col).SetValue("From Donation");
+                    }
+                    else
+                    {
+                        ws.Row(row).Cell(++col).SetValue("Purchased");
+                    }
+                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
+                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.AcqYear}/{reportItem.AcqMonth}/{reportItem.AcqDay}");
+                    ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqCost);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.PhaseNo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountCo);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.TotalAmount);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountMooe);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.StartDate);
+                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.StartYear}/{reportItem.StartMonth}/{reportItem.StartDay}");
+                    ws.Row(row).Cell(++col).SetValue($"{reportItem.TargetMonth}/{reportItem.TargetYear}");
+                    ws.Row(row).Cell(++col).SetValue(reportItem.PercentComplete);
+                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.CompletionYear}/{reportItem.CompletionMonth}/{reportItem.CompletionDay}");                    
+                    ws.Row(row).Cell(++col).SetValue(reportItem.CompletionDate);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Status);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Fund);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
+                    ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                }
+
+                // Create a MemoryStream to save the output
+                var memoryStream = new MemoryStream();
+                wb.SaveAs(memoryStream);
+
+                // Reset the stream position to the beginning before returning
+                memoryStream.Position = 0;
+                return memoryStream;
+            }
+        }
+
         private void ValidateRecord(CustodianReportBldgItem entity)
         {
             if (entity == null)
@@ -483,6 +580,18 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new RecordNotYetPostedException($"Record is not yet posted!");
             }
-        }        
+        }
+
+        private void ValidateUser(CustodianReportBldgItem entity, CustodianReportBldgItem model)
+        {
+            if (entity.InsertedBy != model.UpdatedBy)
+            {
+                var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+                if (!isAdmin)
+                {
+                    throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
+                }
+            }
+        }
     }
 }

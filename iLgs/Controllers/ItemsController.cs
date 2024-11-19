@@ -452,9 +452,22 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult ItemCodePreviewRead([DataSourceRequest] DataSourceRequest request, string category)
+        public async Task<ActionResult> ItemCodePreviewRead([DataSourceRequest] DataSourceRequest request, string category)
         {
-            var data = _itemCodeService.GetItemCodePreview(category);
+            string userId = User.Identity.GetUserId();
+            var admin = await GetUserInRole(userId, "admin");
+            var sysadmin = await GetUserInRole(userId, sysAdmin);
+
+            IQueryable<ItemCodePreviewVM> data = null;
+            if (admin || sysadmin)
+            {
+                data = _itemCodeService.GetItemCodePreview(category);
+            }
+            else
+            {
+                data = _itemCodeService.GetItemCodePreviewByUser(category, userId);
+            }
+
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -494,8 +507,8 @@ namespace iLgs.Controllers
                 PsStockId = stockId
             };
             return PartialView(model);
-        }        
-        
+        }
+
         public FileResult GetProductImage(Guid imageId)
         {
             var upload = _db.Uploads.Where(w => w.ImageId == imageId).FirstOrDefault();
@@ -506,7 +519,7 @@ namespace iLgs.Controllers
                 return File(imageBytes, "image/jpeg");
             }
             return null;
-        }        
+        }
 
         public async Task<ActionResult> ItemCodeRpt(Guid itemTypeId)
         {

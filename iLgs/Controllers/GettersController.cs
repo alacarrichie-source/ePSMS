@@ -1,6 +1,7 @@
 ﻿using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Codes;
+using iLgs.Utilities;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
-    public class GettersController : Controller
+    public class GettersController : BaseController
     {
         private readonly AppManEntities _db = new AppManEntities();
         private readonly ICodextnService _codextnService;
@@ -53,7 +54,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Department.Contains(text));
             }
 
-            var retModel = model.Select(c => new GetDepartmentVM { Department = c.Department }).ToList();
+            var retModel = model.Select(c => new GetDepartmentVM { Department = c.Department }).OrderBy(o => o.Department).ToList();
             if (string.IsNullOrEmpty(text))
             {
                 retModel.Insert(0, new GetDepartmentVM { Department = "ALL" });
@@ -209,6 +210,29 @@ namespace iLgs.Controllers
 
             var retModel = model.Select(c => new GetCodeListVM { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }).ToList();
             retModel.Insert(0, new GetCodeListVM { Id = Guid.Empty, Code = "ALL", Description = "ALL", Desc2 = "", Desc3 = "" });            
+
+            return Json(retModel, JsonRequestBehavior.AllowGet);
+        }
+
+        public async Task<JsonResult> GetCategoryPreview(string text)
+        {
+            string userId = User.Identity.GetUserId();
+            var admin = await GetUserInRole(userId, "admin");
+            var sysadmin = await GetUserInRole(userId, sysAdmin);
+            var model = _db.Codextns.Include(i => i.DepartmentUsers).Where(w => w.CodeMast.Code == "PS-CATEGORY").AsNoTracking();
+            
+            if (!admin && !sysadmin)
+            {
+                model = model.Where(w => w.DepartmentUsers.Any(i => i.UserId == userId)).AsNoTracking();
+            }
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
+            }
+
+            var retModel = model.Select(c => new GetCodeListVM { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }).ToList();
+            retModel.Insert(0, new GetCodeListVM { Id = Guid.Empty, Code = "ALL", Description = "ALL", Desc2 = "", Desc3 = "" });
 
             return Json(retModel, JsonRequestBehavior.AllowGet);
         }
@@ -504,7 +528,7 @@ namespace iLgs.Controllers
         public JsonResult GetDepartments(string text)
         {
 
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc3 != "N").AsNoTracking();
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc3 != "N").OrderBy(o => o.Description).AsNoTracking();
             
             if (!string.IsNullOrEmpty(text))
             {
@@ -530,11 +554,11 @@ namespace iLgs.Controllers
         public JsonResult GetLocations(string text)
         {
 
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS").AsNoTracking();
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS").OrderBy(o => o.Desc4).AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {
-                model = model.Where(p => p.Description.Contains(text));
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc4.Contains(text));
             }
 
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);

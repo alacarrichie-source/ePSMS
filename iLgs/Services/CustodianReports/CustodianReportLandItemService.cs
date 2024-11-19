@@ -27,23 +27,26 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportLandItemVM> CreateAsync(CustodianReportLandItemVM model, string user, DateTime date);
         ValueTask<CustodianReportLandItemVM> UpdateAsync(CustodianReportLandItemVM model, string user, DateTime date);
         ValueTask<CustodianReportLandItemVM> DeleteAsync(CustodianReportLandItemVM model, string user, DateTime date);
-        ValueTask<CustodianReportLandItemVM> PostAsync(Guid id, string user, DateTime date);
-        ValueTask<CustodianReportLandItemVM> UnPostAsync(Guid id, string user, DateTime date);
+        ValueTask<CustodianReportLandItem> PostAsync(Guid id, string user, DateTime date);
+        ValueTask<CustodianReportLandItem> UnPostAsync(Guid id, string user, DateTime date);
         MemoryStream ProcessExcelFile(Guid id, string templateFilePath);
-        MemoryStream ProcessExcelAnnexFile(Guid id, string templateFilePath);
+        MemoryStream ProcessExcelAnnexFile(Guid id, string templateFilePath, string annex);
     }
 
     public class CustodianReportLandItemService : BaseValidator, ICustodianReportLandItemService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<CustodianReportLandItemVM> _exceptionService = new ExceptionService<CustodianReportLandItemVM>();
+        private readonly IExceptionService<CustodianReportLandItemVM> _vmExceptionService = new ExceptionService<CustodianReportLandItemVM>();
+        private readonly IExceptionService<CustodianReportLandItem> _exceptionService = new ExceptionService<CustodianReportLandItem>();
         private readonly IAllFieldService _allFieldService;
+        private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public CustodianReportLandItemService(AppManEntities db)
         {
             _db = db;
             _allFieldService = new AllFieldService(_db);
+            _userService = new UserService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportLandItemVM>(propertyName);
         }
 
@@ -129,7 +132,7 @@ namespace iLgs.Services.CustodianReports
         }
 
         public ValueTask<CustodianReportLandItemVM> GetByIdAsync(Guid id) =>
-        _exceptionService.TryCatch(async () =>
+        _vmExceptionService.TryCatch(async () =>
         {
             var data = await _db.CustodianReportLandItems
                 .Where(w => w.Id == id)
@@ -156,7 +159,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public ValueTask<CustodianReportLandItemVM> CreateAsync(CustodianReportLandItemVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportLandItemVM> CreateAsync(CustodianReportLandItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
 
             ValidateIfNull(model);
@@ -195,7 +198,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportLandItemVM> UpdateAsync(CustodianReportLandItemVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportLandItemVM> UpdateAsync(CustodianReportLandItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateRequired(model);
@@ -206,6 +209,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportLandItems.FindAsync(model.Id);
             ValidateRecord(entity);
             ValidateIfPosted(entity);
+            //ValidateUser(entity, model);
 
             MapModelToEntityFields(entity, model, Mode.EDIT);
 
@@ -216,7 +220,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportLandItemVM> DeleteAsync(CustodianReportLandItemVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportLandItemVM> DeleteAsync(CustodianReportLandItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
 
@@ -241,7 +245,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportLandItemVM> PostAsync(Guid id, string user, DateTime date) =>
+        public ValueTask<CustodianReportLandItem> PostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.CustodianReportLandItems.FindAsync(id);
@@ -262,10 +266,10 @@ namespace iLgs.Services.CustodianReports
             _db.CustodianReportLandItems.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
-            return (CustodianReportLandItemVM)entity;
+            return entity;
         });
 
-        public ValueTask<CustodianReportLandItemVM> UnPostAsync(Guid id, string user, DateTime date) =>
+        public ValueTask<CustodianReportLandItem> UnPostAsync(Guid id, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.CustodianReportLandItems.FindAsync(id);
@@ -280,7 +284,7 @@ namespace iLgs.Services.CustodianReports
             _db.CustodianReportLandItems.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
-            return (CustodianReportLandItemVM)entity;
+            return entity;
         });
 
         private AllField SetAllField(CustodianReportLandItem custodianReportItem)
@@ -448,7 +452,7 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        public MemoryStream ProcessExcelAnnexFile(Guid id, string templateFilePath)
+        public MemoryStream ProcessExcelAnnexFile(Guid id, string templateFilePath, string annex)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -456,19 +460,36 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new FileNotFoundException("The template file does not exist.", templateFilePath);
             }
-            return ProcessExcelFileAnnexTemplate(id, templateFilePath);
+            return ProcessExcelFileAnnexTemplate(id, templateFilePath, annex);
         }
 
-        private MemoryStream ProcessExcelFileAnnexTemplate(Guid id, string templateFilePath)
+        private MemoryStream ProcessExcelFileAnnexTemplate(Guid id, string templateFilePath, string annex)
         {
-            int row = 10;
+            int row = 8;
             int col = 0;
+
+            string hdg = "";
+
+            if (annex == "A")
+            {
+                hdg = "(INVENTORY COUNT FORM)";
+            }
+            else if (annex == "B")
+            {
+                hdg = "(LIST OF PPEs, FOUND AT STATION)";
+            }
+            else if (annex == "C")
+            {
+                hdg = "(LIST OF NON-EXISTING/MISSING PPEs)";
+            }
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportLandItems.Where(w => w.ReportId == id).ToList();
+                var reportItemList = _db.CustodianReportLandItems.Where(w => w.ReportId == id && w.Annex == annex).ToList();
                 foreach (var reportItem in reportItemList)
                 {
+                    ws.Row(1).Cell(1).SetValue($"ANNEX {annex}");
+                    ws.Row(3).Cell(1).SetValue(hdg);
                     ws.Row(4).Cell(2).SetValue("");
                     row++;
                     col = 0;
@@ -573,6 +594,18 @@ namespace iLgs.Services.CustodianReports
             if (entity.PostedDt == null)
             {
                 throw new RecordNotYetPostedException($"Record is not yet posted!");
+            }
+        }
+
+        private void ValidateUser(CustodianReportLandItem entity, CustodianReportLandItem model)
+        {
+            if (entity.InsertedBy != model.UpdatedBy)
+            {
+                var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+                if (!isAdmin)
+                {
+                    throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
+                }
             }
         }
     }

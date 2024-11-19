@@ -1,6 +1,8 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -12,14 +14,21 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace iLgs.Controllers
+namespace iLgs.Services
 {
+    public interface IUserService
+    {
+        ValueTask<bool> UserInRole(string userId, string role);
+        ValueTask<bool> IsAdmin(string userId);
+        bool IsUserNameAdmin(string userName);
+    }
+
     public class UserService : IUserService
     {
         private static string _sysCode = "PSMS";
         private static string _sysAdmin = "PSMS_ADMIN";
 
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db; // = new AppManEntities();
         private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
         private HttpClient _client;
         private string _iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
@@ -52,6 +61,15 @@ namespace iLgs.Controllers
         {
             var isAdmin = await UserInRole(userId, "ADMIN");
             var isSysAdmin = await UserInRole(userId, _sysAdmin);
+            return isAdmin || isSysAdmin;
+        }
+
+        public bool IsUserNameAdmin(string userName)
+        {
+            var user = _db.AspNetUsers.Where(w => w.UserName == userName).SingleOrDefault();
+            var userId = user.Id;            
+            var isAdmin = UserInRole(userId, "ADMIN").Result;
+            var isSysAdmin = UserInRole(userId, _sysAdmin).Result;
             return isAdmin || isSysAdmin;
         }
     }

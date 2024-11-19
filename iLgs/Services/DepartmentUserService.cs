@@ -57,7 +57,7 @@ namespace iLgs.Services
 
             if (_db.DepartmentUsers.Any(a => a.DeptId == model.DeptId && a.UserId == model.UserId))
             {
-                throw new RecordAlreadyExistsException("User already exists in this Department");
+                throw new RecordAlreadyExistsException("User already exists!");
             }            
 
             model.Id = Guid.NewGuid();
@@ -118,7 +118,7 @@ namespace iLgs.Services
 
             if (_db.DepartmentUsers.Any(a => a.DeptId == model.DeptId && a.UserId == model.UserId && a.Id != model.Id))
             {
-                throw new RecordAlreadyExistsException("User already exist in this department!");
+                throw new RecordAlreadyExistsException("User already exist!");
             }
 
             model.UpdatedBy = user;

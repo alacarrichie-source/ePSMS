@@ -22,7 +22,7 @@
     </div>
 
     <fieldset>
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.PIN, "Label")
@@ -34,10 +34,10 @@
             </div>            
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
-                    @Html.DisplayFor(m => m.CustodianItemNo, "LabelInt")
+                    @Html.DisplayFor(m => m.CustodianItemNo, "LabelDecimal")
                 </div>
                 <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.CustodianItemNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -56,7 +56,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-12">
                     @Html.DisplayFor(m => m.ItemCodeId, "Label")
@@ -88,7 +88,7 @@
                             c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");
                         })
                         .Height(300)
-                        .Suggest(true)
+                        //.Suggest(true)
                         .Events(e => { e.Select("onSelectItemCodeId").DataBound("onDataBoundItemCodeId"); })
                     )
                     @Html.ValidationMessageFor(m => m.ItemCodeId)
@@ -96,7 +96,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Account, "Label")
@@ -119,7 +119,7 @@
         </div>
 
         <hr />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Area, "LabelDecimal")
@@ -132,7 +132,7 @@
         </div>
         <hr />
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.PricePerSqm, "LabelDecimal")
@@ -144,7 +144,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.MarketValue, "LabelDecimal")
@@ -156,7 +156,7 @@
             </div>
         </div>
 
-        <div class="row">            
+        <div class="row k-mb-2">            
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.PropNo, "Label")
@@ -178,7 +178,7 @@
             </div>
         </div>        
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Type, "Label")
@@ -200,7 +200,7 @@
             </div>
         </div>
         
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Description, "Label")
@@ -212,7 +212,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(model => model.LocationId, "Label")
@@ -229,7 +229,8 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                    //read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                    read.Action("GetLocations", "Getters");
                                 })
                                 .ServerFiltering(true);
                             })
@@ -239,7 +240,7 @@
                                 c.Add().Field("Description").Title("Description").Width("300");
                             })
                             .Events(e => e.Select("onSelectLocationId"))
-                            .Suggest(true)
+                            //.Suggest(true)
                     )
                     @Html.ValidationMessageFor(model => model.LocationId)
                 </div>
@@ -256,7 +257,7 @@
             </div>
         </div>
         
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.SubLocation, "Label")
@@ -278,7 +279,7 @@
             </div>
         </div>        
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.AcqCost, "LabelDecimal")
@@ -301,7 +302,7 @@
         </div>
 
         <br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.Label("")
@@ -315,7 +316,7 @@
 
         <br />
         
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.PsNo, "Label")
@@ -327,7 +328,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Vendor, "Label")
@@ -349,7 +350,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.TctNo, "Label")
@@ -371,7 +372,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.DRPNo, "Label")
@@ -393,7 +394,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.OldDRPNo, "Label")
@@ -415,7 +416,7 @@
             </div>
         </div>
         
-        @*<div class="row">
+        @*<div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.PoNo, "Label")
@@ -437,7 +438,7 @@
             </div>
         </div>*@
         
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Remarks, "Label")
@@ -472,14 +473,14 @@
                                 c.Add().Field("Code").Title("Code").Width("30%");
                                 c.Add().Field("Description").Title("Description").Width("70%");
                             })
-                            .Suggest(true)
+                            //.Suggest(true)
                     )
                     @Html.ValidationMessageFor(model => model.Fund)
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.CGT, "LabelDecimal")
@@ -501,7 +502,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.CGTSurcharge, "LabelDecimal")
@@ -523,7 +524,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.CGTCompromise, "LabelDecimal")
@@ -535,7 +536,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.DST, "LabelDecimal")
@@ -557,7 +558,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.DSTSurcharge, "LabelDecimal")
@@ -579,7 +580,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.DSTCompromise, "LabelDecimal")
@@ -591,7 +592,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.TransferTax, "LabelDecimal")
@@ -613,7 +614,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Interest, "LabelDecimal")
@@ -635,7 +636,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.TransferRegsFee, "LabelDecimal")
@@ -657,7 +658,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.VAT, "LabelDecimal")
@@ -679,7 +680,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Titling, "LabelDecimal")
@@ -701,7 +702,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Relocation, "LabelDecimal")
@@ -723,7 +724,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.IncidentalExpenses, "LabelDecimal")

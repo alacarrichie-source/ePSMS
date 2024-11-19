@@ -63,6 +63,9 @@
         {
             t.Create().Text("Add New Record");
             t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Export to Excel - Annex A").IconClass("k-icon k-i-excel").Name("btnExportA").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Export to Excel - Annex B").IconClass("k-icon k-i-excel").Name("btnExportB").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Search();
@@ -245,12 +248,82 @@
         }
     });
 
+    $(".k-grid-btnExportA").click(function (e) {
+        e.preventDefault();
+        // Get the selected row's data (assuming a single selection model)
+        var grid = $("#grid").data("kendoGrid");
+        var selectedRow = grid.select();
+        var selectedData = grid.dataItem(selectedRow);
 
+        if (selectedData) {
+            window.kendo.ui.progress($(document.body), true);
+            // Get the ID of the selected row
+            var reportId = selectedData.ReportId;
+
+            // Construct the URL for the Excel export
+            var url = "@Url.Action("ExcelExportAnnex", "CustodianReportBldg")" + "?reportId=" + reportId + '&annex=A';
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row to export.");
+        }
+    });
+
+    $(".k-grid-btnExportB").click(function (e) {
+        e.preventDefault();
+        // Get the selected row's data (assuming a single selection model)
+        var grid = $("#grid").data("kendoGrid");
+        var selectedRow = grid.select();
+        var selectedData = grid.dataItem(selectedRow);
+
+        if (selectedData) {
+            window.kendo.ui.progress($(document.body), true);
+            // Get the ID of the selected row
+            var reportId = selectedData.ReportId;
+
+            // Construct the URL for the Excel export
+            var url = "@Url.Action("ExcelExportAnnex", "CustodianReportBldg")" + "?reportId=" + reportId + '&annex=B';
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row to export.");
+        }
+    });
+
+    $(".k-grid-btnExportC").click(function (e) {
+        e.preventDefault();
+        // Get the selected row's data (assuming a single selection model)
+        var grid = $("#grid").data("kendoGrid");
+        var selectedRow = grid.select();
+        var selectedData = grid.dataItem(selectedRow);
+
+        if (selectedData) {
+            window.kendo.ui.progress($(document.body), true);
+            // Get the ID of the selected row
+            var reportId = selectedData.ReportId;
+
+            // Construct the URL for the Excel export
+            var url = "@Url.Action("ExcelExportAnnex", "CustodianReportBldg")" + "?reportId=" + reportId + '&annex=C';
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row to export.");
+        }
+    });
 
     $(document).ready(function () {
         var grid = $("#grid").data("kendoGrid");
         grid.wrapper.find(".k-grid-add").hide(); // Hide the ADD button by default
         grid.wrapper.find(".k-grid-btnExport").hide();
+        grid.wrapper.find(".k-grid-btnExportA").hide();
+        grid.wrapper.find(".k-grid-btnExportB").hide();
+        grid.wrapper.find(".k-grid-btnExportC").hide();
         grid.wrapper.find(".k-grid-btnPost").hide();
         grid.wrapper.find(".k-grid-btnUnpost").hide();
     });
@@ -346,11 +419,17 @@
 
         if (this.dataSource.data().length == 0) {
             $(".k-grid-btnExport", grid).hide();
+            $(".k-grid-btnExportA", grid).hide();
+            $(".k-grid-btnExportB", grid).hide();
+            $(".k-grid-btnExportC", grid).hide();
             $(".k-grid-btnPost", grid).hide();
             $(".k-grid-btnUnpost", grid).hide();
         }
         else {
             $(".k-grid-btnExport", grid).show();
+            $(".k-grid-btnExportA", grid).show();
+            $(".k-grid-btnExportB", grid).show();
+            $(".k-grid-btnExportC", grid).show();
             //$(".k-grid-btnPost", grid).show();
         }
     }

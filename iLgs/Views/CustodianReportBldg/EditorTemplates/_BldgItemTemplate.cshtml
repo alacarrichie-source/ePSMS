@@ -22,10 +22,10 @@
     </div>
 
     <fieldset>
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
-                    @Html.DisplayFor(m => m.CustodianItemNo, "LabelInt")
+                    @Html.DisplayFor(m => m.CustodianItemNo, "LabelDecimal")
                 </div>
                 <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.CustodianItemNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-12">
                     @Html.DisplayFor(m => m.ItemCodeId, "Label")
@@ -76,7 +76,7 @@
                             c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");
                         })
                         .Height(300)
-                        .Suggest(true)
+                        //.Suggest(true)
                         .Events(e => { e.Select("onSelectItemCodeId").DataBound("onDataBoundItemCodeId"); })
                     )
                     @Html.ValidationMessageFor(m => m.ItemCodeId)
@@ -84,7 +84,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Account, "Label")
@@ -106,7 +106,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.BldgItem, "Label")
@@ -118,7 +118,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(model => model.LocationId, "Label")
@@ -135,7 +135,8 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                    //read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                    read.Action("GetLocations", "Getters");
                                 })
                                 .ServerFiltering(true);
                             })
@@ -145,7 +146,7 @@
                                 c.Add().Field("Description").Title("Description").Width("300");
                             })
                             .Events(e => e.Select("onSelectLocationId"))
-                            .Suggest(true)
+                            //.Suggest(true)
                     )
                     @Html.ValidationMessageFor(model => model.LocationId)
                 </div>
@@ -162,7 +163,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.SubLocation, "Label")
@@ -174,7 +175,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.ProjectName, "Label")
@@ -196,7 +197,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Area, "LabelDecimal")
@@ -209,7 +210,7 @@
         </div>
 
         <br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.Label("")
@@ -222,7 +223,7 @@
         </div>
         <br />
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.PsNo, "Label")
@@ -244,7 +245,7 @@
             </div>            
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.PropNo, "Label")
@@ -266,7 +267,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.AcqCost, "LabelDecimal")
@@ -288,7 +289,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.PhaseAmountCo, "LabelDecimal")
@@ -310,7 +311,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.PhaseAmountMooe, "LabelDecimal")
@@ -322,7 +323,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.StartDate, "LabelDate")
@@ -354,7 +355,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.PercentComplete, "LabelDecimal")
@@ -376,7 +377,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Status, "Label")
@@ -411,14 +412,14 @@
                                 c.Add().Field("Code").Title("Code").Width("30%");
                                 c.Add().Field("Description").Title("Description").Width("70%");
                             })
-                            .Suggest(true)
+                            //.Suggest(true)
                     )
                     @Html.ValidationMessageFor(model => model.Fund)
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Condition, "Label")
@@ -442,7 +443,7 @@
                                 {
                                     c.Add().Field("Description").Title("Condition").Width("100%");
                                 })
-                                .Suggest(true)
+                                //.Suggest(true)
                     )
                     @Html.ValidationMessageFor(m => m.Condition)
                 </div>
@@ -460,13 +461,13 @@
         </div>
 
 
-        <div class="row">            
+        <div class="row k-mb-2">            
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Latitude, "Label")
                 </div>
                 <div class="col-md-8">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.Latitude).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().NumericTextBoxFor(m => m.Latitude).Decimals(8).Format("n8").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Latitude)
                 </div>
             </div>
@@ -476,13 +477,13 @@
                     @Html.DisplayFor(m => m.Longitude, "Label")
                 </div>
                 <div class="col-md-8">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.Longitude).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().NumericTextBoxFor(m => m.Longitude).Decimals(8).Format("n8").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Longitude)
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Annex, "Label")

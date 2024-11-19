@@ -18,12 +18,13 @@ namespace iLgs.Models
         public CustodianReportItem()
         {
             this.CustodianDisposalItems = new HashSet<CustodianDisposalItem>();
+            this.CustodianReportItemIssuances = new HashSet<CustodianReportItemIssuance>();
         }
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> ReportId { get; set; }
         public string Fund { get; set; }
-        public Nullable<int> CustodianItemNo { get; set; }
+        public Nullable<decimal> CustodianItemNo { get; set; }
         public string SeriesNo { get; set; }
         public Nullable<bool> FromDonation { get; set; }
         public string InvDist { get; set; }
@@ -87,10 +88,17 @@ namespace iLgs.Models
         public string Condition { get; set; }
         public string Remarks { get; set; }
         public string ParNo { get; set; }
-        public string AreNo { get; set; }
-        public string MrNo { get; set; }
         public string ParIssuedTo { get; set; }
         public string AccountableOfficer { get; set; }
+        public string AreNo { get; set; }
+        public string AreIssuedTo { get; set; }
+        public string AreOfficer { get; set; }
+        public string MrNo { get; set; }
+        public string MrIssuedTo { get; set; }
+        public string MrOfficer { get; set; }
+        public string IcsNo { get; set; }
+        public string IcsIssuedTo { get; set; }
+        public string IcsOfficer { get; set; }
         public string UpcomingPar { get; set; }
         public string Type { get; set; }
         public string Annex { get; set; }
@@ -107,5 +115,7 @@ namespace iLgs.Models
         public virtual ICollection<CustodianDisposalItem> CustodianDisposalItems { get; set; }
         public virtual CustodianReport CustodianReport { get; set; }
         public virtual ItemCode ItemCode { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CustodianReportItemIssuance> CustodianReportItemIssuances { get; set; }
     }
 }

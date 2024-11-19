@@ -124,7 +124,8 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                    //read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                    read.Action("GetLocations", "Getters");
                                 })
                                 .ServerFiltering(true);
                             })
@@ -168,15 +169,15 @@
                         {
                             source.Read(read =>
                             {
-                                read.Action("GetCodes", "Getters", new { mastCode = "UNIT", text = "" });
+                                read.Action("GetUnits", "Getters");
                             })
                             .ServerFiltering(true);
                         })
                         .Columns(c =>
                         {
                             c.Add().Field("Code").Title("Unit Code").Width("20%");
-                            c.Add().Field("Description").Title("Descriptioin").Width("60%");
-                            c.Add().Field("Desc2").Title("Category").Width("20%");
+                            c.Add().Field("Description").Title("Description").Width("40%").Template("#= columnTemplate(data.Description) #");
+                            c.Add().Field("Desc2").Title("Category").Width("40%").Template("#= columnTemplate(data.Desc2) #");
 
                         })
                         .Suggest(true)

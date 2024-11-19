@@ -18,10 +18,13 @@ namespace iLgs.Exceptions
             return Message;
         }
 
-        public RecordLockedException(Xeption innerException)
-            : base("Locked record exception, please try again later.", innerException) { }
+        //public RecordLockedException(Xeption innerException)
+        //    : base("Locked record exception, please try again later.", innerException) { }
 
-        public RecordLockedException(Exception innerException)
-            : base("Locked record exception, please try again later.", innerException) { }
+        //public RecordLockedException(Exception innerException)
+        //    : base("Locked record exception, please try again later.", innerException) { }
+        
+        public RecordLockedException(string msg)
+            : base(message: msg) { }
     }
 }

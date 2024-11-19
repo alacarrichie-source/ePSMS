@@ -10,7 +10,7 @@
         .HtmlAttributes(new { @class = "max-grid" })
         .Columns(columns =>
         {
-            columns.Bound(o => o.Desc4).Width(70).Title(Model.Desc4Hdg ?? "Desc4");
+            //columns.Bound(o => o.Desc4).Width(70).Title(Model.Desc4Hdg ?? "Desc4");
             columns.Bound(o => o.Code).Width(70).Title(Model.CodeHdg ?? "Code");
             columns.Bound(o => o.Description).Width(300).Title(Model.Desc1Hdg ?? "Description")
                 .ClientTemplate("<div style='padding-left: #= Padding #px;'>#= Description #</div>");
@@ -32,7 +32,7 @@
         })
         .Search(s =>
         {
-            s.Field(o => o.Desc4, "contains");
+            //s.Field(o => o.Desc4, "contains");
             s.Field(o => o.Code, "contains");
             s.Field(o => o.Description, "contains");
         })

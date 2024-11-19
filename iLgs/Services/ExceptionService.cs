@@ -91,6 +91,10 @@ namespace iLgs.Services
             {
                 throw CreateAndLogValidationException(recordExistsException);
             }
+            catch (RecordLockedException recordLockedException)
+            {
+                throw CreateAndLogValidationException(recordLockedException);
+            }
             catch (DuplicateKeyException duplicateKeyException)
             {
                 var alreadyExistsStudentException =
@@ -98,12 +102,12 @@ namespace iLgs.Services
 
                 throw CreateAndLogDependencyValidationException(alreadyExistsStudentException);
             }
-            catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
-            {
-                var lockedStudentException = new RecordLockedException(dbUpdateConcurrencyException);
+            //catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
+            //{
+            //    var lockedStudentException = new RecordLockedException(dbUpdateConcurrencyException);
 
-                throw CreateAndLogDependencyException(lockedStudentException);
-            }
+            //    throw CreateAndLogDependencyException(lockedStudentException);
+            //}
             catch (DbUpdateException dbUpdateException)
             {
                 var failedStorageException =
@@ -171,15 +175,15 @@ namespace iLgs.Services
             return validationException;
         }
 
-        private RecordLockedException CreateAndLogLockedException(Xeption exception)
-
+        private ValidationException CreateAndLogLockedException(Xeption exception)
         {
-            var lockedException =
-                new RecordLockedException(exception);
+            var validationException = new ValidationException(exception);
+            //var lockedException =
+            //    new RecordLockedException(exception);
 
             //_loggingService.LogError(dependencyValidationException);
 
-            return lockedException;
+            return validationException;
         }
 
 

@@ -1,6 +1,18 @@
 ﻿@model iLgs.Models.CustodianReportItemStockVM
 
-<div class="row">
+@*<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.Multipliers, "LabelInt")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.Multipliers)
+        </div>
+    </div>    
+</div>*@
+
+<div class="row k-mb-2">
     <div class="col-md-6">
         <div class="col-md-3">
             @Html.DisplayFor(m => m.Brand, "Label")
@@ -22,7 +34,7 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-6">
         <div class="col-md-3">
             @Html.DisplayFor(m => m.Dimension, "Label")
@@ -44,7 +56,7 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-6">
         <div class="col-md-3">
             @Html.DisplayFor(m => m.Weight, "Label")
@@ -66,7 +78,7 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-6">
         <div class="col-md-3">
             @Html.DisplayFor(m => m.Capacity, "Label")

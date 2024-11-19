@@ -17,6 +17,7 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
+    [AppAuthorize("LOCATION")]
     public class LocationController : BaseController
     {
         private readonly AppManEntities _db;
@@ -43,7 +44,7 @@ namespace iLgs.Controllers
         }
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid mastId)
         {
-            var data = _locationService.GetByMastId(mastId);
+            var data = _locationService.GetByMastId(mastId).OrderBy(o => o.Desc4);
 
             return Json(data.ToDataSourceResult(request));
         }

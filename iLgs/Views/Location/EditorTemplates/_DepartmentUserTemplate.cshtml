@@ -22,7 +22,7 @@
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.UserName)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Fund")
+                            .Placeholder("Select User")
                             .DataTextField("UserName")
                             .DataValueField("UserName")
                             .Filter(FilterType.Contains)

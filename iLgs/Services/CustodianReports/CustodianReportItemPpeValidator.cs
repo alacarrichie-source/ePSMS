@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianReports
 {
@@ -25,13 +26,13 @@ namespace iLgs.Services.CustodianReports
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
         private readonly IAllFieldsValidator _allFieldsValidator;
-
+        
         public CustodianReportItemPpeValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportItemPpeVM>(propertyName);
             _codextnService = new CodextnService(_db);
-            _allFieldsValidator = new AllFieldsValidator(_db);
+            _allFieldsValidator = new AllFieldsValidator(_db);        
         }
 
         public void ValidateOnCreate(CustodianReportItemPpeVM model)
@@ -48,8 +49,7 @@ namespace iLgs.Services.CustodianReports
 
         public void ValidateOnDelete(CustodianReportItemPpeVM model)
         {
-            ValidateIfNull(model);
-            ValidateRecord(model.Id);
+            ValidateIfNull(model);            
         }
 
         public void ValidateFieldsOnCreateUpdate(CustodianReportItemPpeVM model)
@@ -106,15 +106,7 @@ namespace iLgs.Services.CustodianReports
 
             ex.ThrowIfContainsErrors();
         }
-
-        private void ValidateRecord(Guid id)
-        {
-            if (!_db.CustodianReportItems.Any(a => a.Id == id))
-            {
-                throw new NotFoundException(id);
-            }
-        }
-
+                
         private static void ValidateIfNull(CustodianReportItemPpeVM model)
         {
             if (model is null)

@@ -27,6 +27,7 @@ namespace iLgs.Services.CustodianReports
         public CustodianReportItemPpeService(AppManEntities db) : base(db)
         {
             _validator = new CustodianReportItemPpeValidator(db);
+
         }
 
         private static Expression<Func<CustodianReportItem, CustodianReportItemPpeVM>> CustodianReporPpeItemProjection
@@ -102,6 +103,15 @@ namespace iLgs.Services.CustodianReports
             ParNo = s.ParNo,
             ParIssuedTo = s.ParIssuedTo,
             AccountableOfficer = s.AccountableOfficer,
+            IcsNo = s.IcsNo,
+            IcsIssuedTo = s.IcsIssuedTo,
+            IcsOfficer = s.IcsOfficer,
+            AreNo = s.AreNo,
+            AreIssuedTo = s.AreIssuedTo,
+            AreOfficer = s.AreOfficer,
+            MrNo = s.MrNo,
+            MrIssuedTo = s.MrIssuedTo,
+            MrOfficer = s.MrOfficer,
             UpcomingPar = s.UpcomingPar,
             Type = s.Type,
             Annex = s.Annex,
