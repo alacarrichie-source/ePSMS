@@ -101,7 +101,7 @@
             {
                 items.Add().Text("Users")
                     .Selected(true)
-                    .LoadContentFrom("_CategoryUsers", "PsCategory", new { deptId = "#=Id#" });                
+                    .LoadContentFrom("_CategoryUsers", "PsCategory", new { deptId = "#=Id#", category = "#=Code#" });                
             }).ToClientTemplate())
 </script>
 
@@ -366,6 +366,42 @@
             grid.dataSource.sync();
         }
     }
+
+    // GRID EXCLUSION
+    var selectedGridExclusionItem = null;
+    function onEditGridExclusion(e) {
+        e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("ItemUserId", '@ViewData["ItemUserId"]');
+        } else {
+            selectedGridExclusionItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridExclusionItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridExclusion(e) {
+        if (selectedGridExclusionItem) {
+            var dataItem = this.dataSource.get(selectedGridExclusionItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+    // END GRID PAR ISSUANCE
+    
 </script>
 
 

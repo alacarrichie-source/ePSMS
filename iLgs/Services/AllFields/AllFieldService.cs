@@ -302,7 +302,7 @@ namespace iLgs.Services.AllFields
             {
                 description += af.Area.ToString() + "sqm";
             }
-            else if (group == CategoryGroup.OTHERS)
+            else if (group == CategoryGroup.OTHERS || group == CategoryGroup.OTHERS_A || group == CategoryGroup.OTHERS_B)
             {
                 description = (!string.IsNullOrWhiteSpace(af.Model_) ? $"{af.Model_}" : "") +
                                (!string.IsNullOrWhiteSpace(af.Dimension) ? $" {af.Dimension}" : "") +
@@ -322,7 +322,11 @@ namespace iLgs.Services.AllFields
                                 (!string.IsNullOrWhiteSpace(af.Others) ? $" {af.Others}" : "") +
                                 (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
             }
-            else if (group == CategoryGroup.SERIAL)
+            else if (group == CategoryGroup.SERIAL 
+                || group == CategoryGroup.SERIAL_A 
+                || group == CategoryGroup.SERIAL_B
+                || group == CategoryGroup.SERIAL_C
+                || group == CategoryGroup.SERIAL_D)
             {
                 description = (!string.IsNullOrWhiteSpace(af.SerialNo) ? $"{af.SerialNo}" : "") +
                                (!string.IsNullOrWhiteSpace(af.PropNo) ? $" {af.PropNo}" : "") +
@@ -331,55 +335,7 @@ namespace iLgs.Services.AllFields
                                (!string.IsNullOrWhiteSpace(af.MVFileNo) ? $" {af.MVFileNo}" : "") +
                                (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
             }
-
-            //if (Enum.TryParse(model.PsType, out Category c))
-            //{
-            //    if (c == CatLands())
-            //    {
-            //        description += af.Area.ToString() + "sqm";
-            //    }
-            //    else if (c == CatMachineries()
-            //        || c == CatTransportations()
-            //        || c == CatFurnitures()
-            //        || c == CatOtherProperties()
-            //        || c == CatMedicals()
-            //        || c == CatAgriculturals()
-            //        || c == CatAnimalSupplies()
-            //        || c == CatConstructionMaterials()
-            //        || c == CatOfficeSupplies()
-            //        || c == CatAccountableForms()
-            //        || c == CatNonAccountableForns()
-            //        || c == CatMilitaries()
-            //        || c == CatOtherSupplies())
-            //    {
-            //        description = (!string.IsNullOrWhiteSpace(af.Model_) ? $"{af.Model_}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.Dimension) ? $" {af.Dimension}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.Size) ? $" {af.Size}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.Weight) ? $" {af.Weight}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.Materials) ? $" {af.Materials}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.Capacity) ? $" {af.Capacity}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.Color) ? $" {af.Color}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
-            //    }
-            //    else if (c == CatDrugs())
-            //    {
-            //        description = (!string.IsNullOrWhiteSpace(af.GenericName) ? $"{af.GenericName}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.DosageStrength) ? $" {af.DosageStrength}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.DosageForm) ? $" {af.DosageForm}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.DosageVolume) ? $" {af.DosageVolume}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.Others) ? $" {af.Others}" : "") +
-            //                    (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
-            //    }
-            //    else if (c == CatRepairs())
-            //    {
-            //        description = (!string.IsNullOrWhiteSpace(af.SerialNo) ? $"{af.SerialNo}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.PropNo) ? $" {af.PropNo}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.PlateNo) ? $" {af.PlateNo}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.BodyNo) ? $" {af.BodyNo}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.MVFileNo) ? $" {af.MVFileNo}" : "") +
-            //                    (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
-            //    }
-            //}
+            
             return description ?? "";
         }
 
@@ -495,10 +451,10 @@ namespace iLgs.Services.AllFields
 
         public bool IsBrandRequired(Category c)
         {
-            return (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties()
-                    || c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries()
-                    || c == CatOtherSupplies() || c == CatRepairs()) || c == CatDrugs();
+            return (c == CatMachineriesProp() || c == CatTransportationProp() || c == CatFurnituresProp() || c == CatOtherProperties()
+                    || c == CatMedicalSupply() || c == CatAgriculturalSupply() || c == CatAnimalSupplies() || c == CatConstructionMaterialsSupply()
+                    || c == CatOfficeSupplies() || c == CatAccountableFormsSupply() || c == CatNonAccountableFornsSupply() || c == CatMilitarySupply()
+                    || c == CatOtherSupplies() || c == CatRepairSupply()) || c == CatDrugsSupply();
         }
 
         public string GetStockNo(AllField af, string itemTypeCode, string itemCode)
@@ -585,8 +541,20 @@ namespace iLgs.Services.AllFields
                     }
                 }
             }
-            else if (group == CategoryGroup.OTHERS)
+            else if (group == CategoryGroup.OTHERS || group == CategoryGroup.OTHERS_A || group == CategoryGroup.OTHERS_B)
             {
+                if (group == CategoryGroup.OTHERS)
+                {
+                    if (af.Multipliers.HasValue && af.Multipliers > 0)
+                    {
+                        stockNo += $"/{af.Multipliers}'s";
+                    }
+                    else
+                    {
+                        stockNo += "/xx";
+                    }
+                }
+
                 if (!string.IsNullOrWhiteSpace(af.Brand))
                 {
                     if (af.Brand == "-")
@@ -603,51 +571,76 @@ namespace iLgs.Services.AllFields
                     stockNo += "/xx";
                 }
 
-                if (af.Model_.IsNullOrWhiteSpaceX())
+                // Vehicles
+                if (group == CategoryGroup.OTHERS_B)
                 {
-                    if (af.Dimension.IsNullOrWhiteSpaceX())
-                    {
-                        if (af.Size.IsNullOrWhiteSpaceX())
+                    if (af.Model_.IsNullOrWhiteSpaceX())
+                    {                        
+                        if (af.Weight.IsNullOrWhiteSpaceX())
                         {
-                            if (af.Weight.IsNullOrWhiteSpaceX())
+                            if (!string.IsNullOrWhiteSpace(af.Color))
                             {
-                                if (af.Materials.IsNullOrWhiteSpaceX())
-                                {
-                                    if (af.Capacity.IsNullOrWhiteSpaceX())
-                                    {
-                                        if (!string.IsNullOrWhiteSpace(af.Color))
-                                        {
-                                            stockNo += $"/{af.Color}";
-                                        }
-                                    }
-                                    else
-                                    {
-                                        stockNo += $"/{af.Capacity}";
-                                    }
-                                }
-                                else
-                                {
-                                    stockNo += $"/{af.Materials}";
-                                }
-                            }
-                            else
-                            {
-                                stockNo += $"/{af.Weight}";
-                            }
+                                stockNo += $"/{af.Color}";
+                            }                                                                            
                         }
                         else
                         {
-                            stockNo += $"/{af.Size}";
-                        }
+                            stockNo += $"/{af.Weight}";
+                        }                            
                     }
                     else
                     {
-                        stockNo += $"/{af.Dimension}";
+                        stockNo += $"/{af.Model_}";
                     }
                 }
                 else
                 {
-                    stockNo += $"/{af.Model_}";
+                    if (af.Model_.IsNullOrWhiteSpaceX())
+                    {
+                        if (af.Dimension.IsNullOrWhiteSpaceX())
+                        {
+                            if (af.Size.IsNullOrWhiteSpaceX())
+                            {
+                                if (af.Weight.IsNullOrWhiteSpaceX())
+                                {
+                                    if (af.Materials.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (af.Capacity.IsNullOrWhiteSpaceX())
+                                        {
+                                            if (!string.IsNullOrWhiteSpace(af.Color))
+                                            {
+                                                stockNo += $"/{af.Color}";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            stockNo += $"/{af.Capacity}";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        stockNo += $"/{af.Materials}";
+                                    }
+                                }
+                                else
+                                {
+                                    stockNo += $"/{af.Weight}";
+                                }
+                            }
+                            else
+                            {
+                                stockNo += $"/{af.Size}";
+                            }
+                        }
+                        else
+                        {
+                            stockNo += $"/{af.Dimension}";
+                        }
+                    }
+                    else
+                    {
+                        stockNo += $"/{af.Model_}";
+                    }
                 }
             }
             else if (group == CategoryGroup.SERIAL_A)
@@ -853,320 +846,7 @@ namespace iLgs.Services.AllFields
                 {
                     stockNo += $"/{af.SerialNo}";
                 }
-            }
-
-            //if (Enum.TryParse(itemTypeCode, out Category c))
-            //{
-            //    if (c == CatLands())
-            //    {
-            //        stockNo += ((af.Area != null) ? $"/{af.Area}sqm" : "");
-            //    }
-            //    else if (c == CatMachineries()
-            //        || c == CatTransportations()
-            //        || c == CatFurnitures()
-            //        || c == CatOtherProperties()
-            //        || c == CatMedicals()
-            //        || c == CatAgriculturals()
-            //        || c == CatAnimalSupplies()
-            //        || c == CatConstructionMaterials()
-            //        || c == CatOfficeSupplies()
-            //        || c == CatAccountableForms()
-            //        || c == CatNonAccountableForns()
-            //        || c == CatMilitaries()
-            //        || c == CatOtherSupplies())
-            //    {
-            //        if (!string.IsNullOrWhiteSpace(af.Brand))
-            //        {
-            //            if (af.Brand == "-")
-            //            {
-            //                stockNo += "/xx";
-            //            }
-            //            else
-            //            {
-            //                stockNo += $"/{af.Brand}";
-            //            }
-            //        }
-            //        else
-            //        {
-            //            stockNo += "/xx";
-            //        }                    
-
-            //        if (af.Model_.IsNullOrWhiteSpaceX())
-            //        {
-            //            if (af.Dimension.IsNullOrWhiteSpaceX())
-            //            {
-            //                if (af.Size.IsNullOrWhiteSpaceX())
-            //                {
-            //                    if (af.Weight.IsNullOrWhiteSpaceX())
-            //                    {
-            //                        if (af.Materials.IsNullOrWhiteSpaceX())
-            //                        {
-            //                            if (af.Capacity.IsNullOrWhiteSpaceX())
-            //                            {
-            //                                if (!string.IsNullOrWhiteSpace(af.Color))
-            //                                {
-            //                                    stockNo += $"/{af.Color}";
-            //                                }
-            //                            }
-            //                            else
-            //                            {
-            //                                stockNo += $"/{af.Capacity}";
-            //                            }
-            //                        }
-            //                        else
-            //                        {
-            //                            stockNo += $"/{af.Materials}";
-            //                        }
-            //                    }
-            //                    else
-            //                    {
-            //                        stockNo += $"/{af.Weight}";
-            //                    }
-            //                }
-            //                else
-            //                {
-            //                    stockNo += $"/{af.Size}";
-            //                }
-            //            }
-            //            else
-            //            {
-            //                stockNo += $"/{af.Dimension}";
-            //            }
-            //        }
-            //        else
-            //        {
-            //            stockNo += $"/{af.Model_}";
-            //        }
-            //    }
-            //    else if (c == CatRepairs())
-            //    {
-            //        var index = itemCode.IndexOf('-');
-            //        var itemNo = itemCode.Substring(index + 1);
-
-            //        if (itemNo.Length >= 3 && itemNo.Substring(0, 3).Any(a => a.Equals("1.1") || a.Equals("2.1") || a.Equals("3.1") || a.Equals("4.1")
-            //           || a.Equals("7.1") || a.Equals("8.1") || a.Equals("9.1")))
-            //        {
-            //            //  "PropNo", "SerialNo"
-            //            if (string.IsNullOrWhiteSpace(af.SerialNo))
-            //            {
-            //                if (string.IsNullOrWhiteSpace(af.PropNo))
-            //                {
-            //                    stockNo += $"/xx";
-            //                }
-            //                else
-            //                {
-            //                    stockNo += $"/{af.PropNo}";
-            //                }
-            //            }
-            //            else
-            //            {
-            //                stockNo += $"/{af.SerialNo}";
-            //            }
-
-            //        }
-            //        else if (itemNo.Length >= 4 && itemNo.Substring(0, 4).Any(a => a.Equals("5.1") || a.Equals("6.1.") || a.Equals("9.1.")))
-            //        {
-            //            // "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"
-            //            if (string.IsNullOrWhiteSpace(af.SerialNo))
-            //            {
-            //                if (string.IsNullOrWhiteSpace(af.PropNo))
-            //                {
-            //                    if (string.IsNullOrWhiteSpace(af.PlateNo))
-            //                    {
-            //                        if (string.IsNullOrWhiteSpace(af.BodyNo))
-            //                        {
-            //                            if (!string.IsNullOrWhiteSpace(af.MVFileNo))
-            //                            {                                           
-            //                                stockNo += $"/{af.MVFileNo}";
-            //                            }
-            //                        }
-            //                        else
-            //                        {
-            //                            stockNo += $"/{af.BodyNo}";
-            //                        }
-            //                    }
-            //                    else
-            //                    {
-            //                        stockNo += $"/{af.PlateNo.ToUpper()}";
-            //                    }                                
-            //                }
-            //                else
-            //                {
-            //                    stockNo += $"/{af.PropNo}";
-            //                }
-            //            }
-            //            else
-            //            {
-            //                stockNo += $"/{af.SerialNo}";
-            //            }
-            //        }
-            //        else
-            //        {
-            //            // "Color", "Capacity", "Materials", "Weight", "Size", "Dimension", "Model_", "Brand", "MVFileNo", "BodyNo", "PlateNo", "PropNo", "SerialNo"                        
-            //            if (string.IsNullOrWhiteSpace(af.SerialNo))
-            //            {
-            //                if (string.IsNullOrWhiteSpace(af.PropNo))
-            //                {
-            //                    if (string.IsNullOrWhiteSpace(af.PlateNo))
-            //                    {
-            //                        if (string.IsNullOrWhiteSpace(af.BodyNo))
-            //                        {
-            //                            if (string.IsNullOrWhiteSpace(af.MVFileNo))
-            //                            {
-            //                                if (string.IsNullOrWhiteSpace(af.Model_))
-            //                                {
-            //                                    if (string.IsNullOrWhiteSpace(af.Dimension))
-            //                                    {
-            //                                        if (string.IsNullOrWhiteSpace(af.Size))
-            //                                        {
-            //                                            if (string.IsNullOrWhiteSpace(af.Weight))
-            //                                            {
-            //                                                if (string.IsNullOrWhiteSpace(af.Materials))
-            //                                                {
-            //                                                    if (string.IsNullOrWhiteSpace(af.Capacity))
-            //                                                    {
-            //                                                        if (!string.IsNullOrWhiteSpace(af.Color))
-            //                                                        {
-            //                                                            stockNo += $"/{af.Color}";
-            //                                                        }
-            //                                                    }
-            //                                                    else
-            //                                                    {
-            //                                                        stockNo += $"/{af.Capacity}";
-            //                                                    }
-            //                                                }
-            //                                                else
-            //                                                {
-            //                                                    stockNo += $"/{af.Materials}";
-            //                                                }
-            //                                            }
-            //                                            else
-            //                                            {
-            //                                                stockNo += $"/{af.Weight}";
-            //                                            }
-            //                                        }
-            //                                        else
-            //                                        {
-            //                                            stockNo += $"/{af.Size}";
-            //                                        }
-            //                                    }
-            //                                    else
-            //                                    {
-            //                                        stockNo += $"/{af.Dimension}";
-            //                                    }
-            //                                }
-            //                                else
-            //                                {
-            //                                    stockNo += $"/{Utility.ToProperCase(af.Model_)}";
-            //                                }
-            //                            }
-            //                            else
-            //                            {
-            //                                stockNo += $"/{af.MVFileNo}";
-            //                            }
-            //                        }
-            //                        else
-            //                        {
-            //                            stockNo += $"/{af.BodyNo}";
-            //                        }
-            //                    }
-            //                    else
-            //                    {
-            //                        stockNo += $"/{af.PlateNo.ToUpper()}";
-            //                    }
-            //                }
-            //                else
-            //                {
-            //                    stockNo += $"/{af.PropNo}";
-            //                }
-            //            }
-            //            else
-            //            {
-            //                stockNo += $"/{af.SerialNo}";
-            //            }
-            //        }                    
-            //    }
-            //    else if (c == CatDrugs())
-            //    {
-            //        if (!string.IsNullOrWhiteSpace(af.GenericName))
-            //        {
-            //            if (af.GenericName.Equals("-"))
-            //            {
-            //                stockNo += "/xx";
-            //            }
-            //            else 
-            //            {
-            //                var genName = Utility.ToProperCase(af.GenericName);
-            //                if (genName.Length >= 3)
-            //                {
-            //                    stockNo += "/" + genName.Substring(0, 1) + genName.Substring(2, 1);
-            //                }
-            //                else
-            //                {
-            //                    stockNo += "/" + genName.Substring(0, 1) + "X";
-            //                }
-            //            }
-            //        }
-
-            //        if (itemCode.Contains("SC-5.1.")) // Alcohol
-            //        {
-            //            if (!string.IsNullOrWhiteSpace(af.DosageVolume))
-            //            {
-            //                stockNo += "/" + af.DosageVolume.Trim() + "'s";                            
-            //            }
-            //        }
-            //        else
-            //        {
-            //            if (!string.IsNullOrWhiteSpace(af.DosageStrength))
-            //            {
-            //                if (af.DosageStrength.Equals("-"))
-            //                {
-            //                    stockNo += "/xx";
-            //                }
-            //                else
-            //                {
-            //                    stockNo += "/" + af.DosageStrength.Replace(" ", "").Trim();
-            //                }
-            //            }
-            //            if (!string.IsNullOrWhiteSpace(af.DosageForm))
-            //            {
-            //                if (af.DosageForm.Equals("-"))
-            //                {
-            //                    stockNo += "/xx";
-            //                }
-            //                else
-            //                {
-            //                    stockNo += "/" + af.DosageForm.PadRight(3, 'X').Substring(0, 3);
-            //                }
-            //            }
-            //        }
-
-            //        if (af.Multipliers.HasValue && af.Multipliers > 0)
-            //        {
-            //            stockNo += "/" + af.Multipliers.ToString().Trim() + "'s";
-            //        }
-            //        else
-            //        {
-            //            stockNo += "/xx";
-            //        }
-
-            //        if (!string.IsNullOrWhiteSpace(af.Brand))
-            //        {
-            //            if (af.Brand.Equals("-"))
-            //            {
-            //                stockNo += "/xx";
-            //            }
-            //            else
-            //            {
-            //                stockNo += "/" + af.Brand.Replace(" ", "").Trim();
-            //            }
-            //        }
-            //        //else
-            //        //{
-            //        //    stockNo += "/xx";
-            //        //}
-            //    }
-            //}
+            }            
             return stockNo;
         }
 

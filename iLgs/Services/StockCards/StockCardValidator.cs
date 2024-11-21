@@ -67,7 +67,7 @@ namespace iLgs.Services.StockCards
             //ValidateCreatedDateIsRecent(card);
             var ex = new InvalidModelException();
             _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
-            if (_db.PsCards.Any(a => a.PsNo == model.PsNo))
+            if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund))
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.PsNo)), "Already exists.");
             }
@@ -85,7 +85,7 @@ namespace iLgs.Services.StockCards
             
             var ex = new InvalidModelException();
             _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
-            if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Id != model.Id))
+            if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund && a.Id != model.Id))
             {
                 ex.UpsertDataList(Utility.GetDisplayName<StockCardVM>(nameof(model.PsNo)), "Already exists.");
             }

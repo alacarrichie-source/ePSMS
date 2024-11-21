@@ -418,7 +418,7 @@ namespace iLgs.Services
             string display = "";
             if (Enum.TryParse(model.PsType, out Category c))
             {
-                if (c == CatLands())
+                if (c == CatLandsProp())
                 {
                     display = $"{model.ItemCode}/{model.AllField.Area}SqM";
                 }

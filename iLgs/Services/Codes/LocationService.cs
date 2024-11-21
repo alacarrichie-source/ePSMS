@@ -14,6 +14,8 @@ namespace iLgs.Services.Codes
 {
     public interface ILocationService : ICodextnService
     {
+        IQueryable<LocationCodePreviewVM> GetLocationPreview();
+        IQueryable<LocationCodeVM> GetLocations(string search);
         ValueTask<CodextnVM> UpdateIndexNo(string user, DateTime date);
     }
 
@@ -23,6 +25,17 @@ namespace iLgs.Services.Codes
         {
         }
 
+        public IQueryable<LocationCodeVM> GetLocations(string search) 
+        {
+            var data = _db.Database.SqlQuery<LocationCodeVM>("Exec Locations_GetLocations {0}", search).AsQueryable().AsNoTracking();
+            return data;
+        }
+
+        public IQueryable<LocationCodePreviewVM> GetLocationPreview()
+        {            
+            var data = _db.Database.SqlQuery<LocationCodePreviewVM>("Exec Locations_GetPreview").AsQueryable().AsNoTracking();
+            return data;
+        }
         public override IQueryable<CodextnVM> GetByMastId(Guid mastId)
         {
             var data = _db.Codextns.Where(w => w.MastId == mastId)

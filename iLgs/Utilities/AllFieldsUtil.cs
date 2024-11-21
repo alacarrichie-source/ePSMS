@@ -13,31 +13,53 @@ namespace iLgs.Utilities
             CategoryGroup retval = CategoryGroup.NONE;
             if (Enum.TryParse(itemTypeCode, out Category c))
             {
-                if (c == CatLands())
+                if (c == CatLandsProp())
                 {
                     retval = CategoryGroup.LAND;
                 }
-                else if (c == CatMachineries()
-                    || c == CatTransportations()
-                    || c == CatFurnitures()
-                    || c == CatOtherProperties()
-                    || c == CatMedicals()
-                    || c == CatAgriculturals()
+                else if (                   
+                    c == CatMedicalSupply()
+                    || c == CatAgriculturalSupply()
                     || c == CatAnimalSupplies()
-                    || c == CatConstructionMaterials()
+                    || c == CatConstructionMaterialsSupply()
                     || c == CatOfficeSupplies()
-                    || c == CatAccountableForms()
-                    || c == CatNonAccountableForns()
-                    || c == CatMilitaries()
+                    || c == CatAccountableFormsSupply()
+                    || c == CatNonAccountableFornsSupply()
+                    || c == CatMilitarySupply()
                     || c == CatOtherSupplies())
                 {
                     retval = CategoryGroup.OTHERS;
                 }
-                else if (c == CatDrugs())
+                else if (
+                    c == CatMachineriesProp()                    
+                    || c == CatOtherProperties()
+                    || c == CatTransportationProp()
+                    || c == CatFurnituresProp())
+                {
+                    if (c == CatTransportationProp()
+                        || (itemTypeCode == "E" && (
+                            itemCode.Contains("05-80")
+                            || itemCode.Contains("05-90.1.1")
+                            || itemCode.Contains("E05-90.2.1")
+                            || itemCode.Contains("05-90.3.1")
+                            || itemCode.Contains("05-90.4.1")
+                            || itemCode.Contains("05-90.5.1")
+                            || itemCode.Contains("05-100.1")
+                        ))
+                      )
+                    {
+                        retval = CategoryGroup.OTHERS_B;
+                    }
+                    else
+                    {
+                        retval = CategoryGroup.OTHERS_A;
+                    }
+                }
+                else if (c == CatDrugsSupply())
                 {
                     retval = CategoryGroup.DRUGS;
                 }
-                else if (c == CatRepairs())
+                else if (c == CatRepairSupply())
                 {
                     if (itemCode.Contains("-1.1") || itemCode.Contains("-2.1") || itemCode.Contains("-3.1") || itemCode.Contains("-4.1")
                         || itemCode.Contains("-7.1") || itemCode.Contains("-8.1") || itemCode.Contains("-9.1"))
@@ -71,8 +93,16 @@ namespace iLgs.Utilities
                 partialName = "_FieldLand";
             }
             else if (value == CategoryGroup.OTHERS)
+            { 
+                partialName = "_FieldBrand";                
+            }
+            else if (value == CategoryGroup.OTHERS_A)
             {
-                partialName = "_FieldBrand";
+                partialName = "_FieldBrand_A";
+            }
+            else if (value == CategoryGroup.OTHERS_B)
+            {
+                partialName = "_FieldBrand_B";
             }
             else if (value == CategoryGroup.DRUGS)
             {

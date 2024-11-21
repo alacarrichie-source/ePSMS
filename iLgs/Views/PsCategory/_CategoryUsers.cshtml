@@ -40,6 +40,7 @@
     .Sortable()
     .Editable()
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CategoryUserTemplate").Window(w => w.Width(500).Title("Users")))
+    //.ClientDetailTemplateId("Exclusion")
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)
@@ -63,3 +64,16 @@
     .AutoBind(true)
 )
 
+<script id="Exclusion" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+        .Name("tabStrip_#=Id#")
+        //.HtmlAttributes(new { @class = "no-text-tabstrip" })
+        .TabPosition(TabStripTabPosition.Top)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .SelectedIndex(0)
+        .Items(items =>
+        {
+            items.Add().Text("Exclusions").Selected(true).LoadContentFrom("_Exclusion", "PsCategory", new { itemUserId = "#=Id#" });            
+        })
+        .ToClientTemplate())
+</script>

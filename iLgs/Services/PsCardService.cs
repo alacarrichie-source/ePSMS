@@ -225,17 +225,17 @@ namespace iLgs.Services
             var fieldSw = new FieldSw();
             if (Enum.TryParse(category, out Category c))
             {
-                fieldSw.InvDist = (c == CatDrugs() || c == CatMedicals() || c == CatAgriculturals());
-                fieldSw.AcqDate = (c == CatLands() || c == CatLandImprovements() || c == CatInfrastructures() || c == CatBuildings() ||
-                    c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties());
-                fieldSw.AcqYear = (c == CatConstructionInProgress());
-                fieldSw.PhaseNo = (c == CatLands() || c == CatInfrastructures() || c == CatBuildings() || c == CatConstructionInProgress());
-                fieldSw.CapitalOutlay = (c == CatLands() || c == CatLandImprovements() || c == CatInfrastructures() || c == CatBuildings() ||
-                    c == CatConstructionInProgress());
-                fieldSw.Type = (c == CatMachineries() || c == CatTransportations() || c == CatFurnitures() || c == CatOtherProperties() ||
-                    c == CatMedicals() || c == CatAgriculturals() || c == CatAnimalSupplies() || c == CatConstructionMaterials() ||
-                    c == CatOfficeSupplies() || c == CatAccountableForms() || c == CatNonAccountableForns() || c == CatMilitaries() ||
-                    c == CatRepairs() || c == CatOtherSupplies());
+                fieldSw.InvDist = (c == CatDrugsSupply() || c == CatMedicalSupply() || c == CatAgriculturalSupply());
+                fieldSw.AcqDate = (c == CatLandsProp() || c == CatLandImprovementsProp() || c == CatInfrastructuresProp() || c == CatBuildingsProp() ||
+                    c == CatMachineriesProp() || c == CatTransportationProp() || c == CatFurnituresProp() || c == CatOtherProperties());
+                fieldSw.AcqYear = (c == CatConstructionInProgressProp());
+                fieldSw.PhaseNo = (c == CatLandsProp() || c == CatInfrastructuresProp() || c == CatBuildingsProp() || c == CatConstructionInProgressProp());
+                fieldSw.CapitalOutlay = (c == CatLandsProp() || c == CatLandImprovementsProp() || c == CatInfrastructuresProp() || c == CatBuildingsProp() ||
+                    c == CatConstructionInProgressProp());
+                fieldSw.Type = (c == CatMachineriesProp() || c == CatTransportationProp() || c == CatFurnituresProp() || c == CatOtherProperties() ||
+                    c == CatMedicalSupply() || c == CatAgriculturalSupply() || c == CatAnimalSupplies() || c == CatConstructionMaterialsSupply() ||
+                    c == CatOfficeSupplies() || c == CatAccountableFormsSupply() || c == CatNonAccountableFornsSupply() || c == CatMilitarySupply() ||
+                    c == CatRepairSupply() || c == CatOtherSupplies());
             }
             return fieldSw;
         }
@@ -245,31 +245,31 @@ namespace iLgs.Services
             string partialView = "";
             if (Enum.TryParse(category, out Category c))
             {
-                if (c == CatLands())
+                if (c == CatLandsProp())
                 {
                     partialView = "_ItemFieldLand";
                 }
-                else if (c == CatMachineries()
-                    || c == CatTransportations()
-                    || c == CatFurnitures()
+                else if (c == CatMachineriesProp()
+                    || c == CatTransportationProp()
+                    || c == CatFurnituresProp()
                     || c == CatOtherProperties()
-                    || c == CatMedicals()
-                    || c == CatAgriculturals()
+                    || c == CatMedicalSupply()
+                    || c == CatAgriculturalSupply()
                     || c == CatAnimalSupplies()
-                    || c == CatConstructionMaterials()
+                    || c == CatConstructionMaterialsSupply()
                     || c == CatOfficeSupplies()
-                    || c == CatAccountableForms()
-                    || c == CatNonAccountableForns()
-                    || c == CatMilitaries()
+                    || c == CatAccountableFormsSupply()
+                    || c == CatNonAccountableFornsSupply()
+                    || c == CatMilitarySupply()
                     || c == CatOtherSupplies())
                 {
                     partialView = "_ItemFieldBrand";
                 }
-                else if (c == CatDrugs())
+                else if (c == CatDrugsSupply())
                 {
                     partialView = "_ItemFieldDrugs";
                 }
-                else if (c == CatRepairs())
+                else if (c == CatRepairSupply())
                 {
                     partialView = "_ItemFieldSerial";
                 }
@@ -315,28 +315,28 @@ namespace iLgs.Services
             string itemExtnName = "";
             if (Enum.TryParse(category, out Category c))
             {
-                if (c == CatLands())
+                if (c == CatLandsProp())
                 {
                     itemExtnName = "ItemExtnLand";
                 }
-                else if (c == CatTransportations())
+                else if (c == CatTransportationProp())
                 {
                     itemExtnName = "ItemExtnVehicle";
                 }
-                else if (c == CatMachineries()
-                    || c == CatFurnitures()
+                else if (c == CatMachineriesProp()
+                    || c == CatFurnituresProp()
                     || c == CatOtherProperties()
-                    || c == CatMedicals()
-                    || c == CatAgriculturals()
+                    || c == CatMedicalSupply()
+                    || c == CatAgriculturalSupply()
                     || c == CatAnimalSupplies()
-                    || c == CatConstructionMaterials()
+                    || c == CatConstructionMaterialsSupply()
                     || c == CatOfficeSupplies()
-                    || c == CatAccountableForms()
-                    || c == CatNonAccountableForns()
-                    || c == CatMilitaries()
+                    || c == CatAccountableFormsSupply()
+                    || c == CatNonAccountableFornsSupply()
+                    || c == CatMilitarySupply()
                     || c == CatOtherSupplies()
-                    || c == CatDrugs()
-                    || c == CatRepairs()
+                    || c == CatDrugsSupply()
+                    || c == CatRepairSupply()
                     )
                 {
                     itemExtnName = "ItemExtnOther";

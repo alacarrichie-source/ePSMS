@@ -7,6 +7,7 @@ using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -198,7 +199,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "location");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -243,7 +244,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "location");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -287,7 +288,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "location");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -337,7 +338,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "location");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -382,7 +383,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "location");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -426,7 +427,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "codes");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "location");
                 Access access = await accessTask;
                 if (!access.IsAdmin)
                 {
@@ -456,6 +457,41 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
         #endregion  
+
+        #region PREVIEW    
+        public ActionResult Preview()
+        {
+            return View();
+        }
+
+        public ActionResult PreviewRead([DataSourceRequest] DataSourceRequest request)
+        {
+            //string userId = User.Identity.GetUserId();
+            //var admin = await GetUserInRole(userId, "admin");
+            //var sysadmin = await GetUserInRole(userId, sysAdmin);
+
+            //IQueryable<ItemCodePreviewVM> data = null;
+            //if (admin || sysadmin)
+            //{
+            //    data = _itemCodeService.GetItemCodePreview(category);
+            //}
+            //else
+            //{
+            //    data = _itemCodeService.GetItemCodePreviewByUser(category, userId);
+            //}
+
+            var data = _locationService.GetLocationPreview();
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+        #endregion
 
         public async Task UpdateIndexNo()
         {

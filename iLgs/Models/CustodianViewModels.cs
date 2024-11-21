@@ -53,15 +53,11 @@ namespace iLgs.Models
     [MetadataType(typeof(CustodianReportItem.Metadata))]
     public partial class CustodianReportItem
     {
-        //public CustodianReportItem()
-        //{
-        //    this.AllField = new AllField();            
-        //}
-
+        
         public string ItemType_Code { get; set; }
         public string Item_Code { get; set; }
 
-        public AllField AllField;
+        public AllField AllField { get; set; }
         public Guid? MainDeptId { get; set; }
         public int? AccountGroup { get; set; }
 
@@ -175,8 +171,8 @@ namespace iLgs.Models
             [Display(Name = "Dosage Volumne")]
             public string DosageVolume { get; set; }
 
-            [Display(Name = "Multipiers ('s)")]
-            public Nullable<int> Multipliers { get; set; }
+            [Display(Name = "Multiples (#'s)")]
+            public Nullable<int> Multipliers { get; set; } = 0;
 
             [Display(Name = "Serial No.")]
             public string SerialNo { get; set; }
@@ -202,7 +198,7 @@ namespace iLgs.Models
             [Display(Name = "Chasis No.")]
             public string ChasisNo { get; set; }
 
-            [Display(Name = "CRN")]
+            [Display(Name = "CR No.")]
             public string CRN { get; set; }
 
             [Display(Name = "CR Date")]

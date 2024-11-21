@@ -829,31 +829,31 @@ namespace iLgs.Controllers
             string partialView = "";
             if (Enum.TryParse(model.PsType, out Category c))
             {
-                if (c == CatLands())
+                if (c == CatLandsProp())
                 {
                     partialView = "_FieldLand";
                 }
-                else if (c == CatMachineries() 
-                    || c == CatTransportations() 
-                    || c == CatFurnitures() 
+                else if (c == CatMachineriesProp() 
+                    || c == CatTransportationProp() 
+                    || c == CatFurnituresProp() 
                     || c == CatOtherProperties()
-                    || c == CatMedicals() 
-                    || c == CatAgriculturals() 
+                    || c == CatMedicalSupply() 
+                    || c == CatAgriculturalSupply() 
                     || c == CatAnimalSupplies() 
-                    || c == CatConstructionMaterials()
+                    || c == CatConstructionMaterialsSupply()
                     || c == CatOfficeSupplies() 
-                    || c == CatAccountableForms() 
-                    || c == CatNonAccountableForns() 
-                    || c == CatMilitaries()
+                    || c == CatAccountableFormsSupply() 
+                    || c == CatNonAccountableFornsSupply() 
+                    || c == CatMilitarySupply()
                     || c == CatOtherSupplies())
                 {
                     partialView = "_FieldBrand";
                 }
-                else if (c == CatDrugs())
+                else if (c == CatDrugsSupply())
                 {
                     partialView = "_FieldDrugs";
                 }
-                else if (c == CatRepairs())
+                else if (c == CatRepairSupply())
                 {
                     partialView = "_FieldSerial";
                 }

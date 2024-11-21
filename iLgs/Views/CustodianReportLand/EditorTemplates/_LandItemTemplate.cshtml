@@ -230,17 +230,19 @@
                                 source.Read(read =>
                                 {
                                     //read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
-                                    read.Action("GetLocations", "Getters");
+                                    //read.Action("GetLocations", "Getters");
+                                    read.Action("GetLocationSp", "Getters");
                                 })
                                 .ServerFiltering(true);
                             })
                             .Columns(c =>
                             {
-                                c.Add().Field("Code").Title("Code").Width("100");
-                                c.Add().Field("Description").Title("Description").Width("300");
+                                c.Add().Field("Code").Title("Code").Width("50");
+                                c.Add().Field("Desc3").Title("Main-Location").Width("300");
+                                c.Add().Field("Desc2").Title("Location").Width("300");
                             })
                             .Events(e => e.Select("onSelectLocationId"))
-                            //.Suggest(true)
+                    //.Suggest(true)
                     )
                     @Html.ValidationMessageFor(model => model.LocationId)
                 </div>
@@ -437,18 +439,20 @@
                 </div>
             </div>
         </div>*@
-        
+
         <div class="row k-mb-2">
-            <div class="col-md-6">
-                <div class="col-md-4">
+            <div class="col-md-12">
+                <div class="col-md-12">
                     @Html.DisplayFor(m => m.Remarks, "Label")
                 </div>
-                <div class="col-md-8">
-                    @(Html.Kendo().TextBoxFor(m => m.Remarks).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                <div class="col-md-12">
+                    @(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(5).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Remarks)
                 </div>
             </div>
-
+        </div>
+        
+        <div class="row k-mb-2">            
             <div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.Fund, "Label")

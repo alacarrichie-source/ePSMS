@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace iLgs.Services
+namespace iLgs.Services.AIRs
 {
     public class AirInvoiceService : IAirInvoiceService
     {

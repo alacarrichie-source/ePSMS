@@ -15,12 +15,15 @@ namespace iLgs.Controllers
 {
     public class GettersController : BaseController
     {
-        private readonly AppManEntities _db = new AppManEntities();
+        private readonly AppManEntities _db;
         private readonly ICodextnService _codextnService;
+        private readonly ILocationService _locationService;
 
         public GettersController()
         {
+            _db = new AppManEntities();
             _codextnService = new CodextnService(_db);
+            _locationService = new LocationService(_db);
         }
 
         //public ActionResult GetSysCodeList(string text)
@@ -562,6 +565,29 @@ namespace iLgs.Controllers
             }
 
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetAccountExclusion(Guid? itemUserId, string category, string text)
+        {
+
+            var model = _db.ItemTypes.Where(w => w.Category == category
+                //&& _db.Codextns.Where(x => x.Code == w.Category && x.CodeMast.Code == "PS-CATEGORY").Any())
+                && !w.ItemTypeExclusions.Any(a => a.ItemUserId == itemUserId)); 
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetLocationSp(string text)
+        {
+
+            var model = _locationService.GetLocations(text);
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Location, Desc2 = c.SubLocation, Desc3 = c.MainLocation }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetSections(string department, string text)

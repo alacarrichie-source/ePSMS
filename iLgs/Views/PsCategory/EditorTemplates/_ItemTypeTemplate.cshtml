@@ -1,0 +1,23 @@
+﻿@(Html.Kendo().MultiColumnComboBox()
+        .Name("ItemTypeId")
+        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+        .Placeholder("Select Account Group")
+        .DataTextField("Description")
+        .DataValueField("Id")
+        .ValuePrimitive(true)
+        .Filter(FilterType.Contains)
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetAccountExclusion", "Getters", new { itemUserId = @ViewData["ItemUserId"], category = @ViewData["Category"] });
+            })
+            .ServerFiltering(true);
+        })
+        .Columns(c =>
+        {
+            c.Add().Field("Account Group").Title("Code").Width("30%");
+            c.Add().Field("Description").Title("Description").Width("70%");
+        })
+        .Suggest(true)
+)

@@ -37,6 +37,8 @@ namespace iLgs.Models
 
             public string Others { get; set; }
             public string Brand { get; set; }
+
+            [Display(Name = "Multiples ('s)")]
             public Nullable<int> Multipliers { get; set; }
 
             [Display(Name = "Model")]

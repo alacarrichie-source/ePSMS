@@ -2,6 +2,7 @@
         .Name("gridItems_" + @ViewData["rpciId"])
         .Columns(col =>
         {
+            col.Bound(c => c.Department).Width(70);
             col.Bound(c => c.Article).Width(70);
             col.Bound(c => c.PoNo).Width(50);
             col.Bound(c => c.PoDate).Width(50);
@@ -24,11 +25,11 @@
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.StockNo).Width(70);
             col.Bound(c => c.Description).Width(150);
-            col.Command(command =>
-            {
-                command.Edit();
-                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridItemDeleteClick").SendDataKeys(true);
-            }).Width(172);
+            //col.Command(command =>
+            //{
+            //    command.Edit();
+            //    command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridItemDeleteClick").SendDataKeys(true);
+            //}).Width(172);
         })
         @*.ToolBar(toolbar =>
         {
@@ -52,6 +53,7 @@
         .Resizable(r => r.Columns(true))
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Sortable()
+        .Groupable()
         .DataSource(dataSource => dataSource
             .Ajax()
             .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
@@ -73,14 +75,14 @@
                 s.Add(a => a.InsertedDt);
             })
             .Read(read => read.Action("_RpciItemRead", "Rpci", new { rpciId = @ViewData["rpciId"] }))
-            .Update(update => update.Action("_RpciItemUpdate", "Rpci"))
-            .Destroy(destroy => destroy.Action("_RpciItemDestroy", "Rpci"))
+        //.Update(update => update.Action("_RpciItemUpdate", "Rpci"))
+        //.Destroy(destroy => destroy.Action("_RpciItemDestroy", "Rpci"))
         )
         .Events(events => events
             .Change("onChangeGridItems")
-            .Edit("onEditGridItems")
+            //.Edit("onEditGridItems")
             .DataBound("onDataBoundGridItems")
-            .Remove("onRemoveGridItems")
+        //.Remove("onRemoveGridItems")
         )
         .AutoBind(true)
 )

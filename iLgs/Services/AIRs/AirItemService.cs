@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using static iLgs.Models.Enums;
 
-namespace iLgs.Services
+namespace iLgs.Services.AIRs
 {
     public interface IAirItemService
     {
@@ -53,28 +53,28 @@ namespace iLgs.Services
             string itemExtnName = "";
             if (Enum.TryParse(category, out Category c))
             {
-                if (c == CatLands())
+                if (c == CatLandsProp())
                 {
                     itemExtnName = "ItemExtnLand";
                 }
-                else if (c == CatTransportations())
+                else if (c == CatTransportationProp())
                 {
                     itemExtnName = "ItemExtnVehicle";
                 }
-                else if (c == CatMachineries()
-                    || c == CatFurnitures()
+                else if (c == CatMachineriesProp()
+                    || c == CatFurnituresProp()
                     || c == CatOtherProperties()
-                    || c == CatMedicals()
-                    || c == CatAgriculturals()
+                    || c == CatMedicalSupply()
+                    || c == CatAgriculturalSupply()
                     || c == CatAnimalSupplies()
-                    || c == CatConstructionMaterials()
+                    || c == CatConstructionMaterialsSupply()
                     || c == CatOfficeSupplies()
-                    || c == CatAccountableForms()
-                    || c == CatNonAccountableForns()
-                    || c == CatMilitaries()
+                    || c == CatAccountableFormsSupply()
+                    || c == CatNonAccountableFornsSupply()
+                    || c == CatMilitarySupply()
                     || c == CatOtherSupplies()
-                    || c == CatDrugs()
-                    || c == CatRepairs()
+                    || c == CatDrugsSupply()
+                    || c == CatRepairSupply()
                     )
                 {
                     itemExtnName = "ItemExtnOther";
@@ -196,13 +196,13 @@ namespace iLgs.Services
         {
             if (Enum.TryParse(model.PsType, out Category c))
             {
-                if (c == CatFoodSupplies() ||
-                    c == CatConstructionMaterials() ||
-                    c == CatDrugs() ||
-                    c == CatMedicals() ||
-                    c == CatAgriculturals() ||
+                if (c == CatFoodsSupply() ||
+                    c == CatConstructionMaterialsSupply() ||
+                    c == CatDrugsSupply() ||
+                    c == CatMedicalSupply() ||
+                    c == CatAgriculturalSupply() ||
                     c == CatOtherSupplies() ||
-                    c == CatTransportations())
+                    c == CatTransportationProp())
                 {
                     if (string.IsNullOrWhiteSpace(model.InvDist))
                     {

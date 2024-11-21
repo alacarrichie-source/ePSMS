@@ -3,6 +3,7 @@ using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Codes;
+using iLgs.Services.Items;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -23,12 +24,14 @@ namespace iLgs.Controllers
         private readonly AppManEntities _db;
         private readonly IPsCategoryService _psCategoryService;
         private readonly IDepartmentUserService _userService;
-        
+        private readonly IItemTypeExclusionService _itemTypeExclusionService;
+
         public PsCategoryController()
         {
             _db = new AppManEntities();
             _psCategoryService = new PsCategoryService(_db);
-            _userService = new DepartmentUserService(_db);        
+            _userService = new DepartmentUserService(_db);
+            _itemTypeExclusionService = new ItemTypeExclusionService(_db);
         }
 
         // GET: Location
@@ -37,7 +40,7 @@ namespace iLgs.Controllers
             var code = "PS-CATEGORY";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
-            ViewData["title"] = "Property/Supply Category";
+            ViewData["title"] = "Property & Supplies Category";
             return View(codeMast);
         }
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid mastId)
@@ -178,9 +181,10 @@ namespace iLgs.Controllers
         }
 
         #region DEPARTMENT USERS
-        public ActionResult _CategoryUsers(Guid deptId)
+        public ActionResult _CategoryUsers(Guid deptId, string category)
         {
             ViewData["DeptId"] = deptId;
+            ViewData["Category"] = category;
             return PartialView();
         }
 
@@ -202,7 +206,7 @@ namespace iLgs.Controllers
                 {
                     if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "ADD")))
                     {
-                        ModelState.AddModelError("Access Error", "Access Denied!");
+                        ModelState.AddModelError("AddError", "Access Denied!");
                     }
                 }
 
@@ -220,16 +224,16 @@ namespace iLgs.Controllers
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
                 {
-                    ModelState.AddModelError(error.Key, error.Message);
+                    ModelState.AddModelError("AddError", error.Message);
                 }
             }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
+                ModelState.AddModelError("AddError", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", e.Message);
+                ModelState.AddModelError("AddError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -247,7 +251,7 @@ namespace iLgs.Controllers
                 {
                     if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "EDIT")))
                     {
-                        ModelState.AddModelError("Access Error", "Access Denied!");
+                        ModelState.AddModelError("UpdateError", "Access Denied!");
                     }
                 }
 
@@ -265,16 +269,16 @@ namespace iLgs.Controllers
                 var errors = validationException.GetErrorsForModelState();
                 foreach (var error in errors)
                 {
-                    ModelState.AddModelError(error.Key, error.Message);
+                    ModelState.AddModelError("UpdateError", error.Message);
                 }
             }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", e.Message);
+                ModelState.AddModelError("UpdateError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -291,7 +295,7 @@ namespace iLgs.Controllers
                 {
                     if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "DELETE")))
                     {
-                        ModelState.AddModelError("Access Error", "Access Denied!");
+                        ModelState.AddModelError("DeleteError", "Access Denied!");
                     }
                 }
 
@@ -314,6 +318,146 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
-        #endregion        
+        #endregion
+
+        #region ITEM TYPE EXCLUSION 
+        public ActionResult _Exclusion(Guid? itemUserId, string category)
+        {
+            ViewData["ItemUserId"] = itemUserId;
+            ViewData["Category"] = category;
+            return PartialView();
+        }
+
+        public ActionResult _ExclusionRead([DataSourceRequest] DataSourceRequest request, Guid? itemUserId)
+        {
+            var data = _itemTypeExclusionService.GetAll(itemUserId);
+
+            return Json(data.ToDataSourceResult(request));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ExclusionCreate([DataSourceRequest] DataSourceRequest request, ItemTypeExclusion model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ps_category");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "ADD")))
+                    {
+                        ModelState.AddModelError("AddError", "Access Denied!");
+                    }
+                }
+
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _itemTypeExclusionService.CreateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("AddError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("AddError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ExclusionUpdate([DataSourceRequest] DataSourceRequest request, ItemTypeExclusion model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ps_category");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "EDIT")))
+                    {
+                        ModelState.AddModelError("UpdateError", "Access Denied!");
+                    }
+                }
+
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _itemTypeExclusionService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("UpdateError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ExclusionDestroy([DataSourceRequest]DataSourceRequest request, ItemTypeExclusion model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ps_category");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "DELETE")))
+                    {
+                        ModelState.AddModelError("DeleteError", "Access Denied!");
+                    }
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _itemTypeExclusionService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion
     }
 }

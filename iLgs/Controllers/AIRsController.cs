@@ -21,6 +21,7 @@ using iLgs.Agents.Services;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Services.Codes;
+using iLgs.Services.AIRs;
 
 namespace iLgs.Controllers
 {

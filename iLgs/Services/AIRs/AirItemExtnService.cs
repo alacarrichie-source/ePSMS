@@ -5,7 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web;
 
-namespace iLgs.Services
+namespace iLgs.Services.AIRs
 {
     public interface IAirItemExtnService
     {

@@ -83,7 +83,8 @@ namespace iLgs.Services
                     Description = s.Description,
                     OtherDesc = s.OtherDesc,
                     Remarks = s.Remarks,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    Department = s.Department
                 });
 
             return data;

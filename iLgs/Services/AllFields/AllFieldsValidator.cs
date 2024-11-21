@@ -142,8 +142,16 @@ namespace iLgs.Services.AllFields
                 ValidateFields(af, f, ex);
 
             }
-            else if (group == CategoryGroup.OTHERS)
+            else if (group == CategoryGroup.OTHERS || group == CategoryGroup.OTHERS_A || group == CategoryGroup.OTHERS_B)
             {
+                if (group == CategoryGroup.OTHERS) // supply
+                {
+                    if (af.Multipliers == null)
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Multipliers)), "Field is required.");
+                    }
+                }
+
                 if (module == Enums.Module.CARD || module == Enums.Module.ORDER)
                 {
                     if (string.IsNullOrWhiteSpace(af.Brand))
@@ -151,12 +159,41 @@ namespace iLgs.Services.AllFields
                         ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
                     }
                 }
-               
-                if (string.IsNullOrWhiteSpace(af.Model_))
+
+                if (group == CategoryGroup.OTHERS_B) // vehicles
                 {
-                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+                    if (string.IsNullOrWhiteSpace(af.Model_))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+                    }
+                    else
+                    {
+                        if (af.Model_.IsNullOrWhiteSpaceX())
+                        {
+                            if (string.IsNullOrWhiteSpace(af.Weight))
+                            {
+                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Weight)), "Field is required.");
+                            }
+                            else
+                            {
+                                if (af.Weight.IsNullOrWhiteSpaceX())
+                                {
+                                    if (af.Color.IsNullOrWhiteSpaceX())
+                                    {
+                                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Color)), "Field is required.");
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 else
+                {
+                    if (string.IsNullOrWhiteSpace(af.Model_))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+                    }
+                    else
                     {
                         if (af.Model_.IsNullOrWhiteSpaceX())
                         {
@@ -215,76 +252,9 @@ namespace iLgs.Services.AllFields
                                 }
                             }
                         }
-                    }                
+                    }
+                }
             }
         }
     }
-
-    //public class AllFieldsValidator : AbstractValidator<PsCardVM>
-    //{
-    //    private readonly AppManEntities _db;
-    //    public AllFieldsValidator(AppManEntities db)
-    //    {
-    //        _db = db;
-
-    //        RuleFor(x => x.AllField).Custom((af, context) =>
-    //        {
-    //            var model = context.InstanceToValidate as PsCardVM;
-
-    //            if (Enum.TryParse(model.ItemTypeCode, out Category c))
-    //            {
-    //                if (c == CatDrugs())
-    //                {
-    //                    RuleFor(x => af.GenericName).NotEmpty().WithMessage("Generic Name is Required!");
-
-    //                    if (model.ItemNo.StartsWith("5.1."))
-    //                    {
-    //                        RuleFor(x => af.DosageVolume).NotEmpty().WithMessage("Dosage Volume is Required!");
-    //                    }
-    //                    else
-    //                    {
-    //                        RuleFor(x => af.DosageStrength).NotEmpty().WithMessage("Dosage Strength is Required!");
-    //                        RuleFor(x => af.DosageForm).NotEmpty().WithMessage("Dosage Form is Required!");
-    //                    }
-    //                }
-    //                else if (IsMachineryOrOtherCategory(c))
-    //                {
-    //                    RuleFor(x => af.Brand).NotEmpty().WithMessage("Brand is Required!");
-    //                    RuleFor(x => af.Model_).NotEmpty().WithMessage("Model is Required!");
-    //                    RuleFor(x => af.Dimension).NotEmpty().WithMessage("Dimension is Required!");
-    //                    RuleFor(x => af.Size).NotEmpty().WithMessage("Size is Required!");
-    //                    RuleFor(x => af.Weight).NotEmpty().WithMessage("Weight is Required!");
-    //                    RuleFor(x => af.Materials).NotEmpty().WithMessage("Materials is Required!");
-    //                    RuleFor(x => af.Capacity).NotEmpty().WithMessage("Capacity is Required!");
-    //                    RuleFor(x => af.Color).NotEmpty().WithMessage("Color is Required!");
-
-    //                    //RuleFor(x => af.Model_)
-    //                    //    .Must((m, size) => !string.IsNullOrWhiteSpace(af.Model_) || !string.IsNullOrWhiteSpace(af.Size) ||
-    //                    //                       !string.IsNullOrWhiteSpace(af.Dimension) || !string.IsNullOrWhiteSpace(af.Weight) ||
-    //                    //                       !string.IsNullOrWhiteSpace(af.Materials) || !string.IsNullOrWhiteSpace(af.Capacity) ||
-    //                    //                       !string.IsNullOrWhiteSpace(af.Color))
-    //                    //    .WithMessage("Model or Dimension or Size or Weight or Materials or Capacity or Color is Required!");
-    //                }
-    //            }
-    //        });
-    //    }
-
-    //    private bool IsMachineryOrOtherCategory(Category c)
-    //    {
-    //        return c == CatMachineries()
-    //            || c == CatTransportations()
-    //            || c == CatFurnitures()
-    //            || c == CatOtherProperties()
-    //            || c == CatMedicals()
-    //            || c == CatAgriculturals()
-    //            || c == CatAnimalSupplies()
-    //            || c == CatConstructionMaterials()
-    //            || c == CatOfficeSupplies()
-    //            || c == CatAccountableForms()
-    //            || c == CatNonAccountableForns()
-    //            || c == CatMilitaries()
-    //            || c == CatOtherSupplies();
-    //    }
-    //}
-
 }

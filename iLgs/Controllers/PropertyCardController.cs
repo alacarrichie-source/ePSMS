@@ -616,6 +616,53 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] PropertyCardVM model)
+        //{
+        //    if (model.Id != Guid.Empty)
+        //    {
+        //        //model = await _cardService.GetVmByIdAsync(model.Id);
+        //        var allField = await _propertyCardService.AllField.GetByIdAsync(model.Id);
+        //        if (allField != null)
+        //        {
+        //            model.AllField = allField;
+        //        }
+        //    }
+        //    string partialView = "";
+        //    if (Enum.TryParse(model.ItemTypeCode, out Category c))
+        //    {
+        //        if (c == CatLandsProp())
+        //        {
+        //            partialView = "_FieldLand";
+        //        }
+        //        else if (c == CatMachineriesProp()
+        //            || c == CatTransportationProp()
+        //            || c == CatFurnituresProp()
+        //            || c == CatOtherProperties()
+        //            || c == CatMedicalSupply()
+        //            || c == CatAgriculturalSupply()
+        //            || c == CatAnimalSupplies()
+        //            || c == CatConstructionMaterialsSupply()
+        //            || c == CatOfficeSupplies()
+        //            || c == CatAccountableFormsSupply()
+        //            || c == CatNonAccountableFornsSupply()
+        //            || c == CatMilitarySupply()
+        //            || c == CatOtherSupplies())
+        //        {
+        //            partialView = "_FieldBrand";
+        //        }
+        //        else if (c == CatDrugsSupply())
+        //        {
+        //            partialView = "_FieldDrugs";
+        //        }
+        //        else if (c == CatRepairSupply())
+        //        {
+        //            partialView = "_FieldSerial";
+        //        }
+        //    }
+        //    return PartialView(partialView, model);
+        //}
+
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] PropertyCardVM model)
         {
@@ -628,38 +675,8 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
-            string partialView = "";
-            if (Enum.TryParse(model.ItemTypeCode, out Category c))
-            {
-                if (c == CatLands())
-                {
-                    partialView = "_FieldLand";
-                }
-                else if (c == CatMachineries()
-                    || c == CatTransportations()
-                    || c == CatFurnitures()
-                    || c == CatOtherProperties()
-                    || c == CatMedicals()
-                    || c == CatAgriculturals()
-                    || c == CatAnimalSupplies()
-                    || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies()
-                    || c == CatAccountableForms()
-                    || c == CatNonAccountableForns()
-                    || c == CatMilitaries()
-                    || c == CatOtherSupplies())
-                {
-                    partialView = "_FieldBrand";
-                }
-                else if (c == CatDrugs())
-                {
-                    partialView = "_FieldDrugs";
-                }
-                else if (c == CatRepairs())
-                {
-                    partialView = "_FieldSerial";
-                }
-            }
+            string partialView = AllFieldsUtil.GetPartialField(model.ItemTypeCode, model.ItemCode);
+
             return PartialView(partialView, model);
         }
 
@@ -673,40 +690,55 @@ namespace iLgs.Controllers
                 model = _propertyCardService.PsCardItem.TransferItemField(data, model);
 
             }
-            string partialView = "";
-            if (Enum.TryParse(psCard.ItemTypeCode, out Category c))
-            {
-                if (c == CatLands())
-                {
-                    partialView = "_ItemFieldLand";
-                }
-                else if (c == CatMachineries()
-                    || c == CatTransportations()
-                    || c == CatFurnitures()
-                    || c == CatOtherProperties()
-                    || c == CatMedicals()
-                    || c == CatAgriculturals()
-                    || c == CatAnimalSupplies()
-                    || c == CatConstructionMaterials()
-                    || c == CatOfficeSupplies()
-                    || c == CatAccountableForms()
-                    || c == CatNonAccountableForns()
-                    || c == CatMilitaries()
-                    || c == CatOtherSupplies())
-                {
-                    partialView = "_ItemFieldBrand";
-                }
-                else if (c == CatDrugs())
-                {
-                    partialView = "_ItemFieldDrugs";
-                }
-                else if (c == CatRepairs())
-                {
-                    partialView = "_ItemFieldSerial";
-                }
-            }
+            string partialView = AllFieldsUtil.GetPartialItemField(psCard.ItemTypeCode, psCard.ItemCode);
+
             return PartialView(partialView, model);
         }
+
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> LoadItemFields([System.Web.Http.FromBody] PsCardItemVM model)
+        //{
+        //    var psCard = await _propertyCardService.GetByIdAsync((Guid)model.PsCardId);
+        //    if (model.Id != Guid.Empty)
+        //    {
+        //        var data = await _propertyCardService.PsCardItem.GetByIdAsync(model.Id);
+        //        model = _propertyCardService.PsCardItem.TransferItemField(data, model);
+
+        //    }
+        //    string partialView = "";
+        //    if (Enum.TryParse(psCard.ItemTypeCode, out Category c))
+        //    {
+        //        if (c == CatLandsProp())
+        //        {
+        //            partialView = "_ItemFieldLand";
+        //        }
+        //        else if (c == CatMachineriesProp()
+        //            || c == CatTransportationProp()
+        //            || c == CatFurnituresProp()
+        //            || c == CatOtherProperties()
+        //            || c == CatMedicalSupply()
+        //            || c == CatAgriculturalSupply()
+        //            || c == CatAnimalSupplies()
+        //            || c == CatConstructionMaterialsSupply()
+        //            || c == CatOfficeSupplies()
+        //            || c == CatAccountableFormsSupply()
+        //            || c == CatNonAccountableFornsSupply()
+        //            || c == CatMilitarySupply()
+        //            || c == CatOtherSupplies())
+        //        {
+        //            partialView = "_ItemFieldBrand";
+        //        }
+        //        else if (c == CatDrugsSupply())
+        //        {
+        //            partialView = "_ItemFieldDrugs";
+        //        }
+        //        else if (c == CatRepairSupply())
+        //        {
+        //            partialView = "_ItemFieldSerial";
+        //        }
+        //    }
+        //    return PartialView(partialView, model);
+        //}
 
 
         #region PRINTOUTS

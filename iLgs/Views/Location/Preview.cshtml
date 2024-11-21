@@ -1,0 +1,131 @@
+﻿@{
+    ViewBag.Title = "Location Codes Preview";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+@(Html.Kendo().Grid<iLgs.Models.LocationCodePreviewVM>()
+    .Name("grid")
+    .HtmlAttributes(new { @class = "max-grid" })
+    .Columns(col =>
+    {
+        col.Bound(c => c.Code).Width(50);
+        col.Bound(c => c.Location).Width(100);
+        col.Bound(c => c.SubLocation).Width(100);        
+    })
+    .ToolBar(t =>
+    {
+        t.Search();
+    })
+    .Search(s =>
+    {
+        s.Field(o => o.Code, "contains");
+        s.Field(o => o.Location, "contains");
+        s.Field(o => o.SubLocation, "contains");        
+    })
+    .Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    .Scrollable(s => s.Height(430))
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    //.Sortable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        //.Events(events => events.Error("GridError"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+        })
+        .Read(read => read.Action("PreviewRead", "Location"))
+    )
+.Events(events => events
+    .DataBound("onDataBoundGrid")
+    ).AutoBind(true)
+)
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+</style>
+
+<script type="text/javascript">
+
+    function onSelectCategory(e) {
+        var dataItem = this.dataItem(e.item.index());
+        var category = dataItem.Code;
+        var grid = $("#grid").data("kendoGrid");
+
+        grid.dataSource.read({category: category});
+    }
+
+    function onDataBoundCategory(e) {
+        // Retrieve the first item from the dataSource (e.g., auto-select the first category)
+        var data = this.dataSource.data();
+
+        if (data.length > 0) {
+            var firstDataItem = data[0]; // Get the first item
+            var categoryCode = firstDataItem.Code; // Get the category code of the first item
+            var grid = $("#grid").data("kendoGrid");
+
+            // Refresh the grid based on the first category when data is initially bound
+            grid.dataSource.read({ category: categoryCode });
+        }
+    }
+
+    function DataGrid() {
+        var text = $("#category").data("kendoMultiColumnComboBox").value();
+        return {
+            category: text
+        };
+    }
+
+    function onDataBoundGrid(e) {
+        var grid = this; // Kendo Grid instance
+        var rows = grid.tbody.find("tr");
+
+        // Make sure the grid has rows before proceeding
+        if (rows.length === 0) return;
+
+        // Get the index of the target column ("SomeField")
+        var columnAccountIndex = grid.element.find("th[data-field='Location']").index();
+        var columnSubAccount1Index = grid.element.find("th[data-field='SubLocation']").index();
+        
+        rows.each(function (index, row) {
+            // Get current and previous rows
+            var currentRow = $(row);
+            var previousRow = rows.eq(index - 1);
+
+            // Check if the previous row exists
+            if (previousRow.length) {
+                // Get data from current and previous rows
+                var currentDataItem = grid.dataItem(currentRow);
+                var previousDataItem = grid.dataItem(previousRow);
+
+                // Compare the values of the specific column (e.g., "SomeField")
+                if (currentDataItem.Location === previousDataItem.Location) {
+                    // Find the specific column cell in the current row
+                    var currentCell = currentRow.find("td").eq(columnAccountIndex);
+
+                    // Apply opacity to the cell if the value matches the previous row
+                    currentCell.css("opacity", "0.5"); // Adjust opacity as needed
+                }
+
+                if (currentDataItem.Location === previousDataItem.Location && currentDataItem.SubLocation === previousDataItem.SubLocation) {
+                    // Find the specific column cell in the current row
+                    var currentCell = currentRow.find("td").eq(columnSubAccount1Index);
+
+                    // Apply opacity to the cell if the value matches the previous row
+                    currentCell.css("opacity", "0.5"); // Adjust opacity as needed
+                }                
+            }
+        });
+    }
+</script>
+

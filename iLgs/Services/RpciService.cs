@@ -110,14 +110,14 @@ namespace iLgs.Services
         public ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            if (model.DeptId != null) {                 
+            //if (model.DeptId != null) {                 
                 if (await _db.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
                      && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId
                      && a.Account == model.Account && a.DeptId == model.DeptId))
                 {
                     throw new RecordAlreadyExistsException();
                 }
-            }
+            //}
 
             await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}", 
                 model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, model.DeptId, user);

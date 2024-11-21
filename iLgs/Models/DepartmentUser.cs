@@ -14,6 +14,12 @@ namespace iLgs.Models
     
     public partial class DepartmentUser
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public DepartmentUser()
+        {
+            this.ItemTypeExclusions = new HashSet<ItemTypeExclusion>();
+        }
+    
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> DeptId { get; set; }
         public string UserId { get; set; }
@@ -24,5 +30,7 @@ namespace iLgs.Models
     
         public virtual AspNetUser AspNetUser { get; set; }
         public virtual Codextn Codextn { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ItemTypeExclusion> ItemTypeExclusions { get; set; }
     }
 }

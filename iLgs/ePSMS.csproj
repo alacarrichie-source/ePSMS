@@ -439,6 +439,9 @@
     <Compile Include="Models\ItemType.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\ItemTypeExclusion.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\MenuAccess.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -649,9 +652,9 @@
       <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Services\AccountableOfficerService.cs" />
-    <Compile Include="Services\AirItemExtnOtherService.cs" />
-    <Compile Include="Services\AirItemExtnService.cs" />
-    <Compile Include="Services\AirItemExtnVehicleService.cs" />
+    <Compile Include="Services\AIRs\AirItemExtnOtherService.cs" />
+    <Compile Include="Services\AIRs\AirItemExtnService.cs" />
+    <Compile Include="Services\AIRs\AirItemExtnVehicleService.cs" />
     <Compile Include="Services\AllFields\AllFieldService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\Codes\LocationService.cs" />
@@ -682,6 +685,7 @@
     <Compile Include="Services\CustodianUploads\CustodianReportUploadService.cs" />
     <Compile Include="Services\DepartmentUserService.cs" />
     <Compile Include="Services\DollarRate_\DollarRateService.cs" />
+    <Compile Include="Services\Items\ItemTypeExclusionService.cs" />
     <Compile Include="Services\ParIcs\IcsParItemService.cs" />
     <Compile Include="Services\ParIcs\IcsParService.cs" />
     <Compile Include="Services\ParIcs\IcsService.cs" />
@@ -878,9 +882,9 @@
       <DependentUpon>UserRoles.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Services\AirInvoiceService.cs" />
-    <Compile Include="Services\AirItemService.cs" />
-    <Compile Include="Services\AirService.cs" />
+    <Compile Include="Services\AIRs\AirInvoiceService.cs" />
+    <Compile Include="Services\AIRs\AirItemService.cs" />
+    <Compile Include="Services\AIRs\AirService.cs" />
     <Compile Include="Services\Codes\CodextnService.cs" />
     <Compile Include="Services\DirectoryService.cs" />
     <Compile Include="Services\ExceptionService.cs" />
@@ -908,9 +912,9 @@
     <Compile Include="Services\Interfaces\IRisService.cs" />
     <Compile Include="Services\Interfaces\IUserService.cs" />
     <Compile Include="Services\PoIssuanceService.cs" />
-    <Compile Include="Services\ItemCodeService.cs" />
+    <Compile Include="Services\Items\ItemCodeService.cs" />
     <Compile Include="Services\ItemFieldService.cs" />
-    <Compile Include="Services\ItemTypeService.cs" />
+    <Compile Include="Services\Items\ItemTypeService.cs" />
     <Compile Include="Services\OrderItemExtnService.cs" />
     <Compile Include="Services\OrderItemService.cs" />
     <Compile Include="Services\OrderService.cs" />
@@ -4091,6 +4095,19 @@
     <Content Include="Views\CustodianReport\_VehicleParIssuance.cshtml" />
     <Content Include="Views\CustodianReport\_PpeMrIssuance.cshtml" />
     <Content Include="Views\CustodianReport\_VehicleMrIssuance.cshtml" />
+    <Content Include="Views\Location\Preview.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldBrand_A.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldBrand_B.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldBrand_A.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldBrand_B.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldBrand_A.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldBrand_B.cshtml" />
+    <Content Include="Views\StockCard\_FieldBrand_A.cshtml" />
+    <Content Include="Views\StockCard\_FieldBrand_B.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldBrand_A.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldBrand_B.cshtml" />
+    <Content Include="Views\PsCategory\_Exclusion.cshtml" />
+    <Content Include="Views\PsCategory\EditorTemplates\_ItemTypeTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

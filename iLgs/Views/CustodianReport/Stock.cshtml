@@ -41,6 +41,7 @@
         .Name("grid")
         .Columns(col =>
         {
+            col.Bound(c => c.CustodianItemNo).Width(70);
             col.Bound(c => c.Article).Width(70);
             col.Bound(c => c.PoNo).Width(50);
             col.Bound(c => c.PoDate).Width(50);

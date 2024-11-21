@@ -2345,6 +2345,10 @@ namespace iLgs.Controllers
             {
                 model = await _custodianReportItemStockService.GetByIdAsync(model.Id);
             }
+            else
+            {
+                model.Multipliers = 0;
+            }
 
             string partialView = AllFieldsUtil.GetPartialField(itemTypeCode, itemCode);
             partialView = $"_Stock{partialView}";

@@ -661,11 +661,11 @@ namespace iLgs.Controllers
             var category = await _parService.PsCardItem.GetCategoryAsync(model.PsCardItemExtn.PsCardItemId);
             if (Enum.TryParse(category, out Category c))
             {
-                if (c == CatLands())
+                if (c == CatLandsProp())
                 {
                     partialView = "_FieldLand";
                 }
-                else if (c == CatTransportations())
+                else if (c == CatTransportationProp())
                 {
                     partialView = "_FieldTransportation";
                 }

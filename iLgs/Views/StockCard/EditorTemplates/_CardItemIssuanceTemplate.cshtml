@@ -21,15 +21,15 @@
 
     <fieldset>
 
-        <div class="row">
-            <div class="row">
+        <div class="row k-mb-2">
+            <div class="row k-mb-2">
                 <div class="col-md-offset-1">
                     @(Html.Kendo().RadioButtonFor(m => m.IssuedToSw).Value(1).Label("Issue to Department").HtmlAttributes(new { @onchange = "onChangeOpt();" }))                    
                 </div>
             </div>            
         </div>        
         <div id="OptDept">
-            <div class="row">
+            <div class="row k-mb-2">
                 <div class="col-md-12">
                     @Html.Label("", htmlAttributes: new { @class = "col-md-12" })
                     <div class="col-md-12">
@@ -63,8 +63,8 @@
         </div>
 
         <br />
-        <div class="row">
-            <div class="row">
+        <div class="row k-mb-2">
+            <div class="row k-mb-2">
                 <div class="col-md-offset-1">
                     @(Html.Kendo().RadioButtonFor(m => m.IssuedToSw).Value(2).Label("Issue to Stakeholders")
                         .HtmlAttributes(new { onchange = "onChangeOpt();" })
@@ -75,7 +75,7 @@
 
         <br />
         
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.IssuedDate, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -85,7 +85,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Qty, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -97,7 +97,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Amount, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">

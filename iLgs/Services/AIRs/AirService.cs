@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Items;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using static iLgs.Models.Enums;
 
-namespace iLgs.Services
+namespace iLgs.Services.AIRs
 {
     public interface IAirService
     {
@@ -680,7 +681,7 @@ namespace iLgs.Services
             foreach (var orderItem in orderItems)
             {
 
-                var invDist = "I"; //_itemCodeService.GetInvDist(orderItem.RequestItem.RisItem.ItemCodeId);
+                var invDist = _itemCodeService.GetInvDist(orderItem.RequestItem.RisItem.ItemCodeId);
                 AIRItem airItem = new AIRItem()
                 {
                     Id = Guid.NewGuid(),

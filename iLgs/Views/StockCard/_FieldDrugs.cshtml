@@ -1,7 +1,7 @@
 ﻿@model iLgs.Models.StockCardVM
 @Html.HiddenFor(model => model.AllField.Id)
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-12">
         @Html.LabelFor(m => m.AllField.GenericName, "Generic Name", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
@@ -11,7 +11,7 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-12">
         @Html.LabelFor(m => m.AllField.DosageStrength, "Dosage Strength", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
@@ -21,7 +21,7 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-12">
         @Html.LabelFor(m => m.AllField.DosageForm, "Dosage Form", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
@@ -31,7 +31,7 @@
     </div>
 </div>
 
-@*<div class="row">
+@*<div class="row k-mb-2">
     <div class="col-md-12">
         @Html.LabelFor(m => m.AllField.DosageVolume, "Dosage Volume", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
@@ -41,9 +41,9 @@
     </div>
 </div>*@
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-12">
-        @Html.LabelFor(m => m.AllField.Multipliers, "Multipliers ('s)", htmlAttributes: new { @class = "col-md-2" })
+        @Html.LabelFor(m => m.AllField.Multipliers, "Multiples (#'s)", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @*@(Html.Kendo().TextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))*@
             @(Html.Kendo().MaskedTextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription"))
@@ -54,7 +54,7 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-12">
         @Html.LabelFor(m => m.AllField.Brand, htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">

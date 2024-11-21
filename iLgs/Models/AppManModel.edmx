@@ -782,6 +782,18 @@
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="UpdatedDt" Type="datetime" />
         </EntityType>
+        <EntityType Name="ItemTypeExclusions">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="ItemUserId" Type="uniqueidentifier" />
+          <Property Name="ItemTypeId" Type="uniqueidentifier" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
         <EntityType Name="ItemTypes">
           <Key>
             <PropertyRef Name="Id" />
@@ -2405,6 +2417,32 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_ItemTypeExclussions_DepartmentUsers">
+          <End Role="DepartmentUsers" Type="Self.DepartmentUsers" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ItemTypeExclusions" Type="Self.ItemTypeExclusions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DepartmentUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ItemTypeExclusions">
+              <PropertyRef Name="ItemUserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ItemTypeExclussions_ItemTypes">
+          <End Role="ItemTypes" Type="Self.ItemTypes" Multiplicity="0..1" />
+          <End Role="ItemTypeExclusions" Type="Self.ItemTypeExclusions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ItemTypes">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ItemTypeExclusions">
+              <PropertyRef Name="ItemTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_MenuAccess_Menubase">
           <End Role="Menubase" Type="Self.Menubase" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -3378,6 +3416,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="IcsPars" EntityType="Self.IcsPars" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ItemCodes" EntityType="Self.ItemCodes" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ItemFields" EntityType="Self.ItemFields" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ItemTypeExclusions" EntityType="Self.ItemTypeExclusions" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ItemTypes" EntityType="Self.ItemTypes" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MenuAccess" EntityType="Self.MenuAccess" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MenuAccessActions" EntityType="Self.MenuAccessActions" Schema="dbo" store:Type="Tables" />
@@ -3651,6 +3690,14 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_ItemFields_ItemTypes" Association="Self.FK_ItemFields_ItemTypes">
             <End Role="ItemTypes" EntitySet="ItemTypes" />
             <End Role="ItemFields" EntitySet="ItemFields" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ItemTypeExclussions_DepartmentUsers" Association="Self.FK_ItemTypeExclussions_DepartmentUsers">
+            <End Role="DepartmentUsers" EntitySet="DepartmentUsers" />
+            <End Role="ItemTypeExclusions" EntitySet="ItemTypeExclusions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ItemTypeExclussions_ItemTypes" Association="Self.FK_ItemTypeExclussions_ItemTypes">
+            <End Role="ItemTypes" EntitySet="ItemTypes" />
+            <End Role="ItemTypeExclusions" EntitySet="ItemTypeExclusions" />
           </AssociationSet>
           <AssociationSet Name="FK_MenuAccess_Menubase" Association="Self.FK_MenuAccess_Menubase">
             <End Role="Menubase" EntitySet="Menubase" />
@@ -4450,6 +4497,15 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="CustodianReportItem" EntitySet="CustodianReportItems" />
             <End Role="CustodianReportItemIssuance" EntitySet="CustodianReportItemIssuances" />
           </AssociationSet>
+          <EntitySet Name="ItemTypeExclusions" EntityType="AppManModel.ItemTypeExclusion" />
+          <AssociationSet Name="FK_ItemTypeExclussions_DepartmentUsers" Association="AppManModel.FK_ItemTypeExclussions_DepartmentUsers">
+            <End Role="DepartmentUser" EntitySet="DepartmentUsers" />
+            <End Role="ItemTypeExclusion" EntitySet="ItemTypeExclusions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ItemTypeExclussions_ItemTypes" Association="AppManModel.FK_ItemTypeExclussions_ItemTypes">
+            <End Role="ItemType" EntitySet="ItemTypes" />
+            <End Role="ItemTypeExclusion" EntitySet="ItemTypeExclusions" />
+          </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
           <Key>
@@ -5067,6 +5123,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="AspNetUser" Relationship="AppManModel.FK_DepartmentUsers_AspNetUsers" FromRole="DepartmentUser" ToRole="AspNetUser" />
           <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_DepartmentUsers_Codextn" FromRole="DepartmentUser" ToRole="Codextn" />
+          <NavigationProperty Name="ItemTypeExclusions" Relationship="AppManModel.FK_ItemTypeExclussions_DepartmentUsers" FromRole="DepartmentUser" ToRole="ItemTypeExclusion" />
         </EntityType>
         <Association Name="FK_DepartmentUsers_AspNetUsers">
           <End Type="AppManModel.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
@@ -5673,6 +5730,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="ItemFields" Relationship="AppManModel.FK_ItemFields_ItemTypes" FromRole="ItemType" ToRole="ItemField" />
           <NavigationProperty Name="ItemCodes" Relationship="AppManModel.FK_ItemCodes_ItemTypes" FromRole="ItemType" ToRole="ItemCode" />
           <NavigationProperty Name="RPCIs" Relationship="AppManModel.FK_RPCIs_ItemTypes" FromRole="ItemType" ToRole="RPCI" />
+          <NavigationProperty Name="ItemTypeExclusions" Relationship="AppManModel.FK_ItemTypeExclussions_ItemTypes" FromRole="ItemType" ToRole="ItemTypeExclusion" />
         </EntityType>
         <Association Name="FK_ItemFields_ItemTypes">
           <End Type="AppManModel.ItemType" Role="ItemType" Multiplicity="0..1" />
@@ -7854,6 +7912,46 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="ItemTypeExclusion">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ItemUserId" Type="Guid" />
+          <Property Name="ItemTypeId" Type="Guid" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="DepartmentUser" Relationship="AppManModel.FK_ItemTypeExclussions_DepartmentUsers" FromRole="ItemTypeExclusion" ToRole="DepartmentUser" />
+          <NavigationProperty Name="ItemType" Relationship="AppManModel.FK_ItemTypeExclussions_ItemTypes" FromRole="ItemTypeExclusion" ToRole="ItemType" />
+        </EntityType>
+        <Association Name="FK_ItemTypeExclussions_DepartmentUsers">
+          <End Type="AppManModel.DepartmentUser" Role="DepartmentUser" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.ItemTypeExclusion" Role="ItemTypeExclusion" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DepartmentUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ItemTypeExclusion">
+              <PropertyRef Name="ItemUserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ItemTypeExclussions_ItemTypes">
+          <End Type="AppManModel.ItemType" Role="ItemType" Multiplicity="0..1" />
+          <End Type="AppManModel.ItemTypeExclusion" Role="ItemTypeExclusion" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ItemType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ItemTypeExclusion">
+              <PropertyRef Name="ItemTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -9786,6 +9884,19 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="RefNo" ColumnName="RefNo" />
                 <ScalarProperty Name="RefType" ColumnName="RefType" />
                 <ScalarProperty Name="ReportItemId" ColumnName="ReportItemId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ItemTypeExclusions">
+            <EntityTypeMapping TypeName="AppManModel.ItemTypeExclusion">
+              <MappingFragment StoreEntitySet="ItemTypeExclusions">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="ItemTypeId" ColumnName="ItemTypeId" />
+                <ScalarProperty Name="ItemUserId" ColumnName="ItemUserId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

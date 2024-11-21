@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using static iLgs.Models.Enums;
 
-namespace iLgs.Services
+namespace iLgs.Services.Items
 {
     public interface IItemCodeService
     {
@@ -200,11 +200,20 @@ namespace iLgs.Services
 
         public string GetInvDist(Guid? id)
         {
-            if (IsProperty(id) == true)
+            var itemCode = _db.ItemCodes.Include(i => i.ItemType).Where(w => w.Id == id).AsNoTracking().FirstOrDefault();
+            if (itemCode != null)
             {
-                return "I";
+                if (itemCode.ItemType.Category != "S")
+                {
+                    return "I";
+                }
+                if (itemCode.ForDistribution == "Y" || itemCode.IsConsumable == "Y" || itemCode.IsIncorporated == "Y")
+                {
+                    return "D";
+                }                
             }
-            return "D";
+
+            return "I";
         }
 
         private void ValidateFields(ItemCodeVM model)

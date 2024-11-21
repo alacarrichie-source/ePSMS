@@ -106,5 +106,6 @@ namespace iLgs.Models
         public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
         public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         public virtual DbSet<CustodianReportItemIssuance> CustodianReportItemIssuances { get; set; }
+        public virtual DbSet<ItemTypeExclusion> ItemTypeExclusions { get; set; }
     }
 }

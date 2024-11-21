@@ -161,4 +161,57 @@ namespace iLgs.Models
         [Display(Name = "Sub-Account 4")]
         public string SubAccount4 { get; set; }
     }
+
+    public class LocationCodePreviewVM
+    {
+        public Guid Id { get; set; }
+
+        [Display(Name = "Code Index")]
+        public string CodeIndex { get; set; }
+
+        [Display(Name = "Code")]
+        public string Code { get; set; }
+
+        [Display(Name = "Location")]
+        public string Location { get; set; }
+
+        [Display(Name = "Sub-Location")]
+        public string SubLocation { get; set; }        
+    }
+
+    public class LocationCodeVM
+    {
+        public Guid Id { get; set; }
+
+        [Display(Name = "Code Index")]
+        public string CodeIndex { get; set; }
+
+        [Display(Name = "Code")]
+        public string Code { get; set; }
+
+        [Display(Name = "Location")]
+        public string MainLocation { get; set; }
+
+        [Display(Name = "Sub-Location")]
+        public string SubLocation { get; set; }
+
+        [Display(Name = "Location")]
+        public string Location { get; set; }
+    }
+
+    [MetadataType(typeof(ItemTypeExclusion.Metadata))]
+    public partial class ItemTypeExclusion
+    {
+        internal sealed class Metadata
+        {
+            public System.Guid Id { get; set; }
+            public Nullable<System.Guid> ItemUserId { get; set; }
+            public Nullable<System.Guid> ItemTypeId { get; set; }
+            public string InsertedBy { get; set; }
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
+        }
+        
+    }
 }

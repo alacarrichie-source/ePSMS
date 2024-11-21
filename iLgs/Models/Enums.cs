@@ -25,7 +25,9 @@ namespace iLgs.Models
             SERIAL_B,
             SERIAL_C,
             SERIAL_D,
-            OTHERS,
+            OTHERS, // Brand w/ multiples
+            OTHERS_A, // Brand w/o multiples 
+            OTHERS_B, // Brand vehicles
             NONE
         }
 
@@ -55,27 +57,52 @@ namespace iLgs.Models
             Z // Other Property plant and equipment
         }
 
-        public static Category CatAccountableForms() => Category.A;
-        public static Category CatBuildings() => Category.B;        
-        public static Category CatConstructionMaterials() => Category.C;        
-        public static Category CatDrugs() => Category.D;        
-        public static Category CatMachineries() => Category.E;
-        public static Category CatFoodSupplies() => Category.F;
-        public static Category CatAgriculturals() => Category.G;
-        public static Category CatInfrastructures() => Category.I;
-        public static Category CatLands() => Category.L;
-        public static Category CatMedicals() => Category.M;
-        public static Category CatNonAccountableForns() => Category.N;
+
+            //A Accountable Forms, Plates and Stickers S
+            //B Buildings and Other Structures P
+            //C Construction Materials Inventory    S
+            //D   Drugs and Medicines Inventory / Drugs and Medicines for Distribution S
+            //E Machinery and Equipment P
+            //F   Food Supplies   S
+            //G   Agricultural and Marine Supplies Inventory / Agricultural and Marine Supplies for Distribution S
+            //I Infrastructure Assets P
+            //L Land    P
+            //M   Medical, Dental and Laboratory Supplies Inventory / Medical, Dental, and Laboratory Supplies for Distribution S
+            //N Non-Accountable Forms   S
+            //O   Office Supplies S
+            //P   Military, Police and Traffic Supplies   S
+            //R   Repairs and Replacements S
+            //S Land Improvements P
+            //T Transportation Equipment P
+            //U Furniture, Fixtures and Books   P
+            //V   Animal Supplies S
+            //W   Welfare Goods for Distribution S
+            //X Other Supplies and Materials Inventory / Other Supplies and Materials for Distribution S
+            //Y Construction in Progress P
+            //Z Other Property, Plant and Equipment P
+
+
+        public static Category CatAccountableFormsSupply() => Category.A;
+        public static Category CatBuildingsProp() => Category.B;        
+        public static Category CatConstructionMaterialsSupply() => Category.C;        
+        public static Category CatDrugsSupply() => Category.D;        
+        public static Category CatMachineriesProp() => Category.E;
+        public static Category CatFoodsSupply() => Category.F;
+        public static Category CatAgriculturalSupply() => Category.G;
+        public static Category CatInfrastructuresProp() => Category.I;
+        public static Category CatLandsProp() => Category.L;
+        public static Category CatMedicalSupply() => Category.M;
+        public static Category CatNonAccountableFornsSupply() => Category.N;
         public static Category CatOfficeSupplies() => Category.O;
-        public static Category CatMilitaries() => Category.P;
-        public static Category CatRepairs() => Category.R;
-        public static Category CatLandImprovements() => Category.S;
-        public static Category CatTransportations() => Category.T;
-        public static Category CatFurnitures() => Category.U;
+        public static Category CatMilitarySupply() => Category.P;
+        public static Category CatRepairSupply() => Category.R;
+        public static Category CatLandImprovementsProp() => Category.S;
+        public static Category CatTransportationProp() => Category.T;
+        public static Category CatFurnituresProp() => Category.U;
         public static Category CatAnimalSupplies() => Category.V;
-        public static Category CatWelfareGoods() => Category.W;
+        public static Category CatWelfareGoodsSupply() => Category.W;
         public static Category CatOtherSupplies() => Category.X;
-        public static Category CatConstructionInProgress() => Category.Y;
+        public static Category CatConstructionInProgressProp() => Category.Y;
         public static Category CatOtherProperties() => Category.Z;
 
         public enum Module
