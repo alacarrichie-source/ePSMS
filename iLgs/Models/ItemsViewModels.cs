@@ -82,6 +82,11 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
+        [Display(Name = "Partial Page")]
+        public string PartialPage { get; set; }
+
+        [Display(Name = "Required Fields")]
+        public string RequiredFields { get; set; }
         // Transients
         public string MainDesc { get; set; }
         public string ItemType { get; set; }
@@ -89,7 +94,7 @@ namespace iLgs.Models
         public string Account { get; set; }
         public string SubArticle { get; set; }
         public string MainDescCode { get; set; }
-        public int? FieldGroupNo { get; set; }
+        //public int? FieldGroupNo { get; set; }
 
         [Display(Name = "Is Article?")]
         public bool? ItemSwUI { get; set; }
@@ -119,8 +124,10 @@ namespace iLgs.Models
         [Display(Name = "Type Code")]
         public string Code { get; set; }
         public string Description { get; set; }
-        [Display(Name = "Field Group No.")]
-        public int? FormulaNo { get; set; }
+        [Display(Name = "Partial Page")]
+        public string PartialPage { get; set; }
+        [Display(Name = "Required Fields")]
+        public string RequiredFields { get; set; }
         public string Category { get; set; }
         [Display(Name = "Account Group Code")]
         public string GroupCode { get; set; }
@@ -160,44 +167,7 @@ namespace iLgs.Models
 
         [Display(Name = "Sub-Account 4")]
         public string SubAccount4 { get; set; }
-    }
-
-    public class LocationCodePreviewVM
-    {
-        public Guid Id { get; set; }
-
-        [Display(Name = "Code Index")]
-        public string CodeIndex { get; set; }
-
-        [Display(Name = "Code")]
-        public string Code { get; set; }
-
-        [Display(Name = "Location")]
-        public string Location { get; set; }
-
-        [Display(Name = "Sub-Location")]
-        public string SubLocation { get; set; }        
-    }
-
-    public class LocationCodeVM
-    {
-        public Guid Id { get; set; }
-
-        [Display(Name = "Code Index")]
-        public string CodeIndex { get; set; }
-
-        [Display(Name = "Code")]
-        public string Code { get; set; }
-
-        [Display(Name = "Location")]
-        public string MainLocation { get; set; }
-
-        [Display(Name = "Sub-Location")]
-        public string SubLocation { get; set; }
-
-        [Display(Name = "Location")]
-        public string Location { get; set; }
-    }
+    }    
 
     [MetadataType(typeof(ItemTypeExclusion.Metadata))]
     public partial class ItemTypeExclusion

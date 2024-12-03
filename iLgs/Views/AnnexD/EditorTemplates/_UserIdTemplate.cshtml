@@ -1,0 +1,24 @@
+﻿@(Html.Kendo().MultiColumnComboBox()
+        .Name("Code")
+        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+        .Placeholder("Select User")
+        .DataTextField("UserName")
+        .DataValueField("UuserName")
+        .ValuePrimitive(true)
+        .Filter(FilterType.Contains)
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetUsers", "Users");
+            })
+            .ServerFiltering(true);
+        })
+        .Columns(c =>
+        {
+            c.Add().Field("UserName").Title("User Id").Width("30%");
+            c.Add().Field("NameFull").Title("Name").Width("70%");
+        })
+        .Events(e => e.Select("onSelectUserId"))
+        .Suggest(true)
+)

@@ -25,35 +25,12 @@
 <div class="row k-mb-2">
     <div class="col-md-6">
         <div class="col-md-3">
-            @Html.DisplayFor(m => m.PlateNo, "Label")
+            @Html.DisplayFor(m => m.Multipliers, "Label")
         </div>
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.PlateNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.PlateNo)
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="col-md-3">
-            @Html.DisplayFor(m => m.BodyNo, "Label")
-        </div>
-        <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.BodyNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.BodyNo)
+            @(Html.Kendo().TextBoxFor(m => m.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.Multipliers)
         </div>
     </div>
 </div>
-
-<div class="row k-mb-2">
-    <div class="col-md-6">
-        <div class="col-md-3">
-            @Html.DisplayFor(m => m.MVFileNo, "Label")
-        </div>
-        <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.MVFileNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.MVFileNo)
-        </div>
-    </div>
-</div>
-
 

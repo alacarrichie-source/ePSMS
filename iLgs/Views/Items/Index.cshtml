@@ -8,11 +8,11 @@
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
-        col.Bound(c => c.Category).Width(70).EditorTemplateName("_CategoryTemplate");
-        col.Bound(c => c.Code).Width(70);
+        col.Bound(c => c.Category).Width(50).EditorTemplateName("_CategoryTemplate");
+        col.Bound(c => c.Code).Width(50);
         col.Bound(c => c.Description).Width(100); //.ClientTemplate("#= kendo.htmlEncode(Description) #");
         col.Bound(c => c.GroupCode).Width(70);
-        //col.Bound(c => c.FormulaNo).Width(70);
+        col.Bound(c => c.RequiredFields).Width(100).EditorTemplateName("_PartialPageTemplate");
         col.Command(command =>
         {
             command.Edit();
@@ -111,15 +111,15 @@
         margin-right: 0;
     }
 
-    .k-grid td {
+    /*.k-grid td {
         white-space: pre;
-    }
+    }*/
 
     .k-floating-label-container {
         width: 100%;
     }
 
-    .card-body {
+    /*.card-body {
         flex: 1 1 auto;
         padding: 1rem 1rem;
         min-height: 100px;
@@ -130,7 +130,7 @@
         margin-bottom: 0;
         background-color: rgba(0,0,0,.03);
         border-bottom: 1px solid rgba(0,0,0,.125);
-    }
+    }*/
 
     /*.k-black body,
         .k-black .card,
@@ -141,7 +141,7 @@
             color: #fff;
         }*/
 
-    .card {
+    /*.card {
         position: relative;
         display: flex;
         flex-direction: column;
@@ -157,7 +157,7 @@
         display: block;
         clear: both;
         content: "";
-    }
+    }*/
 
     #span_ {
         display: flex;
@@ -167,14 +167,14 @@
     }
 
     .no-text-tabstrip .k-item .k-link {
-        padding: 0; /* Remove padding */
-        text-indent: -9999px; /* Move the text outside the visible area */
-        overflow: hidden; /* Hide any overflow */
+        padding: 0; 
+        text-indent: -9999px; 
+        overflow: hidden;
     }
 
-    .k-grid td {
-        white-space: pre-wrap; /* Preserve whitespace and wrap text */
-    }
+    /*.k-grid td {
+        white-space: pre-wrap; 
+    }*/
 </style>
 
 <script type="text/x-kendo-template" id="validationMessageTemplate">

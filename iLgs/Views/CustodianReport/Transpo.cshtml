@@ -71,6 +71,11 @@
             t.Custom().Text("Export to Excel - Annex A").IconClass("k-icon k-i-excel").Name("btnExportA").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Export to Excel - Annex B").IconClass("k-icon k-i-excel").Name("btnExportB").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Export to Excel - Annex C").IconClass("k-icon k-i-excel").Name("btnExportC").HtmlAttributes(new { @class = "k-button", href = "" });
+
+            if (ViewBag.AnnexDUser == true)
+            {
+                t.Custom().Text("Export to Excel - Annex D").IconClass("k-icon k-i-excel").Name("btnExportD").HtmlAttributes(new { @class = "k-button", href = "" });
+            }
             t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Search();
@@ -520,7 +525,11 @@
             type: 'POST',
             url: url,
             data: formData,
+            beforeSend: function () {
+                window.kendo.ui.progress($("body, .k-window"), true);
+            },
             success: function (response) {
+                window.kendo.ui.progress($("body, .k-window"), false);
                 disabled.attr('disabled', 'disabled');
                 if (response.Errors) {
                     // Clear previous errors
@@ -670,6 +679,7 @@
     function onSelectItemCodeId(e) {
         var dataItem = this.dataItem(e.item.index());
 
+        $("#ItemCodeId").val(dataItem.Id).trigger("change");
         $("#Article").val(dataItem.Article).trigger("change");
         $("#Item_Code").val(dataItem.Code).trigger("change");
         $("#ItemType_Code").val(dataItem.Type).trigger("change");
@@ -874,6 +884,11 @@
         setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
     }
 
+    function DataGridImages() {
+        return {
+            accountGroup: '@ViewBag.AccountGroup'
+        };
+    }
 
     function onClickUpload(e) {
         //var gridName = $(e.sender.element).data("gridname");

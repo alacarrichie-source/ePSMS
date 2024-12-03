@@ -3,6 +3,7 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Services.Items;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
@@ -28,12 +29,14 @@ namespace iLgs.Services.Validators
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly AppManEntities _db;
         private readonly IAllFieldsValidator _allFieldsValidator;
+        private readonly IItemCodeService _itemCodeService;
 
         public PropertyCardValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PropertyCardVM>(propertyName);
             _allFieldsValidator = new AllFieldsValidator(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
         public void ValidateOnCreate(PropertyCardVM model)
         {
@@ -44,7 +47,11 @@ namespace iLgs.Services.Validators
                 );
 
             var ex = new InvalidModelException();
-            _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
+
+            //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
             if (_db.PsCards.Any(a => a.PsNo == model.PsNo))
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.PsNo)), "Already exits.");
@@ -62,7 +69,11 @@ namespace iLgs.Services.Validators
                 );
 
             var ex = new InvalidModelException();
-            _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
+
+            //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
             if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Id != model.Id))
             {
                 ex.UpsertDataList(Utility.GetDisplayName<PropertyCardVM>(nameof(model.PsNo)), "Already exits.");

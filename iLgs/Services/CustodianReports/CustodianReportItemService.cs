@@ -35,7 +35,7 @@ namespace iLgs.Services.CustodianReports
         protected readonly IAllFieldService _allFieldService;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<CustodianReportItem> _exceptionService = new ExceptionService<CustodianReportItem>();
-        private readonly IUserService _userService;
+        protected readonly IUserService _userService;
 
         public CustodianReportItemService(AppManEntities db)
         {

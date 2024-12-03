@@ -37,7 +37,8 @@ namespace iLgs.Services
                     Id = s.Id,                   
                     Code = s.Code,
                     Description = s.Description,
-                    FormulaNo = s.FormulaNo,
+                    PartialPage = s.PartialPage,
+                    RequiredFields = _db.Codextns.Where(w => w.Desc2 == s.PartialPage && w.CodeMast.Code == "REQUIRED-FIELDS").FirstOrDefault().Description,
                     Category = s.Category,
                     CategoryDesc = _db.Codextns.Where(w => w.Code == s.Category && w.CodeMast.Code == "PS-CATEGORY").FirstOrDefault().Description,
                     GroupCode = s.GroupCode,
@@ -78,7 +79,7 @@ namespace iLgs.Services
                 Id = model.Id,
                 Code = model.Code,
                 Description = model.Description,
-                FormulaNo = model.FormulaNo,
+                PartialPage = model.PartialPage,
                 Category = model.Category,
                 GroupCode = model.GroupCode,
                 InsertedBy = user,
@@ -127,7 +128,7 @@ namespace iLgs.Services
 
             entity.Code = model.Code;
             entity.Description = model.Description;
-            entity.FormulaNo = model.FormulaNo;
+            entity.PartialPage = model.PartialPage;
             entity.Category = model.Category;
             entity.GroupCode = model.GroupCode;
             entity.UpdatedBy = user;

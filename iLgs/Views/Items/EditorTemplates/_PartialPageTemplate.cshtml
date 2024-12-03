@@ -1,0 +1,20 @@
+﻿@(Html.Kendo().ComboBox()
+    .Name("PartialPage")
+    //.HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+    .DataTextField("Description")
+    .DataValueField("Desc2")
+    .ValuePrimitive(true)
+    .Filter("contains")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("GetRequiredFields", "Getters");
+        })
+        .ServerFiltering(false);
+    })
+)
+
+
+
+

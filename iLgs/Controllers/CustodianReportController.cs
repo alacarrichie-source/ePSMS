@@ -6,6 +6,7 @@ using iLgs.Services;
 using iLgs.Services.Codes;
 using iLgs.Services.CustodianReports;
 using iLgs.Services.CustodianUploads;
+using iLgs.Services.Items;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -38,6 +39,9 @@ namespace iLgs.Controllers
         private readonly ICustodianReportItemIssuanceIcsService _icsIssuanceService;
         private readonly ICustodianReportItemIssuanceAreService _areIssuanceService;
         private readonly ICustodianReportItemIssuanceMrService _mrIssuanceService;
+        private readonly IItemCodeService _itemCodeService;
+        private readonly IUserService _userService;
+        private readonly IAnnexDService _annexDService;
 
         private readonly string _stockId, _ppeId, _transpoId;
 
@@ -55,17 +59,47 @@ namespace iLgs.Controllers
             _icsIssuanceService = new CustodianReportItemIssuanceIcsService(_db);
             _areIssuanceService = new CustodianReportItemIssuanceAreService(_db);
             _mrIssuanceService = new CustodianReportItemIssuanceMrService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _userService = new UserService(_db);
+            _annexDService = new AnnexDService(_db);
 
             _stockId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.STOCK);
             _ppeId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.PPE);
             _transpoId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.VEHICLE);
         }
-
+        
         public ActionResult Stock()
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.STOCK;
             ViewBag.Title = "Custodian Report - Supplies";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
+            return View();
+        }
+
+        public ActionResult StockQuery()
+        {
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.STOCK;
+            ViewBag.Title = "Custodian Report - Supplies";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
             return View();
         }
 
@@ -74,6 +108,36 @@ namespace iLgs.Controllers
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.PPE;
             ViewBag.Title = "Custodian Report - Equipment";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
+        
+            return View();
+        }
+
+        public ActionResult PpeQuery()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.PPE;
+            ViewBag.Title = "Custodian Report - Equipment";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
+
             return View();
         }
 
@@ -82,8 +146,36 @@ namespace iLgs.Controllers
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.VEHICLE;
             ViewBag.Title = "Custodian Report - Vehicles";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
             return View();
-        }        
+        }
+
+        public ActionResult TranspoQuery()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.VEHICLE;
+            ViewBag.Title = "Custodian Report - Vehicles";
+
+            string userName = ControllerContext.HttpContext.User.Identity.Name;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                ViewBag.AnnexDUser = true;
+            }
+            else
+            {
+                ViewBag.AnnexDUser = false;
+            }
+            return View();
+        }
 
         #region CUSTODIAN REPORT
         // GET: Index
@@ -95,132 +187,7 @@ namespace iLgs.Controllers
                 return View("Error"); // Or some other handling
             }
             return View();
-        }
-
-        //public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
-        //{
-        //    var data = _custodianReportService.GetAllByDepartmentAccountGroup(deptId, accountGroup);
-
-        //    var result = new JsonNetResult
-        //    {
-        //        Data = data.ToDataSourceResult(request),
-        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-        //    };
-        //    return result;
-        //}
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> Create([DataSourceRequest] DataSourceRequest request, CustodianReport model)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
-        //        Access access = await accessTask;
-        //        if (!access.AllowAdd)
-        //        {
-        //            ModelState.AddModelError("Access", "Add Access Denied!");
-        //        }
-
-
-        //        if (model != null && ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            model = await _custodianReportService.CreateAsync(model, user, date);
-        //        }
-        //    }
-        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-        //    {
-        //        var errors = validationException.GetErrorsForModelState();
-        //        foreach (var error in errors)
-        //        {
-        //            ModelState.AddModelError(error.Key, error.Message);
-        //        }
-        //    }
-        //    catch (ValidationException validationException)
-        //    {
-        //        ModelState.AddModelError("", validationException.InnerException.Message);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        ModelState.AddModelError("", e.Message);
-        //    }
-
-        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        //}
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> Update([DataSourceRequest] DataSourceRequest request, CustodianReport model)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
-        //        Access access = await accessTask;
-        //        if (!access.AllowEdit)
-        //        {
-        //            ModelState.AddModelError("Access", "Update Access Denied!");
-        //        }
-
-        //        if (ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            model = await _custodianReportService.UpdateAsync(model, user, date);
-        //        }
-        //    }
-        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-        //    {
-        //        var errors = validationException.GetErrorsForModelState();
-        //        foreach (var error in errors)
-        //        {
-        //            ModelState.AddModelError(error.Key, error.Message);
-        //        }
-        //    }
-        //    catch (ValidationException validationException)
-        //    {
-        //        ModelState.AddModelError("", validationException.InnerException.Message);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        ModelState.AddModelError("", e.Message);
-        //    }
-
-        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        //}
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, CustodianReport model)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report");
-        //        Access access = await accessTask;
-        //        if (!access.AllowDelete)
-        //        {
-        //            ModelState.AddModelError("DeleteError", "Delete Access Denied!");
-        //        }
-        //        else
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            model = await _custodianReportService.DeleteAsync(model, user, date);
-        //        }
-        //    }
-        //    catch (ValidationException validationException)
-        //    {
-        //        ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        ModelState.AddModelError("DeleteError", e.Message);
-        //    }
-
-        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        //}
+        }        
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> Post(Guid id, int? accountGroup)
@@ -349,7 +316,16 @@ namespace iLgs.Controllers
         #region STOCK ITEM
         public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
         {
-            var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(deptId, accountGroup);
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(deptId, accountGroup, user);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        public ActionResult _StockItemReadAll([DataSourceRequest] DataSourceRequest request, int? accountGroup)
+        {
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportItemStockService.GetAllByAcctGroup(accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -471,7 +447,16 @@ namespace iLgs.Controllers
         #region PPE ITEMS
         public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
         {
-            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(deptId, accountGroup);
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(deptId, accountGroup, user);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        public ActionResult _PpeItemReadAll([DataSourceRequest] DataSourceRequest request, int? accountGroup)
+        {
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportItemPpeService.GetAllByAcctGroup(accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -593,7 +578,16 @@ namespace iLgs.Controllers
         #region VEHICLE ITEMS
         public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
         {
-            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(deptId, accountGroup);
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(deptId, accountGroup, user);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        public ActionResult _VehicleItemReadAll([DataSourceRequest] DataSourceRequest request, int? accountGroup)
+        {
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportItemVehicleService.GetAllByAcctGroup(accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -2339,8 +2333,8 @@ namespace iLgs.Controllers
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> LoadStockFields(CustodianReportItemStockVM model)
         {
-            var itemTypeCode = model.ItemType_Code;
-            var itemCode = model.Item_Code;
+            //var itemTypeCode = model.ItemType_Code;
+            //var itemCode = model.Item_Code;
             if (model.Id != Guid.Empty)
             {
                 model = await _custodianReportItemStockService.GetByIdAsync(model.Id);
@@ -2350,8 +2344,13 @@ namespace iLgs.Controllers
                 model.Multipliers = 0;
             }
 
-            string partialView = AllFieldsUtil.GetPartialField(itemTypeCode, itemCode);
-            partialView = $"_Stock{partialView}";
+            //string partialView = AllFieldsUtil.GetPartialField(itemTypeCode, itemCode);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            if (!string.IsNullOrEmpty(partialView))
+            {
+                partialView = $"_Stock{partialView}";
+            }
             
             return PartialView(partialView, model);
         }
@@ -2359,15 +2358,20 @@ namespace iLgs.Controllers
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> LoadPpeFields(CustodianReportItemPpeVM model)
         {
-            var itemTypeCode = model.ItemType_Code;
-            var itemCode = model.Item_Code;
+            //var itemTypeCode = model.ItemType_Code;
+            //var itemCode = model.Item_Code;
             if (model.Id != Guid.Empty)
             {
                 model = await _custodianReportItemPpeService.GetByIdAsync(model.Id);
             }
 
-            string partialView = AllFieldsUtil.GetPartialField(itemTypeCode, itemCode);
-            partialView = $"_Ppe{partialView}";            
+            //string partialView = AllFieldsUtil.GetPartialField(itemTypeCode, itemCode);
+            var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            if (!string.IsNullOrEmpty(partialView))
+            {
+                partialView = $"_Ppe{partialView}";
+            }
 
             return PartialView(partialView, model);
         }
@@ -2375,15 +2379,20 @@ namespace iLgs.Controllers
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> LoadVehicleFields(CustodianReportItemVehicleVM model)
         {
-            var itemTypeCode = model.ItemType_Code;
-            var itemCode = model.Item_Code;
+            //var itemTypeCode = model.ItemType_Code;
+            //var itemCode = model.Item_Code;
             if (model.Id != Guid.Empty)
             {
                 model = await _custodianReportItemVehicleService.GetByIdAsync(model.Id);
             }
 
-            string partialView = AllFieldsUtil.GetPartialField(itemTypeCode, itemCode);
-            partialView = $"_Vehicle{partialView}";
+            //string partialView = AllFieldsUtil.GetPartialField(itemTypeCode, itemCode);
+            var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            if (!string.IsNullOrEmpty(partialView))
+            {
+                partialView = $"_Vehicle{partialView}";
+            }
 
             return PartialView(partialView, model);
         }

@@ -17,10 +17,15 @@ namespace iLgs.Services.Codes
         IQueryable<LocationCodePreviewVM> GetLocationPreview();
         IQueryable<LocationCodeVM> GetLocations(string search);
         ValueTask<CodextnVM> UpdateIndexNo(string user, DateTime date);
+        new ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date);
+        new ValueTask<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date);
+        new ValueTask<CodextnVM> DeleteAsync(CodextnVM model, string user, DateTime date);
     }
 
     public class LocationService : CodextnService, ILocationService
     {
+        //protected readonly IExceptionService<CodextnVM> _vmExceptionService = new ExceptionService<CodextnVM>();
+
         public LocationService(AppManEntities db) : base(db)
         {
         }
@@ -63,7 +68,7 @@ namespace iLgs.Services.Codes
 
         public ValueTask<CodextnVM> UpdateIndexNo(string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            var locations = GetByMastCode("Locations");
+            var locations = GetByMastCode("LOCATIONS");
             using (var db = new AppManEntities())
             {
                 foreach (var location in locations)
@@ -86,7 +91,7 @@ namespace iLgs.Services.Codes
             return new CodextnVM();    
         });
 
-        public override ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public new ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateRecord(model.Id);
@@ -94,10 +99,11 @@ namespace iLgs.Services.Codes
 
             model.Desc4 = GetDesc4(model.Code);
 
-            return await base.CreateAsync(model, user, date);
+            await base.CreateAsync(model, user, date);
+            return model;
         });
 
-        public override ValueTask<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public new ValueTask<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateRecord(model.Id);
@@ -105,7 +111,17 @@ namespace iLgs.Services.Codes
 
             model.Desc4 = GetDesc4(model.Code);
 
-            return await base.UpdateAsync(model, user, date);
+            await base.UpdateAsync(model, user, date);
+            return model;
+        });
+
+        public new ValueTask<CodextnVM> DeleteAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        {
+            ValidateIfNull(model);
+            ValidateRecord(model.Id);
+
+            await base.DeleteAsync(model, user, date);
+            return model;
         });
 
         private string GetDesc4(string code)

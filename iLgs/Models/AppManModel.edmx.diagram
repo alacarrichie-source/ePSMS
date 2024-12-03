@@ -35,13 +35,15 @@
         <EntityTypeShape EntityType="AppManModel.Codextn" Width="1.5" PointX="15" PointY="12.625" />
         <AssociationConnector Association="AppManModel.FK_Codextn_Codextn" />
         <AssociationConnector Association="AppManModel.FK_DepartmentUsers_Codextn" />
+        <EntityTypeShape EntityType="AppManModel.LocationBudget" Width="1.5" PointX="17.25" PointY="14.75" />
+        <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn" />
+        <AssociationConnector Association="AppManModel.FK_LocationBudgets_Codextn1" />
         </Diagram>
       <Diagram DiagramId="f79b7b3909b14e05b9ff08f1a7cc6da0" Name="Orders" ZoomLevel="97" >
         <EntityTypeShape EntityType="AppManModel.Sequence" Width="1.5" PointX="0.75" PointY="0.75" />
         <EntityTypeShape EntityType="AppManModel.Request" Width="1.5" PointX="0.75" PointY="10.875" />
         <EntityTypeShape EntityType="AppManModel.PAR" Width="1.5" PointX="5.25" PointY="20.875" />
         <EntityTypeShape EntityType="AppManModel.OrderItemExtn" Width="1.5" PointX="10.5" PointY="14.25" />
-        <EntityTypeShape EntityType="AppManModel.ItemField" Width="1.5" PointX="15" PointY="6.625" />
         <EntityTypeShape EntityType="AppManModel.Order" Width="1.5" PointX="3" PointY="10.5" />
         <AssociationConnector Association="AppManModel.FK_Orders_Requests" />
         <AssociationConnector Association="AppManModel.FK_PARs_Orders" />
@@ -49,20 +51,14 @@
         <EntityTypeShape EntityType="AppManModel.RequestItem" Width="1.5" PointX="3" PointY="23.375" />
         <AssociationConnector Association="AppManModel.FK_PARItems_PARs" />
         <AssociationConnector Association="AppManModel.FK_RequestItems_Requests" />
-        <EntityTypeShape EntityType="AppManModel.ItemType" Width="1.5" PointX="12.75" PointY="3.625" />
-        <AssociationConnector Association="AppManModel.FK_ItemFields_ItemTypes" />
         <EntityTypeShape EntityType="AppManModel.Supplier" Width="1.5" PointX="0.75" PointY="5.375" />
         <AssociationConnector Association="AppManModel.FK_Orders_Suppliers" />
-        <EntityTypeShape EntityType="AppManModel.ItemCode" Width="1.5" PointX="15" PointY="1.25" />
-        <AssociationConnector Association="AppManModel.FK_ItemCodes_ItemTypes" />
         <EntityTypeShape EntityType="AppManModel.OrderItem" Width="1.5" PointX="8.25" PointY="16.125" />
         <AssociationConnector Association="AppManModel.FK_OrderItemExtns_OrderItems" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_Orders" />
         <AssociationConnector Association="AppManModel.FK_OrderItems_RequestItems" />
         <AssociationConnector Association="AppManModel.FK_PARItems_OrderItems" />
         <EntityTypeShape EntityType="AppManModel.Upload" Width="1.5" PointX="3.375" PointY="0.75" />
-        <EntityTypeShape EntityType="AppManModel.ItemTypeExclusion" Width="1.5" PointX="15" PointY="11.125" />
-        <AssociationConnector Association="AppManModel.FK_ItemTypeExclussions_ItemTypes" />
         </Diagram>
       <Diagram DiagramId="05e0d56af32e48c0b9de8b92ac7b3e2c" Name="Issuance" ZoomLevel="75" >
         <EntityTypeShape EntityType="AppManModel.RSMIRecap" Width="1.5" PointX="3" PointY="5.625" />
@@ -267,6 +263,13 @@
         <EntityTypeShape EntityType="AppManModel.CustodianReportItemIssuance" Width="1.5" PointX="5.25" PointY="52.5" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportItemIsuances_CustodianReportItems1" />
         </Diagram>
+      <Diagram DiagramId="6ed46f20c55b4c3f89ae9de029a504b5" Name="Item Codes" >
+        <EntityTypeShape EntityType="AppManModel.ItemTypeExclusion" Width="1.5" PointX="3" PointY="1.25" />
+        <EntityTypeShape EntityType="AppManModel.ItemType" Width="1.5" PointX="0.75" PointY="4" />
+        <AssociationConnector Association="AppManModel.FK_ItemTypeExclusions_ItemTypes" />
+        <EntityTypeShape EntityType="AppManModel.ItemCode" Width="1.5" PointX="3" PointY="5" />
+        <AssociationConnector Association="AppManModel.FK_ItemCodes_ItemTypes" />
+      </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

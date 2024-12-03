@@ -26,7 +26,8 @@ namespace iLgs.Controllers
         public JsonResult GetItems(string text)
         {
             var model = _itemCodeService.GetItems(text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
-            return Json(model.Select(c => new { Id = c.Id, ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode, FieldGroupNo = c.FieldGroupNo }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode }), JsonRequestBehavior.AllowGet);
+            //return Json(model.Select(c => new { Id = c.Id, ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode, FieldGroupNo = c.FieldGroupNo }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetItemAccounts(string text)
@@ -230,13 +231,15 @@ namespace iLgs.Controllers
         public JsonResult GetItemsByCategory(string category, string text)
         {
             var model = _itemCodeService.GetItemsByCategory(category, text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
-            return Json(model.Select(c => new { Id = c.Id, ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode, FieldGroupNo = c.FieldGroupNo }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode }), JsonRequestBehavior.AllowGet);
+            //return Json(model.Select(c => new { Id = c.Id, ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode, FieldGroupNo = c.FieldGroupNo }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetItemsByTypeCode(string typeCode, string text)
         {
             var model = _itemCodeService.GetItemsByTypeCode(typeCode, text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
-            return Json(model.Select(c => new { Id = c.Id, ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode, FieldGroupNo = c.FieldGroupNo }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode }), JsonRequestBehavior.AllowGet);
+            //return Json(model.Select(c => new { Id = c.Id, ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode, FieldGroupNo = c.FieldGroupNo }), JsonRequestBehavior.AllowGet);
         }        
     }
 }

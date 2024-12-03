@@ -57,8 +57,8 @@
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
         })
             .Read(read => read.Action("_ImagesRead", "CustodianReport", new { imageId = ViewData["imageId"] }))
-    .Update(update => update.Action("_ImagesUpdate", "CustodianReport", new { accountGroup = ViewBag.AccountGroup }))
-    .Destroy(destroy => destroy.Action("_ImagesDestroy", "CustodianReport", new { accountGroup = ViewBag.AccountGroup }))
+    .Update(update => update.Action("_ImagesUpdate", "CustodianReport").Data("DataGridImages"))
+    .Destroy(destroy => destroy.Action("_ImagesDestroy", "CustodianReport").Data("DataGridImages"))
     )
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .AutoBind(true)

@@ -14,6 +14,18 @@
 <div class="row">
     <div class="col-md-12">
         <div class="col-md-2">
+            @Html.DisplayFor(m => m.AllField.Multipliers, "Label")
+        </div>
+        <div class="col-md-10">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.Multipliers)
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="col-md-2">
             @Html.DisplayFor(m => m.AllField.Model_, "Label")
         </div>
         <div class="col-md-10">
@@ -97,7 +109,7 @@
 </div>
 
 
-<div class="row">
+@*<div class="row">
     <div class="col-md-12">
         <div class="col-md-2">
             @Html.DisplayFor(m => m.AllField.Type, "Label")
@@ -107,4 +119,4 @@
             @Html.ValidationMessageFor(m => m.AllField.Type)
         </div>
     </div>
-</div>
+</div>*@

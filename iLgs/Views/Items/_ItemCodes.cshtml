@@ -13,7 +13,8 @@
             col.Bound(c => c.ItemSw).Width(70);
             col.Bound(c => c.IsConsumable).Width(70);
             col.Bound(c => c.IsIncorporated).Width(70);
-            col.Bound(c => c.ForDistribution).Width(90);            
+            col.Bound(c => c.ForDistribution).Width(90);
+            col.Bound(c => c.RequiredFields).Width(90).EditorTemplateName("_PartialPageTemplate");
             //col.Bound(c => c.ItemSwUI).Width(50).EditorTemplateName("_ItemSwTemplate")
             //    .ClientTemplate("<input type='checkbox' #= ItemSwUI ? 'YES' : '' # class='k-switch' />")
             //    .HtmlAttributes(new { @class = "text-center" });

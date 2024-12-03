@@ -7,6 +7,7 @@ namespace iLgs.Models
 {
     public static class Enums
     {
+
         public enum CustodianAccountGroup
         {
             STOCK = 1,
@@ -17,7 +18,7 @@ namespace iLgs.Models
         }
 
         public enum CategoryGroup
-        {
+        {            
             LAND,
             DRUGS,
             SERIAL,
@@ -28,6 +29,7 @@ namespace iLgs.Models
             OTHERS, // Brand w/ multiples
             OTHERS_A, // Brand w/o multiples 
             OTHERS_B, // Brand vehicles
+            OTHERS_C, // Multiples only
             NONE
         }
 

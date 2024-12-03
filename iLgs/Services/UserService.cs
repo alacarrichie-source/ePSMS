@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Services.Interfaces;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
@@ -21,6 +22,7 @@ namespace iLgs.Services
         ValueTask<bool> UserInRole(string userId, string role);
         ValueTask<bool> IsAdmin(string userId);
         bool IsUserNameAdmin(string userName);
+        //bool IsAnnexDUser(string userName);
     }
 
     public class UserService : IUserService
@@ -32,6 +34,7 @@ namespace iLgs.Services
         private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
         private HttpClient _client;
         private string _iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
+        //private IAnnexDService _annexDService;
 
         public UserService(AppManEntities db)
         {
@@ -40,6 +43,7 @@ namespace iLgs.Services
             _client.BaseAddress = new Uri(_iLgsApiUrl);
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            //_annexDService = new AnnexDService(_db);
         }
 
         public async ValueTask<bool> UserInRole(string userId, string role)
@@ -72,5 +76,19 @@ namespace iLgs.Services
             var isSysAdmin = UserInRole(userId, _sysAdmin).Result;
             return isAdmin || isSysAdmin;
         }
+
+        //public bool IsAnnexDUser(string userName)
+        //{
+        //    bool retVal = false;
+        //    if (IsUserNameAdmin(userName))
+        //    {
+        //        retVal = true;
+        //    }
+        //    else
+        //    {
+        //        retVal = _annexDService.IsAny(userName);
+        //    }
+        //    return retVal;
+        //}
     }
 }

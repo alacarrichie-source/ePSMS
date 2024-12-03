@@ -1,4 +1,5 @@
-﻿using System;
+﻿using iLgs.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -7,7 +8,7 @@ using static iLgs.Models.Enums;
 namespace iLgs.Utilities
 {
     public static class AllFieldsUtil
-    {
+    {                
         public static CategoryGroup GetCategoryGroup(string itemTypeCode, string itemCode)
         {
             CategoryGroup retval = CategoryGroup.NONE;
@@ -28,7 +29,7 @@ namespace iLgs.Utilities
                     || c == CatMilitarySupply()
                     || c == CatOtherSupplies())
                 {
-                    retval = CategoryGroup.OTHERS;
+                    retval = CategoryGroup.OTHERS; // with Multiples
                 }
                 else if (
                     c == CatMachineriesProp()                    
@@ -36,11 +37,12 @@ namespace iLgs.Utilities
                     || c == CatTransportationProp()
                     || c == CatFurnituresProp())
                 {
+                    // vehicles
                     if (c == CatTransportationProp()
                         || (itemTypeCode == "E" && (
                             itemCode.Contains("05-80")
                             || itemCode.Contains("05-90.1.1")
-                            || itemCode.Contains("E05-90.2.1")
+                            || itemCode.Contains("05-90.2.1")
                             || itemCode.Contains("05-90.3.1")
                             || itemCode.Contains("05-90.4.1")
                             || itemCode.Contains("05-90.5.1")
@@ -52,8 +54,13 @@ namespace iLgs.Utilities
                     }
                     else
                     {
-                        retval = CategoryGroup.OTHERS_A;
+                        retval = CategoryGroup.OTHERS_A; // w/o Multiples
                     }
+                }
+                else if (c == CatFoodsSupply()
+                    || c == CatWelfareGoodsSupply())
+                {
+                    retval = CategoryGroup.OTHERS_C; // multiples only
                 }
                 else if (c == CatDrugsSupply())
                 {
@@ -84,55 +91,72 @@ namespace iLgs.Utilities
             return retval;
         }
 
-        public static string GetPartialField(string itemTypeCode, string itemCode)
+        public static string GetPartialView(ItemCode itemCode)
         {
             string partialName = "";
-            var value = AllFieldsUtil.GetCategoryGroup(itemTypeCode, itemCode);
-            if (value == CategoryGroup.LAND)
+            if (string.IsNullOrWhiteSpace(itemCode.PartialPage))
             {
-                partialName = "_FieldLand";
-            }
-            else if (value == CategoryGroup.OTHERS)
-            { 
-                partialName = "_FieldBrand";                
-            }
-            else if (value == CategoryGroup.OTHERS_A)
-            {
-                partialName = "_FieldBrand_A";
-            }
-            else if (value == CategoryGroup.OTHERS_B)
-            {
-                partialName = "_FieldBrand_B";
-            }
-            else if (value == CategoryGroup.DRUGS)
-            {
-                if (itemCode.Contains("-5.1.")) // Alcoh1ol
+                if (!string.IsNullOrWhiteSpace(itemCode.ItemType.PartialPage))
                 {
-                    partialName = "_FieldAlcohol";
-                }
-                else
-                {
-                    partialName = "_FieldDrugs";
+                    partialName = itemCode.ItemType.PartialPage;
                 }
             }
-            else if (value == CategoryGroup.SERIAL_A)
+            else
             {
-                partialName = "_FieldSerial_A";
-            }
-            else if (value == CategoryGroup.SERIAL_B)
-            {
-                partialName = "_FieldSerial_B";
-            }
-            else if (value == CategoryGroup.SERIAL_C)
-            {
-                partialName = "_FieldSerial_C";
-            }
-            else if (value == CategoryGroup.SERIAL)
-            {
-                partialName = "_FieldSerial";
+                partialName = itemCode.PartialPage;
             }
             return partialName;
         }
+
+        //public static string GetPartialField(string itemTypeCode, string itemCode)
+        //{
+        //    string partialName = "";
+        //    var value = AllFieldsUtil.GetCategoryGroup(itemTypeCode, itemCode);
+        //    if (value == CategoryGroup.LAND)
+        //    {
+        //        partialName = "_FieldLand";
+        //    }
+        //    else if (value == CategoryGroup.OTHERS)
+        //    { 
+        //        partialName = "_FieldBrand";                
+        //    }
+        //    else if (value == CategoryGroup.OTHERS_A)
+        //    {
+        //        partialName = "_FieldBrand_A";
+        //    }
+        //    else if (value == CategoryGroup.OTHERS_B)
+        //    {
+        //        partialName = "_FieldBrand_B";
+        //    }
+        //    else if (value == CategoryGroup.DRUGS)
+        //    {
+        //        if (itemCode.Contains("-5.1.")) // Alcoh1ol
+        //        {
+        //            partialName = "_FieldAlcohol";
+        //        }
+        //        else
+        //        {
+        //            partialName = "_FieldDrugs";
+        //        }
+        //    }
+        //    else if (value == CategoryGroup.SERIAL_A)
+        //    {
+        //        partialName = "_FieldSerial_A";
+        //    }
+        //    else if (value == CategoryGroup.SERIAL_B)
+        //    {
+        //        partialName = "_FieldSerial_B";
+        //    }
+        //    else if (value == CategoryGroup.SERIAL_C)
+        //    {
+        //        partialName = "_FieldSerial_C";
+        //    }
+        //    else if (value == CategoryGroup.SERIAL)
+        //    {
+        //        partialName = "_FieldSerial";
+        //    }
+        //    return partialName;
+        //}
 
         public static string GetPartialItemField(string itemTypeCode, string itemCode)
         {

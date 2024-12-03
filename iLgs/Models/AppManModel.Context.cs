@@ -48,7 +48,6 @@ namespace iLgs.Models
         public virtual DbSet<AIR> AIRs { get; set; }
         public virtual DbSet<PAR> PARs { get; set; }
         public virtual DbSet<OrderItemExtn> OrderItemExtns { get; set; }
-        public virtual DbSet<ItemField> ItemFields { get; set; }
         public virtual DbSet<RSMIRecap> RSMIRecaps { get; set; }
         public virtual DbSet<DepartmentUser> DepartmentUsers { get; set; }
         public virtual DbSet<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
@@ -66,13 +65,11 @@ namespace iLgs.Models
         public virtual DbSet<RpcPpe> RpcPpes { get; set; }
         public virtual DbSet<PARItem> PARItems { get; set; }
         public virtual DbSet<RequestItem> RequestItems { get; set; }
-        public virtual DbSet<ItemType> ItemTypes { get; set; }
         public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
         public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<RSMI> RSMIs { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
-        public virtual DbSet<ItemCode> ItemCodes { get; set; }
         public virtual DbSet<PsCard> PsCards { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
@@ -107,5 +104,8 @@ namespace iLgs.Models
         public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         public virtual DbSet<CustodianReportItemIssuance> CustodianReportItemIssuances { get; set; }
         public virtual DbSet<ItemTypeExclusion> ItemTypeExclusions { get; set; }
+        public virtual DbSet<ItemType> ItemTypes { get; set; }
+        public virtual DbSet<ItemCode> ItemCodes { get; set; }
+        public virtual DbSet<LocationBudget> LocationBudgets { get; set; }
     }
 }

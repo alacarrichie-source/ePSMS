@@ -3,6 +3,7 @@ using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
 using iLgs.Services.Codes;
+using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -25,6 +26,8 @@ namespace iLgs.Services.CustodianReports
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
         private readonly IAllFieldsValidator _allFieldsValidator;
+        private readonly IItemCodeService _itemCodeService;
+
 
         public CustodianReportItemVehicleValidator(AppManEntities db)
         {
@@ -32,6 +35,7 @@ namespace iLgs.Services.CustodianReports
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportItemVehicleVM>(propertyName);
             _codextnService = new CodextnService(_db);
             _allFieldsValidator = new AllFieldsValidator(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
 
         public void ValidateOnCreate(CustodianReportItemVehicleVM model)
@@ -55,7 +59,11 @@ namespace iLgs.Services.CustodianReports
         public void ValidateFieldsOnCreateUpdate(CustodianReportItemVehicleVM model)
         {
             var ex = new InvalidModelException();
-            _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemType_Code, model.Item_Code, ex, Enums.Module.CARD);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Enums.Module.CARD);
+
+            //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemType_Code, model.Item_Code, ex, Enums.Module.CARD);
 
 
             //if (model.DeptId == null)
@@ -91,7 +99,7 @@ namespace iLgs.Services.CustodianReports
             //{
             //    ex.UpsertDataList($"{_getDisplayName(nameof(model.PlateNo))} or {_getDisplayName(nameof(model.ConductionNo))}", "Field is required.");
             //}
-            
+
 
             //if (string.IsNullOrWhiteSpace(model.Description))
             //{

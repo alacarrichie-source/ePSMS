@@ -2,6 +2,7 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -49,11 +50,14 @@ namespace iLgs.Services.AllFields
         private readonly AppManEntities _db = new AppManEntities();
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<AllField> _exceptionService = new ExceptionService<AllField>();
+        private readonly IItemCodeService _itemCodeService;
         private IAllFieldsValidator _validator;
+
         public AllFieldService(AppManEntities db)
         {
             _db = db;
             _validator = new AllFieldsValidator(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
 
         public IQueryable<AllField> GetAllByPsCardId(Guid? psCardId) => _exceptionService.TryCatch(() =>
@@ -77,28 +81,40 @@ namespace iLgs.Services.AllFields
         public void ValidatePsCardAllField(PsCardVM model)
         {
             var ex = new InvalidModelException();
-            _validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
-            ex.ThrowIfContainsErrors();            
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
+            //_validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
+            ex.ThrowIfContainsErrors();
         }
 
         public void ValidateStockCardAllField(StockCardVM model)
         {
             var ex = new InvalidModelException();
-            _validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
+            //_validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);           
             ex.ThrowIfContainsErrors();
         }
 
         public void ValidatePropertyCardAllField(PropertyCardVM model)
         {
             var ex = new InvalidModelException();
-            _validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
+            //_validator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemNo, ex);
             ex.ThrowIfContainsErrors();
         }
 
         public void ValidateRisAllField(RisItemEntryVM model)
         {
             var ex = new InvalidModelException();
-            _validator.ValidateAllFields(model.AllField, model.PsType, model.ItemNo, ex);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
+            //_validator.ValidateAllFields(model.AllField, model.PsType, model.ItemNo, ex);
             ex.ThrowIfContainsErrors();
         }
 
@@ -296,46 +312,46 @@ namespace iLgs.Services.AllFields
         public string GetRisDescription(RisItemEntryVM model)
         {
             string description = "";
-            var af = model.AllField;
-            var group = AllFieldsUtil.GetCategoryGroup(model.PsType, model.ItemNo);
-            if (group == CategoryGroup.LAND)
-            {
-                description += af.Area.ToString() + "sqm";
-            }
-            else if (group == CategoryGroup.OTHERS || group == CategoryGroup.OTHERS_A || group == CategoryGroup.OTHERS_B)
-            {
-                description = (!string.IsNullOrWhiteSpace(af.Model_) ? $"{af.Model_}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Dimension) ? $" {af.Dimension}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Size) ? $" {af.Size}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Weight) ? $" {af.Weight}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Materials) ? $" {af.Materials}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Capacity) ? $" {af.Capacity}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Color) ? $" {af.Color}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
-            }
-            else if (group == CategoryGroup.DRUGS)
-            {
-                description = (!string.IsNullOrWhiteSpace(af.GenericName) ? $"{af.GenericName}" : "") +
-                                (!string.IsNullOrWhiteSpace(af.DosageStrength) ? $" {af.DosageStrength}" : "") +
-                                (!string.IsNullOrWhiteSpace(af.DosageForm) ? $" {af.DosageForm}" : "") +
-                                (!string.IsNullOrWhiteSpace(af.DosageVolume) ? $" {af.DosageVolume}" : "") +
-                                (!string.IsNullOrWhiteSpace(af.Others) ? $" {af.Others}" : "") +
-                                (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
-            }
-            else if (group == CategoryGroup.SERIAL 
-                || group == CategoryGroup.SERIAL_A 
-                || group == CategoryGroup.SERIAL_B
-                || group == CategoryGroup.SERIAL_C
-                || group == CategoryGroup.SERIAL_D)
-            {
-                description = (!string.IsNullOrWhiteSpace(af.SerialNo) ? $"{af.SerialNo}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.PropNo) ? $" {af.PropNo}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.PlateNo) ? $" {af.PlateNo}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.BodyNo) ? $" {af.BodyNo}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.MVFileNo) ? $" {af.MVFileNo}" : "") +
-                               (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
-            }
-            
+            //var af = model.AllField;
+            //var group = AllFieldsUtil.GetCategoryGroup(model.PsType, model.ItemNo);
+            //if (group == CategoryGroup.LAND)
+            //{
+            //    description += af.Area.ToString() + "sqm";
+            //}
+            //else if (group == CategoryGroup.OTHERS || group == CategoryGroup.OTHERS_A || group == CategoryGroup.OTHERS_B)
+            //{
+            //    description = (!string.IsNullOrWhiteSpace(af.Model_) ? $"{af.Model_}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.Dimension) ? $" {af.Dimension}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.Size) ? $" {af.Size}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.Weight) ? $" {af.Weight}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.Materials) ? $" {af.Materials}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.Capacity) ? $" {af.Capacity}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.Color) ? $" {af.Color}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
+            //}
+            //else if (group == CategoryGroup.DRUGS)
+            //{
+            //    description = (!string.IsNullOrWhiteSpace(af.GenericName) ? $"{af.GenericName}" : "") +
+            //                    (!string.IsNullOrWhiteSpace(af.DosageStrength) ? $" {af.DosageStrength}" : "") +
+            //                    (!string.IsNullOrWhiteSpace(af.DosageForm) ? $" {af.DosageForm}" : "") +
+            //                    (!string.IsNullOrWhiteSpace(af.DosageVolume) ? $" {af.DosageVolume}" : "") +
+            //                    (!string.IsNullOrWhiteSpace(af.Others) ? $" {af.Others}" : "") +
+            //                    (!(af.Multipliers == null) ? $" {af.Multipliers}'s" : "");
+            //}
+            //else if (group == CategoryGroup.SERIAL 
+            //    || group == CategoryGroup.SERIAL_A 
+            //    || group == CategoryGroup.SERIAL_B
+            //    || group == CategoryGroup.SERIAL_C
+            //    || group == CategoryGroup.SERIAL_D)
+            //{
+            //    description = (!string.IsNullOrWhiteSpace(af.SerialNo) ? $"{af.SerialNo}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.PropNo) ? $" {af.PropNo}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.PlateNo) ? $" {af.PlateNo}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.BodyNo) ? $" {af.BodyNo}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.MVFileNo) ? $" {af.MVFileNo}" : "") +
+            //                   (!string.IsNullOrWhiteSpace(af.Type) ? $" {af.Type}" : "");
+            //}
+
             return description ?? "";
         }
 
@@ -349,10 +365,16 @@ namespace iLgs.Services.AllFields
         {
             model.AllField = ChangeAllFieldCase(model.AllField);
             string stockNo = model.ItemCode.Trim();
-            if (!IsNoIcs(model.ItemCodeId))
-            {
-                stockNo += GetStockNo(model.AllField, model.PsType, model.ItemCode);
-            }
+
+            //if (!IsNoIcs(model.ItemCodeId))
+            //{
+            //    stockNo += GetStockNo(model.AllField, model.PsType, model.ItemCode);
+            //}
+
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            stockNo += GetPartialViewStockNo(model.AllField, partialView);
+
             return stockNo ?? "";
         }
 
@@ -402,10 +424,14 @@ namespace iLgs.Services.AllFields
             {
                 stockNo = "FD" + stockNo;
             }
-            if (!IsNoIcs(model.ItemCodeId))
-            {
-                stockNo += GetStockNo(model.AllField, model.ItemTypeCode, model.ItemCode);
-            }
+            //if (!IsNoIcs(model.ItemCodeId))
+            //{
+            //    stockNo += GetStockNo(model.AllField, model.ItemTypeCode, model.ItemCode);
+            //}
+
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
             return stockNo ?? "";
         }
@@ -417,9 +443,12 @@ namespace iLgs.Services.AllFields
             {
                 stockNo = "FD" + stockNo;
             }
-            
-            stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
-            
+
+            //stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            stockNo += GetPartialViewStockNo(model.AllField, partialView);
+
             return stockNo ?? "";
         }
 
@@ -431,7 +460,10 @@ namespace iLgs.Services.AllFields
                 stockNo = "FD" + stockNo;
             }
 
-            stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
+            //stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
             return stockNo ?? "";
         }
@@ -444,7 +476,10 @@ namespace iLgs.Services.AllFields
                 stockNo = "FD" + stockNo;
             }
 
-            stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
+            //stockNo += GetStockNo(model.AllField, model.ItemType_Code, model.Item_Code);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
             return stockNo ?? "";
         }
@@ -455,6 +490,303 @@ namespace iLgs.Services.AllFields
                     || c == CatMedicalSupply() || c == CatAgriculturalSupply() || c == CatAnimalSupplies() || c == CatConstructionMaterialsSupply()
                     || c == CatOfficeSupplies() || c == CatAccountableFormsSupply() || c == CatNonAccountableFornsSupply() || c == CatMilitarySupply()
                     || c == CatOtherSupplies() || c == CatRepairSupply()) || c == CatDrugsSupply();
+        }
+
+        //string partialView = AllFieldsUtil.GetPartialView(itemCode);
+        public string GetPartialViewStockNo(AllField af, string partialView)
+        {
+            string stockNo = "";
+            if (partialView == "_FieldLand")
+            {
+                stockNo += ((af.Area != null) ? $"/{af.Area}sqm" : "");
+            }
+            else if (partialView == "_FieldDrugs" || partialView == "_FieldAlcohol")
+            {
+                if (!string.IsNullOrWhiteSpace(af.GenericName))
+                {
+                    if (af.GenericName.Equals("-"))
+                    {
+                        stockNo += "/xx";
+                    }
+                    else
+                    {
+                        var genName = Utility.ToProperCase(af.GenericName);
+                        if (genName.Length >= 3)
+                        {
+                            stockNo += "/" + genName.Substring(0, 1) + genName.Substring(2, 1);
+                        }
+                        else
+                        {
+                            stockNo += "/" + genName.Substring(0, 1) + "X";
+                        }
+                    }
+                }
+
+                if (partialView == "_FieldAlcohol") // Alcohol
+                {
+                    if (!string.IsNullOrWhiteSpace(af.DosageVolume))
+                    {
+                        stockNo += $"/{af.DosageVolume}";
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrWhiteSpace(af.DosageStrength))
+                    {
+                        if (af.DosageStrength.Equals("-"))
+                        {
+                            stockNo += "/xx";
+                        }
+                        else
+                        {
+                            stockNo += "/" + af.DosageStrength.Replace(" ", "").Trim();
+                        }
+                    }
+                    if (!string.IsNullOrWhiteSpace(af.DosageForm))
+                    {
+                        if (af.DosageForm.Equals("-"))
+                        {
+                            stockNo += "/xx";
+                        }
+                        else
+                        {
+                            stockNo += "/" + af.DosageForm.PadRight(3, 'X').Substring(0, 3);
+                        }
+                    }
+                }
+
+                if (af.Multipliers.HasValue && af.Multipliers > 0)
+                {
+                    stockNo += $"/{af.Multipliers}'s";
+                }
+                else
+                {
+                    stockNo += "/xx";
+                }
+
+                if (!string.IsNullOrWhiteSpace(af.Brand))
+                {
+                    if (af.Brand.Equals("-"))
+                    {
+                        stockNo += "/xx";
+                    }
+                    else
+                    {
+                        stockNo += "/" + af.Brand.Replace(" ", "").Trim();
+                    }
+                }
+            }
+            else if (partialView.Contains("Brand"))
+            {
+                if (partialView == "_FieldBrand")
+                {
+                    stockNo += GetStockNoFromMultiples(af);
+                }
+
+                stockNo += GetStockNoFromBrand(af);
+
+                // Vehicles
+                if (partialView == "_FieldBrand_B")
+                {
+                    stockNo += GetStockNoFromModelV(af);
+                }
+                else
+                {
+                    stockNo += GetStockNoFromModel(af);
+                }
+            }
+            else if (partialView == "_FieldMultiple")
+            {
+                stockNo += GetStockNoFromMultiples(af);
+            }
+            else if (partialView == "_FieldMultiple_A")
+            {
+                stockNo += GetStockNoFromMultiples(af);
+                stockNo += GetStockNoFromBrand(af);
+            }
+            else if (partialView == "_FieldSerial")
+            {
+                // "Color", "Capacity", "Materials", "Weight", "Size", "Dimension", "Model_", "Brand", "PropNo", "SerialNo"                        
+
+                stockNo += GetStockNoFromSerial(af);
+                stockNo += GetStockNoFromMultiples(af);
+                stockNo += GetStockNoFromBrand(af);
+                stockNo += GetStockNoFromModel(af);
+            }
+            else if (partialView == "_FieldSerial_A")
+            {
+                // "Color", "Capacity", "Materials", "Weight", "Size", "Dimension", "Model_", "Brand", "MVFileNo", "Body", "Plate"                        
+                stockNo += GetStockNoFromPlate(af);
+                stockNo += GetStockNoFromMultiples(af);
+                stockNo += GetStockNoFromBrand(af);
+                stockNo += GetStockNoFromModel(af);
+            }
+            else if (partialView == "_FieldSerial_B")
+            {
+                stockNo += GetStockNoFromSerial(af);
+                stockNo += GetStockNoFromMultiples(af);
+            }
+            else if (partialView == "_FieldSerial_C")
+            {
+                stockNo += GetStockNoFromPlate(af);
+                stockNo += GetStockNoFromMultiples(af);
+            }
+            else if (partialView == "_FieldSerial_D")
+            {
+                stockNo += GetStockNoFromSerial(af);
+                stockNo += GetStockNoFromBrand(af);
+                stockNo += GetStockNoFromModel(af);
+            }
+            return stockNo;
+        }
+
+        private string GetStockNoFromSerial(AllField af)
+        {
+            string stockNo = "";
+            if (!af.SerialNo.IsNullOrWhiteSpaceX())
+            {
+                stockNo += $"/{af.SerialNo}";
+            }
+            else
+            {
+                if (af.PropNo.IsNullOrWhiteSpaceX())
+                {
+                    stockNo += "/xx";
+                }
+                else
+                {
+                    stockNo += $"/{af.PropNo}";
+                }
+            }
+            return stockNo;
+        }
+
+        private string GetStockNoFromPlate(AllField af)
+        {
+            string stockNo = "";
+            if (!af.PlateNo.IsNullOrWhiteSpaceX())
+            {
+                stockNo += $"/{af.PlateNo}";
+            }
+            else
+            {
+                if (!af.BodyNo.IsNullOrWhiteSpaceX())
+                {
+                    stockNo += $"/{af.BodyNo}";
+                }
+                else
+                {
+                    if (!af.MVFileNo.IsNullOrWhiteSpaceX())
+                    {
+                        stockNo += $"/{af.MVFileNo}";
+                    }
+                }
+            }
+            return stockNo;
+        }
+
+        private string GetStockNoFromMultiples(AllField af)
+        {
+            string stockNo = "";
+            if (af.Multipliers.HasValue && af.Multipliers > 0)
+            {
+                stockNo += $"/{af.Multipliers}'s";
+            }
+            else
+            {
+                stockNo += "/xx";
+            }
+            return stockNo;
+        }
+
+        private string GetStockNoFromBrand(AllField af)
+        {
+            string stockNo = "";
+            if (af.Brand.IsNullOrWhiteSpaceX())
+            {
+                stockNo += "/xx";
+            }
+            else
+            {
+                stockNo += $"/{af.Brand}";
+            }
+            return stockNo;
+        }
+
+        private string GetStockNoFromModel(AllField af)
+        {
+            string stockNo = "";
+            if (!af.Model_.IsNullOrWhiteSpaceX())
+            {
+                stockNo += $"/{Utility.ToProperCase(af.Model_)}";
+            }
+            else
+            {
+                if (!af.Dimension.IsNullOrWhiteSpaceX())
+                {
+                    stockNo += $"/{af.Dimension}";
+                }
+                else
+                {
+                    if (!af.Size.IsNullOrWhiteSpaceX())
+                    {
+                        stockNo += $"/{af.Dimension}";
+                    }
+                    else
+                    {
+                        if (!af.Weight.IsNullOrWhiteSpaceX())
+                        {
+                            stockNo += $"/{af.Weight}";
+                        }
+                        else
+                        {
+                            if (!af.Materials.IsNullOrWhiteSpaceX())
+                            {
+                                stockNo += $"/{af.Materials}";
+                            }
+                            else
+                            {
+                                if (!af.Capacity.IsNullOrWhiteSpaceX())
+                                {
+                                    stockNo += $"/{af.Capacity}";
+                                }
+                                else
+                                {
+                                    if (!af.Color.IsNullOrWhiteSpaceX())
+                                    {
+                                        stockNo += $"/{af.Color}";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return stockNo;
+        }
+
+        private string GetStockNoFromModelV(AllField af)
+        {
+            string stockNo = "";
+            if (!af.Model_.IsNullOrWhiteSpaceX())
+            {
+                stockNo += $"/{Utility.ToProperCase(af.Model_)}";
+            }
+            else
+            {
+                if (!af.Weight.IsNullOrWhiteSpaceX())
+                {
+                    stockNo += $"/{af.Weight}";
+                }
+                else
+                {
+                    if (!af.Color.IsNullOrWhiteSpaceX())
+                    {
+                        stockNo += $"/{af.Color}";
+                    }
+                }
+            }
+            return stockNo;
         }
 
         public string GetStockNo(AllField af, string itemTypeCode, string itemCode)
@@ -575,18 +907,18 @@ namespace iLgs.Services.AllFields
                 if (group == CategoryGroup.OTHERS_B)
                 {
                     if (af.Model_.IsNullOrWhiteSpaceX())
-                    {                        
+                    {
                         if (af.Weight.IsNullOrWhiteSpaceX())
                         {
                             if (!string.IsNullOrWhiteSpace(af.Color))
                             {
                                 stockNo += $"/{af.Color}";
-                            }                                                                            
+                            }
                         }
                         else
                         {
                             stockNo += $"/{af.Weight}";
-                        }                            
+                        }
                     }
                     else
                     {
@@ -846,7 +1178,7 @@ namespace iLgs.Services.AllFields
                 {
                     stockNo += $"/{af.SerialNo}";
                 }
-            }            
+            }
             return stockNo;
         }
 

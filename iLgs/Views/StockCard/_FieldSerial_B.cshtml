@@ -23,6 +23,20 @@
 
 <div class="row k-mb-2">
     <div class="col-md-12">
+        @Html.LabelFor(m => m.AllField.Multipliers, "Multiples (#'s)", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @*@(Html.Kendo().TextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))*@
+            @(Html.Kendo().MaskedTextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription"))
+                .Mask("999999999")  // Adjust the number of 0s to fit your requirement -->
+                .PromptChar(" "))
+            @Html.ValidationMessageFor(m => m.AllField.Multipliers)
+        </div>
+    </div>
+</div>
+
+
+@*<div class="row k-mb-2">
+    <div class="col-md-12">
         @Html.LabelFor(m => m.AllField.PlateNo, htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().TextBoxFor(m => m.AllField.PlateNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
@@ -49,5 +63,5 @@
             @Html.ValidationMessageFor(m => m.AllField.MVFileNo)
         </div>
     </div>
-</div>
+</div>*@
 

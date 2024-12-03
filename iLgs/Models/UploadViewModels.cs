@@ -20,7 +20,11 @@ namespace iLgs.Models
         {
             public System.Guid Id { get; set; }
             public Nullable<System.Guid> ImageId { get; set; }
+
+            [Display(Name = "File Name")]
             public string FileName { get; set; }
+
+            [Display(Name ="Document Type")]
             public string Description { get; set; }
             public string ServerIpAddress { get; set; }
             public string VirtualDirectory { get; set; }

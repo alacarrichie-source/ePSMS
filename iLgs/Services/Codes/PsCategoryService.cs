@@ -14,41 +14,47 @@ namespace iLgs.Services.Codes
 {
     public interface IPsCategoryService : ICodextnService
     {
-        
+        //ValueTask<Codextn> CreateAsync(Codextn model, string user, DateTime date);
+        //ValueTask<Codextn> UpdateAsync(Codextn model, string user, DateTime date);
+        //ValueTask<Codextn> DeleteAsync(Codextn model, string user, DateTime date);
     }
 
     public class PsCategoryService : CodextnService, IPsCategoryService
     {
+        //protected readonly IExceptionService<CodextnVM> _vmExceptionService = new ExceptionService<CodextnVM>();
+
         public PsCategoryService(AppManEntities db) : base(db)
         {
-        }        
+        }
 
-        //public override ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        //public ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         //{
         //    ValidateIfNull(model);
         //    ValidateRecord(model.Id);
         //    ValidateFields(model, Mode.ADD);
 
-        //    model.Desc4 = GetDesc4(model.Code);
-
-        //    return await base.CreateAsync(model, user, date);
+        //    await base.CreateAsync(model, user, date);
+        //    return model;
         //});
 
-        //public override ValueTask<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        //public ValueTask<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         //{
         //    ValidateIfNull(model);
         //    ValidateRecord(model.Id);
         //    ValidateFields(model, Mode.EDIT);
 
-        //    model.Desc4 = GetDesc4(model.Code);
-
-        //    return await base.UpdateAsync(model, user, date);
+        //    await base.UpdateAsync(model, user, date);
+        //    return model;
         //});
 
-        //private string GetDesc4(string code)
+        //public ValueTask<CodextnVM> DeleteAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         //{
-        //    return code.Substring(0, 2) + code.Substring(code.Length - 2, 2);
-        //}
+        //    ValidateIfNull(model);
+        //    ValidateRecord(model.Id);
+
+        //    await base.DeleteAsync(model, user, date);
+        //    return model;
+        //});
 
         //private void ValidateIfNull(CodextnVM model)
         //{

@@ -28,7 +28,7 @@ namespace iLgs.Controllers
         private AppManEntities _db;
         private IItemTypeService _itemTypeService;
         private IItemCodeService _itemCodeService;
-        private IItemFieldService _itemFieldService;
+        //private IItemFieldService _itemFieldService;
         private ICodextnService _codextnService;
         private IDirectoryService _directoryService;
         //private IRisIssuedService _risIssuedService;
@@ -38,7 +38,7 @@ namespace iLgs.Controllers
             _db = new AppManEntities();
             _itemTypeService = new ItemTypeService(_db);
             _itemCodeService = new ItemCodeService(_db);
-            _itemFieldService = new ItemFieldService(_db);
+            //_itemFieldService = new ItemFieldService(_db);
             _codextnService = new CodextnService(_db);
             _directoryService = new DirectoryService(_db);
             //_risIssuedService = new RisIssuedService(_db);
@@ -312,140 +312,140 @@ namespace iLgs.Controllers
         }
         #endregion
 
-        #region ITEM FIELDS
-        public ActionResult _ItemFields(Guid itemTypeId)
-        {
-            ViewData["itemTypeId"] = itemTypeId;
-            return PartialView();
-        }
+        //#region ITEM FIELDS
+        //public ActionResult _ItemFields(Guid itemTypeId)
+        //{
+        //    ViewData["itemTypeId"] = itemTypeId;
+        //    return PartialView();
+        //}
 
-        public ActionResult ItemFieldRead([DataSourceRequest] DataSourceRequest request, Guid? itemTypeId)
-        {
-            var data = _itemFieldService.GetAllbyItemTypeId(itemTypeId);
-            var result = new JsonNetResult
-            {
-                Data = data.ToDataSourceResult(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
+        //public ActionResult ItemFieldRead([DataSourceRequest] DataSourceRequest request, Guid? itemTypeId)
+        //{
+        //    var data = _itemFieldService.GetAllbyItemTypeId(itemTypeId);
+        //    var result = new JsonNetResult
+        //    {
+        //        Data = data.ToDataSourceResult(request),
+        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+        //    };
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> ItemFieldCreate([DataSourceRequest] DataSourceRequest request, ItemFieldVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
-                Access access = await accessTask;
-                if (!access.AllowAdd)
-                {
-                    ModelState.AddModelError("AddError", "Add Access Denied!");
-                }
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> ItemFieldCreate([DataSourceRequest] DataSourceRequest request, ItemFieldVM model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
+        //        Access access = await accessTask;
+        //        if (!access.AllowAdd)
+        //        {
+        //            ModelState.AddModelError("AddError", "Add Access Denied!");
+        //        }
 
-                if (model != null && ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+        //        if (model != null && ModelState.IsValid)
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
 
-                    model = await _itemFieldService.CreateAsync(model, user, date);
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("AddError", error.Message);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("AddError", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("AddError", e.Message);
-            }
+        //            model = await _itemFieldService.CreateAsync(model, user, date);
+        //        }
+        //    }
+        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+        //    {
+        //        var errors = validationException.GetErrorsForModelState();
+        //        foreach (var error in errors)
+        //        {
+        //            ModelState.AddModelError("AddError", error.Message);
+        //        }
+        //    }
+        //    catch (ValidationException validationException)
+        //    {
+        //        ModelState.AddModelError("AddError", validationException.InnerException.Message);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("AddError", e.Message);
+        //    }
 
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
+        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        //}
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> ItemFieldUpdate([DataSourceRequest] DataSourceRequest request, ItemFieldVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
-                Access access = await accessTask;
-                if (!access.AllowEdit)
-                {
-                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
-                }
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> ItemFieldUpdate([DataSourceRequest] DataSourceRequest request, ItemFieldVM model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
+        //        Access access = await accessTask;
+        //        if (!access.AllowEdit)
+        //        {
+        //            ModelState.AddModelError("UpdateError", "Update Access Denied!");
+        //        }
 
-                if (ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+        //        if (ModelState.IsValid)
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
 
-                    model.UpdatedBy = user;
-                    model.UpdatedDt = date;
+        //            model.UpdatedBy = user;
+        //            model.UpdatedDt = date;
 
-                    model = await _itemFieldService.UpdateAsync(model, user, date);
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("UpdateError", error.Message);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("UpdateError", e.Message);
-            }
+        //            model = await _itemFieldService.UpdateAsync(model, user, date);
+        //        }
+        //    }
+        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+        //    {
+        //        var errors = validationException.GetErrorsForModelState();
+        //        foreach (var error in errors)
+        //        {
+        //            ModelState.AddModelError("UpdateError", error.Message);
+        //        }
+        //    }
+        //    catch (ValidationException validationException)
+        //    {
+        //        ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("UpdateError", e.Message);
+        //    }
 
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
+        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        //}
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> ItemFieldDestroy([DataSourceRequest]DataSourceRequest request, ItemFieldVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
-                Access access = await accessTask;
-                if (!access.AllowDelete)
-                {
-                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
-                }
-                else
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> ItemFieldDestroy([DataSourceRequest]DataSourceRequest request, ItemFieldVM model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "items");
+        //        Access access = await accessTask;
+        //        if (!access.AllowDelete)
+        //        {
+        //            ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+        //        }
+        //        else
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
 
-                    model = await _itemFieldService.DeleteAsync(model, user, date);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("DeleteError", e.Message);
-            }
+        //            model = await _itemFieldService.DeleteAsync(model, user, date);
+        //        }
+        //    }
+        //    catch (ValidationException validationException)
+        //    {
+        //        ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("DeleteError", e.Message);
+        //    }
 
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-        #endregion
+        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        //}
+        //#endregion
 
         #region ITEM PREVIEW    
         public ActionResult ItemCodePreview()

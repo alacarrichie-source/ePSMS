@@ -193,6 +193,16 @@
                     @Html.ValidationMessageFor(m => m.TotalCost)
                 </div>
             </div>
+
+            <div class="col-md-6">
+                <div class="col-md-4">
+                    @Html.DisplayFor(m => m.AcqDate, "LabelDate")
+                </div>
+                <div class="col-md-8">
+                    @(Html.Kendo().DatePickerFor(m => m.AcqDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.AcqDate)
+                </div>
+            </div>
         </div>
 
         <div class="row k-mb-2">

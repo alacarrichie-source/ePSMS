@@ -41,7 +41,8 @@ namespace iLgs.Services.StockCards
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
-                    FieldGroupNo = s.ItemCode.ItemType.FormulaNo,
+                    
+                    //FieldGroupNo = s.ItemCode.ItemType.FormulaNo,
                     CardCategory = s.CardCategory,
                     Description = s.Description,
                     SubAccountCode = s.SubAccountCode,
@@ -72,7 +73,7 @@ namespace iLgs.Services.StockCards
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
-                    FieldGroupNo = s.ItemCode.ItemType.FormulaNo,
+                    PartialPage = s.ItemCode.PartialPage == null ? s.ItemCode.ItemType.PartialPage : s.ItemCode.PartialPage,
                     CardCategory = s.CardCategory,
                     Description = s.Description,
                     SubAccountCode = s.SubAccountCode,

@@ -59,6 +59,9 @@ namespace iLgs.Models
 
         public AllField AllField { get; set; }
         public Guid? MainDeptId { get; set; }
+
+        [Display(Name = "Custodian Department")]
+        public string MainDeptName { get; set; }
         public int? AccountGroup { get; set; }
 
         internal sealed class Metadata
@@ -274,8 +277,12 @@ namespace iLgs.Models
             //[Required]            
             public string Annex { get; set; }
             public string InsertedBy { get; set; }
+
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }
+
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> UpdatedDt { get; set; }
 
             [Display(Name = "Posted By")]
@@ -283,6 +290,8 @@ namespace iLgs.Models
 
             [Display(Name = "Posted Date")]
             public Nullable<System.DateTime> PostedDt { get; set; }
+
+            public ItemCode ItemCode { get; set; }
         }
     }
 

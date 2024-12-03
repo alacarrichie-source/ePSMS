@@ -14,8 +14,11 @@ namespace iLgs.Services.AllFields
 {
     public interface IAllFieldsValidator
     {
-        void ValidateAllFields(AllField af, string category, string itemCode, InvalidModelException ex);
-        void ValidateAllFields(AllField af, string category, string itemCode, InvalidModelException ex, Enums.Module? module);
+        //void ValidateAllFields(AllField af, string category, string itemCode, InvalidModelException ex);
+        //void ValidateAllFields(AllField af, string category, string itemCode, InvalidModelException ex, Enums.Module? module);
+
+        void ValidateAllFieldsPartial(AllField af, string partialView, InvalidModelException ex);
+        void ValidateAllFieldsPartial(AllField af, string partialView, InvalidModelException ex, Enums.Module? module);
     }
 
     public class AllFieldsValidator : BaseValidator, IAllFieldsValidator
@@ -250,6 +253,280 @@ namespace iLgs.Services.AllFields
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public void ValidateAllFieldsPartial(AllField af, string partialView, InvalidModelException ex)
+        {
+            ValidateAllFieldsPartial(af, partialView, ex, null);
+        }
+
+        public void ValidateAllFieldsPartial(AllField af, string partialView, InvalidModelException ex, Enums.Module? module)
+        {
+            if (partialView == "_FieldDrugs" || partialView == "_FieldAlcohol")
+            {
+                if (string.IsNullOrWhiteSpace(af.GenericName))
+                {
+                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.GenericName)), "Field is required.");
+                }
+
+                if (partialView == "_FieldAlcohol")
+                {
+                    if (string.IsNullOrWhiteSpace(af.DosageVolume))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.DosageVolume)), "Field is required.");
+                    }
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(af.DosageStrength))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.DosageStrength)), "Field is required.");
+                    }
+                    if (string.IsNullOrWhiteSpace(af.DosageForm))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.DosageForm)), "Field is required.");
+                    }
+                }
+
+                if (af.Multipliers == null)
+                {
+                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Multipliers)), "Field is required.");
+                }
+
+                if (module == Enums.Module.CARD || module == Enums.Module.ORDER)
+                {
+                    if (string.IsNullOrWhiteSpace(af.Brand))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                    }
+                }
+            }
+            else if (partialView == "_FieldMultiple")
+            {
+                ValidateMultiples(af, partialView, ex, module);
+            }
+            else if (partialView == "_FieldMultiple_A")
+            {
+                ValidateMultiples(af, partialView, ex, module);
+                ValidateBrand(af, partialView, ex, module);
+            }
+            else if (partialView == "_FieldSerial")
+            {
+                ValidateSerial(af, partialView, ex, module);
+                ValidateMultiples(af, partialView, ex, module);
+                ValidateBrand(af, partialView, ex, module);
+                ValidateModel(af, partialView, ex, module);
+            }
+            else if (partialView == "_FieldSerial_A")
+            {
+                ValidatePlate(af, partialView, ex, module);
+                ValidateMultiples(af, partialView, ex, module);
+                ValidateBrand(af, partialView, ex, module);
+                ValidateModel(af, partialView, ex, module);
+            }
+            else if (partialView == "_FieldSerial_B")
+            {
+                ValidateSerial(af, partialView, ex, module);
+                ValidateMultiples(af, partialView, ex, module);
+            }
+            else if (partialView == "_FieldSerial_C")
+            {
+                ValidatePlate(af, partialView, ex, module);
+                ValidateMultiples(af, partialView, ex, module);
+            }
+            else if (partialView == "_FieldSerial_D")
+            {
+                ValidateSerial(af, partialView, ex, module);
+                ValidateBrand(af, partialView, ex, module);
+                ValidateModel(af, partialView, ex, module);
+            }
+            else if (partialView.Contains("Brand"))
+            {
+                if (partialView == "_FieldBrand")
+                {
+                    ValidateMultiples(af, partialView, ex, module);
+                }
+
+                ValidateBrand(af, partialView, ex, module);
+
+                if (partialView == "_FieldBrand_B") // vehicles
+                {
+                    ValidateModelV(af, partialView, ex, module);                    
+                }
+                else
+                {
+                    ValidateModel(af, partialView, ex, module);                    
+                }
+            }
+        }
+
+        private void ValidateSerial(AllField af, string patialView, InvalidModelException ex, Enums.Module? module)
+        {
+            if (string.IsNullOrWhiteSpace(af.SerialNo))
+            {
+                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.SerialNo)), "Field is required.");
+            }
+            else
+            {
+                if (af.SerialNo.IsNullOrWhiteSpaceX())
+                {
+                    if (string.IsNullOrWhiteSpace(af.PropNo))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.PropNo)), "Field is required.");
+                    }
+                }
+            }
+        }
+
+        private void ValidatePlate(AllField af, string patialView, InvalidModelException ex, Enums.Module? module)
+        {
+            if (string.IsNullOrWhiteSpace(af.PlateNo))
+            {
+                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.PlateNo)), "Field is required.");
+            }
+            else
+            {
+                if (af.PlateNo.IsNullOrWhiteSpaceX())
+                {
+                    if (string.IsNullOrWhiteSpace(af.BodyNo))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.BodyNo)), "Field is required.");
+                    }
+                    else
+                    {
+                        if (af.BodyNo.IsNullOrWhiteSpaceX())
+                        {
+                            if (string.IsNullOrWhiteSpace(af.MVFileNo))
+                            {
+                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.MVFileNo)), "Field is required.");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ValidateMultiples(AllField af, string patialView, InvalidModelException ex, Enums.Module? module)
+        {
+            if (af.Multipliers == null)
+            {
+                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Multipliers)), "Field is required.");
+            }
+
+            if (module == Enums.Module.CARD || module == Enums.Module.ORDER)
+            {
+                if (string.IsNullOrWhiteSpace(af.Brand))
+                {
+                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                }
+            }
+        }
+
+        private void ValidateBrand(AllField af, string patialView, InvalidModelException ex, Enums.Module? module)
+        {
+            if (module == Enums.Module.CARD || module == Enums.Module.ORDER)
+            {
+                if (string.IsNullOrWhiteSpace(af.Brand))
+                {
+                    ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Brand)), "Field is required.");
+                }
+            }
+        }
+
+        private void ValidateModel(AllField af, string patialView, InvalidModelException ex, Enums.Module? module)
+        {
+            if (string.IsNullOrWhiteSpace(af.Model_))
+            {
+                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+            }
+            else
+            {
+                if (af.Model_.IsNullOrWhiteSpaceX())
+                {
+                    if (string.IsNullOrWhiteSpace(af.Dimension))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Dimension)), "Field is required.");
+                    }
+                    else
+                    {
+                        if (af.Dimension.IsNullOrWhiteSpaceX())
+                        {
+                            if (string.IsNullOrWhiteSpace(af.Size))
+                            {
+                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Size)), "Field is required.");
+                            }
+                            else
+                            {
+                                if (af.Size.IsNullOrWhiteSpaceX())
+                                {
+                                    if (string.IsNullOrWhiteSpace(af.Weight))
+                                    {
+                                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Weight)), "Field is required.");
+                                    }
+                                    else
+                                    {
+                                        if (af.Weight.IsNullOrWhiteSpaceX())
+                                        {
+                                            if (string.IsNullOrWhiteSpace(af.Materials))
+                                            {
+                                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Materials)), "Field is required.");
+                                            }
+                                            else
+                                            {
+                                                if (af.Materials.IsNullOrWhiteSpaceX())
+                                                {
+                                                    if (string.IsNullOrWhiteSpace(af.Capacity))
+                                                    {
+                                                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Capacity)), "Field is required.");
+                                                    }
+                                                    else
+                                                    {
+                                                        if (af.Capacity.IsNullOrWhiteSpaceX())
+                                                        {
+                                                            if (af.Color.IsNullOrWhiteSpaceX())
+                                                            {
+                                                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Color)), "Field is required.");
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ValidateModelV(AllField af, string patialView, InvalidModelException ex, Enums.Module? module)
+        {
+            if (string.IsNullOrWhiteSpace(af.Model_))
+            {
+                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Model_)), "Field is required.");
+            }
+            else
+            {
+                if (af.Model_.IsNullOrWhiteSpaceX())
+                {
+                    if (string.IsNullOrWhiteSpace(af.Weight))
+                    {
+                        ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Weight)), "Field is required.");
+                    }
+                    else
+                    {
+                        if (af.Weight.IsNullOrWhiteSpaceX())
+                        {
+                            if (af.Color.IsNullOrWhiteSpaceX())
+                            {
+                                ex.UpsertDataList(_getAllFieldDisplayName(nameof(af.Color)), "Field is required.");
                             }
                         }
                     }

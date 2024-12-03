@@ -76,8 +76,8 @@ namespace iLgs.Models
         public string SubAccount { get; set; }
         public string SubAccountCode { get; set; }
 
-        [Display(Name = "Field Group No.")]
-        public int? FieldGroupNo { get; set; }
+        [Display(Name = "Partial Page")]
+        public string PartialPage { get; set; }
     }
 
     public class PsCardItemVM 

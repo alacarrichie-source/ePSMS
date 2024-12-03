@@ -1,4 +1,5 @@
 ﻿using iLgs.Models;
+using iLgs.Services.Codes;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -12,8 +13,9 @@ namespace iLgs.Services.CustodianReports
     public interface ICustodianReportItemPpeService : ICustodianReportItemService
     {
         new ValueTask<CustodianReportItemPpeVM> GetByIdAsync(Guid id);
-        IQueryable<CustodianReportItemPpeVM> GetAll(Guid? reportId);
-        IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup);
+        IQueryable<CustodianReportItemPpeVM> GetAll(Guid? reportId, string userName);
+        IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? accountGroup, string userName);
+        IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup, string userName);
         ValueTask<CustodianReportItemPpeVM> CreateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
         ValueTask<CustodianReportItemPpeVM> UpdateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
         ValueTask<CustodianReportItemPpeVM> DeleteAsync(CustodianReportItemPpeVM model, string user, DateTime date);
@@ -23,11 +25,12 @@ namespace iLgs.Services.CustodianReports
     {
         private readonly IExceptionService<CustodianReportItemPpeVM> _exceptionService = new ExceptionService<CustodianReportItemPpeVM>();
         private readonly ICustodianReportItemPpeValidator _validator;
+        private readonly IAnnexDService _annexDService;
 
         public CustodianReportItemPpeService(AppManEntities db) : base(db)
         {
             _validator = new CustodianReportItemPpeValidator(db);
-
+            _annexDService = new AnnexDService(db);
         }
 
         private static Expression<Func<CustodianReportItem, CustodianReportItemPpeVM>> CustodianReporPpeItemProjection
@@ -35,6 +38,7 @@ namespace iLgs.Services.CustodianReports
         {
             Id = s.Id,
             MainDeptId = s.CustodianReport.DeptId,
+            MainDeptName = s.CustodianReport.Codextn.Description,
             AccountGroup = s.CustodianReport.AccountGroup,
             ReportId = s.ReportId,
             Fund = s.Fund,
@@ -126,27 +130,69 @@ namespace iLgs.Services.CustodianReports
         public new ValueTask<CustodianReportItemPpeVM> GetByIdAsync(Guid id) =>
         _exceptionService.TryCatch(async () =>
         {
-            var data = await _db.CustodianReportItems
+            var data = await _db.CustodianReportItems.Include(i => i.ItemCode.ItemType)
                 .Where(w => w.Id == id)
                 .Select(CustodianReporPpeItemProjection).FirstOrDefaultAsync();
             return data;
         });
 
-        public IQueryable<CustodianReportItemPpeVM> GetAll(Guid? reportId)
+        public IQueryable<CustodianReportItemPpeVM> GetAll(Guid? reportId, string userName)
         {
-            var data = _db.CustodianReportItems
-                .AsNoTracking()
-                .Where(w => w.ReportId == reportId)
-                .Select(CustodianReporPpeItemProjection);
+            IQueryable<CustodianReportItemPpeVM> data = null;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                data = _db.CustodianReportItems
+                    .AsNoTracking()
+                    .Where(w => w.ReportId == reportId)
+                    .Select(CustodianReporPpeItemProjection);
+            }
+            else
+            {
+                data = _db.CustodianReportItems
+                    .AsNoTracking()
+                    .Where(w => w.ReportId == reportId && w.Annex != "D")
+                    .Select(CustodianReporPpeItemProjection);
+            }
             return data;
         }
 
-        public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup)
+        public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup, string userName)
         {
-            var data = _db.CustodianReportItems
+            IQueryable<CustodianReportItemPpeVM> data = null;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                data = _db.CustodianReportItems
                 .AsNoTracking()
                 .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReporPpeItemProjection);
+            }
+            else
+            {
+                data = _db.CustodianReportItems
+                .AsNoTracking()
+                .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
+                .Select(CustodianReporPpeItemProjection);
+            }
+            return data;
+        }
+
+        public IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? accountGroup, string userName)
+        {
+            IQueryable<CustodianReportItemPpeVM> data = null;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                data = _db.CustodianReportItems
+                .AsNoTracking()
+                .Where(w => w.CustodianReport.AccountGroup == accountGroup)
+                .Select(CustodianReporPpeItemProjection);
+            }
+            else
+            {
+                data = _db.CustodianReportItems
+                .AsNoTracking()
+                .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
+                .Select(CustodianReporPpeItemProjection);
+            }
             return data;
         }
 

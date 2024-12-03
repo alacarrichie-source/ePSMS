@@ -16,7 +16,8 @@ namespace iLgs.Services.Items
     {
         IQueryable<ItemCodeVM> GetAll();
         IQueryable<ItemCodeVM> GetAllByItemTypeId(Guid? itemTypeId);
-        ValueTask<ItemCode> GetByIdAsync(Guid id);
+        ValueTask<ItemCode> GetByIdAsync(Guid? id);
+        ItemCode GetById(Guid? id);
         IQueryable<ItemCodeVM> GetItems(string item);
         IQueryable<ItemCodeVM> GetItemAccounts(string item);
         IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item);
@@ -51,7 +52,7 @@ namespace iLgs.Services.Items
 
         public IQueryable<ItemCodeVM> GetAll()
         {
-            var data = _db.ItemCodes.AsNoTracking()
+            var data = _db.ItemCodes.AsNoTracking().ToList()
                 .Select(s => new ItemCodeVM
                 {
                     Id = s.Id,
@@ -64,10 +65,12 @@ namespace iLgs.Services.Items
                     IsConsumable = s.IsConsumable,
                     IsIncorporated = s.IsIncorporated,
                     ForDistribution = s.ForDistribution,
+                    PartialPage = s.PartialPage,
+                    RequiredFields = _db.Codextns.Where(w => w.Desc2 == s.PartialPage && w.CodeMast.Code == "REQUIRED-FIELDS").FirstOrDefault()?.Description,
                     //ItemSwUI = s.ItemSw == "Y" ? true : false,
                     AccountCode = s.AccountCode,
                     InsertedDt = s.InsertedDt
-                });
+                }).AsQueryable();
             return data;
         }
 
@@ -86,6 +89,8 @@ namespace iLgs.Services.Items
                     IsConsumable = s.IsConsumable,
                     IsIncorporated = s.IsIncorporated,
                     ForDistribution = s.ForDistribution,
+                    PartialPage = s.PartialPage,
+                    RequiredFields = _db.Codextns.Where(w => w.Desc2 == s.PartialPage && w.CodeMast.Code == "REQUIRED-FIELDS").FirstOrDefault()?.Description,
                     //ItemSwUI = s.ItemSw == "Y" ? true : false,
                     Padding = s.ItemNo.Count(c => c == '.') * 30,
                     AccountCode = s.AccountCode,
@@ -94,11 +99,17 @@ namespace iLgs.Services.Items
             return data;
         }
 
-        public ValueTask<ItemCode> GetByIdAsync(Guid id) => _ExceptionService.TryCatch(async () =>
+        public ValueTask<ItemCode> GetByIdAsync(Guid? id) => _ExceptionService.TryCatch(async () =>
         {
-            var data = await _db.ItemCodes.FindAsync(id);
+            var data = await _db.ItemCodes.Include(i => i.ItemType).FirstOrDefaultAsync(f => f.Id == id);
             return data;
         });
+
+        public ItemCode GetById(Guid? id) 
+        {
+            var data = _db.ItemCodes.Include(i => i.ItemType).FirstOrDefault(f => f.Id == id);
+            return data;
+        }
 
         public IQueryable<ItemCodeVM> GetItems(string item) => _VmExceptionService.TryCatch(() =>
         {
@@ -283,6 +294,7 @@ namespace iLgs.Services.Items
                 IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper(),
                 ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper(),
                 AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.Trim().ToUpper(),
+                PartialPage = model.PartialPage,
                 InsertedBy = user,
                 InsertedDt = date,
                 UpdatedBy = user,
@@ -319,6 +331,7 @@ namespace iLgs.Services.Items
             entity.IsIncorporated = string.IsNullOrWhiteSpace(model.IsIncorporated) ? "" : model.IsIncorporated.Trim().ToUpper();
             entity.ForDistribution = string.IsNullOrWhiteSpace(model.ForDistribution) ? "" : model.ForDistribution.Trim().ToUpper();
             entity.AccountCode = string.IsNullOrEmpty(model.AccountCode) ? "" : model.AccountCode.ToUpper().Trim();
+            entity.PartialPage = model.PartialPage;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 

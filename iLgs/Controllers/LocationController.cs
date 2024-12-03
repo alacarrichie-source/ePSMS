@@ -25,6 +25,7 @@ namespace iLgs.Controllers
         private readonly ILocationService _locationService;
         private readonly IDepartmentUserService _departmentUserService;
         private readonly IAccountableOfficerService _accountableOfficerService;
+        private readonly ILocationBudgetService _locationBudgetService;
 
         public LocationController()
         {
@@ -32,6 +33,7 @@ namespace iLgs.Controllers
             _locationService = new LocationService(_db);
             _departmentUserService = new DepartmentUserService(_db);
             _accountableOfficerService = new AccountableOfficerService(_db);
+            _locationBudgetService = new LocationBudgetService(_db);
         }
 
         // GET: Location
@@ -457,6 +459,145 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
         #endregion  
+
+        #region LOCATION BUDGET
+        public ActionResult _LocationBudget(Guid deptId)
+        {
+            ViewData["DeptId"] = deptId;
+            return PartialView();
+        }
+
+        public ActionResult _LocationBudgetRead([DataSourceRequest] DataSourceRequest request, Guid deptId)
+        {
+            var data = _locationBudgetService.GetAll(deptId);
+
+            return Json(data.ToDataSourceResult(request));
+        }
+        
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _LocationBudgetCreate([DataSourceRequest] DataSourceRequest request, LocationBudgetVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "location");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "ADD")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _locationBudgetService.CreateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _LocationBudgetUpdate([DataSourceRequest] DataSourceRequest request, LocationBudgetVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "location");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "EDIT")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _locationBudgetService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _LocationBudgetDestroy([DataSourceRequest]DataSourceRequest request, LocationBudgetVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "location");
+                Access access = await accessTask;
+                if (!access.IsAdmin)
+                {
+                    if (!(access.IsAllowed || access.Actions.Any(a => a.MenuAction.ActionCode == "DELETE")))
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _locationBudgetService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion
 
         #region PREVIEW    
         public ActionResult Preview()

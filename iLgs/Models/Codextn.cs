@@ -33,6 +33,8 @@ namespace iLgs.Models
             this.CustodianReportBldgItems = new HashSet<CustodianReportBldgItem>();
             this.CustodianReportBldgItems1 = new HashSet<CustodianReportBldgItem>();
             this.CustodianReportLandItems = new HashSet<CustodianReportLandItem>();
+            this.LocationBudgets = new HashSet<LocationBudget>();
+            this.LocationBudgets1 = new HashSet<LocationBudget>();
         }
     
         public System.Guid Id { get; set; }
@@ -81,5 +83,9 @@ namespace iLgs.Models
         public virtual ICollection<CustodianReportBldgItem> CustodianReportBldgItems1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportLandItem> CustodianReportLandItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<LocationBudget> LocationBudgets { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<LocationBudget> LocationBudgets1 { get; set; }
     }
 }

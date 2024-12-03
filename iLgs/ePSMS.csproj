@@ -297,6 +297,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\AnnexDController.cs" />
+    <Compile Include="Controllers\BudgetController.cs" />
     <Compile Include="Controllers\CardUploadController.cs" />
     <Compile Include="Controllers\CustodianDisposalController.cs" />
     <Compile Include="Controllers\CustodianIirupController.cs" />
@@ -433,15 +435,16 @@
     <Compile Include="Models\ItemCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\ItemField.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\ItemType.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\ItemTypeExclusion.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\LocationBudget.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LocationViewModels.cs" />
     <Compile Include="Models\MenuAccess.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -657,6 +660,9 @@
     <Compile Include="Services\AIRs\AirItemExtnVehicleService.cs" />
     <Compile Include="Services\AllFields\AllFieldService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
+    <Compile Include="Services\Codes\AnnexDService.cs" />
+    <Compile Include="Services\Codes\BudgetService.cs" />
+    <Compile Include="Services\Codes\LocationBudgetService.cs" />
     <Compile Include="Services\Codes\LocationService.cs" />
     <Compile Include="Services\Codes\PsCategoryService.cs" />
     <Compile Include="Services\CustodianDisposal_\CustodianDisposalItemService.cs" />
@@ -4108,6 +4114,40 @@
     <Content Include="Views\PropertyCard\_FieldBrand_B.cshtml" />
     <Content Include="Views\PsCategory\_Exclusion.cshtml" />
     <Content Include="Views\PsCategory\EditorTemplates\_ItemTypeTemplate.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldMultiple.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldMultiple.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldMultiple.cshtml" />
+    <Content Include="Views\Items\EditorTemplates\_PartialPageTemplate.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldSerial_A.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldSerial_B.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldSerial_C.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldMultiple.cshtml" />
+    <Content Include="Views\StockCard\_FieldMultiple.cshtml" />
+    <Content Include="Views\RIS\_FieldBrand_A.cshtml" />
+    <Content Include="Views\RIS\_FieldBrand_B.cshtml" />
+    <Content Include="Views\RIS\_FieldAlcohol.cshtml" />
+    <Content Include="Views\RIS\_FieldSerial_A.cshtml" />
+    <Content Include="Views\RIS\_FieldSerial_B.cshtml" />
+    <Content Include="Views\RIS\_FieldSerial_C.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldMultiple_A.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldSerial_D.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldSerial_D.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldSerial_D.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldMultiple_A.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldMultiple_A.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldMultiple_A.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldSerial_D.cshtml" />
+    <Content Include="Views\StockCard\_FieldMultiple_A.cshtml" />
+    <Content Include="Views\StockCard\_FieldSerial_D.cshtml" />
+    <Content Include="Views\Budget\Index.cshtml" />
+    <Content Include="Views\AnnexD\Index.cshtml" />
+    <Content Include="Views\AnnexD\EditorTemplates\_UserIdTemplate.cshtml" />
+    <Content Include="Views\Budget\EditorTemplates\_FundTemplate.cshtml" />
+    <Content Include="Views\CustodianReport\PpeQuery.cshtml" />
+    <Content Include="Views\CustodianReport\StockQuery.cshtml" />
+    <Content Include="Views\CustodianReport\TranspoQuery.cshtml" />
+    <Content Include="Views\Location\_LocationBudget.cshtml" />
+    <Content Include="Views\Location\EditorTemplates\_BudgetCodeTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

@@ -202,6 +202,32 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? ""}), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetRequiredFields(string text)
+        {
+
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "REQUIRED-FIELDS").AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Code), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetLocationBudget(string text)
+        {
+
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "BUDGET-CODE").AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text) || p.Desc2.Contains(text) || p.Desc3.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2 ?? "", Desc3 = c.Desc3 ?? "" }).OrderBy(o => o.Code), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetCategory(string text)
         {
 
@@ -688,7 +714,32 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetRequriedFields(string part, string text)
+        {
+            var model = _codextnService.GetRequiredFields(part);
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetUploadList(string text)
+        {
+            var model = _codextnService.GetUploadList();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description }), JsonRequestBehavior.AllowGet);
+        }
+
     }
+    
 
     public class GetSysCodeVM
     {

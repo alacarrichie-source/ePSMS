@@ -6,6 +6,7 @@ using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Codes;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Items;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -30,12 +31,14 @@ namespace iLgs.Controllers
         private readonly AppManEntities _db;
         private readonly ICodextnService _codextnService;
         private readonly IPropertyCardService _propertyCardService;
+        private readonly IItemCodeService _itemCodeService;
         
         public PropertyCardController()
         {
             _db = new AppManEntities();
             _codextnService = new CodextnService(_db);
-            _propertyCardService = new PropertyCardService(_db);        
+            _propertyCardService = new PropertyCardService(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
 
         // GET: Index
@@ -675,8 +678,11 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
-            string partialView = AllFieldsUtil.GetPartialField(model.ItemTypeCode, model.ItemCode);
+            //string partialView = AllFieldsUtil.GetPartialField(model.ItemTypeCode, model.ItemCode);
 
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            
             return PartialView(partialView, model);
         }
 

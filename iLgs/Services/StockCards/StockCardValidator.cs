@@ -3,6 +3,7 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -29,12 +30,14 @@ namespace iLgs.Services.StockCards
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly AppManEntities _db;
         private readonly IAllFieldsValidator _allFieldsValidator;
+        private readonly IItemCodeService _itemCodeService;
 
         public StockCardValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<StockCardVM>(propertyName);
             _allFieldsValidator = new AllFieldsValidator(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
         public void ValidateOnCreate(StockCardVM model)
         {                       
@@ -66,7 +69,11 @@ namespace iLgs.Services.StockCards
             //ValidateCreatedSignature(card);
             //ValidateCreatedDateIsRecent(card);
             var ex = new InvalidModelException();
-            _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
+
+            //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
             if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund))
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.PsNo)), "Already exists.");
@@ -84,7 +91,11 @@ namespace iLgs.Services.StockCards
                 );
             
             var ex = new InvalidModelException();
-            _allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
+
+            //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
             if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund && a.Id != model.Id))
             {
                 ex.UpsertDataList(Utility.GetDisplayName<StockCardVM>(nameof(model.PsNo)), "Already exists.");

@@ -1,0 +1,25 @@
+﻿@(Html.Kendo().MultiColumnComboBox()
+        .Name("BudgetId")
+        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+        .Placeholder("Select Code")
+        .DataTextField("Code")
+        .DataValueField("Id")
+        .ValuePrimitive(true)
+        .Filter(FilterType.Contains)
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                //read.Action("GetCodeList", "Getters", new { mastCode = "BUDGET-CODE", addAll = false });
+                read.Action("GetLocationBudget", "Getters");
+            })
+            .ServerFiltering(true);
+        })
+        .Columns(c =>
+        {
+            c.Add().Field("Code").Title("Code").Width("30%");
+            c.Add().Field("Description").Title("Description").Width("70%");
+        })
+        .Events(e => e.Select("onSelectBudgetId"))
+        .Suggest(true)
+)

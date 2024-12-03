@@ -17,30 +17,27 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public ItemType()
         {
-            this.ItemFields = new HashSet<ItemField>();
-            this.ItemCodes = new HashSet<ItemCode>();
-            this.RPCIs = new HashSet<RPCI>();
             this.ItemTypeExclusions = new HashSet<ItemTypeExclusion>();
+            this.RPCIs = new HashSet<RPCI>();
+            this.ItemCodes = new HashSet<ItemCode>();
         }
     
         public System.Guid Id { get; set; }
         public string Code { get; set; }
         public string Description { get; set; }
-        public Nullable<int> FormulaNo { get; set; }
         public string Category { get; set; }
         public string GroupCode { get; set; }
+        public string PartialPage { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ItemField> ItemFields { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ItemCode> ItemCodes { get; set; }
+        public virtual ICollection<ItemTypeExclusion> ItemTypeExclusions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCI> RPCIs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ItemTypeExclusion> ItemTypeExclusions { get; set; }
+        public virtual ICollection<ItemCode> ItemCodes { get; set; }
     }
 }

@@ -12,17 +12,17 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class ItemField
+    public partial class LocationBudget
     {
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> ItemTypeId { get; set; }
-        public string FieldNo { get; set; }
-        public string FieldName { get; set; }
+        public Nullable<System.Guid> LocationId { get; set; }
+        public Nullable<System.Guid> BudgetId { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual ItemType ItemType { get; set; }
+        public virtual Codextn Codextn { get; set; }
+        public virtual Codextn Codextn1 { get; set; }
     }
 }

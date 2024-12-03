@@ -494,7 +494,11 @@
             type: 'POST',
             url: url,
             data: formData,
+            beforeSend: function () {
+                window.kendo.ui.progress($("body, .k-window"), true);
+            },
             success: function (response) {
+                window.kendo.ui.progress($("body, .k-window"), false);
                 disabled.attr('disabled', 'disabled');
                 if (response.Errors) {
                     // Clear previous errors
@@ -643,6 +647,7 @@
     function onSelectItemCodeId(e) {
         var dataItem = this.dataItem(e.item.index());
 
+        $("#ItemCodeId").val(dataItem.Id).trigger("change");
         $("#Article").val(dataItem.Article).trigger("change");
         $("#Item_Code").val(dataItem.Code).trigger("change");
         $("#ItemType_Code").val(dataItem.Type).trigger("change");
@@ -889,6 +894,11 @@
         setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
     }
 
+    function DataGridImages() {
+        return {
+            accountGroup: '@ViewBag.AccountGroup'
+        };
+    }
 
     function onClickUpload(e) {
         //var gridName = $(e.sender.element).data("gridname");

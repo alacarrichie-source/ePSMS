@@ -34,7 +34,8 @@ namespace iLgs.Models
         }
     }
 
-    public class CodextnVM
+    [MetadataType(typeof(CodextnVM.Metadata))]
+    public class CodextnVM : Codextn
     {
         public string CodeHdg { get; set; }
         public string Desc1Hdg { get; set; }
@@ -42,23 +43,69 @@ namespace iLgs.Models
         public string Desc3Hdg { get; set; }
         public string Desc4Hdg { get; set; }
         public string Desc5Hdg { get; set; }
-        public Guid Id { get; set; }
-        public Guid MastId { get; set; }
-        //[Required]
-        public string Code { get; set; }
-        [Required]
-        public string Description { get; set; }
-        public string Desc2 { get; set; }
-        public string Desc3 { get; set; }
-        public string Desc4 { get; set; }
-        public string Desc5 { get; set; }
-        public string InsertedBy { get; set; }
-        public Nullable<System.DateTime> InsertedDt { get; set; }
-        public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }
         public int? Padding { get; set; }
         public string Pad { get; set; }
+
+        internal sealed class Metadata
+        {
+            public Guid Id { get; set; }
+            public Guid MastId { get; set; }
+            public string Code { get; set; }
+            [Required]
+            public string Description { get; set; }
+            public string Desc2 { get; set; }
+            public string Desc3 { get; set; }
+            public string Desc4 { get; set; }
+            public string Desc5 { get; set; }
+            public string InsertedBy { get; set; }
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
+        }
     }
+
+    [MetadataType(typeof(BudgetCodeVM.Metadata))]
+    public class BudgetCodeVM : Codextn
+    {
+        public int? Padding { get; set; }
+        public string Pad { get; set; }
+
+        internal sealed class Metadata
+        {
+            public Guid Id { get; set; }
+            public System.Guid MastId { get; set; }
+
+            [Display(Name = "Code")]
+            public string Code { get; set; }
+
+            [Display(Name = "Description")]
+            public string Description { get; set; }
+
+            [Display(Name = "Main (Y/N)")]
+            public string Desc2 { get; set; }
+
+            [Display(Name = "Fund")]
+            public string Desc3 { get; set; }
+        }
+    }
+
+    [MetadataType(typeof(AnnexDVM.Metadata))]
+    public class AnnexDVM : Codextn
+    {
+        internal sealed class Metadata
+        {
+            public Guid Id { get; set; }
+            public System.Guid MastId { get; set; }
+
+            [Display(Name = "User Id")]
+            public string Code { get; set; }
+
+            [Display(Name = "Name")]
+            public string Description { get; set; }
+            
+        }
+    }
+
 
     public class MenuActionSw
     {

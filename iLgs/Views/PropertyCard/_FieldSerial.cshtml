@@ -23,6 +23,17 @@
 
 <div class="row">
     <div class="col-md-12">
+        @Html.LabelFor(m => m.AllField.Multipliers, "Multiples ('s)", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.Multipliers)
+        </div>
+    </div>
+</div>
+
+
+@*<div class="row">
+    <div class="col-md-12">
         @Html.LabelFor(m => m.AllField.PlateNo, "Plate No", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().TextBoxFor(m => m.AllField.PlateNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
@@ -49,7 +60,7 @@
             @Html.ValidationMessageFor(m => m.AllField.MVFileNo)
         </div>
     </div>
-</div>
+</div>*@
 
 <div class="row">
     <div class="col-md-12">

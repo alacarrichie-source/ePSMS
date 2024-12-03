@@ -21,24 +21,32 @@ namespace iLgs.Services.Codes
         bool IsValidMastCodeCode(string mastCode, string code);
         bool IsValidCodeDesc(string mainCode, string description);
         ValueTask<IQueryable<Codextn>> GetUserDepartmentsAsync(string userId);
+        IQueryable<Codextn> GetRequiredFields(string part);
+        IQueryable<Codextn> GetUploadList();
         ValueTask<bool> IsValidMastCodeIdAsync(string mastCode, Guid? id);
         ValueTask<bool> IsValidCodeDescAsync(string mainCode, string description);
+
         ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date);
         ValueTask<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date);
-        ValueTask<CodextnVM> DeleteAsync(CodextnVM model, string user, DateTime date);        
+        ValueTask<CodextnVM> DeleteAsync(CodextnVM model, string user, DateTime date);
+
+        ValueTask<Codextn> CreateAsync(Codextn model, string user, DateTime date);
+        ValueTask<Codextn> UpdateAsync(Codextn model, string user, DateTime date);
+        ValueTask<Codextn> DeleteAsync(Codextn model, string user, DateTime date);        
     }
 
     public class CodextnService : BaseValidator, ICodextnService
     {
         protected readonly AppManEntities _db;        
         protected readonly GetDisplayNameDelegate _getDisplayName;
+        protected readonly IExceptionService<Codextn> _exceptionService = new ExceptionService<Codextn>();
         protected readonly IExceptionService<CodextnVM> _vmExceptionService = new ExceptionService<CodextnVM>();
         private readonly IUserService _userService;
         
         public CodextnService(AppManEntities db)
         {
             _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<CodextnVM>(propertyName);
+            _getDisplayName = propertyName => Utility.GetDisplayName<Codextn>(propertyName);
             _userService = new UserService(_db);            
         }
 
@@ -50,7 +58,19 @@ namespace iLgs.Services.Codes
                 && (IsAdmin || w.DepartmentUsers.Any(a => a.UserId == userId))).AsNoTracking().OrderBy(o => o.Description);
             return data;
         }
-                
+
+        public IQueryable<Codextn> GetRequiredFields(string part)
+        {
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == "REQUIRED-FIELDS" && w.Code.StartsWith(part)).AsNoTracking().OrderBy(o => o.Code);
+            return data;
+        }
+
+        public IQueryable<Codextn> GetUploadList()
+        {
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == "UPLOAD-LIST").AsNoTracking().OrderBy(o => o.Description);
+            return data;
+        }
+
         public IQueryable<CodextnVM> GetByMastCode(string mastCode)
         {            
             var data = _db.Codextns.Where(w => w.CodeMast.Code == mastCode).AsNoTracking()
@@ -151,7 +171,25 @@ namespace iLgs.Services.Codes
             return await _db.Codextns.AnyAsync(a => a.CodeMast.Code == mastCode && a.Id == id);
         }
 
-        public virtual ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        {
+            await CreateAsync((Codextn)model, user, date);
+            return model;
+        });
+
+        public ValueTask<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        {
+            await UpdateAsync((Codextn)model, user, date);
+            return model;
+        });
+
+        public ValueTask<CodextnVM> DeleteAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        {
+            await DeleteAsync((Codextn)model, user, date);
+            return model;
+        });
+
+        public virtual ValueTask<Codextn> CreateAsync(Codextn model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -183,7 +221,7 @@ namespace iLgs.Services.Codes
             return model;
         });
 
-        public virtual ValueTask<CodextnVM> UpdateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public virtual ValueTask<Codextn> UpdateAsync(Codextn model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             var entity = _db.Codextns.Find(model.Id);
 
@@ -210,7 +248,7 @@ namespace iLgs.Services.Codes
             return model;
         });
         
-        public virtual ValueTask<CodextnVM> DeleteAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public virtual ValueTask<Codextn> DeleteAsync(Codextn model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;

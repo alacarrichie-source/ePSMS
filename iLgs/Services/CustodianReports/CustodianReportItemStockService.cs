@@ -2,6 +2,7 @@
 using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Services.Codes;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -15,10 +16,11 @@ using static iLgs.Models.Enums;
 namespace iLgs.Services.CustodianReports
 {
     public interface ICustodianReportItemStockService : ICustodianReportItemService
-    {        
+    {
         new ValueTask<CustodianReportItemStockVM> GetByIdAsync(Guid id);
-        IQueryable<CustodianReportItemStockVM> GetAll(Guid? reportId);
-        IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup);
+        IQueryable<CustodianReportItemStockVM> GetAll(Guid? reportId, string userName);
+        IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup, string userName);
+        IQueryable<CustodianReportItemStockVM> GetAllByAcctGroup(int? accountGroup, string userName);
         ValueTask<CustodianReportItemStockVM> CreateAsync(CustodianReportItemStockVM model, string user, DateTime date);
         ValueTask<CustodianReportItemStockVM> UpdateAsync(CustodianReportItemStockVM model, string user, DateTime date);
         ValueTask<CustodianReportItemStockVM> DeleteAsync(CustodianReportItemStockVM model, string user, DateTime date);
@@ -28,10 +30,12 @@ namespace iLgs.Services.CustodianReports
     {
         private readonly IExceptionService<CustodianReportItemStockVM> _exceptionService = new ExceptionService<CustodianReportItemStockVM>();
         private readonly ICustodianReportItemStockValidator _validator;
+        private readonly IAnnexDService _annexDService;
 
         public CustodianReportItemStockService(AppManEntities db) : base(db)
         {
             _validator = new CustodianReportItemStockValidator(db);
+            _annexDService = new AnnexDService(db);
         }
 
         private static Expression<Func<CustodianReportItem, CustodianReportItemStockVM>> CustodianReporStockItemProjection
@@ -39,6 +43,7 @@ namespace iLgs.Services.CustodianReports
         {
             Id = s.Id,
             MainDeptId = s.CustodianReport.DeptId,
+            MainDeptName = s.CustodianReport.Codextn.Description,
             AccountGroup = s.CustodianReport.AccountGroup,
             ReportId = s.ReportId,
             Fund = s.Fund,
@@ -130,33 +135,70 @@ namespace iLgs.Services.CustodianReports
         public new ValueTask<CustodianReportItemStockVM> GetByIdAsync(Guid id) =>
         _exceptionService.TryCatch(async () =>
         {
-            var data = await _db.CustodianReportItems
+            var data = await _db.CustodianReportItems.Include(i => i.ItemCode.ItemType)
                 .Where(w => w.Id == id)
                 .Select(CustodianReporStockItemProjection).FirstOrDefaultAsync();
-                   
+
             return data;
         });
 
-        public IQueryable<CustodianReportItemStockVM> GetAll(Guid? reportId)
+        public IQueryable<CustodianReportItemStockVM> GetAll(Guid? reportId, string userName)
         {
-            var data = _db.CustodianReportItems
-                .AsNoTracking()
+            IQueryable<CustodianReportItemStockVM> data = null;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.ReportId == reportId)
                 .Select(CustodianReporStockItemProjection);
-                
+            }
+            else
+            {
+                data = _db.CustodianReportItems.AsNoTracking()
+                .Where(w => w.ReportId == reportId && w.Annex != "D")
+                .Select(CustodianReporStockItemProjection);
+            }
+
             return data;
         }
 
-        public IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup)
+        public IQueryable<CustodianReportItemStockVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup, string userName)
         {
-            var data = _db.CustodianReportItems
-                .AsNoTracking()
+            IQueryable<CustodianReportItemStockVM> data = null;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReporStockItemProjection);
+            }
+            else
+            {
+                data = _db.CustodianReportItems.AsNoTracking()
+                .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
+                .Select(CustodianReporStockItemProjection);
+            }
 
             return data;
         }
-        
+
+        public IQueryable<CustodianReportItemStockVM> GetAllByAcctGroup(int? accountGroup, string userName)
+        {
+            IQueryable<CustodianReportItemStockVM> data = null;
+            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            {
+                data = _db.CustodianReportItems.AsNoTracking()
+                .Where(w => w.CustodianReport.AccountGroup == accountGroup)
+                .Select(CustodianReporStockItemProjection);
+            }
+            else
+            {
+                data = _db.CustodianReportItems.AsNoTracking()
+                .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
+                .Select(CustodianReporStockItemProjection);
+            }
+
+            return data;
+        }
+
         public ValueTask<CustodianReportItemStockVM> CreateAsync(CustodianReportItemStockVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             if (model != null)
@@ -186,6 +228,6 @@ namespace iLgs.Services.CustodianReports
             _validator.ValidateOnDelete(model);
             await base.DeleteAsync(model, user, date);
             return model;
-        });        
+        });
     }
 }
