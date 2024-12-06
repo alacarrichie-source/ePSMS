@@ -28,12 +28,20 @@
             col.Bound(c => c.InsertedBy).Width(70);
             col.Bound(c => c.InsertedDt).Width(70);            
         })
+        .ToolBar(t =>
+        {
+            t.Search();
+        })
         .Search(s =>
         {
+            s.Field(o => o.MainDeptName, "contains");
             s.Field(o => o.Article, "contains");
             s.Field(o => o.PoNo, "contains");
+            s.Field(o => o.LocationCode, "contains");
+            s.Field(o => o.Location, "contains");
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
+            s.Field(o => o.InsertedBy, "contains");
         })
         .Pageable(pager => pager
             .Input(false)

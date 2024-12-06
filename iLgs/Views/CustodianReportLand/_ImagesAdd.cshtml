@@ -36,7 +36,7 @@
             .Error("onError"))
         .Validation(validation =>
         {
-            validation.MaxFileSize(10240000);
+            validation.MaxFileSize(104857600); // 100 MB in bytes
             validation.AllowedExtensions(new string[] { ".xlsx", ".xls", ".docx", ".doc", ".pdf", ".gif", ".jpg", ".jpeg", ".png" });
         })
     )

@@ -1499,17 +1499,17 @@
     <Content Include="Content\Sidebar\src\scss\_theme-default.scss" />
     <Content Include="Content\Sidebar\src\scss\_toggle.scss" />
     <Content Include="Department-Codes %2897%29.xls" />
-    <Content Include="App_Data\CustodianSuppliesTemplate.xlsx" />
-    <Content Include="App_Data\CustodianEquipmentTemplate.xlsx" />
-    <Content Include="App_Data\CustodianVehiclesTemplate.xlsx" />
-    <Content Include="App_Data\CustodianStructureTemplate.xlsx" />
-    <Content Include="App_Data\CustodianLandTemplate.xlsx" />
-    <Content Include="App_Data\CustodianIrrupTemplate.xlsx" />
     <Content Include="App_Data\CustodianEquipmentAnnexTemplate.xlsx" />
+    <Content Include="App_Data\CustodianEquipmentTemplate.xlsx" />
+    <Content Include="App_Data\CustodianIrrupTemplate.xlsx" />
     <Content Include="App_Data\CustodianLandAnnexTemplate.xlsx" />
+    <Content Include="App_Data\CustodianLandTemplate.xlsx" />
     <Content Include="App_Data\CustodianStructureAnnexTemplate.xlsx" />
+    <Content Include="App_Data\CustodianStructureTemplate.xlsx" />
     <Content Include="App_Data\CustodianSuppliesAnnexTemplate.xlsx" />
+    <Content Include="App_Data\CustodianSuppliesTemplate.xlsx" />
     <Content Include="App_Data\CustodianVehiclesAnnexTemplate.xlsx" />
+    <Content Include="App_Data\CustodianVehiclesTemplate.xlsx" />
     <None Include="Properties\PublishProfiles\ePsms %28local%29.pubxml" />
     <None Include="Properties\PublishProfiles\iLgs - LPC %28VMWeb01%29.pubxml" />
     <None Include="Properties\PublishProfiles\ilgs Taguig - Test.pubxml" />
@@ -4148,6 +4148,16 @@
     <Content Include="Views\CustodianReport\TranspoQuery.cshtml" />
     <Content Include="Views\Location\_LocationBudget.cshtml" />
     <Content Include="Views\Location\EditorTemplates\_BudgetCodeTemplate.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldSerial_E.cshtml" />
+    <Content Include="Views\CustodianReport\_Ppe_FieldSerial_F.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldSerial_E.cshtml" />
+    <Content Include="Views\CustodianReport\_Stock_FieldSerial_F.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldSerial_E.cshtml" />
+    <Content Include="Views\CustodianReport\_Vehicle_FieldSerial_F.cshtml" />
+    <Content Include="Views\StockCard\_FieldSerial_E.cshtml" />
+    <Content Include="Views\StockCard\_FieldSerial_F.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldSerial_E.cshtml" />
+    <Content Include="Views\PropertyCard\_FieldSerial_F.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

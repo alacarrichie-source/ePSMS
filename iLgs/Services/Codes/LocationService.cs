@@ -94,9 +94,8 @@ namespace iLgs.Services.Codes
         public new ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
-            ValidateRecord(model.Id);
             ValidateFields(model, Mode.ADD);
-
+            
             model.Desc4 = GetDesc4(model.Code);
 
             await base.CreateAsync(model, user, date);

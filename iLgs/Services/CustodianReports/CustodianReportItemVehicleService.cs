@@ -38,7 +38,7 @@ namespace iLgs.Services.CustodianReports
         {
             Id = s.Id,
             MainDeptId = s.CustodianReport.DeptId,
-            MainDeptName = s.CustodianReport.Codextn.Description,
+            MainDeptName = s.CustodianReport.Department,
             AccountGroup = s.CustodianReport.AccountGroup,
             ReportId = s.ReportId,
             Fund = s.Fund,

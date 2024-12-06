@@ -99,13 +99,13 @@ namespace iLgs.Models
         public virtual DbSet<IcsPar> IcsPars { get; set; }
         public virtual DbSet<PsCardItemTransaction> PsCardItemTransactions { get; set; }
         public virtual DbSet<AllField> AllFields { get; set; }
-        public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
-        public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
-        public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         public virtual DbSet<CustodianReportItemIssuance> CustodianReportItemIssuances { get; set; }
         public virtual DbSet<ItemTypeExclusion> ItemTypeExclusions { get; set; }
         public virtual DbSet<ItemType> ItemTypes { get; set; }
         public virtual DbSet<ItemCode> ItemCodes { get; set; }
         public virtual DbSet<LocationBudget> LocationBudgets { get; set; }
+        public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
+        public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
+        public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
     }
 }

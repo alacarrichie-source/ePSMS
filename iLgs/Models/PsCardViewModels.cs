@@ -119,10 +119,10 @@ namespace iLgs.Models
         [Display(Name = "Qty. Balance")]
         public Nullable<int> QtyBal { get; set; }
 
-        [Display(Name = "Transit-In")]
+        [Display(Name = "Transit-In Qty")]
         public Nullable<int> TransferIn { get; set; }
 
-        [Display(Name = "Transit-Out")]
+        [Display(Name = "Transit-Out Qty")]
         public Nullable<int> TransferOut { get; set; }
 
         [Display(Name = "Transaction Type")]
@@ -147,7 +147,7 @@ namespace iLgs.Models
         [Required]
         public Nullable<System.Guid> DeptId { get; set; }
 
-        [Display(Name = "Location Code")]
+        [Display(Name = "Moved to Location")]
         public Nullable<System.Guid> LocationId { get; set; }
 
         [Display(Name = "Department Display")]
@@ -320,7 +320,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> TransId { get; set; }
 
         [Required]
-        [Display(Name = "Location")]
+        [Display(Name = "Moved to Location")]
         public Nullable<System.Guid> LocationId { get; set; }
 
         [Display(Name = "Location Code")]

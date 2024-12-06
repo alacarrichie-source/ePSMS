@@ -345,6 +345,14 @@ namespace iLgs.Services.AllFields
                 ValidateBrand(af, partialView, ex, module);
                 ValidateModel(af, partialView, ex, module);
             }
+            else if (partialView == "_FieldSerial_E")
+            {
+                ValidatePlate(af, partialView, ex, module);                
+            }
+            else if (partialView == "_FieldSerial_F")
+            {
+                ValidateSerial(af, partialView, ex, module);
+            }
             else if (partialView.Contains("Brand"))
             {
                 if (partialView == "_FieldBrand")

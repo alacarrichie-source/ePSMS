@@ -557,8 +557,9 @@ namespace iLgs.Controllers
         public JsonResult GetDepartments(string text)
         {
 
-            var model = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc3 != "N").OrderBy(o => o.Description).AsNoTracking();
-            
+            //var model = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc3 != "N").OrderBy(o => o.Description).AsNoTracking();
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS" && w.Code.Substring(w.Code.Length-2) == "00").OrderBy(o => o.Description).AsNoTracking();
+
             if (!string.IsNullOrEmpty(text))
             {
                 model = model.Where(p => p.Description.Contains(text));

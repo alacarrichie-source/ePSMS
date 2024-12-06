@@ -12,7 +12,7 @@ namespace iLgs.Models
     public partial class Upload
     {
         public string Directory { get { return new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["UPLOAD_URL"].ToString()).DataSource; } }
-        public int FileSize { get { return 10; } }
+        public int FileSize { get { return 100; } }
         //public string PathName { get { return (this.Directory + this.FileName).Replace("/", "\\"); } } 
         public string PathName { get { return this.Directory + this.FileName; } }
         public Guid? PsCardItemId { get; set; }

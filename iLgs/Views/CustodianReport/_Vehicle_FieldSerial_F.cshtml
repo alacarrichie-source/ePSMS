@@ -1,0 +1,24 @@
+﻿@model iLgs.Models.CustodianReportItemVehicleVM
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.SerialNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.SerialNo)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="col-md-3">
+            @Html.DisplayFor(m => m.PropNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.PropNo)
+        </div>
+    </div>
+</div>
+

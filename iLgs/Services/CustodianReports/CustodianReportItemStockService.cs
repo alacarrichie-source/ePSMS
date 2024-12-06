@@ -43,7 +43,7 @@ namespace iLgs.Services.CustodianReports
         {
             Id = s.Id,
             MainDeptId = s.CustodianReport.DeptId,
-            MainDeptName = s.CustodianReport.Codextn.Description,
+            MainDeptName = s.CustodianReport.Department,
             AccountGroup = s.CustodianReport.AccountGroup,
             ReportId = s.ReportId,
             Fund = s.Fund,
@@ -128,6 +128,8 @@ namespace iLgs.Services.CustodianReports
             InsertedDt = s.InsertedDt,
             PostedBy = s.PostedBy,
             PostedDt = s.PostedDt,
+            SetLotAmount = s.SetLotAmount,
+            SetLotRemarks = s.SetLotRemarks,
             ItemType_Code = s.ItemCode.ItemType.Code,
             Item_Code = s.ItemCode.Code
         };

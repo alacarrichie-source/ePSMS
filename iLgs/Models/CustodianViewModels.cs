@@ -131,7 +131,7 @@ namespace iLgs.Models
             [Display(Name = "Department Display")]
             public string Department { get; set; }
 
-            [Display(Name = "Location Code")]
+            [Display(Name = "Moved to Location")]
             public Nullable<System.Guid> LocationId { get; set; }
 
             public string LocationCode { get; set; }
@@ -276,12 +276,18 @@ namespace iLgs.Models
 
             //[Required]            
             public string Annex { get; set; }
+
+            [Display(Name = "Inserted By")]
             public string InsertedBy { get; set; }
 
-            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
+            [Display(Name = "Inserted Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]            
             public Nullable<System.DateTime> InsertedDt { get; set; }
+
+            [Display(Name = "Updated By")]
             public string UpdatedBy { get; set; }
 
+            [Display(Name = "Updated Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> UpdatedDt { get; set; }
 
@@ -289,7 +295,14 @@ namespace iLgs.Models
             public string PostedBy { get; set; }
 
             [Display(Name = "Posted Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> PostedDt { get; set; }
+
+            [Display(Name = "Set/Lot Amount")]
+            public Nullable<decimal> SetLotAmount { get; set; }
+
+            [Display(Name = "Set/Lot Remarks")]
+            public string SetLotRemarks { get; set; }
 
             public ItemCode ItemCode { get; set; }
         }
@@ -306,7 +319,7 @@ namespace iLgs.Models
         [Display(Name = "Qty In")]
         public new Nullable<int> Qty { get => base.Qty; set => base.Qty = value; }
 
-        [Display(Name = "Transit In")]
+        [Display(Name = "Transit In Qty")]
         public new Nullable<int> TransferIn { get => base.TransferIn; set => base.TransferIn = value; }
 
         [Display(Name = "Balance")]
@@ -387,6 +400,9 @@ namespace iLgs.Models
 
         public AllField AllField;
         public Guid? MainDeptId { get; set; }
+
+        [Display(Name = "Custodian Department")]
+        public string MainDeptName { get; set; }
         public int? AccountGroup { get; set; }
 
         internal sealed class Metadata
@@ -412,7 +428,7 @@ namespace iLgs.Models
             public string SubAccount { get; set; }
             public string Article { get; set; }
 
-            [Display(Name = "Location Code")]
+            [Display(Name = "Moved to Location")]
             public Nullable<System.Guid> LocationId { get; set; }
 
             [Display(Name = "Location")]
@@ -581,6 +597,9 @@ namespace iLgs.Models
 
         public AllField AllField;
         public Guid? MainDeptId { get; set; }
+
+        [Display(Name = "Custodian Department")]
+        public string MainDeptName { get; set; }
         public int? AccountGroup { get; set; }
         internal sealed class Metadata
         {
@@ -621,7 +640,7 @@ namespace iLgs.Models
             public Nullable<System.Guid> DeptId { get; set; }
             public string Department { get; set; }
 
-            [Display(Name = "Location Code")]
+            [Display(Name = "Moved to Location")]
             public Nullable<System.Guid> LocationId { get; set; }
 
             [Display(Name = "Location Code")]

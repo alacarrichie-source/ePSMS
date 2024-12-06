@@ -73,7 +73,7 @@ namespace iLgs.Services.Validators
             }
             else
             {                
-                if (!_codextnService.IsValidMastCodeId("DEPARTMENTS", cardItem.DeptId))
+                if (!_codextnService.IsValidMastCodeId("LOCATIONS", cardItem.DeptId))
                 {
                     ex.UpsertDataList(_getDisplayName(nameof(cardItem.DeptId)), "Invalid value");
                 }                
@@ -96,23 +96,23 @@ namespace iLgs.Services.Validators
                 ex.UpsertDataList(_getDisplayName(nameof(cardItem.UnitCost)), "Field is required.");
             }
 
-            if (cardItem.DeptId != null)
-            {
-                if (cardItem.LocationId != null)
-                {
-                    if (!cardItem.TransferIn.HasValue)
-                    {
-                        ex.UpsertDataList(_getDisplayName(nameof(cardItem.TransferIn)), "Field is required.");
-                    }
-                }
-                else
-                {
-                    if (!cardItem.Qty.HasValue)
-                    {
-                        ex.UpsertDataList(_getDisplayName(nameof(cardItem.Qty)), "Field is required.");
-                    }
-                }
-            }
+            //if (cardItem.DeptId != null)
+            //{
+            //    if (cardItem.LocationId != null)
+            //    {
+            //        if (!cardItem.TransferIn.HasValue)
+            //        {
+            //            ex.UpsertDataList(_getDisplayName(nameof(cardItem.TransferIn)), "Field is required.");
+            //        }
+            //    }
+            //    else
+            //    {
+            //        if (!cardItem.Qty.HasValue)
+            //        {
+            //            ex.UpsertDataList(_getDisplayName(nameof(cardItem.Qty)), "Field is required.");
+            //        }
+            //    }
+            //}
 
             if (string.IsNullOrWhiteSpace(cardItem.Description))
             {

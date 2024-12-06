@@ -443,6 +443,7 @@
             this.select(row);
             selectedId = null;
             e.model.set("MainDeptId", $("#deptId").val());
+            e.model.set("MainDeptName", $("#deptId").data("kendoMultiColumnComboBox").text());
             e.model.set("AccountGroup", accountGroup);
         } else {
             selectedId = e.model.get("Id");

@@ -637,6 +637,14 @@ namespace iLgs.Services.AllFields
                 stockNo += GetStockNoFromBrand(af);
                 stockNo += GetStockNoFromModel(af);
             }
+            else if (partialView == "_FieldSerial_E")
+            {
+                stockNo += GetStockNoFromPlate(af);
+            }
+            else if (partialView == "_FieldSerial_F")
+            {
+                stockNo += GetStockNoFromSerial(af);
+            }
             return stockNo;
         }
 

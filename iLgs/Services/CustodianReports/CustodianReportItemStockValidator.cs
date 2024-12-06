@@ -41,13 +41,13 @@ namespace iLgs.Services.CustodianReports
         public void ValidateOnCreate(CustodianReportItemStockVM model)
         {
             ValidateIfNull(model);
-            ValidateFieldsOnCreateUpdate(model);
+            ValidateFieldsOnCreateUpdate(model, Mode.ADD);
         }
 
         public void ValidateOnUpdate(CustodianReportItemStockVM model)
         {
             ValidateIfNull(model);
-            ValidateFieldsOnCreateUpdate(model);
+            ValidateFieldsOnCreateUpdate(model, Mode.EDIT);
         }
 
         public void ValidateOnDelete(CustodianReportItemStockVM model)
@@ -55,13 +55,33 @@ namespace iLgs.Services.CustodianReports
             ValidateIfNull(model);            
         }
 
-        public void ValidateFieldsOnCreateUpdate(CustodianReportItemStockVM model)
+        public void ValidateFieldsOnCreateUpdate(CustodianReportItemStockVM model, Mode mode)
         {
             var ex = new InvalidModelException();
             var itemCode = _itemCodeService.GetById(model.ItemCodeId);
             string partialView = AllFieldsUtil.GetPartialView(itemCode);
             _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
-            
+
+            if (!string.IsNullOrWhiteSpace(model.ItemSerialNo))
+            {
+                if (mode == Mode.ADD)
+                {
+                    var entity = _db.CustodianReportItems.FirstOrDefault(f => f.Fund == model.Fund && f.PsNo == model.PsNo && f.ItemSerialNo == model.ItemSerialNo);
+                    if (entity != null)
+                    {
+                        ex.UpsertDataList(_getDisplayName(nameof(model.SerialNo)), "Duplicate detected.");
+                    }
+                }
+                else if (mode == Mode.EDIT)
+                {
+                    var entity = _db.CustodianReportItems.FirstOrDefault(f => f.Fund == model.Fund && f.PsNo == model.PsNo && f.ItemSerialNo == model.ItemSerialNo && f.Id != model.Id);
+                    if (entity != null)
+                    {
+                        ex.UpsertDataList(_getDisplayName(nameof(model.SerialNo)), "Duplicate detected.");
+                    }
+                }
+            }
+
             //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemType_Code, model.Item_Code, ex, Enums.Module.CARD);
 
 

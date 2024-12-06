@@ -12,6 +12,7 @@
     @Html.HiddenFor(model => model.ItemType_Code)
     @Html.HiddenFor(model => model.Item_Code)
     @Html.HiddenFor(model => model.MainDeptId)
+    @Html.HiddenFor(model => model.MainDeptName)
     @Html.HiddenFor(model => model.AccountGroup)
     @*@Html.HiddenFor(model => model.PostedBy)
     @Html.HiddenFor(model => model.PostedDt)*@
@@ -546,7 +547,7 @@
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.Unit)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select unit")
-                        .DataTextField("Description")
+                        .DataTextField("Code")
                         .DataValueField("Code")
                         .ValuePrimitive(true)
                         .Filter(FilterType.Contains)                        

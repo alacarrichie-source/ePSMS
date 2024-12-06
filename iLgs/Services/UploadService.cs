@@ -106,7 +106,7 @@ namespace iLgs.Services
 
             foreach (var file in files)
             {
-                if (file.ContentLength > (10240) * 100 * model.FileSize)
+                if (file.ContentLength > 1024 * 1024 * model.FileSize)
                 {
                     throw new InvalidValueException($"The size of the file should not exceeed {model.FileSize} MB");
                 }

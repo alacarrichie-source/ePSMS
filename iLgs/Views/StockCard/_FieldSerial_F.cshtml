@@ -1,0 +1,22 @@
+﻿@model iLgs.Models.StockCardVM
+@Html.HiddenFor(model => model.AllField.Id)
+
+<div class="row k-mb-2">
+    <div class="col-md-12">
+        @Html.LabelFor(m => m.AllField.SerialNo, htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.SerialNo)
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-12">
+        @Html.LabelFor(m => m.AllField.PropNo, htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.PropNo)
+        </div>
+    </div>
+</div>

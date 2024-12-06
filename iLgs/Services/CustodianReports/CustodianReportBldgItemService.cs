@@ -194,6 +194,7 @@ namespace iLgs.Services.CustodianReports
                 custodianReport = new CustodianReport();
                 custodianReport.Id = Guid.NewGuid();
                 custodianReport.DeptId = model.MainDeptId;
+                custodianReport.Department = model.MainDeptName;
                 custodianReport.AccountGroup = model.AccountGroup;
                 custodianReport.InsertedBy = user;
                 custodianReport.InsertedDt = date;
@@ -402,15 +403,22 @@ namespace iLgs.Services.CustodianReports
 
         private MemoryStream ProcessExcelFileTemplate(Guid id, string templateFilePath)
         {
+            int sw = 1;
             int row = 8;
             int col = 0;
+            decimal? tAcqCost = 0;
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
                 var reportItemList = _db.CustodianReportBldgItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).ToList();
                 foreach (var reportItem in reportItemList)
                 {
-                    ws.Row(3).Cell(3).SetValue(reportItem.CustodianReport.Codextn.Description);
+                    if (sw == 1)
+                    {
+                        ws.Row(3).Cell(3).SetValue(reportItem.CustodianReport.Codextn.Description);
+                        ws.Row(2).Cell(1).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        sw = 0;
+                    }
                     row++;
                     col = 0;
                     ws.Row(row).InsertRowsBelow(1);
@@ -452,7 +460,10 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                    tAcqCost += reportItem.TotalAmount;
                 }
+                ws.Row(++row).Cell(14).SetValue("TOTAL");
+                ws.Row(row).Cell(15).SetValue(tAcqCost);
 
                 // Create a MemoryStream to save the output
                 var memoryStream = new MemoryStream();
@@ -477,9 +488,10 @@ namespace iLgs.Services.CustodianReports
 
         private MemoryStream ProcessExcelFileAnnexTemplate(Guid id, string templateFilePath, string annex)
         {
-            int row = 8;
+            int sw = 1;
+            int row = 9;
             int col = 0;
-
+            decimal? tAcqCost = 0;
             string hdg = "";
 
             if (annex == "A")
@@ -501,9 +513,15 @@ namespace iLgs.Services.CustodianReports
                 var reportItemList = _db.CustodianReportBldgItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).ToList();
                 foreach (var reportItem in reportItemList)
                 {
-                    ws.Row(1).Cell(1).SetValue($"ANNEX {annex}");
-                    ws.Row(3).Cell(1).SetValue(hdg);
-                    ws.Row(4).Cell(3).SetValue(reportItem.CustodianReport.Codextn.Description);
+                    if (sw == 1)
+                    {
+                        ws.Row(1).Cell(1).SetValue($"ANNEX {annex}");
+                        ws.Row(3).Cell(1).SetValue(hdg);
+                        ws.Row(4).Cell(1).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        ws.Row(5).Cell(3).SetValue(reportItem.CustodianReport.Codextn.Description);
+                        sw = 0;
+                    }
+
                     row++;
                     col = 0;
                     ws.Row(row).InsertRowsBelow(1);
@@ -545,7 +563,10 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                    tAcqCost += reportItem.TotalAmount;
                 }
+                ws.Row(++row).Cell(14).SetValue("TOTAL");
+                ws.Row(row).Cell(15).SetValue(tAcqCost);
 
                 // Create a MemoryStream to save the output
                 var memoryStream = new MemoryStream();

@@ -28,7 +28,6 @@ namespace iLgs.Services.CustodianReports
         private readonly IAllFieldsValidator _allFieldsValidator;
         private readonly IItemCodeService _itemCodeService;
 
-
         public CustodianReportItemVehicleValidator(AppManEntities db)
         {
             _db = db;
