@@ -331,7 +331,7 @@
         }
     });
 
-    $(".k-grid-btnExportC").click(function (e) {
+    $(".k-grid-btnExportD").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
         var grid = $("#grid").data("kendoGrid");
@@ -970,29 +970,31 @@
         selectedGridImagesItem = dataItem.Id;
 
         var myUrl = '@Url.Action("PreviewUpload", "CustodianReport")?id=' + selectedGridImagesItem;
-        var myTitle = "Preview";
-        var width = 800;
-        var height = 650;
 
+        window.open(myUrl, "_blank");
 
-        $("#windowcontainer").append("<div id='windowPreview'></div>");
-        var mywindow = $("#windowPreview")
-                .kendoWindow({
-                    actions: ["Minimize", "Maximize", "Close"],
-                    resizable: true,
-                    draggable: true,
-                    modal: true,
-                    visible: false,
-                    iframe: true,
-                    deactivate: function () {
-                        this.destroy();
-                    }
-                }).data("kendoWindow");
+        //var myTitle = "Preview";
+        //var width = 800;
+        //var height = 650;
 
-        mywindow.setOptions({ title: myTitle, width: width, height: height });
-        mywindow.refresh({ url: myUrl });
-        mywindow.center();
-        mywindow.open();
+        //$("#windowcontainer").append("<div id='windowPreview'></div>");
+        //var mywindow = $("#windowPreview")
+        //        .kendoWindow({
+        //            actions: ["Minimize", "Maximize", "Close"],
+        //            resizable: true,
+        //            draggable: true,
+        //            modal: true,
+        //            visible: false,
+        //            iframe: true,
+        //            deactivate: function () {
+        //                this.destroy();
+        //            }
+        //        }).data("kendoWindow");
+
+        //mywindow.setOptions({ title: myTitle, width: width, height: height });
+        //mywindow.refresh({ url: myUrl });
+        //mywindow.center();
+        //mywindow.open();
     }
 
     function onClickDownload(e) {

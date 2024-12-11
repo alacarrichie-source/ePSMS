@@ -80,6 +80,15 @@ namespace iLgs.Services
             {
                 return new FilePathResult(physicalPath, "image/jpg");
             }
+
+            //// Read the file bytes
+            //byte[] fileBytes = System.IO.File.ReadAllBytes(physicalPath);
+
+            //// Get MIME type based on the file extension
+            //string mimeType = MimeMapping.GetMimeMapping(fileName);
+
+            //// Return the file content to be viewed in the browser
+            //return File(fileBytes, mimeType);
         }
 
         

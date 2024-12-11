@@ -197,7 +197,7 @@ namespace iLgs.Services
             var notPosted = await _orderService.GetNotPostedAsync((DateTime)model.AsOf);
             if (notPosted > 0)
             {
-                throw new RecordRelationshipException(string.Format("The system found {0} that are not yet posted as of date specified! Please post before proceeding..."));
+                throw new RecordRelationshipException(string.Format("The system found {0} records that are not yet posted as of date specified! Please post before proceeding..."));
             }
 
             model.Id = Guid.NewGuid();

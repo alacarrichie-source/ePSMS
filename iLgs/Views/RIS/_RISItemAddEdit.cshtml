@@ -44,10 +44,6 @@
                         })
                         .Columns(c =>
                         {
-                            //c.Add().Field("Code").Title("Code").Width("15%").Template("#= columnTemplate(data.Code) #");
-                            //c.Add().Field("TypeDesc").Title("Account").Width("25%").Template("#= columnTemplate(data.TypeDesc) #");
-                            //c.Add().Field("MainDesc").Title("Sub-Account").Width("35%").Template("#= columnTemplate(data.MainDesc) #");
-                            //c.Add().Field("Description").Title("Article").Width("25%").Template("#= columnTemplate(data.Description) #");
                             c.Add().Field("Code").Title("Code").Width("10%").Template("#= columnTemplate(data.Code) #");
                             c.Add().Field("TypeDesc").Title("Account").Width("15%").Template("#= columnTemplate(data.TypeDesc) #");
                             c.Add().Field("SubAccount1").Title("Sub-Account1").Width("15%").Template("#= columnTemplate(data.SubAccount1) #");
@@ -124,7 +120,7 @@
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.Unit)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select unit")
-                        .DataTextField("Description")
+                        .DataTextField("Code")
                         .DataValueField("Code")
                         .ValuePrimitive(true)
                         .Filter(FilterType.Contains)

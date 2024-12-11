@@ -8,6 +8,7 @@
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
+        //col.Bound(c => c.Id);
         col.Bound(c => c.RisNo).Width(70);
         col.Bound(c => c.RisDate).Width(70);
         col.Bound(c => c.Fund).Width(70);
@@ -18,10 +19,11 @@
         col.Bound(c => c.IssuedBy).Width(100);
         col.Bound(c => c.ReceivedBy).Width(100);
         col.Bound(c => c.PostedBy).Width(100);
-        col.Bound(c => c.IsPosted).Width(30);
+        //col.Bound(c => c.IsPosted).Width(30);
         col.Command(command =>
         {
             command.Edit();
+            //command.Destroy();
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
             command.Custom("Issue").IconClass("k-icon k-i-book").Click("onClickIssue").Visible("CheckPostedBy");
         }).Width(170);
@@ -510,6 +512,14 @@
         };
     }
 
+    function DataFpp() {
+        var text = $("#FPP").data("kendoMultiColumnComboBox").text();
+        return {
+            department: $("#Office").val(),
+            text: text
+        };
+    }
+
     function DataRequestedBy() {
         var text = $("#RequestedBy").data("kendoMultiColumnComboBox").text();
         return {
@@ -579,6 +589,15 @@
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('FPP', $('#FPP').val());
+    }
+
+    function onSelectFpp(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#Fund").val(dataItem.Fund).trigger("change");
+
+        var model = $("#grid").data().kendoGrid.editable.options.model;
+        model.set('Fund', $('#Fund').val());
     }
 
     function onSelectItemCode(e) {
@@ -1190,6 +1209,10 @@
 
     function UpdateDescription(e)
     {
+        return;
+
+        // Manually enter description
+
         var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
         var data = $("#form").serialize();
 
@@ -1203,7 +1226,6 @@
             success: function (result) {
                 window.kendo.ui.progress($(document.body), false);
                 $("#Description").val(result.Description).trigger("change");
-                //$("#PsNo").val(result.StockNo).trigger("change");
                 disabled.attr('disabled', 'disabled')
             },
             error: function (req, status, errorObj) {

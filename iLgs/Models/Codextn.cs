@@ -23,8 +23,6 @@ namespace iLgs.Models
             this.RPCIs = new HashSet<RPCI>();
             this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
             this.PsCardItemIssuances1 = new HashSet<PsCardItemIssuance>();
-            this.PsCardItems = new HashSet<PsCardItem>();
-            this.PsCardItems1 = new HashSet<PsCardItem>();
             this.RPCIItems = new HashSet<RPCIItem>();
             this.CustodianDisposals = new HashSet<CustodianDisposal>();
             this.CustodianReports = new HashSet<CustodianReport>();
@@ -35,6 +33,9 @@ namespace iLgs.Models
             this.CustodianReportLandItems = new HashSet<CustodianReportLandItem>();
             this.CustodianReportItems = new HashSet<CustodianReportItem>();
             this.CustodianReportItems1 = new HashSet<CustodianReportItem>();
+            this.PsCardItems = new HashSet<PsCardItem>();
+            this.PsCardItems1 = new HashSet<PsCardItem>();
+            this.ItemCodeRequests = new HashSet<ItemCodeRequest>();
         }
     
         public System.Guid Id { get; set; }
@@ -64,10 +65,6 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItem> PsCardItems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItem> PsCardItems1 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RPCIItem> RPCIItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianDisposal> CustodianDisposals { get; set; }
@@ -87,5 +84,11 @@ namespace iLgs.Models
         public virtual ICollection<CustodianReportItem> CustodianReportItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportItem> CustodianReportItems1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItem> PsCardItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItem> PsCardItems1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ItemCodeRequest> ItemCodeRequests { get; set; }
     }
 }

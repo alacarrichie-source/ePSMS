@@ -21,7 +21,9 @@ namespace iLgs.Services.Codes
     public interface ILocationBudgetService
     {
         IQueryable<LocationBudgetVM> GetAll(Guid? locationId);
+        IQueryable<LocationBudgetVM> GetAll(string locationName);
         ValueTask<LocationBudget> GetByIdAsync(Guid? id);
+        bool IsValidBudgetCode(string locationName, string budgetCode);
         ValueTask<LocationBudgetVM> CreateAsync(LocationBudgetVM model, string user, DateTime date);
         ValueTask<LocationBudgetVM> UpdateAsync(LocationBudgetVM model, string user, DateTime date);
         ValueTask<LocationBudgetVM> DeleteAsync(LocationBudgetVM model, string user, DateTime date);
@@ -48,6 +50,7 @@ namespace iLgs.Services.Codes
             BudgetId = s.BudgetId,
             BudgetCode = s.Codextn1.Code,
             Description = s.Codextn1.Description,
+            Fund = s.Codextn1.Desc3,
             InsertedBy = s.InsertedBy,
             InsertedDt = s.InsertedDt
         };
@@ -67,7 +70,23 @@ namespace iLgs.Services.Codes
                 .AsQueryable();
             return data;
         });
-        
+
+        public IQueryable<LocationBudgetVM> GetAll(string locationName) =>
+        _exceptionService.TryCatch(() =>
+        {
+            var data = _db.LocationBudgets.Include(i => i.Codextn1).AsNoTracking()
+                .Where(w => w.Codextn.Description == locationName)
+                .Select(Projection).OrderBy(o => o.BudgetCode)
+                .AsQueryable();
+            return data;
+        });
+
+        public bool IsValidBudgetCode(string locationName, string budgetCode)
+        {
+            return _db.LocationBudgets
+                .Where(w => w.Codextn.Description == locationName && w.Codextn1.Code == budgetCode).Any();                
+        }
+
         public ValueTask<LocationBudgetVM> CreateAsync(LocationBudgetVM model, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {

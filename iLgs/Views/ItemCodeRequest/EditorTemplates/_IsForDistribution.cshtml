@@ -1,0 +1,28 @@
+﻿@(Html.Kendo().Switch().Name("IsForDistribution")
+    .Messages(c => c.Checked("YES").Unchecked("NO"))
+)
+
+<style>
+    .k-switch .k-switch-label-on,
+    .k-switch .k-switch-label-off {
+        display: inline-block;
+        position: absolute;
+        top: 50%;
+    }
+
+    .k-switch .k-switch-label-on {
+        left: 5px;
+        opacity: 1;
+        color: white;
+    }
+
+    .k-switch .k-switch-label-off {
+        color: black;
+        left: 30px;
+        opacity: 1;
+    }
+</style>
+
+
+
+

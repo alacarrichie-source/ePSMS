@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianReports
 {
@@ -40,13 +41,13 @@ namespace iLgs.Services.CustodianReports
         public void ValidateOnCreate(CustodianReportItemVehicleVM model)
         {
             ValidateIfNull(model);
-            ValidateFieldsOnCreateUpdate(model);
+            ValidateFieldsOnCreateUpdate(model, Mode.ADD);
         }
 
         public void ValidateOnUpdate(CustodianReportItemVehicleVM model)
         {
             ValidateIfNull(model);
-            ValidateFieldsOnCreateUpdate(model);
+            ValidateFieldsOnCreateUpdate(model, Mode.EDIT);
         }
 
         public void ValidateOnDelete(CustodianReportItemVehicleVM model)
@@ -55,12 +56,32 @@ namespace iLgs.Services.CustodianReports
             ValidateRecord(model.Id);
         }
 
-        public void ValidateFieldsOnCreateUpdate(CustodianReportItemVehicleVM model)
+        public void ValidateFieldsOnCreateUpdate(CustodianReportItemVehicleVM model, Mode mode)
         {
             var ex = new InvalidModelException();
             var itemCode = _itemCodeService.GetById(model.ItemCodeId);
             string partialView = AllFieldsUtil.GetPartialView(itemCode);
             _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Enums.Module.CARD);
+
+            if (!string.IsNullOrWhiteSpace(model.ItemSerialNo))
+            {
+                if (mode == Mode.ADD)
+                {
+                    var entity = _db.CustodianReportItems.FirstOrDefault(f => f.Fund == model.Fund && f.PsNo == model.PsNo && f.ItemSerialNo == model.ItemSerialNo);
+                    if (entity != null)
+                    {
+                        ex.UpsertDataList(_getDisplayName(nameof(model.SerialNo)), "Duplicate detected.");
+                    }
+                }
+                else if (mode == Mode.EDIT)
+                {
+                    var entity = _db.CustodianReportItems.FirstOrDefault(f => f.Fund == model.Fund && f.PsNo == model.PsNo && f.ItemSerialNo == model.ItemSerialNo && f.Id != model.Id);
+                    if (entity != null)
+                    {
+                        ex.UpsertDataList(_getDisplayName(nameof(model.SerialNo)), "Duplicate detected.");
+                    }
+                }
+            }
 
             //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemType_Code, model.Item_Code, ex, Enums.Module.CARD);
 

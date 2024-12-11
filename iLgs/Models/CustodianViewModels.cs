@@ -114,11 +114,11 @@ namespace iLgs.Models
             public Nullable<System.DateTime> AcqDate { get; set; }
 
             //[Required]
-            [Display(Name = "Unit Cost")]
+            [Display(Name = "P.O. Unit Cost")]
             public Nullable<decimal> UnitCost { get; set; }
 
             //[Required]
-            [Display(Name = "Unit of Measurement")]
+            [Display(Name = "P.O. Unit of Measurement")]
             public string Unit { get; set; }
 
             [Display(Name = "Set/Lot No.")]
@@ -131,7 +131,7 @@ namespace iLgs.Models
             [Display(Name = "Department Display")]
             public string Department { get; set; }
 
-            [Display(Name = "Moved to Location")]
+            [Display(Name = "Location")]
             public Nullable<System.Guid> LocationId { get; set; }
 
             public string LocationCode { get; set; }
@@ -428,7 +428,7 @@ namespace iLgs.Models
             public string SubAccount { get; set; }
             public string Article { get; set; }
 
-            [Display(Name = "Moved to Location")]
+            [Display(Name = "Location")]
             public Nullable<System.Guid> LocationId { get; set; }
 
             [Display(Name = "Location")]
@@ -640,7 +640,7 @@ namespace iLgs.Models
             public Nullable<System.Guid> DeptId { get; set; }
             public string Department { get; set; }
 
-            [Display(Name = "Moved to Location")]
+            [Display(Name = "Location")]
             public Nullable<System.Guid> LocationId { get; set; }
 
             [Display(Name = "Location Code")]

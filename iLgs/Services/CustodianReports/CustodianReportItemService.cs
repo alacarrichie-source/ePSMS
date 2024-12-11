@@ -418,11 +418,11 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.DosageVolume);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Multipliers);
                     ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PlateNo);
+                    //ws.Row(row).Cell(++col).SetValue(reportItem.PlateNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.BodyNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.MVFileNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += reportItem.TotalCost;
+                    tAcqCost += (reportItem.TotalCost ?? 0);
                 }
                 ws.Row(++row).Cell(17).SetValue("TOTAL");
                 ws.Row(row).Cell(18).SetValue(tAcqCost);
@@ -501,7 +501,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += reportItem.TotalCost;
+                    tAcqCost += (reportItem.TotalCost ?? 0);
                 }
                 ws.Row(++row).Cell(16).SetValue("TOTAL");
                 ws.Row(row).Cell(17).SetValue(tAcqCost);
@@ -587,7 +587,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += reportItem.TotalCost;
+                    tAcqCost += (reportItem.TotalCost ?? 0);
                 }
                 ws.Row(++row).Cell(19).SetValue("TOTAL");
                 ws.Row(row).Cell(20).SetValue(tAcqCost);
@@ -699,11 +699,11 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.DosageVolume);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Multipliers);
                     ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PlateNo);
+                    //ws.Row(row).Cell(++col).SetValue(reportItem.PlateNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.BodyNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.MVFileNo);
                     //ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += reportItem.TotalCost;
+                    tAcqCost += (reportItem.TotalCost ?? 0);
                 }
                 ws.Row(++row).Cell(17).SetValue("TOTAL");
                 ws.Row(row).Cell(18).SetValue(tAcqCost);
@@ -785,8 +785,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
                     //ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += reportItem.TotalCost;
-
+                    tAcqCost += (reportItem.TotalCost ?? 0);
                 }
                 ws.Row(++row).Cell(16).SetValue("TOTAL");
                 ws.Row(row).Cell(17).SetValue(tAcqCost);
@@ -874,7 +873,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
                     //ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += reportItem.TotalCost;
+                    tAcqCost += (reportItem.TotalCost ?? 0);
                 }
                 ws.Row(++row).Cell(19).SetValue("TOTAL");
                 ws.Row(row).Cell(20).SetValue(tAcqCost);

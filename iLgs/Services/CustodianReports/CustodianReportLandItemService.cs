@@ -448,7 +448,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.OldDRPDate);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Fund);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
-                    tAcqCost += reportItem.AcqCost;
+                    tAcqCost += (reportItem.AcqCost ?? 0);
                 }
                 ws.Row(++row).Cell(13).SetValue("TOTAL");
                 ws.Row(row).Cell(14).SetValue(tAcqCost);
@@ -545,7 +545,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.OldDRPDate);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Fund);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
-                    tAcqCost += reportItem.AcqCost;
+                    tAcqCost += (reportItem.AcqCost ?? 0);
                 }
                 ws.Row(++row).Cell(13).SetValue("TOTAL");
                 ws.Row(row).Cell(14).SetValue(tAcqCost);

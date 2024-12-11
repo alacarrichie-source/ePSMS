@@ -8,6 +8,7 @@ using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services
 {
@@ -111,7 +112,7 @@ namespace iLgs.Services
                     PostedDt = s.PostedDt,
                     IsPosted = s.PostedDt != null,
                     IssuanceSw = false
-                });
+                }).OrderByDescending(o => o.RisNo);
             return data;
         });
 
@@ -183,6 +184,7 @@ namespace iLgs.Services
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
             return entity;
+
             //// crate psCode foreach item (problem in unpost, sequence number will rumble)
             //var risItemList = await db.RisItems.Include(i => i.ItemCode.ItemType).Where(w => w.RisId == entity.Id).ToListAsync();
             //foreach (var risItem in risItemList)
@@ -207,36 +209,10 @@ namespace iLgs.Services
             //    }
             //}
         });
-
-        //private string NextPsNo(string psType)
-        //{
-        //    string keyName = psType;
-        //    // yyyy-mm-9999
-        //    // 123456789012
-
-        //    var rec = db.PsCodes.Where(w => w.PsType == psType).OrderByDescending(o => o.PsNo).FirstOrDefault();
-        //    if (rec == null)
-        //    {
-        //        return keyName + "0001";
-        //    }
-        //    else
-        //    {
-        //        string sequence = "";
-        //        foreach (char c in rec.PsNo)
-        //        {
-        //            if (char.IsDigit(c))
-        //            {
-        //                sequence += c;
-        //            }
-        //        }
-        //        return keyName + sequence.PadLeft(4, '0');
-        //    }
-        //}
-
+        
         public ValueTask<RISs> UnpostAsync(Guid risId, string user, DateTime date) =>
         _risExceptionService.TryCatch(async () =>
         {
-            //await ValidateOnUnpost(risId);
             _validator.ValidateOnUnpost(risId);
 
             var entity = await _db.RISses.FindAsync(risId);
@@ -281,33 +257,9 @@ namespace iLgs.Services
                 model.UpdatedBy = user;
                 model.UpdatedDt = date;
 
-                var entity = new iLgs.Models.RISs()
-                {
-                    Id = model.Id,
-                    Fund = model.Fund,
-                    Division = model.Division ?? "",
-                    Office = model.Office,
-                    FPP = model.FPP,
-                    RisNo = model.RisNo,
-                    RisDate = model.RisDate,
-                    Purpose = model.Purpose,
-                    RequestedBy = model.RequestedBy ?? "",
-                    RequestedByDesignation = model.RequestedByDesignation ?? "",
-                    RequestedDate = model.RequestedDate,
-                    ApprovedBy = model.ApprovedBy ?? "",
-                    ApprovedByDesignation = model.ApprovedByDesignation ?? "",
-                    ApprovedDate = model.ApprovedDate,
-                    IssuedBy = model.IssuedBy ?? "",
-                    IssuedByDesignation = model.IssuedByDesignation ?? "",
-                    IssuedDate = model.IssuedDate,
-                    ReceivedBy = model.ReceivedBy ?? "",
-                    ReceivedByDesignation = model.ReceivedByDesignation ?? "",
-                    ReceivedDate = model.ReceivedDate,
-                    InsertedBy = model.InsertedBy,
-                    InsertedDt = model.InsertedDt,
-                    UpdatedBy = model.UpdatedBy,
-                    UpdatedDt = model.UpdatedDt
-                };
+                var entity = new iLgs.Models.RISs();                
+
+                MapModelToEntityFields(entity, model, Mode.ADD);
 
                 _db.RISses.Add(entity);
                 await _db.SaveChangesAsync();
@@ -343,7 +295,6 @@ namespace iLgs.Services
         public ValueTask<RIS_VM> UpdateAsync(RIS_VM model, string user, DateTime date) =>
         _risVmExceptionService.TryCatch(async () =>
         {
-            //await ValidateOnUpdate(model);
             _validator.ValidateOnUpdate(model);
 
             model.UpdatedBy = user;
@@ -355,6 +306,24 @@ namespace iLgs.Services
             }
 
             var entity = await _db.RISses.FindAsync(model.Id);
+
+            MapModelToEntityFields(entity, model, Mode.EDIT);
+            
+            _db.RISses.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            return model;
+        });
+
+        public void MapModelToEntityFields(RISs entity, RIS_VM model, Mode mode)
+        {
+            if (mode == Mode.ADD)
+            {
+                entity.Id = model.Id;
+                entity.InsertedBy = model.InsertedBy;
+                entity.InsertedDt = model.InsertedDt;
+            }
 
             entity.Fund = model.Fund;
             entity.Division = model.Division ?? "";
@@ -377,13 +346,7 @@ namespace iLgs.Services
             entity.ReceivedDate = model.ReceivedDate;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
-
-            _db.RISses.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            return model;
-        });
+        }
 
         private string NextRisNo(DateTime date)
         {

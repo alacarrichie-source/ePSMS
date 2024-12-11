@@ -119,6 +119,8 @@ namespace iLgs.Models
 
         [Required]
         public string Office { get; set; }
+
+        [Required]
         public string FPP { get; set; }
 
         [Display(Name = "RIS No.")]

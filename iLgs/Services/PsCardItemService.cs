@@ -95,6 +95,9 @@ namespace iLgs.Services
                 Location = s.Codextn1.Description,
                 LocCode = s.Codextn1.Code,
                 PrevPsNo = s.PrevPsNo,
+                SetLotNo = s.SetLotNo,
+                SetLotAmount = s.SetLotAmount,
+                SetLotRemarks = s.SetLotRemarks,
                 IsWithItemExtn = s.PsCardItemExtns.Any()
             };
         }
@@ -407,6 +410,9 @@ namespace iLgs.Services
             entity.OldAmount = model.OldAmount;
             entity.PhaseNo = model.PhaseNo;
             entity.PhaseAmount = model.PhaseAmount;
+            entity.SetLotNo = model.SetLotNo;
+            entity.SetLotAmount = model.SetLotAmount;
+            entity.SetLotRemarks = model.SetLotRemarks;
             entity.PrevPsNo = model.PrevPsNo;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;

@@ -18,12 +18,14 @@ namespace iLgs.Controllers
         private readonly AppManEntities _db;
         private readonly ICodextnService _codextnService;
         private readonly ILocationService _locationService;
+        private readonly ILocationBudgetService _locationBudgetService;
 
         public GettersController()
         {
             _db = new AppManEntities();
             _codextnService = new CodextnService(_db);
             _locationService = new LocationService(_db);
+            _locationBudgetService = new LocationBudgetService(_db);
         }
 
         //public ActionResult GetSysCodeList(string text)
@@ -357,6 +359,19 @@ namespace iLgs.Controllers
             }
 
             return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.RISs.Office }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetFpp(string department, string text)
+        {
+
+            var model = _locationBudgetService.GetAll(department);
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.BudgetCode.Contains(text) || p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.BudgetId, Code = c.BudgetCode, Description = c.Description, Fund = c.Fund }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetRisNos(string text)

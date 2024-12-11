@@ -1,0 +1,128 @@
+﻿@model iLgs.Models.ItemCodeRequestVM
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <fieldset>        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.DepartmentId, "LabelGuid")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.DepartmentId)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select Department")
+                        .DataTextField("Description")
+                        .DataValueField("Id")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetUserDepartmentsAsync", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Code").Title("Code").Width("30%");
+                            c.Add().Field("Description").Title("Description").Width("70%");
+                        })
+                        //.Events(e => e.Select("onSelectDeptId"))
+                        .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(m => m.DepartmentId)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.Description, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(3).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Description)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.Remarks, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(3).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Remarks)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.EstCost, "LabelDecimal")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.EstCost).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.EstCost)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.IsConsumable, "LabelBool")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().SwitchFor(m => m.IsConsumable).Messages(c => c.Checked("YES").Unchecked("NO")))
+                    @Html.ValidationMessageFor(m => m.IsConsumable)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.IsForDistribution, "LabelBool")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().SwitchFor(m => m.IsForDistribution).Messages(c => c.Checked("YES").Unchecked("NO")))
+                    @Html.ValidationMessageFor(m => m.IsForDistribution)
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.IsIncorporated, "LabelBool")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().SwitchFor(m => m.IsIncorporated).Messages(c => c.Checked("YES").Unchecked("NO")))
+                    @Html.ValidationMessageFor(m => m.IsIncorporated)
+                </div>
+            </div>
+        </div>
+    </fieldset>
+}
+
+
+
+
+

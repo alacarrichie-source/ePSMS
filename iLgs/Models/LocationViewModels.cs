@@ -70,6 +70,8 @@ namespace iLgs.Models
         [Display(Name = "Description")]
         public string Description { get; set; }
 
+        public string Fund { get; set; }
+
         //public virtual Codextn Codextn { get; set; }
         //public virtual Codextn Codextn1 { get; set; }
     }

@@ -25,11 +25,14 @@ namespace iLgs.Services.Validators
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
+        private readonly ILocationBudgetService _locationBudgetService;
+
         public RisValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RIS_VM>(propertyName);
             _codextnService = new CodextnService(_db);
+            _locationBudgetService = new LocationBudgetService(_db);
         }
 
         public void ValidateOnCreate(RIS_VM model)
@@ -66,8 +69,7 @@ namespace iLgs.Services.Validators
                     {
                         throw new RecordRelationshipException("This RIS No has a posted PR, cannot update!");
                     }
-                }
-                
+                }                
             }
 
             if (_db.RISses.Any(a => a.RisNo == model.RisNo && a.Id != model.Id))
@@ -109,6 +111,18 @@ namespace iLgs.Services.Validators
                 if (!_codextnService.IsValidCodeDesc("DEPARTMENTS", model.Office))
                 {
                     ex.UpsertDataList(_getDisplayName(nameof(model.Office)), "Invalid value");
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(model.FPP))
+            {
+                ex.UpsertDataList(_getDisplayName(nameof(model.FPP)), "Field is required.");
+            }
+            else
+            {
+                if (!_locationBudgetService.IsValidBudgetCode(model.Office, model.FPP))
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.FPP)), "Invalid value");
                 }
             }
 

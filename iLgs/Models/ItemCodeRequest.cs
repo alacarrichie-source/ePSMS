@@ -12,25 +12,22 @@ namespace iLgs.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class AIRItemExtn
+    public partial class ItemCodeRequest
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public AIRItemExtn()
-        {
-            this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
-        }
-    
         public System.Guid Id { get; set; }
-        public Nullable<System.Guid> AIRItemId { get; set; }
-        public Nullable<int> ContentNo { get; set; }
-        public Nullable<int> CustItemNo { get; set; }
+        public Nullable<System.Guid> DepartmentId { get; set; }
+        public string Description { get; set; }
+        public string Remarks { get; set; }
+        public Nullable<decimal> EstCost { get; set; }
+        public Nullable<bool> IsConsumable { get; set; }
+        public Nullable<bool> IsForDistribution { get; set; }
+        public Nullable<bool> IsIncorporated { get; set; }
+        public string Status { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
-        public virtual AIRItem AIRItem { get; set; }
+        public virtual Codextn Codextn { get; set; }
     }
 }

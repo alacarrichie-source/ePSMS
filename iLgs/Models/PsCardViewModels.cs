@@ -239,6 +239,15 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> TransDate { get; set; }
 
+        [Display(Name = "Set/Lot No.")]
+        public string SetLotNo { get; set; }
+
+        [Display(Name = "Set/Lot Amount")]
+        public Nullable<decimal> SetLotAmount { get; set; }
+
+        [Display(Name = "Set/Lot Remarks")]
+        public string SetLotRemarks { get; set; }
+
         public bool? IsWithItemExtn { get; set; } = false;
 
         public string SelectedIds { get; set; }        

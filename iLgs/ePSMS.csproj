@@ -307,6 +307,7 @@
     <Compile Include="Controllers\CustodianReportLandController.cs" />
     <Compile Include="Controllers\DollarRateController.cs" />
     <Compile Include="Controllers\IcsSetController.cs" />
+    <Compile Include="Controllers\ItemCodeRequestController.cs" />
     <Compile Include="Controllers\ItemHelperController.cs" />
     <Compile Include="Controllers\LocationController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
@@ -433,6 +434,10 @@
     </Compile>
     <Compile Include="Models\IcsParViewModels.cs" />
     <Compile Include="Models\ItemCode.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ItemCodeRequesstViewModels.cs" />
+    <Compile Include="Models\ItemCodeRequest.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\ItemType.cs">
@@ -662,6 +667,7 @@
     <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\Codes\AnnexDService.cs" />
     <Compile Include="Services\Codes\BudgetService.cs" />
+    <Compile Include="Services\Codes\ItemCodeRequestService.cs" />
     <Compile Include="Services\Codes\LocationBudgetService.cs" />
     <Compile Include="Services\Codes\LocationService.cs" />
     <Compile Include="Services\Codes\PsCategoryService.cs" />
@@ -4158,6 +4164,16 @@
     <Content Include="Views\StockCard\_FieldSerial_F.cshtml" />
     <Content Include="Views\PropertyCard\_FieldSerial_E.cshtml" />
     <Content Include="Views\PropertyCard\_FieldSerial_F.cshtml" />
+    <Content Include="Views\RIS\_FieldSerial_E.cshtml" />
+    <Content Include="Views\RIS\_FieldSerial_D.cshtml" />
+    <Content Include="Views\RIS\_FieldSerial_F.cshtml" />
+    <Content Include="Views\RIS\_FieldMultiple.cshtml" />
+    <Content Include="Views\RIS\_FieldMultiple_A.cshtml" />
+    <Content Include="Views\ItemCodeRequest\Index.cshtml" />
+    <Content Include="Views\ItemCodeRequest\EditorTemplates\_ItemCodeRequestTemplate.cshtml" />
+    <Content Include="Views\ItemCodeRequest\EditorTemplates\_IsconsumableTemplate.cshtml" />
+    <Content Include="Views\ItemCodeRequest\EditorTemplates\_IsIncorporated.cshtml" />
+    <Content Include="Views\ItemCodeRequest\EditorTemplates\_IsForDistribution.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
