@@ -118,6 +118,7 @@ namespace iLgs.Services.CustodianReports
             MrIssuedTo = s.MrIssuedTo,
             MrOfficer = s.MrOfficer,
             UpcomingPar = s.UpcomingPar,
+            UpcomingIcs = s.UpcomingIcs,
             Type = s.Type,
             Annex = s.Annex,
             InsertedBy = s.InsertedBy,

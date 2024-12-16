@@ -21,6 +21,7 @@ namespace iLgs.Services.Items
         IQueryable<ItemCodeVM> GetItems(string item);
         IQueryable<ItemCodeVM> GetItemAccounts(string item);
         IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item);
+        string GetSubAccounts(Guid? id);
         IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item);
         IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item);
         IQueryable<ItemCodePreviewVM> GetItemCodePreview(string category);
@@ -164,6 +165,27 @@ namespace iLgs.Services.Items
             var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts {0}, {1}", category, item).AsQueryable().AsNoTracking();
             return data;
         });
+
+        public string GetSubAccounts(Guid? id) 
+        {
+            // Retrieve the Code for the given id
+            var code = _db.ItemCodes
+                .Where(i => i.Id == id)
+                .Select(i => i.Code)
+                .FirstOrDefault();
+
+            if (string.IsNullOrEmpty(code))
+                return string.Empty; // Handle the case where the code is not found
+
+            //// Use the retrieved Code in the query
+            //var data = string.Join("/", _db.ItemCodes
+            //    .Where(w => w.Id != id && w.Code.StartsWith(code))
+            //    .Select(s => s.Description));
+
+            var data = _db.Database.SqlQuery<string>($"select STRING_AGG(Description, '/') from ItemCodes where Id != '{id}' and '{code}' like code + '%'").FirstOrDefault();
+
+            return data;
+        }
 
         public IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item) => _VmExceptionService.TryCatch(() =>
         {

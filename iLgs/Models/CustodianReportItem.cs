@@ -100,6 +100,7 @@ namespace iLgs.Models
         public string IcsIssuedTo { get; set; }
         public string IcsOfficer { get; set; }
         public string UpcomingPar { get; set; }
+        public string UpcomingIcs { get; set; }
         public string Type { get; set; }
         public string Annex { get; set; }
         public string InsertedBy { get; set; }

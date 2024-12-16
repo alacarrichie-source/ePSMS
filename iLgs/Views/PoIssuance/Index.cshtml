@@ -8,7 +8,8 @@
     //.HtmlAttributes(new { @class = "max-grid" })
     .Columns(columns =>
     {
-        columns.Bound(f => f.Article).Width(70).Title("Articles");
+        columns.Bound(f => f.Article).Width(100).Title("Sub-Accounts/Articles");
+        columns.Bound(f => f.StockNo).Width(70);
         columns.Bound(f => f.Description).Width(70).Title("Item<br>Description");
         columns.Group(group => group.Title("Reference")
             .Columns(info =>
@@ -22,7 +23,8 @@
         columns.Bound(f => f.UnitCost).Width(50).Title("PO<br>Unit Cost")
             .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
             .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        columns.Bound(f => f.Unit).Width(50).Title("Unit<br>of<br>Measurement");
+        //columns.Bound(f => f.Unit).Width(50).Title("Unit<br>of<br>Measurement");
+        columns.Bound(f => f.Unit).Width(50).Title("Unit");
         columns.Group(group =>
         {
             group.Title("Receipt Quantity").HeaderHtmlAttributes(new { Style = "text-align:center;" })
@@ -87,7 +89,10 @@
     })
     .Search(s =>
     {
+        s.Field(o => o.StockNo, "contains");
         s.Field(o => o.Department, "contains");
+        s.Field(o => o.LocCode, "contains");
+        s.Field(o => o.Location, "contains");
         s.Field(o => o.PoNo, "contains");
         s.Field(o => o.AirNo, "contains");
         s.Field(o => o.Article, "contains");
@@ -129,6 +134,7 @@
         .Sort(s =>
         {
             s.Add(a => a.PoNo);
+            s.Add(a => a.StockNo);
             s.Add(a => a.InsertedDt);
         })
         .Read(read => read.Action("IssuanceRead", "PoIssuance"))
@@ -231,6 +237,10 @@
 
 
 <script type="text/javascript">
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    }
+
     function onShowNotification(e) {
         if (e.sender.getNotifications().length == 1) {
             e.element.parent().css({ zIndex: 22222 });
@@ -616,6 +626,7 @@
 
     function onRequestEndGridItems(e) {
         e.preventDefault();
+
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 //$("#gridIssuedItems_" + selectedId).data("kendoGrid").dataSource.read();

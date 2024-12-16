@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Web;
 
 namespace iLgs.Services
-{    
+{
     public interface IRpciService
     {
         IQueryable<RPCI_VM> GetAll();
@@ -45,11 +45,11 @@ namespace iLgs.Services
             return data;
         });
 
-        public IQueryable<RPCIItem> GetRpciXls(DateTime? asOf, Guid? id) 
+        public IQueryable<RPCIItem> GetRpciXls(DateTime? asOf, Guid? id)
         {
             var data = _db.RPCIItems.Include(i => i.RPCI).Where(w => w.RPCI.AsOf == asOf && (id == null || w.RPCI.Id == id))
                 .OrderBy(o => o.RPCI.Fund).ThenBy(o => o.PoNo);
-                  
+
             return data;
         }
 
@@ -98,7 +98,7 @@ namespace iLgs.Services
                     CertifiedCorrectBy = s.CertifiedCorrectBy,
                     ApprovedBy = s.ApprovedBy,
                     VerifiedBy = s.VerifiedBy,
-                    PostedBy = s.PostedBy,    
+                    PostedBy = s.PostedBy,
                     PostedDt = s.PostedDt,
                     InsertedDt = s.InsertedDt,
                     InvDistDesc = s.InvDist == "I" ? "Inventory" : s.InvDist == "D" ? "For Distribution" : "",
@@ -110,16 +110,21 @@ namespace iLgs.Services
         public ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
+            if (model.ItemTypeId == Guid.Empty)
+            {
+                model.ItemTypeId = null;
+            }
+
             //if (model.DeptId != null) {                 
-                if (await _db.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
-                     && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId
-                     && a.Account == model.Account && a.DeptId == model.DeptId))
-                {
-                    throw new RecordAlreadyExistsException();
-                }
+            if (await _db.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
+                 && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId
+                 && a.Account == model.Account && a.DeptId == model.DeptId))
+            {
+                throw new RecordAlreadyExistsException();
+            }
             //}
 
-            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}", 
+            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}",
                 model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, model.DeptId, user);
             model = await GetByAsOfAsync(model.AsOf);
             return model;
@@ -153,7 +158,7 @@ namespace iLgs.Services
             {
                 throw new InvalidValueException("Verified by is Required!");
             }
-            
+
 
             entity.PostedBy = user;
             entity.PostedDt = date;
@@ -179,7 +184,7 @@ namespace iLgs.Services
             {
                 throw new RecordNotYetPostedException($"Record is not yet posted!");
             }
-                                    
+
             entity.PostedBy = "";
             entity.PostedDt = null;
             entity.UpdatedBy = user;
@@ -193,7 +198,7 @@ namespace iLgs.Services
 
         public ValueTask<RPCI_VM> CreateAsync(RPCI_VM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
-        {            
+        {
             var notPosted = await _orderService.GetNotPostedAsync((DateTime)model.AsOf);
             if (notPosted > 0)
             {
@@ -214,7 +219,7 @@ namespace iLgs.Services
                 FromDonation = model.FromDonation,
                 InvDist = model.InvDist,
                 ItemTypeId = model.ItemTypeId,
-                Account = model.Account,                
+                Account = model.Account,
                 DeptId = model.DeptId,
                 Department = model.Department,
                 CertifiedCorrectBy = model.CertifiedCorrectBy,

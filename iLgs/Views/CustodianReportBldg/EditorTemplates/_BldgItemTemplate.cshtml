@@ -135,8 +135,6 @@
                             {
                                 source.Read(read =>
                                 {
-                                    //read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
-                                    //read.Action("GetLocations", "Getters");
                                     read.Action("GetLocationSp", "Getters");
                                 })
                                 .ServerFiltering(true);

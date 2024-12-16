@@ -83,12 +83,13 @@ namespace iLgs.Models
     public class PsCardItemVM 
     {
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> ItemCodeId { get; set; }
         public Nullable<System.Guid> GroupId { get; set; }
         public Nullable<System.Guid> PsCardId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
         public Nullable<System.Guid> TransferRefId { get; set; }
 
-        [Display(Name = "PO Date (mm/dd/yyyy)")]
+        [Display(Name = "PO/Cut-off Date (mm/dd/yyyy)")]
         //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> PoDate { get; set; }
@@ -196,10 +197,20 @@ namespace iLgs.Models
         [Display(Name = "Vendor/Donor")]
         public string Vendor { get; set; }
 
+        [Display(Name = "Inserted By")]
         public string InsertedBy { get; set; }
+
+        [Display(Name = "Inserted Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
+
+        [Display(Name = "Updated By")]
         public string UpdatedBy { get; set; }
+
+        [Display(Name = "Updated Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+
         [Display(Name = "Old Amount")]
         public Nullable<decimal> OldAmount { get; set; }
 
@@ -248,9 +259,17 @@ namespace iLgs.Models
         [Display(Name = "Set/Lot Remarks")]
         public string SetLotRemarks { get; set; }
 
+        [Display(Name = "FPP")]
+        public string FPP { get; set; }
+
         public bool? IsWithItemExtn { get; set; } = false;
 
-        public string SelectedIds { get; set; }        
+        public string SelectedIds { get; set; }
+
+        [Display(Name = "Sub-Accounts")]
+        public string SubAccount { get; set; }
+        public string Account { get; set; }
+        public string Fund { get; set; }
     }
 
     public class PsCardItemIssuanceVM
@@ -261,7 +280,8 @@ namespace iLgs.Models
         [Display(Name = "Department")]
         public Nullable<System.Guid> DeptId { get; set; }
 
-        [Display(Name = "Location")]
+        [Required]
+        [Display(Name = "Issuance To")]        
         public Nullable<System.Guid> LocationId { get; set; }
 
         [Display(Name = "Issued To")]
@@ -294,6 +314,8 @@ namespace iLgs.Models
 
         // Transients
         public string Department { get; set; }
+
+        [Display(Name = "\"Issuance To\" Reference")]
         public string Location { get; set; }
                 
         [Display(Name = "Unit Cost")]

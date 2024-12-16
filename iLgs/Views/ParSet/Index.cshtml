@@ -571,6 +571,10 @@
 
 
 <script type="text/javascript">
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    }
+
     $(document).ready(function () {
         // When mouse enters the content area
         $('#panelbar .div-render').on('mouseenter', function (event) {

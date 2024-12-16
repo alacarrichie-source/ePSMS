@@ -93,8 +93,14 @@ namespace iLgs.Controllers
                             RisNo = s.PsCardItem.OrderItem.RequestItem.RisItem.RISs.RisNo,
                             Date = s.IssuedDate,
                             Fund = s.PsCardItem.PsCard.Fund,
-                            RCC = s.PsCardItem.Codextn.Code,
+                            RCC = s.PsCardItem.FPP,
+                            PoNo = s.PsCardItem.PoNo,
+                            Department = s.PsCardItem.DeptDisplay,
+                            LocationCode = s.Codextn1.Code,
+                            Location = s.Codextn1.Description,
+                            //RCC = s.PsCardItem.Codextn.Code,
                             //s.PsCardItem.Codextn.Description,
+
                             StockNo = s.PsCardItem.PsCard.PsNo,
                             ItemName = s.PsCardItem.Description,
                             Unit = s.PsCardItem.Unit,
@@ -112,13 +118,18 @@ namespace iLgs.Controllers
                     {
                         //var rsmiDateList = rsmiItemList.GroupBy(g => new { g.Date, g.Fund, g.RCC })
                         //    .Select(s => new { s.Key.Date, s.Key.Fund, s.Key.RCC }).ToList();
-
+                        DateTime? groupDate = null;
+                        string serialNo = "";
                         var rsmiDateList = rsmiItemList.GroupBy(g => new { g.Date, g.Fund})
-                            .Select(s => new { s.Key.Date, s.Key.Fund }).ToList();
-
+                            .Select(s => new { s.Key.Date, s.Key.Fund }).OrderBy(o => o.Date).ToList();
+                        
                         foreach (var rsmiDate in rsmiDateList)
                         {
-                            var serialNo = NextSerialNo(rsmiDate.Date);
+                            if (groupDate != rsmiDate.Date)
+                            {
+                                serialNo = NextSerialNo(rsmiDate.Date);
+                                groupDate = rsmiDate.Date;
+                            }
                             var entity = new RSMI()
                             {
                                 Id = Guid.NewGuid(),
@@ -144,7 +155,11 @@ namespace iLgs.Controllers
                                     Id = Guid.NewGuid(),
                                     RsmiId = entity.Id,
                                     RisNo = itemIssued.RisNo,
+                                    PoNo = itemIssued.PoNo,
+                                    Department = itemIssued.Department,
                                     RCC = itemIssued.RCC,
+                                    LocationCode = itemIssued.LocationCode,
+                                    Location = itemIssued.Location,
                                     StockNo = itemIssued.StockNo,
                                     ItemName = itemIssued.ItemName,
                                     Unit = itemIssued.Unit,

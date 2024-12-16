@@ -1,5 +1,6 @@
 ﻿using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace iLgs.Services.StockCards
     public interface IStockCardService : IPsCardService
     {
         new IQueryable<StockCardVM> GetAll();
-        ValueTask<StockCardVM> GetByIdAsync(Guid? id);
+        StockCardVM GetById(Guid? id);
         ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date);
         ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date);
         ValueTask<StockCardVM> DeleteAsync(StockCardVM model, string user, DateTime date);                
@@ -21,14 +22,16 @@ namespace iLgs.Services.StockCards
     public class StockCardService : PsCardService, IStockCardService
     {
         private readonly IExceptionService<StockCardVM> _vmExceptionService = new ExceptionService<StockCardVM>();
-        private readonly IStockCardValidator _validator;        
+        private readonly IStockCardValidator _validator;
+        private readonly IItemCodeService _itemCodeService;
 
         public StockCardService(AppManEntities db) : base (db)
         {
-            _validator = new StockCardValidator(db);            
+            _validator = new StockCardValidator(db);
+            _itemCodeService = new ItemCodeService(db);
         }               
 
-        public new IQueryable<StockCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
+        public new IQueryable<StockCardVM> GetAll()
         {
             var data = _db.PsCards.AsNoTracking()
                 .Where(w => w.ItemCode.ItemType.Category == "S")
@@ -41,12 +44,20 @@ namespace iLgs.Services.StockCards
                     ItemCode = s.ItemCode.Code,
                     ItemType = s.ItemCode.ItemType.Description,
                     ItemTypeCode = s.ItemCode.ItemType.Code,
-                    
+
                     //FieldGroupNo = s.ItemCode.ItemType.FormulaNo,
                     CardCategory = s.CardCategory,
                     Description = s.Description,
                     SubAccountCode = s.SubAccountCode,
-                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
+                    //SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
+                    //SubAccount= _itemCodeService.GetSubAccounts(s.ItemCodeId),
+                    //SubAccount = string.Join("/", _db.ItemCodes.Where(x => x.Id != s.Id && x.Code.StartsWith(s.ItemCode.Code))
+                    //    .Select(y => y.Description)),
+                    //SubAccount = string.Join("/", _db.ItemCodes
+                    //.Where(x => x.Id != s.ItemCodeId && x.Code.StartsWith(s.ItemCode.Code))
+                    //.Select(y => y.Description)
+                    //.ToList()),
+
                     Fund = s.Fund,
                     Unit = s.Unit,
                     PsNo = s.PsNo,
@@ -56,13 +67,37 @@ namespace iLgs.Services.StockCards
                     FromDonation = s.FromDonation,
                     AllField = s.AllField,
                     InsertedDt = s.InsertedDt
-                });
-            return data;
-        });
+                }).ToList()
+                .Select(s => new StockCardVM
+                {
+                    Id = s.Id,
+                    ItemCodeId = s.ItemCodeId,
+                    Item = s.Item,
+                    ItemNo = s.ItemNo,
+                    ItemCode = s.ItemCode,
+                    ItemType = s.ItemType,
+                    ItemTypeCode = s.ItemTypeCode,
+                    CardCategory = s.CardCategory,
+                    Description = s.Description,
+                    SubAccountCode = s.SubAccountCode,
+                    SubAccount = _itemCodeService.GetSubAccounts(s.ItemCodeId), // Call the service on the in-memory data
+                    Fund = s.Fund,
+                    Unit = s.Unit,
+                    PsNo = s.PsNo,
+                    PsName = s.PsName,
+                    PrevPsNo = s.PrevPsNo,
+                    Amount = s.Amount,
+                    FromDonation = s.FromDonation,
+                    AllField = s.AllField,
+                    InsertedDt = s.InsertedDt
+                }).AsQueryable();
 
-        public ValueTask<StockCardVM> GetByIdAsync(Guid? id) => _vmExceptionService.TryCatch(async () =>
+            return data;
+        }
+
+        public StockCardVM GetById(Guid? id) 
         {
-            var data = await _db.PsCards.Where(w => w.Id == id).AsNoTracking()
+            var data = _db.PsCards.Where(w => w.Id == id).AsNoTracking()
                 .Where(w => w.ItemCode.ItemType.Category == "S")
                 .Select(s => new StockCardVM
                 {
@@ -77,7 +112,6 @@ namespace iLgs.Services.StockCards
                     CardCategory = s.CardCategory,
                     Description = s.Description,
                     SubAccountCode = s.SubAccountCode,
-                    SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
                     Fund = s.Fund,
                     Unit = s.Unit,
                     PsNo = s.PsNo,
@@ -87,9 +121,33 @@ namespace iLgs.Services.StockCards
                     Amount = s.Amount,
                     AllField = s.AllField,
                     InsertedDt = s.InsertedDt
-                }).FirstOrDefaultAsync();            
+                }).ToList()
+                .Select(s => new StockCardVM
+                {
+                    Id = s.Id,
+                    ItemCodeId = s.ItemCodeId,
+                    Item = s.Item,
+                    ItemNo = s.ItemNo,
+                    ItemCode = s.ItemCode,
+                    ItemType = s.ItemType,
+                    ItemTypeCode = s.ItemTypeCode,
+                    PartialPage = s.PartialPage,
+                    CardCategory = s.CardCategory,
+                    Description = s.Description,
+                    SubAccountCode = s.SubAccountCode,
+                    SubAccount = _itemCodeService.GetSubAccounts(s.ItemCodeId), // Call the service on the in-memory data
+                    Fund = s.Fund,
+                    Unit = s.Unit,
+                    PsNo = s.PsNo,
+                    PsName = s.PsName,
+                    PrevPsNo = s.PrevPsNo,
+                    FromDonation = s.FromDonation,
+                    Amount = s.Amount,
+                    AllField = s.AllField,
+                    InsertedDt = s.InsertedDt
+                }).FirstOrDefault();            
             return data;
-        });
+        }
 
         public ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {

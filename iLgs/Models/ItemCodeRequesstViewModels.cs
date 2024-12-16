@@ -16,6 +16,8 @@ namespace iLgs.Models
 
         [Required]
         public string Description { get; set; }
+
+        [Display(Name = "Additional Information")]
         public string Remarks { get; set; }
 
         [Required]

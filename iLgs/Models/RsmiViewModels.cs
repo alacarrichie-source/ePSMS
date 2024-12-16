@@ -80,7 +80,16 @@ namespace iLgs.Models
         [Display(Name = "RIS No.")]
         public string RisNo { get; set; }
 
+        [Display(Name = "PO Reference No.")]
+        public string PoNo { get; set; }
+
+        [Display(Name = "Originating Department")]
+        public string Department { get; set; }
         public string RCC { get; set; }
+
+        [Display(Name = "Location Code")]
+        public string LocationCode { get; set; }
+        public string Location { get; set; }
 
         [Display(Name = "Stock No.")]
         public string StockNo { get; set; }

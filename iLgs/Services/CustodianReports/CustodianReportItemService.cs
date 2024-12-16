@@ -3,6 +3,7 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -328,6 +329,7 @@ namespace iLgs.Services.CustodianReports
             entity.AreOfficer = model.AreOfficer;
             entity.MrOfficer = model.MrOfficer;
             entity.UpcomingPar = model.UpcomingPar;
+            entity.UpcomingIcs = model.UpcomingIcs;
             entity.Type = model.Type;
             entity.Annex = model.Annex;
             entity.UpdatedBy = model.UpdatedBy;
@@ -384,9 +386,9 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Article);
+                    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
                     ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoDate);
+                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
                     ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
@@ -494,7 +496,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
 
                     ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoDate);
+                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
                     ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
@@ -580,7 +582,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
 
                     ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoDate);
+                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
                     ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
@@ -665,9 +667,9 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Article);
+                    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
                     ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoDate);
+                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
                     ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
@@ -778,7 +780,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
 
                     ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoDate);
+                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
                     ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
@@ -866,7 +868,7 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
 
                     ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoDate);
+                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
                     ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);

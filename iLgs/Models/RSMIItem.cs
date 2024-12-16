@@ -17,7 +17,11 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RsmiId { get; set; }
         public string RisNo { get; set; }
+        public string PoNo { get; set; }
+        public string Department { get; set; }
         public string RCC { get; set; }
+        public string LocationCode { get; set; }
+        public string Location { get; set; }
         public string StockNo { get; set; }
         public string ItemName { get; set; }
         public string Unit { get; set; }

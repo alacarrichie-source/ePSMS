@@ -189,6 +189,10 @@
 
 
 <script type="text/javascript">
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    }
+
     function onShowNotification(e) {
         if (e.sender.getNotifications().length == 1) {
             e.element.parent().css({ zIndex: 22222 });

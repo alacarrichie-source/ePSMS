@@ -16,7 +16,7 @@ namespace iLgs.Services.Interfaces
     {
         ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId);
         ValueTask<PsCardItemVM> GetByIdAsync(Guid? id);
-
+        IQueryable<PsCardItemVM> GetSummary();
         ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
         ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
         ValueTask<PsCardItemVM> TransferAsync(PsCardItemVM model, string user, DateTime date);
@@ -65,7 +65,8 @@ namespace iLgs.Services.Interfaces
                 InsertedDt = s.InsertedDt,
                 DeptId = s.DeptId,
                 LocationId = s.LocationId,
-                Article = s.PsCard.ItemCode.Description,
+                Article = _db.ItemCodes.FirstOrDefault(f => f.Code == s.PsCard.SubAccountCode).Description + "/" +
+                s.PsCard.ItemCode.Description,
                 Description = s.Description,
                 DeptDisplay = s.DeptDisplay,
                 StockNo = s.PsCard.PsNo,
@@ -86,7 +87,7 @@ namespace iLgs.Services.Interfaces
             var data = _db.PsCardItems.AsNoTracking()
                 .Include(i => i.Codextn)
                 .Include(i => i.Codextn1)
-                .Where(w => (IsAdmin || _db.Codextns.Any(x => x.CodeMast.Code == "DEPARTMENTS" && x.Id == w.DeptId
+                .Where(w => (IsAdmin || _db.Codextns.Any(x => x.CodeMast.Code == "LOCATIONS" && x.Id == w.DeptId
                     && x.DepartmentUsers.Any(a => a.UserId == userId)))
                 ).Select(GetPsCardItemProjection(_db)).AsQueryable();
             return data;
@@ -99,6 +100,12 @@ namespace iLgs.Services.Interfaces
                 .Include(i => i.Codextn1)
                 .Where(w => w.Id == id)
                 .Select(GetPsCardItemProjection(_db)).FirstOrDefaultAsync();
+            return data;
+        }
+
+        public IQueryable<PsCardItemVM> GetSummary()
+        {
+            var data = _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_Summary").AsQueryable();
             return data;
         }
 
@@ -260,6 +267,8 @@ namespace iLgs.Services.Interfaces
                         Type = model.Type,
                         InvDist = model.InvDist,
                         Vendor = model.Vendor,
+                        PrevPsNo = model.PrevPsNo,
+                        FPP = model.FPP,
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
@@ -281,7 +290,7 @@ namespace iLgs.Services.Interfaces
                     _db.Entry(psCardItem).State = EntityState.Modified;
                     await _db.SaveChangesAsync();
 
-                    if (selectedIds.Any())
+                    if (selectedIds != null)
                     {
                         foreach (var selectedId in selectedIds)
                         {

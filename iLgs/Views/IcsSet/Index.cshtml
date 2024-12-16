@@ -732,6 +732,10 @@
 
 
 <script type="text/javascript">
+    function columnTemplate(data) {
+        return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
+    }
+
     function onSelectPoNo(e) {
         var dataItem = this.dataItem(e.item.index());
 

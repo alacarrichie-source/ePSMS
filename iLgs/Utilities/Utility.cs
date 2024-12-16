@@ -12,6 +12,25 @@ namespace iLgs.Utilities
 {
     public static class Utility
     {
+        public static string ExportDate(DateTime? date)
+        {
+            if (date.HasValue)
+            {
+                var d = (DateTime)date;
+
+                if (d.Month == 1 && d.Day == 1)
+                {
+                    return $"{d.Year}";
+                }
+
+                if (d.Day == 1)
+                {
+                    return $"{d.Month}/{d.Year}";
+                }
+            }
+            return string.Empty;
+        }
+
         public static string ToProperCase(string input)
         {
             if (string.IsNullOrEmpty(input))

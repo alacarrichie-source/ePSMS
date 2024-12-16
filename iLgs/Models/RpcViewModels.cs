@@ -74,6 +74,11 @@ namespace iLgs.Models
         [Display(Name = "Article")]
         public Nullable<System.Guid> ItemCodeId { get; set; }
 
+        public string Account { get; set; }
+
+        [Display(Name = "Sub-Accounts")]
+        public string SubAccount { get; set; }
+
         public string Article { get; set; }
 
         [Display(Name = "PO No.")]

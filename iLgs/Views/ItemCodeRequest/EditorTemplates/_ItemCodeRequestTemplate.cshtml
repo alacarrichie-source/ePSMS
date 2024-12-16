@@ -13,8 +13,8 @@
         </div>
     </div>
 
-    <fieldset>        
-        <div class="row">
+    <fieldset>
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.DepartmentId, "LabelGuid")
@@ -48,31 +48,64 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.Description, "Label")
                 </div>
-                <div class="col-md-9">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-12">
+                    <p>
+                        (Provide the name of the item not yet available in the system. Give the estimated cost or price. 
+                    </p>
+                    @*If applicable, click the square for each item to place a checkmark if C or IM)*@
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-12">
                     @(Html.Kendo().TextAreaFor(m => m.Description).Rows(3).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Description)
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <br />
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.Remarks, "Label")
-                </div>
-                <div class="col-md-9">
-                    @(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(3).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.Remarks)
                 </div>
             </div>
         </div>
 
         <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-12">
+                    <p>
+                        (Describe the use or purpose of the item and indicate its intended recipients, corresponding respectively to the numbering above.)
+                    </p>                    
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-12">
+                    @(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(3).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Remarks)
+                </div>
+            </div>
+        </div>
+        
+        <br />
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.EstCost, "LabelDecimal")
@@ -84,38 +117,71 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.IsConsumable, "LabelBool")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-1">
                     @(Html.Kendo().SwitchFor(m => m.IsConsumable).Messages(c => c.Checked("YES").Unchecked("NO")))
                     @Html.ValidationMessageFor(m => m.IsConsumable)
+                </div>
+                <div class="col-md-8">
+                    <p>
+                        (to be used up, a non-durable good, for single-use, disposed of after use)
+                    </p>
+                    <p>
+                        Example: Liquefied Petroleum Gas Refills
+                    </p>
+                    <p>
+                        Addt'l example: Fuelling Purposes
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.IsForDistribution, "LabelBool")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-1">
                     @(Html.Kendo().SwitchFor(m => m.IsForDistribution).Messages(c => c.Checked("YES").Unchecked("NO")))
                     @Html.ValidationMessageFor(m => m.IsForDistribution)
+                </div>
+                <div class="col-md-8">
+                    <p>
+                        (to be handed out as welfare items, for outreach, giveaways, or informational materials)
+                    </p>
+                    <p>
+                        Example: Concrete Hollow Blocks
+                    </p>
+                    <p>
+                        Addt'l example: Building Materials
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.IsIncorporated, "LabelBool")
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-1">
                     @(Html.Kendo().SwitchFor(m => m.IsIncorporated).Messages(c => c.Checked("YES").Unchecked("NO")))
                     @Html.ValidationMessageFor(m => m.IsIncorporated)
+                </div>
+                <div class="col-md-8">
+                    <p>
+                        (intended to be permanently integrated into a structure)
+                    </p>
+                    <p>
+                        Example: Glucose Plus Juice
+                    </p>
+                    <p>
+                        Addt'l example: Dietary Supplement
+                    </p>
                 </div>
             </div>
         </div>

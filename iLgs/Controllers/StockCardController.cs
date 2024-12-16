@@ -173,9 +173,9 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _StockCardAddEdit(Guid? cardId)
+        public ActionResult _StockCardAddEdit(Guid? cardId)
         {
-            var data = await _stockCardService.GetByIdAsync(cardId);
+            var data = _stockCardService.GetById(cardId);
             if (data == null)
             {
                 data = new StockCardVM()
@@ -636,7 +636,7 @@ namespace iLgs.Controllers
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> LoadItemFields([System.Web.Http.FromBody] PsCardItemVM model)
         {
-            var psCard = await _stockCardService.GetByIdAsync((Guid)model.PsCardId);
+            var psCard = _stockCardService.GetById((Guid)model.PsCardId);
             if (model.Id != Guid.Empty)
             {
                 var data = await _stockCardService.PsCardItem.GetByIdAsync(model.Id);
@@ -943,8 +943,28 @@ namespace iLgs.Controllers
         }
         #endregion
 
-        #region AJAX CALLS
+        #region QUERY
+        public ActionResult ItemQuery()
+        {
+            return View();
+        }
 
+        public ActionResult ItemQueryRead([DataSourceRequest] DataSourceRequest request)
+        {
+            var data = _stockCardService.PsCardItem.GetAllStocks();
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+        #endregion
+
+        #region AJAX CALLS
         [HttpPost]
         public ActionResult GetItemExtnTemplate(Guid? id)
         {

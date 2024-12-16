@@ -275,7 +275,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "issuance");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowAdd)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }                
@@ -523,7 +523,27 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        #endregion        
+        #endregion
+
+        #region SUMMARY
+        public ActionResult Summary()
+        {
+            return View();
+        }
+
+        public ActionResult SummaryRead([DataSourceRequest] DataSourceRequest request)
+        {
+            var data = _poIssuanceService.GetSummary();
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+        #endregion
 
         public async Task<JsonResult> IsSelected(Guid? psCardItemExtnId, Guid? refId)
         {

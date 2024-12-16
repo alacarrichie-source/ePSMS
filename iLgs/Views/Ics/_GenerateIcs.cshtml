@@ -39,7 +39,7 @@
         <div class="row">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
+                <div class="col-md-10">                    
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Location")
@@ -51,14 +51,15 @@
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
+                                    read.Action("GetLocationSp", "Getters");
                                 })
                                 .ServerFiltering(true);
                             })
                             .Columns(c =>
                             {
-                                c.Add().Field("Code").Title("Code").Width("30%");
-                                c.Add().Field("Description").Title("Description").Width("70%");
+                                c.Add().Field("Code").Title("Code").Width("10%");
+                                c.Add().Field("Desc3").Title("Main-Location").Width("50%").Template("#= columnTemplate(data.Desc3) #");
+                                c.Add().Field("Desc2").Title("Location").Width("40%").Template("#= columnTemplate(data.Desc2) #");
                             })
                             .Events(e => e.Select("onSelectGenerateParLocationId"))
                             .Suggest(true)

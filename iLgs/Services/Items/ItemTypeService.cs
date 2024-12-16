@@ -4,6 +4,7 @@ using iLgs.Services.Interfaces;
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
@@ -28,22 +29,26 @@ namespace iLgs.Services
         {
             _db = db;
         }
+        
+        private Expression<Func<ItemType, ItemTypeVM>> Projection(AppManEntities _db)
+        {
+            return s => new ItemTypeVM
+            {
+                Id = s.Id,
+                Code = s.Code,
+                Description = s.Description,
+                PartialPage = s.PartialPage,
+                RequiredFields = _db.Codextns.Where(w => w.Desc2 == s.PartialPage && w.CodeMast.Code == "REQUIRED-FIELDS").FirstOrDefault().Description,
+                Category = s.Category,
+                CategoryDesc = _db.Codextns.Where(w => w.Code == s.Category && w.CodeMast.Code == "PS-CATEGORY").FirstOrDefault().Description,
+                GroupCode = s.GroupCode,
+                InsertedDt = s.InsertedDt
+            };
+        }
 
         public IQueryable<ItemTypeVM> GetAll()
         {
-            var data = _db.ItemTypes
-                .Select(s => new ItemTypeVM
-                {
-                    Id = s.Id,                   
-                    Code = s.Code,
-                    Description = s.Description,
-                    PartialPage = s.PartialPage,
-                    RequiredFields = _db.Codextns.Where(w => w.Desc2 == s.PartialPage && w.CodeMast.Code == "REQUIRED-FIELDS").FirstOrDefault().Description,
-                    Category = s.Category,
-                    CategoryDesc = _db.Codextns.Where(w => w.Code == s.Category && w.CodeMast.Code == "PS-CATEGORY").FirstOrDefault().Description,
-                    GroupCode = s.GroupCode,
-                    InsertedDt = s.InsertedDt
-                });
+            var data = _db.ItemTypes.Select(Projection(_db));
             return data;
         }
         
@@ -65,7 +70,6 @@ namespace iLgs.Services
         }
         public async Task<ItemTypeVM> CreateAsync(ItemTypeVM model, string user, DateTime date)
         {
-
             ValidateRequired(model);
 
             model.Id = Guid.NewGuid();

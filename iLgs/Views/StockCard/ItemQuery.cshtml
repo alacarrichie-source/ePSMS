@@ -1,52 +1,99 @@
 ﻿@{
-    ViewBag.Title = "Property Card";
+    ViewBag.Title = "Stock Card - Inquiry";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-@(Html.Kendo().Grid<iLgs.Models.PropertyCardVM>()
-    .HtmlAttributes(new { @class = "max-grid" })
+@(Html.Kendo().Grid<iLgs.Models.PsCardItemVM>()
+    //.HtmlAttributes(new { @class = "max-grid" })
     .Name("grid")
-    .Columns(col =>
+    .Columns(columns =>
     {
-        col.Bound(c => c.Fund).Width(40);
-        col.Bound(c => c.PsNo).Width(100);
-        col.Bound(c => c.ItemType).Width(100);
-        col.Bound(c => c.SubAccount).Width(100);
-        col.Bound(c => c.Item).Width(100).Title("Articles");
-        //col.Bound(c => c.PsName).Width(70);
-        //col.Bound(c => c.Description).Width(100);
-        col.Command(command =>
+        columns.Bound(c => c.Fund).Width(40);
+        columns.Bound(c => c.Account).Width(100);
+        columns.Bound(c => c.SubAccount).Width(100);
+        columns.Bound(c => c.Article).Width(100).Title("Articles");
+        columns.Bound(c => c.StockNo).Width(100);
+        columns.Group(group => group.Title("Reference")
+                .Columns(info =>
+                {
+                    info.Bound(f => f.PoNo).Width(50);
+                    info.Bound(f => f.PoDate).Width(50);
+                    //info.Bound(f => f.AirNo).Width(50);
+                    //info.Bound(f => f.AirDate).Width(50);
+                }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            );
+        columns.Bound(f => f.UnitCost).Width(50).Title("PO<br>Unit Cost")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(f => f.Unit).Width(50).Title("Unit<br>of<br>Measurement");
+        columns.Group(group =>
         {
-            //command.Edit();
-            command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEdit");
-            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-            command.Destroy();
-        }).Width(100);
-    })
-    @*.ToolBar(toolbar =>
+            group.Title("Receipt Quantity").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            .Columns(col =>
             {
-            toolbar.Template(@<text>
-                @(Html.Kendo().Button().Name("btnAdd_").Content("Add Item").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAdd")))
-                @(Html.Kendo().Button().Name("btnPrintCard").Content("Print").Icon("k-icon k-i-print").Events(e => e.Click("onClickBtnPrint")))
-            </text>);
-        })*@
+                col.Group(g =>
+                {
+                    g.Title("Originating Department").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                        .Columns(info =>
+                        {
+                            info.Bound(f => f.Department).Width(70).Title("PO Owner");
+                            info.Bound(f => f.Qty).Width(50).Title("In")
+                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                                //.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                        });
+                });
+                col.Group(g =>
+                {
+                    g.Title("Intermediary").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                        .Columns(info =>
+                        {
+                            info.Bound(f => f.LocCode).Width(50).Title("Code");
+                            info.Bound(f => f.Location).Width(50).Title("Location");
+                            info.Bound(f => f.TransferIn).Width(50).Title("Transit-In")
+                                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                                //.ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                        });
+                });
+            });
+        });
+        //columns.Group(group => group.Title("Released Quantity")
+        //    .Columns(info =>
+        //    {
+        //        info.Bound(f => f.TransferOut)
+        //            .Width(50).Title("Intermediary<br><br>Transit-Out")
+        //            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+        //            .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        //            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        //        info.Bound(f => f.QtyIss)
+        //            .Width(50).Title("Issued")
+        //            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+        //            .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        //            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        //    }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        //);
+        columns.Bound(f => f.QtyBal).Width(50).Title("Balance<br>Quantity")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            //.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        columns.Bound(f => f.InsertedBy).Width(50);
+        columns.Bound(f => f.InsertedDt).Width(50);
+    })
     .ToolBar(t =>
     {
-        //t.Create().Text("Add New Record");
-        //t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnAddNew").HtmlAttributes(new { @class = "k-grid-add-custom" });
-        t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintCard").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
     .Search(s =>
     {
         s.Field(o => o.Fund, "contains");
-        s.Field(o => o.PsNo, "contains");
-        s.Field(o => o.ItemType, "contains");
+        s.Field(o => o.Account, "contains");
         s.Field(o => o.SubAccount, "contains");
-        s.Field(o => o.Item, "contains");
+        s.Field(o => o.Article, "contains");
+        s.Field(o => o.StockNo, "contains");
+        s.Field(o => o.Department, "contains");
+        s.Field(o => o.LocCode, "contains");
+        s.Field(o => o.Location, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -63,7 +110,6 @@
     .Scrollable()
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
-    .ClientDetailTemplateId("DetailTemplate")
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)
@@ -73,17 +119,13 @@
         .Model(model =>
         {
             model.Id(p => p.Id);
-            model.Field(p => p.CardCategory).DefaultValue("S").Editable(true);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
-        .Read(read => read.Action("Read", "PropertyCard"))
-        //.Create(create => create.Action("Create", "PropertyCard"))
-        //.Update(update => update.Action("Update", "PropertyCard"))
-        .Destroy(destroy => destroy.Action("Destroy", "PropertyCard"))
+        .Sort(s => { s.Add(a => a.Article); s.Add(a => a.PoNo); s.Add(a => a.PoDate);  s.Add(a => a.InsertedDt); })
+        .Read(read => read.Action("ItemQueryRead", "StockCard"))
     )
     .Events(events => events
         .Change("onChangeGrid")
-        //.Edit("onEditGrid")
         .DataBound("onDataBoundGrid")
     )
 )
@@ -104,7 +146,7 @@
         {
             items.Add().Text("Items")
             .Selected(true)
-            .LoadContentFrom("_PropertyCardItem", "PropertyCard", new { cardId = "#=Id#", category = "#=ItemTypeCode#" });
+            .LoadContentFrom("_StockCardItem", "StockCard", new { cardId = "#=Id#", category = "#=ItemTypeCode#" });
         })
        .ToClientTemplate()
     )
@@ -155,10 +197,10 @@
             a.Add(p => p.Qty).Sum();
             a.Add(p => p.Amount).Sum();
         })
-        .Read(read => read.Action("IssuanceRead", "PropertyCard", new { cardItemId = "#=Id#" }))
-        .Create(create => create.Action("IssuanceCreate", "PropertyCard"))
-        .Update(update => update.Action("IssuanceUpdate", "PropertyCard"))
-        .Destroy(destroy => destroy.Action("IssuanceDestroy", "PropertyCard"))
+        .Read(read => read.Action("IssuanceRead", "StockCard", new { cardItemId = "#=Id#" }))
+        .Create(create => create.Action("IssuanceCreate", "StockCard"))
+        .Update(update => update.Action("IssuanceUpdate", "StockCard"))
+        .Destroy(destroy => destroy.Action("IssuanceDestroy", "StockCard"))
     )
     .Events(events => events
         .Change("onChangeGridIssuance")
@@ -207,6 +249,7 @@
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnVehicleTemplate").Window(w => w.Width(500).Title("Item Details")))
     .Sortable()
     .NoRecords()
+    .ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax()
         .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
@@ -216,10 +259,10 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
         })
-        .Read(read => read.Action("_ItemExtnVehicleRead", "PropertyCard", new { psCardItemId = "#=Id#" }))
-        .Create(create => create.Action("_ItemExtnVehicleCreate", "PropertyCard"))
-        .Update(update => update.Action("_ItemExtnVehicleUpdate", "PropertyCard"))
-        .Destroy(destroy => destroy.Action("_ItemExtnVehicleDestroy", "PropertyCard"))
+        .Read(read => read.Action("_ItemExtnVehicleRead", "StockCard", new { psCardItemId = "#=Id#" }))
+        .Create(create => create.Action("_ItemExtnVehicleCreate", "StockCard"))
+        .Update(update => update.Action("_ItemExtnVehicleUpdate", "StockCard"))
+        .Destroy(destroy => destroy.Action("_ItemExtnVehicleDestroy", "StockCard"))
     )
     .Events(events => events
         .Change("onChangeGridItemExtn")
@@ -252,6 +295,7 @@
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnOtherTemplate").Window(w => w.Width(500).Title("Item Details")))
     .Sortable()
     .NoRecords()
+    .ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax()
         .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
@@ -261,10 +305,10 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
         })
-        .Read(read => read.Action("_ItemExtnOtherRead", "PropertyCard", new { psCardItemId = "#=Id#" }))
-        .Create(create => create.Action("_ItemExtnOtherCreate", "PropertyCard"))
-        .Update(update => update.Action("_ItemExtnOtherUpdate", "PropertyCard"))
-        .Destroy(destroy => destroy.Action("_ItemExtnOtherDestroy", "PropertyCard"))
+        .Read(read => read.Action("_ItemExtnOtherRead", "StockCard", new { psCardItemId = "#=Id#" }))
+        .Create(create => create.Action("_ItemExtnOtherCreate", "StockCard"))
+        .Update(update => update.Action("_ItemExtnOtherUpdate", "StockCard"))
+        .Destroy(destroy => destroy.Action("_ItemExtnOtherDestroy", "StockCard"))
     )
     .Events(events => events
         .Change("onChangeGridItemExtn")
@@ -274,6 +318,20 @@
     )
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .ToClientTemplate())
+</script>
+
+<script id="UploadedFiles" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+        .Name("tabStrip_#=Id#")
+        .HtmlAttributes(new { @class = "no-text-tabstrip" })
+        .TabPosition(TabStripTabPosition.Top)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .SelectedIndex(0)
+        .Items(items =>
+        {
+            items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CardUpload", new { imageId = "#=Id#", psCardItemId = "#=PsCardItemId#" });
+        })
+        .ToClientTemplate())
 </script>
 
 <div id="windowcontainer"></div>
@@ -375,13 +433,12 @@
         color: #35373d;
     }
 
-    .title {
+    /*.title {
         font-size: 9px;
         line-height: 9px;
-        /*color: #8a8b8f;*/
         text-transform: uppercase;
         display: inline-block;
-    }
+    }*/
 
     .phone {
         font-size: 10px;
@@ -583,26 +640,38 @@
         word-wrap: break-word;
         word-break: break-all;
     }
+
+    .no-text-tabstrip .k-item .k-link {
+        padding: 0; /* Remove padding */
+        /* Move the text outside the visible area */
+        /*text-indent: -9999px;*/
+        overflow: hidden; /* Hide any overflow */
+        display: none;
+    }
+
+    #grid .k-grid-content {
+        overflow-x: auto;
+        height: calc(90vh - 150px) !important;
+    }
 </style>
 
 
 <script type="text/x-kendo-template" id="validationMessageTemplate">
     # if (messages.length) { #
-    @*<li>
-            #=field#
-            <ul>
-                # for (var i = 0; i < messages.length; ++i) { #
-                <li>#= messages[i] #</li>
-                # } #
-            </ul>
-        </li>*@
-    # for (var i = 0; i < messages.length; ++i) { #
-    <li>#= messages[i] #</li>
-    # } #
+    <li>
+        #=field#
+        <ul>
+            # for (var i = 0; i < messages.length; ++i) { #
+            <li>#= messages[i] #</li>
+            # } #
+        </ul>
+    </li>
     # } #
 </script>
 
-
+@*# for (var i = 0; i < messages.length; ++i) { #
+    <li>#= messages[i] #</li>
+        # } #*@
 
 <script type="text/javascript">
     function columnTemplate(data) {
@@ -715,7 +784,7 @@
     // GRID STOCKS
     function onClickBtnPrint(e) {
         e.preventDefault();
-        var url = '@Url.Action("StockCardRpt", "PropertyCard")?stockNo=' + selectedStockNo;
+        var url = '@Url.Action("StockCardRpt", "StockCard")?stockNo=' + selectedStockNo;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -750,7 +819,7 @@
     $(".k-grid-btnPrintCard").click(function (e) {
         e.preventDefault();
 
-        var url = '@Url.Action("StockCardRpt", "PropertyCard")?selectedId=' + selectedId;
+        var url = '@Url.Action("StockCardRpt", "StockCard")?selectedId=' + selectedId;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -899,7 +968,7 @@
     }
 
     function StockCard(mode, recId) {
-        var myTitle = (mode == "A") ? "Property Card - ADD" : "Property Card - EDIT";
+        var myTitle = (mode == "A") ? "Stock Card - ADD" : "Stock Card - EDIT";
         var width = 1000;
         var height = 650;
         $("#windowcontainer").append("<div id='window'></div>");
@@ -923,7 +992,7 @@
             //height: height
         });
         mywindow.refresh({
-            url: '@Url.Action("_PropertyCardAddEdit", "PropertyCard")',
+            url: '@Url.Action("_StockCardAddEdit", "StockCard")',
             data: {
                 cardId: recId
             },
@@ -986,7 +1055,7 @@
 
         fieldsContainer.empty(); // Clear existing content
 
-        var url = '@Url.Action("LoadFields", "PropertyCard")';
+        var url = '@Url.Action("LoadFields", "StockCard")';
         var data = $("#form").serialize();
 
         $.ajax({
@@ -1086,6 +1155,11 @@
     //            $(this).addClass("k-state-disabled");
     //        }
     //    });
+
+    //    this.bind("detailExpand", function (e) {
+    //        // Select the expanded master row
+    //        this.select(e.masterRow);
+    //    });
     //}
 
     // END CARD TEMPLATE
@@ -1104,7 +1178,7 @@
 
         $.ajax({
             type: "POST",
-            url: '@Url.Action("GetItemExtnTemplate", "PropertyCard")',
+            url: '@Url.Action("GetItemExtnTemplate", "StockCard")',
             data: { id: dataItem.Id},
             success: function (result) {
                 if (result.Errors == "") {
@@ -1192,7 +1266,7 @@
 
         fieldsContainer.empty(); // Clear existing content
 
-        var url = '@Url.Action("LoadItemFields", "PropertyCard")';
+        var url = '@Url.Action("LoadItemFields", "StockCard")';
         var data = $("#form").serialize();
 
         $.ajax({
@@ -1299,7 +1373,7 @@
             width: width
         });
         mywindow.refresh({
-            url: '@Url.Action("_PropertyCardItemAddEdit", "PropertyCard")',
+            url: '@Url.Action("_StockCardItemAddEdit", "StockCard")',
             data: {
                 cardId: selectedId,
                 cardrItemId: recId
@@ -1456,7 +1530,7 @@
 
         $.ajax({
             type: "POST",
-            url: '@Url.Action("GetDescription", "PropertyCard")',
+            url: '@Url.Action("GetDescription", "StockCard")',
             data: data,
             beforeSend: function () {
                 window.kendo.ui.progress($(document.body), true);
@@ -1512,6 +1586,12 @@
         var transferOut = $("#TransferOut").data("kendoNumericTextBox").value();
         var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();
 
+        qty = qty == null ? 0 : qty;
+        qtyIss = qtyIss == null ? 0 : qtyIss;
+        transferIn = transferIn == null ? 0 : transferIn;
+        transferOut = transferOut == null ? 0 : transferOut;
+        unitCost = unitCost == null ? 0 : unitCost;
+
         var balance = (qty + transferIn) - (qtyIss + transferOut);
         var amount = (qty + transferIn) * unitCost;
 
@@ -1550,7 +1630,7 @@
 
         fieldsContainer.empty(); // Clear existing content
 
-        var url = '@Url.Action("LoadItemFields", "PropertyCard")';
+        var url = '@Url.Action("LoadItemFields", "StockCard")';
         var data = $("#form").serialize();
 
         $.ajax({
@@ -1697,9 +1777,77 @@
             }
         });
     }
+
     // END GRID ITEMEXTN
 
     // GRID IMAGES
+    function onError(e) {
+        // invalid because the responseText is a raw string, not JSON
+        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
+        var err = e.XMLHttpRequest.responseText;
+        alert(err);
+    };
+
+    function GridUploadError(e) {
+        if (e.errors) {
+            //// Get the parent grid
+            var parentGrid = $("#gridItems").data("kendoGrid");
+
+            // Try to find the closest grid row
+            var row = $(e.target).closest("tr[data-uid]"); // Look for the row with a data-uid attribute
+
+            // Log the row for debugging
+            console.log("Row element:", row);
+
+            // Check if a valid row was found
+            if (row.length === 0) {
+                console.warn("No valid row found. The event target may not be within a grid row.");
+
+                // Provide a fallback: Try getting the parent row from a specific known container
+                var knownContainer = $("#gridItems"); // Replace with your grid's container
+                row = knownContainer.find("tr[data-uid]"); // Grab any row as a fallback
+
+                if (row.length === 0) {
+                    console.warn("No rows found in the parent grid.");
+                    return; // Exit if no rows are found
+                } else {
+                    console.warn("Fallback: Found rows in the parent grid but not the specific one.");
+                }
+            }
+
+            // Get the dataItem for the parent grid
+            var dataItem = parentGrid.dataItem(row);
+
+            // Log the retrieved dataItem
+            if (!dataItem) {
+                // Get the index of the row in the parent grid
+                var rowIndex = row.index();
+                console.log("Row index:", rowIndex);
+
+                // Attempt to access dataItem using the dataSource view
+                dataItem = parentGrid.dataSource.view()[rowIndex];
+
+                // Log the data item retrieved via index
+                console.log("Data Item found using index:", dataItem);
+            }
+
+
+            // Find the subgrid and refresh it
+            var subgridName = "gridImages_" + dataItem.GroupId; // Adjust based on how you identify the subgrid
+            var subgrid = $("#" + subgridName).data("kendoGrid");
+
+            if (subgrid) {
+                subgrid.dataSource.read(); // Refresh the subgrid
+            }
+
+            $.each(e.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                }
+            });
+        }
+    }
+
     var selectedGridImagesItem = null;
     function onEditGridImages(e) {
         e.preventDefault();
@@ -1753,7 +1901,6 @@
         setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
     }
 
-
     function onClickUpload(e) {
         var button = e.sender.element; // Use the sender's element;
         // Retrieve the grid name from the data attribute
@@ -1763,13 +1910,13 @@
         var parentRow = this.wrapper.closest("tr").prev();
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
         var parentModel = parentGrid.dataItem(parentRow);
-        var imageId = parentModel.GroupId;
+        var imageId = parentModel.Id;
+        var psCardItemId = parentModel.PsCardItemId;
 
-        var myUrl = '@Url.Action("_ImagesAdd", "ParIcsUpload")?imageId=' + imageId;
+        var myUrl = '@Url.Action("_ImagesAdd", "CardUpload")?imageId=' + imageId + '&psCardItemId=' + psCardItemId;
         var myTitle = "Upload Images/Documents";
         var width = 800;
         var height = 650;
-
 
         $("#windowcontainer").append("<div id='windowUpload'></div>");
         var mywindow = $("#windowUpload")
@@ -1788,7 +1935,6 @@
         mywindow.refresh({ url: myUrl });
         mywindow.center();
         mywindow.open();
-
     }
 
     function UploadPara(e) {
@@ -1796,7 +1942,7 @@
         //alert(additional);
         //e.data = JSON.parse(additional);
         //$('#chkSMS').is(':checked');
-        e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val() }
+        e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val(), PsCardItemId: $("#PsCardItemId").val() }
     }
 
     function onClickPreview(e) {
@@ -1809,11 +1955,10 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         selectedGridImagesItem = dataItem.Id;
 
-        var myUrl = '@Url.Action("PreviewUpload", "ParIcsUpload")?id=' + selectedGridImagesItem;
+        var myUrl = '@Url.Action("PreviewUpload", "CardUpload")?id=' + selectedGridImagesItem;
         var myTitle = "Preview";
         var width = 800;
         var height = 650;
-
 
         $("#windowcontainer").append("<div id='windowPreview'></div>");
         var mywindow = $("#windowPreview")

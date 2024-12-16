@@ -1,19 +1,24 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services
 {
     public interface IPsCardItemIssuanceService
     {
         IQueryable<PsCardItemIssuanceVM> GetByCardItemId(Guid? cardItemId);
-        ValueTask<PsCardItemIssuanceVM> GetByIdAsync(Guid? id);        
+        ValueTask<PsCardItemIssuanceVM> GetByIdAsync(Guid? id);
 
         ValueTask<PsCardItemIssuanceVM> CreateAsync(PsCardItemIssuanceVM model, string user, DateTime date);
         ValueTask<PsCardItemIssuanceVM> UpdateAsync(PsCardItemIssuanceVM model, string user, DateTime date);
@@ -22,20 +27,24 @@ namespace iLgs.Services
         ValueTask<PsCardItemIssuance> UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
     }
 
-    public class PsCardItemIssuanceService : IPsCardItemIssuanceService
+    public class PsCardItemIssuanceService : BaseValidator, IPsCardItemIssuanceService
     {
         private readonly AppManEntities _db;
+        private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IExceptionService<PsCardItemIssuanceVM> _VmExceptionService = new ExceptionService<PsCardItemIssuanceVM>();
         private readonly IExceptionService<PsCardItemIssuance> _ExceptionService = new ExceptionService<PsCardItemIssuance>();
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnService _psCardItemExtnService;
+        private readonly ICodextnService _codextnService;
 
         public PsCardItemIssuanceService(AppManEntities db)
         {
             _db = db;
+            _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemIssuanceVM>(propertyName);
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
             _psCardItemExtnService = new PsCardItemExtnService(_db);
-        }        
+            _codextnService = new CodextnService(_db);
+        }
 
         public ValueTask<PsCardItemIssuanceVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
         {
@@ -56,7 +65,8 @@ namespace iLgs.Services
                     Department = s.Codextn.Description,
                     UnitCost = s.PsCardItem.UnitCost,
                     PostedBy = s.PostedBy,
-                    PostedDt = s.PostedDt
+                    PostedDt = s.PostedDt,
+                    Location = s.Codextn1.Description
                     //IssuedToDesc = s.IssuedTo.Contains("Department") ? s.Codextn.Description : (s.IssuedTo == "Location" || s.IssuedTo == "Disposal") ? s.Codextn1.Description : ""
                 }).FirstOrDefaultAsync();
             return data;
@@ -81,7 +91,8 @@ namespace iLgs.Services
                     Department = s.Codextn.Description,
                     UnitCost = s.PsCardItem.UnitCost,
                     PostedBy = s.PostedBy,
-                    PostedDt = s.PostedDt          
+                    PostedDt = s.PostedDt,
+                    Location = s.Codextn1.Description
                     //IssuedToDesc = s.IssuedTo.Contains("Department") ? s.Codextn.Description : (s.IssuedTo == "Location" || s.IssuedTo == "Disposal") ? s.Codextn1.Description : ""
                 });
             return data;
@@ -90,101 +101,73 @@ namespace iLgs.Services
         //public IQueryable GetVehicleSelection(Guid? cardItemId)
         //{
         //    var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == cardItemId);
-        //}
+        //}        
 
-        private async ValueTask ValidateFieldsAsync(PsCardItemIssuanceVM model)
-        {
-            if (model.IssuedTo.Contains("Department"))
-            {
-                if (model.DeptId == null)
-                {
-                    throw new InvalidValueException("Department is required!");
-                }                
-            }
-
-            if (model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
-            {
-                if (model.LocationId == null)
-                {
-                    throw new InvalidValueException("Location is required!");
-                }
-            }
-
-            if (model.IssuedDate == null)
-            {
-                throw new InvalidValueException("Issued Date is required!");
-            }
-
-            if (model.Qty == 0)
-            {
-                throw new InvalidValueException("Quantity is required!");
-            }
-
-            var rsmiDate = await _db.RSMIs.MaxAsync(m => m.Date);
-            if (rsmiDate != null && rsmiDate > model.IssuedDate)
-            {
-                throw new InvalidValueException(string.Format("Date issued must be after the last RSMI date on {0}", rsmiDate.Value.ToShortDateString()));
-            }
-        }
-        
         public ValueTask<PsCardItemIssuanceVM> CreateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
-            string[] selectedIds = null;
-            if (model.SelectedIds == null)
+            await ValidateFieldsAsync(model, Mode.ADD);
+
+            if (model.SelectedIds != null)
             {
-                throw new InvalidValueException(string.Format("No selected items, cannot continue!"));
-            }
+                string[] selectedIds = model.SelectedIds.Split(',');
 
-            selectedIds = model.SelectedIds.Split(',');
-            if (selectedIds.Count() == 0)
+                if (selectedIds.Count() == 0)
+                {
+                    throw new InvalidValueException(string.Format("No selected items, cannot continue!"));
+                }
+
+                // get all selected ids, put them in a list
+                List<PsCardItemExtnLocationVm> psCardItemExtnLocationList = new List<PsCardItemExtnLocationVm>();
+                foreach (var selectedId in selectedIds)
+                {
+                    var itemExtnId = Guid.Parse(selectedId);
+                    var psCardItemExtnLocation = await _psCardItemExtnService.GetCardItemExtnLocationAsync(itemExtnId);
+                    psCardItemExtnLocationList.Add(psCardItemExtnLocation);
+                }
+
+                var locationCodeGroup = psCardItemExtnLocationList.GroupBy(g => new { g.LocationId, g.LocationCode, g.Location });
+                foreach (var locationCode in locationCodeGroup)
+                {
+                    var qty = locationCode.Count();
+                    var entity = new PsCardItemIssuance
+                    {
+                        Id = Guid.NewGuid(),
+                        LocationId = locationCode.Key.LocationId,
+                        PsCardItemId = model.PsCardItemId,
+                        IssuedTo = model.IssuedTo,
+                        IssuedDate = model.IssuedDate,
+                        Qty = qty,
+                        Amount = model.UnitCost * qty,
+                        IssuedToCode = model.IssuedToCode,
+                        IssuedToDescription = model.IssuedToDescription,
+                        InsertedBy = model.InsertedBy,
+                        InsertedDt = model.InsertedDt,
+                        UpdatedBy = model.UpdatedBy,
+                        UpdatedDt = model.UpdatedDt,
+                        DeptId = model.DeptId
+                    };
+
+                    _db.PsCardItemIssuances.Add(entity);
+                    await _db.SaveChangesAsync();
+
+                    var psCardItemExtns = psCardItemExtnLocationList.Where(w => w.LocationCode == locationCode.Key.LocationCode).ToList();
+                    foreach (var psCardItemExtn in psCardItemExtns)
+                    {
+                        await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, entity.Id, "ISSUANCE", user, date);
+                    }
+                }
+            }
+            else
             {
-                throw new InvalidValueException(string.Format("No selected items, cannot continue!"));
-            }
-
-            //model.TransferOut = selectedIds.Count();
-
-            //await ValidateFieldsAsync(model);
-
-            //var totalQtyIssued = _db.PsCardItems.Find(model.PsCardItemId)?.Qty ?? 0;
-            //var qtyIssued = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == model.PsCardItemId).Sum(s => s.Qty) ?? 0;            
-            //var qtyBalance = totalQtyIssued - qtyIssued;
-            var qtyBalance = _db.PsCardItems.Find(model.PsCardItemId)?.QtyBal ?? 0;
-            if (model.Qty > qtyBalance)
-            {
-                throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
-            }
-
-            if (model.IssuedTo == "Stakeholders")
-            {
-                model.LocationId = null;
-                model.IssuedToCode = "";
-            }
-            else {
-                model.DeptId = null;
-            }
-
-            // get all selected ids, put them in a list
-            List<PsCardItemExtnLocationVm> psCardItemExtnLocationList = new List<PsCardItemExtnLocationVm>();
-            foreach (var selectedId in selectedIds)
-            {
-                var itemExtnId = Guid.Parse(selectedId);
-                var psCardItemExtnLocation = await _psCardItemExtnService.GetCardItemExtnLocationAsync(itemExtnId);
-                psCardItemExtnLocationList.Add(psCardItemExtnLocation);
-            }
-
-            var locationCodeGroup = psCardItemExtnLocationList.GroupBy(g => new { g.LocationId, g.LocationCode, g.Location });
-            foreach(var locationCode in locationCodeGroup)
-            {
-                var qty = locationCode.Count();
                 var entity = new PsCardItemIssuance
                 {
                     Id = Guid.NewGuid(),
-                    LocationId = locationCode.Key.LocationId,
+                    LocationId = model.LocationId,
                     PsCardItemId = model.PsCardItemId,
                     IssuedTo = model.IssuedTo,
                     IssuedDate = model.IssuedDate,
-                    Qty = qty,
-                    Amount = model.UnitCost * qty,
+                    Qty = model.Qty,
+                    Amount = model.UnitCost * model.Qty,
                     IssuedToCode = model.IssuedToCode,
                     IssuedToDescription = model.IssuedToDescription,
                     InsertedBy = model.InsertedBy,
@@ -196,120 +179,53 @@ namespace iLgs.Services
 
                 _db.PsCardItemIssuances.Add(entity);
                 await _db.SaveChangesAsync();
-
-                var psCardItemExtns = psCardItemExtnLocationList.Where(w => w.LocationCode == locationCode.Key.LocationCode).ToList();
-                foreach(var psCardItemExtn in psCardItemExtns)
-                {
-                    await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, entity.Id, "ISSUANCE", user, date);
-                }                
             }
 
             await UpdatePsItems(model.PsCardItemId, user, date);
-
-            //foreach(var location in locationGroup)
-            //{
-            //    var qty = location.Count();
-            //    var entity = new PsCardItemIssuance
-            //    {
-            //        Id = model.Id,
-            //        LocationId = location,
-            //        PsCardItemId = model.PsCardItemId,
-            //        IssuedTo = model.IssuedTo,
-            //        IssuedDate = model.IssuedDate,
-            //        Qty = qty,
-            //        Amount = cardItem.UnitCost * qty,
-            //        IssuedToCode = model.IssuedToCode,
-            //        IssuedToDescription = model.IssuedToDescription,
-            //        InsertedBy = model.InsertedBy,
-            //        InsertedDt = model.InsertedDt,
-            //        UpdatedBy = model.UpdatedBy,
-            //        UpdatedDt = model.UpdatedDt,
-            //        DeptId = model.DeptId
-            //    };
-
-            //    _db.PsCardItemIssuances.Add(entity);
-            //    await _db.SaveChangesAsync();
-            //}
-
-
-            //await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, psCardItemTransfer.Id, "ISSUANCE", user, date);
-
-            //model.Id = Guid.NewGuid();
-            //model.InsertedBy = user;
-            //model.UpdatedBy = user;
-            //model.InsertedDt = date;
-            //model.UpdatedDt = date;            
-
-            //var cardItem = await _db.PsCardItems.FindAsync(model.PsCardItemId);
-
-            //var entity = new PsCardItemIssuance
-            //{
-            //    Id = model.Id,
-            //    LocationId = model.LocationId,
-            //    PsCardItemId = model.PsCardItemId,
-            //    IssuedTo = model.IssuedTo,
-            //    IssuedDate = model.IssuedDate,
-            //    Qty = model.Qty,
-            //    Amount = cardItem.UnitCost * model.Qty,
-            //    IssuedToCode = model.IssuedToCode,
-            //    IssuedToDescription = model.IssuedToDescription,
-            //    InsertedBy = model.InsertedBy,
-            //    InsertedDt = model.InsertedDt,
-            //    UpdatedBy = model.UpdatedBy,
-            //    UpdatedDt = model.UpdatedDt,
-            //    DeptId = model.DeptId
-            //};
-
-            //_db.PsCardItemIssuances.Add(entity);
-            //await _db.SaveChangesAsync();
-
-            ////await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "ISSUANCE", user, date);
-
-            //await UpdatePsItems(model.PsCardItemId, user, date);
 
             return model;
         });
 
         public ValueTask<PsCardItemIssuanceVM> UpdateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
-            await ValidateFieldsAsync(model);
-
+            ValidateIfNull(model);
             var entity = await _db.PsCardItemIssuances.Include(i => i.PsCardItem).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
-            if (entity == null)
-            {
-                throw new RecordNotFoundException(model.Id);
-            }
+            ValidateRecord(entity, model.Id);
 
             if (entity.PostedDt != null)
             {
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }
 
-            //var totalQtyIssued = _db.PsCardItems.Find(model.PsCardItemId)?.Qty ?? 0;
-            //var qtyIssued = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.Id).Sum(s => s.Qty) ?? 0;
-            //var qtyBalance = totalQtyIssued - qtyIssued;
-            var qtyBalance = _db.PsCardItems.Find(model.PsCardItemId)?.QtyBal ?? 0;
+            if (_db.RSMIs.Any(a => a.Date == entity.IssuedDate))
+            {
+                throw new RecordAlreadyExistsException($"RSMI already exists for the saved date, {entity.IssuedDate.Value.ToShortDateString()}, cannot update!");
+            }
+
+            await ValidateFieldsAsync(model, Mode.EDIT);
+
+            var qtyBalance = (_db.PsCardItems.Find(model.PsCardItemId)?.QtyBal ?? 0) + entity.Qty;
             if (model.Qty > qtyBalance)
             {
                 throw new InvalidValueException(string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
             }
 
-            if (model.IssuedTo.Contains("Department") || model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
-            {
-                if (model.IssuedTo.Contains("Department"))
-                {
-                    model.LocationId = null;
-                }
-                else if (model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
-                {
-                    model.DeptId = null;
-                }
-            }
-            else
-            {
-                model.LocationId = null;
-                model.IssuedToCode = "";
-            }
+            //if (model.IssuedTo.Contains("Department") || model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
+            //{
+            //    if (model.IssuedTo.Contains("Department"))
+            //    {
+            //        model.LocationId = null;
+            //    }
+            //    else if (model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
+            //    {
+            //        model.DeptId = null;
+            //    }
+            //}
+            //else
+            //{
+            //    model.LocationId = null;
+            //    model.IssuedToCode = "";
+            //}
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -344,9 +260,14 @@ namespace iLgs.Services
                 throw new RecordAlreadyPostedException("Record Already Posted, cannot delete!");
             }
 
+            if (_db.RSMIs.Any(a => a.Date == model.IssuedDate))
+            {
+                throw new RecordAlreadyExistsException("RSMI already exists for this date, cannot delete!");
+            }
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
-            
+
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
@@ -415,5 +336,99 @@ namespace iLgs.Services
             await _db.SaveChangesAsync();
             return entity;
         });
+
+        private void ValidateIfNull(PsCardItemIssuanceVM model)
+        {
+            if (model is null)
+            {
+                throw new NullException();
+            }
+        }
+
+        private void ValidateRecord(PsCardItemIssuance entity, Guid id)
+        {
+            if (entity == null)
+            {
+                throw new NotFoundException(id);
+            }
+        }
+
+        private async ValueTask ValidateFieldsAsync(PsCardItemIssuanceVM model, Mode mode)
+        {
+            //if (model.IssuedTo.Contains("Department"))
+            //{
+            //    if (model.DeptId == null)
+            //    {
+            //        throw new InvalidValueException("Department is required!");
+            //    }                
+            //}
+
+            //if (model.IssuedTo == "Location" || model.IssuedTo == "Disposal")
+            //{
+            //    if (model.LocationId == null)
+            //    {
+            //        throw new InvalidValueException("Location is required!");
+            //    }
+            //}
+
+            if (model.IssuedDate == null)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), "Field is required.");
+            }
+            else
+            {                
+                var poDate = await _db.PsCardItems.Include(i => i.PsCard).Where(w => w.Id == model.PsCardItemId).Select(s => s.PoDate).FirstOrDefaultAsync();
+                if (poDate.HasValue)
+                {
+                    if (poDate > model.IssuedDate)
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Date issued must be on or after the PO date for this item, {poDate.Value.ToShortDateString()}");
+                    }
+                    if (model.IssuedDate.Value.Year < DateTime.Now.Year)
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Year of date issued must be on the current year, {DateTime.Now.Year}");
+                    }
+                }
+                else
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.Id)), "PO Date of this record is invalid!");
+                }
+
+            }
+
+            var rsmiDate = await _db.RSMIs.MaxAsync(m => m.Date);
+            if (rsmiDate != null && rsmiDate > model.IssuedDate)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.LocationId)), string.Format("Date issued must be after the last RSMI date on {0}", rsmiDate.Value.ToShortDateString()));
+            }
+
+            if (model.LocationId == null || model.LocationId == Guid.Empty)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.LocationId)), "Field is required.");
+            }
+            else
+            {
+                if (!_codextnService.IsValidMastCodeId("LOCATIONS", model.LocationId))
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.LocationId)), "Invalid value.");
+                }
+            }
+
+            if (!model.Qty.HasValue || model.Qty == 0)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.Qty)), "Field is required.");
+            }
+
+            if (mode == Mode.ADD)
+            {
+                var qtyBalance = _db.PsCardItems.Find(model.PsCardItemId)?.QtyBal ?? 0;
+                if (model.Qty > qtyBalance)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.Qty)), string.Format("Quantity must not exceed the remaing balance of {0}", qtyBalance));
+                }
+            }
+
+            _imex.ThrowIfContainsErrors();
+        }
     }
 }

@@ -374,6 +374,19 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.BudgetId, Code = c.BudgetCode, Description = c.Description, Fund = c.Fund }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetFppByDeptId(Guid? deptId, string text)
+        {
+
+            var model = _locationBudgetService.GetAll(deptId);
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                model = model.Where(p => p.Id.ToString() == text || p.BudgetCode.Contains(text) || p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.BudgetId, Code = c.BudgetCode, Description = c.Description, Fund = c.Fund }), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetRisNos(string text)
         {
 
@@ -607,7 +620,7 @@ namespace iLgs.Controllers
             }
 
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
-        }
+        }        
 
         public JsonResult GetAccountExclusion(Guid? itemUserId, string category, string text)
         {
@@ -627,7 +640,7 @@ namespace iLgs.Controllers
         public JsonResult GetLocationSp(string text)
         {
 
-            var model = _locationService.GetLocations(text);
+            var model = _locationService.GetLocations(text).Where(w => !w.Code.StartsWith("68"));
 
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Location, Desc2 = c.SubLocation, Desc3 = c.MainLocation }), JsonRequestBehavior.AllowGet);
         }
@@ -745,6 +758,18 @@ namespace iLgs.Controllers
         public JsonResult GetUploadList(string text)
         {
             var model = _codextnService.GetUploadList();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetItemCodeRequestUploadList(string text)
+        {
+            var model = _codextnService.GetItemCodeRequestUploadList();
 
             if (!string.IsNullOrEmpty(text))
             {

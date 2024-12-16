@@ -23,6 +23,7 @@ namespace iLgs.Services.Codes
         ValueTask<IQueryable<Codextn>> GetUserDepartmentsAsync(string userId);
         IQueryable<Codextn> GetRequiredFields(string part);
         IQueryable<Codextn> GetUploadList();
+        IQueryable<Codextn> GetItemCodeRequestUploadList();
         ValueTask<bool> IsValidMastCodeIdAsync(string mastCode, Guid? id);
         ValueTask<bool> IsValidCodeDescAsync(string mainCode, string description);
 
@@ -69,6 +70,11 @@ namespace iLgs.Services.Codes
         public IQueryable<Codextn> GetUploadList()
         {
             var data = _db.Codextns.Where(w => w.CodeMast.Code == "UPLOAD-LIST").AsNoTracking().OrderBy(o => o.Description);
+            return data;
+        }
+        public IQueryable<Codextn> GetItemCodeRequestUploadList()
+        {
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == "ITEM-UPLOAD-LIST").AsNoTracking().OrderBy(o => o.Description);
             return data;
         }
 

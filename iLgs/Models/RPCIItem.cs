@@ -17,6 +17,8 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RpciId { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
+        public string Account { get; set; }
+        public string SubAccount { get; set; }
         public string Article { get; set; }
         public string PoNo { get; set; }
         public Nullable<System.DateTime> PoDate { get; set; }
@@ -51,7 +53,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual Codextn Codextn { get; set; }
-        public virtual RPCI RPCI { get; set; }
         public virtual ItemCode ItemCode { get; set; }
+        public virtual RPCI RPCI { get; set; }
     }
 }

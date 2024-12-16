@@ -107,10 +107,44 @@
         <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-3">
+                    @Html.DisplayFor(model => model.FPP, "Label")
+                </div>                
+                <div class="col-md-9">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.FPP)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select FPP")
+                            .DataTextField("Description")
+                            .DataValueField("Code")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetFppByDeptId", "Getters").Data("DataFpp");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("30%");
+                                c.Add().Field("Description").Title("Description").Width("70%");
+                            })
+                            //.Events(e => { e.Select("onSelectFpp"); })
+                            .Suggest(true)
+                            .CascadeFrom("DeptId")
+                    )
+                    @Html.ValidationMessageFor(model => model.FPP)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-6">
+                <div class="col-md-3">
                     @Html.DisplayFor(model => model.LocationId, "Label")
                 </div>
                 <div class="col-md-9">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                    @*@(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Location")
                             .DataTextField("Code")
@@ -121,7 +155,6 @@
                             {
                                 source.Read(read =>
                                 {
-                                    //read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
                                     read.Action("GetLocations", "Getters");
                                 })
                                 .ServerFiltering(true);
@@ -133,13 +166,38 @@
                             })
                             .Events(e => e.Select("onSelectLocationId"))
                             .Suggest(true)
+                    )*@
+
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Location")
+                            .DataTextField("Description")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetLocationSp", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("20%");
+                                c.Add().Field("Desc3").Title("Main-Location").Width("40%").Template("#= columnTemplate(data.Desc3) #");
+                                c.Add().Field("Desc2").Title("Location").Width("40%").Template("#= columnTemplate(data.Desc2) #");
+                            })
+                            .Events(e => e.Select("onSelectLocationId"))
+                            .Suggest(true)
                     )
                     @Html.ValidationMessageFor(model => model.LocationId)
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="col-md-3">
-                    @Html.DisplayFor(m => m.Location, "Location Name", "Label")
+                    @Html.DisplayFor(m => m.Location, "Label")
                 </div>
                 <div class="col-md-9">
                     @(Html.Kendo().TextBoxFor(m => m.Location).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -286,7 +344,7 @@
             </div>
         </div>
 
-        <div class="row k-mb-2">            
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.InvDist, "Label")
@@ -317,7 +375,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-3">
@@ -338,7 +396,7 @@
                 </div>
             </div>
         </div>
-        
+
         <br />
 
         @if (!string.IsNullOrEmpty(partialViewName))

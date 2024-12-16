@@ -272,6 +272,9 @@ namespace iLgs.Models
             [Display(Name = "Upcoming PAR Accountable Officer")]
             public string UpcomingPar { get; set; }
 
+            [Display(Name = "Upcoming ICS Accountable Officer")]
+            public string UpcomingIcs { get; set; }
+
             public string Type { get; set; }
 
             //[Required]            

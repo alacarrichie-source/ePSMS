@@ -225,7 +225,18 @@ namespace iLgs.Controllers
         public JsonResult GetRpciAccounts(string text)
         {
             var model = _itemTypeService.GetRpciAccounts(text);
-            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Category = c.Category, GroupCode = c.GroupCode }), JsonRequestBehavior.AllowGet);
+            var retModel = model.Select(c => new ItemTypeVM
+            {
+                Id = c.Id,
+                Code = c.Code,
+                Description = c.Description,
+                Category = c.Category,
+                GroupCode = c.GroupCode
+            }).ToList();
+
+            // Add "ALL" item
+            retModel.Insert(0, new ItemTypeVM { Id = Guid.Empty, Code = "ALL", Description = "ALL", Category = "", GroupCode = "" });
+            return Json(retModel, JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetItemsByCategory(string category, string text)

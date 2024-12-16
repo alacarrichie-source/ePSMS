@@ -17,8 +17,8 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public CustodianDisposal()
         {
-            this.CustodianIirupItems = new HashSet<CustodianIirupItem>();
             this.CustodianDisposalItems = new HashSet<CustodianDisposalItem>();
+            this.CustodianIirupItems = new HashSet<CustodianIirupItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -36,8 +36,8 @@ namespace iLgs.Models
     
         public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<CustodianIirupItem> CustodianIirupItems { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianDisposalItem> CustodianDisposalItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CustodianIirupItem> CustodianIirupItems { get; set; }
     }
 }

@@ -1597,6 +1597,14 @@
             }
         });
     }
+
+    function DataFpp() {
+        var text = $("#FPP").data("kendoMultiColumnComboBox").text();
+        return {
+            deptId: $("#DeptId").val(),
+            text: text
+        };
+    }
     // END CARD ITEM TEMPLATE
 
 

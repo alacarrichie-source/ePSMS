@@ -730,6 +730,7 @@
     <Compile Include="Services\StockCards\StockCardService.cs" />
     <Compile Include="Services\ParIcs\ParIcsUploadService.cs" />
     <Compile Include="Services\UploadService.cs" />
+    <Compile Include="Services\Uploads\ItemCodeRequestUploadService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
     <Compile Include="Services\Agents\ServiceAgent.cs" />
@@ -4174,6 +4175,11 @@
     <Content Include="Views\ItemCodeRequest\EditorTemplates\_IsconsumableTemplate.cshtml" />
     <Content Include="Views\ItemCodeRequest\EditorTemplates\_IsIncorporated.cshtml" />
     <Content Include="Views\ItemCodeRequest\EditorTemplates\_IsForDistribution.cshtml" />
+    <Content Include="Views\ItemCodeRequest\_Images.cshtml" />
+    <Content Include="Views\ItemCodeRequest\_ImagesAdd.cshtml" />
+    <Content Include="Views\ItemCodeRequest\EditorTemplates\_ImagesTemplate.cshtml" />
+    <Content Include="Views\PoIssuance\Summary.cshtml" />
+    <Content Include="Views\StockCard\ItemQuery.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4285,7 +4291,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

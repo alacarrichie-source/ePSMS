@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,8 @@ namespace iLgs.Services
     public interface IPsCardItemService
     {
         IQueryable<PsCardItemVM> GetByCardId(Guid? cardId);
+        IQueryable<PsCardItemVM> GetAllStocks();
+        IQueryable<PsCardItemVM> GetAllProperties();
         ValueTask<PsCardItemVM> GetByIdAsync(Guid? id);
         ValueTask<string> GetCategoryAsync(Guid? psCardItemId);
 
@@ -33,14 +36,16 @@ namespace iLgs.Services
         private readonly AppManEntities _db;
         private readonly IExceptionService<PsCardItemVM> _vmExceptionService = new ExceptionService<PsCardItemVM>();
         private readonly IExceptionService<ParIcsItemVm> _parIcsItemExceptionService = new ExceptionService<ParIcsItemVm>();
+        private readonly IPsCardItemValidator _psCardItemValidator;
+        private readonly IItemCodeService _itemCodeService;
         private IPsCardItemExtnService _psCardItemExtnService;
-        private readonly IPsCardItemValidator _psCardItemValidator;        
 
         public PsCardItemService(AppManEntities db)
         {
             _db = db;
             _psCardItemExtnService = new PsCardItemExtnService(_db);
-            _psCardItemValidator = new PsCardItemValidator(_db);            
+            _psCardItemValidator = new PsCardItemValidator(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
 
         public IPsCardItemExtnService PsCardItemExtn { get { return _psCardItemExtnService = _psCardItemExtnService ?? new PsCardItemExtnService(_db); } }
@@ -123,6 +128,96 @@ namespace iLgs.Services
             return data;
         });
 
+        public IQueryable<PsCardItemVM> GetAllStocks() => _vmExceptionService.TryCatch(() =>
+        {
+            return GetAll("S");
+        });
+
+        public IQueryable<PsCardItemVM> GetAllProperties() => _vmExceptionService.TryCatch(() =>
+        {
+            return GetAll("P");
+        });
+
+        private IQueryable<PsCardItemVM> GetAll(string category)
+        {
+            var data = _db.PsCardItems
+                .Include(i => i.PsCard.ItemCode.ItemType)
+                .Include(i => i.Codextn) // Department
+                .Include(i => i.Codextn1) // Location
+                .Where(w => w.PsCard.ItemCode.ItemType.Category == category)
+                .AsNoTracking()
+                .Select(s => new PsCardItemVM
+                {
+                    Id = s.Id,
+                    Fund = s.PsCard.Fund,
+                    ItemCodeId = s.PsCard.ItemCodeId,
+                    Account = s.PsCard.ItemCode.ItemType.Description,
+                    StockNo = s.PsCard.PsNo,
+                    Article = s.PsCard.ItemCode.Description,
+                    PoDate = s.PoDate,
+                    PoNo = s.PoNo,
+                    AirDate = s.AirDate,
+                    AirNo = s.AirNo,
+                    AirIssueDate = s.AirIssueDate,
+                    Qty = s.Qty,
+                    QtyIss = s.QtyIss,
+                    QtyBal = s.QtyBal,
+                    TransferIn = s.TransferIn,
+                    TransferOut = s.TransferOut,
+                    TranType = s.TranType,
+                    Days = s.Days,
+                    Unit = s.Unit,
+                    UnitCost = s.UnitCost,
+                    Amount = s.Amount,
+                    PriceRate = s.PriceRate,
+                    Remarks = s.Remarks,
+                    DeptId = s.DeptId,
+                    LocationId = s.LocationId,
+                    DeptDisplay = s.DeptDisplay,
+                    Description = s.Description,
+                    InsertedBy = s.InsertedBy,
+                    InsertedDt = s.InsertedDt,
+                    Department = s.Codextn.Description,
+                    Location = s.Codextn1.Description,
+                    LocCode = s.Codextn1.Code
+                }).ToList()
+                .Select(s => new PsCardItemVM
+                {
+                    Id = s.Id,
+                    Fund = s.Fund,
+                    Account = s.Account,
+                    SubAccount = _itemCodeService.GetSubAccounts(s.ItemCodeId),
+                    StockNo = s.StockNo,
+                    Article = s.Article,
+                    PoDate = s.PoDate,
+                    PoNo = s.PoNo,
+                    AirDate = s.AirDate,
+                    AirNo = s.AirNo,
+                    AirIssueDate = s.AirIssueDate,
+                    Qty = s.Qty,
+                    QtyIss = s.QtyIss,
+                    QtyBal = s.QtyBal,
+                    TransferIn = s.TransferIn,
+                    TransferOut = s.TransferOut,
+                    TranType = s.TranType,
+                    Days = s.Days,
+                    Unit = s.Unit,
+                    UnitCost = s.UnitCost,
+                    Amount = s.Amount,
+                    PriceRate = s.PriceRate,
+                    DeptId = s.DeptId,
+                    LocationId = s.LocationId,
+                    DeptDisplay = s.DeptDisplay,
+                    Description = s.Description,
+                    InsertedBy = s.InsertedBy,
+                    InsertedDt = s.InsertedDt,
+                    Department = s.Department,
+                    Location = s.Location,
+                    LocCode = s.LocCode
+                }).AsQueryable();
+            return data;
+        }
+
         public async ValueTask<string> GetCategoryAsync(Guid? psCardItemId)
         {
             return await _db.PsCardItems.Where(w => w.Id == psCardItemId).Select(s => s.PsCard.ItemCode.ItemType.Code).FirstOrDefaultAsync();
@@ -155,7 +250,7 @@ namespace iLgs.Services
             model.UpdatedDt = date;
 
             var entity = await _db.PsCardItems.FindAsync(model.Id);
-            MapModelToEntityFields(entity, model, Mode.EDIT);            
+            MapModelToEntityFields(entity, model, Mode.EDIT);
 
             _db.PsCardItems.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
@@ -266,7 +361,7 @@ namespace iLgs.Services
         });
 
         public ValueTask<PsCardItemVM> DeleteAsync(PsCardItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
-        {            
+        {
             _psCardItemValidator.ValidateOnDelete(model);
 
             using (var transaction = _db.Database.BeginTransaction())
@@ -284,7 +379,7 @@ namespace iLgs.Services
                     if (entity.TransferRefId != null)
                     {
                         psCardItemTransfer = await _db.PsCardItemTransfers.FindAsync(entity.TransferRefId);
-                    }                    
+                    }
 
                     // put back transferred items
                     if (psCardItemTransfer != null)
@@ -339,7 +434,7 @@ namespace iLgs.Services
 
                     _db.PsCardItems.Remove(entity);
                     _db.Entry(entity).State = EntityState.Deleted;
-                    await _db.SaveChangesAsync();                    
+                    await _db.SaveChangesAsync();
 
                     // Commit the transaction if all operations succeed
                     transaction.Commit();

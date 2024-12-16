@@ -67,6 +67,7 @@
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
             model.Field(p => p.FromDonation).DefaultValue(false);
         })
+        .Sort(s => s.Add(a => a.AsOf).Descending())
         .Read(read => read.Action("RpciRead", "Rpci"))
         .Create(create => create.Action("RpciCreate", "Rpci"))
         .Update(update => update.Action("RpciUpdate", "Rpci"))
