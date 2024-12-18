@@ -61,6 +61,7 @@
             {
                 command.Edit();
                 command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+                command.Custom("Sticker").IconClass("k-icon k-i-print").Click("onGridPrintClick");
                 //command.Destroy();
             }).Width(172);
         })
@@ -666,6 +667,43 @@
             });
         }
     });
+
+    function onGridPrintClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        const tr = $(e.currentTarget).closest("tr");
+        const dataItem = this.dataItem(tr);
+        selectedId = dataItem.Id;
+        const rowitem = this.dataSource.get(dataItem.Id);
+        this.select($('[data-uid=' + rowitem.uid + ']'));
+        
+
+        var url = '@Url.Action("StickerRpt", "CustodianReport")?id=' + selectedId + '&accountGroup=@ViewBag.AccountGroup';
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    }
 
     $(".k-grid-btnPrint").click(function (e) {
         e.preventDefault();

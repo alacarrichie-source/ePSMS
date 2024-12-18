@@ -2279,6 +2279,58 @@ namespace iLgs.Controllers
         #endregion
 
         #region PRINTOUTS
+        public async Task<ActionResult> StickerRpt(Guid? id, int? accountGroup)
+        {
+            Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);
+            Access access = await accessTask;
+            if (!access.AllowPrint)
+            {
+                return new HttpStatusCodeResult(401, "Access Denied");
+            }
+
+            //var rpci = _db.RPCIs.Find(id);
+            string stringname = _db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
+
+            string un = decoder.UserID;
+            string pw = decoder.Password;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            ReportClass rpt = new ReportClass();
+            if (accountGroup == (int?)CustodianAccountGroup.STOCK)
+            {
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/StickerIcs.rpt"));
+            }
+            else
+            {
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/StickerPar.rpt"));
+            }
+            rpt.Load();
+            rpt.Refresh();
+
+            rpt.SetDatabaseLogon(un, pw, svr, db_);
+            foreach (Table table in rpt.Database.Tables)
+            {
+                var logonInfo = table.LogOnInfo;
+                logonInfo.ConnectionInfo.ServerName = svr;
+                logonInfo.ConnectionInfo.DatabaseName = db_;
+                logonInfo.ConnectionInfo.UserID = un;
+                logonInfo.ConnectionInfo.Password = pw;
+                table.ApplyLogOnInfo(logonInfo);
+            }
+
+            rpt.SetParameterValue("@cSource", "CUSTODIAN");
+            rpt.SetParameterValue("@uSourceId", id.ToString());
+
+            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+            rpt.Close();
+            rpt.Dispose();
+            return File(stream, "application/pdf");
+
+        }
+
+
         public async Task<ActionResult> CustodianStockRpt(Guid? id, int? accountGroup)
         {
             Task<Access> accessTask = Access(User.Identity.GetUserId(), _transpoId);

@@ -653,6 +653,18 @@
       <DependentUpon>RpcPpe.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Reports\StickerIcs.cs">
+      <DependentUpon>StickerIcs.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Reports\StickerPar.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>StickerPar.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Reports\StockCard.cs">
       <DependentUpon>StockCard.rpt</DependentUpon>
       <SubType>Component</SubType>
@@ -4269,6 +4281,14 @@
     <Content Include="Reports\PropertyCard.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>PropertyCard.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\StickerIcs.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>StickerIcs.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\StickerPar.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>StickerPar.cs</LastGenOutput>
     </Content>
   </ItemGroup>
   <ItemGroup>
