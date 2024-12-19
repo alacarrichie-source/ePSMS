@@ -364,10 +364,10 @@ namespace iLgs.Services
         {
             _psCardItemValidator.ValidateOnDelete(model);
 
-            using (var transaction = _db.Database.BeginTransaction())
-            {
-                try
-                {
+            //using (var transaction = _db.Database.BeginTransaction())
+            //{
+            //    try
+            //    {
 
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
@@ -436,16 +436,16 @@ namespace iLgs.Services
                     _db.Entry(entity).State = EntityState.Deleted;
                     await _db.SaveChangesAsync();
 
-                    // Commit the transaction if all operations succeed
-                    transaction.Commit();
-                }
-                catch (Exception)
-                {
-                    // Rollback the transaction if any operation fails
-                    transaction.Rollback();
-                    throw;
-                }
-            }
+                //    // Commit the transaction if all operations succeed
+                //    transaction.Commit();
+                //}
+                //catch (Exception)
+                //{
+                //    // Rollback the transaction if any operation fails
+                //    transaction.Rollback();
+                //    throw;
+                //}
+            //}
 
             return model;
         });

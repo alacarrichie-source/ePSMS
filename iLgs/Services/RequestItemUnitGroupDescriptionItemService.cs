@@ -16,6 +16,7 @@ namespace iLgs.Services
         ValueTask<RequestItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id);
         //IQueryable<RequestItemUnitGroupDescriptionItemVM> GetAvailableUnitGroupItem(Guid? risId);
         //ValueTask<RequestItemUnitGroupDescriptionItemVM> CreateAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date);
+        void UpdateRequestItem(Guid? requestItemId, decimal? priceRate, string user, DateTime date);
         ValueTask<RequestItemUnitGroupDescriptionItemVM> UpdateAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date);
         ValueTask<RequestItemUnitGroupDescriptionItemVM> DeleteAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date);
     }
@@ -146,7 +147,7 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = _db.RequestItemUnitGroupDescriptionItems.Find(model.Id);
+            var entity = await _db.RequestItemUnitGroupDescriptionItems.Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
 
             entity.RequestItemUnitGroupDescriptionId = model.RequestItemUnitGroupDescriptionId;
             entity.RisItemUnitGroupDescriptionItemId = model.RisItemUnitGroupDescriptionItemId;
@@ -158,27 +159,33 @@ namespace iLgs.Services
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            var reqItem = _db.RequestItems.Find(model.RequestItemId);
-            var groupUnitCost = model.GroupUnitCost / model.GroupQty;
-            reqItem.PriceRate = model.PriceRate;
-            //reqItem.TotalCost = model.PriceRate == 0 ? model.UnitCost * model.QtyRequest : model.GroupCost * (model.PriceRate / 100);
-            //reqItem.UnitCost = model.PriceRate == 0 ? model.UnitCost : decimal.Round((decimal)(reqItem.TotalCost / model.QtyRequest), 2, MidpointRounding.AwayFromZero);
-            if (model.PriceRate == 0)
-            {
-                reqItem.UnitCost = model.UnitCost;                
-            }
-            else
-            {
-                reqItem.UnitCost = decimal.Round((decimal)(groupUnitCost * (model.PriceRate / 100) * model.QtyRequest), 2, MidpointRounding.AwayFromZero);                
-            }
-            reqItem.TotalCost = model.QtyRequest * reqItem.UnitCost;            
-            reqItem.UpdatedBy = model.UpdatedBy;
-            reqItem.UpdatedDt = model.UpdatedDt;
-            _db.RequestItems.Attach(reqItem);
-            _db.Entry(reqItem).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+            //var totalCost = entity.RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost;
+            UpdateRequestItem(model.RequestItemId, model.PriceRate, user, date);
 
             return model;
         });
+
+        //public void UpdateRequestItem(Guid? requestItemId, decimal? groupTotalCost, decimal? priceRate, string user, DateTime date)
+        public void UpdateRequestItem(Guid? requestItemId, decimal? priceRate, string user, DateTime date)
+        {
+            var reqItem = _db.RequestItems.Include(i => i.RequestItemUnitGroupDescriptionItems).Where(w => w.Id == requestItemId).FirstOrDefault();
+            var totalCost = reqItem.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost;
+            reqItem.PriceRate = priceRate;
+
+            if (priceRate == 0)
+            {
+                reqItem.UnitCost = 0;
+            }
+            else
+            {
+                reqItem.UnitCost = decimal.Round((decimal)(totalCost * (priceRate / 100) * reqItem.Qty), 2, MidpointRounding.AwayFromZero);
+            }
+            reqItem.TotalCost = reqItem.Qty * reqItem.UnitCost;
+            reqItem.UpdatedBy = user;
+            reqItem.UpdatedDt = date;
+            _db.RequestItems.Attach(reqItem);
+            _db.Entry(reqItem).State = EntityState.Modified;
+            _db.SaveChanges();
+        }
     }
 }

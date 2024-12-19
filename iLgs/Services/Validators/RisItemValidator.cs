@@ -54,6 +54,11 @@ namespace iLgs.Services.Validators
         {
             ValidateIfNull(model);
             ValidateRecord(model.Id);
+
+            if (_db.RisItemUnitGroupDescriptionItems.Any(a => a.RisItemId == model.Id))
+            {
+                throw new RecordRelationshipException("Record is part of a group, cannot delete!");
+            }
         }
 
         public void ValidateFieldsOnCreateUpdate(RisItemEntryVM model)

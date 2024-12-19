@@ -8,6 +8,7 @@ using iLgs.Services;
 using iLgs.Services.AllFields;
 using iLgs.Services.Codes;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Items;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -36,6 +37,7 @@ namespace iLgs.Controllers
         private readonly IRisItemUnitGroupDescriptionItemService _risItemUnitGroupDescriptionItemService;
         private readonly ICodextnService _codextnService;
         private readonly IAllFieldService _allFieldService;
+        private readonly IItemCodeService _itemCodeService;
 
         public RISController()
         {
@@ -47,6 +49,7 @@ namespace iLgs.Controllers
             _risItemUnitGroupDescriptionItemService = new RisItemUnitGroupDescriptionItemService(_db);
             _codextnService = new CodextnService(_db);
             _allFieldService = new AllFieldService(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
 
         // GET: RIS
@@ -417,11 +420,11 @@ namespace iLgs.Controllers
             }
             catch (ValidationException validationException)
             {
-                ModelState.AddModelError("", validationException.InnerException.Message);
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("", e.Message);
+                ModelState.AddModelError("DeleteError", e.Message);
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
@@ -826,37 +829,44 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
-            string partialView = "";
-            if (Enum.TryParse(model.PsType, out Category c))
+            //string partialView = "";
+            //if (Enum.TryParse(model.PsType, out Category c))
+            //{
+            //    if (c == CatLandsProp())
+            //    {
+            //        partialView = "_FieldLand";
+            //    }
+            //    else if (c == CatMachineriesProp() 
+            //        || c == CatTransportationProp() 
+            //        || c == CatFurnituresProp() 
+            //        || c == CatOtherProperties()
+            //        || c == CatMedicalSupply() 
+            //        || c == CatAgriculturalSupply() 
+            //        || c == CatAnimalSupplies() 
+            //        || c == CatConstructionMaterialsSupply()
+            //        || c == CatOfficeSupplies() 
+            //        || c == CatAccountableFormsSupply() 
+            //        || c == CatNonAccountableFornsSupply() 
+            //        || c == CatMilitarySupply()
+            //        || c == CatOtherSupplies())
+            //    {
+            //        partialView = "_FieldBrand";
+            //    }
+            //    else if (c == CatDrugsSupply())
+            //    {
+            //        partialView = "_FieldDrugs";
+            //    }
+            //    else if (c == CatRepairSupply())
+            //    {
+            //        partialView = "_FieldSerial";
+            //    }
+            //}
+
+            var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            if (!string.IsNullOrEmpty(partialView))
             {
-                if (c == CatLandsProp())
-                {
-                    partialView = "_FieldLand";
-                }
-                else if (c == CatMachineriesProp() 
-                    || c == CatTransportationProp() 
-                    || c == CatFurnituresProp() 
-                    || c == CatOtherProperties()
-                    || c == CatMedicalSupply() 
-                    || c == CatAgriculturalSupply() 
-                    || c == CatAnimalSupplies() 
-                    || c == CatConstructionMaterialsSupply()
-                    || c == CatOfficeSupplies() 
-                    || c == CatAccountableFormsSupply() 
-                    || c == CatNonAccountableFornsSupply() 
-                    || c == CatMilitarySupply()
-                    || c == CatOtherSupplies())
-                {
-                    partialView = "_FieldBrand";
-                }
-                else if (c == CatDrugsSupply())
-                {
-                    partialView = "_FieldDrugs";
-                }
-                else if (c == CatRepairSupply())
-                {
-                    partialView = "_FieldSerial";
-                }
+                partialView = $"{partialView}";
             }
             return PartialView(partialView, model);
         }

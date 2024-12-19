@@ -123,10 +123,10 @@ namespace iLgs.Services
         {            
             _psCardItemExtnValidator.ValidateOnDelete(model);
 
-            using (var transaction = _db.Database.BeginTransaction())
-            {
-                try
-                {
+            //using (var transaction = _db.Database.BeginTransaction())
+            //{
+            //    try
+            //    {
                     // Delete References
                     var itemTransactions = _db.PsCardItemTransactions.Where(w => w.PsCardItemExtnId == model.Id);
                     _db.PsCardItemTransactions.RemoveRange(itemTransactions);
@@ -148,15 +148,15 @@ namespace iLgs.Services
                     _db.Entry(entity).State = EntityState.Deleted;
                     await _db.SaveChangesAsync();
 
-                    transaction.Commit();
-                }
-                catch (Exception)
-                {
-                    // Rollback the transaction if any operation fails
-                    transaction.Rollback();
-                    throw;
-                }
-            }
+            //        transaction.Commit();
+            //    }
+            //    catch (Exception)
+            //    {
+            //        // Rollback the transaction if any operation fails
+            //        transaction.Rollback();
+            //        throw;
+            //    }
+            //}
 
             return model;
         });

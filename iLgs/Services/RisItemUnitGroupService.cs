@@ -26,14 +26,14 @@ namespace iLgs.Services
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<RisItemUnitGroupVM> _vmExceptionService = new ExceptionService<RisItemUnitGroupVM>();
         private readonly IExceptionService<RisItemUnitGroup> _exceptionService = new ExceptionService<RisItemUnitGroup>();
-        //private readonly IRequestService _requestService;
+        //private readonly IRequestService _requestService;        
         private readonly IRisItemUnitGroupValidator _validator;
 
         public RisItemUnitGroupService(AppManEntities db)
         {
             _db = db;
             //_requestService = new RequestService(db);
-            _validator = new RisItemUnitGroupValidator(_db);
+            _validator = new RisItemUnitGroupValidator(_db);            
         }        
 
         public ValueTask<RisItemUnitGroup> GetByIdAsync(Guid? id) =>
@@ -113,7 +113,7 @@ namespace iLgs.Services
         public ValueTask<RisItemUnitGroupVM> UpdateAsync(RisItemUnitGroupVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            RisItemUnitGroup entity = await _db.RisItemUnitGroups.FindAsync(model.Id);
+            RisItemUnitGroup entity = await _db.RisItemUnitGroups.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
             
             model.UpdatedBy = user;
             model.UpdatedDt = date;            
@@ -126,7 +126,8 @@ namespace iLgs.Services
 
             _db.RisItemUnitGroups.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();            
+
             return model;
         });        
     }

@@ -27,12 +27,14 @@ namespace iLgs.Services
         private readonly IExceptionService<RequestItemUnitGroup> _exceptionService = new ExceptionService<RequestItemUnitGroup>();
         private readonly IRisService _risService;
         private readonly IRequestService _requestService;
+        private readonly IRequestItemUnitGroupDescriptionItemService _requestItemUnitGroupDescriptionItemService;
 
         public RequestItemUnitGroupService(AppManEntities db)
         {
             _db = db;
             _risService = new RisService(_db);
             _requestService = new RequestService(_db);
+            _requestItemUnitGroupDescriptionItemService = new RequestItemUnitGroupDescriptionItemService(_db);
         }
 
         public ValueTask<RequestItemUnitGroup> GetByIdAsync(Guid? id) =>
@@ -130,7 +132,7 @@ namespace iLgs.Services
         public ValueTask<RequestItemUnitGroupVM> UpdateAsync(RequestItemUnitGroupVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            var entity = await _db.RequestItemUnitGroups.FindAsync(model.Id);
+            var entity = await _db.RequestItemUnitGroups.Include(i => i.RequestItemUnitGroupDescriptions).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
             if (entity == null)
             {
                 throw new RecordNotFoundException(model.Id);
@@ -146,6 +148,7 @@ namespace iLgs.Services
 
             entity.PrId = model.PrId;
             entity.RisItemUnitGroupId = model.RisItemUnitGroupId;
+            
             entity.UnitCost = model.UnitCost;
             entity.TotalCost = model.RisItemUnitGroup.Qty * model.UnitCost;
             entity.UpdatedBy = model.UpdatedBy;
@@ -154,6 +157,20 @@ namespace iLgs.Services
             _db.RequestItemUnitGroups.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
+
+            var unitGroupDescriptions = entity.RequestItemUnitGroupDescriptions.ToList();
+            foreach (var unitGroupDescription in unitGroupDescriptions)
+            {
+                var unitGroupDescriptionItems = await _db.RequestItemUnitGroupDescriptionItems
+                    .Include(i => i.RequestItem)
+                    .Where(w => w.RequestItemUnitGroupDescriptionId == unitGroupDescription.Id).ToListAsync();
+                foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
+                {
+                    var priceRate = unitGroupDescriptionItem.RequestItem.PriceRate;
+                    _requestItemUnitGroupDescriptionItemService.UpdateRequestItem(unitGroupDescriptionItem.RequestItemId, priceRate, user, date);
+                }
+            }
+
             return model;
         });
     }    

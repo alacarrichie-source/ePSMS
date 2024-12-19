@@ -211,10 +211,10 @@ namespace iLgs.Services.Interfaces
                 throw new InvalidValueException("Transit date is required!");
             }
 
-            using (var transaction = _db.Database.BeginTransaction())
-            {
-                try
-                {
+            //using (var transaction = _db.Database.BeginTransaction())
+            //{
+            //    try
+            //    {
                     var psCardItemTransfer = new PsCardItemTransfer()
                     {
                         Id = Guid.NewGuid(),
@@ -304,16 +304,16 @@ namespace iLgs.Services.Interfaces
                             await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, entity.Id, "TRANSIT", user, date);
                         }                        
                     }
-                    // Commit the transaction if all operations succeed
-                    transaction.Commit();
-                }
-                catch (Exception)
-                {
-                    // Rollback the transaction if any operation fails
-                    transaction.Rollback();
-                    throw;
-                }
-            }
+                //    // Commit the transaction if all operations succeed
+                //    transaction.Commit();
+                //}
+                //catch (Exception)
+                //{
+                //    // Rollback the transaction if any operation fails
+                //    transaction.Rollback();
+                //    throw;
+                //}
+            //}
 
             return model;
         });

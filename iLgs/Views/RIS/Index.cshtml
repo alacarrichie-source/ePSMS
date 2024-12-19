@@ -243,6 +243,34 @@
         }
     }
 
+    function GridItemError(args) {
+        if (args.errors) {
+            var validationError = true;
+            var selectedGrid = $("#gridItems_" + selectedId).data("kendoGrid");
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
     var selectedGrid = null;
     var selectedId = null;
     var selectedItemId = null;
@@ -652,11 +680,11 @@
     function onDataBoundItemCode(e) {
         var comboBox = this;
         var selectedValue = comboBox.value();
-        //alert(selectedValue);
-        //alert(this.data("kendoMultiColumnComboBox").value());
-
+        
         if (selectedValue !== null && selectedValue !== undefined && selectedValue != "") {
             var dataItem = comboBox.dataItem();
+            $("#SubAccount").val(dataItem.MainDesc).trigger("change");
+            $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
             RefreshDivs(dataItem);
         }
     }
