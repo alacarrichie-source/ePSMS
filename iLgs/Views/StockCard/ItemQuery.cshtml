@@ -146,7 +146,7 @@
         {
             items.Add().Text("Items")
             .Selected(true)
-            .LoadContentFrom("_StockCardItem", "StockCard", new { cardId = "#=Id#", category = "#=ItemTypeCode#" });
+            .LoadContentFrom("_StockCardItem", "StockCard", new { cardId = "#=Id#", category = "#=AccountCode#" });
         })
        .ToClientTemplate()
     )
@@ -1037,7 +1037,7 @@
         $("#ItemCode").val(dataItem.Code).trigger("change");
         $("#ItemNo").val(dataItem.ItemNo).trigger("change");
         $("#Item").val(dataItem.Description).trigger("change");
-        $("#ItemTypeCode").val(dataItem.Type).trigger("change");
+        $("#AccountCode").val(dataItem.Type).trigger("change");
         $("#ItemType").val(dataItem.TypeDesc).trigger("change");
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
         $("#SubAccountCode").val(dataItem.MainDescCode).trigger("change");
@@ -1094,7 +1094,7 @@
     function DataItemExtnGrid() {
         return {
             cardId: $("#Id").val(),
-            psType: $("#ItemTypeCode").val()
+            accountCode: $("#AccountCode").val()
         };
     }
 

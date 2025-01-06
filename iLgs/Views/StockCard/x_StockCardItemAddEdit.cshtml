@@ -16,7 +16,7 @@
     </div>
 
     <fieldset>
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(m => m.PoNo, htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-9">
@@ -33,7 +33,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(m => m.AirNo, htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-9">
@@ -50,7 +50,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(model => model.DeptId, htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-9">
@@ -89,7 +89,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(model => model.LocationId, "Location Code", htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-9">
@@ -128,7 +128,7 @@
         </div>
 
         <br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-9">
@@ -166,7 +166,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(m => m.Qty, htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-9">
@@ -187,7 +187,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(m => m.QtyIss, htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-9">
@@ -206,7 +206,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(m => m.QtyBal, htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-9">
@@ -217,7 +217,7 @@
         </div>
 
         <br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(m => m.Remarks, htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-9">
@@ -248,7 +248,7 @@
         </div>
 
         <br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-9">
@@ -271,7 +271,7 @@
         </div>
 
         <br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <span id="span_">
                     @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave_" + @ViewData["cardId"]))

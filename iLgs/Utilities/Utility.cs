@@ -17,16 +17,19 @@ namespace iLgs.Utilities
             if (date.HasValue)
             {
                 var d = (DateTime)date;
+                string monthName = d.ToString("MMMM"); // "December"
 
-                if (d.Month == 1 && d.Day == 1)
+                if (d.Month == 1 && (d.Day == 1 || d.Day == 2))
                 {
                     return $"{d.Year}";
                 }
 
-                if (d.Day == 1)
+                if ((d.Day == 1) || (d.Day == 2 && d.Month == 11))
                 {
-                    return $"{d.Month}/{d.Year}";
+                    return $"{monthName}, {d.Year}";
                 }
+
+                return $"{monthName} {d.Day}, {d.Year}";
             }
             return string.Empty;
         }

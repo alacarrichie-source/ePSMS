@@ -1,7 +1,7 @@
 ﻿@model iLgs.Models.RisItemEntryVM
 @Html.HiddenFor(model => model.AllField.Id)
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-12">
         @Html.LabelFor(m => m.AllField.GenericName, "Generic Name", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
@@ -11,7 +11,7 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-12">
         @Html.LabelFor(m => m.AllField.DosageVolume, "Dosage Volume", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
@@ -21,7 +21,7 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-12">
         @Html.LabelFor(m => m.AllField.Multipliers, "Multiples (#'s)", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
@@ -34,7 +34,7 @@
     </div>
 </div>
 
-@*<div class="row">
+@*<div class="row k-mb-2">
         <div class="col-md-12">
             @Html.LabelFor(m => m.AllField.Brand, htmlAttributes: new { @class = "col-md-2" })
             <div class="col-md-12">

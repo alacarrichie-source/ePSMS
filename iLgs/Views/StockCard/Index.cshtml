@@ -11,8 +11,12 @@
         col.Bound(c => c.Fund).Width(40);
         col.Bound(c => c.PsNo).Width(100);
         col.Bound(c => c.ItemType).Width(100);
-        col.Bound(c => c.SubAccount).Width(100);
-        col.Bound(c => c.Item).Width(100).Title("Articles");
+        col.Bound(c => c.SubAccount1).Width(100);
+        col.Bound(c => c.SubAccount2).Width(100);
+        col.Bound(c => c.SubAccount3).Width(100);
+        col.Bound(c => c.SubAccount4).Width(100);
+        //col.Bound(c => c.SubAccount).Width(100);
+        //col.Bound(c => c.Item).Width(100).Title("Articles");
         //col.Bound(c => c.PsName).Width(70);
         //col.Bound(c => c.Description).Width(100);
         col.Command(command =>
@@ -45,8 +49,12 @@
         s.Field(o => o.Fund, "contains");
         s.Field(o => o.PsNo, "contains");
         s.Field(o => o.ItemType, "contains");
-        s.Field(o => o.SubAccount, "contains");
-        s.Field(o => o.Item, "contains");
+        //s.Field(o => o.SubAccount, "contains");
+        s.Field(o => o.SubAccount1, "contains");
+        s.Field(o => o.SubAccount2, "contains");
+        s.Field(o => o.SubAccount3, "contains");
+        s.Field(o => o.SubAccount4, "contains");
+        //s.Field(o => o.Item, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -1048,7 +1056,7 @@
     function DataItemExtnGrid() {
         return {
             cardId: $("#Id").val(),
-            psType: $("#ItemTypeCode").val()
+            accountCode: $("#AccountCode").val()
         };
     }
 

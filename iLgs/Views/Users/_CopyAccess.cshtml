@@ -12,7 +12,7 @@
     @Html.HiddenFor(model => model.TargetNameFull)
 
     <div class="form-group" style="padding:30px;">
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.SysCode, new { @class = "col-md-11" })
             <div class="col-md-11">
                 @(Html.Kendo().TextBoxFor(model => model.SysCode).HtmlAttributes(new { style = "width:100%; max-width:100%" }).Enable(false))
@@ -20,13 +20,13 @@
         </div>
         <br />
         <h4>Copy From</h4>        
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.SourceUserName, new { @class = "col-md-11" })
             <div class="col-md-11">
                 @(Html.Kendo().TextBoxFor(model => model.SourceUserName).HtmlAttributes(new { style = "width:100%; max-width:100%" }).Enable(false))
             </div>
         </div>
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.SourceNameFull, new { @class = "col-md-11" })
             <div class="col-md-11">
                 @(Html.Kendo().TextBoxFor(model => model.SourceNameFull).HtmlAttributes(new { style = "width:100%; max-width:100%" }).Enable(false))
@@ -34,7 +34,7 @@
         </div>
         <br />            
         <h4>Copy To</h4>    
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.TargetUserId, "Full Name", new { @class = "col-md-11" })
             <div class="col-md-11">
                 @(Html.Kendo().ComboBoxFor(Model => Model.TargetUserId)
@@ -57,7 +57,7 @@
                 @Html.ValidationMessageFor(model => model.TargetUserId)
             </div>
         </div>
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.TargetUserName, new { @class = "col-md-11" })
             <div class="col-md-11">
                 @(Html.Kendo().TextBoxFor(model => model.TargetUserName).HtmlAttributes(new { style = "width:100%; max-width:100%" }).Enable(false))
@@ -65,7 +65,7 @@
         </div>
 
         <br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="k-edit-buttons k-state-default col-md-offset-5">
                 <a class="k-button k-button-icontext k-primary k-grid-update" id="btnSave"><span class="k-icon k-update"></span>Ok</a>
                 <a class="k-button k-button-icontext k-grid-cancel" id="btnCancel"><span class="k-icon k-cancel"></span>Cancel</a>

@@ -25,9 +25,6 @@ namespace iLgs.Services.Validators
             RuleFor(m => m.YearModel)
                 .NotEmpty().WithMessage("Year Model is required.");
 
-            //RuleFor(m => m.SeriesNo)
-            //    .NotEmpty().WithMessage("Series No. is required.");
-
             RuleFor(m => m)
                 .MustAsync(async (entity, cancellation) =>
                    await _airItemExtnVehicleService.IsValidItemQty(entity.AIRItemId))

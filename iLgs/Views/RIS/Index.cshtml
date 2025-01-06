@@ -211,7 +211,7 @@
                 }
             });
 
-            alert(message); // You can replace this with any other UI method to display errors            
+            alert(message); // You can replace this with any other UI method to display errors                        
         }
     }
 
@@ -244,6 +244,34 @@
     }
 
     function GridItemError(args) {
+        if (args.errors) {
+            var validationError = true;
+            var selectedGrid = $("#gridItems_" + selectedId).data("kendoGrid");
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
+    function GridUnitGroupDescriptionError(args) {
         if (args.errors) {
             var validationError = true;
             var selectedGrid = $("#gridItems_" + selectedId).data("kendoGrid");
@@ -661,22 +689,7 @@
             }
         });
     }
-
-
-    //function RefreshDivs(dataItem) {
-    //    var itemType = dataItem.Type;
-
-    //    for (var i = 1; i <= 26; i++) {
-    //        var divId = "DIV_ITEM_" + String.fromCharCode(64 + i);
-    //        $("#" + divId).hide();
-    //    }
-
-    //    $("#DIV_ITEM_" + itemType).show();
-
-    //    resizeWindow();
-    //}
-
-
+    
     function onDataBoundItemCode(e) {
         var comboBox = this;
         var selectedValue = comboBox.value();
@@ -689,113 +702,112 @@
         }
     }
 
+    //function onSaveChangesGridItemExtn(e) {
+    //    var grid = e.sender;
+    //    var itemValues = grid.dataSource.data().map(function (item) {
+    //        return item.ItemValue;
+    //    });
 
-    function onSaveChangesGridItemExtn(e) {
-        var grid = e.sender;
-        var itemValues = grid.dataSource.data().map(function (item) {
-            return item.ItemValue;
-        });
+    //    var description = itemValues.join(" ");
+    //    alert(description);
+    //}
 
-        var description = itemValues.join(" ");
-        alert(description);
-    }
+    //function onSaveGridItemExtn(e) {
+    //    var grid = e.sender;
+    //    var model = $("#gridItemExtn").data().kendoGrid.editable.options.model;
 
-    function onSaveGridItemExtn(e) {
-        var grid = e.sender;
-        var model = $("#gridItemExtn").data().kendoGrid.editable.options.model;
+    //    for (var key in e.values) {
+    //        if (e.values.hasOwnProperty(key)) {
+    //            if (key == "ItemValue") {
+    //                model.set('ItemValue', e.values[key]);
+    //            } else {
+    //                model.set('Sequence', e.values[key]);
+    //            }
+    //        }
+    //    }
 
-        for (var key in e.values) {
-            if (e.values.hasOwnProperty(key)) {
-                if (key == "ItemValue") {
-                    model.set('ItemValue', e.values[key]);
-                } else {
-                    model.set('Sequence', e.values[key]);
-                }
-            }
-        }
+    //    // Create an array to store the row values
+    //    var rowValues = [];
+    //    var gridData = e.sender.dataSource.data();
+    //    var sortDescriptor = e.sender.dataSource.sort(); // Retrieve the current sort descriptor
 
-        // Create an array to store the row values
-        var rowValues = [];
-        var gridData = e.sender.dataSource.data();
-        var sortDescriptor = e.sender.dataSource.sort(); // Retrieve the current sort descriptor
-
-        // Sort the data manually using the sort descriptor
-        gridData.sort(function (a, b) {
-            // Sort the data items first by 'ItemKey', then by 'Sequence'
-            if (a.Sequence === b.Sequence) {
-                return a.ItemNo.localeCompare(b.ItemNo);
-            }
-            return a.Sequence - b.Sequence;
-        });
+    //    // Sort the data manually using the sort descriptor
+    //    gridData.sort(function (a, b) {
+    //        // Sort the data items first by 'ItemKey', then by 'Sequence'
+    //        if (a.Sequence === b.Sequence) {
+    //            return a.ItemNo.localeCompare(b.ItemNo);
+    //        }
+    //        return a.Sequence - b.Sequence;
+    //    });
 
 
-        for (var i = 0; i < gridData.length; i++) {
-            var rowData = gridData[i];
+    //    for (var i = 0; i < gridData.length; i++) {
+    //        var rowData = gridData[i];
 
-            if (rowData.ItemNo == 1) {
-                $("#ItemName").val(rowData.ItemValue).trigger('change');
-            //} else {
-            //    rowValues.push(rowData.ItemValue);
-            }
+    //        if (rowData.ItemNo == 1) {
+    //            $("#ItemName").val(rowData.ItemValue).trigger('change');
+    //        //} else {
+    //        //    rowValues.push(rowData.ItemValue);
+    //        }
 
-            rowValues.push(rowData.ItemValue);
-        }
+    //        rowValues.push(rowData.ItemValue);
+    //    }
 
-        var description = rowValues.join(" ");
-        $("#Description").val(description.trim()).trigger('change');
-    }
+    //    var description = rowValues.join(" ");
+    //    $("#Description").val(description.trim()).trigger('change');
+    //}
 
-    function onDataBoundGridItemExtn(e) {
-        var grid = e.sender;
-        // Iterate over each row in the grid
-        grid.tbody.find("tr").each(function () {
-            var dataItem = grid.dataItem(this);
+    //function onDataBoundGridItemExtn(e) {
+    //    var grid = e.sender;
+    //    // Iterate over each row in the grid
+    //    grid.tbody.find("tr").each(function () {
+    //        var dataItem = grid.dataItem(this);
 
-            // Add condition based on your requirements to disable the row
-            if (dataItem.IsEnabled == false) {
-                // Disable the row
-                $(this).addClass("k-state-disabled");
-            }
-        });
-    }
+    //        // Add condition based on your requirements to disable the row
+    //        if (dataItem.IsEnabled == false) {
+    //            // Disable the row
+    //            $(this).addClass("k-state-disabled");
+    //        }
+    //    });
+    //}
 
-    function onSaveGridItemExtnOrig(e) {
-        var grid = e.sender;
-        var model = $("#gridItemExtn").data().kendoGrid.editable.options.model;
+    //function onSaveGridItemExtnOrig(e) {
+    //    var grid = e.sender;
+    //    var model = $("#gridItemExtn").data().kendoGrid.editable.options.model;
 
-        for (var key in e.values) {
-            if (e.values.hasOwnProperty(key)) {
-                model.set('ItemValue', e.values[key]);
-            }
-        }
+    //    for (var key in e.values) {
+    //        if (e.values.hasOwnProperty(key)) {
+    //            model.set('ItemValue', e.values[key]);
+    //        }
+    //    }
 
-        // Create an array to store the row values
-        var rowValues = [];
-        var gridData = e.sender.dataSource.data();
+    //    // Create an array to store the row values
+    //    var rowValues = [];
+    //    var gridData = e.sender.dataSource.data();
 
-        for (var i = 0; i < gridData.length; i++) {
-            var rowData = gridData[i];
+    //    for (var i = 0; i < gridData.length; i++) {
+    //        var rowData = gridData[i];
 
-            for (var key in e.values) {
-                if (e.values.hasOwnProperty(key)) {
-                    if (rowData[key]) {
-                        rowValues.push(rowData[key]);
-                    }
-                }
-            }
-        }
+    //        for (var key in e.values) {
+    //            if (e.values.hasOwnProperty(key)) {
+    //                if (rowData[key]) {
+    //                    rowValues.push(rowData[key]);
+    //                }
+    //            }
+    //        }
+    //    }
 
-        var description = rowValues.join(" ");
-        $("#Description").val(description).trigger('change');
-    }
+    //    var description = rowValues.join(" ");
+    //    $("#Description").val(description).trigger('change');
+    //}
 
-    function DataRisItemExtnGrid()
-    {
-        return {
-            risItemId: $("#Id").val(),
-            psType: $("#PsType").val()
-        };
-    }
+    //function DataRisItemExtnGrid()
+    //{
+    //    return {
+    //        risItemId: $("#Id").val(),
+    //        accountCode $("#PsType").val()
+    //    };
+    //}
 
     function onGridItemsRequestEnd(e) {
         e.preventDefault();
@@ -1011,6 +1023,23 @@
     }
 
     // RIS ITEM UNIT GROUPS
+    function InlineGridUnitGroupError(e) {
+        if (e.errors) {
+            let message = "Errors:\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
+                    });
+                }
+            });
+
+            alert(message); // You can replace this with any other UI method to display errors                        
+            $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();
+        }
+    }
+
     function onClickBtnEditRisItemUnitGroup(e) {
         e.preventDefault();
         // the master row for this detail
@@ -1104,6 +1133,23 @@
     // END RIS ITEM UNIT GROUPS
 
     // RIS ITEM UNIT GROUP DESCRIPTIONS
+    function InlineGridUnitGroupDescriptionError(e) {
+        if (e.errors) {
+            let message = "Errors:\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
+                    });
+                }
+            });
+
+            alert(message); // You can replace this with any other UI method to display errors                        
+            $("#gridItemUnitGroupDescriptions_" + selectedUnitGroupId).data("kendoGrid").dataSource.read();
+        }
+    }
+
     function onGridItemUnitGroupDescriptionsRequestEnd(e) {
         e.preventDefault();
         if (!e.response.Errors) {
@@ -1170,6 +1216,23 @@
     // END RIS ITEM UNIT GROUP DESCRIPTIONS
 
     // RIS UNIT GROUP DESCRIPTION ITEMS
+    function InlineGridUnitGroupDescriptionItemError(e) {
+        if (e.errors) {
+            let message = "Errors:\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
+                    });
+                }
+            });
+
+            alert(message); // You can replace this with any other UI method to display errors                        
+            $("#gridItemUnitGroupDescriptionItems_" + selectedUnitGroupDescriptionId).data("kendoGrid").dataSource.read();
+        }
+    }
+
     function onGridItemUnitGroupDescriptionItemsRequestEnd(e) {
         e.preventDefault();
         if (!e.response.Errors) {

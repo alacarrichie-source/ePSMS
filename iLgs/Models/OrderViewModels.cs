@@ -115,6 +115,14 @@ namespace iLgs.Models
 
     public class OrderItemVM : RisItemCommonVM
     {                       
+        public OrderItemVM()
+        {
+            this.Id = Guid.NewGuid();
+            this.AllField = new AllField() { Id = this.Id };
+        }
+
+        public AllField AllField { get; set; }
+
         [Display(Name = "Estimated Life")]
         public Nullable<decimal> EstimatedLife { get; set; }
 
@@ -122,8 +130,12 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderId { get; set; }
 
         [Display(Name = "Stock/Property No.")]
-        [Required]
+        //[Required]
         public Nullable<System.Guid> RequestItemId { get; set; }
+
+        [Display(Name = "Stock/Property No.")]
+        [Required]
+        public Nullable<System.Guid> ItemCodeId { get; set; }
 
         [Required]
         public Nullable<decimal> Qty { get; set; }
@@ -144,13 +156,13 @@ namespace iLgs.Models
         public string GridOrderItemExtns { get; set; }
         public string Mode { get; set; }
 
-        public string Brand { get; set; }
+        //public string Brand { get; set; }
+        
+        [Display(Name = "Sub-Accounts")]
+        public string SubAccount { get; set; }
 
-        [Display(Name = "Stock No.")]
-        public string StockNo { get; set; }
-
-        [Display(Name = "Stock Name")]
-        public string StockName { get; set; }
+        //public string AccountCode { get; set; }
+        //public string Account { get; set; }
 
         public Nullable<System.Guid> RisItemId { get; set; }
     }
@@ -164,7 +176,7 @@ namespace iLgs.Models
         public string Brand { get; set; }
         public string Fund { get; set; }
         public string Unit { get; set; }
-        public string ItemTypeCode { get; set; }
+        public string AccountCode { get; set; }
         public string ItemCategory { get; set; }
         public string CardCategory { get; set; }
         public string InvDist { get; set; }

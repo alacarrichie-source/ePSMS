@@ -4,6 +4,7 @@ using iLgs.Models;
 using iLgs.Services.AllFields;
 using iLgs.Services.Codes;
 using iLgs.Services.Items;
+using iLgs.Services.Requisition;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
@@ -22,12 +23,12 @@ namespace iLgs.Services.Validators
 
     public class RisItemValidator: BaseValidator, IRisItemValidator
     {
-        private delegate string GetDisplayNameDelegate(string propertyName);
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
         private readonly IAllFieldsValidator _allFieldsValidator;
         private readonly IItemCodeService _itemCodeService;
+        private readonly IRisService _risService;
 
         public RisItemValidator(AppManEntities db)
         {
@@ -36,24 +37,29 @@ namespace iLgs.Services.Validators
             _codextnService = new CodextnService(_db);
             _allFieldsValidator = new AllFieldsValidator(_db);
             _itemCodeService = new ItemCodeService(_db);
+            _risService = new RisService(_db);
         }
 
         public void ValidateOnCreate(RisItemEntryVM model)
         {
-            ValidateIfNull(model);            
+            ValidateModel(model);
+            ValidateIfPosted((Guid)model.RisId);
             ValidateFieldsOnCreateUpdate(model);
         }
 
         public void ValidateOnUpdate(RisItemEntryVM model)
         {
-            ValidateIfNull(model);            
+            ValidateModel(model);
+            ValidateRecord(model.Id);
+            ValidateIfPosted((Guid)model.RisId);
             ValidateFieldsOnCreateUpdate(model);
         }
 
         public void ValidateOnDelete(RisItemEntryVM model)
         {
-            ValidateIfNull(model);
+            ValidateModel(model);
             ValidateRecord(model.Id);
+            ValidateIfPosted((Guid)model.RisId);
 
             if (_db.RisItemUnitGroupDescriptionItems.Any(a => a.RisItemId == model.Id))
             {
@@ -97,11 +103,20 @@ namespace iLgs.Services.Validators
             }
         }
 
-        private static void ValidateIfNull(RisItemEntryVM model)
+        private static void ValidateModel(RisItemEntryVM model)
         {
             if (model is null)
             {
                 throw new NullException();
+            }
+        }
+
+        public void ValidateIfPosted(Guid risId)
+        {
+            var isPosted = _risService.IsPosted(risId);
+            if (isPosted)
+            {
+                throw new RecordAlreadyPostedException();
             }
         }
     }

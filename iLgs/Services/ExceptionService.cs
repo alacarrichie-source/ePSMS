@@ -1,18 +1,11 @@
-﻿using iLgs.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Threading.Tasks;
-using iLgs.Exceptions;
-using System.Data.Entity.Infrastructure;
-using System.Data.SqlClient;
-using iLgs.Models;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
-using iLgs.Services.Validators;
-using System.Collections;
+using System;
+using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Validation;
-using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace iLgs.Services
 {

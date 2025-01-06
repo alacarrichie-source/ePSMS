@@ -15,7 +15,7 @@
     </div>
 
     <fieldset>
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.RefNo, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().TextBoxFor(model => model.RefNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -24,7 +24,7 @@
 
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.RefDate, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().DatePickerFor(model => model.RefDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -32,7 +32,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.QtyPo, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().NumericTextBoxFor(model => model.QtyPo).Decimals(0).Format("{0:n0}")
@@ -42,7 +42,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(0).Format("{0:n0}")
@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.QtyIss, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().NumericTextBoxFor(model => model.QtyIss).Decimals(0).Format("{0:n0}")
@@ -62,7 +62,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.QtyBal, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().NumericTextBoxFor(model => model.QtyBal).Decimals(0).Format("{0:n0}")

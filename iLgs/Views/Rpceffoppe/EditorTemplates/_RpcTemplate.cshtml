@@ -8,7 +8,7 @@
     @Html.HiddenFor(model => model.Id)
     
     <fieldset>
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(m => m.AsAt, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().DatePickerFor(m => m.AsAt).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -16,7 +16,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(m => m.Department, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().MultiColumnComboBoxFor(m => m.Department)
@@ -45,7 +45,7 @@
         </div>
 
         <div id="EditDiv">
-            <div class="row">
+            <div class="row k-mb-2">
                 @Html.LabelFor(m => m.AccountableOfficer, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.AccountableOfficer).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -53,7 +53,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row k-mb-2">
                 @Html.LabelFor(m => m.Designation, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.Designation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -61,7 +61,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row k-mb-2">
                 @Html.LabelFor(m => m.AssumptionDt, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().DatePickerFor(m => m.AssumptionDt).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -69,7 +69,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row k-mb-2">
                 @Html.LabelFor(m => m.CertifiedCorrectBy, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.CertifiedCorrectBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -77,7 +77,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row k-mb-2">
                 @Html.LabelFor(m => m.ApprovedBy, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.ApprovedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -85,7 +85,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row k-mb-2">
                 @Html.LabelFor(m => m.VerifiedBy, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.VerifiedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))

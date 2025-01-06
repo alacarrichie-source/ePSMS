@@ -22,6 +22,8 @@ namespace iLgs.Services.Items
         IQueryable<ItemCodeVM> GetItemAccounts(string item);
         IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item);
         string GetSubAccounts(Guid? id);
+        string GetSubAccount(Guid? id, int pos);
+        string GetSubAccountCode(Guid? id);
         IQueryable<ItemCodeVM> GetItemsByCategory(string category, string item);
         IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item);
         IQueryable<ItemCodePreviewVM> GetItemCodePreview(string category);
@@ -158,13 +160,24 @@ namespace iLgs.Services.Items
         {
             var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts '', {0}", item).AsQueryable().AsNoTracking();
             return data;
-        });
+        });        
 
         public IQueryable<ItemCodeVM> GetItemAccountsByCategory(string category, string item) => _VmExceptionService.TryCatch(() =>
         {
             var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetAccounts {0}, {1}", category, item).AsQueryable().AsNoTracking();
             return data;
         });
+
+        public string GetSubAccountCode(Guid? id)
+        {
+            var itemCode = _db.ItemCodes.FirstOrDefault(f => f.Id == id);
+            if (itemCode == null)
+            {
+                return string.Empty;
+            }
+            var raCode = itemCode.Code.Split('.');            
+            return raCode[raCode.Length -1];
+        }
 
         public string GetSubAccounts(Guid? id) 
         {
@@ -183,6 +196,22 @@ namespace iLgs.Services.Items
             //    .Select(s => s.Description));
 
             var data = _db.Database.SqlQuery<string>($"select STRING_AGG(Description, '/') from ItemCodes where Id != '{id}' and '{code}' like code + '%'").FirstOrDefault();
+
+            return data;
+        }
+
+        public string GetSubAccount(Guid? id, int pos)
+        {
+            // Retrieve the Code for the given id
+            var code = _db.ItemCodes
+                .Where(i => i.Id == id)
+                .Select(i => i.Code)
+                .FirstOrDefault();
+
+            if (string.IsNullOrEmpty(code))
+                return string.Empty; // Handle the case where the code is not found
+
+            var data = _db.Database.SqlQuery<string>($"Select dbo.fn_SubAccountAt('{code}', {pos})").FirstOrDefault();
 
             return data;
         }

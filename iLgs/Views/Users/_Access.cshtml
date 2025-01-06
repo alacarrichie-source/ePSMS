@@ -5,7 +5,7 @@
 
 
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-2 text-right">
         @Html.Label("User Id", new { style = "color:silver" })
     </div>
@@ -13,7 +13,7 @@
         @ViewData["userName"]
     </div>
 </div>
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-2 text-right">
         @Html.Label("Name", new { style = "color:silver" })
     </div>
@@ -22,7 +22,7 @@
     </div>
 </div>
 <br />
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-2 text-right">
         @Html.Label("Application", new { style = "color:silver" })
     </div>
@@ -45,7 +45,7 @@
         )
     </div>
 </div>
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-2 text-right">
         @Html.Label("Menu Level", new { style = "color:silver" })
     </div>
@@ -78,7 +78,7 @@
 <br />
 @*}*@
 
-<div class="row">
+<div class="row k-mb-2">
     <div class="col-md-7">
         @(Html.Kendo().Grid<iLgs.Models.MenubaseVM>()
             .Name("grid")

@@ -27,7 +27,7 @@
     </div>
 
     <fieldset>
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.PoNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -37,7 +37,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.PoDate, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -47,7 +47,7 @@
             </div>
         </div>
 
-        @*<div class="row">
+        @*<div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.AirNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -57,7 +57,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.AirDate, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -67,7 +67,7 @@
             </div>
         </div>*@
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.DeptId, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -101,7 +101,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.DeptDisplay, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -111,7 +111,7 @@
             </div>
         </div>
         <br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.TransDate, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -120,7 +120,7 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-3">                   
@@ -156,7 +156,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -188,7 +188,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.UnitCost, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -198,7 +198,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.QtyBal, "Balance", htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -215,7 +215,7 @@
         }
         else
         {
-            <div class="row">
+            <div class="row k-mb-2">
                 <div class="col-md-12">
                     @Html.LabelFor(m => m.TransferOut, htmlAttributes: new { @class = "col-md-12" })
                     <div class="col-md-12">
@@ -227,7 +227,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row k-mb-2">
                 <div class="col-md-12">
                     @Html.LabelFor(m => m.RemBalance, htmlAttributes: new { @class = "col-md-12" })
                     <div class="col-md-12">
@@ -240,7 +240,7 @@
 
 
         <br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <span id="span_">
                     @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave_" + @ViewData["CardItemId"]))

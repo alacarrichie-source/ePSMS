@@ -1,8 +1,7 @@
 ﻿using iLgs.Exceptions;
-using iLgs.Exceptions.PARs;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
+using iLgs.Services.PropertyCard;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;

@@ -31,13 +31,15 @@ namespace iLgs.Services.AllFields
         string GetRisDescription(RisItemEntryVM model);
         string GetCardStockNo(PsCardVM model);
         string GetRisStockNo(RisItemEntryVM model);
+        string GetOrderStockNo(OrderItemVM model);        
         string GetCustodianStockNo(CustodianReportItem model);
         string GetCustodianStockNo(CustodianReportLandItem model);
         string GetCustodianStockNo(CustodianReportBldgItem model);
+        string GetOrderPsNoDisplay(OrderItemVM model);
         void ValidateStockCardAllField(StockCardVM model);
         void ValidatePropertyCardAllField(PropertyCardVM model);
         void ValidateRisAllField(RisItemEntryVM model);
-        string GetStockNo(AllField af, string itemTypeCode, string itemCode);
+        string GetStockNo(AllField af, string itemTypeCode, string itemCode);        
         bool IsBrandRequired(Category c);
         //bool IsNoIcs(Guid? itemCodeId);
         AllField ChangeAllFieldCase(AllField allField);
@@ -376,6 +378,35 @@ namespace iLgs.Services.AllFields
             stockNo += GetPartialViewStockNo(model.AllField, partialView);
 
             return stockNo ?? "";
+        }
+
+        public string GetOrderStockNo(OrderItemVM model)
+        {
+            model.AllField = ChangeAllFieldCase(model.AllField);
+            string stockNo = model.ItemCode.Trim();
+            
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            stockNo += GetPartialViewStockNo(model.AllField, partialView);
+
+            return stockNo ?? "";
+        }
+
+        public string GetOrderPsNoDisplay(OrderItemVM model)
+        {
+            string display = "";
+            if (Enum.TryParse(model.PsType, out Category c))
+            {
+                if (c == CatLandsProp())
+                {
+                    display = $"{model.ItemCode}/{model.AllField.Area}SqM";
+                }
+                else
+                {
+                    display = $"{model.ItemCode}";
+                }
+            }
+            return display;
         }
 
         public AllField ChangeAllFieldCase(AllField allField)

@@ -9,7 +9,7 @@
     @Html.HiddenFor(model => model.IssuedId)    
 
     <fieldset>
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(m => m.RISNo, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().TextBoxFor(m => m.RISNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -17,7 +17,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(m => m.RCCode, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().TextBoxFor(m => m.RCCode).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -25,7 +25,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(m => m.OrderItemId, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().MultiColumnComboBoxFor(m => m.OrderItemId)
@@ -60,21 +60,21 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(m => m.Item, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().TextBoxFor(m => m.Item).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().TextBoxFor(m => m.Unit).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -84,7 +84,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.UnitCost, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().NumericTextBoxFor(model => model.UnitCost).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -94,7 +94,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(model => model.Amount, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
                 @(Html.Kendo().NumericTextBoxFor(model => model.Amount).Enable(false).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))

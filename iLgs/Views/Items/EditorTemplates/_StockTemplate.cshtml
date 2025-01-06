@@ -9,7 +9,7 @@
     @Html.HiddenFor(model => model.PsId)
 
 <fieldset>
-    <div class="row">
+    <div class="row k-mb-2">
         @Html.LabelFor(model => model.StockNo, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
             @(Html.Kendo().TextBoxFor(model => model.StockNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -17,7 +17,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row k-mb-2">
         @Html.LabelFor(model => model.StockName, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
             @(Html.Kendo().TextBoxFor(model => model.StockName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -25,7 +25,7 @@
         </div>
     </div>
     
-    <div class="row">
+    <div class="row k-mb-2">
         @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "col-md-3" })
         <div class="col-md-9">
             @(Html.Kendo().TextBoxFor(model => model.Description).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))

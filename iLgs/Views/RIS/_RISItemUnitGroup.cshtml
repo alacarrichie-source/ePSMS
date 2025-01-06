@@ -38,7 +38,7 @@
         .ClientDetailTemplateId("GroupDescriptions")
         .DataSource(dataSource => dataSource
             .Ajax()
-            .Events(events => events.Error("InlineGridError").RequestEnd("onGridItemUnitGroupsRequestEnd"))
+            .Events(events => events.Error("InlineGridUnitGroupError").RequestEnd("onGridItemUnitGroupsRequestEnd"))
             .Model(model =>
             {
                 model.Id(p => p.Id);
@@ -87,8 +87,8 @@
     .ClientDetailTemplateId("GroupDescriptionItems")
     .DataSource(dataSource => dataSource
         .Ajax()
-        .Events(events => events.Error("GridError")
-        //.RequestEnd("onGridItemUnitGroupDescriptionsRequestEnd")
+        .Events(events => events.Error("InlineGridUnitGroupDescriptionError")
+        .RequestEnd("onGridItemUnitGroupDescriptionsRequestEnd")
         )
         .Model(model =>
         {
@@ -138,7 +138,8 @@
     .NoRecords()
     .DataSource(dataSource => dataSource
         .Ajax()
-        .Events(events => events.Error("GridError").RequestEnd("onGridItemUnitGroupDescriptionItemsRequestEnd")
+        .Events(events => events.Error("InlineGridUnitGroupDescriptionItemError")
+        .RequestEnd("onGridItemUnitGroupDescriptionItemsRequestEnd")
         )
         .Model(model =>
         {

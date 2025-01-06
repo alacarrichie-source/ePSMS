@@ -14,7 +14,7 @@
     @Html.HiddenFor(model => model.Id)
 
     <fieldset>
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(model => model.AIRNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -31,7 +31,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(model => model.OrderId, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -71,7 +71,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.Supplier, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -80,7 +80,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.Department, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -89,7 +89,7 @@
             </div>
         </div>
 
-        @*<div class="row">
+        @*<div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(model => model.InvoiceNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -113,7 +113,7 @@
                 <section id="acceptance" class="card ra-section">
                     <div class="card-header">Acceptance</div>
                     <div class="card-body">
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.AcceptedDate, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
@@ -121,21 +121,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
                                     @(Html.Kendo().CheckBoxFor(m => m.IsComplete).Label("Complete"))
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
                                     @(Html.Kendo().CheckBoxFor(m => m.IsPartial).Label("Partial (pls. specify)"))
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-3">
                                     &nbsp;
@@ -146,7 +146,7 @@
                             </div>
                         </div>
                         
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.Custodian, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
@@ -182,7 +182,7 @@
                 <section id="inspection" class="card ra-section">
                     <div class="card-header">Inspection</div>
                     <div class="card-body">
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.InspectedDate, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
@@ -190,7 +190,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
                                     @(Html.Kendo().CheckBoxFor(m => m.IsInspected).Label("Inspected, verified and found in order as to quality and specifications."))
@@ -198,7 +198,7 @@
                             </div>
                         </div>
                         <br />                        
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.Officer, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">

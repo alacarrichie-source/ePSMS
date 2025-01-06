@@ -163,7 +163,7 @@
     function columnTemplate(data) {
         return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
     }
-    
+
     function onSelectTab(e) {
         var ts = this;
         for (var idx = 0; ; ++idx) {
@@ -401,8 +401,8 @@
 
     function OrderItem(mode, recId) {
         var myTitle = (mode == "A") ? "Order Item - ADD" : "Order Item - EDIT";
-        var width = 800;
-        var height = 450;
+        var width = 1000;
+        var height = 650;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -410,7 +410,7 @@
                     draggable: true,
                     modal: true,
                     visible: false,
-                    //autoheight: true,
+                    autoheight: true,
                     close: function () {
                         $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
                     },
@@ -420,18 +420,34 @@
                 }).data("kendoWindow");
         mywindow.setOptions({
             title: myTitle,
-            width: width,
-            height: height
+            width: width
+            //height: height
         });
         mywindow.refresh({
             url: '@Url.Action("_OrderItemAddEdit", "Orders")',
             data: {
                 orderId: selectedId,
                 orderItemId: recId
+            },
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
             }
         });
         mywindow.open();
-        setTimeout(mywindow.center(), 200);
+        //setTimeout(mywindow.center(), 200);
+    }
+
+    function resizeWindow() {
+        var mywindow = $("#window").data("kendoWindow");
+        if (mywindow) {
+            mywindow.setOptions({
+                width: "1000",
+                height: "auto"
+            });
+            mywindow.center(); // Optional: Center the window after resizing
+        }
     }
 
     function onChangeGridItems(e) {
@@ -563,6 +579,84 @@
         $("#SupplierTin").val(dataItem.TIN).trigger("change");
     }
 
+    function onSelectItemCode(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#ItemCodeId").val(dataItem.Id).trigger("change");
+        $("#SubAccount").val(dataItem.MainDesc).trigger("change");
+        $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
+
+        $("#ItemCode").val(dataItem.Code).trigger("change");
+        $("#PsType").val(dataItem.Type).trigger("change");
+        $("#ItemType").val(dataItem.Article).trigger("change");
+        $("#ItemName").val(dataItem.Article).trigger("change");
+        //$("#SubAccountCode").val(dataItem.MainDescCode).trigger("change");
+
+        RefreshDivs(dataItem);
+
+        setTimeout(UpdateDescription, 500);
+    }
+
+    function RefreshDivs(dataItem) {
+        var fieldsContainer = $('#DIV_ALLFIELDS');
+
+        fieldsContainer.removeClass('hidden');
+        fieldsContainer.empty(); // Clear existing content
+
+        var url = '@Url.Action("LoadFields", "Orders")';
+        var data = $("#form").serialize();
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: data,
+            success: function(data) {
+                fieldsContainer.html(data);
+                resizeWindow();
+            }
+        });
+    }
+
+    function UpdateDescription(e)
+    {
+        var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+        var data = $("#form").serialize();
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GetDescription", "Orders")',
+            data: data,
+            beforeSend: function () {
+                window.kendo.ui.progress($(document.body), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($(document.body), false);
+                //$("#Description").val(result.Description).trigger("change");
+                $("#PsNo").val(result.StockNo).trigger("change");
+                disabled.attr('disabled', 'disabled')
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+            }
+        });
+    }
+
+    function onDataBoundItemCode(e) {
+        var comboBox = this;
+        var selectedValue = comboBox.value();
+
+        if (selectedValue !== null && selectedValue !== undefined && selectedValue != "") {
+            var dataItem = comboBox.dataItem();
+            $("#SubAccount").val(dataItem.MainDesc).trigger("change");
+            $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
+            RefreshDivs(dataItem);
+            var psNo = $("#PsNo").val();
+            if (!psNo) {
+                setTimeout(UpdateDescription, 500);
+            }
+        }
+    }
+
     function changeAmount(e) {
         var qty = $("#Qty").data("kendoNumericTextBox").value();
         var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();
@@ -677,73 +771,73 @@
     });
 
     // ------------ GRID ITEM EXTN ------------
-    function onSaveGridItemExtn(e) {
-        var grid = e.sender;
-        var model = $("#gridItemExtn").data().kendoGrid.editable.options.model;
+    //function onSaveGridItemExtn(e) {
+    //    var grid = e.sender;
+    //    var model = $("#gridItemExtn").data().kendoGrid.editable.options.model;
 
-        for (var key in e.values) {
-            if (e.values.hasOwnProperty(key)) {
-                if (key == "ItemValue") {
-                    model.set('ItemValue', e.values[key]);
-                } else {
-                    model.set('Sequence', e.values[key]);
-                }
-            }
-        }
+    //    for (var key in e.values) {
+    //        if (e.values.hasOwnProperty(key)) {
+    //            if (key == "ItemValue") {
+    //                model.set('ItemValue', e.values[key]);
+    //            } else {
+    //                model.set('Sequence', e.values[key]);
+    //            }
+    //        }
+    //    }
 
-        // Create an array to store the row values
-        var rowValues = [];
-        var gridData = e.sender.dataSource.data();
-        var sortDescriptor = e.sender.dataSource.sort(); // Retrieve the current sort descriptor
+    //    // Create an array to store the row values
+    //    var rowValues = [];
+    //    var gridData = e.sender.dataSource.data();
+    //    var sortDescriptor = e.sender.dataSource.sort(); // Retrieve the current sort descriptor
 
-        // Sort the data manually using the sort descriptor
-        gridData.sort(function (a, b) {
-            // Sort the data items first by 'ItemKey', then by 'Sequence'
-            if (a.Sequence === b.Sequence) {
-                return a.ItemNo.localeCompare(b.ItemNo);
-            }
-            return a.Sequence - b.Sequence;
-        });
+    //    // Sort the data manually using the sort descriptor
+    //    gridData.sort(function (a, b) {
+    //        // Sort the data items first by 'ItemKey', then by 'Sequence'
+    //        if (a.Sequence === b.Sequence) {
+    //            return a.ItemNo.localeCompare(b.ItemNo);
+    //        }
+    //        return a.Sequence - b.Sequence;
+    //    });
 
 
-        for (var i = 0; i < gridData.length; i++) {
-            var rowData = gridData[i];
+    //    for (var i = 0; i < gridData.length; i++) {
+    //        var rowData = gridData[i];
 
-            if (rowData.ItemKey == "Brand") {
-                $("#Brand").val(rowData.ItemValue).trigger('change');
-            }
+    //        if (rowData.ItemKey == "Brand") {
+    //            $("#Brand").val(rowData.ItemValue).trigger('change');
+    //        }
 
-            if (rowData.ItemKey == "Item Name") {
-                $("#ItemName").val(rowData.ItemValue).trigger('change');
-            } else {
-                rowValues.push(rowData.ItemValue);
-            }
-        }
+    //        if (rowData.ItemKey == "Item Name") {
+    //            $("#ItemName").val(rowData.ItemValue).trigger('change');
+    //        } else {
+    //            rowValues.push(rowData.ItemValue);
+    //        }
+    //    }
 
-        var description = rowValues.join(" ");
-        $("#Description").val(description.trim()).trigger('change');
-    }
+    //    var description = rowValues.join(" ");
+    //    $("#Description").val(description.trim()).trigger('change');
+    //}
 
-    function onDataBoundGridItemExtn(e) {
-        var grid = e.sender;
-        // Iterate over each row in the grid
-        grid.tbody.find("tr").each(function () {
-            var dataItem = grid.dataItem(this);
+    //function onDataBoundGridItemExtn(e) {
+    //    var grid = e.sender;
+    //    // Iterate over each row in the grid
+    //    grid.tbody.find("tr").each(function () {
+    //        var dataItem = grid.dataItem(this);
 
-            // Add condition based on your requirements to disable the row
-            if (dataItem.ItemKey != "Brand") {
-                // Disable the row
-                $(this).addClass("k-state-disabled");
-            }
-        });
-    }
+    //        // Add condition based on your requirements to disable the row
+    //        if (dataItem.ItemKey != "Brand") {
+    //            // Disable the row
+    //            $(this).addClass("k-state-disabled");
+    //        }
+    //    });
+    //}
 
-    function DataRisItemExtnGrid() {
-        return {
-            risItemId: $("#RisItemId").val(),
-            psType: $("#PsType").val()
-        };
-    }
+    //function DataRisItemExtnGrid() {
+    //    return {
+    //        risItemId: $("#RisItemId").val(),
+    //        accountCode: $("#PsType").val()
+    //    };
+    //}
     // ------------ END GRID ITEMEXTN
 
     // ITEM UNIT GROUPS

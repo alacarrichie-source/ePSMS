@@ -564,7 +564,7 @@
     {
         return {
             risItemId: $("#RisItemId").val(),
-            psType: $("#PsType").val()
+            accountCode: $("#PsType").val()
         };
     }
 
@@ -843,11 +843,28 @@
         selectedGrid.editRow();
     }
 
+    function InlineGridUnitGroupError(e) {
+        if (e.errors) {
+            let message = "Errors:\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
+                    });
+                }
+            });
+
+            alert(message); // You can replace this with any other UI method to display errors                        
+            $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();
+        }
+    }
+             
     function onGridItemUnitGroupsRequestEnd(e) {
         e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();
+                $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();                
             }
         }
     }
@@ -915,6 +932,23 @@
     // END RIS ITEM UNIT GROUPS
 
     // RIS ITEM UNIT GROUP DESCRIPTIONS
+    function InlineGridUnitGroupDescriptionError(e) {
+        if (e.errors) {
+            let message = "Errors:\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
+                    });
+                }
+            });
+
+            alert(message); // You can replace this with any other UI method to display errors                        
+            $("#gridItemUnitGroupDescriptions_" + selectedUnitGroupId).data("kendoGrid").dataSource.read();
+        }
+    }
+
     function onGridItemUnitGroupDescriptionsRequestEnd(e) {
         e.preventDefault();
         if (!e.response.Errors) {
@@ -979,6 +1013,23 @@
     // END RIS ITEM UNIT GROUP DESCRIPTIONS
 
     // RIS UNIT GROUP DESCRIPTION ITEMS
+    function InlineGridUnitGroupDescriptionItemError(e) {
+        if (e.errors) {
+            let message = "Errors:\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
+                    });
+                }
+            });
+
+            alert(message); // You can replace this with any other UI method to display errors                        
+            $("#gridItemUnitGroupDescriptionItems_" + selectedUnitGroupDescriptionId).data("kendoGrid").dataSource.read();
+        }
+    }
+
     function onGridItemUnitGroupDescriptionItemsRequestEnd(e) {
         e.preventDefault();
         if (!e.response.Errors) {

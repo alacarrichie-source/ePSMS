@@ -8,7 +8,7 @@
     @Html.HiddenFor(model => model.Id)
     @*@Html.HiddenFor(model => model.PropNo)*@
     @Html.HiddenFor(model => model.ItemCode)
-    @Html.HiddenFor(model => model.ItemTypeCode)
+    @Html.HiddenFor(model => model.AccountCode)
     @Html.HiddenFor(model => model.Item)
     //@Html.HiddenFor(model => model.GridItems)
 
@@ -19,7 +19,7 @@
     </div>
 
     <fieldset>
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.Fund, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -49,7 +49,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.ItemCodeId, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -83,7 +83,7 @@
             </div>
         </div>
 
-        @*<div class="row">
+        @*<div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.ItemType, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -92,7 +92,7 @@
             </div>
         </div>*@
 
-        @*<div class="row">
+        @*<div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Item, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -106,7 +106,7 @@
             @Html.Partial("_MachineryEquipment")
         </div>*@        
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Type, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -116,7 +116,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Brand, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -126,7 +126,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Model_, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -136,7 +136,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Color, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -146,7 +146,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Others, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -157,7 +157,7 @@
         </div>
 
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -168,7 +168,7 @@
         </div>
 
         <br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.SerialNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -179,7 +179,7 @@
         </div>
 
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.PropNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -189,7 +189,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.PrevPropNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -199,7 +199,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.AcqDate, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -209,7 +209,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.AcqMode, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -219,7 +219,7 @@
             </div>
         </div>
 
-        @*<div class="row">
+        @*<div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.Amount, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -232,7 +232,7 @@
         
         @*<br />
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.OtherDesc, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -242,7 +242,7 @@
             </div>
         </div>*@
 
-        @*<div class="row">
+        @*<div class="row k-mb-2">
             <div class="col-md-4">
                 @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -275,7 +275,7 @@
         
 
         @*<br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <span id="span_">
                     @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave"))

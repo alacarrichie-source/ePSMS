@@ -3,11 +3,14 @@
         .Columns(col =>
         {
             col.Bound(c => c.RisItemUnitGroup.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.RisItemUnitGroup.Unit).Width(100);
             col.Bound(c => c.UnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                //.ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_UnitCostTemplate");
             col.Bound(c => c.TotalCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_TotalCostTemplate");
             col.Bound(c => c.InsertedDt).Width(100);
             col.Command(command =>
@@ -39,7 +42,7 @@
         .ClientDetailTemplateId("GroupDescriptions")
         .DataSource(dataSource => dataSource
             .Ajax()
-            .Events(events => events.Error("GridError").RequestEnd("onGridItemUnitGroupsRequestEnd"))
+            .Events(events => events.Error("InlineGridUnitGroupError").RequestEnd("onGridItemUnitGroupsRequestEnd"))
             .Model(model =>
             {
                 model.Id(p => p.Id);
@@ -49,6 +52,12 @@
                 model.Field(p => p.RisItemUnitGroup.Unit).Editable(false);
                 model.Field(p => p.InsertedDt).Editable(false);
                 model.Field(p => p.TotalCost).Editable(false);
+            })
+            .Aggregates(a =>
+            {
+                a.Add(p => p.RisItemUnitGroup.Qty).Sum();
+                //a.Add(p => p.UnitCost).Sum();
+                a.Add(p => p.TotalCost).Sum();
             })
             .Sort(s =>
             {
@@ -89,8 +98,8 @@
     .ClientDetailTemplateId("GroupDescriptionItems")
     .DataSource(dataSource => dataSource
         .Ajax()
-        .Events(events => events.Error("GridError")
-        //.RequestEnd("onGridItemUnitGroupDescriptionsRequestEnd")
+        .Events(events => events.Error("InlineGridUnitGroupDescriptionError")
+        .RequestEnd("onGridItemUnitGroupDescriptionsRequestEnd")
         )
         .Model(model =>
         {
@@ -128,7 +137,7 @@
                 .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_PriceRateTemplate"); 
         col.Bound(c => c.UnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                //.ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_UnitCostTemplate");
         col.Bound(c => c.TotalCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
@@ -148,7 +157,7 @@
     .NoRecords()
     .DataSource(dataSource => dataSource
         .Ajax()
-        .Events(events => events.Error("GridError").RequestEnd("onGridItemUnitGroupDescriptionItemsRequestEnd")
+        .Events(events => events.Error("InlineGridUnitGroupDescriptionItemError").RequestEnd("onGridItemUnitGroupDescriptionItemsRequestEnd")
         )
         .Model(model =>
         {
@@ -165,7 +174,7 @@
         {
             a.Add(p => p.QtyRequest).Sum();
             a.Add(p => p.PriceRate).Sum();
-            a.Add(p => p.UnitCost).Sum();
+            //a.Add(p => p.UnitCost).Sum();
             a.Add(p => p.TotalCost).Sum();            
         })
         .Read(read => read.Action("_UnitGroupDescriptionItemRead", "Requests", new { unitGroupDescriptionId = "#=Id#" }))

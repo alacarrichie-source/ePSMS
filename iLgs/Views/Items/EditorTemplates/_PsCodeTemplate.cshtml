@@ -9,7 +9,7 @@
     @*@Html.HiddenFor(model => model.PsNo)*@
     @Html.HiddenFor(model => model.PsType)
     @Html.HiddenFor(model => model.ItemCode)
-    @Html.HiddenFor(model => model.PsTypeDesc)
+    @Html.HiddenFor(model => model.Account)
     @Html.HiddenFor(model => model.ItemCodeDesc)
     
 
@@ -20,7 +20,7 @@
     </div>
 
     <fieldset>
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.ItemCodeId, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -54,7 +54,7 @@
             </div>
         </div>
 
-        @*<div class="row">
+        @*<div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.ItemType, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -63,7 +63,7 @@
             </div>
         </div>*@
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.ItemName, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -73,7 +73,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.PsNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">

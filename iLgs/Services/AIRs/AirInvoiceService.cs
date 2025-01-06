@@ -1,6 +1,8 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Validators;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -10,16 +12,28 @@ using System.Web;
 
 namespace iLgs.Services.AIRs
 {
-    public class AirInvoiceService : IAirInvoiceService
+    public interface IAirInvoiceService
+    {
+        IQueryable<AIRInvoiceVM> GetVmByAirId(Guid? airId);
+        ValueTask<AIRInvoiceVM> GetVmByIdAsync(Guid? id);
+
+        ValueTask<AIRInvoiceVM> CreateAsync(AIRInvoiceVM model, string user, DateTime date);
+        ValueTask<AIRInvoiceVM> UpdateAsync(AIRInvoiceVM model, string user, DateTime date);
+        ValueTask<AIRInvoiceVM> DeleteAsync(AIRInvoiceVM model, string user, DateTime date);
+    }
+
+    public class AirInvoiceService : BaseValidator, IAirInvoiceService
     {
         private readonly AppManEntities _db;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<AIRInvoiceVM> _vmExceptionService = new ExceptionService<AIRInvoiceVM>();
         private readonly IExceptionService<AIRInvoice> _exceptionService = new ExceptionService<AIRInvoice>();
+        private readonly GetDisplayNameDelegate _getDisplayName;
 
         public AirInvoiceService(AppManEntities db)
         {
             _db = db;
+            _getDisplayName = propertyName => Utility.GetDisplayName<AIRInvoiceVM>(propertyName);
         }
 
         public IQueryable<AIRInvoiceVM> GetVmByAirId(Guid? airId) =>
@@ -183,17 +197,19 @@ namespace iLgs.Services.AIRs
         });
 
         private void ValidateRequired(AIRInvoiceVM model)
-        {
+        {            
             if (string.IsNullOrWhiteSpace(model.InvoiceNo))
             {
-                throw new RequiredFieldException(nameof(model.InvoiceNo));
+                _imex.UpsertDataList(_getDisplayName(nameof(model.InvoiceNo)), "Field is required.");                
             }
 
             if (model.InvoiceDate == null)
             {
-                throw new RequiredFieldException(nameof(model.InvoiceDate));
+                _imex.UpsertDataList(_getDisplayName(nameof(model.InvoiceDate)), "Field is required.");
             }
+            _imex.ThrowIfContainsErrors();
         }
+
         private async Task ValidateOnCreate(AIRInvoiceVM model)
         {
             if (await IsPostedAsync(model.AirId))

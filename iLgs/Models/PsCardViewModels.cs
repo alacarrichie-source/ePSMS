@@ -72,8 +72,21 @@ namespace iLgs.Models
         public string ItemType { get; set; }
         public string ItemTypeCode { get; set; }
 
-        [Display(Name = "Sub-account")]
+        [Display(Name = "Sub-Account")]
         public string SubAccount { get; set; }
+
+        [Display(Name = "Sub-Account 1")]
+        public string SubAccount1 { get; set; }
+
+        [Display(Name = "Sub-Account 2")]
+        public string SubAccount2 { get; set; }
+
+        [Display(Name = "Sub-Account 3`")]
+        public string SubAccount3 { get; set; }
+
+        [Display(Name = "Sub-Account 4")]
+        public string SubAccount4 { get; set; }
+
         public string SubAccountCode { get; set; }
 
         [Display(Name = "Partial Page")]

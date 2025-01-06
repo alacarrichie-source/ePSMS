@@ -468,9 +468,6 @@
     <Compile Include="Models\OrderItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\OrderItemExtn.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\OrderItemUnitGroup.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -715,23 +712,23 @@
     <Compile Include="Services\ParIcs\IcsService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\LoggingService.cs" />
-    <Compile Include="Services\OrderItemUnitGroupDescriptionItemService.cs" />
-    <Compile Include="Services\OrderItemUnitGroupDescriptionService.cs" />
-    <Compile Include="Services\OrderItemUnitGroupService.cs" />
-    <Compile Include="Services\PropertyCardService.cs" />
-    <Compile Include="Services\PsCardItemExtnOtherService.cs" />
-    <Compile Include="Services\PsCardItemExtnService.cs" />
-    <Compile Include="Services\PsCardItemExtnVehicleService.cs" />
-    <Compile Include="Services\PsCardItemIssuanceService.cs" />
-    <Compile Include="Services\PsCardItemTransactionService.cs" />
-    <Compile Include="Services\PsCardItemService.cs" />
-    <Compile Include="Services\PsCardService.cs" />
-    <Compile Include="Services\RequestItemUnitGroupDescriptionItemService.cs" />
-    <Compile Include="Services\RequestItemUnitGroupDescriptionService.cs" />
-    <Compile Include="Services\RequestItemUnitGroupService.cs" />
-    <Compile Include="Services\RisItemUnitGroupDescriptionItemService.cs" />
-    <Compile Include="Services\RisItemUnitGroupDescriptionService.cs" />
-    <Compile Include="Services\RisItemUnitGroupService.cs" />
+    <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupDescriptionItemService.cs" />
+    <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupDescriptionService.cs" />
+    <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupService.cs" />
+    <Compile Include="Services\PropertyCard\PropertyCardService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnOtherService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnVehicleService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemIssuanceService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemTransactionService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardService.cs" />
+    <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupDescriptionItemService.cs" />
+    <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupDescriptionService.cs" />
+    <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupService.cs" />
+    <Compile Include="Services\Requisition\RisItemUnitGroupDescriptionItemService.cs" />
+    <Compile Include="Services\Requisition\RisItemUnitGroupDescriptionService.cs" />
+    <Compile Include="Services\Requisition\RisItemUnitGroupService.cs" />
     <Compile Include="Services\RpceffoppeItemService.cs" />
     <Compile Include="Services\RpciItemService.cs" />
     <Compile Include="Services\RpciService.cs" />
@@ -941,14 +938,14 @@
     <Compile Include="Services\ItemFieldService.cs" />
     <Compile Include="Services\Items\ItemTypeService.cs" />
     <Compile Include="Services\OrderItemExtnService.cs" />
-    <Compile Include="Services\OrderItemService.cs" />
-    <Compile Include="Services\OrderService.cs" />
+    <Compile Include="Services\PurchaseOrder\OrderItemService.cs" />
+    <Compile Include="Services\PurchaseOrder\OrderService.cs" />
     <Compile Include="Services\ParIcs\ParItemService.cs" />
     <Compile Include="Services\ParIcs\ParService.cs" />
-    <Compile Include="Services\RequestItemService.cs" />
-    <Compile Include="Services\RequestService.cs" />
-    <Compile Include="Services\RisItemService.cs" />
-    <Compile Include="Services\RisService.cs" />
+    <Compile Include="Services\PurchaseRequest\RequestItemService.cs" />
+    <Compile Include="Services\PurchaseRequest\RequestService.cs" />
+    <Compile Include="Services\Requisition\RisItemService.cs" />
+    <Compile Include="Services\Requisition\RisService.cs" />
     <Compile Include="Services\ValidatorService.cs" />
     <Compile Include="Services\Validators\AirItemExtnVehicleValidator.cs" />
     <Compile Include="Services\Validators\AirItemValidator.cs" />
@@ -958,10 +955,10 @@
     <Compile Include="Services\Validators\IcsParItemValidator.cs" />
     <Compile Include="Exceptions\Service\InvalidModelException.cs" />
     <Compile Include="Services\Validators\ParSetValidator.cs" />
-    <Compile Include="Services\Validators\PropertyCardValidator.cs" />
-    <Compile Include="Services\Validators\PsCArdItemExtnValidator.cs" />
-    <Compile Include="Services\Validators\PsCardItemExtnVehicleValidator.cs" />
-    <Compile Include="Services\Validators\PsCardItemValidator.cs" />
+    <Compile Include="Services\PropertyCard\PropertyCardValidator.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnValidator.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnVehicleValidator.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemValidator.cs" />
     <Compile Include="Services\Validators\RisItemValidator.cs" />
     <Compile Include="Services\Validators\RisItemUnitGroupValidator.cs" />
     <Compile Include="Services\Validators\RisValidator.cs" />
@@ -3873,6 +3870,21 @@
     <Content Include="Views\Codes\EditorTemplates\_CodextnGenTemplate.cshtml" />
     <Content Include="Views\Requests\_RequestItemAddEdit.cshtml" />
     <Content Include="Views\Orders\_OrderItemAddEdit.cshtml" />
+    <Content Include="Views\Orders\_FieldAlcohol.cshtml" />
+    <Content Include="Views\Orders\_FieldBrand.cshtml" />
+    <Content Include="Views\Orders\_FieldBrand_B.cshtml" />
+    <Content Include="Views\Orders\_FieldDrugs.cshtml" />
+    <Content Include="Views\Orders\_FieldLand.cshtml" />
+    <Content Include="Views\Orders\_FieldMultiple.cshtml" />
+    <Content Include="Views\Orders\_FieldMultiple_A.cshtml" />
+    <Content Include="Views\Orders\_FieldSerial.cshtml" />
+    <Content Include="Views\Orders\_FieldSerial_A.cshtml" />
+    <Content Include="Views\Orders\_FieldSerial_B.cshtml" />
+    <Content Include="Views\Orders\_FieldSerial_C.cshtml" />
+    <Content Include="Views\Orders\_FieldSerial_D.cshtml" />
+    <Content Include="Views\Orders\_FieldSerial_E.cshtml" />
+    <Content Include="Views\Orders\_FieldSerial_F.cshtml" />
+    <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
     <Content Include="Views\Uploads\_UploadSingle.cshtml" />
@@ -4192,6 +4204,7 @@
     <Content Include="Views\ItemCodeRequest\EditorTemplates\_ImagesTemplate.cshtml" />
     <Content Include="Views\PoIssuance\Summary.cshtml" />
     <Content Include="Views\StockCard\ItemQuery.cshtml" />
+    <Content Include="Views\Orders\_FieldBrand_A.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4311,7 +4324,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

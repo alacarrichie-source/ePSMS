@@ -19,6 +19,10 @@ using System.Collections.Generic;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Services.Codes;
+using iLgs.Services.Items;
+using iLgs.Services.AllFields;
+using iLgs.Services.PurchaseOrder;
+using iLgs.Services.PurchaseRequest;
 
 namespace iLgs.Controllers
 {
@@ -28,24 +32,26 @@ namespace iLgs.Controllers
         private readonly AppManEntities _db;
         private readonly IOrderService _orderService;
         private readonly IOrderItemService _orderItemService;
-        private readonly IOrderItemExtnService _orderItemExtnService;
         private readonly IRequestService _requestService;
         private readonly ICodextnService _codextnService;
         private readonly IOrderItemUnitGroupService _unitGroupService;
         private readonly IOrderItemUnitGroupDescriptionService _unitGroupDescriptionService;
         private readonly IOrderItemUnitGroupDescriptionItemService _unitGroupDescriptionItemService;
+        private readonly IItemCodeService _itemCodeService;
+        private readonly IAllFieldService _allFieldService;
 
         public OrdersController()
         {
             _db = new AppManEntities();
             _orderService = new OrderService(_db);
             _orderItemService = new OrderItemService(_db);
-            _orderItemExtnService = new OrderItemExtnService(_db);
             _requestService = new RequestService(_db);
             _codextnService = new CodextnService(_db);
             _unitGroupService = new OrderItemUnitGroupService(_db);
             _unitGroupDescriptionService = new OrderItemUnitGroupDescriptionService(_db);
             _unitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
+            _itemCodeService = new ItemCodeService(_db);
+            _allFieldService = new AllFieldService(_db);
         }
 
         // GET: Codes
@@ -255,17 +261,49 @@ namespace iLgs.Controllers
                 ModelState.AddModelError("", e.Message);
             }
 
-            var query = from state in ModelState.Values
-                        from error in state.Errors
-                        select error.ErrorMessage;
+            //var query = from state in ModelState.Values
+            //            from error in state.Errors
+            //            select error.ErrorMessage;
 
-            var errorList = query.ToList();
-            if (errorList.Count() > 0)
+            //var errorList = query.ToList();
+            //if (errorList.Count() > 0)
+            //{
+            //    return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            //}
+
+            //return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+
+            var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
+                       .Select(ms => new
+                       {
+                           Key = ms.Key, // The field name
+                           Message = ms.Value.Errors.Select(e =>
+                           {
+                               var errorMessage = e.ErrorMessage;
+                               if (e.Exception != null)
+                               {
+                                   var exceptionMessage = e.Exception.Message;
+                                   var innerExceptionMessage = e.Exception.InnerException?.Message;
+
+                                   // Append exception details
+                                   errorMessage += $" Exception: {exceptionMessage}";
+                                   if (innerExceptionMessage != null)
+                                   {
+                                       errorMessage += $" InnerException: {innerExceptionMessage}";
+                                   }
+                               }
+
+                               return errorMessage;
+                           }).ToList() // List of messages for the current field
+                       })
+                       .ToList();
+
+            if (errorList.Any())
             {
-                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+                return Json(new { Errors = errorList }, JsonRequestBehavior.AllowGet);
             }
 
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult _OrderItemRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
@@ -620,6 +658,35 @@ namespace iLgs.Controllers
         #endregion
 
         #region EXTRAS
+        [AcceptVerbs(HttpVerbs.Post)]
+        public JsonResult GetDescription(OrderItemVM fields)
+        {
+            var stockNo = _allFieldService.GetOrderStockNo(fields);
+
+            return Json(new { Description = "", StockNo = stockNo }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] OrderItemVM model)
+        {
+            if (model.Id != Guid.Empty)
+            {
+                var allField = await _allFieldService.GetByIdAsync(model.Id);
+                if (allField != null)
+                {
+                    model.AllField = allField;
+                }
+            }            
+
+            var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            if (!string.IsNullOrEmpty(partialView))
+            {
+                partialView = $"{partialView}";
+            }
+            return PartialView(partialView, model);
+        }
+
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> PostOrders(Guid orderId)
@@ -728,21 +795,21 @@ namespace iLgs.Controllers
             return Json(new { PoYear = poYear, PoMonth = poMonth }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult _OrderItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, string mode, Guid? requestItemId, Guid? orderItemId, string psType)
-        {
-            /*
-             * Need orderId: if mode == 'A' orderItemId is still null or invalid value 
-             */
-            var data = _orderItemExtnService.GetBatchInfo(mode, requestItemId, orderItemId, psType);
-            var result = new JsonNetResult
-            {
-                Data = data.ToDataSourceResult(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
+        //public ActionResult _OrderItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, string mode, Guid? requestItemId, Guid? orderItemId, string psType)
+        //{
+        //    /*
+        //     * Need orderId: if mode == 'A' orderItemId is still null or invalid value 
+        //     */
+        //    var data = _orderItemExtnService.GetBatchInfo(mode, requestItemId, orderItemId, psType);
+        //    var result = new JsonNetResult
+        //    {
+        //        Data = data.ToDataSourceResult(request),
+        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+        //    };
 
-            return result;
-        }
+        //    return result;
+        //}
         #endregion
 
         #region PRINTOUTS

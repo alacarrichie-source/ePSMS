@@ -26,7 +26,7 @@
     @Model.ParItemId*@
 
     <fieldset>
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(model => model.ParNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -43,7 +43,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -62,7 +62,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(model => model.SerialNo, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
@@ -79,7 +79,7 @@
                 <section id="acceptance" class="card ra-section">
                     <div class="card-header">Received by</div>
                     <div class="card-body">
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.ReceivedDate, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
@@ -88,7 +88,7 @@
                             </div>
                         </div>
                         <br />
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.ReceivedBy, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
@@ -119,7 +119,7 @@
                             </div>
                         </div>
 
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.ReceivedByPosition, htmlAttributes: new { @class = "col-md-12" })
                                 <div class="col-md-12">
@@ -135,7 +135,7 @@
                 <section id="inspection" class="card ra-section">
                     <div class="card-header">Issued by</div>
                     <div class="card-body">
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.IssuedDate, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
@@ -144,7 +144,7 @@
                             </div>
                         </div>
                         <br />
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.IssuedBy, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
@@ -175,7 +175,7 @@
                             </div>
                         </div>
 
-                        <div class="row">
+                        <div class="row k-mb-2">
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.IssuedByPosition, htmlAttributes: new { @class = "col-md-12" })
                                 <div class="col-md-12">
@@ -188,7 +188,7 @@
             </div>
         </div>
         <br />
-        <div class="row">
+        <div class="row k-mb-2">
             <div class="col-md-12">
                 <span id="span_">
                     @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave"))

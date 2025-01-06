@@ -10,9 +10,9 @@
     @Html.HiddenFor(m => m.OrderId)
     @Html.HiddenFor(m => m.SerialNo)
 
-    <div class="row">
+    <div class="row k-mb-2">
         <div class="col-md-6">
-            <div class="row">
+            <div class="row k-mb-2">
                 <div class="col-md-12">
                     @Html.LabelFor(m => m.Date, htmlAttributes: new { @class = "col-md-2" })
                     <div class="col-md-3">
@@ -32,7 +32,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row k-mb-2">
                 <div class="col-md-12">
                     @Html.LabelFor(m => m.Fund, htmlAttributes: new { @class = "col-md-2" })
                     <div class="col-md-10">
@@ -64,9 +64,9 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row k-mb-2">
         <div class="col-md-6">
-            <div class="row">
+            <div class="row k-mb-2">
                 <div class="col-md-12">
                     @Html.LabelFor(m => m.CertifiedBy, htmlAttributes: new { @class = "col-md-2" })
                     <div class="col-md-10">
@@ -75,7 +75,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
+            <div class="row k-mb-2">
                 <div class="col-md-12">
                     @Html.LabelFor(m => m.CertifiedDt, htmlAttributes: new { @class = "col-md-2" })
                     <div class="col-md-3">
@@ -87,7 +87,7 @@
         </div>
 
         <div class="col-md-6">
-            <div class="row">
+            <div class="row k-mb-2">
                 <div class="col-md-12">
                     @Html.LabelFor(m => m.PostedBy, htmlAttributes: new { @class = "col-md-2" })
                     <div class="col-md-10">
@@ -96,7 +96,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
+            <div class="row k-mb-2">
                 <div class="col-md-12">
                     @Html.LabelFor(m => m.PostedDt, htmlAttributes: new { @class = "col-md-2" })
                     <div class="col-md-3">
@@ -105,7 +105,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
+            <div class="row k-mb-2">
                 <div class="col-md-12">
                     <span id="span_">
                         @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSaveSelection"))
@@ -116,7 +116,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row k-mb-2">
         <div class="col-md-12">
             @RenderTabstrip()
         </div>

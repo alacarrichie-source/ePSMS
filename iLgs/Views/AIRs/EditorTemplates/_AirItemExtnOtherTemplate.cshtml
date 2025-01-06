@@ -17,7 +17,7 @@
 
     <fieldset>
 
-        <div class="row">
+        <div class="row k-mb-2">
             @Html.LabelFor(m => m.SerialNo, htmlAttributes: new { @class = "col-md-2" })
             <div class="col-md-10">
                 @(Html.Kendo().TextBoxFor(m => m.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -26,7 +26,7 @@
         </div>
 
         
-        @*<div class="row">
+        @*<div class="row k-mb-2">
             @Html.LabelFor(m => m.Condition, htmlAttributes: new { @class = "col-md-2" })
             <div class="col-md-10">
                 @(Html.Kendo().TextBoxFor(m => m.Condition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))

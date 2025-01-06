@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.Internal;
 using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
@@ -12,18 +13,18 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.AIRs
 {
     public interface IAirItemExtnVehicleService
     {
         IQueryable<AIRItemExtnVehicle> GetByAirItemId(Guid? airItemId);
-        ValueTask<ServiceResult<AIRItemExtnVehicle>> GetByIdAsync(Guid? id);
+        ValueTask<AIRItemExtnVehicle> GetByIdAsync(Guid? id);
 
-        //ValueTask<AIRItemExtnVehicle> CreateAsync(AIRItemExtnVehicle model, string user, DateTime date);
-        ValueTask<ServiceResult<AIRItemExtnVehicle>> CreateAsync(AIRItemExtnVehicle model, string user, DateTime date);
-        ValueTask<ServiceResult<AIRItemExtnVehicle>> UpdateAsync(AIRItemExtnVehicle model, string user, DateTime date);
-        ValueTask<ServiceResult<AIRItemExtnVehicle>> DeleteAsync(AIRItemExtnVehicle model, string user, DateTime date);
+        ValueTask<AIRItemExtnVehicle> CreateAsync(AIRItemExtnVehicle model, string user, DateTime date);
+        ValueTask<AIRItemExtnVehicle> UpdateAsync(AIRItemExtnVehicle model, string user, DateTime date);
+        ValueTask<AIRItemExtnVehicle> DeleteAsync(AIRItemExtnVehicle model, string user, DateTime date);
 
         ValueTask<bool> IsPostedAsync(Guid? airItemId);
         ValueTask<bool> IsUniquePlateNoAddAsync(Guid? airItemId, string plateNo);
@@ -32,16 +33,18 @@ namespace iLgs.Services.AIRs
         void ValidateItemExtnVechiles(Guid? airItemId);
     }
 
-    public class AirItemExtnVehicleService : IAirItemExtnVehicleService
+    public class AirItemExtnVehicleService : BaseValidator, IAirItemExtnVehicleService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<ServiceResult<AIRItemExtnVehicle>> _exceptionService = new ExceptionService<ServiceResult<AIRItemExtnVehicle>>();
-        private readonly IValidationService<AIRItemExtnVehicle> _validationService;
+        private readonly IExceptionService<AIRItemExtnVehicle> _exceptionService = new ExceptionService<AIRItemExtnVehicle>();
+        private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly IAirService _airService;
 
         public AirItemExtnVehicleService(AppManEntities db)
         {
             _db = db;
-            _validationService = new ValidationService<AIRItemExtnVehicle>(new AirItemExtnVehicleValidator(this));
+            _airService = new AirService(_db);
+            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianIIRUP>(propertyName);
         }
 
         public IQueryable<AIRItemExtnVehicle> GetByAirItemId(Guid? airItemId)
@@ -50,10 +53,10 @@ namespace iLgs.Services.AIRs
             return data;
         }
 
-        public ValueTask<ServiceResult<AIRItemExtnVehicle>> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
+        public ValueTask<AIRItemExtnVehicle> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
         {
             var data = await _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.Id == id).FirstOrDefaultAsync();
-            return ServiceResult<AIRItemExtnVehicle>.Success(data);
+            return data;
         });
 
         public void ValidateItemExtnVechiles(Guid? airItemId)
@@ -63,27 +66,9 @@ namespace iLgs.Services.AIRs
                 throw new InvalidValueException("Incomplete item quantitny contents detected.");
             }
         }
-
-        //private void ValidateFields(AIRItemExtnVehicle model)
-        //{
-        //    if (string.IsNullOrWhiteSpace(model.SeriesNo))
-        //    {
-        //        throw new InvalidValueException("Series Number is required!");
-        //    }
-        //    if (string.IsNullOrWhiteSpace(model.PlateNo))
-        //    {
-        //        throw new InvalidValueException("Plate Number is required!");
-        //    }
-        //}
-
-        public ValueTask<ServiceResult<AIRItemExtnVehicle>> CreateAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {
-            var result = await _validationService.ValidateAsync(model, "Create");
-            if (!result.IsSuccess)
-            {
-                return ServiceResult<AIRItemExtnVehicle>.Failure(result.Errors);
-            }
-
+        
+        public ValueTask<AIRItemExtnVehicle> CreateAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {            
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
@@ -123,17 +108,11 @@ namespace iLgs.Services.AIRs
             _db.AIRItemExtns.Add(entity);
             await _db.SaveChangesAsync();
 
-            return ServiceResult<AIRItemExtnVehicle>.Success(model);
+            return model;
         });
 
-        public ValueTask<ServiceResult<AIRItemExtnVehicle>> DeleteAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {
-            var result = await _validationService.ValidateAsync(model, "Delete");
-            if (!result.IsSuccess)
-            {
-                return ServiceResult<AIRItemExtnVehicle>.Failure(result.Errors);
-            }
-
+        public ValueTask<AIRItemExtnVehicle> DeleteAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {            
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -150,17 +129,11 @@ namespace iLgs.Services.AIRs
             _db.Entry(entity).State = EntityState.Deleted;
             await _db.SaveChangesAsync();
 
-            return ServiceResult<AIRItemExtnVehicle>.Success(model);
+            return model;
         });
 
-        public ValueTask<ServiceResult<AIRItemExtnVehicle>> UpdateAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<AIRItemExtnVehicle> UpdateAsync(AIRItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            var result = await _validationService.ValidateAsync(model, "Update");
-            if (!result.IsSuccess)
-            {
-                return ServiceResult<AIRItemExtnVehicle>.Failure(result.Errors);
-            }
-
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -191,7 +164,7 @@ namespace iLgs.Services.AIRs
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            return ServiceResult<AIRItemExtnVehicle>.Success(model);
+            return model;
         });
 
         public async ValueTask<bool> IsPostedAsync(Guid? airItemId)
@@ -216,6 +189,90 @@ namespace iLgs.Services.AIRs
             var airItemExtnCount = await _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItemId == airItemId).CountAsync();
 
             return !(airItemExtnCount >= airItemQty);
+        }
+
+        //RuleFor(m => m.AIRItemId)
+        //        .MustAsync(async (airItemId, cancellation) => 
+        //            !await _airItemExtnVehicleService.IsPostedAsync(airItemId))
+        //        .WithMessage("Record already posted, cannot update!");
+
+        //    RuleFor(m => m.YearModel)
+        //        .NotEmpty().WithMessage("Year Model is required.");
+
+        //    RuleFor(m => m)
+        //        .MustAsync(async (entity, cancellation) =>
+        //           await _airItemExtnVehicleService.IsValidItemQty(entity.AIRItemId))
+        //       .WithMessage("Number of Items must not exceed the Quantity.");
+
+        //    RuleSet("Create", () => {
+        //    RuleFor(x => x.PlateNo)
+        //   .MustAsync(async (entity, plateNo, cancellation) =>
+        //       await _airItemExtnVehicleService.IsUniquePlateNoAddAsync(entity.AIRItemId, plateNo))
+        //   .WithMessage("The Plate No must be unique.");
+        //});
+
+        //    RuleSet("Update", () => {
+        //    RuleFor(x => x.PlateNo)
+        //   .MustAsync(async (entity, plateNo, cancellation) =>
+        //       await _airItemExtnVehicleService.IsUniquePlateNoUpdateAsync(entity.Id, entity.AIRItemId, plateNo))
+        //   .WithMessage("The Plate No must be unique.");
+        //});
+
+        private void ValidateFields(AIRItemExtnVehicle model, Mode mode)
+        {
+            if (!model.YearModel.HasValue)
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.YearModel)), "Field is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.ConductionNo))
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(model.ConductionNo)), "Field is required.");
+            }            
+
+            _imex.ThrowIfContainsErrors();
+        }
+
+        private void ValidateIfNull(AIRItemExtnVehicle model)
+        {
+            if (model is null)
+            {
+                throw new NullException();
+            }
+        }
+
+        private void ValidateRecord(AIRItemExtnVehicle entity, Guid id)
+        {
+            if (entity == null)
+            {
+                throw new NotFoundException(id);
+            }
+        }
+
+        private void ValidateIfPosted(AIRItemExtnVehicle entity)
+        {
+            //if (entity.PostedDt != null)
+            //{
+            //    var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+            //    throw new RecordAlreadyPostedException(msg);
+            //}
+        }
+
+        private void ValidateIfNotPosted(AIRItemExtnVehicle entity)
+        {
+            //if (entity.PostedDt == null)
+            //{
+            //    throw new RecordNotYetPostedException($"Record is not yet posted!");
+            //}
+        }
+
+        public void ValidateIfPosted(Guid risId)
+        {
+            var isPosted = _airService.IsPosted(risId);
+            if (isPosted)
+            {
+                throw new RecordAlreadyPostedException();
+            }
         }
     }
 }

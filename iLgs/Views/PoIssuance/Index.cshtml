@@ -8,6 +8,7 @@
     //.HtmlAttributes(new { @class = "max-grid" })
     .Columns(columns =>
     {
+        columns.Bound(f => f.Account).Width(70);
         columns.Bound(f => f.Article).Width(100).Title("Sub-Accounts/Articles");
         columns.Bound(f => f.StockNo).Width(70);
         columns.Bound(f => f.Description).Width(70).Title("Item<br>Description");
@@ -89,6 +90,7 @@
     })
     .Search(s =>
     {
+        s.Field(o => o.Account, "contains");
         s.Field(o => o.StockNo, "contains");
         s.Field(o => o.Department, "contains");
         s.Field(o => o.LocCode, "contains");

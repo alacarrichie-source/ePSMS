@@ -247,16 +247,8 @@
         margin-bottom: 0;
         background-color: rgba(0,0,0,.03);
         border-bottom: 1px solid rgba(0,0,0,.125);
+        /*border-bottom: 1px solid black;*/        
     }
-
-    /*.k-black body,
-        .k-black .card,
-        .k-black .card-header,
-        .k-black .buttons-wrap {
-            border-color: #444;
-            background-color: #1e1e1e;
-            color: #fff;
-        }*/
 
     .card {
         position: relative;
@@ -267,6 +259,7 @@
         background-color: #fff;
         background-clip: border-box;
         border: 1px solid rgba(0,0,0,.125);
+        /*border: 1px solid black;*/
         border-radius: 0.25rem;
     }
 
@@ -818,16 +811,42 @@
     function DataOrderItemExtnGrid() {
         return {
             orderItemId: $("#OrderItemId").val(),
-            psType: $("#PsType").val()
+            accountCode: $("#PsType").val()
         };
     }
 
     // END GRID ITEMS
 
     // GRID INVOICE
+    function InlineGridInvoiceError(e) {
+        if (e.errors) {
+            let message = "Errors:\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
+                    });
+                }
+            });
+
+            alert(message); // You can replace this with any other UI method to display errors                        
+            $("#gridInvoices").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function onRequestEndGridInvoice(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridInvoices").data("kendoGrid").dataSource.read();
+            }
+        }
+    }
+
     function DataGridInvoice() {
         return {
-            airId: selectedId
+            airId: $("#Id").val()  @*'@ViewData["airId"]' //selectedId*@
         };
     }
 

@@ -103,6 +103,7 @@ namespace iLgs.Models
 
             public PsCard PsCard { get; set; }
             public RisItem RisItem { get; set; }
-        }
+            public OrderItem OrderItem { get; set; }
+        }        
     }
 }

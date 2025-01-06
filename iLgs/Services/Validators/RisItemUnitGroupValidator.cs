@@ -2,6 +2,7 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
+using iLgs.Services.Requisition;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,8 @@ namespace iLgs.Services.Validators
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
-        private readonly IRisService _risService;
+        private readonly IRisService _risService;    
+
         public RisItemUnitGroupValidator(AppManEntities db)
         {
             _db = db;
@@ -112,7 +114,7 @@ namespace iLgs.Services.Validators
         
         private void ValidateRecord(Guid id)
         {
-            if (!_db.RISses.Any(a => a.Id == id))
+            if (!_db.RisItemUnitGroups.Any(a => a.Id == id))
             {
                 throw new NotFoundException(id);
             }

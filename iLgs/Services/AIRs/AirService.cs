@@ -2,6 +2,8 @@
 using iLgs.Models;
 using iLgs.Services.Interfaces;
 using iLgs.Services.Items;
+using iLgs.Services.Validators;
+using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -19,8 +21,11 @@ namespace iLgs.Services.AIRs
         ValueTask<AIR_VM> GetVmByIdAsync(Guid id);
         ValueTask<AIR> GetByAirNoAsync(string airNo);
         ValueTask<bool> GetAnyAirNoAsync(Guid airId, string airNo);
+        bool IsPosted(Guid airId);
+        bool IsPosted(AIR air);
+        bool IsPosted(AIRItem airItem);
+        bool IsPosted(AIRItemExtn airItemExtn);        
         ValueTask<bool> IsPostedAsync(Guid airId);
-
         ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date);
@@ -30,19 +35,21 @@ namespace iLgs.Services.AIRs
         ValueTask<AIR> UnpostAsync(Guid airId, string user, DateTime date);
     }
 
-    public class AirService : IAirService
+    public class AirService : BaseValidator, IAirService
     {
         private readonly AppManEntities _db;
         private readonly IExceptionService<AIR_VM> _VmExceptionService = new ExceptionService<AIR_VM>();
         private readonly IExceptionService<AIR> _ExceptionService = new ExceptionService<AIR>();
         private readonly IAirItemService _airItemService;
         private readonly IItemCodeService _itemCodeService;
+        private readonly GetDisplayNameDelegate _getDisplayName;
 
         public AirService(AppManEntities db)
         {
             _db = db;
             _airItemService = new AirItemService(_db);
             _itemCodeService = new ItemCodeService(_db);
+            _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
         }
 
         public IQueryable<AIR_VM> GetAll() => _VmExceptionService.TryCatch(() =>
@@ -126,6 +133,33 @@ namespace iLgs.Services.AIRs
             return await _db.AIRs.Where(w => w.AIRNo == airNo).FirstOrDefaultAsync();
         });
 
+        public bool IsPosted(Guid airId)
+        {
+            var entity = _db.AIRs.Find(airId);
+            return !string.IsNullOrWhiteSpace(entity.PostedBy);
+        }
+
+        public bool IsPosted(AIR air)
+        {
+            return IsPosted(air.Id);
+        }
+
+        public bool IsPosted(AIRItem airItem)
+        {
+            var airId = (Guid)airItem.AirId;
+            return IsPosted(airId);
+        }
+
+        public bool IsPosted(AIRItemExtn airItemExtn)
+        {
+            var airId = (Guid)_db.AIRItemExtns
+                .Include(i => i.AIRItem)
+                .Where(w => w.AIRItemId == airItemExtn.AIRItemId)
+                .AsNoTracking()
+                .FirstOrDefault()?.AIRItem.AirId;
+            return IsPosted(airId);
+        }
+
         public async ValueTask<bool> IsPostedAsync(Guid airId)
         {
             var entity = await _db.AIRs.FindAsync(airId);
@@ -175,9 +209,9 @@ namespace iLgs.Services.AIRs
                     .Include(i => i.Order)
                     .Include(i => i.RequestItem.RisItem.RISs)
                     .Where(w => w.OrderId == entity.OrderId
-                        && w.StockNo == oig.StockNo
-                        && w.StockName == oig.StockName
-                        && w.Description == oig.Description
+                        && w.PsNo == oig.StockNo
+                        //&& w.StockName == oig.StockName
+                        //&& w.Description == oig.Description
                         && w.RequestItem.RisItem.RISs.Fund == oig.Fund).ToListAsync();
 
                 foreach (var orderItem in orderItemList)
@@ -190,7 +224,7 @@ namespace iLgs.Services.AIRs
                         //&& w.Unit == oig.Unit
                         ).FirstOrDefaultAsync();
 
-                    var risAllField = await _db.AllFields.AsNoTracking().Where(w => w.Id == orderItem.RequestItem.RisItemId).FirstOrDefaultAsync();
+                    var orderAllField = await _db.AllFields.AsNoTracking().Where(w => w.Id == orderItem.Id).FirstOrDefaultAsync();
                     var office = orderItem.RequestItem.RisItem.RISs.Office;
                     var deptId = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description.Trim() == office).FirstOrDefault()?.Id;
 
@@ -198,6 +232,7 @@ namespace iLgs.Services.AIRs
                     {
                         isNew = true;
                         var psCardId = Guid.NewGuid();
+                        var subAccountCode = _itemCodeService.GetSubAccountCode(oig.ItemCodeId);
                         psCard = new PsCard()
                         {
                             Id = psCardId,
@@ -205,9 +240,10 @@ namespace iLgs.Services.AIRs
                             Fund = oig.Fund,
                             Description = "Please see attachment.",
                             PsNo = oig.StockNo,
-                            PsName = oig.StockName,
-                            Amount = orderItem.Amount,
-                            SubAccountCode = orderItem.RequestItem.RisItem.SubAccountCode,
+                            //PsName = oig.StockName,
+                            //Amount = orderItem.Amount,
+                            //SubAccountCode = orderItem.RequestItem.RisItem.SubAccountCode,
+                            SubAccountCode = subAccountCode,
                             CardCategory = oig.CardCategory,
                             InsertedBy = user,
                             InsertedDt = date,
@@ -216,43 +252,43 @@ namespace iLgs.Services.AIRs
                         };
 
                         AllField allField = null;
-                        if (risAllField != null)
+                        if (orderAllField != null)
                         {
                             allField = new AllField()
                             {
                                 Id = psCardId,
-                                AcqMode = risAllField.AcqMode,
-                                InvDist = risAllField.InvDist,
-                                GenericName = risAllField.GenericName,
-                                DosageStrength = risAllField.DosageStrength,
-                                DosageForm = risAllField.DosageForm,
-                                DosageVolume = risAllField.DosageVolume,
-                                Others = risAllField.Others,
-                                Brand = risAllField.Brand,
-                                Multipliers = risAllField.Multipliers,
-                                Model_ = risAllField.Model_,
-                                Area = risAllField.Area,
-                                Barangay = risAllField.Barangay,
-                                DateSale = risAllField.DateSale,
-                                DateDonation = risAllField.DateDonation,
-                                DateAcquisition = risAllField.DateAcquisition,
-                                DateConstruction = risAllField.DateConstruction,
-                                AreaSoldDonated = risAllField.AreaSoldDonated,
-                                PricePerSqm = risAllField.PricePerSqm,
-                                AcqCost = risAllField.AcqCost,
-                                VendorDonor = risAllField.VendorDonor,
-                                Type = risAllField.Type,
-                                Dimension = risAllField.Dimension,
-                                Size = risAllField.Size,
-                                Weight = risAllField.Weight,
-                                Materials = risAllField.Materials,
-                                Capacity = risAllField.Capacity,
-                                Color = risAllField.Color,
-                                SerialNo = risAllField.SerialNo,
-                                PropNo = risAllField.PropNo,
-                                PlateNo = risAllField.PlateNo,
-                                BodyNo = risAllField.BodyNo,
-                                MVFileNo = risAllField.MVFileNo,
+                                AcqMode = orderAllField.AcqMode,
+                                InvDist = orderAllField.InvDist,
+                                GenericName = orderAllField.GenericName,
+                                DosageStrength = orderAllField.DosageStrength,
+                                DosageForm = orderAllField.DosageForm,
+                                DosageVolume = orderAllField.DosageVolume,
+                                Others = orderAllField.Others,
+                                Brand = orderAllField.Brand,
+                                Multipliers = orderAllField.Multipliers,
+                                Model_ = orderAllField.Model_,
+                                Area = orderAllField.Area,
+                                Barangay = orderAllField.Barangay,
+                                DateSale = orderAllField.DateSale,
+                                DateDonation = orderAllField.DateDonation,
+                                DateAcquisition = orderAllField.DateAcquisition,
+                                DateConstruction = orderAllField.DateConstruction,
+                                AreaSoldDonated = orderAllField.AreaSoldDonated,
+                                PricePerSqm = orderAllField.PricePerSqm,
+                                AcqCost = orderAllField.AcqCost,
+                                VendorDonor = orderAllField.VendorDonor,
+                                Type = orderAllField.Type,
+                                Dimension = orderAllField.Dimension,
+                                Size = orderAllField.Size,
+                                Weight = orderAllField.Weight,
+                                Materials = orderAllField.Materials,
+                                Capacity = orderAllField.Capacity,
+                                Color = orderAllField.Color,
+                                SerialNo = orderAllField.SerialNo,
+                                PropNo = orderAllField.PropNo,
+                                PlateNo = orderAllField.PlateNo,
+                                BodyNo = orderAllField.BodyNo,
+                                MVFileNo = orderAllField.MVFileNo,
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,
@@ -280,15 +316,17 @@ namespace iLgs.Services.AIRs
                             QtyIss = 0,
                             QtyBal = (int)orderItem.Qty,
                             TranType = "I",
-                            Unit = orderItem.RequestItem.RisItem.Unit,
+                            //Unit = orderItem.RequestItem.RisItem.Unit,
+                            Unit = orderItem.Unit,
                             UnitCost = orderItem.UnitCost,
                             Amount = orderItem.Amount,
                             PriceRate = orderItem.PriceRate,
                             DeptId = deptId,
                             DeptDisplay = office,                            
                             Description = oig.Description,
-                            OtherDesc = orderItem.RequestItem.RisItem.OtherDesc,
-                            Type = risAllField.Type,
+                            //OtherDesc = orderItem.RequestItem.RisItem.OtherDesc,
+                            OtherDesc = orderItem.OtherDesc,
+                            Type = orderAllField.Type,
                             InvDist = oig.InvDist,
                             FPP = orderItem.RequestItem.RisItem.RISs.FPP,
                             //SetLotNo,
@@ -381,7 +419,7 @@ namespace iLgs.Services.AIRs
                 {
                     // search unit group if any
                     var orderItemUnitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
-                        .Include(i => i.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup)
+                        //.Include(i => i.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup)
                         .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
                         .Where(w => w.OrderItemId == psCardItem.OrderItemId).FirstOrDefaultAsync();
                     if (orderItemUnitGroupDescriptionItem != null)
@@ -396,8 +434,12 @@ namespace iLgs.Services.AIRs
                                 {
                                     Id = Guid.NewGuid(),
                                     PoNo = psCardItem.PoNo,
-                                    Qty = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup.Qty,
-                                    Unit = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup.Unit,
+                                    //Qty = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup.Qty,
+                                    //Unit = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup.Unit,
+                                    //UnitCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost,
+                                    //TotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
+                                    Qty = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty,
+                                    Unit = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Unit,
                                     UnitCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost,
                                     TotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
                                     InsertedBy = user,
@@ -409,7 +451,8 @@ namespace iLgs.Services.AIRs
                                 {
                                     Id = Guid.NewGuid(),
                                     UnitGroupId = psCardItemUnitGroup.Id,
-                                    Description = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description,
+                                    //Description = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description,
+                                    Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
                                     InsertedBy = user,
                                     InsertedDt = date,
                                     UpdatedBy = user,
@@ -433,7 +476,8 @@ namespace iLgs.Services.AIRs
                             {
                                 // if with psCardItemUnitGroup, check UnitGroupDescription
                                 var psCardItemUnitGroupDescription = psCardItemUnitGroup.PsCardItemUnitGroupDescriptions
-                                    .Where(w => w.Description == orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description)
+                                    //.Where(w => w.Description == orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description)
+                                    .Where(w => w.Description == orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description)
                                     .FirstOrDefault();
                                 if (psCardItemUnitGroupDescription == null)
                                 {
@@ -441,7 +485,8 @@ namespace iLgs.Services.AIRs
                                     {
                                         Id = Guid.NewGuid(),
                                         UnitGroupId = psCardItemUnitGroup.Id,
-                                        Description = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description,
+                                        ///Description = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description,
+                                        Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
                                         InsertedBy = user,
                                         InsertedDt = date,
                                         UpdatedBy = user,
@@ -518,7 +563,9 @@ namespace iLgs.Services.AIRs
                 * PsCards --> if no PsItem                
             */
 
-            var orderItems = _db.OrderItems.Include(i => i.RequestItem.RisItem.ItemCode.ItemType).Where(w => w.OrderId == entity.OrderId).ToList();
+            var orderItems = _db.OrderItems
+                //.Include(i => i.RequestItem.RisItem.ItemCode.ItemType)
+                .Where(w => w.OrderId == entity.OrderId).ToList();
 
             foreach (var orderItem in orderItems)
             {
@@ -556,7 +603,6 @@ namespace iLgs.Services.AIRs
                         await _db.SaveChangesAsync();
                     }
 
-
                     var item = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == psCardItem.Id);
                     if (item != null)
                     {
@@ -570,7 +616,6 @@ namespace iLgs.Services.AIRs
                         _db.PsCardItems.Remove(item);
                         _db.Entry(item).State = EntityState.Deleted;
                         await _db.SaveChangesAsync();
-
                     }                    
                 }
                 
@@ -616,7 +661,10 @@ namespace iLgs.Services.AIRs
                 {
                     qtyAccepted = _db.AIRItems.Where(w => w.OrderItemId == orderItemId).Sum(s => s.Qty);
                 }
-                var psCardItem = await _db.PsCardItems.Include(i => i.OrderItem.RequestItem.RisItem).Where(w => w.OrderItemId == orderItemId).FirstOrDefaultAsync();
+                var psCardItem = await _db.PsCardItems
+                    // .Include(i => i.OrderItem.RequestItem.RisItem)
+                    .Include(i => i.OrderItem)
+                    .Where(w => w.OrderItemId == orderItemId).FirstOrDefaultAsync();
                 if (psCardItem != null)
                 {
                     psCardItem.AirNo = entity.AIRNo;
@@ -625,8 +673,10 @@ namespace iLgs.Services.AIRs
                     psCardItem.QtyBal = (int)qtyAccepted - psCardItem.QtyIss;
                     psCardItem.UpdatedBy = user;
                     psCardItem.UpdatedDt = date;
-                    psCardItem.Description = psCardItem.OrderItem.RequestItem.RisItem.Description;
-                    psCardItem.OtherDesc = psCardItem.OrderItem.RequestItem.RisItem.OtherDesc;
+                    //psCardItem.Description = psCardItem.OrderItem.RequestItem.RisItem.Description;
+                    //psCardItem.OtherDesc = psCardItem.OrderItem.RequestItem.RisItem.OtherDesc;
+                    psCardItem.Description = psCardItem.OrderItem.Description;
+                    psCardItem.OtherDesc = psCardItem.OrderItem.OtherDesc;
                     _db.PsCardItems.Attach(psCardItem);
                     _db.Entry(psCardItem).State = EntityState.Modified;
                     await _db.SaveChangesAsync();
@@ -637,11 +687,18 @@ namespace iLgs.Services.AIRs
 
         public ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
-            if (model.Id == Guid.Empty || model.Id == null)
+            //if (model.Id == Guid.Empty || model.Id == null)
+            //{
+            //    return await CreateAsync(model, user, date);
+            //}
+            if (await _db.AIRs.AnyAsync(a => a.Id == model.Id))
+            {
+                return await UpdateAsync(model, user, date);
+            }
+            else
             {
                 return await CreateAsync(model, user, date);
             }
-            return await UpdateAsync(model, user, date);
         });
 
         public async ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date)
@@ -682,11 +739,13 @@ namespace iLgs.Services.AIRs
             };
 
             // include items during add
-            var orderItems = _db.OrderItems.Include(i => i.RequestItem.RisItem).Where(w => w.OrderId == model.OrderId).AsNoTracking().ToList();
+            var orderItems = _db.OrderItems
+                //.Include(i => i.RequestItem.RisItem)
+                .Where(w => w.OrderId == model.OrderId).AsNoTracking().ToList();
             foreach (var orderItem in orderItems)
             {
 
-                var invDist = _itemCodeService.GetInvDist(orderItem.RequestItem.RisItem.ItemCodeId);
+                var invDist = _itemCodeService.GetInvDist(orderItem.ItemCodeId);
                 AIRItem airItem = new AIRItem()
                 {
                     Id = Guid.NewGuid(),

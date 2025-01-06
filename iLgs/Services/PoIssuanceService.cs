@@ -1,14 +1,11 @@
-﻿using iLgs.Controllers;
-using iLgs.Exceptions;
-using iLgs.Exceptions.PARs;
+﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Services.PropertyCard;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.Interfaces
 {
@@ -84,12 +81,14 @@ namespace iLgs.Services.Interfaces
         public async ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId)
         {
             var IsAdmin = await _userService.IsAdmin(userId);
-            var data = _db.PsCardItems.AsNoTracking()
-                .Include(i => i.Codextn)
-                .Include(i => i.Codextn1)
-                .Where(w => (IsAdmin || _db.Codextns.Any(x => x.CodeMast.Code == "LOCATIONS" && x.Id == w.DeptId
-                    && x.DepartmentUsers.Any(a => a.UserId == userId)))
-                ).Select(GetPsCardItemProjection(_db)).AsQueryable();
+            //var data = _db.PsCardItems.AsNoTracking()
+            //    .Include(i => i.Codextn)
+            //    .Include(i => i.Codextn1)
+            //    .Where(w => (IsAdmin || _db.Codextns.Any(x => x.CodeMast.Code == "LOCATIONS" && x.Id == w.DeptId
+            //        && x.DepartmentUsers.Any(a => a.UserId == userId)))
+            //    ).Select(GetPsCardItemProjection(_db)).AsQueryable();
+
+            var data = _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_GetRecords {0}, {1}", IsAdmin, userId).AsQueryable();
             return data;
         }
 
