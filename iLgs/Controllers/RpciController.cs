@@ -1,24 +1,20 @@
-﻿using iLgs.Models;
-using Kendo.Mvc.UI;
+﻿using CrystalDecisions.CrystalReports.Engine;
+using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
+using iLgs.Models;
+using iLgs.Services;
+using iLgs.Services.Codes;
+using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
+using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using System.Data.Entity;
-using Microsoft.AspNet.Identity;
-using iLgs.Utilities;
-using Newtonsoft.Json;
-using iLgs.Services.Interfaces;
-using iLgs.Services;
-using CrystalDecisions.Shared;
-using CrystalDecisions.CrystalReports.Engine;
-using System.Data.SqlClient;
-using System.IO;
-using System.Collections.Generic;
-using iLgs.Exceptions;
-using iLgs.Exceptions.Service;
-using iLgs.Services.Codes;
 
 namespace iLgs.Controllers
 {

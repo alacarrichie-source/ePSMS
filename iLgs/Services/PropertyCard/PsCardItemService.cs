@@ -136,81 +136,82 @@ namespace iLgs.Services.PropertyCard
 
         private IQueryable<PsCardItemVM> GetAll(string category)
         {
-            var data = _db.PsCardItems
-                .Include(i => i.PsCard.ItemCode.ItemType)
-                .Include(i => i.Codextn) // Department
-                .Include(i => i.Codextn1) // Location
-                .Where(w => w.PsCard.ItemCode.ItemType.Category == category)
-                .AsNoTracking()
-                .Select(s => new PsCardItemVM
-                {
-                    Id = s.Id,
-                    Fund = s.PsCard.Fund,
-                    ItemCodeId = s.PsCard.ItemCodeId,
-                    Account = s.PsCard.ItemCode.ItemType.Description,
-                    StockNo = s.PsCard.PsNo,
-                    Article = s.PsCard.ItemCode.Description,
-                    PoDate = s.PoDate,
-                    PoNo = s.PoNo,
-                    AirDate = s.AirDate,
-                    AirNo = s.AirNo,
-                    AirIssueDate = s.AirIssueDate,
-                    Qty = s.Qty,
-                    QtyIss = s.QtyIss,
-                    QtyBal = s.QtyBal,
-                    TransferIn = s.TransferIn,
-                    TransferOut = s.TransferOut,
-                    TranType = s.TranType,
-                    Days = s.Days,
-                    Unit = s.Unit,
-                    UnitCost = s.UnitCost,
-                    Amount = s.Amount,
-                    PriceRate = s.PriceRate,
-                    Remarks = s.Remarks,
-                    DeptId = s.DeptId,
-                    LocationId = s.LocationId,
-                    DeptDisplay = s.DeptDisplay,
-                    Description = s.Description,
-                    InsertedBy = s.InsertedBy,
-                    InsertedDt = s.InsertedDt,
-                    Department = s.Codextn.Description,
-                    Location = s.Codextn1.Description,
-                    LocCode = s.Codextn1.Code
-                }).ToList()
-                .Select(s => new PsCardItemVM
-                {
-                    Id = s.Id,
-                    Fund = s.Fund,
-                    Account = s.Account,
-                    SubAccount = _itemCodeService.GetSubAccounts(s.ItemCodeId),
-                    StockNo = s.StockNo,
-                    Article = s.Article,
-                    PoDate = s.PoDate,
-                    PoNo = s.PoNo,
-                    AirDate = s.AirDate,
-                    AirNo = s.AirNo,
-                    AirIssueDate = s.AirIssueDate,
-                    Qty = s.Qty,
-                    QtyIss = s.QtyIss,
-                    QtyBal = s.QtyBal,
-                    TransferIn = s.TransferIn,
-                    TransferOut = s.TransferOut,
-                    TranType = s.TranType,
-                    Days = s.Days,
-                    Unit = s.Unit,
-                    UnitCost = s.UnitCost,
-                    Amount = s.Amount,
-                    PriceRate = s.PriceRate,
-                    DeptId = s.DeptId,
-                    LocationId = s.LocationId,
-                    DeptDisplay = s.DeptDisplay,
-                    Description = s.Description,
-                    InsertedBy = s.InsertedBy,
-                    InsertedDt = s.InsertedDt,
-                    Department = s.Department,
-                    Location = s.Location,
-                    LocCode = s.LocCode
-                }).AsQueryable();
+            //var data = _db.PsCardItems
+            //    .Include(i => i.PsCard.ItemCode.ItemType)
+            //    .Include(i => i.Codextn) // Department
+            //    .Include(i => i.Codextn1) // Location
+            //    .Where(w => w.PsCard.ItemCode.ItemType.Category == category)
+            //    .AsNoTracking()
+            //    .Select(s => new PsCardItemVM
+            //    {
+            //        Id = s.Id,
+            //        Fund = s.PsCard.Fund,
+            //        ItemCodeId = s.PsCard.ItemCodeId,
+            //        Account = s.PsCard.ItemCode.ItemType.Description,
+            //        StockNo = s.PsCard.PsNo,
+            //        Article = s.PsCard.ItemCode.Description,
+            //        PoDate = s.PoDate,
+            //        PoNo = s.PoNo,
+            //        AirDate = s.AirDate,
+            //        AirNo = s.AirNo,
+            //        AirIssueDate = s.AirIssueDate,
+            //        Qty = s.Qty,
+            //        QtyIss = s.QtyIss,
+            //        QtyBal = s.QtyBal,
+            //        TransferIn = s.TransferIn,
+            //        TransferOut = s.TransferOut,
+            //        TranType = s.TranType,
+            //        Days = s.Days,
+            //        Unit = s.Unit,
+            //        UnitCost = s.UnitCost,
+            //        Amount = s.Amount,
+            //        PriceRate = s.PriceRate,
+            //        Remarks = s.Remarks,
+            //        DeptId = s.DeptId,
+            //        LocationId = s.LocationId,
+            //        DeptDisplay = s.DeptDisplay,
+            //        Description = s.Description,
+            //        InsertedBy = s.InsertedBy,
+            //        InsertedDt = s.InsertedDt,
+            //        Department = s.Codextn.Description,
+            //        Location = s.Codextn1.Description,
+            //        LocCode = s.Codextn1.Code
+            //    }).ToList()
+            //    .Select(s => new PsCardItemVM
+            //    {
+            //        Id = s.Id,
+            //        Fund = s.Fund,
+            //        Account = s.Account,
+            //        SubAccount = _itemCodeService.GetSubAccounts(s.ItemCodeId),
+            //        StockNo = s.StockNo,
+            //        Article = s.Article,
+            //        PoDate = s.PoDate,
+            //        PoNo = s.PoNo,
+            //        AirDate = s.AirDate,
+            //        AirNo = s.AirNo,
+            //        AirIssueDate = s.AirIssueDate,
+            //        Qty = s.Qty,
+            //        QtyIss = s.QtyIss,
+            //        QtyBal = s.QtyBal,
+            //        TransferIn = s.TransferIn,
+            //        TransferOut = s.TransferOut,
+            //        TranType = s.TranType,
+            //        Days = s.Days,
+            //        Unit = s.Unit,
+            //        UnitCost = s.UnitCost,
+            //        Amount = s.Amount,
+            //        PriceRate = s.PriceRate,
+            //        DeptId = s.DeptId,
+            //        LocationId = s.LocationId,
+            //        DeptDisplay = s.DeptDisplay,
+            //        Description = s.Description,
+            //        InsertedBy = s.InsertedBy,
+            //        InsertedDt = s.InsertedDt,
+            //        Department = s.Department,
+            //        Location = s.Location,
+            //        LocCode = s.LocCode
+            //    }).AsQueryable();
+            var data = _db.Database.SqlQuery<PsCardItemVM>("Exec Card_GetQueryRecords {0}", category).AsQueryable();
             return data;
         }
 

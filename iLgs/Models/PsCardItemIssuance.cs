@@ -14,12 +14,6 @@ namespace iLgs.Models
     
     public partial class PsCardItemIssuance
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public PsCardItemIssuance()
-        {
-            this.PsCardItemTransactions = new HashSet<PsCardItemTransaction>();
-        }
-    
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
         public Nullable<System.Guid> LocationId { get; set; }
@@ -39,8 +33,6 @@ namespace iLgs.Models
     
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItemTransaction> PsCardItemTransactions { get; set; }
         public virtual PsCardItem PsCardItem { get; set; }
     }
 }

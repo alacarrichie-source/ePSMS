@@ -25,10 +25,5 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-    
-        public virtual PsCardItemExtn PsCardItemExtn { get; set; }
-        public virtual PsCardItemIssuance PsCardItemIssuance { get; set; }
-        public virtual PsCardItem PsCardItem { get; set; }
-        public virtual IcsPar IcsPar { get; set; }
     }
 }

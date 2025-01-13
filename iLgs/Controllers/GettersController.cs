@@ -637,6 +637,22 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetRpciLocation(string text)
+        {
+
+            var model = _locationService.GetLocations(text);
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Location, Desc2 = c.SubLocation, Desc3 = c.MainLocation }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetTransitLocation(string text)
+        {
+
+            var model = _locationService.GetLocations(text).Where(w => !w.Code.StartsWith("68") && w.MainLocation != null);
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Location, Desc2 = c.SubLocation, Desc3 = c.MainLocation }), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetLocationSp(string text)
         {
 

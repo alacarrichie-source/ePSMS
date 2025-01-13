@@ -55,10 +55,28 @@ namespace iLgs.Models
 
         //[Display(Name = "Model")]
         //public string Model_ { get; set; }
+
+        [Display(Name = "Inserted By")]
         public string InsertedBy { get; set; }
+
+        [Display(Name = "Iserted Dt")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
+
+        [Display(Name = "Updated By")]
         public string UpdatedBy { get; set; }
-        public Nullable<System.DateTime> UpdatedDt { get; set; }        
+
+        [Display(Name = "Updated Dt")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        [Display(Name = "Posted By")]
+        public string PostedBy { get; set; }
+
+        [Display(Name = "Posted Dt")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PostedDt { get; set; }
+
         public AllField AllField { get; set; }
 
         // Transients
@@ -91,6 +109,11 @@ namespace iLgs.Models
 
         [Display(Name = "Partial Page")]
         public string PartialPage { get; set; }
+
+        public Guid? SelectedId { get; set; }
+
+        public string Mode { get; set; }
+        public bool IsDuplicateStockNo { get; set; }
     }
 
     public class PsCardItemVM 
@@ -166,6 +189,9 @@ namespace iLgs.Models
 
         [Display(Name = "Department Display")]
         public string DeptDisplay { get; set; }
+
+        [Display(Name = "Dept. Code")]
+        public string DeptCode { get; set; }
 
         [Required]
         public string Description { get; set; }

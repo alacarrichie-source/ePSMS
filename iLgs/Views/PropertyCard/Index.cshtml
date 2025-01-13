@@ -8,11 +8,14 @@
     .Name("grid")
     .Columns(col =>
     {
+        col.Bound(c => c.Id).Hidden();
         col.Bound(c => c.Fund).Width(40);
         col.Bound(c => c.PsNo).Width(100);
         col.Bound(c => c.ItemType).Width(100);
-        col.Bound(c => c.SubAccount).Width(100);
-        col.Bound(c => c.Item).Width(100).Title("Articles");
+        col.Bound(c => c.SubAccount1).Width(100);
+        col.Bound(c => c.SubAccount2).Width(100);
+        col.Bound(c => c.SubAccount3).Width(100);
+        col.Bound(c => c.SubAccount4).Width(100);
         //col.Bound(c => c.PsName).Width(70);
         //col.Bound(c => c.Description).Width(100);
         col.Command(command =>
@@ -36,8 +39,8 @@
         //t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Add New Record").IconClass("k-icon k-i-add").Name("btnAddNew").HtmlAttributes(new { @class = "k-grid-add-custom" });
         t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintCard").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
     .Search(s =>
@@ -45,8 +48,10 @@
         s.Field(o => o.Fund, "contains");
         s.Field(o => o.PsNo, "contains");
         s.Field(o => o.ItemType, "contains");
-        s.Field(o => o.SubAccount, "contains");
-        s.Field(o => o.Item, "contains");
+        s.Field(o => o.SubAccount1, "contains");
+        s.Field(o => o.SubAccount2, "contains");
+        s.Field(o => o.SubAccount3, "contains");
+        s.Field(o => o.SubAccount4, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -73,9 +78,10 @@
         .Model(model =>
         {
             model.Id(p => p.Id);
-            model.Field(p => p.CardCategory).DefaultValue("S").Editable(true);
+            model.Field(p => p.CardCategory).DefaultValue("P").Editable(true);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
+        .Sort(s => s.Add(a => a.InsertedDt).Descending())
         .Read(read => read.Action("Read", "PropertyCard"))
         //.Create(create => create.Action("Create", "PropertyCard"))
         //.Update(update => update.Action("Update", "PropertyCard"))
@@ -777,6 +783,66 @@
         mywindow.open();
     });
 
+    $(".k-grid-btnPost").click(function (e) {
+        e.preventDefault();
+        if (postedBy) {
+            alert("Request already posted by " + postedBy);
+        }
+        else {
+            var msg = "Post Property No. " + selectedStockNo + "?";
+
+            if (confirm(msg)) {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("PostRecord", "PropertyCard")',
+                    data: { psCardId: selectedId },
+                    async: true,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($(document.body), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($(document.body), false);
+                        if (result.Errors == "") {
+                            $("#grid").data("kendoGrid").dataSource.read();
+                        } else {
+                            alert(result.Errors);
+                        }
+                    },
+                    error: function (req, status, errorObj) {
+                        alert(req.responseText);
+                    }
+                });
+            }
+        }
+    });
+
+    $(".k-grid-btnUnpost").click(function (e) {
+        e.preventDefault();
+        var msg = "Unpost Property No. " + selectedStockNo + "?";
+
+        if (confirm(msg)) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("UnpostRecord", "PropertyCard")',
+                data: { psCardId: selectedId },
+                async: true,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    if (result.Errors == "") {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    } else {
+                        alert(result.Errors);
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+        }
+    });
 
     function onRequestEndGrid(e) {
         e.preventDefault();
@@ -793,6 +859,8 @@
         }
     }
 
+    var postedBy = null;
+
     function onChangeGrid(e) {
         selectedGrid = this;
         var selectedData = this.dataItem(this.select());
@@ -800,7 +868,16 @@
         selectedStockNo = selectedData.PsNo
         selectedItemId = null;
 
-        var items = $("#grid").data("kendoGrid"),
+        var grid = $("#grid");
+        if (postedBy) {
+            $(".k-grid-btnUnpost", grid).show();
+            $(".k-grid-btnPost", grid).hide();
+        } else {
+            $(".k-grid-btnUnpost", grid).hide();
+            $(".k-grid-btnPost", grid).show();
+        }
+
+        var items = grid.data("kendoGrid"),
             item = items.dataSource.getByUid(items.select().attr("data-uid"))
     }
 
@@ -824,9 +901,11 @@
             });
         }
 
-        if (this.dataSource.data().length == 0) {
-            var grid = $("#grid");
+        var grid = $("#grid");
+        if (this.dataSource.data().length == 0) {            
             $(".k-grid-btnPrintCard", grid).hide();
+            $(".k-grid-btnPost", grid).hide();
+            $(".k-grid-btnUnpost", grid).hide();
         }
         else {
             $(".k-grid-btnPrintCard", grid).show();
@@ -912,6 +991,17 @@
                     autoheight: true,
                     close: function () {
                         $("#grid").data("kendoGrid").dataSource.read();
+                        var duplicate = $("#IsDuplicateStockNo").val();
+                        if (duplicate == "true") {
+                            var psNo = $("#PsNo").val();
+                            var grid = $("#grid").data("kendoGrid");
+
+                            grid.dataSource.filter({
+                                field: "PsNo",         // The column field name
+                                operator: "eq", // The filtering operator (e.g., "eq", "contains")
+                                value: psNo        // The value to filter by
+                            });
+                        }
                     },
                     deactivate: function () {
                         this.destroy();
@@ -925,7 +1015,8 @@
         mywindow.refresh({
             url: '@Url.Action("_PropertyCardAddEdit", "PropertyCard")',
             data: {
-                cardId: recId
+                cardId: recId,
+                mode: mode
             },
             // Specify a callback function to execute after content is loaded
             complete: function () {
@@ -977,7 +1068,7 @@
 
         RefreshDivs(dataItem);
 
-        setTimeout(UpdateDescription, 500);
+        UpdateDescription();
     }
 
     function RefreshDivs(dataItem) {
@@ -1451,26 +1542,30 @@
 
     function UpdateDescription(e)
     {
-        var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
-        var data = $("#form").serialize();
+        setTimeout(function () {
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            var data = $("#form").serialize();
 
-        $.ajax({
-            type: "POST",
-            url: '@Url.Action("GetDescription", "PropertyCard")',
-            data: data,
-            beforeSend: function () {
-                window.kendo.ui.progress($(document.body), true);
-            },
-            success: function (result) {
-                window.kendo.ui.progress($(document.body), false);
-                $("#Description").val(result.Description).trigger("change");
-                $("#PsNo").val(result.StockNo).trigger("change");
-                disabled.attr('disabled', 'disabled')
-            },
-            error: function (req, status, errorObj) {
-                alert(req.responseText);
-            }
-        });
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetDescription", "PropertyCard")',
+                data: data,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    $("#Description").val(result.Description).trigger("change");
+                    $("#PsNo").val(result.StockNo).trigger("change");
+                    $("#SelectedId").val(result.Id).trigger("change");
+                    $("#IsDuplicateStockNo").val(result.IsDuplicateStockNo).trigger("change");                    
+                    disabled.attr('disabled', 'disabled')
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+        }, 500);
     }
 
     function DataOfficerId() {

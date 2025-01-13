@@ -36,6 +36,7 @@
                     g.Title("Originating Department").HeaderHtmlAttributes(new { Style = "text-align:center;" })
                     .Columns(info =>
                     {
+                        info.Bound(f => f.DeptCode).Width(50).Title("Code");
                         info.Bound(f => f.Department).Width(70).Title("PO Owner");
                         info.Bound(f => f.Qty)
                           .Width(50).Title("In")
@@ -52,7 +53,7 @@
                         info.Bound(f => f.LocCode).Width(50).Title("Code");
                         info.Bound(f => f.Location).Width(50).Title("Location");
                         info.Bound(f => f.TransferIn)
-                            .Width(50).Title("Transfer<br>In")
+                            .Width(50).Title("Transit<br>In")
                             .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                             .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                             .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -64,7 +65,7 @@
             .Columns(info =>
             {
                 info.Bound(f => f.TransferOut)
-                    .Width(50).Title("Transfer<br>Out")
+                    .Width(50).Title("Transit<br>Out")
                     .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                     .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -92,6 +93,7 @@
     {
         s.Field(o => o.Account, "contains");
         s.Field(o => o.StockNo, "contains");
+        s.Field(o => o.DeptCode, "contains");
         s.Field(o => o.Department, "contains");
         s.Field(o => o.LocCode, "contains");
         s.Field(o => o.Location, "contains");

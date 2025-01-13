@@ -19,8 +19,17 @@ namespace iLgs.Services
             : base(db, "CARD")
         {
         }
+        private void ValidateIfPosted(Guid? psCardItemId)
+        {
+            var entity = _db.PsCards.Where(w => w.PsCardItems.Any(a => a.Id == psCardItemId)).FirstOrDefault();
+            if (entity != null && entity.PostedDt != null)
+            {
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
+        }
 
-        private async ValueTask<bool> IsPostedAsync(Guid? psCardItemId)
+        private async ValueTask<bool> IsParPostedAsync(Guid? psCardItemId)
         {
             var result = await _db.PsCardItems.Where(w => _db.PsCardItems.Where(x => x.Id == psCardItemId && x.GroupId == w.GroupId)
                 .Any(a => a.ParPostedBy != "" && a.ParPostedBy != null)).AnyAsync();
@@ -29,7 +38,8 @@ namespace iLgs.Services
 
         public override async ValueTask<Upload> UploadAsync(IEnumerable<HttpPostedFileBase> files, Upload model, string user, DateTime date)
         {
-            if (await IsPostedAsync(model.PsCardItemId))
+            ValidateIfPosted(model.PsCardItemId);
+            if (await IsParPostedAsync(model.PsCardItemId))
             {
                 throw new RecordAlreadyPostedException("Record is already posted, cannot update!");
             }
@@ -49,7 +59,8 @@ namespace iLgs.Services
 
         public override async ValueTask<Upload> UpdateAsync(Upload model, string user, DateTime date)
         {
-            if (await IsPostedAsync(model.PsCardItemId))
+            ValidateIfPosted(model.PsCardItemId);
+            if (await IsParPostedAsync(model.PsCardItemId))
             {
                 throw new RecordAlreadyPostedException("Record is already posted, cannot update!");
             }
@@ -59,7 +70,8 @@ namespace iLgs.Services
 
         public override async ValueTask<Upload> DeleteAsync(Upload model, string user, DateTime date)
         {
-            if (await IsPostedAsync(model.PsCardItemId))
+            ValidateIfPosted(model.PsCardItemId);
+            if (await IsParPostedAsync(model.PsCardItemId))
             {
                 throw new RecordAlreadyPostedException("Record is already posted, cannot update!");
             }

@@ -19,6 +19,7 @@ namespace iLgs.Services.StockCards
 {
     public interface IStockCardValidator
     {
+        bool IsPsNoAlreadyExists(StockCardVM model, Mode mode);
         void ValidateOnCreate(StockCardVM model);
         void ValidateOnUpdate(StockCardVM model);
         void ValidateOnDelete(StockCardVM model);
@@ -31,6 +32,7 @@ namespace iLgs.Services.StockCards
         private readonly AppManEntities _db;
         private readonly IAllFieldsValidator _allFieldsValidator;
         private readonly IItemCodeService _itemCodeService;
+        //private readonly IStockCardService _stockCardService;
 
         public StockCardValidator(AppManEntities db)
         {
@@ -38,6 +40,7 @@ namespace iLgs.Services.StockCards
             _getDisplayName = propertyName => Utility.GetDisplayName<StockCardVM>(propertyName);
             _allFieldsValidator = new AllFieldsValidator(_db);
             _itemCodeService = new ItemCodeService(_db);
+            //_stockCardService = new StockCardService(_db);
         }
         public void ValidateOnCreate(StockCardVM model)
         {                       
@@ -73,11 +76,11 @@ namespace iLgs.Services.StockCards
             string partialView = AllFieldsUtil.GetPartialView(itemCode);
             _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
 
-            //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
-            if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund))
+            if (IsPsNoAlreadyExists(model, Mode.ADD))
             {
-                ex.UpsertDataList(_getDisplayName(nameof(model.PsNo)), "Already exists.");
+                ex.UpsertDataList(Utility.GetDisplayName<StockCardVM>(nameof(model.PsNo)), "Already exists.");
             }
+
             ex.ThrowIfContainsErrors();
         }
         
@@ -85,6 +88,7 @@ namespace iLgs.Services.StockCards
         public void ValidateOnUpdate(StockCardVM model)
         {
             ValidateCard(model);
+            ValidateIfPosted(model);
             Validate(
                 (Rule: IsInvalid(text: model.Fund), Parameter: _getDisplayName(nameof(StockCardVM.Fund))),
                 (Rule: IsInvalid(text: model.PsNo), Parameter: _getDisplayName(nameof(StockCardVM.PsNo)))                
@@ -95,20 +99,42 @@ namespace iLgs.Services.StockCards
             string partialView = AllFieldsUtil.GetPartialView(itemCode);
             _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
 
-            //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
-            if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund && a.Id != model.Id))
+            //if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund && a.Id != model.Id))
+            //{
+            //    ex.UpsertDataList(Utility.GetDisplayName<StockCardVM>(nameof(model.PsNo)), "Already exists.");
+            //}
+            if (IsPsNoAlreadyExists(model, Mode.EDIT))
             {
                 ex.UpsertDataList(Utility.GetDisplayName<StockCardVM>(nameof(model.PsNo)), "Already exists.");
             }
             ex.ThrowIfContainsErrors();
         }
 
+        public bool IsPsNoAlreadyExists(StockCardVM model, Mode mode)
+        {
+            if (mode == Mode.ADD) {
+                return _db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund);
+            }
+            return _db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund && a.Id != model.Id);
+        }
+
         public void ValidateOnDelete(StockCardVM model)
         {
             ValidateCard(model);
+            ValidateIfPosted(model);
             if (_db.PsCardItems.Any(a => a.PsCardId == model.Id))
             {
                 throw new RecordRelationshipException("Cannot delete card with items, please delete the items first.");
+            }
+        }
+
+        public void ValidateIfPosted(StockCardVM model)
+        {
+            var entity = _db.PsCards.Find(model.Id);
+            if (entity != null && entity.PostedDt != null)
+            {
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
             }
         }
 

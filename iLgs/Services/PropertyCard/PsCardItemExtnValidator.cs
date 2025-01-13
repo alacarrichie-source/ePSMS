@@ -29,12 +29,15 @@ namespace iLgs.Services.PropertyCard
         public void ValidateOnCreate(PsCardItemExtn model)
         {
             ValidateIfNull(model);
+            ValidateIfPosted(model);
             ValidateFieldsOnCreateUpdate(model);
         }
 
         public void ValidateOnUpdate(PsCardItemExtn model)
         {
             ValidateIfNull(model);
+            ValidateRecord(model.Id);
+            ValidateIfPosted(model);
             ValidateFieldsOnCreateUpdate(model);
         }
 
@@ -42,6 +45,7 @@ namespace iLgs.Services.PropertyCard
         {
             ValidateIfNull(model);
             ValidateRecord(model.Id);
+            ValidateIfPosted(model);
 
             // check in Par/Ics
             if (_db.IcsParItems.Any(a => a.PsCardItemExtnId == model.Id))
@@ -126,6 +130,16 @@ namespace iLgs.Services.PropertyCard
             if (model is null)
             {
                 throw new NullException();
+            }
+        }
+
+        private void ValidateIfPosted(PsCardItemExtn model)
+        {
+            var entity = _db.PsCards.Where(w => w.PsCardItems.Any(a => a.Id == model.PsCardItemId)).FirstOrDefault();
+            if (entity != null && entity.PostedDt != null)
+            {
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
             }
         }
     }

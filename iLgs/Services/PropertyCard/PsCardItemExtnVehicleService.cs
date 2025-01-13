@@ -68,7 +68,9 @@ namespace iLgs.Services.PropertyCard
 
         public ValueTask<PsCardItemExtnVehicle> CreateAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            ValidatorService.ValidateModel<PsCardItemExtn>(model);
+            //ValidatorService.ValidateModel<PsCardItemExtn>(model);
+
+            _psCardItemExtnValidator.ValidateOnCreate(model);
 
             var psCardItem = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == model.PsCardItemId);
             var itemQty = (int)(psCardItem.Qty ?? 0) + (int)(psCardItem.TransferIn ?? 0);
@@ -99,6 +101,8 @@ namespace iLgs.Services.PropertyCard
 
         public ValueTask<PsCardItemExtnVehicle> UpdateAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
+            _psCardItemExtnValidator.ValidateOnUpdate(model);
+
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -188,6 +192,6 @@ namespace iLgs.Services.PropertyCard
             entity.PsCardItemId = model.PsCardItemId;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
-        }
+        }        
     }
 }

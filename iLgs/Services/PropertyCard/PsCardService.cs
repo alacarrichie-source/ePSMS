@@ -1,4 +1,5 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
 using System;
@@ -26,6 +27,14 @@ namespace iLgs.Services.PropertyCard
         string GetDescription(PsCardVM model);
         string GetStockNo(PsCardVM model);
         string GetItemExtnName(Guid? id);
+
+        bool IsPosted(Guid psCardId);
+        bool IsPosted(PsCard psCard);
+        bool IsPosted(PsCardItem psCardItem);
+        bool IsPosted(PsCardItemExtn psCardItemExtn);
+        
+        ValueTask<PsCard> PostAsync(Guid id, string user, DateTime date);
+        ValueTask<PsCard> UnpostAsync(Guid id, string user, DateTime date);
 
         //IStockCardService StockCard { get; }
         //IPropertyCardService PropertyCard { get; }        
@@ -83,7 +92,9 @@ namespace iLgs.Services.PropertyCard
                     Amount = s.Amount,
                     FromDonation = s.FromDonation,
                     AllField = s.AllField,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    PostedBy = s.PostedBy, 
+                    PostedDt = s.PostedDt
                 });
             return data;
             //return GetAllByCategory(data);
@@ -125,7 +136,9 @@ namespace iLgs.Services.PropertyCard
                     Amount = s.Amount,
                     FromDonation = s.FromDonation,
                     AllField = s.AllField,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    PostedBy = s.PostedBy,
+                    PostedDt = s.PostedDt
                 });
             return data;        
         });        
@@ -155,7 +168,9 @@ namespace iLgs.Services.PropertyCard
                     FromDonation = s.FromDonation,
                     Amount = s.Amount,
                     AllField = s.AllField,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    PostedBy = s.PostedBy,
+                    PostedDt = s.PostedDt
                 });
             //return GetAllByCategory(data);
             return data;
@@ -186,7 +201,9 @@ namespace iLgs.Services.PropertyCard
                     FromDonation = s.FromDonation,
                     Amount = s.Amount,
                     AllField = s.AllField,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    PostedBy = s.PostedBy,
+                    PostedDt = s.PostedDt
                 }).FirstOrDefaultAsync();
             return data;
         });
@@ -342,5 +359,97 @@ namespace iLgs.Services.PropertyCard
             return itemExtnName;
         }
 
+        public virtual ValueTask<PsCard> PostAsync(Guid id, string user, DateTime date) =>
+        _exceptionService.TryCatch(async () =>
+        {
+            var entity = await _db.PsCards.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateIfPosted(entity);
+
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.PsCards.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return entity;
+        });
+
+        public virtual ValueTask<PsCard> UnpostAsync(Guid id, string user, DateTime date) =>
+        _exceptionService.TryCatch(async () =>
+        {
+            var entity = await _db.PsCards.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateIfNotPosted(entity);
+
+            entity.PostedBy = "";
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.PsCards.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return entity;
+        });
+
+        public bool IsPosted(Guid psCardId)
+        {
+            var entity = _db.PsCards.Find(psCardId);
+            return !string.IsNullOrWhiteSpace(entity.PostedBy);
+        }
+
+        public bool IsPosted(PsCard psCard)
+        {
+            return IsPosted(psCard.Id);
+        }
+
+        public bool IsPosted(PsCardItem psCardItem)
+        {
+            var psCardId = (Guid)psCardItem.PsCardId;
+            return IsPosted(psCardId);
+        }
+
+        public bool IsPosted(PsCardItemExtn psCardItemExtn)
+        {
+            var psCardItemId = (Guid)psCardItemExtn.PsCardItemId;
+            return IsPosted(psCardItemId);
+        }
+
+        private void ValidateIfNull(PsCardVM model)
+        {
+            if (model is null)
+            {
+                throw new NullException();
+            }
+        }
+
+        private void ValidateRecord(PsCard entity)
+        {
+            if (entity == null)
+            {
+                throw new NotFoundException(entity.Id);
+            }
+        }
+
+        private void ValidateIfPosted(PsCard entity)
+        {
+            if (entity.PostedDt != null)
+            {
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
+        }
+
+        private void ValidateIfNotPosted(PsCard entity)
+        {
+            if (entity != null && entity.PostedDt == null)
+            {
+                var msg = $"Record not yet posted!";
+                throw new RecordNotYetPostedException(msg);
+            }
+        }
     }
 }

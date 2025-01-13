@@ -120,7 +120,7 @@ namespace iLgs.Services.PropertyCard
         public IQueryable<T> GetCardItemExtnForIssuanceSelection<T>(Guid? psCardItemId) where T : PsCardItemExtn
         {
             var data = _db.PsCardItemExtns.OfType<T>().AsNoTracking()
-                        .Include(i => i.PsCardItemTransactions)
+                        //.Include(i => i.PsCardItemTransactions)
                         .Include(i => i.IcsParItems)
                         .Where(w => w.PsCardItemId == psCardItemId)
                         .AsQueryable();            
@@ -157,7 +157,9 @@ namespace iLgs.Services.PropertyCard
         {
             var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
                         .Include(i => i.IcsParItems)
-                        .Where(w => w.PsCardItemId == psCardItemId && !w.PsCardItemTransactions.Any(a => a.Remarks == "ISSUANCE"))
+                        .Where(w => w.PsCardItemId == psCardItemId 
+                        //&& !w.PsCardItemTransactions.Any(a => a.Remarks == "ISSUANCE")
+                        )
                         .Select(s => new PsCardItemExtnVehicleVm
                         {
                             Id = s.Id, 

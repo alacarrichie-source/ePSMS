@@ -130,7 +130,7 @@
             //})
             .Sort(s =>
             {
-                s.Add(a => a.InsertedDt);
+                s.Add(a => a.InsertedDt).Descending();
             })
             .Read(read => read.Action("_StockItemRead", "CustodianReport").Data("DataGrid"))
             .Create(create => create.Action("_StockItemCreate", "CustodianReport"))
@@ -523,9 +523,14 @@
 
     function onGridRequestEnd(e) {
         e.preventDefault();
-        if (!e.response.Errors) {
+        if (!e.response.Errors) {    
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 $("#grid").data("kendoGrid").dataSource.read();
+            }
+            if (e.type == "create") {
+                var responseData = e.response;
+                var newRecord = responseData.Data[0];
+                selectedId = newRecord.Id;
             }
         }
     }

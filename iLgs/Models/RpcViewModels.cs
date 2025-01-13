@@ -22,7 +22,7 @@ namespace iLgs.Models
         public bool? FromDonation { get; set; } = false;
 
         [Required]
-        [Display(Name = "Inventory/For Distribution")]
+        [Display(Name = "Inventory / For Distribution")]
         public string InvDist { get; set; }
 
         [Required]
@@ -30,9 +30,10 @@ namespace iLgs.Models
         public Nullable<System.Guid> ItemTypeId { get; set; }
         public string Account { get; set; }
 
-        [Display(Name = "Department")]
+        [Display(Name = "Department / Location")]
         public Nullable<System.Guid> DeptId { get; set; }
 
+        [Display(Name = "Department / Location")]
         public string Department { get; set; }
 
         [Display(Name = "Certified correct by")]

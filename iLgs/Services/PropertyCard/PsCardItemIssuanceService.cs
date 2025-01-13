@@ -374,18 +374,40 @@ namespace iLgs.Services.PropertyCard
                 _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), "Field is required.");
             }
             else
-            {                
-                var poDate = await _db.PsCardItems.Include(i => i.PsCard).Where(w => w.Id == model.PsCardItemId).Select(s => s.PoDate).FirstOrDefaultAsync();
-                if (poDate.HasValue)
+            {   
+                var cardItem = await _db.PsCardItems.Where(w => w.Id == model.PsCardItemId).FirstOrDefaultAsync();
+                DateTime? refDate = null;
+                string refName = "";
+                if (cardItem.AirDate.HasValue)
                 {
-                    if (poDate > model.IssuedDate)
+                    refDate = cardItem.AirDate;
+                    refName = "AIR";
+                }
+                else
+                {
+                    refDate = cardItem.PoDate;
+                    refName = "PO";
+                }
+
+                if (refDate.HasValue)
+                {
+                    if (refDate > model.IssuedDate)
                     {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Date issued must be on or after the PO date for this item, {poDate.Value.ToShortDateString()}");
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Date issued must be on or after the {refName} date for this item, {refDate.Value.ToShortDateString()}");
                     }
-                    //if (model.IssuedDate.Value.Year < DateTime.Now.Year)
-                    //{
-                    //    _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Year of date issued must be on the current year, {DateTime.Now.Year}");
-                    //}
+                    if (model.IssuedDate.Value.Year < 2024)
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Year of date issued must be {DateTime.Now.Year} onward.");
+                    }
+                    var issuanceYears = _codextnService.GetIssuanceYears();
+                    if (issuanceYears.Any())
+                    {
+                        var year = model.IssuedDate.Value.Year.ToString().Trim();
+                        if (!issuanceYears.Any(a => a.Description == year))
+                        {
+                            _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Issuance for this year is not allowed.");
+                        }
+                    }
                 }
                 else
                 {
@@ -395,7 +417,7 @@ namespace iLgs.Services.PropertyCard
             }
 
             var rsmiDate = await _db.RSMIs.MaxAsync(m => m.Date);
-            if (rsmiDate != null && rsmiDate > model.IssuedDate)
+            if (rsmiDate != null && rsmiDate >= model.IssuedDate)
             {
                 _imex.UpsertDataList(_getDisplayName(nameof(model.LocationId)), string.Format("Date issued must be after the last RSMI date on {0}", rsmiDate.Value.ToShortDateString()));
             }

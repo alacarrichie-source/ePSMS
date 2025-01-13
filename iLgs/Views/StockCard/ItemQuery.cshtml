@@ -79,6 +79,8 @@
             .HeaderHtmlAttributes(new { style = "text-align:right;" });
         columns.Bound(f => f.InsertedBy).Width(50);
         columns.Bound(f => f.InsertedDt).Width(50);
+        columns.Bound(f => f.UpdatedBy).Width(50);
+        columns.Bound(f => f.UpdatedDt).Width(50);
     })
     .ToolBar(t =>
     {

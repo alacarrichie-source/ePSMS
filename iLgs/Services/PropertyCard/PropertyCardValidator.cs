@@ -12,6 +12,7 @@ namespace iLgs.Services.PropertyCard
 {
     public interface IPropertyCardValidator
     {
+        bool IsPsNoAlreadyExists(PropertyCardVM model, Mode mode);
         void ValidateOnCreate(PropertyCardVM model);
         void ValidateOnUpdate(PropertyCardVM model);
         void ValidateOnDelete(PropertyCardVM model);
@@ -45,11 +46,11 @@ namespace iLgs.Services.PropertyCard
             string partialView = AllFieldsUtil.GetPartialView(itemCode);
             _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
 
-            //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
-            if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund))
+            if (IsPsNoAlreadyExists(model, Mode.ADD))
             {
-                ex.UpsertDataList(_getDisplayName(nameof(model.PsNo)), "Already exits.");
+                ex.UpsertDataList(Utility.GetDisplayName<PropertyCardVM>(nameof(model.PsNo)), "Already exists.");
             }
+
             ex.ThrowIfContainsErrors();
         }
 
@@ -67,14 +68,22 @@ namespace iLgs.Services.PropertyCard
             string partialView = AllFieldsUtil.GetPartialView(itemCode);
             _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
 
-            //_allFieldsValidator.ValidateAllFields(model.AllField, model.ItemTypeCode, model.ItemCode, ex, Module.CARD);
-            if (_db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund && a.Id != model.Id))
+            if (IsPsNoAlreadyExists(model, Mode.EDIT))
             {
-                ex.UpsertDataList(Utility.GetDisplayName<PropertyCardVM>(nameof(model.PsNo)), "Already exits.");
+                ex.UpsertDataList(Utility.GetDisplayName<PropertyCardVM>(nameof(model.PsNo)), "Already exists.");
             }
             ex.ThrowIfContainsErrors();
         }
-        
+
+        public bool IsPsNoAlreadyExists(PropertyCardVM model, Mode mode)
+        {
+            if (mode == Mode.ADD)
+            {
+                return _db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund);
+            }
+            return _db.PsCards.Any(a => a.PsNo == model.PsNo && a.Fund == model.Fund && a.Id != model.Id);
+        }
+
         public void ValidateOnDelete(PropertyCardVM model)
         {
             ValidateCard(model);

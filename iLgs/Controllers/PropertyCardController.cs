@@ -33,6 +33,7 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly IPropertyCardService _propertyCardService;
         private readonly IItemCodeService _itemCodeService;
+        private readonly IPropertyCardValidator _propertyCardValidator;
         
         public PropertyCardController()
         {
@@ -40,6 +41,7 @@ namespace iLgs.Controllers
             _codextnService = new CodextnService(_db);
             _propertyCardService = new PropertyCardService(_db);
             _itemCodeService = new ItemCodeService(_db);
+            _propertyCardValidator = new PropertyCardValidator(_db);
         }
 
         // GET: Index
@@ -173,7 +175,7 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _PropertyCardAddEdit(Guid? cardId)
+        public async Task<ActionResult> _PropertyCardAddEdit(Guid? cardId, string mode)
         {
             var data = await _propertyCardService.GetByIdAsync(cardId);
             if (data == null)
@@ -183,6 +185,8 @@ namespace iLgs.Controllers
                     CardCategory = _cardCategory
                 };
             }
+            data.Mode = mode;
+
             return PartialView(data);
         }
 
@@ -284,12 +288,30 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public JsonResult GetDescription(PropertyCardVM fields)
+        public async Task<JsonResult> GetDescription(PropertyCardVM fields)
         {
             var description = _propertyCardService.GetDescription(fields);
             var stockNo = _propertyCardService.GetStockNo(fields);
 
-            return Json(new { Description = description, StockNo = stockNo }, JsonRequestBehavior.AllowGet);
+            var psCard = await _propertyCardService.GetByPsNoAsync(stockNo);
+            Guid id = Guid.NewGuid();
+            if (psCard != null)
+            {
+                id = psCard.Id;
+            }
+
+            fields.PsNo = stockNo;
+            bool isDuplicateStockNo = false;
+            if (fields.Mode == "A")
+            {
+                isDuplicateStockNo = _propertyCardValidator.IsPsNoAlreadyExists(fields, Mode.ADD);
+            }
+            else
+            {
+                isDuplicateStockNo = _propertyCardValidator.IsPsNoAlreadyExists(fields, Mode.EDIT);
+            }
+
+            return Json(new { Description = description, StockNo = stockNo, Id = id, IsDuplicateStockNo = isDuplicateStockNo }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult _PropertyCardItem(Guid cardId, string category)

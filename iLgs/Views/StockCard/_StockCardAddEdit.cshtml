@@ -15,6 +15,9 @@
     @*@Html.HiddenFor(model => model.FieldGroupNo)*@
     @Html.HiddenFor(model => model.PsName)
     @*@Html.HiddenFor(model => model.AllField)*@
+    @Html.HiddenFor(model => model.SelectedId)
+    @Html.HiddenFor(model => model.Mode)
+    @Html.HiddenFor(model => model.IsDuplicateStockNo)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -77,7 +80,7 @@
                             //c.Add().Field("Code").Title("Code").Width("15%").Template("#= columnTemplate(data.Code) #");
                             //c.Add().Field("TypeDesc").Title("Account").Width("25%").Template("#= columnTemplate(data.TypeDesc) #");
                             //c.Add().Field("MainDesc").Title("Sub-Account").Width("35%").Template("#= columnTemplate(data.MainDesc) #");
-                            //c.Add().Field("Description").Title("Article").Width("25%").Template("#= columnTemplate(data.Description) #");                            
+                            //c.Add().Field("Description").Title("Article").Width("25%").Template("#= columnTemplate(data.Description) #");
 
                             c.Add().Field("Code").Title("Code").Width("10%").Template("#= columnTemplate(data.Code) #");
                             c.Add().Field("TypeDesc").Title("Account").Width("15%").Template("#= columnTemplate(data.TypeDesc) #");
@@ -85,7 +88,7 @@
                             c.Add().Field("SubAccount2").Title("Sub-Account2").Width("15%").Template("#= columnTemplate(data.SubAccount2) #");
                             c.Add().Field("SubAccount3").Title("Sub-Account3").Width("15%").Template("#= columnTemplate(data.SubAccount3) #");
                             c.Add().Field("SubAccount4").Title("Sub-Account4").Width("15%").Template("#= columnTemplate(data.SubAccount4) #");
-                            c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");                            
+                            c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");
                         })
                         .Height(300)
                         .Suggest(true)
@@ -119,14 +122,14 @@
         </div>
 
         @*<div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.Description)
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.Description, htmlAttributes: new { @class = "col-md-2" })
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextAreaFor(m => m.Description).Rows(2).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.Description)
+                    </div>
                 </div>
-            </div>
-        </div>*@
+            </div>*@
 
         <br />
 
@@ -147,31 +150,31 @@
             <div class="col-md-12">
                 @Html.LabelFor(m => m.PsNo, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.PsNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(m => m.PsNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PsNo)
                 </div>
             </div>
         </div>
 
         @*<div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.PsName, htmlAttributes: new { @class = "col-md-2" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.PsName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.PsName)
+                    @Html.LabelFor(m => m.PsName, htmlAttributes: new { @class = "col-md-2" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextBoxFor(m => m.PsName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.PsName)
+                    </div>
                 </div>
-            </div>
-        </div>*@
+            </div>*@
 
         @*<div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.PrevPsNo, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.PrevPsNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.PrevPsNo)
+                <div class="col-md-12">
+                    @Html.LabelFor(m => m.PrevPsNo, htmlAttributes: new { @class = "col-md-2" })
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextBoxFor(m => m.PrevPsNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.PrevPsNo)
+                    </div>
                 </div>
-            </div>
-        </div>*@
+            </div>*@
 
         @*<div class="row k-mb-2">
                 <div class="col-md-12">
@@ -224,70 +227,71 @@
         //}
 
         //$("#GridRisItemExtns").val(JSON.stringify(rowValues)).trigger("change");
-
-
+        UpdateDescription();
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
-            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
-            var data = $("#form").serialize();
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("_StockCardSave", "StockCard")',
-                data: data,
-                beforeSend: function () {
-                    window.kendo.ui.progress($("#form"), true);
-                },
-                success: function (result) {
-                    window.kendo.ui.progress($("#form"), false);
-                    if (!result.Errors) {
-                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
-                    }
-                    else {                        
-                        //// Clear previous error messages
-                        $('#ErrorContent .errors').empty();
-                        
-                        result.Errors.forEach(function (error) {
-                            var key = error.Key;
-                            var messages = error.Message; // Use Message from the JSON
+            setTimeout(function () {
+                var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+                var data = $("#form").serialize();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("_StockCardSave", "StockCard")',
+                    data: data,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($("#form"), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($("#form"), false);
+                        if (!result.Errors) {
+                            $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                        }
+                        else {
+                            //// Clear previous error messages
+                            $('#ErrorContent .errors').empty();
 
-                            // Check if messages exists and is an array
-                            if (Array.isArray(messages)) {
-                                // Create the field name list item
-                                var errorListItem = $('<li></li>').text(key);
+                            result.Errors.forEach(function (error) {
+                                var key = error.Key;
+                                var messages = error.Message; // Use Message from the JSON
 
-                                // Create a nested unordered list for the messages
-                                var messageList = $('<ul></ul>');
+                                // Check if messages exists and is an array
+                                if (Array.isArray(messages)) {
+                                    // Create the field name list item
+                                    var errorListItem = $('<li></li>').text(key);
 
-                                // Loop through each message and append it to the messageList
-                                messages.forEach(function (message) {
-                                    messageList.append($('<li></li>').text(message));
-                                });
+                                    // Create a nested unordered list for the messages
+                                    var messageList = $('<ul></ul>');
 
-                                // Append the message list to the error list item
-                                errorListItem.append(messageList);
+                                    // Loop through each message and append it to the messageList
+                                    messages.forEach(function (message) {
+                                        messageList.append($('<li></li>').text(message));
+                                    });
 
-                                // Append the error list item to the .errors container
-                                $('#ErrorContent .errors').append(errorListItem);
-                            } else {
-                                console.error(`Expected messages to be an array for field ${key}`);
-                            }
-                        });
-                        // Show the error content
-                        $('#ErrorContent').removeClass('hidden');
+                                    // Append the message list to the error list item
+                                    errorListItem.append(messageList);
 
-                    }
-                    selectedId = result.Id;
-                },
-                error: function (req, status, errorObj) {
-                    alert(req.responseText);
-                    }
-                });
-                disabled.attr('disabled', 'disabled');
-            }
-        });
+                                    // Append the error list item to the .errors container
+                                    $('#ErrorContent .errors').append(errorListItem);
+                                } else {
+                                    console.error(`Expected messages to be an array for field ${key}`);
+                                }
+                            });
+                            // Show the error content
+                            $('#ErrorContent').removeClass('hidden');
 
-        $("#btnCancel").click(function (e) {
-            e.preventDefault();
-            $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
-    });        
+                        }
+                        selectedId = result.Id;
+                    },
+                    error: function (req, status, errorObj) {
+                        alert(req.responseText);
+                        }
+                    });
+                    disabled.attr('disabled', 'disabled');                
+            }, 500);
+        }
+    });
+
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
 </script>

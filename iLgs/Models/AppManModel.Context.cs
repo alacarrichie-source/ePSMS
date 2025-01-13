@@ -84,7 +84,6 @@ namespace iLgs.Models
         public virtual DbSet<CustodianReport> CustodianReports { get; set; }
         public virtual DbSet<CustodianDisposalItem> CustodianDisposalItems { get; set; }
         public virtual DbSet<DollarRate> DollarRates { get; set; }
-        public virtual DbSet<PsCardItemTransaction> PsCardItemTransactions { get; set; }
         public virtual DbSet<AllField> AllFields { get; set; }
         public virtual DbSet<CustodianReportItemIssuance> CustodianReportItemIssuances { get; set; }
         public virtual DbSet<ItemTypeExclusion> ItemTypeExclusions { get; set; }
@@ -107,5 +106,6 @@ namespace iLgs.Models
         public virtual DbSet<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<OrderItem> OrderItems { get; set; }
+        public virtual DbSet<PsCardItemTransaction> PsCardItemTransactions { get; set; }
     }
 }

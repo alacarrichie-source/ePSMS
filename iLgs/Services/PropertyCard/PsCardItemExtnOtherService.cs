@@ -81,6 +81,7 @@ namespace iLgs.Services.PropertyCard
             //{
             //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             //}
+            _psCardItemExtnValidator.ValidateOnCreate(model);
 
             var psCardItem = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == model.PsCardItemId);
             var itemQty = (int)(psCardItem.Qty ?? 0) + (int)(psCardItem.TransferIn ?? 0);
@@ -146,7 +147,7 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().FirstOrDefault(f => f.Id == model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -164,6 +165,7 @@ namespace iLgs.Services.PropertyCard
 
         public ValueTask<PsCardItemExtnOther> UpdateAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
+            _psCardItemExtnValidator.ValidateOnUpdate(model);
             //if (await IsPostedAsync(model.PsCardItemId))
             //{
             //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");

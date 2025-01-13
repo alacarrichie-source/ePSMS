@@ -61,10 +61,10 @@ namespace iLgs.Services.PropertyCard
         public async ValueTask<PsCardItemTransaction> GetByIdAsync(Guid? id)
         {
             var data = await _db.PsCardItemTransactions
-                .Include(i => i.PsCardItem)
-                .Include(i => i.PsCardItemExtn)
-                .Include(i => i.PsCardItemIssuance)
-                .Include(i => i.IcsPar)
+                //.Include(i => i.PsCardItem)
+                //.Include(i => i.PsCardItemExtn)
+                //.Include(i => i.PsCardItemIssuance)
+                //.Include(i => i.IcsPar)
                 .Where(w => w.Id == id)
                 .FirstOrDefaultAsync();
             return data;

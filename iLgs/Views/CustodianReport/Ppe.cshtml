@@ -121,7 +121,7 @@
             })
             .Sort(s =>
             {
-                s.Add(a => a.InsertedDt);
+                s.Add(a => a.InsertedDt).Descending();
             })
             .Read(read => read.Action("_PpeItemRead", "CustodianReport").Data("DataGrid"))
             .Create(create => create.Action("_PpeItemCreate", "CustodianReport"))
@@ -517,6 +517,11 @@
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 $("#grid").data("kendoGrid").dataSource.read();
             }
+            if (e.type == "create") {
+                var responseData = e.response;
+                var newRecord = responseData.Data[0];
+                selectedId = newRecord.Id;
+            }
         }
     }
 
@@ -541,7 +546,7 @@
             url = '@Url.Action("_PpeItemUpdate", "CustodianReport")';
         }
 
-        SaveGridItems(url);
+        SaveGridItems(url);        
     }
 
     function SaveGridItems(url)
@@ -678,7 +683,7 @@
         selectedId = dataItem.Id;
         const rowitem = this.dataSource.get(dataItem.Id);
         this.select($('[data-uid=' + rowitem.uid + ']'));
-        
+
 
         var url = '@Url.Action("StickerRpt", "CustodianReport")?id=' + selectedId + '&accountGroup=@ViewBag.AccountGroup';
 
