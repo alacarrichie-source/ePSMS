@@ -283,7 +283,7 @@
                     @Html.DisplayFor(m => m.QtyIss, "Label")
                 </div>
                 <div class="col-md-9">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyIss).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateBalance")))
+                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyIss).Decimals(0).Format("{0:n0}").Enable(false).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateBalance")))
                     @Html.ValidationMessageFor(m => m.QtyIss)
                 </div>
             </div>
@@ -306,7 +306,7 @@
                     @Html.DisplayFor(m => m.QtyBal, "Label")
                 </div>
                 <div class="col-md-9">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyBal).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyBal).Decimals(0).Enable(false).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.QtyBal)
                 </div>
             </div>

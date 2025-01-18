@@ -64,6 +64,7 @@ namespace iLgs.Models
         public string MainDeptName { get; set; }
         public int? AccountGroup { get; set; }
 
+        
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }
@@ -131,7 +132,7 @@ namespace iLgs.Models
             [Display(Name = "Department Display")]
             public string Department { get; set; }
 
-            [Display(Name = "Location")]
+            [Display(Name = "Location Code")]
             public Nullable<System.Guid> LocationId { get; set; }
 
             public string LocationCode { get; set; }
@@ -148,6 +149,7 @@ namespace iLgs.Models
 
 
             //[Required]
+            [Display(Name = "PO Description")]
             public string Description { get; set; }
             //public string Brand { get; set; }
 
@@ -643,7 +645,7 @@ namespace iLgs.Models
             public Nullable<System.Guid> DeptId { get; set; }
             public string Department { get; set; }
 
-            [Display(Name = "Location")]
+            [Display(Name = "Location Code")]
             public Nullable<System.Guid> LocationId { get; set; }
 
             [Display(Name = "Location Code")]

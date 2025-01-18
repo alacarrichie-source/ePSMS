@@ -10,15 +10,6 @@ namespace iLgs.Models
     public class OrderVM
     {
 
-        [Display(Name = "Supplier")]
-        public string SupplierName { get; set; }
-
-        [Display(Name = "Address")]
-        public string SupplierAddress { get; set; }
-
-        [Display(Name = "TIN")]
-        public string SupplierTin { get; set; }
-
         [Display(Name = "Mode of Procurement")]
         public string PoModeDesc { get; set; }
 
@@ -30,6 +21,27 @@ namespace iLgs.Models
         [Display(Name = "Supplier")]
         [Required]
         public Nullable<System.Guid> SupplierId { get; set; }
+
+        [Display(Name = "Name")]
+        public string SupName { get; set; }
+
+        [Display(Name = "Business Name")]
+        public string SupBusiness { get; set; }
+
+        [Display(Name = "Address")]
+        public string SupAddress { get; set; }
+
+        [Display(Name = "TIN")]
+        public string SupTIN { get; set; }
+
+        [Display(Name = "Email")]
+        public string SupEmail { get; set; }
+
+        [Display(Name = "Zip Code")]
+        public string SupZipCode { get; set; }
+
+        [Display(Name = "Contact No.")]
+        public string SupContactNo { get; set; }
 
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
@@ -279,6 +291,10 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
         public Nullable<System.Guid> RequestItemUnitGroupId { get; set; }
+
+        [Display(Name = "Set/Lot No.")]
+        public string SetLotNo { get; set; }
+
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> TotalCost { get; set; }
         public string InsertedBy { get; set; }

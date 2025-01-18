@@ -51,6 +51,7 @@ namespace iLgs.Services.Requisition
                 {
                     Id = s.Id,
                     RisId = s.RisId,     
+                    SetLotNo = s.SetLotNo,
                     Qty = s.Qty,
                     Unit = s.Unit,
                     InsertedDt = s.InsertedDt                    
@@ -68,10 +69,13 @@ namespace iLgs.Services.Requisition
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
+            model.SetLotNo = SetLotNo(model.RisId);
+
             RisItemUnitGroup entity = new RisItemUnitGroup()
             {
                 Id = model.Id,
                 RisId = model.RisId,
+                SetLotNo = model.SetLotNo,
                 Qty = model.Qty,
                 Unit = model.Unit,
                 InsertedBy = model.InsertedBy,
@@ -121,6 +125,7 @@ namespace iLgs.Services.Requisition
             model.UpdatedDt = date;            
 
             entity.RisId = model.RisId;
+            entity.SetLotNo = model.SetLotNo;
             entity.Unit = model.Unit;
             entity.Qty = model.Qty;
             entity.UpdatedBy = model.UpdatedBy;
@@ -131,6 +136,13 @@ namespace iLgs.Services.Requisition
             await _db.SaveChangesAsync();            
 
             return model;
-        });        
+        });
+
+        private string SetLotNo(Guid? risId)
+        {
+            var count = _db.RisItemUnitGroups.Where(w => w.RisId == risId).Count();
+            count++;
+            return count.ToString();            
+        }
     }
 }

@@ -58,6 +58,8 @@ namespace iLgs.Services.CustodianReports
             UnitCost = s.UnitCost,
             Unit = s.Unit,
             SetLotNo = s.SetLotNo,
+            SetLotAmount = s.SetLotAmount,
+            SetLotRemarks = s.SetLotRemarks,
             DeptId = s.DeptId,
             Department = s.Department,
             LocationId = s.LocationId,
@@ -146,12 +148,18 @@ namespace iLgs.Services.CustodianReports
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.ReportId == reportId)
                 .Select(CustodianReporVehicleItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_Vehicle {0}, {1}, {2}", reportId, null, null).AsQueryable();
             }
             else
             {
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.ReportId == reportId && w.Annex != "D")
                 .Select(CustodianReporVehicleItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_Vehicle {0}, {1}, {2}", reportId, null, null).AsQueryable();
+                //if (data.Any())
+                //{
+                //    data = data.Where(w => w.Annex != "D");
+                //}
             }
             return data;
         }
@@ -164,14 +172,20 @@ namespace iLgs.Services.CustodianReports
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReporVehicleItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_Vehicle {0}, {1}, {2}", null, deptId, accountGroup).AsQueryable();                
             }
             else
             {
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
                 .Select(CustodianReporVehicleItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_Vehicle {0}, {1}, {2}", null, deptId, accountGroup).AsQueryable();
+                //if (data.Any())
+                //{
+                //    data = data.Where(w => w.Annex != "D");
+                //}
             }
-
+        
             return data;
         }
 
@@ -183,12 +197,18 @@ namespace iLgs.Services.CustodianReports
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReporVehicleItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_Vehicle {0}, {1}, {2}", null, null, accountGroup).AsQueryable();
             }
             else
             {
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
                 .Select(CustodianReporVehicleItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_Vehicle {0}, {1}, {2}", null, null, accountGroup).AsQueryable();
+                //if (data.Any())
+                //{
+                //    data = data.Where(w => w.Annex != "D");
+                //}
             }
 
             return data;

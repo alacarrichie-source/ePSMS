@@ -29,4 +29,22 @@ namespace iLgs.Models
 
         public string SelectedIds { get; set; }
     }
+
+    public class QueryPoVM
+    {
+        public Guid Id { get; set; }
+
+        [Display(Name = "PO No.")]
+        public string PoNo { get; set; }
+
+        [Display(Name = "PO Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public DateTime? PoDate { get; set; }
+
+        [Display(Name = "User Name")]
+        public string UserName { get; set; }
+
+        [Display(Name = "Item Count")]
+        public int? ItemCount { get; set; }
+    }
 }

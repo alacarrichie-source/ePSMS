@@ -324,14 +324,15 @@ namespace iLgs.Controllers
         public JsonResult GetUsers(string text)
         {
 
-            var model = db.UserProfiles.Select(c => new { OwnerId = c.UserId, NameFull = c.NameFull, UserName = c.AspNetUser.UserName }).AsQueryable();
+            //var model = db.UserProfiles.Select(c => new { OwnerId = c.UserId, NameFull = c.NameFull, UserName = c.AspNetUser.UserName }).AsQueryable();
+            var model = db.UserProfiles.Select(c => new { UserId = c.UserId, NameFull = c.NameFull, UserName = c.AspNetUser.UserName }).AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 model = model.Where(p => p.NameFull.Contains(text));
             }
             return Json(model, JsonRequestBehavior.AllowGet);
 
-        }
+        }        
 
         public JsonResult GetRoleUsers(string text)
         {

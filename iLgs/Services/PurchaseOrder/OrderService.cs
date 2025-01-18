@@ -70,9 +70,13 @@ namespace iLgs.Services.PurchaseOrder
                     PrNo = s.Request.PrNo,
                     Department = s.Request.RISs.Office,
                     SupplierId = s.SupplierId,
-                    SupplierName = s.Supplier.Name,
-                    SupplierAddress = s.Supplier.Address,
-                    SupplierTin = s.Supplier.TIN,
+                    SupName = s.SupName,
+                    SupBusiness = s.SupBusiness,
+                    SupAddress = s.SupAddress,
+                    SupTIN = s.SupTIN,
+                    SupContactNo = s.SupContactNo,
+                    SupEmail = s.SupEmail,
+                    SupZipCode = s.SupZipCode,
                     DeliveryPlace = s.DeliveryPlace,
                     DeliveryDate = s.DeliveryDate,
                     TermDelivery = s.TermDelivery,
@@ -103,8 +107,13 @@ namespace iLgs.Services.PurchaseOrder
                     PoDate = s.PoDate,
                     PoMode = s.PoMode,
                     SupplierId = s.SupplierId,
-                    SupplierName = s.Supplier.Name,
-                    SupplierAddress = s.Supplier.Address,
+                    SupName = s.SupName,
+                    SupBusiness = s.SupBusiness,
+                    SupAddress = s.SupAddress,
+                    SupTIN = s.SupTIN,
+                    SupContactNo = s.SupContactNo,
+                    SupEmail = s.SupEmail,
+                    SupZipCode = s.SupZipCode,
                     Department = s.Request.RISs.Office
                 })
                 .AsQueryable();
@@ -213,6 +222,13 @@ namespace iLgs.Services.PurchaseOrder
             {
                 Id = model.Id,
                 SupplierId = model.SupplierId,
+                SupName = model.SupName,
+                SupBusiness = model.SupBusiness,
+                SupAddress = model.SupAddress,
+                SupContactNo = model.SupContactNo,
+                SupZipCode = model.SupZipCode,
+                SupEmail = model.SupEmail,
+                SupTIN = model.SupTIN,
                 PoNo = model.PoNo,
                 PoDate = model.PoDate,
                 PoMode = model.PoMode,
@@ -284,6 +300,7 @@ namespace iLgs.Services.PurchaseOrder
                     Id = Guid.NewGuid(),
                     OrderId = model.Id,
                     RequestItemUnitGroupId = unitGroup.Id,
+                    SetLotNo = unitGroup.RisItemUnitGroup.SetLotNo,
                     Qty = unitGroup.RisItemUnitGroup.Qty,
                     Unit = unitGroup.RisItemUnitGroup.Unit,
                     UnitCost = unitGroup.UnitCost,
@@ -397,6 +414,13 @@ namespace iLgs.Services.PurchaseOrder
             }
 
             entity.SupplierId = model.SupplierId;
+            entity.SupName = model.SupName;
+            entity.SupBusiness = model.SupBusiness;
+            entity.SupAddress = model.SupAddress;
+            entity.SupContactNo = model.SupContactNo;
+            entity.SupZipCode = model.SupZipCode;
+            entity.SupEmail = model.SupEmail;
+            entity.SupTIN = model.SupTIN;
             entity.PoNo = model.PoNo;
             entity.PoDate = model.PoDate;
             entity.PoMode = model.PoMode;

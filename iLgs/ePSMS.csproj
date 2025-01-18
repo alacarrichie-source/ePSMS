@@ -595,9 +595,7 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\StockCardViewModels.cs" />
-    <Compile Include="Models\Supplier.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
+    <Compile Include="Models\SupplierViewModel.cs" />
     <Compile Include="Models\Upload.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -614,6 +612,12 @@
     <Compile Include="Models\UserProfile.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Reports\Card_Po_.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Card_Po_.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Reports\CustodianStock.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -625,6 +629,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ItemCode.rpt</DependentUpon>
       <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\Po_1.cs">
+      <DependentUpon>Po_.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Reports\PropertyCard.cs">
       <AutoGen>True</AutoGen>
@@ -866,12 +876,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Par.rpt</DependentUpon>
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Reports\Po_1.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Po_.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Reports\Pr_1.cs">
@@ -1534,6 +1538,10 @@
     <None Include="Properties\PublishProfiles\Web2015.pubxml" />
     <None Include="Properties\PublishProfiles\Web02.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
+    <Content Include="Reports\Po_.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>Po_1.cs</LastGenOutput>
+    </Content>
     <Content Include="Reports\Rpci.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Rpci.cs</LastGenOutput>
@@ -4205,6 +4213,9 @@
     <Content Include="Views\PoIssuance\Summary.cshtml" />
     <Content Include="Views\StockCard\ItemQuery.cshtml" />
     <Content Include="Views\Orders\_FieldBrand_A.cshtml" />
+    <Content Include="Views\StockCard\_PostBatch.cshtml" />
+    <Content Include="Views\StockCard\_UnpostBatch.cshtml" />
+    <Content Include="Views\Query\Po.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4217,7 +4228,6 @@
     <Folder Include="Views\MenuAccessAction\" />
     <Folder Include="Views\MenuAction\" />
     <Folder Include="Views\PsCard\" />
-    <Folder Include="Views\Query\" />
     <Folder Include="Views\Sequence\" />
   </ItemGroup>
   <ItemGroup>
@@ -4254,10 +4264,6 @@
     <Content Include="Reports\Rsmi.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Rsmi.cs</LastGenOutput>
-    </Content>
-    <Content Include="Reports\Po_.rpt">
-      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
-      <LastGenOutput>Po_1.cs</LastGenOutput>
     </Content>
     <Content Include="Reports\Pr_.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
@@ -4302,6 +4308,10 @@
     <Content Include="Reports\StickerPar.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>StickerPar.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\Card_Po_.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>Card_Po_.cs</LastGenOutput>
     </Content>
   </ItemGroup>
   <ItemGroup>

@@ -114,6 +114,9 @@ namespace iLgs.Models
 
         public string Mode { get; set; }
         public bool IsDuplicateStockNo { get; set; }
+
+        [Display(Name = "Item Count")]
+        public int? ItemCount { get; set; }
     }
 
     public class PsCardItemVM 
@@ -146,13 +149,13 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> AirIssueDate { get; set; }
 
-        //[Required]
+        [Required]
         public Nullable<int> Qty { get; set; }
 
         [Display(Name = "Qty. Issued")]
         public Nullable<int> QtyIss { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Qty. Balance")]
         public Nullable<int> QtyBal { get; set; }
 
@@ -194,6 +197,7 @@ namespace iLgs.Models
         public string DeptCode { get; set; }
 
         [Required]
+        [Display(Name = "PO Description")]
         public string Description { get; set; }
 
         [Display(Name = "Other Description")]
@@ -236,10 +240,10 @@ namespace iLgs.Models
         [Display(Name = "Vendor/Donor")]
         public string Vendor { get; set; }
 
-        [Display(Name = "Inserted By")]
+        [Display(Name = "Created By")]
         public string InsertedBy { get; set; }
 
-        [Display(Name = "Inserted Date")]
+        [Display(Name = "Created Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
 
@@ -249,6 +253,13 @@ namespace iLgs.Models
         [Display(Name = "Updated Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        [Display(Name = "Posted By")]
+        public string PostedBy { get; set; }
+
+        [Display(Name = "Posted Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PostedDt { get; set; }
 
         [Display(Name = "Old Amount")]
         public Nullable<decimal> OldAmount { get; set; }

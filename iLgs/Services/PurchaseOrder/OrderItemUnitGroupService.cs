@@ -54,6 +54,7 @@ namespace iLgs.Services.PurchaseOrder
                     RequestItemUnitGroupId = s.RequestItemUnitGroupId,
                     //Qty = s.RequestItemUnitGroup.RisItemUnitGroup.Qty,
                     //Unit = s.RequestItemUnitGroup.RisItemUnitGroup.Unit,
+                    SetLotNo = s.SetLotNo,
                     Qty = s.Qty,
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
@@ -83,6 +84,7 @@ namespace iLgs.Services.PurchaseOrder
                 Id = model.Id,
                 OrderId = model.OrderId,
                 RequestItemUnitGroupId = model.RequestItemUnitGroupId,
+                SetLotNo = model.SetLotNo,
                 Qty = model.Qty,
                 Unit = model.Unit,
                 UnitCost = model.UnitCost,
@@ -150,6 +152,8 @@ namespace iLgs.Services.PurchaseOrder
 
             entity.OrderId = model.OrderId;
             entity.RequestItemUnitGroupId = model.RequestItemUnitGroupId;
+            entity.SetLotNo = model.SetLotNo;
+            entity.Qty = model.Qty;
             entity.UnitCost = model.UnitCost;
             entity.TotalCost = model.Qty * model.UnitCost;            
             entity.UpdatedBy = model.UpdatedBy;

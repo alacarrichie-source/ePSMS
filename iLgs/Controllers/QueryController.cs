@@ -11,14 +11,109 @@ using System.Data.Entity;
 using Microsoft.AspNet.Identity;
 using iLgs.Utilities;
 using Newtonsoft.Json;
+using System.Data.SqlClient;
+using CrystalDecisions.CrystalReports.Engine;
+using iLgs.Services.Codes;
+using System.IO;
 
 namespace iLgs.Controllers
 {
     [Authorize]
     public class QueryController : BaseController
     {
-        private AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
+        private readonly ICodextnService _codextnService;
 
-        
+        public QueryController()
+        {
+            _db = new AppManEntities();
+            _codextnService = new CodextnService(_db);
+        }
+
+        public ActionResult Po()
+        {
+            return View();
+        }
+
+        public ActionResult PoRead([DataSourceRequest] DataSourceRequest request, string userName)
+        {
+            var data = _db.Database.SqlQuery<QueryPoVM>("Exec Card_GetPoNumbers {0}", userName).AsQueryable();
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
+        public ActionResult PoItemRead([DataSourceRequest] DataSourceRequest request, string poNo, string userName)
+        {
+            var data = _db.PsCardItems
+                .Include(i => i.PsCard.ItemCode.ItemType.Description)
+                .Where(w => (w.PoNo == poNo || (w.PoNo == null && string.IsNullOrEmpty(poNo))) && (w.InsertedBy == userName || string.IsNullOrEmpty(userName))).AsNoTracking()
+                .Select(s => new PsCardItemVM {
+                    Id = s.Id,
+                    Account = s.PsCard.ItemCode.ItemType.Description,
+                    StockNo = s.PsCard.PsNo,
+                    Description = s.Description,
+                    Unit = s.Unit,
+                    Qty = s.Qty,
+                    Amount = s.Amount,
+                    InsertedBy = s.InsertedBy,
+                    InsertedDt = s.InsertedDt,
+                    UpdatedBy = s.UpdatedBy,
+                    UpdatedDt = s.UpdatedDt
+                })
+                .AsQueryable();
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
+        public ActionResult PoRpt(string poNo)
+        {
+            string stringname = _db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
+
+            string un = decoder.UserID;
+            string pw = decoder.Password;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            ReportClass rpt = new ReportClass();
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/Card_Po_.rpt"));
+            rpt.SetDatabaseLogon(un, pw, svr, db_);
+
+            rpt.Load();
+            rpt.Refresh();
+
+            foreach (Table table in rpt.Database.Tables)
+            {
+                var logonInfo = table.LogOnInfo;
+                logonInfo.ConnectionInfo.ServerName = svr;
+                logonInfo.ConnectionInfo.DatabaseName = db_;
+                logonInfo.ConnectionInfo.UserID = un;
+                logonInfo.ConnectionInfo.Password = pw;
+                table.ApplyLogOnInfo(logonInfo);
+            }
+
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            
+            rpt.SetParameterValue("@cPoNo", string.IsNullOrWhiteSpace(poNo) ? null : poNo);
+            rpt.SetParameterValue("LGU", lgu);
+
+            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+            rpt.Close();
+            rpt.Dispose();
+            return File(stream, "application/pdf");
+        }
+
     }
 }

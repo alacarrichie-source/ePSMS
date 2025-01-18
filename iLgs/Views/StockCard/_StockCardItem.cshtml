@@ -24,28 +24,28 @@
                     {
                         g.Title("Originating Department").HeaderHtmlAttributes(new { Style = "text-align:center;" })
         .Columns(info =>
-                {
-                    info.Bound(f => f.Department).Width(70).Title("PO Owner");
-                    info.Bound(f => f.Qty)
-    .Width(50).Title("In")
-    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-    .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                });
+        {
+            info.Bound(f => f.Department).Width(70).Title("PO Owner");
+            info.Bound(f => f.Qty)
+.Width(50).Title("In")
+.HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+.HeaderHtmlAttributes(new { style = "text-align:right;" });
+        });
                     });
                     col.Group(g =>
                     {
                         g.Title("Intermediary").HeaderHtmlAttributes(new { Style = "text-align:center;" })
         .Columns(info =>
-                {
-                    info.Bound(f => f.LocCode).Width(50).Title("Code");
-                    info.Bound(f => f.Location).Width(50).Title("Location");
-                    info.Bound(f => f.TransferIn)
-    .Width(50).Title("Transit-In")
-    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-    .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-    .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                });
+        {
+            info.Bound(f => f.LocCode).Width(50).Title("Code");
+            info.Bound(f => f.Location).Width(50).Title("Location");
+            info.Bound(f => f.TransferIn)
+.Width(50).Title("Transit-In")
+.HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+.ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+.HeaderHtmlAttributes(new { style = "text-align:right;" });
+        });
                     });
                 });
             });
@@ -69,16 +69,21 @@
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             columns.Bound(f => f.Remarks).Width(50);
+            columns.Bound(f => f.InsertedBy).Width(50).Title("Created by");
             columns.Command(commands =>
             {
                 commands.Edit();
-                //commands.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
-                commands.Destroy();
+                commands.Destroy().Visible("IsNotPosted");
+                commands.Custom("Post").IconClass("k-icon k-i-lock").SendDataKeys(true).Click("onClickBtnPostItem").Visible("IsNotPosted");
+                commands.Custom("Unpost").IconClass("k-icon k-i-unlock").SendDataKeys(true).Click("onClickBtnUnPostItem").Visible("IsPosted");
+                commands.Custom("Print PO").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintPo");
             }).Width(120);
-        })
+        })        
         .ToolBar(t =>
         {
             t.Create();
+            //t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost_" + @ViewData["cardId"]).HtmlAttributes(new { @class = "k-button", href = "" });
+            //t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["cardId"]).HtmlAttributes(new { @class = "k-button", href = "" });
         })
         @*.ToolBar(toolbar =>
             {
@@ -113,10 +118,11 @@
                 a.Add(p => p.Amount).Sum();
             })
             .Events(events => events.Error("GridItemError").RequestEnd("onRequestEndGridItems"))
-            .Read("ItemRead", "StockCard", new
-            {
-                cardId = @ViewData["cardId"]
-            })
+            //.Read("ItemRead", "StockCard", new
+            //{
+            //    cardId = @ViewData["cardId"]
+            //})            
+            .Read(read => read.Action("ItemRead", "StockCard").Data("DataStockCardItem"))
             .Create("ItemCreate", "StockCard")
             .Update("ItemUpdate", "StockCard")
             .Destroy("ItemDestroy", "StockCard")
@@ -127,6 +133,6 @@
             .Remove("onRemoveGridItems")
             .DetailExpand("onDetailExpand")
         //.Save("onSaveGridItems")
-            //.DetailExpand("onExpandGridItems")
+        //.DetailExpand("onExpandGridItems")
         )
 )

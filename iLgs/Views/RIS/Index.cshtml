@@ -571,7 +571,7 @@
     function DataFpp() {
         var text = $("#FPP").data("kendoMultiColumnComboBox").text();
         return {
-            department: $("#Office").val(),
+            department: $("#OfficeId").data("kendoMultiColumnComboBox").text(),
             text: text
         };
     }
@@ -641,10 +641,12 @@
     function onSelectOffice(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#FPP").val(dataItem.Code).trigger("change");
+        $("#OfficeId").val(dataItem.Id).trigger("change");
+        $("#Office").val(dataItem.Description).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
-        model.set('FPP', $('#FPP').val());
+        model.set('OfficeId', $('#OfficeId').val());
+        model.set('Office', $('#Office').val());
     }
 
     function onSelectFpp(e) {

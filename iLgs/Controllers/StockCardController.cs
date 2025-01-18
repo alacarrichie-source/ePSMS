@@ -42,7 +42,7 @@ namespace iLgs.Controllers
             _stockCardService = new StockCardService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _stockCardValidator = new StockCardValidator(_db);
-        }
+        }        
 
         // GET: Index
         public ActionResult Index()
@@ -50,9 +50,16 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult Read([DataSourceRequest] DataSourceRequest request)
+        //// GET: PerUser
+        //public ActionResult PerUser()
+        //{
+        //    ViewBag.Mode = 2;
+        //    return View("Index");
+        //}
+
+        public ActionResult Read([DataSourceRequest] DataSourceRequest request, string userName)
         {
-            var data = _stockCardService.GetAll();
+            var data = _stockCardService.GetAll(userName);
 
             var result = new JsonNetResult
             {
@@ -394,9 +401,9 @@ namespace iLgs.Controllers
         }
 
 
-        public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, Guid? cardId)
+        public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, Guid? cardId, string userName)
         {
-            var data = _stockCardService.PsCardItem.GetByCardId(cardId);
+            var data = _stockCardService.PsCardItem.GetByCardId(cardId, userName);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -705,6 +712,48 @@ namespace iLgs.Controllers
 
             rpt.SetParameterValue("@cStockNo", stockNo);
             rpt.SetParameterValue("ImagePath", imagePath);
+            rpt.SetParameterValue("LGU", lgu);
+
+            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+            rpt.Close();
+            rpt.Dispose();
+            return File(stream, "application/pdf");
+        }
+
+        public async Task<ActionResult> StockCardPoRpt(Guid? selectedItemId)
+        {
+            string stringname = _db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
+
+            string un = decoder.UserID;
+            string pw = decoder.Password;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            ReportClass rpt = new ReportClass();
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/Card_Po_.rpt"));
+            rpt.SetDatabaseLogon(un, pw, svr, db_);
+
+            rpt.Load();
+            rpt.Refresh();
+
+            foreach (Table table in rpt.Database.Tables)
+            {
+                var logonInfo = table.LogOnInfo;
+                logonInfo.ConnectionInfo.ServerName = svr;
+                logonInfo.ConnectionInfo.DatabaseName = db_;
+                logonInfo.ConnectionInfo.UserID = un;
+                logonInfo.ConnectionInfo.Password = pw;
+                table.ApplyLogOnInfo(logonInfo);
+            }
+
+            var cardItem = await _stockCardService.PsCardItem.GetByIdAsync(selectedItemId);
+            var poNo = cardItem.PoNo;
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+            //var imagePath = _codextnService.GetByMastCode("DIRS").Where(w => w.Code == "IMAGE-ITEMS").FirstOrDefault().Description;
+
+            rpt.SetParameterValue("@cPoNo", poNo);
+            //rpt.SetParameterValue("ImagePath", imagePath);
             rpt.SetParameterValue("LGU", lgu);
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
@@ -1076,6 +1125,217 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
                     await _stockCardService.UnpostAsync(psCardId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PostItemRecord(Guid psCardItemId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _stockCardService.PsCardItem.PostAsync(psCardItemId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> UnpostItemRecord(Guid psCardItemId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _stockCardService.PsCardItem.UnpostAsync(psCardItemId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult _PostBatch()
+        {            
+            return PartialView();
+        }
+
+        public ActionResult _UnpostBatch()
+        {
+            return PartialView();
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PostBatchItemRecord(string userName)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _stockCardService.PsCardItem.PostBatchAsync(userName, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> UnpostBatchItemRecord(string userName)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _stockCardService.PsCardItem.UnpostBatchAsync(userName, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)

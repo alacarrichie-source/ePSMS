@@ -50,7 +50,8 @@ namespace iLgs.Controllers
                 SubAccount4 = c.SubAccount4,
                 Article = c.Article,
                 SubArticle = c.SubArticle,
-                MainDescCode = c.MainDescCode
+                MainDescCode = c.MainDescCode,
+                Category = c.Category
             }), JsonRequestBehavior.AllowGet);
         }
 

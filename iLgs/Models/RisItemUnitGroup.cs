@@ -23,6 +23,7 @@ namespace iLgs.Models
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RisId { get; set; }
+        public string SetLotNo { get; set; }
         public Nullable<int> Qty { get; set; }
         public string Unit { get; set; }
         public string InsertedBy { get; set; }
@@ -30,10 +31,10 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual RISs RISs { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RequestItemUnitGroup> RequestItemUnitGroups { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
+        public virtual RISs RISs { get; set; }
     }
 }

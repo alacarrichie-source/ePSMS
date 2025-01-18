@@ -1,4 +1,5 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Items;
 using System;
@@ -12,7 +13,7 @@ namespace iLgs.Services.PropertyCard
 {
     public interface IPsCardItemService
     {
-        IQueryable<PsCardItemVM> GetByCardId(Guid? cardId);
+        IQueryable<PsCardItemVM> GetByCardId(Guid? cardId, string userName);
         IQueryable<PsCardItemVM> GetAllStocks();
         IQueryable<PsCardItemVM> GetAllProperties();
         ValueTask<PsCardItemVM> GetByIdAsync(Guid? id);
@@ -24,6 +25,13 @@ namespace iLgs.Services.PropertyCard
         ValueTask<ParIcsItemVm> UpdateNoICSAsync(ParIcsItemVm model, string user, DateTime date);
         ValueTask<PsCardItemVM> DeleteAsync(PsCardItemVM model, string user, DateTime date);
         PsCardItemVM TransferItemField(PsCardItemVM sourceModel, PsCardItemVM targetModel);
+
+        ValueTask<PsCardItem> PostAsync(Guid id, string user, DateTime date);
+        ValueTask<PsCardItem> UnpostAsync(Guid id, string user, DateTime date);
+
+        Task PostBatchAsync(string userName, string postedBy, DateTime date);
+        Task UnpostBatchAsync(string userName, string postedBy, DateTime date);
+
         IPsCardItemExtnService PsCardItemExtn { get; }
     }
 
@@ -31,9 +39,11 @@ namespace iLgs.Services.PropertyCard
     {
         private readonly AppManEntities _db;
         private readonly IExceptionService<PsCardItemVM> _vmExceptionService = new ExceptionService<PsCardItemVM>();
+        private readonly IExceptionService<PsCardItem> _exceptionService = new ExceptionService<PsCardItem>();
         private readonly IExceptionService<ParIcsItemVm> _parIcsItemExceptionService = new ExceptionService<ParIcsItemVm>();
         private readonly IPsCardItemValidator _psCardItemValidator;
         private readonly IItemCodeService _itemCodeService;
+        private readonly IUserService _userService;
         private IPsCardItemExtnService _psCardItemExtnService;
 
         public PsCardItemService(AppManEntities db)
@@ -42,6 +52,7 @@ namespace iLgs.Services.PropertyCard
             _psCardItemExtnService = new PsCardItemExtnService(_db);
             _psCardItemValidator = new PsCardItemValidator(_db);
             _itemCodeService = new ItemCodeService(_db);
+            _userService = new UserService(_db);
         }
 
         public IPsCardItemExtnService PsCardItemExtn { get { return _psCardItemExtnService = _psCardItemExtnService ?? new PsCardItemExtnService(_db); } }
@@ -91,6 +102,7 @@ namespace iLgs.Services.PropertyCard
                 OldAmount = s.OldAmount,
                 PhaseNo = s.PhaseNo,
                 PhaseAmount = s.PhaseAmount,
+                InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
                 Department = s.Codextn.Description,
                 Location = s.Codextn1.Description,
@@ -99,6 +111,8 @@ namespace iLgs.Services.PropertyCard
                 SetLotNo = s.SetLotNo,
                 SetLotAmount = s.SetLotAmount,
                 SetLotRemarks = s.SetLotRemarks,
+                PostedBy = s.PostedBy,
+                PostedDt = s.PostedDt,
                 IsWithItemExtn = s.PsCardItemExtns.Any()
             };
         }
@@ -114,13 +128,25 @@ namespace iLgs.Services.PropertyCard
             return data;
         }
 
-        public IQueryable<PsCardItemVM> GetByCardId(Guid? cardId) => _vmExceptionService.TryCatch(() =>
+        public IQueryable<PsCardItemVM> GetByCardId(Guid? cardId, string userName) => _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.PsCardItems
-                .Include(i => i.Codextn) // Department
-                .Include(i => i.Codextn1) // Location
-                .Where(w => w.PsCardId == cardId).AsNoTracking()
-                .Select(GetPsCardItemProjection());
+            IQueryable<PsCardItemVM> data = null;
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                data = _db.PsCardItems
+                    .Include(i => i.Codextn) // Department
+                    .Include(i => i.Codextn1) // Location
+                    .Where(w => w.PsCardId == cardId).AsNoTracking()
+                    .Select(GetPsCardItemProjection());
+            }
+            else
+            {
+                data = _db.PsCardItems
+                    .Include(i => i.Codextn) // Department
+                    .Include(i => i.Codextn1) // Location
+                    .Where(w => w.PsCardId == cardId && w.InsertedBy == userName).AsNoTracking()
+                    .Select(GetPsCardItemProjection());
+            }
             return data;
         });
 
@@ -247,6 +273,8 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedDt = date;
 
             var entity = await _db.PsCardItems.FindAsync(model.Id);
+
+            ValidateUser(entity, model);
             MapModelToEntityFields(entity, model, Mode.EDIT);
 
             _db.PsCardItems.Attach(entity);
@@ -366,82 +394,83 @@ namespace iLgs.Services.PropertyCard
             //    try
             //    {
 
-                    model.UpdatedBy = user;
-                    model.UpdatedDt = date;
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
 
-                    var entity = await _db.PsCardItems.FindAsync(model.Id);
+            var entity = await _db.PsCardItems.FindAsync(model.Id);
+            ValidateUser(entity, model);
 
-                    // Get transfer record if any
-                    PsCardItemTransfer psCardItemTransfer = null;
-                    if (entity.TransferRefId != null)
+            // Get transfer record if any
+            PsCardItemTransfer psCardItemTransfer = null;
+            if (entity.TransferRefId != null)
+            {
+                psCardItemTransfer = await _db.PsCardItemTransfers.FindAsync(entity.TransferRefId);
+            }
+
+            // put back transferred items
+            if (psCardItemTransfer != null)
+            {
+                var psCardItem = await _db.PsCardItems.FindAsync(psCardItemTransfer.PsCardItemId);
+                if (psCardItem != null)
+                {
+                    // transfer itemextn if any
+                    var psCardItemId = psCardItemTransfer.PsCardItemId;
+                    var psCardItemExtn = _db.PsCardItemExtns.Where(w => w.PsCardItemId == model.Id);
+                    await psCardItemExtn.ForEachAsync(f =>
                     {
-                        psCardItemTransfer = await _db.PsCardItemTransfers.FindAsync(entity.TransferRefId);
-                    }
-
-                    // put back transferred items
-                    if (psCardItemTransfer != null)
-                    {
-                        var psCardItem = await _db.PsCardItems.FindAsync(psCardItemTransfer.PsCardItemId);
-                        if (psCardItem != null)
-                        {
-                            // transfer itemextn if any
-                            var psCardItemId = psCardItemTransfer.PsCardItemId;
-                            var psCardItemExtn = _db.PsCardItemExtns.Where(w => w.PsCardItemId == model.Id);
-                            await psCardItemExtn.ForEachAsync(f =>
-                            {
-                                f.PsCardItemId = psCardItemId;
-                                f.UpdatedBy = user;
-                                f.UpdatedDt = date;
-                            });
-                            await _db.SaveChangesAsync();
-
-                            psCardItem.TransferOut -= (psCardItemTransfer.Qty ?? 0);
-                            psCardItem.QtyBal = ((psCardItem.Qty ?? 0) + (psCardItem.TransferIn ?? 0)) - ((psCardItem.TransferOut ?? 0) + (psCardItem.QtyIss ?? 0));
-                            psCardItem.UpdatedBy = user;
-                            psCardItem.UpdatedDt = date;
-
-                            _db.PsCardItems.Attach(psCardItem);
-                            _db.Entry(psCardItem).State = EntityState.Modified;
-                            await _db.SaveChangesAsync();
-
-                            // delete transfer record
-                            psCardItemTransfer.UpdatedBy = user;
-                            psCardItemTransfer.UpdatedDt = date;
-                            _db.PsCardItemTransfers.Attach(psCardItemTransfer);
-                            _db.Entry(psCardItemTransfer).State = EntityState.Modified;
-                            await _db.SaveChangesAsync();
-
-                            _db.PsCardItemTransfers.Remove(psCardItemTransfer);
-                            _db.Entry(psCardItemTransfer).State = EntityState.Deleted;
-                            await _db.SaveChangesAsync();
-                        }
-                    }
-
-                    // manually remove transaction log
-                    var psCardItemTransacctions = _db.PsCardItemTransactions.Where(w => w.PsCardItemId == entity.Id);
-                    _db.PsCardItemTransactions.RemoveRange(psCardItemTransacctions);
+                        f.PsCardItemId = psCardItemId;
+                        f.UpdatedBy = user;
+                        f.UpdatedDt = date;
+                    });
                     await _db.SaveChangesAsync();
 
-                    entity.UpdatedBy = model.UpdatedBy;
-                    entity.UpdatedDt = model.UpdatedDt;
+                    psCardItem.TransferOut -= (psCardItemTransfer.Qty ?? 0);
+                    psCardItem.QtyBal = ((psCardItem.Qty ?? 0) + (psCardItem.TransferIn ?? 0)) - ((psCardItem.TransferOut ?? 0) + (psCardItem.QtyIss ?? 0));
+                    psCardItem.UpdatedBy = user;
+                    psCardItem.UpdatedDt = date;
 
-                    _db.PsCardItems.Attach(entity);
-                    _db.Entry(entity).State = EntityState.Modified;
+                    _db.PsCardItems.Attach(psCardItem);
+                    _db.Entry(psCardItem).State = EntityState.Modified;
                     await _db.SaveChangesAsync();
 
-                    _db.PsCardItems.Remove(entity);
-                    _db.Entry(entity).State = EntityState.Deleted;
+                    // delete transfer record
+                    psCardItemTransfer.UpdatedBy = user;
+                    psCardItemTransfer.UpdatedDt = date;
+                    _db.PsCardItemTransfers.Attach(psCardItemTransfer);
+                    _db.Entry(psCardItemTransfer).State = EntityState.Modified;
                     await _db.SaveChangesAsync();
 
-                //    // Commit the transaction if all operations succeed
-                //    transaction.Commit();
-                //}
-                //catch (Exception)
-                //{
-                //    // Rollback the transaction if any operation fails
-                //    transaction.Rollback();
-                //    throw;
-                //}
+                    _db.PsCardItemTransfers.Remove(psCardItemTransfer);
+                    _db.Entry(psCardItemTransfer).State = EntityState.Deleted;
+                    await _db.SaveChangesAsync();
+                }
+            }
+
+            // manually remove transaction log
+            var psCardItemTransacctions = _db.PsCardItemTransactions.Where(w => w.PsCardItemId == entity.Id);
+            _db.PsCardItemTransactions.RemoveRange(psCardItemTransacctions);
+            await _db.SaveChangesAsync();
+
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            _db.PsCardItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            _db.PsCardItems.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
+
+            //    // Commit the transaction if all operations succeed
+            //    transaction.Commit();
+            //}
+            //catch (Exception)
+            //{
+            //    // Rollback the transaction if any operation fails
+            //    transaction.Rollback();
+            //    throw;
+            //}
             //}
 
             return model;
@@ -508,6 +537,123 @@ namespace iLgs.Services.PropertyCard
             entity.PrevPsNo = model.PrevPsNo;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
+        }
+
+        public virtual ValueTask<PsCardItem> PostAsync(Guid id, string user, DateTime date) =>
+        _exceptionService.TryCatch(async () =>
+        {
+            var entity = await _db.PsCardItems.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateIfPosted(entity);
+
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.PsCardItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return entity;
+        });
+
+        public virtual ValueTask<PsCardItem> UnpostAsync(Guid id, string user, DateTime date) =>
+        _exceptionService.TryCatch(async () =>
+        {
+            var entity = await _db.PsCardItems.FindAsync(id);
+            ValidateRecord(entity);
+            ValidateIfNotPosted(entity);
+
+            entity.PostedBy = "";
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.PsCardItems.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return entity;
+        });
+
+        private void ValidateRecord(PsCardItem entity)
+        {
+            if (entity == null)
+            {
+                throw new NotFoundException(entity.Id);
+            }
+        }
+
+        private void ValidateIfPosted(PsCardItem entity)
+        {
+            if (entity.PostedDt != null)
+            {
+                var msg = $"PO record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
+        }
+
+        private void ValidateIfNotPosted(PsCardItem entity)
+        {
+            if (entity != null && entity.PostedDt == null)
+            {
+                var msg = $"Record not yet posted!";
+                throw new RecordNotYetPostedException(msg);
+            }
+        }
+
+        public bool IsPosted(Guid psCardItemId)
+        {
+            var entity = _db.PsCardItems.Find(psCardItemId);
+            return !string.IsNullOrWhiteSpace(entity.PostedBy);
+        }
+
+        public bool IsPosted(PsCardItem psCardItem)
+        {
+            return IsPosted(psCardItem.Id);
+        }
+
+        //public bool IsPosted(PsCardItem psCardItem)
+        //{
+        //    var psCardId = (Guid)psCardItem.PsCardId;
+        //    return IsPosted(psCardId);
+        //}
+
+        public bool IsPosted(PsCardItemExtn psCardItemExtn)
+        {
+            var psCardItemId = (Guid)psCardItemExtn.PsCardItemId;
+            return IsPosted(psCardItemId);
+        }
+
+        public async Task PostBatchAsync(string userName, string postedBy, DateTime date)
+        {
+            var psCardItems = _db.PsCardItems.Where(w => w.InsertedBy == userName && w.PostedDt == null);
+            await psCardItems.ForEachAsync(a =>
+            {
+                a.PostedBy = postedBy; a.PostedDt = date; a.UpdatedBy = postedBy; a.UpdatedDt = date;
+            });
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task UnpostBatchAsync(string userName, string postedBy, DateTime date)
+        {
+            var psCardItems = _db.PsCardItems.Where(w => w.InsertedBy == userName && w.PostedDt != null);
+            await psCardItems.ForEachAsync(a =>
+            {
+                a.PostedBy = ""; a.PostedDt = null; a.UpdatedBy = postedBy; a.UpdatedDt = date;
+            });
+            await _db.SaveChangesAsync();
+        }
+
+        private void ValidateUser(PsCardItem entity, PsCardItemVM model)
+        {
+            if (entity.InsertedBy != model.UpdatedBy)
+            {
+                var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+                if (!isAdmin)
+                {
+                    throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
+                }
+            }
         }
     }
 }

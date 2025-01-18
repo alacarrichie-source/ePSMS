@@ -8,7 +8,11 @@
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PrNo)
     @Html.HiddenFor(model => model.PrDate)
-    
+    @Html.HiddenFor(model => model.SupBusiness)
+    @Html.HiddenFor(model => model.SupContactNo)
+    @Html.HiddenFor(model => model.SupEmail)
+    @Html.HiddenFor(model => model.SupZipCode)
+
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
             <ul class="errors"></ul>
@@ -117,15 +121,17 @@
                                     read.Action("GetSupplier", "Getters").Data("DataSupplierId");
                                 })
                                 .ServerFiltering(true);
+
                             })
                             .Columns(c =>
                             {
-                                c.Add().Field("Name").Title("Name").Width("40%").Template("#= columnTemplate(data.Name) #");
-                                c.Add().Field("Name").Title("Name").Width("45%").Template("#= columnTemplate(data.Address) #");
-                                c.Add().Field("Name").Title("Name").Width("15%").Template("#= columnTemplate(data.TIN) #");                                
+                                c.Add().Field("Name").Title("Name").Width("30%").Template("#= columnTemplate(data.Name) #");
+                                c.Add().Field("BusinessName").Title("Business Name").Width("30%").Template("#= columnTemplate(data.BusinessName) #");
+                                c.Add().Field("Address").Title("Address").Width("30%").Template("#= columnTemplate(data.Address) #");
+                                c.Add().Field("TIN").Title("TIN").Width("10%").Template("#= columnTemplate(data.TIN) #");                                
                             })
                             .MinLength(3)
-                            .Suggest(true)
+                            //.Suggest(true)
                             .Events(e => { e.Select("onSelectSupplier"); })
                     )
                     @Html.ValidationMessageFor(m => m.SupplierId)
@@ -135,15 +141,15 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.SupplierAddress, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(model => model.SupAddress, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.SupplierAddress).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(m => m.SupAddress).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
             <div class="col-md-6">
-                @Html.LabelFor(model => model.SupplierTin, htmlAttributes: new { @class = "col-md-12" })
+                @Html.LabelFor(model => model.SupTIN, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.SupplierTin).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                    
+                    @(Html.Kendo().TextBoxFor(m => m.SupTIN).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                    
                 </div>
             </div>
         </div>

@@ -1,0 +1,94 @@
+﻿@{
+    ViewBag.Title = "Batch Post PO Items";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+
+            <br />
+
+            <div class="row">
+                <div class="col-lg-2 col-md-4 text-right">
+                    @Html.Label("Encoder:")
+                </div>
+                <div class="col-md-7">
+                    @(Html.Kendo().MultiColumnComboBox()
+                        .Name("UserName")
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        //.HtmlAttributes(new { style = "width:300px", data_value_primitive = "true" })
+                        .Placeholder("Select encoder")
+                        .DataTextField("NameFull")
+                        .DataValueField("UserName")
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetUsers", "Users");                                
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("UserName").Title("User Name").Width("30%");
+                            c.Add().Field("NameFull").Title("Name Full").Width("70%");
+                        })
+                        .AutoBind(true)                        
+                    )                    
+                </div>
+            </div>
+            
+            <br />
+            <div class="row">
+                <div class="col-lg-2 col-md-4 text-right">
+                </div>
+                <div class="col-md-7">
+                    @(Html.Kendo().Button()
+                        .Name("btnSubmit")
+                        .Content("Submit")                
+                    )
+                </div>
+            </div>
+}
+
+<script type="text/javascript">
+
+    
+    $('#btnSubmit').click(function (e) {
+        e.preventDefault();
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        var valid = validator.validate();
+        if (valid) {
+            var data = $("#form").serialize();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("PostBatchItemRecord", "StockCard")',
+                data: data,
+                beforeSend: function () {
+                    window.kendo.ui.progress($("#form"), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($("#form"), false);
+                    if (result.Errors > "") {
+                        alert(result.Errors);
+                        return false;
+                    } else {
+                        alert("Posting complete!")
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert("Error : " + req.statusText);
+                }
+            });
+        }
+    });
+
+
+</script>
+
+

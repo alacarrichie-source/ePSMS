@@ -1,4 +1,5 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
 using iLgs.Services.Items;
 using System;
 using System.Data.Entity;
@@ -22,11 +23,13 @@ namespace iLgs.Services.PropertyCard
         private readonly IExceptionService<PropertyCardVM> _vmExceptionService = new ExceptionService<PropertyCardVM>();
         private readonly IPropertyCardValidator _validator;
         private readonly IItemCodeService _itemCodeService;
+        private readonly IUserService _userService;
         
         public PropertyCardService(AppManEntities db) : base(db)
         {
             _validator = new PropertyCardValidator(db);
             _itemCodeService = new ItemCodeService(db);
+            _userService = new UserService(db);
         }
 
         public new IQueryable<PropertyCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
@@ -214,11 +217,13 @@ namespace iLgs.Services.PropertyCard
         {            
             _validator.ValidateOnUpdate(model);
 
-            var entity = await _db.PsCards.FindAsync(model.Id);
-            
-            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
             model.UpdatedBy = user;
             model.UpdatedDt = date;
+
+            var entity = await _db.PsCards.FindAsync(model.Id);
+
+            ValidateUser(entity, model);
+            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);            
 
             entity.ItemCodeId = model.ItemCodeId;
             entity.SubAccountCode = model.SubAccountCode;
@@ -237,13 +242,13 @@ namespace iLgs.Services.PropertyCard
             //model.AllField.Id = model.Id;
             //model.AllField.UpdatedBy = user;
             //model.AllField.UpdatedDt = date;
-            //entity.AllField = model.AllField;
+            entity.AllField = model.AllField;
 
             _db.PsCards.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
 
-            _db.AllFields.Attach(model.AllField);
-            _db.Entry(model.AllField).State = EntityState.Modified;
+            //_db.AllFields.Attach(model.AllField);
+            //_db.Entry(model.AllField).State = EntityState.Modified;
 
             await _db.SaveChangesAsync();
 
@@ -259,6 +264,8 @@ namespace iLgs.Services.PropertyCard
 
             var entity = await _db.PsCards.FindAsync(model.Id);
 
+            ValidateUser(entity, model);
+
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 
@@ -272,5 +279,17 @@ namespace iLgs.Services.PropertyCard
 
             return model;
         });
+
+        private void ValidateUser(PsCard entity, PropertyCardVM model)
+        {
+            if (entity.InsertedBy != model.UpdatedBy)
+            {
+                var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+                if (!isAdmin)
+                {
+                    throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
+                }
+            }
+        }
     }
 }

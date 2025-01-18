@@ -401,6 +401,12 @@ namespace iLgs.Services.CustodianReports
             return ProcessExcelFileTemplate(id, templateFilePath);
         }
 
+        private string GetSubAccount(string itemCode)
+        {
+            var data = _db.Database.SqlQuery<string>("Select dbo.fn_SubAccount({0})", itemCode).FirstOrDefault();
+            return data;
+        }
+
         private MemoryStream ProcessExcelFileTemplate(Guid id, string templateFilePath)
         {
             int sw = 1;
@@ -425,7 +431,15 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    //var subAccount = GetSubAccount(reportItem.ItemCode.Code);
+                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
+                    }
+                    else
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    }
                     ws.Row(row).Cell(++col).SetValue(reportItem.BldgItem);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Location);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
@@ -528,7 +542,15 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
+                    }
+                    else
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    }
                     ws.Row(row).Cell(++col).SetValue(reportItem.BldgItem);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Location);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);

@@ -57,6 +57,7 @@ namespace iLgs.Services.PurchaseRequest
                     RisItemUnitGroup = s.RisItemUnitGroup,
                     //Unit = s.RisItemUnitGroup.Unit,
                     //Qty = s.RisItemUnitGroup.Qty,
+                    SetLotNo = s.RisItemUnitGroup.SetLotNo,
                     UnitCost = s.UnitCost,
                     TotalCost = s.TotalCost,
                     InsertedDt = s.InsertedDt

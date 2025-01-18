@@ -1,4 +1,5 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
 using iLgs.Services.Items;
 using iLgs.Services.PropertyCard;
 using System;
@@ -10,7 +11,7 @@ namespace iLgs.Services.StockCards
 {
     public interface IStockCardService : IPsCardService
     {
-        new IQueryable<StockCardVM> GetAll();
+        new IQueryable<StockCardVM> GetAll(string userName);
         StockCardVM GetById(Guid? id);
         ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date);
         ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date);
@@ -21,79 +22,18 @@ namespace iLgs.Services.StockCards
         private readonly IExceptionService<StockCardVM> _vmExceptionService = new ExceptionService<StockCardVM>();
         private readonly IStockCardValidator _validator;
         private readonly IItemCodeService _itemCodeService;
+        private readonly IUserService _userService;
 
         public StockCardService(AppManEntities db) : base (db)
         {
             _validator = new StockCardValidator(db);
             _itemCodeService = new ItemCodeService(db);
+            _userService = new UserService(_db);
         }               
 
-        public new IQueryable<StockCardVM> GetAll()
-        {
-            //var data = _db.PsCards.AsNoTracking()
-            //    .Where(w => w.ItemCode.ItemType.Category == "S")
-            //    .Select(s => new StockCardVM
-            //    {
-            //        Id = s.Id,
-            //        ItemCodeId = s.ItemCodeId,
-            //        Item = s.ItemCode.Description,
-            //        ItemNo = s.ItemCode.ItemNo,
-            //        ItemCode = s.ItemCode.Code,
-            //        ItemType = s.ItemCode.ItemType.Description,
-            //        ItemTypeCode = s.ItemCode.ItemType.Code,
-            //        PartialPage = s.ItemCode.PartialPage == null ? s.ItemCode.ItemType.PartialPage : s.ItemCode.PartialPage,
-            //        //FieldGroupNo = s.ItemCode.ItemType.FormulaNo,
-            //        CardCategory = s.CardCategory,
-            //        Description = s.Description,
-            //        SubAccountCode = s.SubAccountCode,
-            //        //SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
-            //        //SubAccount= _itemCodeService.GetSubAccounts(s.ItemCodeId),
-            //        //SubAccount = string.Join("/", _db.ItemCodes.Where(x => x.Id != s.Id && x.Code.StartsWith(s.ItemCode.Code))
-            //        //    .Select(y => y.Description)),
-            //        //SubAccount = string.Join("/", _db.ItemCodes
-            //        //.Where(x => x.Id != s.ItemCodeId && x.Code.StartsWith(s.ItemCode.Code))
-            //        //.Select(y => y.Description)
-            //        //.ToList()),
-
-            //        Fund = s.Fund,
-            //        Unit = s.Unit,
-            //        PsNo = s.PsNo,
-            //        PsName = s.PsName,
-            //        PrevPsNo = s.PrevPsNo,
-            //        Amount = s.Amount,
-            //        FromDonation = s.FromDonation,
-            //        AllField = s.AllField,
-            //        InsertedDt = s.InsertedDt
-            //    }).ToList()
-            //    .Select(s => new StockCardVM
-            //    {
-            //        Id = s.Id,
-            //        ItemCodeId = s.ItemCodeId,
-            //        Item = s.Item,
-            //        ItemNo = s.ItemNo,
-            //        ItemCode = s.ItemCode,
-            //        ItemType = s.ItemType,
-            //        ItemTypeCode = s.ItemTypeCode,
-            //        PartialPage = s.PartialPage,
-            //        CardCategory = s.CardCategory,
-            //        Description = s.Description,
-            //        SubAccountCode = s.SubAccountCode,
-            //        SubAccount1 = _itemCodeService.GetSubAccount(s.ItemCodeId, 1),
-            //        SubAccount2 = _itemCodeService.GetSubAccount(s.ItemCodeId, 2),
-            //        SubAccount3 = _itemCodeService.GetSubAccount(s.ItemCodeId, 3),
-            //        SubAccount4 = _itemCodeService.GetSubAccount(s.ItemCodeId, 4),
-            //        //SubAccount = _itemCodeService.GetSubAccounts(s.ItemCodeId), // Call the service on the in-memory data
-            //        Fund = s.Fund,
-            //        Unit = s.Unit,
-            //        PsNo = s.PsNo,
-            //        PsName = s.PsName,
-            //        PrevPsNo = s.PrevPsNo,
-            //        Amount = s.Amount,
-            //        FromDonation = s.FromDonation,
-            //        AllField = s.AllField,
-            //        InsertedDt = s.InsertedDt
-            //    }).AsQueryable();
-            var data = _db.Database.SqlQuery<StockCardVM>("Exec Card_GetRecords 'S'").AsQueryable();
+        public new IQueryable<StockCardVM> GetAll(string userName)
+        {            
+            var data = _db.Database.SqlQuery<StockCardVM>("Exec Card_GetRecords 'S', {0}", userName).AsQueryable();
             return data;
         }
 
@@ -201,12 +141,14 @@ namespace iLgs.Services.StockCards
         {            
             _validator.ValidateOnUpdate(model);
 
-            var entity = await _db.PsCards.FindAsync(model.Id);
-            
-            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
+            var entity = await _db.PsCards.FindAsync(model.Id);
+
+            ValidateUser(entity, model);
+
+            model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);            
             entity.ItemCodeId = model.ItemCodeId;
             entity.SubAccountCode = model.SubAccountCode;
             entity.Fund = model.Fund;
@@ -220,12 +162,13 @@ namespace iLgs.Services.StockCards
             entity.Amount = model.Amount;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
+            entity.AllField = model.AllField;
 
             _db.PsCards.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
 
-            _db.AllFields.Attach(model.AllField);
-            _db.Entry(model.AllField).State = EntityState.Modified;
+            //_db.AllFields.Attach(model.AllField);
+            //_db.Entry(model.AllField).State = EntityState.Modified;
 
             await _db.SaveChangesAsync();
 
@@ -237,9 +180,11 @@ namespace iLgs.Services.StockCards
             _validator.ValidateOnDelete(model);
 
             model.UpdatedBy = user;
-            model.UpdatedDt = date;
+            model.UpdatedDt = date;            
 
             var entity = await _db.PsCards.FindAsync(model.Id);
+
+            ValidateUser(entity, model);
 
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
@@ -254,5 +199,17 @@ namespace iLgs.Services.StockCards
             
             return model;
         });
+
+        private void ValidateUser(PsCard entity, StockCardVM model)
+        {
+            if (entity.InsertedBy != model.UpdatedBy)
+            {
+                var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+                if (!isAdmin)
+                {
+                    throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
+                }
+            }
+        }
     }
 }

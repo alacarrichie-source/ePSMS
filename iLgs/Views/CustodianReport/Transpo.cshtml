@@ -42,6 +42,8 @@
         .Columns(col =>
         {
             col.Bound(c => c.CustodianItemNo).Width(70);
+            col.Bound(c => c.Account).Width(70);
+            col.Bound(c => c.SubAccount).Width(70);
             col.Bound(c => c.Article).Width(70);
             col.Bound(c => c.PoNo).Width(50);
             col.Bound(c => c.PoDate).Width(50);
@@ -82,6 +84,8 @@
         })
         .Search(s =>
         {
+            s.Field(o => o.Account, "contains");
+            s.Field(o => o.SubAccount, "contains");
             s.Field(o => o.Article, "contains");
             s.Field(o => o.PoNo, "contains");
             s.Field(o => o.Description, "contains");
@@ -774,7 +778,13 @@
         var dataItem = this.dataItem(e.item.index());
 
         $("#LocationCode").val(dataItem.Code).trigger("change");
-        $("#Location").val(dataItem.Description).trigger("change");
+        //$("#Location").val(dataItem.Description).trigger("change");
+        if (dataItem.Desc3 == dataItem.Desc2) {
+            $("#Location").val(dataItem.Desc2).trigger("change");
+        }
+        else {
+            $("#Location").val(dataItem.Desc3 + "/" + dataItem.Desc2).trigger("change");
+        }
     }
 
     function DataOfficerId() {

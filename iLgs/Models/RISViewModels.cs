@@ -118,6 +118,11 @@ namespace iLgs.Models
         public string Division { get; set; }
 
         [Required]
+        [Display(Name = "Office")]
+        public Nullable<System.Guid> OfficeId { get; set; }
+
+        [Required]
+        [Display(Name = "Office Display")]
         public string Office { get; set; }
 
         [Required]
@@ -225,6 +230,7 @@ namespace iLgs.Models
         public string ItemNo { get; set; }
 
         [Required]
+        [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
         public Nullable<decimal> PriceRate { get; set; }
     }
@@ -478,6 +484,10 @@ namespace iLgs.Models
         {
             public System.Guid Id { get; set; }
             public Nullable<System.Guid> RisId { get; set; }
+
+            [Display(Name = "Set/Lot No.")]
+            public string SetLotNo { get; set; }
+
             public Nullable<int> Qty { get; set; }
             public string Unit { get; set; }
             public string InsertedBy { get; set; }

@@ -153,12 +153,18 @@ namespace iLgs.Services.CustodianReports
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.ReportId == reportId)
                 .Select(CustodianReporStockItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_Stock {0}, {1}, {2}", reportId, null, null).AsQueryable();
             }
             else
             {
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.ReportId == reportId && w.Annex != "D")
                 .Select(CustodianReporStockItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_Stock {0}, {1}, {2}", reportId, null, null).AsQueryable();
+                //if (data.Any())
+                //{
+                //    data = data.Where(w => w.Annex != "D");
+                //}
             }
 
             return data;
@@ -172,12 +178,18 @@ namespace iLgs.Services.CustodianReports
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReporStockItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_Stock {0}, {1}, {2}", null, deptId, accountGroup).AsQueryable();
             }
             else
             {
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
                 .Select(CustodianReporStockItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_Stock {0}, {1}, {2}", null, deptId, accountGroup).AsQueryable();
+                //if (data.Any())
+                //{
+                //    data = data.Where(w => w.Annex != "D");
+                //}
             }
 
             return data;
@@ -191,12 +203,18 @@ namespace iLgs.Services.CustodianReports
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReporStockItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_Stock {0}, {1}, {2}", null, null, accountGroup).AsQueryable();
             }
             else
             {
                 data = _db.CustodianReportItems.AsNoTracking()
                 .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
                 .Select(CustodianReporStockItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_Stock {0}, {1}, {2}", null, null, accountGroup).AsQueryable();
+                //if (data.Any())
+                //{
+                //    data = data.Where(w => w.Annex != "D");
+                //}
             }
 
             return data;

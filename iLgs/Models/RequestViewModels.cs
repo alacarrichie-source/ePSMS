@@ -121,7 +121,10 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PrId { get; set; }
-        public Nullable<System.Guid> RisItemUnitGroupId { get; set; }        
+        public Nullable<System.Guid> RisItemUnitGroupId { get; set; }
+
+        [Display(Name = "Set/Lot No.")]
+        public string SetLotNo { get; set; }
 
         [Display(Name = "Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }

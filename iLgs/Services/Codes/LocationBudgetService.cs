@@ -24,6 +24,7 @@ namespace iLgs.Services.Codes
         IQueryable<LocationBudgetVM> GetAll(string locationName);
         ValueTask<LocationBudget> GetByIdAsync(Guid? id);
         bool IsValidBudgetCode(string locationName, string budgetCode);
+        bool IsValidBudgetCode(Guid? locationId, string budgetCode);
         ValueTask<LocationBudgetVM> CreateAsync(LocationBudgetVM model, string user, DateTime date);
         ValueTask<LocationBudgetVM> UpdateAsync(LocationBudgetVM model, string user, DateTime date);
         ValueTask<LocationBudgetVM> DeleteAsync(LocationBudgetVM model, string user, DateTime date);
@@ -85,6 +86,12 @@ namespace iLgs.Services.Codes
         {
             return _db.LocationBudgets
                 .Where(w => w.Codextn.Description == locationName && w.Codextn1.Code == budgetCode).Any();                
+        }
+
+        public bool IsValidBudgetCode(Guid? locationId, string budgetCode)
+        {
+            return _db.LocationBudgets
+                .Where(w => w.Codextn.Id == locationId && w.Codextn1.Code == budgetCode).Any();
         }
 
         public ValueTask<LocationBudgetVM> CreateAsync(LocationBudgetVM model, string user, DateTime date) =>

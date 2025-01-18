@@ -190,7 +190,8 @@ namespace iLgs.Services.PurchaseRequest
             }
             else
             {
-                reqItem.UnitCost = decimal.Round((decimal)(totalCost * (priceRate / 100) * reqItem.Qty), 2, MidpointRounding.AwayFromZero);
+                //reqItem.UnitCost = decimal.Round((decimal)(totalCost * (priceRate / 100) * reqItem.Qty), 2, MidpointRounding.AwayFromZero);
+                reqItem.UnitCost = decimal.Round((decimal)(totalCost * (priceRate / 100)), 2, MidpointRounding.AwayFromZero);
             }
             reqItem.TotalCost = reqItem.Qty * reqItem.UnitCost;
             reqItem.UpdatedBy = user;

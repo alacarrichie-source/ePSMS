@@ -40,7 +40,7 @@
         <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-12">
-                    @Html.DisplayFor(m => m.ItemCodeId, "Label")
+                    @Html.DisplayFor(m => m.ItemCodeId, "LabelGuid")
                 </div>
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
@@ -403,7 +403,7 @@
         <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
-                    @Html.DisplayFor(model => model.DeptId, "Label")
+                    @Html.DisplayFor(model => model.DeptId, "LabelGuid")
                 </div>
                 <div class="col-md-8">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
@@ -438,7 +438,7 @@
                     @Html.DisplayFor(m => m.Department, "Label")
                 </div>
                 <div class="col-md-8">
-                    @(Html.Kendo().TextBoxFor(m => m.Department).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(m => m.Department).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Department)
                 </div>
             </div>
@@ -461,7 +461,7 @@
         <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
-                    @Html.DisplayFor(model => model.LocationId, "Label")
+                    @Html.DisplayFor(model => model.LocationId, "LabelGuid")
                 </div>
                 <div class="col-md-8">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)

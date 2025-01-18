@@ -3,44 +3,47 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-@(Html.Kendo().Grid<iLgs.Models.Supplier>()
+@(Html.Kendo().Grid<iLgs.Models.SupplierVM>()
     .Name("grid")
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
         col.Bound(c => c.Code).Width(50);
         col.Bound(c => c.Name).Width(70);
-        col.Bound(c => c.Address).Width(100);
         col.Bound(c => c.BusinessName).Width(100);
-        col.Bound(c => c.DTI).Width(70);
-        col.Bound(c => c.SEC).Width(70);
-        col.Bound(c => c.BIN).Width(70);
-        col.Bound(c => c.TIN).Width(70);        
-        col.Bound(c => c.ContactNos).Width(70);
+        col.Bound(c => c.Address).Width(100);
+        //col.Bound(c => c.BusinessName).Width(100);
+        //col.Bound(c => c.DTI).Width(70);
+        //col.Bound(c => c.SEC).Width(70);
+        //col.Bound(c => c.BIN).Width(70);
+        col.Bound(c => c.TIN).Width(70);
+        col.Bound(c => c.ContactNo).Width(70);
         col.Bound(c => c.Email).Width(70);
-        col.Bound(c => c.IsCorp).Width(50);
-        col.Bound(c => c.IsVat).Width(50);
-        col.Command(command =>
-        {
-            command.Edit();
-            command.Destroy();
-        }).Width(120);
+        //col.Bound(c => c.IsCorp).Width(50);
+        //col.Bound(c => c.IsVat).Width(50);
+        //col.Command(command =>
+        //{
+        //    command.Edit();
+        //    command.Destroy();
+        //}).Width(120);
     })
     .ToolBar(t =>
     {
-        t.Create().IconClass("k-icon k-i-add").Text("Add Item");
-        //t.Search();
+        //t.Create().IconClass("k-icon k-i-add").Text("Add Item");
+        t.Search();
     })
-        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodeMastTemplate").Window(w => w.Width(800).Title("Codes")))
-    .Editable(editable => editable.Mode(GridEditMode.InLine))
-    //.Search(s =>
-    //{
-    //    s.Field(o => o.PsType, "contains");
-    //    s.Field(o => o.PsNo, "contains");
-    //    s.Field(o => o.ItemName, "contains");
-    //    s.Field(o => o.ItemDescription, "contains");
-    //    s.Field(o => o.UnitMeas, "contains");
-    //})
+    //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CodeMastTemplate").Window(w => w.Width(800).Title("Codes")))
+    //.Editable(editable => editable.Mode(GridEditMode.InLine))
+    .Search(s =>
+    {
+        s.Field(o => o.Code, "contains");
+        s.Field(o => o.Name, "contains");
+        s.Field(o => o.BusinessName, "contains");
+        s.Field(o => o.Address, "contains");
+        s.Field(o => o.TIN, "contains");
+        s.Field(o => o.ContactNo, "contains");
+        s.Field(o => o.Email, "contains");
+    })
     .Pageable(pager => pager
         .Input(false)
         .Numeric(true)
@@ -58,7 +61,7 @@
     .Sortable()
     .DataSource(dataSource => dataSource
         .Ajax()
-        .PageSize(20)
+        .PageSize(30)
         .Events(events => events.Error("GridError"))
         .Model(model =>
         {
@@ -66,13 +69,13 @@
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
         .Read(read => read.Action("SupplierRead", "Suppliers"))
-        .Create(create => create.Action("SupplierCreate", "Suppliers"))
-        .Update(update => update.Action("SupplierUpdate", "Suppliers"))
-        .Destroy(destroy => destroy.Action("SupplierDestroy", "Suppliers"))
+    //.Create(create => create.Action("SupplierCreate", "Suppliers"))
+    //.Update(update => update.Action("SupplierUpdate", "Suppliers"))
+    //.Destroy(destroy => destroy.Action("SupplierDestroy", "Suppliers"))
     )
     .Events(events => events
         .Change("onChangeGrid")
-        .Edit("onEditGrid")
+        //.Edit("onEditGrid")
         .DataBound("onDataBoundGrid")
         )
 )

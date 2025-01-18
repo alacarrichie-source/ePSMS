@@ -401,9 +401,9 @@ namespace iLgs.Controllers
         }
 
 
-        public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, Guid? cardId)
+        public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, Guid? cardId, string userName)
         {
-            var data = _propertyCardService.PsCardItem.GetByCardId(cardId);
+            var data = _propertyCardService.PsCardItem.GetByCardId(cardId, userName);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }

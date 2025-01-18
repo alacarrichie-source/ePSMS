@@ -49,6 +49,20 @@ namespace iLgs.Controllers
 
         //}
 
+        public JsonResult GetGsoUsers(string text)
+        {
+            var model = _db.UserProfiles
+                .Where(w => w.Department == "General Services Office")
+                .AsNoTracking()
+                .Select(c => new { UserId = c.UserId, NameFull = c.NameFull, UserName = c.AspNetUser.UserName })
+                .AsQueryable();
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.NameFull.Contains(text));
+            }
+            return Json(model, JsonRequestBehavior.AllowGet);
+
+        }
         public ActionResult GetDepartmentList(string text)
         {
 
@@ -303,15 +317,16 @@ namespace iLgs.Controllers
         public JsonResult GetSupplier(string text)
         {
 
-            var model = _db.Suppliers.AsNoTracking().AsQueryable();
+            var model = _db.Database.SqlQuery<SupplierVM>("Exec Supplier_GetAll {0}", text).AsQueryable().Take(100);
 
-            if (!string.IsNullOrWhiteSpace(text))
-            {                
-                model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text) || p.BusinessName.Contains(text));
-            }
+            //if (!string.IsNullOrWhiteSpace(text))
+            //{
+            //    model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text) || p.BusinessName.Contains(text));
+            //}
 
-            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Name = c.Name, Address = c.Address, TIN = c.TIN }), JsonRequestBehavior.AllowGet);            
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Name = c.Name, BusinessName = c.BusinessName, Address = c.Address, TIN = c.TIN }), JsonRequestBehavior.AllowGet);
         }
+
 
         //public JsonResult GetPsCode(string text)
         //{
@@ -500,7 +515,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.RISs.Office, Supplier = c.Supplier.BusinessName }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.RISs.Office, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetPoNosWithoutPr(Guid? airId, string text)
@@ -521,7 +536,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Id.ToString() == text || p.PoNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.RISs.Office, Supplier = c.Supplier.BusinessName }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.RISs.Office, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetRisPoNos(string text)
@@ -590,7 +605,7 @@ namespace iLgs.Controllers
 
             if (!string.IsNullOrEmpty(text))
             {
-                model = model.Where(p => p.Description.Contains(text));
+                model = model.Where(p => p.Description.Contains(text) || p.Code.Contains(text));
             }
 
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
@@ -600,6 +615,19 @@ namespace iLgs.Controllers
         {
 
             var model = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-TO").AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }).OrderBy(o => o.Code), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetIssuedBy(string text)
+        {
+
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-BY").AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -657,6 +685,14 @@ namespace iLgs.Controllers
         {
 
             var model = _locationService.GetLocations(text).Where(w => !w.Code.StartsWith("68"));
+
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Location, Desc2 = c.SubLocation, Desc3 = c.MainLocation }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetLandLocation(string text)
+        {
+
+            var model = _locationService.GetLocations(text);
 
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Location, Desc2 = c.SubLocation, Desc3 = c.MainLocation }), JsonRequestBehavior.AllowGet);
         }

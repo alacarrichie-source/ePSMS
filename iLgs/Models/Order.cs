@@ -18,13 +18,20 @@ namespace iLgs.Models
         public Order()
         {
             this.AIRs = new HashSet<AIR>();
-            this.PARs = new HashSet<PAR>();
-            this.OrderItemUnitGroups = new HashSet<OrderItemUnitGroup>();
             this.OrderItems = new HashSet<OrderItem>();
+            this.OrderItemUnitGroups = new HashSet<OrderItemUnitGroup>();
+            this.PARs = new HashSet<PAR>();
         }
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> SupplierId { get; set; }
+        public string SupName { get; set; }
+        public string SupBusiness { get; set; }
+        public string SupAddress { get; set; }
+        public string SupTIN { get; set; }
+        public string SupEmail { get; set; }
+        public string SupZipCode { get; set; }
+        public string SupContactNo { get; set; }
         public string PoNo { get; set; }
         public Nullable<System.DateTime> PoDate { get; set; }
         public string PoMode { get; set; }
@@ -49,13 +56,12 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AIR> AIRs { get; set; }
-        public virtual Request Request { get; set; }
-        public virtual Supplier Supplier { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PAR> PARs { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItem> OrderItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
+        public virtual Request Request { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PAR> PARs { get; set; }
     }
 }

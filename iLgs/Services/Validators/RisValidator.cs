@@ -90,6 +90,14 @@ namespace iLgs.Services.Validators
         {
             var ex = new InvalidModelException();
 
+            if (model.OfficeId.HasValue)
+            {
+                if (!_codextnService.IsValidMastCodeId("LOCATIONS", model.OfficeId))
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.OfficeId)), "Invalid value");
+                }
+            }
+
             if (string.IsNullOrWhiteSpace(model.Fund))
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.Fund)), "Field is required.");
@@ -105,14 +113,7 @@ namespace iLgs.Services.Validators
             if (string.IsNullOrWhiteSpace(model.Office))
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.Office)), "Field is required.");
-            }
-            else
-            {
-                if (!_codextnService.IsValidCodeDesc("DEPARTMENTS", model.Office))
-                {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.Office)), "Invalid value");
-                }
-            }
+            }            
 
             if (string.IsNullOrWhiteSpace(model.FPP))
             {
@@ -120,7 +121,7 @@ namespace iLgs.Services.Validators
             }
             else
             {
-                if (!_locationBudgetService.IsValidBudgetCode(model.Office, model.FPP))
+                if (!_locationBudgetService.IsValidBudgetCode(model.OfficeId, model.FPP))
                 {
                     ex.UpsertDataList(_getDisplayName(nameof(model.FPP)), "Invalid value");
                 }

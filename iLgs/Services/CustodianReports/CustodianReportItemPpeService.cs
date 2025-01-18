@@ -39,7 +39,7 @@ namespace iLgs.Services.CustodianReports
             Id = s.Id,
             MainDeptId = s.CustodianReport.DeptId,
             MainDeptName = s.CustodianReport.Department,
-            AccountGroup = s.CustodianReport.AccountGroup,
+            AccountGroup = s.CustodianReport.AccountGroup,            
             ReportId = s.ReportId,
             Fund = s.Fund,
             CustodianItemNo = s.CustodianItemNo,
@@ -141,13 +141,14 @@ namespace iLgs.Services.CustodianReports
 
         public IQueryable<CustodianReportItemPpeVM> GetAll(Guid? reportId, string userName)
         {
-            IQueryable<CustodianReportItemPpeVM> data = null;
+            IQueryable<CustodianReportItemPpeVM> data = null;            
             if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
             {
                 data = _db.CustodianReportItems
                     .AsNoTracking()
                     .Where(w => w.ReportId == reportId)
                     .Select(CustodianReporPpeItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_Ppe {0}, {1}, {2}", reportId, null, null).AsQueryable();
             }
             else
             {
@@ -155,6 +156,11 @@ namespace iLgs.Services.CustodianReports
                     .AsNoTracking()
                     .Where(w => w.ReportId == reportId && w.Annex != "D")
                     .Select(CustodianReporPpeItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_Ppe {0}, {1}, {2}", reportId, null, null).AsQueryable();
+                //if (data.Any())
+                //{
+                //    data = data.Where(w => w.Annex != "D");
+                //}
             }
             return data;
         }
@@ -168,6 +174,7 @@ namespace iLgs.Services.CustodianReports
                 .AsNoTracking()
                 .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReporPpeItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_Ppe {0}, {1}, {2}", null, deptId, accountGroup).AsQueryable();
             }
             else
             {
@@ -175,6 +182,11 @@ namespace iLgs.Services.CustodianReports
                 .AsNoTracking()
                 .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
                 .Select(CustodianReporPpeItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_Ppe {0}, {1}, {2}", null, deptId, accountGroup).AsQueryable();
+                //if (data.Any())
+                //{
+                //    data = data.Where(w => w.Annex != "D");
+                //}
             }
             return data;
         }
@@ -188,6 +200,7 @@ namespace iLgs.Services.CustodianReports
                 .AsNoTracking()
                 .Where(w => w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReporPpeItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_Ppe {0}, {1}, {2}", null, null, accountGroup).AsQueryable();
             }
             else
             {
@@ -195,6 +208,11 @@ namespace iLgs.Services.CustodianReports
                 .AsNoTracking()
                 .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
                 .Select(CustodianReporPpeItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_Ppe {0}, {1}, {2}", null, null, accountGroup).AsQueryable();
+                //if (data.Any())
+                //{
+                //    data = data.Where(w => w.Annex != "D");
+                //}
             }
             return data;
         }

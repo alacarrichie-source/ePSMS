@@ -336,6 +336,7 @@ namespace iLgs.Services.CustodianReports
             entity.UpdatedDt = model.UpdatedDt;
             entity.SetLotAmount = model.SetLotAmount;
             entity.SetLotRemarks = model.SetLotRemarks;
+            
             //entity.PostedBy = model.PostedBy;
             //entity.PostedDt = model.PostedDt;
         }
@@ -362,6 +363,12 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
+        private string GetSubAccount(string itemCode)
+        {
+            var data = _db.Database.SqlQuery<string>("Select dbo.fn_SubAccount({0})", itemCode).FirstOrDefault();
+            return data;
+        }
+
         private MemoryStream ProcessExcelFileStockTemplate(Guid id, string templateFilePath)
         {
             int sw = 1;
@@ -371,7 +378,7 @@ namespace iLgs.Services.CustodianReports
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).ToList();                
+                var reportItemList = _db.CustodianReportItems.Include(i => i.ItemCode).Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).OrderBy(o => o.CustodianItemNo).ToList();                
                 foreach (var reportItem in reportItemList)
                 {
                     if (sw == 1)
@@ -386,7 +393,15 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    //var subAccount = GetSubAccount(reportItem.ItemCode.Code);
+                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
+                    }
+                    else
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    }
                     ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
                     ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
@@ -448,7 +463,7 @@ namespace iLgs.Services.CustodianReports
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).ToList();
+                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).OrderBy(o => o.CustodianItemNo).ToList();
                 foreach (var reportItem in reportItemList)
                 {
                     if (sw == 1)
@@ -464,7 +479,15 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Department);
                     ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");                    
+                    //var subAccount = GetSubAccount(reportItem.ItemCode.Code);
+                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
+                    }
+                    else
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    }
                     ws.Row(row).Cell(++col).SetValue(reportItem.Type);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Model_);                                       
@@ -527,7 +550,7 @@ namespace iLgs.Services.CustodianReports
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).ToList();
+                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).OrderBy(o => o.CustodianItemNo).ToList();
                 foreach (var reportItem in reportItemList)
                 {
                     if (sw == 1)
@@ -543,7 +566,15 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Department);
                     ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    //var subAccount = GetSubAccount(reportItem.ItemCode.Code);
+                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
+                    }
+                    else
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    }
                     ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
                     ws.Row(row).Cell(++col).SetValue(reportItem.YearModel);
@@ -650,7 +681,7 @@ namespace iLgs.Services.CustodianReports
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).ToList();                
+                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).OrderBy(o => o.CustodianItemNo).ToList();                
                 foreach (var reportItem in reportItemList)
                 {
                     if (sw == 1)
@@ -667,7 +698,15 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
+                    }
+                    else
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    }
                     ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
                     ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
                     ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
@@ -729,7 +768,7 @@ namespace iLgs.Services.CustodianReports
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).ToList();
+                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).OrderBy(o => o.CustodianItemNo).ToList();
                 foreach (var reportItem in reportItemList)
                 {
                     if (sw == 1)
@@ -748,7 +787,15 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Department);
                     ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
+                    }
+                    else
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    }
                     ws.Row(row).Cell(++col).SetValue(reportItem.Type);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
@@ -810,7 +857,7 @@ namespace iLgs.Services.CustodianReports
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).ToList();
+                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).OrderBy(o => o.CustodianItemNo).ToList();
                 foreach (var reportItem in reportItemList)
                 {
                     if (sw == 1)
@@ -829,7 +876,15 @@ namespace iLgs.Services.CustodianReports
                     ws.Row(row).Cell(++col).SetValue(reportItem.Department);
                     ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
                     ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
+                    }
+                    else
+                    {
+                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                    }
                     ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
                     ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
                     ws.Row(row).Cell(++col).SetValue(reportItem.YearModel);

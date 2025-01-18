@@ -104,6 +104,7 @@ namespace iLgs.Models
         public string SubAccount3 { get; set; }
         public string SubAccount4 { get; set; }
         public string Article { get; set; }
+        public string Category { get; set; }
     }
    
     public class ItemFieldVM

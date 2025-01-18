@@ -14,9 +14,10 @@
         //col.Bound(c => c.PoModeDesc).Width(70);
         col.Bound(c => c.PrNo).Width(70);
         col.Bound(c => c.Department).Width(100);
-        col.Bound(c => c.SupplierName).Width(100);
-        col.Bound(c => c.SupplierAddress).Width(100);
-        col.Bound(c => c.SupplierTin).Width(70);
+        col.Bound(c => c.SupName).Width(100);
+        col.Bound(c => c.SupBusiness).Width(100);
+        col.Bound(c => c.SupAddress).Width(100);
+        col.Bound(c => c.SupTIN).Width(70);
         col.Bound(c => c.PostedBy).Width(70);
         col.Command(command =>
         {
@@ -39,9 +40,10 @@
         s.Field(o => o.PoNo, "contains");
         s.Field(o => o.PoModeDesc, "contains");
         s.Field(o => o.PrNo, "contains");
-        s.Field(o => o.SupplierName, "contains");
-        s.Field(o => o.SupplierAddress, "contains");
-        s.Field(o => o.SupplierTin, "contains");
+        s.Field(o => o.SupName, "contains");
+        s.Field(o => o.SupBusiness, "contains");
+        s.Field(o => o.SupAddress, "contains");
+        s.Field(o => o.SupTIN, "contains");
     })
     .Pageable(pager => pager
         .Input(false)
@@ -574,9 +576,12 @@
     function onSelectSupplier(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#SupplierName").val(dataItem.Name).trigger("change");
-        $("#SupplierAddress").val(dataItem.Address).trigger("change");
-        $("#SupplierTin").val(dataItem.TIN).trigger("change");
+        $("#SupName").val(dataItem.Name).trigger("change");
+        $("#SupAddress").val(dataItem.Address).trigger("change");
+        $("#SupBusiness").val(dataItem.BusinessName).trigger("change");
+        $("#SupZipCode").val(dataItem.ZipCode).trigger("change");
+        $("#SupEmail").val(dataItem.Email).trigger("change");
+        $("#SupTIN").val(dataItem.TIN).trigger("change");
     }
 
     function onSelectItemCode(e) {

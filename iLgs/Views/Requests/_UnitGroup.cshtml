@@ -2,6 +2,7 @@
         .Name("gridItemUnitGroups_" + @ViewData["requestId"])
         .Columns(col =>
         {
+            col.Bound(c => c.SetLotNo).Width(70);
             col.Bound(c => c.RisItemUnitGroup.Qty).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -52,6 +53,7 @@
                 model.Field(p => p.RisItemUnitGroup.Unit).Editable(false);
                 model.Field(p => p.InsertedDt).Editable(false);
                 model.Field(p => p.TotalCost).Editable(false);
+                model.Field(p => p.SetLotNo).Editable(false);
             })
             .Aggregates(a =>
             {

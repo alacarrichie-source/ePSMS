@@ -476,7 +476,7 @@
 
     function onSelectApprovedBy(e) {
         var dataItem = this.dataItem(e.item.index());
-        $("#ApprovedDesig").val(dataItem.Designation).trigger("change");
+        $("#ApprovedDesig").val(dataItem.Desc2).trigger("change");
 
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('ApprovedDesig', $('#ApprovedDesig').val());

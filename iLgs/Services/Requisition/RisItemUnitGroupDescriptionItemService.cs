@@ -168,7 +168,7 @@ namespace iLgs.Services.Requisition
         {
             ValidateModel(model);
             ValidateIfPosted(model);
-            ValidateFieldsOnCreateUpdate(model);
+            //ValidateFieldsOnCreateUpdate(model);
         }
 
         public void ValidateOnUpdate(RisItemUnitGroupDescriptionItemVM model)
@@ -176,7 +176,7 @@ namespace iLgs.Services.Requisition
             ValidateModel(model);
             ValidateRecord(model.Id);
             ValidateIfPosted(model);
-            ValidateFieldsOnCreateUpdate(model);
+            //ValidateFieldsOnCreateUpdate(model);
         }
 
         public void ValidateOnDelete(RisItemUnitGroupDescriptionItemVM model)

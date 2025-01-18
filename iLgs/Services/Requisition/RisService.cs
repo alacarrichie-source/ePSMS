@@ -95,6 +95,7 @@ namespace iLgs.Services.Requisition
                     Id = s.Id,
                     Fund = s.Fund,
                     Division = s.Division,
+                    OfficeId = s.OfficeId,
                     Office = s.Office,
                     FPP = s.FPP,
                     RisNo = s.RisNo,
@@ -178,22 +179,14 @@ namespace iLgs.Services.Requisition
         }
 
         public bool IsPosted(RisItemUnitGroupDescription risItemUnitGroupDescription)
-        {
-            var risId = (Guid)_db.RisItemUnitGroupDescriptions
-                .Include(i => i.RisItemUnitGroup)
-                .Where(w => w.UnitGroupId == risItemUnitGroupDescription.UnitGroupId)
-                .AsNoTracking()
-                .FirstOrDefault()?.RisItemUnitGroup.RisId;
+        {            
+            var risId = (Guid)_db.RisItemUnitGroups.Where(w => w.Id == risItemUnitGroupDescription.UnitGroupId).AsNoTracking().FirstOrDefault()?.RisId;
             return IsPosted(risId);
         }
 
         public bool IsPosted(RisItemUnitGroupDescriptionItem risItemUnitGroupDescriptionItem)
         {
-            var risId = (Guid)_db.RisItemUnitGroupDescriptionItems
-                .Include(i => i.RisItemUnitGroupDescription.RisItemUnitGroup)
-                .Where(w => w.UnitGroupDescriptionId == risItemUnitGroupDescriptionItem.UnitGroupDescriptionId)
-                .AsNoTracking()
-                .FirstOrDefault()?.RisItemUnitGroupDescription.RisItemUnitGroup.RisId;
+            var risId = (Guid)_db.RisItemUnitGroups.Where(w => w.RisItemUnitGroupDescriptions.Any(a => a.Id == risItemUnitGroupDescriptionItem.UnitGroupDescriptionId)).AsNoTracking().FirstOrDefault()?.RisId;
             return IsPosted(risId);
         }
 
@@ -372,6 +365,7 @@ namespace iLgs.Services.Requisition
 
             entity.Fund = model.Fund;
             entity.Division = model.Division ?? "";
+            entity.OfficeId = model.OfficeId;
             entity.Office = model.Office;
             entity.FPP = model.FPP;
             entity.RisNo = model.RisNo;

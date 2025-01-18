@@ -11,6 +11,8 @@
         {
             col.Bound(c => c.MainDeptName).Width(70);
             col.Bound(c => c.CustodianItemNo).Width(70);
+            col.Bound(c => c.Account).Width(70);
+            col.Bound(c => c.SubAccount).Width(70);
             col.Bound(c => c.Article).Width(70);
             col.Bound(c => c.PoNo).Width(50);
             col.Bound(c => c.PoDate).Width(50);
@@ -35,6 +37,8 @@
         .Search(s =>
         {
             s.Field(o => o.MainDeptName, "contains");
+            s.Field(o => o.SubAccount, "contains");
+            s.Field(o => o.SubAccount, "contains");
             s.Field(o => o.Article, "contains");
             s.Field(o => o.PoNo, "contains");
             s.Field(o => o.LocationCode, "contains");

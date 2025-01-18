@@ -28,6 +28,7 @@
     {
         t.Create().Text("Add New Record");
         t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintPO").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Export to Excel").IconClass("k-icon k-i-excel").Name("btnExport").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPO").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
@@ -312,7 +313,7 @@
         }
         else {
             $(".k-grid-btnPrintPO", grid).show();
-            //$(".k-grid-btnPostPO", grid).show();            
+            //$(".k-grid-btnPostPO", grid).show();
         }
     }
 
@@ -444,8 +445,8 @@
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-            selectedItemId = null;            
-            e.model.set("RpciId", parentModel.Id);            
+            selectedItemId = null;
+            e.model.set("RpciId", parentModel.Id);
         } else {
             selectedItemId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedItemId);
@@ -515,7 +516,7 @@
     });
 
     function displayErrors(errors) {
-        
+
         if (errors.length > 0) {
             // Concatenate all error messages into a single string
             var allErrors = errors.join('\n');
@@ -553,7 +554,7 @@
 
     $(".k-grid-btnPrintPO").click(function (e) {
         e.preventDefault();
-        var url = '@Url.Action("RpciRpt", "Rpci")?id=' + selectedId;
+        var url = '@Url.Action("RpciRpt", "Rpci")?id=' + selectedId + "&save=0";
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -580,6 +581,29 @@
         mywindow.open();
     });
 
+    $(".k-grid-btnExport").click(function (e) {
+        e.preventDefault();
+        // Get the selected row's data (assuming a single selection model)
+        var grid = $("#grid").data("kendoGrid");
+        var selectedRow = grid.select();
+        var selectedData = grid.dataItem(selectedRow);
+
+        if (selectedData) {
+            window.kendo.ui.progress($(document.body), true);
+            // Get the ID of the selected row
+            var reportId = selectedData.Id;
+
+            // Construct the URL for the Excel export
+            var url = '@Url.Action("RpciRpt", "Rpci")?id=' + reportId + "&save=1";
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row to export.");
+        }
+    });
+
     function onSelectItemId(e) {
         var dataItem = this.dataItem(e.item.index());
 
@@ -599,7 +623,7 @@
     function onSelectItemCodeId(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#Article").val(dataItem.Description).trigger("change");        
+        $("#Article").val(dataItem.Description).trigger("change");
     }
 
     function onSelectDeptId(e) {
@@ -629,7 +653,7 @@
     function onSelectLocationCode(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#LocationId").val(dataItem.Id).trigger("change");     
+        $("#LocationId").val(dataItem.Id).trigger("change");
 
     }
 
@@ -638,11 +662,11 @@
         var transferIn = $("#TransferIn").data("kendoNumericTextBox").value();
         var qtyIss = $("#QtyIss").data("kendoNumericTextBox").value();
         var transferOut = $("#TransferOut").data("kendoNumericTextBox").value();
-                
+
         var totalBalance = (qty + transferIn) - (qtyIss + transferOut);
 
         $("#TotalBalance").data("kendoNumericTextBox").value(totalBalance);
-        $("#TotalBalance").data("kendoNumericTextBox").trigger("change");        
+        $("#TotalBalance").data("kendoNumericTextBox").trigger("change");
     }
     // end rpci item template
 

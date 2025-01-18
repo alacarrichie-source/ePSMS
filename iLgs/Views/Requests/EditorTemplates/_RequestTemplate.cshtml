@@ -301,24 +301,24 @@
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.ApprovedBy)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Approved by")
-                            .DataTextField("Name")
-                            .DataValueField("Name")
+                            .DataTextField("Description")
+                            .DataValueField("Description")
                             .Filter(FilterType.Contains)
                             .DataSource(source =>
                             {
                                 source.Read(read =>
                                 {
-                                    read.Action("GetAccountableOfficers", "Getters").Data("DataApprovedBy");
+                                    read.Action("GetApprovedBy", "Getters");
                                 })
                                 .ServerFiltering(true);
                             })
                             .Columns(c =>
                             {
-                                c.Add().Field("Name").Title("Name").Width("40%");
-                                c.Add().Field("Designation").Title("Designation").Width("60%");
+                                c.Add().Field("Description").Title("Name").Width("60%");
+                                c.Add().Field("Desc2").Title("Designation").Width("40%");
                             })
                             .Events(e => { e.Select("onSelectApprovedBy"); })
-                            .CascadeFrom("Department")
+                            //.CascadeFrom("Department")
                             .Suggest(true)
                     )
                     @Html.ValidationMessageFor(model => model.ApprovedBy)

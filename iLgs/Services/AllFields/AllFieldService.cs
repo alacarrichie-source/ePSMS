@@ -769,7 +769,8 @@ namespace iLgs.Services.AllFields
                 {
                     if (!af.Size.IsNullOrWhiteSpaceX())
                     {
-                        stockNo += $"/{af.Dimension}";
+                        //stockNo += $"/{af.Dimension}";
+                        stockNo += $"/{af.Size}";
                     }
                     else
                     {

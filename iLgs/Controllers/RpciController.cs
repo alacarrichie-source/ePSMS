@@ -65,7 +65,7 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("Access", "Add Access Denied!");
                 }
 
-                
+
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -260,7 +260,7 @@ namespace iLgs.Controllers
                 return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
             }
 
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);            
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult _RpciItem(Guid rpciId)
@@ -269,7 +269,7 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        
+
         //public async Task<ActionResult> _RpciItemAddEdit(Guid orderId, Guid? orderItemId)
         //{
         //    var data = await _rpciItemService.GetByIdAsync(orderItemId);
@@ -309,7 +309,7 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-                
+
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -349,13 +349,13 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("UpdateError", "Access Denied!");
                 }
-                
+
                 if (ModelState.IsValid)
-                {                    
+                {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _rpciItemService.UpdateAsync(model, user, date);                
+                    model = await _rpciItemService.UpdateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -413,7 +413,7 @@ namespace iLgs.Controllers
 
 
         #region PRINTOUTS        
-        public ActionResult RpciRpt(Guid? id)
+        public ActionResult RpciRpt(Guid? id, int save)
         {
             //var rpci = _db.RPCIs.Find(id);
             string stringname = _db.Database.Connection.ConnectionString.ToString();
@@ -446,11 +446,20 @@ namespace iLgs.Controllers
             rpt.SetParameterValue("@dAsOf", null);
             rpt.SetParameterValue("@uRpciId", id.ToString());
 
-            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
-            rpt.Close();
-            rpt.Dispose();
-            return File(stream, "application/pdf");
-
+            if (save == 0)
+            {
+                Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+                rpt.Close();
+                rpt.Dispose();
+                return File(stream, "application/pdf");
+            }
+            else
+            {
+                Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);                
+                rpt.Close();
+                rpt.Dispose();
+                return File(stream, "application/xlsx", $"rpci.xls");
+            }
         }
         #endregion
     }

@@ -21,12 +21,12 @@ namespace iLgs.Services.PropertyCard
         private delegate string GetDisplayNameDelegate(string propertyName);                
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly ICodextnService _codextnService;
+        private readonly ICodextnService _codextnService;        
         public PsCardItemValidator(AppManEntities db)
         {
             _db = db;            
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemVM>(propertyName);
-            _codextnService = new CodextnService(_db);
+            _codextnService = new CodextnService(_db);            
         }
 
         public void ValidateOnCreate(PsCardItemVM cardItem)
@@ -38,16 +38,20 @@ namespace iLgs.Services.PropertyCard
 
         public void ValidateOnUpdate(PsCardItemVM cardItem)
         {
-            ValidateCard(cardItem);            
-            ValidateRecord(cardItem.Id);
+            ValidateCard(cardItem);
+            var entity = _db.PsCardItems.Find(cardItem.Id);
+            ValidateRecord(entity, cardItem.Id);
             ValidateIfPosted(cardItem.PsCardId);
+            ValidateIfPosted(cardItem);
             ValidateFieldsOnCreateUpdate(cardItem);
         }
 
         public void ValidateOnDelete(PsCardItemVM cardItem)
         {
             ValidateCard(cardItem);
-            ValidateRecord(cardItem.Id);
+            var entity = _db.PsCardItems.Find(cardItem.Id);
+            ValidateRecord(entity, cardItem.Id);
+            ValidateIfPosted(cardItem);
             ValidateIfPosted(cardItem.PsCardId);
 
             if (_db.PsCardItems.Any(a => a.Id == cardItem.Id && a.PsCardItemTransfers.Any()))
@@ -130,9 +134,9 @@ namespace iLgs.Services.PropertyCard
             ex.ThrowIfContainsErrors();
         }
         
-        private void ValidateRecord(Guid id)
+        private void ValidateRecord(PsCardItem entity, Guid id)
         {
-            if (!_db.PsCardItems.Any(a => a.Id == id))
+            if (entity is null)
             {
                 throw new NotFoundException(id);
             }
@@ -155,5 +159,15 @@ namespace iLgs.Services.PropertyCard
                 throw new RecordAlreadyPostedException(msg);
             }
         }
+
+        private void ValidateIfPosted(PsCardItemVM model)
+        {
+            var entity = _db.PsCardItems.Find(model.Id);
+            if (entity != null && entity.PostedDt != null)
+            {
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
+        }        
     }
 }

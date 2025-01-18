@@ -300,7 +300,7 @@ namespace iLgs.Services.Items
 
             if (!string.IsNullOrWhiteSpace(model.IsIncorporated)) 
             {
-                var f = model.IsConsumable.ToUpper().Trim();
+                var f = model.IsIncorporated.ToUpper().Trim();
                 if (f != "Y" && f != "N" && f != "")
                 {
                     throw new InvalidValueException("Invalid Incorporated value!");
