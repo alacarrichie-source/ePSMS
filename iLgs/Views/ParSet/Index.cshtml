@@ -18,20 +18,20 @@
                     @RenderOrders()
                 </div>
             </text>);
-        panelbar.Add().Text("Order Items - Individual")
+        panelbar.Add().Text("Order Items")
             .Expanded(true)
             .Content(@<text>
                 <div class="div-render">
                     @RenderOrderItems()
                 </div>
             </text>);
-        panelbar.Add().Text("Order Items - Set")
+        @*panelbar.Add().Text("Order Items - Set")
             .Expanded(true)
             .Content(@<text>
                 <div class="div-render">
                     @RenderOrderItemSet()
                 </div>
-            </text>);
+            </text>);*@
         panelbar.Add().Text("Property Acknowledgement Receipt")
             .Expanded(true)
             .Content(@<text>
@@ -142,6 +142,8 @@
                         .Title("For ICS");
                         col.Bound(c => c.ParPostedBy).Width(50);
                         col.Bound(c => c.ParPostedDt).Width(50);
+                        col.Bound(c => c.SetLotNo).Width(50);
+                        col.Bound(c => c.SetLotDesc).Width(50);
                         col.Command(command =>
                         {
                             command.Edit();
@@ -160,7 +162,7 @@
                     .ClientDetailTemplateId("UploadedFiles")
                     .DataSource(dataSource => dataSource
                         .Ajax()
-                        .Events(events => events.Error("GridError"))
+                        .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItems"))
                         .Model(model =>
                         {
                             model.Id(p => p.Id);
@@ -174,6 +176,8 @@
                             model.Field(p => p.GeneratedItems).Editable(false);
                             model.Field(p => p.ParPostedBy).Editable(false);
                             model.Field(p => p.ParPostedDt).Editable(false);
+                            model.Field(p => p.SetLotNo).Editable(false);
+                            model.Field(p => p.SetLotDesc).Editable(false);
                         })
                         .Aggregates(a =>
                         {
@@ -263,6 +267,7 @@
                             //command.Edit();
                             command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditParsItem");
                             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridParItems").SendDataKeys(true);
+                            command.Custom("Print PAR").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrint");
                         }).Width(100);
                     })
                     .ToolBar(t =>
@@ -624,7 +629,7 @@
         $("#AirDate").data("kendoDatePicker").trigger("change");
 
         $("#gridItems").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, poDate: dataItem.PoDate, deptId: dataItem.DeptId });
-        $("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, poDate: dataItem.PoDate, deptId: dataItem.DeptId });
+        //$("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: dataItem.PoNo, poDate: dataItem.PoDate, deptId: dataItem.DeptId });
     }
 
 
@@ -706,7 +711,7 @@
         }
     }
 
-    function GridUploadError(e) {        
+    function GridUploadError(e) {
         if (e.errors) {
             //var grid = $("#gridItems").data("kendoGrid");
             ////var row = $(args.target).closest("tr"); // Adjust based on where the error occurred
@@ -729,7 +734,7 @@
 
             //// Use the closest grid context to find the row, or use a known reference
             ////var row = $(args.target).closest("tr").prev(); // Adjust based on the structure of your grid
-            //var row = $(args.target).closest("tr"); 
+            //var row = $(args.target).closest("tr");
             //alert(row);
             //// Get the dataItem for the parent grid
             //var dataItem = parentGrid.dataItem(row);
@@ -781,7 +786,7 @@
             //    console.log("Data Item found using index:", dataItem);
             //}
 
-            
+
             // Try to find the closest grid row
             //var row = $(e.target).closest("tr[data-uid]"); // Look for the row with a data-uid attribute, which is a Kendo UI convention
 
@@ -859,7 +864,7 @@
 
             $.each(e.errors, function (propertyName) {
                 if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
-                    alert(this.errors);            
+                    alert(this.errors);
                 }
             });
         }
@@ -889,7 +894,7 @@
         selectedDeptId = selectedData.DeptId;
 
         $("#gridItems").data("kendoGrid").dataSource.read({ poNo: selectedPoNo, poDate: selectedPoDate, deptId: selectedDeptId });
-        $("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: selectedPoNo, poDate: selectedPoDate, deptId: selectedDeptId });
+        //$("#gridItemSet").data("kendoGrid").dataSource.read({ poNo: selectedPoNo, poDate: selectedPoDate, deptId: selectedDeptId });
 
         //if (selectedData.IsWithPar == true) {
         //    $(".k-grid-btnAddPars", grid).show();
@@ -989,18 +994,18 @@
     });
 
     // Grid Item
-    //function onRequestEndGridItems(e) {
-    //    e.preventDefault();
-    //    if (!e.response.Errors) {
-    //        if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-    //            var grid = $("#grid").data("kendoGrid");
-    //            var gridItem = $("#gridItems").data("kendoGrid");
+    function onRequestEndGridItems(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                var grid = $("#grid").data("kendoGrid");
+                var gridItem = $("#gridItems").data("kendoGrid");
 
-    //            grid.dataSource.read();
-    //            gridItem.dataSource.read({ poNo: selectedPoNo, poDate: selectedPoDate, deptId: selectedDeptId });
-    //        }
-    //    }
-    //}
+                grid.dataSource.read();
+                gridItem.dataSource.read({ poNo: selectedPoNo, poDate: selectedPoDate, deptId: selectedDeptId });                
+            }
+        }
+    }
 
     function onChangeQty(e) {
         e.preventDefault();
@@ -1146,12 +1151,10 @@
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 var grid = $("#gridItems").data("kendoGrid");
-                var gridItemSet = $("#gridItemSet").data("kendoGrid");
+                //var gridItemSet = $("#gridItemSet").data("kendoGrid");
 
-                //grid.dataSource.read({ poNo: selectedPoNo, poDate: selectedPoDate, deptId: selectedDeptId });
-                //gridItemSet.dataSource.read({ poNo: selectedPoNo, poDate: selectedPoDate, deptId: selectedDeptId });
                 grid.dataSource.read();
-                gridItemSet.dataSource.read();
+                //gridItemSet.dataSource.read();
             }
         }
     }
@@ -1559,6 +1562,43 @@
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
     }
+
+    function onClickBtnPrint(e) {
+        e.preventDefault();
+
+        // the current row for this detail
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        
+        var url = '@Url.Action("ParSetRpt", "ParSet")?parNo=' + dataItem.IcsPar.RefNo;
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    }
     // END GRID ITEMS
 
 
@@ -1953,7 +1993,7 @@
     {
         selectedGrid.dataSource.read();
     }
-    
+
     // END GRID IMAGES
 </script>
 

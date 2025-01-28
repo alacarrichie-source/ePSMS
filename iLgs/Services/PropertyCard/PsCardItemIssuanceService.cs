@@ -288,9 +288,11 @@ namespace iLgs.Services.PropertyCard
             var qtyIss = entity.PsCardItemIssuances.Sum(s => s.Qty) ?? 0;
             var qty = (entity.Qty ?? 0) + (entity.TransferIn ?? 0);
             var transferOut = (entity.TransferOut ?? 0);
+            var qtyBal = qty - (qtyIss + transferOut);
 
             entity.QtyIss = qtyIss;
-            entity.QtyBal = qty - (qtyIss + transferOut);
+            entity.QtyBal = qtyBal;
+            entity.Amount = qtyBal * entity.UnitCost;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 

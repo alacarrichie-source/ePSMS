@@ -450,6 +450,12 @@ namespace iLgs.Models
         [Display(Name = "Date Posted")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> ParPostedDt { get; set; }
+
+        [Display(Name = "Set/Lot No.")]
+        public string SetLotNo { get; set; }
+
+        [Display(Name = "Set/Lot Description")]
+        public string SetLotDesc { get; set; }
     }
 
     public class ParIcsItemSetVm

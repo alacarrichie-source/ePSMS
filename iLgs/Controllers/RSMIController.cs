@@ -100,7 +100,7 @@ namespace iLgs.Controllers
                             Location = s.Codextn1.Description,
                             //RCC = s.PsCardItem.Codextn.Code,
                             //s.PsCardItem.Codextn.Description,
-
+                            ItemCode = s.PsCardItem.PsCard.ItemCode.Code,
                             StockNo = s.PsCardItem.PsCard.PsNo,
                             ItemName = s.PsCardItem.Description,
                             Unit = s.PsCardItem.Unit,
@@ -160,6 +160,7 @@ namespace iLgs.Controllers
                                     RCC = itemIssued.RCC,
                                     LocationCode = itemIssued.LocationCode,
                                     Location = itemIssued.Location,
+                                    ItemCode = itemIssued.ItemCode,
                                     StockNo = itemIssued.StockNo,
                                     ItemName = itemIssued.ItemName,
                                     Unit = itemIssued.Unit,
@@ -442,6 +443,7 @@ namespace iLgs.Controllers
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault()?.Description;
 
             crReportDocument.SetParameterValue("LGU", lgu);
+            crReportDocument.SetParameterValue("WithDailyRecap", model.WithDailyRecap);
             crReportDocument.SetParameterValue("@cFund", model.Fund);
             crReportDocument.SetParameterValue("@dBdate", model.DateFrom);
             crReportDocument.SetParameterValue("@dEdate", model.DateTo);            

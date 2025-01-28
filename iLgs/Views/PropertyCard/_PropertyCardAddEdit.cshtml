@@ -91,7 +91,7 @@
                             c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");
                         })
                         .Height(300)
-                        .Suggest(true)
+                        .Suggest(false)
                         .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
                     )
                     @Html.ValidationMessageFor(m => m.ItemCodeId)

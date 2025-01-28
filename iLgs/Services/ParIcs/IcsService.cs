@@ -202,13 +202,18 @@ namespace iLgs.Services.ParIcs
         public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, DateTime? poDate, Guid? deptId)
         {
             var data = _db.PsCardItems.AsNoTracking()
-                .Where(w => w.TransferRefId == null                
-                    && w.DeptId == (deptId == null ? w.DeptId : deptId)
+                .Where(w => w.TransferRefId == null
                     && w.PoNo == (string.IsNullOrEmpty(poNo) ? w.PoNo : poNo)
+                    && w.DeptId == (deptId == null ? w.DeptId : deptId)                    
                     && w.PoDate == (poDate == null ? w.PoDate : poDate)
-                    && !w.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == w.Id)
-                    && ((w.UnitCost >= _parPrice && w.IsForICS == true) || w.UnitCost < _parPrice)
-                    )
+                    //&& w.UnitCost < _parPrice
+                    //&& !w.OrderItem.OrderItemUnitGroupDescriptionItems.Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
+                    && ((w.UnitCost < _parPrice && !w.OrderItem.OrderItemUnitGroupDescriptionItems.Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)) || (
+                            w.OrderItem.OrderItemUnitGroupDescriptionItems.Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
+                            && w.IsForICS == true
+                          )
+                        )
+                )
                 .Select(s => new ParIcsItemVm
                 {
                     Id = s.Id,
@@ -232,7 +237,9 @@ namespace iLgs.Services.ParIcs
                     InvDist = s.InvDist == "I" ? "Inventory" : s.InvDist == "D" ? "For Distribution" : "",
                     IsConsumableSetup = s.PsCard.ItemCode.IsConsumable,
                     IsIncorporatedSetup = s.PsCard.ItemCode.IsIncorporated,
-                    ForDistributionSetup = s.PsCard.ItemCode.ForDistribution
+                    ForDistributionSetup = s.PsCard.ItemCode.ForDistribution,
+                    SetLotNo = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId))).FirstOrDefault().SetLotNo ?? "",
+                    SetLotDesc = _db.OrderItemUnitGroupDescriptions.Where(w => w.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId)).FirstOrDefault().Description ?? ""
                 }).AsQueryable();
             return data;
         }
@@ -251,7 +258,10 @@ namespace iLgs.Services.ParIcs
                         && b.PsCardItem.PoDate == (poDate == null ? b.PsCardItem.PoDate : poDate)
                         && b.PsCardItem.DeptId == (deptId == null ? b.PsCardItem.DeptId : deptId)
                     ))                
-                    && w.UnitCost < _parPrice)                    
+                    && (w.UnitCost < _parPrice 
+                        || w.PsCardItemUnitGroupDescriptions.Any(a => a.PsCardItemUnitGroup.UnitCost >= _parPrice 
+                            && a.PsCardItemUnitGroupDescriptionItems.Any(b => b.PsCardItem.IsForICS == true)))
+                )
                 .Select(s => new ParIcsItemSetVm
                 {
                     Id = s.Id,
@@ -285,7 +295,12 @@ namespace iLgs.Services.ParIcs
         public IQueryable<ParIcsItemVm> GetItemSetDescriptionItemsByUnitGroupDescriptionId(Guid? unitGroupDescriptionId)
         {
             var data = _db.PsCardItems.AsNoTracking()
-                .Where(w => w.PsCardItemUnitGroupDescriptionItems.Any(a => a.UnitGroupDescriptionId == unitGroupDescriptionId && a.PsCardItemId == w.Id))
+                .Where(w => w.PsCardItemUnitGroupDescriptionItems
+                    .Any(a => a.UnitGroupDescriptionId == unitGroupDescriptionId 
+                    //&& a.PsCardItemId == w.Id                        
+                    )
+                    && w.IsForICS == true
+                )
                 .Select(s => new ParIcsItemVm
                 {
                     Id = s.Id,

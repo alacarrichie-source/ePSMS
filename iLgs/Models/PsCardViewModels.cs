@@ -128,11 +128,13 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderItemId { get; set; }
         public Nullable<System.Guid> TransferRefId { get; set; }
 
+        [Required]
         [Display(Name = "PO/Cut-off Date (mm/dd/yyyy)")]
         //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MMMM dd, yyyy}", ApplyFormatInEditMode = true)]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> PoDate { get; set; }
 
+        [Required]
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 

@@ -233,6 +233,9 @@ namespace iLgs.Models
         [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
         public Nullable<decimal> PriceRate { get; set; }
+
+        [Display(Name = "Set/Lot No.")]
+        public string SetLotNo { get; set; }
     }
 
     public class RisItemVM : RisItemCommonVM
@@ -489,6 +492,8 @@ namespace iLgs.Models
             public string SetLotNo { get; set; }
 
             public Nullable<int> Qty { get; set; }
+
+            [Display(Name = "Unit of Measurement")]
             public string Unit { get; set; }
             public string InsertedBy { get; set; }
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
@@ -521,6 +526,8 @@ namespace iLgs.Models
         public string PsNo { get; set; }
         public string ItemName { get; set; }
         public string Description { get; set; }
+
+        [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
         public Nullable<int> QtyRequest { get; set; }
         public string GridItems { get; set; }
@@ -544,6 +551,8 @@ namespace iLgs.Models
         public string PsNo { get; set; }
         public string ItemName { get; set; }
         public string Description { get; set; }
+
+        [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
         public Nullable<int> QtyRequest { get; set; }
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]

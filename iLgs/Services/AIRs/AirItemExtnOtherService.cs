@@ -54,12 +54,16 @@ namespace iLgs.Services.AIRs
                 throw new  RecordAlreadyExistsException("Serial No. already exists!");
             }
 
+            var airItem = _db.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId);
+            var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == airItem.OrderItemId))).FirstOrDefault();
+            var groupQty = orderItemUnitGroup == null ? 1 : orderItemUnitGroup.Qty;
             var airItemQty = (int)_db.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId).Qty;
             var airItemExtnCount = _db.AIRItemExtns.OfType<AIRItemExtnOther>().Where(w => w.AIRItemId == model.AIRItemId).Count();
+            var totalQty = airItemQty * groupQty;
 
-            if (airItemQty == airItemExtnCount)
+            if (airItemExtnCount == totalQty)
             {
-                throw new InvalidValueException($"Cannot create more than {airItemQty} record(s).");
+                throw new InvalidValueException($"Cannot create more than {totalQty} record(s).");
             }
 
             model.Id = Guid.NewGuid();

@@ -42,7 +42,7 @@ namespace iLgs.Controllers
             _stockCardService = new StockCardService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _stockCardValidator = new StockCardValidator(_db);
-        }        
+        }
 
         // GET: Index
         public ActionResult Index()
@@ -189,11 +189,11 @@ namespace iLgs.Controllers
             {
                 data = new StockCardVM()
                 {
-                    CardCategory = _cardCategory                    
+                    CardCategory = _cardCategory
                 };
             }
             data.Mode = mode;
-            
+
             return PartialView(data);
         }
 
@@ -303,12 +303,12 @@ namespace iLgs.Controllers
             fields.PsNo = stockNo;
             bool isDuplicateStockNo = false;
             if (fields.Mode == "A")
-            {                
-                isDuplicateStockNo = _stockCardValidator.IsPsNoAlreadyExists(fields, Mode.ADD);                
+            {
+                isDuplicateStockNo = _stockCardValidator.IsPsNoAlreadyExists(fields, Mode.ADD);
             }
             else
-            {                
-                isDuplicateStockNo = _stockCardValidator.IsPsNoAlreadyExists(fields, Mode.EDIT);                
+            {
+                isDuplicateStockNo = _stockCardValidator.IsPsNoAlreadyExists(fields, Mode.EDIT);
             }
 
             return Json(new { Description = description, StockNo = stockNo, Id = id, IsDuplicateStockNo = isDuplicateStockNo }, JsonRequestBehavior.AllowGet);
@@ -657,7 +657,7 @@ namespace iLgs.Controllers
             //string partialView = AllFieldsUtil.GetPartialField(model.ItemTypeCode, model.ItemCode);
             var itemCode = _itemCodeService.GetById(model.ItemCodeId);
             string partialView = AllFieldsUtil.GetPartialView(itemCode);
-            
+
             return PartialView(partialView, model);
         }
 
@@ -672,7 +672,7 @@ namespace iLgs.Controllers
 
             }
             string partialView = AllFieldsUtil.GetPartialItemField(psCard.ItemTypeCode, psCard.ItemCode);
-            
+
             return PartialView(partialView, model);
         }
 
@@ -720,7 +720,7 @@ namespace iLgs.Controllers
             return File(stream, "application/pdf");
         }
 
-        public async Task<ActionResult> StockCardPoRpt(Guid? selectedItemId)
+        public async Task<ActionResult> StockCardPoRpt(Guid? selectedItemId, int originalSw)
         {
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
@@ -755,6 +755,7 @@ namespace iLgs.Controllers
             rpt.SetParameterValue("@cPoNo", poNo);
             //rpt.SetParameterValue("ImagePath", imagePath);
             rpt.SetParameterValue("LGU", lgu);
+            rpt.SetParameterValue("IsOriginal", originalSw == 1);
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             rpt.Close();
@@ -1259,7 +1260,7 @@ namespace iLgs.Controllers
         }
 
         public ActionResult _PostBatch()
-        {            
+        {
             return PartialView();
         }
 
@@ -1367,5 +1368,87 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
+
+        public ActionResult _PoTransfer(Guid psCardItemId)
+        {
+            var model = new GetPsNoVM()
+            {
+                PsCardItemId = psCardItemId
+            };
+
+            return PartialView(model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _PoTransferSave(GetPsNoVM model)
+        {
+            string errorKey = "";
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "stock_card");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _stockCardService.TransferPo(model.PsCardItemId, model.Id, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
+                       .Select(ms => new
+                       {
+                           Key = ms.Key, // The field name
+                           Message = ms.Value.Errors.Select(e =>
+                           {
+                               var errorMessage = e.ErrorMessage;
+                               if (e.Exception != null)
+                               {
+                                   var exceptionMessage = e.Exception.Message;
+                                   var innerExceptionMessage = e.Exception.InnerException?.Message;
+
+                                   // Append exception details
+                                   errorMessage += $" Exception: {exceptionMessage}";
+                                   if (innerExceptionMessage != null)
+                                   {
+                                       errorMessage += $" InnerException: {innerExceptionMessage}";
+                                   }
+                               }
+
+                               return errorMessage;
+                           }).ToList() // List of messages for the current field
+                       })
+                       .ToList();
+
+            if (errorList.Any())
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
+        }
+
     }
 }

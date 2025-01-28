@@ -104,7 +104,8 @@ namespace iLgs.Services.AIRs
                 AreaSoldDonated = s.AreaSoldDonated,
                 ConstructionYear = s.ConstructionYear,
                 InvDist = s.InvDist,
-                InsertedDt = s.InsertedDt
+                InsertedDt = s.InsertedDt,
+                SetLotNo = s.OrderItem.Order.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId))).FirstOrDefault().SetLotNo ?? ""
             };
         }
 
@@ -204,12 +205,14 @@ namespace iLgs.Services.AIRs
                 }
             }
         }
-        public void ValidateItemExtn(Guid? airItemId)
+        public void ValidateItemExtn(Guid? airItemId, Guid? orderItemId)
         {
+            var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == orderItemId))).FirstOrDefault();
+            var groupQty = orderItemUnitGroup != null ? orderItemUnitGroup.Qty : 1;
             var itemExtnName = GetItemExtnName(airItemId);
             if (itemExtnName == "ItemExtnVehicle")
             {
-                if (_db.AIRItems.Any(a => a.Id == airItemId && a.InvDist == "I" && a.AIRItemExtns.OfType<AIRItemExtnVehicle>().Count() < a.Qty))
+                if (_db.AIRItems.Any(a => a.Id == airItemId && a.InvDist == "I" && a.AIRItemExtns.OfType<AIRItemExtnVehicle>().Count() < a.Qty * groupQty))
                 {
                     throw new InvalidValueException("Please complete the entry of all serial numbers before posting.");
                 }
@@ -222,7 +225,7 @@ namespace iLgs.Services.AIRs
             }
             else if (itemExtnName == "ItemExtnOther")
             {
-                if (_db.AIRItems.Any(a => a.Id == airItemId && a.InvDist == "I" && a.AIRItemExtns.OfType<AIRItemExtnOther>().Count() < a.Qty))
+                if (_db.AIRItems.Any(a => a.Id == airItemId && a.InvDist == "I" && a.AIRItemExtns.OfType<AIRItemExtnOther>().Count() < a.Qty * groupQty))
                 {
                     throw new InvalidValueException("Please complete the entry of all serial numbers before posting.");
                 }
@@ -272,7 +275,7 @@ namespace iLgs.Services.AIRs
             foreach (var airItem in airItems)
             {
                 ValidateFields(airItem);
-                ValidateItemExtn(airItem.Id);
+                ValidateItemExtn(airItem.Id, airItem.OrderItemId);
             }
         }
 

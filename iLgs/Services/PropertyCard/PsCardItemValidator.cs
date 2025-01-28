@@ -6,6 +6,7 @@ using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Linq;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
 {
@@ -18,22 +19,22 @@ namespace iLgs.Services.PropertyCard
 
     public class PsCardItemValidator : BaseValidator, IPsCardItemValidator
     {
-        private delegate string GetDisplayNameDelegate(string propertyName);                
+        private delegate string GetDisplayNameDelegate(string propertyName);
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly ICodextnService _codextnService;        
+        private readonly ICodextnService _codextnService;
         public PsCardItemValidator(AppManEntities db)
         {
-            _db = db;            
+            _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemVM>(propertyName);
-            _codextnService = new CodextnService(_db);            
+            _codextnService = new CodextnService(_db);
         }
 
         public void ValidateOnCreate(PsCardItemVM cardItem)
         {
             ValidateCard(cardItem);
             ValidateIfPosted(cardItem.PsCardId);
-            ValidateFieldsOnCreateUpdate(cardItem);            
+            ValidateFieldsOnCreateUpdate(cardItem, Mode.ADD);
         }
 
         public void ValidateOnUpdate(PsCardItemVM cardItem)
@@ -43,7 +44,7 @@ namespace iLgs.Services.PropertyCard
             ValidateRecord(entity, cardItem.Id);
             ValidateIfPosted(cardItem.PsCardId);
             ValidateIfPosted(cardItem);
-            ValidateFieldsOnCreateUpdate(cardItem);
+            ValidateFieldsOnCreateUpdate(cardItem, Mode.EDIT);
         }
 
         public void ValidateOnDelete(PsCardItemVM cardItem)
@@ -65,7 +66,7 @@ namespace iLgs.Services.PropertyCard
             }
         }
 
-        public void ValidateFieldsOnCreateUpdate(PsCardItemVM cardItem)
+        public void ValidateFieldsOnCreateUpdate(PsCardItemVM cardItem, Mode mode)
         {
             var ex = new InvalidModelException();
             if (cardItem.DeptId == null)
@@ -73,11 +74,11 @@ namespace iLgs.Services.PropertyCard
                 ex.UpsertDataList(_getDisplayName(nameof(cardItem.DeptId)), "Field is required.");
             }
             else
-            {                
+            {
                 if (!_codextnService.IsValidMastCodeId("LOCATIONS", cardItem.DeptId))
                 {
                     ex.UpsertDataList(_getDisplayName(nameof(cardItem.DeptId)), "Invalid value");
-                }                
+                }
             }
 
             if (string.IsNullOrWhiteSpace(cardItem.Unit))
@@ -131,9 +132,31 @@ namespace iLgs.Services.PropertyCard
                     ex.UpsertDataList(_getDisplayName(nameof(cardItem.InvDist)), "Invalid value");
                 }
             }
+
+            if (string.IsNullOrWhiteSpace(cardItem.PoNo))
+            {
+                ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), "Field is required.");
+            }
+            else
+            {
+                if (mode == Mode.ADD)
+                {
+                    if (_db.PsCardItems.Where(w => w.PoNo == cardItem.PoNo && w.PsCardId == cardItem.PsCardId).Any())
+                    {
+                        ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), "Already exists under this Stock/Property No.");
+                    }
+                }
+            }
+
+
+            if (!cardItem.PoDate.HasValue)
+            {
+                ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoDate)), "Field is required.");
+            }
+
             ex.ThrowIfContainsErrors();
         }
-        
+
         private void ValidateRecord(PsCardItem entity, Guid id)
         {
             if (entity is null)
@@ -168,6 +191,6 @@ namespace iLgs.Services.PropertyCard
                 var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
                 throw new RecordAlreadyPostedException(msg);
             }
-        }        
+        }
     }
 }

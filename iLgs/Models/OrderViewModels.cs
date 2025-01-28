@@ -295,6 +295,7 @@ namespace iLgs.Models
         [Display(Name = "Set/Lot No.")]
         public string SetLotNo { get; set; }
 
+        [Display(Name = "Set Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> TotalCost { get; set; }
         public string InsertedBy { get; set; }
@@ -305,6 +306,8 @@ namespace iLgs.Models
 
         // transients
         public int? Qty { get; set; }
+
+        [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
         //public RequestItemUnitGroup RequestItemUnitGroup { get; set; }
     }
@@ -342,6 +345,8 @@ namespace iLgs.Models
         public string PsNo { get; set; }
         public string ItemName { get; set; }
         public string Description { get; set; }
+
+        [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
 
         [Display(Name = "Qty")]

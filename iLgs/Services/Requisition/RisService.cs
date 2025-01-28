@@ -252,7 +252,7 @@ namespace iLgs.Services.Requisition
         _risExceptionService.TryCatch(async () =>
         {
             _validator.ValidateOnUnpost(risId);
-
+            
             var entity = await _db.RISses.FindAsync(risId);
 
             entity.PostedBy = null;
@@ -310,6 +310,8 @@ namespace iLgs.Services.Requisition
         {
             //await ValidateOnDelete(model);
             _validator.ValidateOnDelete(model);
+            ValidateIfPosted(model.Id);
+            ValidateRelationship(model.Id);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -334,6 +336,7 @@ namespace iLgs.Services.Requisition
         _risVmExceptionService.TryCatch(async () =>
         {
             _validator.ValidateOnUpdate(model);
+            ValidateIfPosted(model.Id);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -458,6 +461,15 @@ namespace iLgs.Services.Requisition
             if (await IsPrPostedAsync(model.Id))
             {
                 throw new RecordRelationshipException("This RIS Number has a posted PR, cannot delete!");
+            }
+        }
+
+        private void ValidateRelationship(Guid risId)
+        {
+            var pr = _db.Requests.Where(a => a.RisId == risId).AsNoTracking().FirstOrDefault();
+            if (pr != null)
+            {
+                throw new RecordRelationshipException($"This RIS Number is in use by PR Number {pr.PrNo}, cannot delete!");
             }
         }
         

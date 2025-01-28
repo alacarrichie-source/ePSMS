@@ -41,7 +41,9 @@ namespace iLgs.Services.PropertyCard
         IAllFieldService AllField { get; }
         IPsCardItemService PsCardItem { get; }
         IPsCardItemIssuanceService PsCardItemIssuance { get; }
-        
+
+        ValueTask<PsCard> TransferPo(Guid? psCardItemId, Guid? transferToPsCardId, string user, DateTime date);
+
     }
 
     public class PsCardService : IPsCardService
@@ -99,7 +101,7 @@ namespace iLgs.Services.PropertyCard
             //    });
             //return data;
             //return GetAllByCategory(data);
-            var data = _db.Database.SqlQuery<PsCardVM>("Exec Card_GetRecords 'S', {0}", userName).AsQueryable();
+            var data = _db.Database.SqlQuery<PsCardVM>("Exec Card_GetRecords 'P', {0}", userName).AsQueryable();
             return data;
         });
 
@@ -398,6 +400,32 @@ namespace iLgs.Services.PropertyCard
             return entity;
         });
 
+
+        public virtual ValueTask<PsCard> TransferPo(Guid? psCardItemId, Guid? transferToPsCardId, string user, DateTime date) =>        
+        _exceptionService.TryCatch(async () =>
+        {
+            var targetEntity = await _db.PsCards.FindAsync(transferToPsCardId);
+            ValidateRecord(targetEntity);
+            //ValidateIfPosted(entity);
+
+            // load source
+            var psCardItemSource = await _db.PsCardItems.FindAsync(psCardItemId);
+            if (psCardItemSource == null)
+            {
+                throw new NotFoundException((Guid)psCardItemId);
+            }
+
+            // transfer source to target card
+
+            psCardItemSource.PsCardId = targetEntity.Id;
+            psCardItemSource.UpdatedBy = user;
+            psCardItemSource.UpdatedDt = date;
+                        
+            _db.PsCardItems.Attach(psCardItemSource);
+            _db.Entry(psCardItemSource).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            return targetEntity;
+        });
         public bool IsPosted(Guid psCardId)
         {
             var entity = _db.PsCards.Find(psCardId);

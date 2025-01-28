@@ -263,11 +263,14 @@
             });
         }
 
-        if (this.dataSource.data().length == 0) {
-            var grid = $("#grid");
+        var grid = $("#grid");
+        if (this.dataSource.data().length == 0) {            
             $(".k-grid-btnPrintPR", grid).hide();
             $(".k-grid-btnSubmitPR", grid).hide();
             $(".k-grid-btnUnpostPR", grid).hide();
+        }
+        else {
+            $(".k-grid-btnPrintPR", grid).show();
         }
     }
 

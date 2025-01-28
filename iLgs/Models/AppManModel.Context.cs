@@ -63,7 +63,6 @@ namespace iLgs.Models
         public virtual DbSet<RSMI> RSMIs { get; set; }
         public virtual DbSet<PsCard> PsCards { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
-        public virtual DbSet<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<PsCardItemUnitGroup> PsCardItemUnitGroups { get; set; }
         public virtual DbSet<IcsParItem> IcsParItems { get; set; }
@@ -89,13 +88,11 @@ namespace iLgs.Models
         public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
         public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         public virtual DbSet<AIRItem> AIRItems { get; set; }
-        public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
         public virtual DbSet<CustodianIirupItem> CustodianIirupItems { get; set; }
         public virtual DbSet<CustodianIIRUP> CustodianIIRUPs { get; set; }
         public virtual DbSet<IcsPar> IcsPars { get; set; }
         public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
-        public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
@@ -106,5 +103,8 @@ namespace iLgs.Models
         public virtual DbSet<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
+        public virtual DbSet<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
+        public virtual DbSet<RSMIItem> RSMIItems { get; set; }
     }
 }

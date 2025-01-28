@@ -126,7 +126,7 @@ namespace iLgs.Models
         [Display(Name = "Set/Lot No.")]
         public string SetLotNo { get; set; }
 
-        [Display(Name = "Unit Cost")]
+        [Display(Name = "Set Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
 
         [Display(Name = "Total Cost")]
@@ -139,8 +139,28 @@ namespace iLgs.Models
         public RisItemUnitGroup RisItemUnitGroup { get; set; }
 
         // transients
+        [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
         public int? Qty { get; set; }
+    }
+
+    [MetadataType(typeof(RisItemUnitGroup.Metadata))]
+    public partial class RisItemUnitGroup
+    {
+        internal sealed class Metadata
+        {
+            public System.Guid Id { get; set; }
+            public Nullable<System.Guid> RisId { get; set; }
+            public string SetLotNo { get; set; }
+            public Nullable<int> Qty { get; set; }
+
+            [Display(Name = "Unit of Measurement")]
+            public string Unit { get; set; }
+            public string InsertedBy { get; set; }
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
+        }
     }
 
     public class RequestItemUnitGroupDescriptionVM
@@ -186,6 +206,8 @@ namespace iLgs.Models
         public string PsNo { get; set; }
         public string ItemName { get; set; }
         public string Description { get; set; }
+
+        [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
 
         [Display(Name = "Qty")]

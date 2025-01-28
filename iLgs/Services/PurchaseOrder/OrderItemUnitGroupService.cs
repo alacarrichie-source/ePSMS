@@ -172,7 +172,8 @@ namespace iLgs.Services.PurchaseOrder
                 foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
                 {
                     var priceRate = unitGroupDescriptionItem.OrderItem.PriceRate ?? 0;
-                    _orderItemUnitGroupDescriptionItemService.UpdateOrderItem(unitGroupDescriptionItem.OrderItemId, priceRate, user, date);
+                    var unitCost = unitGroupDescriptionItem.OrderItem.UnitCost ?? 0;
+                    _orderItemUnitGroupDescriptionItemService.UpdateOrderItem(unitGroupDescriptionItem.OrderItemId, priceRate, unitCost, user, date);
                 }
             }
 

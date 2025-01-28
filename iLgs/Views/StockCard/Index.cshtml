@@ -918,8 +918,7 @@
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
                 selectedGrid.dataSource.read();
             }
-            if (e.type == "create")
-            {
+            if (e.type == "create") {
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedId = newRecord.Id;
@@ -1496,7 +1495,6 @@
 
     function onClickBtnPrintPo(e) {
         e.preventDefault();
-
         //the master row for this detail
         var parentRow = this.wrapper.closest("tr").prev();
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
@@ -1513,7 +1511,31 @@
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         selectedItemId = dataItem.Id;
 
-        var url = '@Url.Action("StockCardPoRpt", "StockCard")?selectedItemId=' + selectedItemId;
+        PrintPo(1);
+    }
+
+    function onClickBtnPrintPoUpdate(e) {
+        e.preventDefault();
+        //the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+
+        parentGrid.select(parentRow);
+
+        // the current row for this detail
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        selectedItemId = dataItem.Id;
+        PrintPo(0);
+    }
+
+    function PrintPo(originalSw) {        
+        var url = '@Url.Action("StockCardPoRpt", "StockCard")?selectedItemId=' + selectedItemId + '&originalSw=' + originalSw;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -1705,6 +1727,79 @@
             }
         });
         mywindow.open();
+    }
+
+    function onClickTransfer(e) {
+        e.preventDefault();
+
+        //the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+
+        parentGrid.select(parentRow);
+
+        // the current row for this detail
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        selectedItemId = dataItem.Id;
+
+        var myTitle = "Transfer PO Item to another Stock/Property Card";
+        var width = 1000;
+        $("#windowcontainer").append("<div id='windowCard'></div>");
+        var mywindow = $("#windowCard")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    close: function () {
+                        $("#gridItems_" + selectedId).data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_PoTransfer", "StockCard")',
+            data: {
+                psCardItemId: selectedItemId
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        mywindow.open();
+    }
+
+    function onSelectPsNo(e) {
+        if (!e.item) {
+            return;
+        }
+
+        var dataItem = this.dataItem(e.item.index());
+
+        if (dataItem) {
+            $("#Id").val(dataItem.Id).trigger("change");
+            $("#Fund").val(dataItem.Fund).trigger("change");
+            $("#Account").val(dataItem.Account).trigger("change");
+            $("#SubAccount1").val(dataItem.SubAccount1).trigger("change");
+            $("#SubAccount2").val(dataItem.SubAccount2).trigger("change");
+            $("#SubAccount3").val(dataItem.SubAccount3).trigger("change");
+            $("#SubAccount4").val(dataItem.SubAccount4).trigger("change");
+            $("#Article").val(dataItem.Article).trigger("change");
+        }
     }
     // END  GRID ITEMS
 

@@ -22,6 +22,7 @@ namespace iLgs.Models
         public string RCC { get; set; }
         public string LocationCode { get; set; }
         public string Location { get; set; }
+        public string ItemCode { get; set; }
         public string StockNo { get; set; }
         public string ItemName { get; set; }
         public string Unit { get; set; }

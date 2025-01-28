@@ -21,6 +21,7 @@
         {
             command.Edit();
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            command.Custom("Status").IconClass("k-icon k-i-book").Click("onClickStatus").Visible("CheckIsAdmin");
         }).Width(150);
     })
     .ToolBar(t =>
@@ -87,13 +88,32 @@
 <script id="UploadedFiles" type="text/kendo-tmpl">
     @(Html.Kendo().TabStrip()
         .Name("tabStrip_#=Id#")
-        //.HtmlAttributes(new { @class = "no-text-tabstrip" })
         .TabPosition(TabStripTabPosition.Top)
         .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
         .SelectedIndex(0)
         .Items(items =>
         {
             items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "ItemCodeRequest", new { imageId = "#=Id#" });
+            //items.Add().Text("Request Status").Content(
+            //    "<div class='update-details'>" +
+            //        "<ul>" +
+            //            "<li><label>Status:</label>#= Status ?? '' #</li>" +
+            //            "<li><label>Remarks:</label>#= StatusRemarks ? StatusRemarks.replace(/\\r?\\n/g, '<br>') : '' #</li>" +
+            //        "</ul>" +
+            //    "</div>"
+            //    );
+            items.Add().Text("Request Status").Content(
+                "<div class='update-details'>" +
+                    "<ul>" +
+                        "<li class='details-row'>" +
+                            "<label>Status:</label><span>#= Status ?? '' #</span>" +
+                        "</li>" +
+                        "<li class='details-row'>" +
+                            "<label>Remarks:</label><span class='remarks-text'>#= StatusRemarks ? StatusRemarks.replace(/\\r?\\n/g, '<br>') : '' #</span>" +
+                        "</li>" +
+                    "</ul>" +
+                "</div>"
+                );
         })
         .ToClientTemplate())
 </script>
@@ -119,6 +139,60 @@
     .k-floating-label-container {
         width: 100%;
     }
+
+    /*.update-details ul {
+        list-style: none;
+        font-style: italic;
+        margin: 15px;
+        padding: 0;
+    }
+
+    .update-details ul li {
+        margin: 0;
+        line-height: 1.7em;
+    }
+
+    .update-details label {
+        display: inline-block;
+        width: 90px;
+        padding-right: 10px;
+        text-align: right;
+        font-style: normal;
+        font-weight: bold;
+    }*/
+
+    remarks-text {
+        text-align: justify; /* Justify the text */
+        word-wrap: break-word; /* Ensure long words break to the next line */
+        display: inline-block; /* Ensures the text wraps nicely */
+        max-width: 100%; /* Adjust to prevent overflow */
+    }
+
+    
+    update-details ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .details-row {
+        display: grid; /* Use grid layout for precise alignment */
+        grid-template-columns: max-content 1fr; /* Label takes minimal width; text takes remaining space */
+        gap: 10px; /* Add spacing between the label and the text */
+        margin-bottom: 10px;
+    }
+
+        .details-row label {
+            font-weight: bold;
+            white-space: nowrap; /* Prevent label from wrapping */
+            text-align: left; /* Align text to the left */
+        }
+
+        .details-row span {
+            display: block;
+            text-align: justify; /* Justify multiline text */
+            word-wrap: break-word; /* Ensure text wraps properly */
+        }
 
     #span_ {
         display: flex;
@@ -193,6 +267,11 @@
 
 
 <script type="text/javascript">
+
+    function CheckIsAdmin(dataItem) {
+        return '@ViewBag.IsAdmin' == "True";
+    }
+
     // Attach click event to the custom export button
    $(".k-grid-btnExport").click(function (e) {
         e.preventDefault();
@@ -272,6 +351,27 @@
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedId = newRecord.Id;
+
+                if (selectedId) {
+
+                    var grid = $("#grid").data("kendoGrid");
+
+                    // Trigger a read operation on the data source.
+                    grid.dataSource.read().then(function () {
+                        // Additional actions to be performed after the read operation.
+
+                        // Find the row with the specified Id.
+                        var dataItem = grid.dataSource.get(selectedId);
+
+                        // If the row is found, expand it.
+                        if (dataItem) {
+                            var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
+                            grid.expandRow(row);
+                        }
+                    });
+
+                    Upload(selectedId);
+                }
             }
         }
     }
@@ -344,6 +444,24 @@
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
+    }
+
+    function onClickStatus(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        //// Remove the "selected" class from all rows
+        //selectedGrid.table.find("tr").removeClass("selected");
+
+        //// Add the "selected" class to the clicked row
+        //$(e.currentTarget).closest("tr").addClass("selected");
+        selectedId = dataItem.Id;
+        dataItem.set("StatusSw", true);
+        selectedGrid.editRow(dataItem);
+
+        var fieldStatus = $('#DIV_STATUS');
+        fieldStatus.removeClass('hidden');
     }
 
     function onGridDeleteClick(e) {
@@ -597,11 +715,15 @@
         var parentModel = parentGrid.dataItem(parentRow);
         var imageId = parentModel.id;
 
+        Upload(imageId);
+    }
+
+    function Upload(imageId)
+    {
         var myUrl = '@Url.Action("_ImagesAdd", "ItemCodeRequest")?imageId=' + imageId;
         var myTitle = "Upload Images/Documents";
         var width = 800;
         var height = 650;
-
 
         $("#windowcontainer").append("<div id='windowUpload'></div>");
         var mywindow = $("#windowUpload")
@@ -642,7 +764,7 @@
 
         var myUrl = '@Url.Action("PreviewUpload", "ItemCodeRequest")?id=' + selectedGridImagesItem;
 
-        window.open(myUrl, "_blank");        
+        window.open(myUrl, "_blank");
     }
 
     function onClickDownload(e) {
@@ -676,7 +798,18 @@
 
     function onUploadSuccess(e)
     {
-        selectedGrid.dataSource.read();
+        selectedGrid.dataSource.read().then(function () {
+            // Additional actions to be performed after the read operation.
+
+            // Find the row with the specified Id.
+            var dataItem = selectedGrid.dataSource.get(selectedId);
+
+            // If the row is found, expand it.
+            if (dataItem) {
+                var row = selectedGrid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
+                selectedGrid.expandRow(row);
+            }
+        });        
     }
     // END GRID IMAGES
 </script>

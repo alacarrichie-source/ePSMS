@@ -217,9 +217,13 @@ namespace iLgs.Services.ParIcs
                     && w.PoNo == (string.IsNullOrEmpty(poNo) ? w.PoNo : poNo)
                     && w.PoDate == (poDate == null ? w.PoDate : poDate)
                     && w.DeptId == (deptId == null ? w.DeptId : deptId)
-                    && !w.OrderItem.OrderItemUnitGroupDescriptionItems
-                        .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-                    && w.UnitCost >= _parPrice
+                    //&& w.UnitCost >= _parPrice
+                    //&& !w.OrderItem.OrderItemUnitGroupDescriptionItems
+                    //    .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
+                    && (w.UnitCost >= _parPrice
+                        || w.OrderItem.OrderItemUnitGroupDescriptionItems
+                            .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
+                    )
                 )
                 .Select(s => new ParIcsItemVm
                 {
@@ -240,7 +244,9 @@ namespace iLgs.Services.ParIcs
                     IsIncorporatedSetup = s.PsCard.ItemCode.IsIncorporated,
                     ForDistributionSetup = s.PsCard.ItemCode.ForDistribution,
                     ParPostedBy = s.ParPostedBy,
-                    ParPostedDt = s.ParPostedDt
+                    ParPostedDt = s.ParPostedDt,
+                    SetLotNo = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId))).FirstOrDefault().SetLotNo ?? "",
+                    SetLotDesc = _db.OrderItemUnitGroupDescriptions.Where(w => w.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId)).FirstOrDefault().Description ?? ""
                 }).AsQueryable();
             return data;
         }
@@ -296,7 +302,8 @@ namespace iLgs.Services.ParIcs
                     Id = s.Id,
                     GroupId = s.GroupId,
                     PsCardId = s.PsCardId,
-                    Qty = s.Qty,
+                    //Qty = s.Qty,
+                    Qty = s.PsCardItemUnitGroupDescriptionItems.FirstOrDefault(f => f.PsCardItemId == s.Id).PoQty,
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     TotalCost = s.Amount,

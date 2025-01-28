@@ -13,6 +13,7 @@
             .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.Remarks).Width(70);
+            col.Bound(c => c.SetLotNo).Width(50);
             col.Command(command =>
             {
                 command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditRisItem");

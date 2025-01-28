@@ -5,6 +5,7 @@ using iLgs.Utilities;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -324,7 +325,7 @@ namespace iLgs.Controllers
             //    model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text) || p.BusinessName.Contains(text));
             //}
 
-            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Name = c.Name, BusinessName = c.BusinessName, Address = c.Address, TIN = c.TIN }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Name = c.Name, BusinessName = c.BusinessName, Address = c.Address, TIN = c.TIN, ZipCode = c.ZipCode, Email = c.Email, ContactNo = c.ContactNo }), JsonRequestBehavior.AllowGet);
         }
 
 
@@ -831,8 +832,42 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Code = c.Code, Description = c.Description }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetPsNos(string text)
+        {
+            var model = _db.Database.SqlQuery<GetPsNoVM>("Exec Card_GetPsNos '', {0}", text).AsQueryable().Take(100);
+            
+            return Json(model.Select(c => new {
+                Id = c.Id,
+                PsNo = c.PsNo,
+                Fund = c.Fund, 
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article
+            }), JsonRequestBehavior.AllowGet);
+        }
     }
     
+    public class GetPsNoVM
+    {
+        public Guid Id { get; set; }
+        public Guid? PsCardItemId { get; set; }
+        public string Fund { get; set; }
+        [Display(Name="Stock/Property No.")]
+        public string PsNo { get; set; }
+        public string Account { get; set; }
+        [Display(Name = "Sub-Account 1")]
+        public string SubAccount1 { get; set; }
+        [Display(Name = "Sub-Account 2")]
+        public string SubAccount2 { get; set; }
+        [Display(Name = "Sub-Account 3")]
+        public string SubAccount3 { get; set; }
+        [Display(Name = "Sub-Account 4")]
+        public string SubAccount4 { get; set; }
+        public string Article { get; set; }
+    }
 
     public class GetSysCodeVM
     {

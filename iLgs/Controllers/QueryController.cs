@@ -77,7 +77,7 @@ namespace iLgs.Controllers
             return result;
         }
 
-        public ActionResult PoRpt(string poNo)
+        public ActionResult PoRpt(string poNo, int originalSw)
         {
             string stringname = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(stringname);
@@ -108,6 +108,7 @@ namespace iLgs.Controllers
             
             rpt.SetParameterValue("@cPoNo", string.IsNullOrWhiteSpace(poNo) ? null : poNo);
             rpt.SetParameterValue("LGU", lgu);
+            rpt.SetParameterValue("IsOriginal", originalSw == 1);
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             rpt.Close();

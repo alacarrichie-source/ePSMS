@@ -118,7 +118,7 @@ namespace iLgs.Models
         [Display(Name = "Description")]
         public string OrderDescription { get; set; }
 
-        [Display(Name = "Unit")]
+        [Display(Name = "Unit of Measurement")]
         public string PsUnit { get; set; }
 
         public string GridOrderItemExtns { get; set; }
@@ -138,6 +138,9 @@ namespace iLgs.Models
 
         [Display(Name = "Inventory/For Distribution")]
         public string InvDistDesc { get { return this.InvDist == "I" ? "Inventory" : this.InvDist == "D" ? "For Distribution" : ""; } }
+
+        [Display(Name = "Set/Lot No.")]
+        public string SetLotNo { get; set; }
     }
 
     public class AIRInvoiceVM

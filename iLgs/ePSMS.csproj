@@ -624,11 +624,23 @@
       <DependentUpon>CustodianStock.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Reports\IcsSet.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>IcsSet.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Reports\ItemCode.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ItemCode.rpt</DependentUpon>
       <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\ParSet.cs">
+      <DependentUpon>ParSet.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Reports\Po_1.cs">
       <DependentUpon>Po_.rpt</DependentUpon>
@@ -686,7 +698,7 @@
     <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\Codes\AnnexDService.cs" />
     <Compile Include="Services\Codes\BudgetService.cs" />
-    <Compile Include="Services\Codes\ItemCodeRequestService.cs" />
+    <Compile Include="Services\Items\ItemCodeRequestService.cs" />
     <Compile Include="Services\Codes\LocationBudgetService.cs" />
     <Compile Include="Services\Codes\LocationService.cs" />
     <Compile Include="Services\Codes\PsCategoryService.cs" />
@@ -1538,6 +1550,10 @@
     <None Include="Properties\PublishProfiles\Web2015.pubxml" />
     <None Include="Properties\PublishProfiles\Web02.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
+    <Content Include="Reports\ParSet.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>ParSet.cs</LastGenOutput>
+    </Content>
     <Content Include="Reports\Po_.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Po_1.cs</LastGenOutput>
@@ -4216,6 +4232,7 @@
     <Content Include="Views\StockCard\_PostBatch.cshtml" />
     <Content Include="Views\StockCard\_UnpostBatch.cshtml" />
     <Content Include="Views\Query\Po.cshtml" />
+    <Content Include="Views\StockCard\_PoTransfer.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4312,6 +4329,10 @@
     <Content Include="Reports\Card_Po_.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Card_Po_.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\IcsSet.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>IcsSet.cs</LastGenOutput>
     </Content>
   </ItemGroup>
   <ItemGroup>

@@ -362,6 +362,9 @@
             //$(".k-grid-btnRemoveIssueRIS", grid).hide();
             //$(".k-grid-btnIssueRIS", grid).hide();
         }
+        else {
+            $(".k-grid-btnPrintRIS", grid).show();
+        }
 
         //alert('x');
         //var trs = this.tbody.find('tr').each(function () {
@@ -429,6 +432,27 @@
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedId = newRecord.Id;
+
+                if (selectedId) {
+
+                    var grid = $("#grid").data("kendoGrid");
+
+                    // Trigger a read operation on the data source.
+                    grid.dataSource.read().then(function () {
+                        // Additional actions to be performed after the read operation.
+
+                        // Find the row with the specified Id.
+                        var dataItem = grid.dataSource.get(selectedId);
+
+                        // If the row is found, expand it.
+                        if (dataItem) {
+                            var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");
+                            grid.expandRow(row);
+                        }
+                    });
+
+                    RisItem("A", null);
+                }
             }
         }
     }

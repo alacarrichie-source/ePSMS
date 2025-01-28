@@ -109,25 +109,6 @@
                     @Html.ValidationMessageFor(m => m.Type)
                 </div>
             </div>
-        </div>
-
-        <br />
-        <div id="DIV_ALLFIELDS" style="border: 1px solid black;padding:1rem 1rem;" class="hidden">
-
-        </div>
-
-        <br />
-
-        <div class="row k-mb-2">
-            <div class="col-md-6">
-                <div class="col-md-4">
-                    @Html.DisplayFor(m => m.Description, "Label")
-                </div>
-                <div class="col-md-8">
-                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(5).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.Description)
-                </div>
-            </div>
 
             <div class="col-md-6">
                 <div class="col-md-4">
@@ -140,6 +121,13 @@
             </div>
         </div>
 
+        <br />
+        <div id="DIV_ALLFIELDS" style="border: 1px solid black;padding:1rem 1rem;" class="hidden">
+
+        </div>
+
+        <br />
+        
         <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
@@ -328,6 +316,18 @@
                 <div class="col-md-8">
                     @(Html.Kendo().DatePickerFor(m => m.PoDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PoDate)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-12">
+                    @Html.DisplayFor(m => m.Description, "Label")
+                </div>
+                <div class="col-md-12">
+                    @(Html.Kendo().TextAreaFor(m => m.Description).Rows(5).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Description)
                 </div>
             </div>
         </div>

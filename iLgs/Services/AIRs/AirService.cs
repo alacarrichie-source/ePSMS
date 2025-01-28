@@ -301,6 +301,11 @@ namespace iLgs.Services.AIRs
                     var psCardItem = await _db.PsCardItems.Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
                     if (psCardItem == null)
                     {
+                        var unitGroupDescriptionItem = _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup).Where(w => w.OrderItemId == orderItem.Id).FirstOrDefault();
+                        var setQty = unitGroupDescriptionItem == null ? 1 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
+                        var setLotNo = unitGroupDescriptionItem == null ? "" : orderItem.Order.PoNo + "-" + unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
+                        var setLotAmount = unitGroupDescriptionItem == null ? 0 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost;
+                        var setLotRemarks = unitGroupDescriptionItem == null ? "" : unitGroupDescriptionItem.OrderItemUnitGroupDescription.Description;
                         var psCardItemId = Guid.NewGuid();
                         psCardItem = new PsCardItem()
                         {
@@ -312,9 +317,9 @@ namespace iLgs.Services.AIRs
                             PoNo = orderItem.Order.PoNo,
                             AirDate = entity.AIRDate,
                             AirNo = entity.AIRNo,
-                            Qty = (int)orderItem.Qty,
+                            Qty = (int)orderItem.Qty * setQty,
                             QtyIss = 0,
-                            QtyBal = (int)orderItem.Qty,
+                            QtyBal = (int)orderItem.Qty * setQty,
                             TranType = "I",
                             //Unit = orderItem.RequestItem.RisItem.Unit,
                             Unit = orderItem.Unit,
@@ -329,9 +334,9 @@ namespace iLgs.Services.AIRs
                             Type = orderAllField.Type,
                             InvDist = oig.InvDist,
                             FPP = orderItem.RequestItem.RisItem.RISs.FPP,
-                            //SetLotNo,
-                            //SetLotAmount,
-                            //SetLotRemarks.
+                            SetLotNo = setLotNo,
+                            SetLotAmount = setLotAmount,
+                            SetLotRemarks = setLotRemarks,
                             InsertedBy = user,
                             InsertedDt = date,
                             UpdatedBy = user,
@@ -421,6 +426,7 @@ namespace iLgs.Services.AIRs
                     var orderItemUnitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
                         //.Include(i => i.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup)
                         .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
+                        .Include(i => i.OrderItem)
                         .Where(w => w.OrderItemId == psCardItem.OrderItemId).FirstOrDefaultAsync();
                     if (orderItemUnitGroupDescriptionItem != null)
                     {
@@ -463,6 +469,7 @@ namespace iLgs.Services.AIRs
                                     Id = Guid.NewGuid(),
                                     UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
                                     PsCardItemId = psCardItem.Id,
+                                    PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
                                     InsertedBy = user,
                                     InsertedDt = date,
                                     UpdatedBy = user,
@@ -497,6 +504,7 @@ namespace iLgs.Services.AIRs
                                         Id = Guid.NewGuid(),
                                         UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
                                         PsCardItemId = psCardItem.Id,
+                                        PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
                                         InsertedBy = user,
                                         InsertedDt = date,
                                         UpdatedBy = user,
@@ -517,6 +525,7 @@ namespace iLgs.Services.AIRs
                                             Id = Guid.NewGuid(),
                                             UnitGroupDescriptionId = psCardItemUnitGroupDescription.Id,
                                             PsCardItemId = psCardItem.Id,
+                                            PoQty = (int?)orderItemUnitGroupDescriptionItem.OrderItem.Qty,
                                             InsertedBy = user,
                                             InsertedDt = date,
                                             UpdatedBy = user,
@@ -552,7 +561,7 @@ namespace iLgs.Services.AIRs
                 throw new RecordRelationshipException("Items were already issued cannot unpost!");
             }
 
-            if (await _db.IcsParItems.AsNoTracking().AnyAsync(a => a.PsCardItemExtn.PsCardItem.OrderItemId == entity.OrderId))
+            if (await _db.IcsParItems.Include(i => i.PsCardItemExtn.PsCardItem).AsNoTracking().AnyAsync(a => a.PsCardItemExtn.PsCardItem.OrderItemId == entity.OrderId))
             {
                 throw new RecordRelationshipException("PAR/ICS already issued cannot unpost!");
             }

@@ -765,6 +765,7 @@
           <Property Name="IsForDistribution" Type="bit" />
           <Property Name="IsIncorporated" Type="bit" />
           <Property Name="Status" Type="varchar" MaxLength="50" />
+          <Property Name="StatusRemarks" Type="varchar" MaxLength="200" />
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
@@ -1285,6 +1286,7 @@
           <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
           <Property Name="UnitGroupDescriptionId" Type="uniqueidentifier" />
           <Property Name="PsCardItemId" Type="uniqueidentifier" />
+          <Property Name="PoQty" Type="int" />
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
           <Property Name="InsertedDt" Type="datetime" />
           <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
@@ -1716,6 +1718,7 @@
           <Property Name="RCC" Type="varchar" MaxLength="50" />
           <Property Name="LocationCode" Type="varchar" MaxLength="50" />
           <Property Name="Location" Type="varchar" MaxLength="100" />
+          <Property Name="ItemCode" Type="varchar" MaxLength="50" />
           <Property Name="StockNo" Type="varchar" MaxLength="100" />
           <Property Name="ItemName" Type="varchar" MaxLength="900" />
           <Property Name="Unit" Type="varchar" MaxLength="10" />
@@ -4142,12 +4145,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="Codextn" EntitySet="Codextns" />
             <End Role="DepartmentUser" EntitySet="DepartmentUsers" />
           </AssociationSet>
-          <EntitySet Name="PsCardItemUnitGroupDescriptionItems" EntityType="AppManModel.PsCardItemUnitGroupDescriptionItem" />
           <EntitySet Name="PsCardItemUnitGroupDescriptions" EntityType="AppManModel.PsCardItemUnitGroupDescription" />
-          <AssociationSet Name="FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions" Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions">
-            <End Role="PsCardItemUnitGroupDescription" EntitySet="PsCardItemUnitGroupDescriptions" />
-            <End Role="PsCardItemUnitGroupDescriptionItem" EntitySet="PsCardItemUnitGroupDescriptionItems" />
-          </AssociationSet>
           <EntitySet Name="PsCardItemUnitGroups" EntityType="AppManModel.PsCardItemUnitGroup" />
           <AssociationSet Name="FK_PsCardItemUnitGroupDescriptions_PsCardItemUnitGroups" Association="AppManModel.FK_PsCardItemUnitGroupDescriptions_PsCardItemUnitGroups">
             <End Role="PsCardItemUnitGroup" EntitySet="PsCardItemUnitGroups" />
@@ -4292,11 +4290,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="AIR" EntitySet="AIRs" />
             <End Role="AIRItem" EntitySet="AIRItems" />
           </AssociationSet>
-          <EntitySet Name="ItemCodeRequests" EntityType="AppManModel.ItemCodeRequest" />
-          <AssociationSet Name="FK_ItemCodeRequests_Codextn" Association="AppManModel.FK_ItemCodeRequests_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="ItemCodeRequest" EntitySet="ItemCodeRequests" />
-          </AssociationSet>
           <EntitySet Name="PsCardItems" EntityType="AppManModel.PsCardItem" />
           <AssociationSet Name="FK_PsCardItems_Codextn" Association="AppManModel.FK_PsCardItems_Codextn">
             <End Role="Codextn" EntitySet="Codextns" />
@@ -4325,10 +4318,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_PsCardItemTransfers_PsCardItems" Association="AppManModel.FK_PsCardItemTransfers_PsCardItems">
             <End Role="PsCardItem" EntitySet="PsCardItems" />
             <End Role="PsCardItemTransfer" EntitySet="PsCardItemTransfers" />
-          </AssociationSet>
-          <AssociationSet Name="FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems">
-            <End Role="PsCardItem" EntitySet="PsCardItems" />
-            <End Role="PsCardItemUnitGroupDescriptionItem" EntitySet="PsCardItemUnitGroupDescriptionItems" />
           </AssociationSet>
           <EntitySet Name="CustodianIirupItems" EntityType="AppManModel.CustodianIirupItem" />
           <EntitySet Name="CustodianIIRUPs" EntityType="AppManModel.CustodianIIRUP" />
@@ -4373,11 +4362,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_CustodianReportItems_ItemCodes" Association="AppManModel.FK_CustodianReportItems_ItemCodes">
             <End Role="ItemCode" EntitySet="ItemCodes" />
             <End Role="CustodianReportItem" EntitySet="CustodianReportItems" />
-          </AssociationSet>
-          <EntitySet Name="RSMIItems" EntityType="AppManModel.RSMIItem" />
-          <AssociationSet Name="FK_RSMIItems_RSMI" Association="AppManModel.FK_RSMIItems_RSMI">
-            <End Role="RSMI" EntitySet="RSMIs" />
-            <End Role="RSMIItem" EntitySet="RSMIItems" />
           </AssociationSet>
           <EntitySet Name="RPCIItems" EntityType="AppManModel.RPCIItem" />
           <AssociationSet Name="FK_RPCIItems_Codextn" Association="AppManModel.FK_RPCIItems_Codextn">
@@ -4512,6 +4496,25 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_PARs_Orders" Association="AppManModel.FK_PARs_Orders">
             <End Role="Order" EntitySet="Orders" />
             <End Role="PAR" EntitySet="PARs" />
+          </AssociationSet>
+          <EntitySet Name="ItemCodeRequests" EntityType="AppManModel.ItemCodeRequest" />
+          <AssociationSet Name="FK_ItemCodeRequests_Codextn" Association="AppManModel.FK_ItemCodeRequests_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="ItemCodeRequest" EntitySet="ItemCodeRequests" />
+          </AssociationSet>
+          <EntitySet Name="PsCardItemUnitGroupDescriptionItems" EntityType="AppManModel.PsCardItemUnitGroupDescriptionItem" />
+          <AssociationSet Name="FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems">
+            <End Role="PsCardItem" EntitySet="PsCardItems" />
+            <End Role="PsCardItemUnitGroupDescriptionItem" EntitySet="PsCardItemUnitGroupDescriptionItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions" Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions">
+            <End Role="PsCardItemUnitGroupDescription" EntitySet="PsCardItemUnitGroupDescriptions" />
+            <End Role="PsCardItemUnitGroupDescriptionItem" EntitySet="PsCardItemUnitGroupDescriptionItems" />
+          </AssociationSet>
+          <EntitySet Name="RSMIItems" EntityType="AppManModel.RSMIItem" />
+          <AssociationSet Name="FK_RSMIItems_RSMI" Association="AppManModel.FK_RSMIItems_RSMI">
+            <End Role="RSMI" EntitySet="RSMIs" />
+            <End Role="RSMIItem" EntitySet="RSMIItems" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -5532,7 +5535,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="CustodianReportBldgItems" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn" FromRole="Codextn" ToRole="CustodianReportBldgItem" />
           <NavigationProperty Name="CustodianReportBldgItems1" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn1" FromRole="Codextn" ToRole="CustodianReportBldgItem" />
           <NavigationProperty Name="CustodianReportLandItems" Relationship="AppManModel.FK_CustodianReportLandItems_Codextn" FromRole="Codextn" ToRole="CustodianReportLandItem" />
-          <NavigationProperty Name="ItemCodeRequests" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="Codextn" ToRole="ItemCodeRequest" />
           <NavigationProperty Name="PsCardItems" Relationship="AppManModel.FK_PsCardItems_Codextn" FromRole="Codextn" ToRole="PsCardItem" />
           <NavigationProperty Name="PsCardItems1" Relationship="AppManModel.FK_PsCardItems_Codextn1" FromRole="Codextn" ToRole="PsCardItem" />
           <NavigationProperty Name="IcsPars" Relationship="AppManModel.FK_IcsPars_Codextn" FromRole="Codextn" ToRole="IcsPar" />
@@ -5540,6 +5542,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="CustodianReportItems1" Relationship="AppManModel.FK_CustodianReportItems_Codextn1" FromRole="Codextn" ToRole="CustodianReportItem" />
           <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_Codextn" FromRole="Codextn" ToRole="RPCIItem" />
           <NavigationProperty Name="RISses" Relationship="AppManModel.FK_RISs_Codextn" FromRole="Codextn" ToRole="RISs" />
+          <NavigationProperty Name="ItemCodeRequests" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="Codextn" ToRole="ItemCodeRequest" />
           </EntityType>
         <Association Name="FK_AccountableOfficers_Codextn">
           <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1">
@@ -5579,20 +5582,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="PsCardItemUnitGroupDescriptionItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="UnitGroupDescriptionId" Type="Guid" />
-          <Property Name="PsCardItemId" Type="Guid" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="PsCardItemUnitGroupDescription" Relationship="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions" FromRole="PsCardItemUnitGroupDescriptionItem" ToRole="PsCardItemUnitGroupDescription" />
-          <NavigationProperty Name="PsCardItem" Relationship="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" FromRole="PsCardItemUnitGroupDescriptionItem" ToRole="PsCardItem" />
-        </EntityType>
         <EntityType Name="PsCardItemUnitGroupDescription">
           <Key>
             <PropertyRef Name="Id" />
@@ -5604,23 +5593,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="InsertedDt" Type="DateTime" Precision="3" />
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="PsCardItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions" FromRole="PsCardItemUnitGroupDescription" ToRole="PsCardItemUnitGroupDescriptionItem" />
           <NavigationProperty Name="PsCardItemUnitGroup" Relationship="AppManModel.FK_PsCardItemUnitGroupDescriptions_PsCardItemUnitGroups" FromRole="PsCardItemUnitGroupDescription" ToRole="PsCardItemUnitGroup" />
+          <NavigationProperty Name="PsCardItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions" FromRole="PsCardItemUnitGroupDescription" ToRole="PsCardItemUnitGroupDescriptionItem" />
         </EntityType>
-        <Association Name="FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions">
-          <End Type="AppManModel.PsCardItemUnitGroupDescription" Role="PsCardItemUnitGroupDescription" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.PsCardItemUnitGroupDescriptionItem" Role="PsCardItemUnitGroupDescriptionItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PsCardItemUnitGroupDescription">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsCardItemUnitGroupDescriptionItem">
-              <PropertyRef Name="UnitGroupDescriptionId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="PsCardItemUnitGroup">
           <Key>
             <PropertyRef Name="Id" />
@@ -6777,37 +6752,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="ItemCodeRequest">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="DepartmentId" Type="Guid" />
-          <Property Name="Description" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Remarks" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="EstCost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="IsConsumable" Type="Boolean" />
-          <Property Name="IsForDistribution" Type="Boolean" />
-          <Property Name="IsIncorporated" Type="Boolean" />
-          <Property Name="Status" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="ItemCodeRequest" ToRole="Codextn" />
-        </EntityType>
-        <Association Name="FK_ItemCodeRequests_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.ItemCodeRequest" Role="ItemCodeRequest" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ItemCodeRequest">
-              <PropertyRef Name="DepartmentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="PsCardItem">
           <Key>
             <PropertyRef Name="Id" />
@@ -6872,10 +6816,10 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="PsCardItemTransfer" Relationship="AppManModel.FK_PsCardItems_PsCardItemTransfers" FromRole="PsCardItem" ToRole="PsCardItemTransfer" />
           <NavigationProperty Name="PsCard" Relationship="AppManModel.FK_PsCardItems_PsCards" FromRole="PsCardItem" ToRole="PsCard" />
           <NavigationProperty Name="PsCardItemTransfers" Relationship="AppManModel.FK_PsCardItemTransfers_PsCardItems" FromRole="PsCardItem" ToRole="PsCardItemTransfer" />
-          <NavigationProperty Name="PsCardItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" FromRole="PsCardItem" ToRole="PsCardItemUnitGroupDescriptionItem" />
           <NavigationProperty Name="OrderItem" Relationship="AppManModel.FK_PsCardItems_OrderItems" FromRole="PsCardItem" ToRole="OrderItem" />
           <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="PostedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="PsCardItemUnitGroupDescriptionItems" Relationship="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" FromRole="PsCardItem" ToRole="PsCardItemUnitGroupDescriptionItem" />
         </EntityType>
         <Association Name="FK_PsCardItems_Codextn">
           <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
@@ -6963,18 +6907,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="PsCardItemTransfer">
-              <PropertyRef Name="PsCardItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_PsCardItemUnitGroupDescriptionItems_PsCardItems">
-          <End Type="AppManModel.PsCardItem" Role="PsCardItem" Multiplicity="0..1" />
-          <End Type="AppManModel.PsCardItemUnitGroupDescriptionItem" Role="PsCardItemUnitGroupDescriptionItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="PsCardItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="PsCardItemUnitGroupDescriptionItem">
               <PropertyRef Name="PsCardItemId" />
             </Dependent>
           </ReferentialConstraint>
@@ -7269,45 +7201,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="CustodianReportItem">
               <PropertyRef Name="ItemCodeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityType Name="RSMIItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="RsmiId" Type="Guid" />
-          <Property Name="RisNo" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
-          <Property Name="PoNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Department" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="RCC" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="LocationCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Location" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="StockNo" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="ItemName" Type="String" MaxLength="900" FixedLength="false" Unicode="false" />
-          <Property Name="Unit" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="Qty" Type="Int32" />
-          <Property Name="UnitCost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="AccountCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="RSMI" Relationship="AppManModel.FK_RSMIItems_RSMI" FromRole="RSMIItem" ToRole="RSMI" />
-        </EntityType>
-        <Association Name="FK_RSMIItems_RSMI">
-          <End Type="AppManModel.RSMI" Role="RSMI" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.RSMIItem" Role="RSMIItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RSMI">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RSMIItem">
-              <PropertyRef Name="RsmiId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -7967,6 +7860,119 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="PAR">
               <PropertyRef Name="OrderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ItemCodeRequest">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="DepartmentId" Type="Guid" />
+          <Property Name="Description" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Remarks" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="EstCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="IsConsumable" Type="Boolean" />
+          <Property Name="IsForDistribution" Type="Boolean" />
+          <Property Name="IsIncorporated" Type="Boolean" />
+          <Property Name="Status" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="StatusRemarks" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="ItemCodeRequest" ToRole="Codextn" />
+        </EntityType>
+        <Association Name="FK_ItemCodeRequests_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.ItemCodeRequest" Role="ItemCodeRequest" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ItemCodeRequest">
+              <PropertyRef Name="DepartmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="PsCardItemUnitGroupDescriptionItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="UnitGroupDescriptionId" Type="Guid" />
+          <Property Name="PsCardItemId" Type="Guid" />
+          <Property Name="PoQty" Type="Int32" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="PsCardItem" Relationship="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" FromRole="PsCardItemUnitGroupDescriptionItem" ToRole="PsCardItem" />
+          <NavigationProperty Name="PsCardItemUnitGroupDescription" Relationship="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions" FromRole="PsCardItemUnitGroupDescriptionItem" ToRole="PsCardItemUnitGroupDescription" />
+        </EntityType>
+        <Association Name="FK_PsCardItemUnitGroupDescriptionItems_PsCardItems">
+          <End Type="AppManModel.PsCardItem" Role="PsCardItem" Multiplicity="0..1" />
+          <End Type="AppManModel.PsCardItemUnitGroupDescriptionItem" Role="PsCardItemUnitGroupDescriptionItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PsCardItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsCardItemUnitGroupDescriptionItem">
+              <PropertyRef Name="PsCardItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PsCardItemUnitGroupDescriptionItems_PsCardItemUnitGroupDescriptions">
+          <End Type="AppManModel.PsCardItemUnitGroupDescription" Role="PsCardItemUnitGroupDescription" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.PsCardItemUnitGroupDescriptionItem" Role="PsCardItemUnitGroupDescriptionItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PsCardItemUnitGroupDescription">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PsCardItemUnitGroupDescriptionItem">
+              <PropertyRef Name="UnitGroupDescriptionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="RSMIItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="RsmiId" Type="Guid" />
+          <Property Name="RisNo" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
+          <Property Name="PoNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Department" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="RCC" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="LocationCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Location" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="ItemCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="StockNo" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="ItemName" Type="String" MaxLength="900" FixedLength="false" Unicode="false" />
+          <Property Name="Unit" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="Qty" Type="Int32" />
+          <Property Name="UnitCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Amount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AccountCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="RSMI" Relationship="AppManModel.FK_RSMIItems_RSMI" FromRole="RSMIItem" ToRole="RSMI" />
+        </EntityType>
+        <Association Name="FK_RSMIItems_RSMI">
+          <End Type="AppManModel.RSMI" Role="RSMI" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.RSMIItem" Role="RSMIItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RSMI">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RSMIItem">
+              <PropertyRef Name="RsmiId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -8635,19 +8641,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="MastId" ColumnName="MastId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="PsCardItemUnitGroupDescriptionItems">
-            <EntityTypeMapping TypeName="AppManModel.PsCardItemUnitGroupDescriptionItem">
-              <MappingFragment StoreEntitySet="PsCardItemUnitGroupDescriptionItems">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="PsCardItemId" ColumnName="PsCardItemId" />
-                <ScalarProperty Name="UnitGroupDescriptionId" ColumnName="UnitGroupDescriptionId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -9432,25 +9425,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="ItemCodeRequests">
-            <EntityTypeMapping TypeName="AppManModel.ItemCodeRequest">
-              <MappingFragment StoreEntitySet="ItemCodeRequests">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Status" ColumnName="Status" />
-                <ScalarProperty Name="IsIncorporated" ColumnName="IsIncorporated" />
-                <ScalarProperty Name="IsForDistribution" ColumnName="IsForDistribution" />
-                <ScalarProperty Name="IsConsumable" ColumnName="IsConsumable" />
-                <ScalarProperty Name="EstCost" ColumnName="EstCost" />
-                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="PsCardItems">
             <EntityTypeMapping TypeName="AppManModel.PsCardItem">
               <MappingFragment StoreEntitySet="PsCardItems">
@@ -9666,31 +9640,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="CustodianItemNo" ColumnName="CustodianItemNo" />
                 <ScalarProperty Name="Fund" ColumnName="Fund" />
                 <ScalarProperty Name="ReportId" ColumnName="ReportId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="RSMIItems">
-            <EntityTypeMapping TypeName="AppManModel.RSMIItem">
-              <MappingFragment StoreEntitySet="RSMIItems">
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="AccountCode" ColumnName="AccountCode" />
-                <ScalarProperty Name="Amount" ColumnName="Amount" />
-                <ScalarProperty Name="UnitCost" ColumnName="UnitCost" />
-                <ScalarProperty Name="Qty" ColumnName="Qty" />
-                <ScalarProperty Name="Unit" ColumnName="Unit" />
-                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
-                <ScalarProperty Name="StockNo" ColumnName="StockNo" />
-                <ScalarProperty Name="Location" ColumnName="Location" />
-                <ScalarProperty Name="LocationCode" ColumnName="LocationCode" />
-                <ScalarProperty Name="RCC" ColumnName="RCC" />
-                <ScalarProperty Name="Department" ColumnName="Department" />
-                <ScalarProperty Name="PoNo" ColumnName="PoNo" />
-                <ScalarProperty Name="RisNo" ColumnName="RisNo" />
-                <ScalarProperty Name="RsmiId" ColumnName="RsmiId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -9929,6 +9878,66 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="SupBusiness" ColumnName="SupBusiness" />
                 <ScalarProperty Name="SupName" ColumnName="SupName" />
                 <ScalarProperty Name="SupplierId" ColumnName="SupplierId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ItemCodeRequests">
+            <EntityTypeMapping TypeName="AppManModel.ItemCodeRequest">
+              <MappingFragment StoreEntitySet="ItemCodeRequests">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="StatusRemarks" ColumnName="StatusRemarks" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="IsIncorporated" ColumnName="IsIncorporated" />
+                <ScalarProperty Name="IsForDistribution" ColumnName="IsForDistribution" />
+                <ScalarProperty Name="IsConsumable" ColumnName="IsConsumable" />
+                <ScalarProperty Name="EstCost" ColumnName="EstCost" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PsCardItemUnitGroupDescriptionItems">
+            <EntityTypeMapping TypeName="AppManModel.PsCardItemUnitGroupDescriptionItem">
+              <MappingFragment StoreEntitySet="PsCardItemUnitGroupDescriptionItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="PoQty" ColumnName="PoQty" />
+                <ScalarProperty Name="PsCardItemId" ColumnName="PsCardItemId" />
+                <ScalarProperty Name="UnitGroupDescriptionId" ColumnName="UnitGroupDescriptionId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RSMIItems">
+            <EntityTypeMapping TypeName="AppManModel.RSMIItem">
+              <MappingFragment StoreEntitySet="RSMIItems">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="AccountCode" ColumnName="AccountCode" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="UnitCost" ColumnName="UnitCost" />
+                <ScalarProperty Name="Qty" ColumnName="Qty" />
+                <ScalarProperty Name="Unit" ColumnName="Unit" />
+                <ScalarProperty Name="ItemName" ColumnName="ItemName" />
+                <ScalarProperty Name="StockNo" ColumnName="StockNo" />
+                <ScalarProperty Name="ItemCode" ColumnName="ItemCode" />
+                <ScalarProperty Name="Location" ColumnName="Location" />
+                <ScalarProperty Name="LocationCode" ColumnName="LocationCode" />
+                <ScalarProperty Name="RCC" ColumnName="RCC" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="PoNo" ColumnName="PoNo" />
+                <ScalarProperty Name="RisNo" ColumnName="RisNo" />
+                <ScalarProperty Name="RsmiId" ColumnName="RsmiId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

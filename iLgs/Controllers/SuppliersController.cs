@@ -1,16 +1,10 @@
 ﻿using iLgs.Models;
-using Kendo.Mvc.UI;
-using Kendo.Mvc.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
-using System.Data.Entity;
-using Microsoft.AspNet.Identity;
 using iLgs.Utilities;
+using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
 using Newtonsoft.Json;
+using System.Linq;
+using System.Web.Mvc;
 
 
 namespace iLgs.Controllers

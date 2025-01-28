@@ -6,6 +6,8 @@ using System.Web;
 using System.Threading.Tasks;
 using iLgs.Models;
 using System.Data.Entity;
+using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 
 namespace iLgs.Services.PurchaseRequest
 {
@@ -164,6 +166,7 @@ namespace iLgs.Services.PurchaseRequest
 
         public async Task<RequestVM> CreateAsync(RequestVM model, string user, DateTime date)
         {
+            ValidateIfNull(model);
             model.Id = Guid.NewGuid();
             if (string.IsNullOrWhiteSpace(model.PrNo))
             {
@@ -297,10 +300,13 @@ namespace iLgs.Services.PurchaseRequest
 
         public async Task<RequestVM> UpdateAsync(RequestVM model, string user, DateTime date)
         {
+            ValidateIfNull(model);
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             var entity = await _db.Requests.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
+            ValidateRecord(entity, model.Id);
+            ValidateIfPosted(entity);
 
             // if there's a change of requisition item
             if (entity.RisId != model.RisId)
@@ -371,11 +377,14 @@ namespace iLgs.Services.PurchaseRequest
 
         public async Task<RequestVM> DeleteAsync(RequestVM model, string user, DateTime date)
         {
-
+            ValidateIfNull(model);
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             var entity = await _db.Requests.FindAsync(model.Id);
+            ValidateRecord(entity, model.Id);
+            ValidateIfPosted(entity);
+            ValidateRelationship(model.Id);
 
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
@@ -444,6 +453,39 @@ namespace iLgs.Services.PurchaseRequest
             {
                 var sequence = (int.Parse(data.PrNo.Split('-')[2]) + 1).ToString();
                 return keyName + "-" + sequence.PadLeft(4, '0');
+            }
+        }
+
+        private void ValidateRelationship(Guid prId)
+        {
+            var order = _db.Orders.Where(a => a.PrId == prId).AsNoTracking().FirstOrDefault();
+            if (order != null)
+            {
+                throw new RecordRelationshipException($"This PR Number is in use by PO Number {order.PoNo}, cannot delete!");
+            }
+        }
+
+        private void ValidateRecord(Request entity, Guid id)
+        {
+            if (entity is null)
+            {
+                throw new NotFoundException(id);
+            }
+        }
+
+        private void ValidateIfNull(RequestVM model)
+        {
+            if (model is null)
+            {
+                throw new NullException();
+            }
+        }
+
+        private void ValidateIfPosted(Request entity)
+        {
+            if (entity != null && !string.IsNullOrWhiteSpace(entity.SubmittedBy))
+            {
+                throw new RecordAlreadyPostedException(string.Format("PR Number {0} already posted, cannot update!", entity.PrNo));
             }
         }
     }

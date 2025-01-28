@@ -56,12 +56,11 @@ namespace iLgs.Controllers
             return result;
         }
         
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> ParRpt(string parNo)
+        public async Task<ActionResult> ParSetRpt(string parNo)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_par");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
                 Access access = await accessTask;
                 if (access == null)
                 {
@@ -84,7 +83,7 @@ namespace iLgs.Controllers
             Tables crTables;
             TableLogOnInfo crTableLogOnInfo;
             rpt = new ReportDocument();
-            rpt.FileName = Server.MapPath(Url.Content("~/Reports/Par.rpt"));
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/ParSet.rpt"));
             rpt.Refresh();
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -139,7 +138,8 @@ namespace iLgs.Controllers
 
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
-            rpt.SetParameterValue("@cParNo", parNo);
+            rpt.SetParameterValue("@cRefNo", parNo);
+            rpt.SetParameterValue("@cRefType", "P");
             rpt.SetParameterValue("LGU", lgu);
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);

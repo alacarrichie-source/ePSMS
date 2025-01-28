@@ -50,7 +50,8 @@ namespace iLgs.Services.PurchaseRequest
                     UnitCost = s.UnitCost,
                     TotalCost = s.TotalCost,
                     PriceRate = s.PriceRate,
-                    InsertedDt = s.InsertedDt
+                    InsertedDt = s.InsertedDt,
+                    SetLotNo = s.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo                    
                 });
             return data;
         }
@@ -77,7 +78,8 @@ namespace iLgs.Services.PurchaseRequest
                     TotalCost = s.TotalCost,
                     PriceRate = s.PriceRate,
                     InsertedDt = s.InsertedDt,
-                    GridRequestItemExtns = ""
+                    GridRequestItemExtns = "",
+                    SetLotNo = s.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo
                 }).FirstOrDefaultAsync();
             return data;
         }
@@ -151,8 +153,22 @@ namespace iLgs.Services.PurchaseRequest
 
             _db.RequestItems.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                        
+            //var poItem = _db.OrderItems.Where(w => w.RequestItemId == model.Id).FirstOrDefault();
+            //if (poItem != null)
+            //{
+            //    poItem.Qty = model.Qty;
+            //    //poItem.Description = model.Description;
+            //    _db.OrderItems.Attach(poItem);
+            //    _db.Entry(poItem).State = EntityState.Modified;
 
+            //    var airItem = _db.AIRItems.Where(w => w.OrderItemId == poItem.Id).FirstOrDefault();
+            //    airItem.Qty = model.Qty;
+            //    _db.AIRItems.Attach(airItem);
+            //    _db.Entry(airItem).State = EntityState.Modified;
+            //}            
+
+            await _db.SaveChangesAsync();
             return model;
         }
     }

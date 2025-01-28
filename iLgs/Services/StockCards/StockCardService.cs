@@ -93,6 +93,8 @@ namespace iLgs.Services.StockCards
 
         public ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
+            var stockNo = GetStockNo(model);
+            model.PsNo = stockNo;
             _validator.ValidateOnCreate(model);
 
             model.Description = "Please see attachment.";
@@ -138,7 +140,9 @@ namespace iLgs.Services.StockCards
         });
         
         public ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
-        {            
+        {
+            var stockNo = GetStockNo(model);
+            model.PsNo = stockNo;
             _validator.ValidateOnUpdate(model);
 
             model.UpdatedBy = user;

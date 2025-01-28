@@ -17,12 +17,13 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
+        public Nullable<int> PoQty { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual PsCardItemUnitGroupDescription PsCardItemUnitGroupDescription { get; set; }
         public virtual PsCardItem PsCardItem { get; set; }
+        public virtual PsCardItemUnitGroupDescription PsCardItemUnitGroupDescription { get; set; }
     }
 }

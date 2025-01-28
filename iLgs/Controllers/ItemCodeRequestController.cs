@@ -1,7 +1,9 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services;
 using iLgs.Services.Codes;
+using iLgs.Services.Items;
 using iLgs.Services.Uploads;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
@@ -33,6 +35,10 @@ namespace iLgs.Controllers
 
         public ActionResult Index()
         {
+            IUserService userService = new UserService(_db);
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var isAdmin = userService.IsUserNameAdmin(user);
+            ViewBag.IsAdmin = isAdmin;
             return View();
         }
 

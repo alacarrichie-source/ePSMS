@@ -11,6 +11,7 @@
             .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
             .HeaderHtmlAttributes(new { style = "text-align:right;" });
         col.Bound(c => c.InvDistDesc).Width(70);
+        col.Bound(c => c.SetLotNo).Width(50);
         col.Command(command =>
         {
             command.Edit();
@@ -43,7 +44,7 @@
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRItemTemplate").Window(w => w.Width(500).Title("Acceptance and Inspection Item")))
     .DataSource(dataSource => dataSource
         .Ajax()
-        .Events(events => events.Error("GridError").RequestEnd("onGridItemsRequestEnd"))
+        .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
         .Model(model =>
         {
             model.Id(p => p.Id);

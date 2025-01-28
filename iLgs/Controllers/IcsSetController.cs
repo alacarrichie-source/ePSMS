@@ -54,12 +54,12 @@ namespace iLgs.Controllers
             return result;
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> IcsRpt(string icsNo)
+        //[AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> IcsSetRpt(string icsNo)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_par");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ics");
                 Access access = await accessTask;
                 if (access == null)
                 {
@@ -82,7 +82,7 @@ namespace iLgs.Controllers
             Tables crTables;
             TableLogOnInfo crTableLogOnInfo;
             rpt = new ReportDocument();
-            rpt.FileName = Server.MapPath(Url.Content("~/Reports/Ics.rpt"));
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/IcsSet.rpt"));
             rpt.Refresh();
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -137,7 +137,8 @@ namespace iLgs.Controllers
 
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
-            rpt.SetParameterValue("@cIcsNo", icsNo);
+            rpt.SetParameterValue("@cRefNo", icsNo);
+            rpt.SetParameterValue("@cRefType", "I");
             rpt.SetParameterValue("LGU", lgu);
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);

@@ -79,7 +79,8 @@ namespace iLgs.Services.PurchaseOrder
                 UnitCost = s.UnitCost,
                 Amount = s.Amount,
                 PriceRate = s.PriceRate,
-                InsertedDt = s.InsertedDt
+                InsertedDt = s.InsertedDt,
+                SetLotNo = s.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo
             };
         }
 
@@ -107,7 +108,7 @@ namespace iLgs.Services.PurchaseOrder
             return await _db.AIRItems.AnyAsync(a => a.OrderItemId == id);
         }
 
-        private void ValidateBrand(OrderItemVM model)
+        private void ValidateFields(OrderItemVM model)
         {
             if (Enum.TryParse(model.PsType, out Category c))
             {
@@ -119,12 +120,13 @@ namespace iLgs.Services.PurchaseOrder
                     }
                 }                                   
             }
+
             _imex.ThrowIfContainsErrors();
         }
 
         public ValueTask<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
-            ValidateBrand(model);
+            ValidateFields(model);
 
             var requestItem = await _db.RequestItems.Include(i => i.RisItem.AllField)
                 .Include(i => i.RisItem.ItemCode)
@@ -310,7 +312,7 @@ namespace iLgs.Services.PurchaseOrder
 
         public ValueTask<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
-            ValidateBrand(model);
+            ValidateFields(model);
 
             var requestItemId = _db.RequestItems.FindAsync(model.RequestItemId).Result?.RisItemId;
             if (requestItemId == null)
@@ -323,7 +325,6 @@ namespace iLgs.Services.PurchaseOrder
             {
                 throw new RecordRelationshipException("Cound not find RIS item for this record!");
             }
-
             
             model.UpdatedBy = user;
             model.UpdatedDt = date;

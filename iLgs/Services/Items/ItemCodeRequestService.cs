@@ -1,22 +1,17 @@
-﻿using ClosedXML.Excel;
-using iLgs.Controllers;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
+using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
-namespace iLgs.Services.Codes
+namespace iLgs.Services.Items
 {
     public interface IItemCodeRequestService
     {
@@ -24,7 +19,7 @@ namespace iLgs.Services.Codes
         IQueryable<ItemCodeRequestVM> GetAllByUser(string user);
         ValueTask<ItemCodeRequest> GetByIdAsync(Guid? id);
         ValueTask<ItemCodeRequestVM> CreateAsync(ItemCodeRequestVM model, string user, DateTime date);
-        ValueTask<ItemCodeRequestVM> UpdateAsync(ItemCodeRequestVM model, string user, DateTime date);
+        ValueTask<ItemCodeRequestVM> UpdateAsync(ItemCodeRequestVM model, string user, DateTime date);        
         ValueTask<ItemCodeRequestVM> DeleteAsync(ItemCodeRequestVM model, string user, DateTime date);
     }
 
@@ -57,10 +52,12 @@ namespace iLgs.Services.Codes
             IsForDistribution = s.IsForDistribution,
             IsIncorporated = s.IsIncorporated,
             Status = s.Status,
+            StatusRemarks = s.StatusRemarks,
             InsertedBy = s.InsertedBy,
             InsertedDt = s.InsertedDt,
             // transient
-            Department = s.Codextn.Description
+            Department = s.Codextn.Description,
+            StatusSw = false
         };
 
         public async ValueTask<ItemCodeRequest> GetByIdAsync(Guid? id)
@@ -124,12 +121,25 @@ namespace iLgs.Services.Codes
 
            var entity = await _db.ItemCodeRequests.FindAsync(model.Id);
            ValidateRecord(entity, model.Id);
-           ValidateFields(model, Mode.ADD);
-
            model.UpdatedBy = user;
            model.UpdatedDt = date;
 
-           MapModelToEntityFields(entity, model, Mode.EDIT);
+           if (model.StatusSw == true)
+           {
+               ValidateUser(model);
+
+               entity.Status = model.Status;
+               entity.StatusRemarks = model.StatusRemarks;
+               entity.UpdatedBy = model.UpdatedBy;
+               entity.UpdatedDt = model.UpdatedDt;
+           }
+           else
+           {
+               ValidateFields(model, Mode.ADD);
+               ValidateStatus(entity);
+               
+               MapModelToEntityFields(entity, model, Mode.EDIT);
+           }
 
            _db.ItemCodeRequests.Attach(entity);
            _db.Entry(entity).State = EntityState.Modified;
@@ -137,12 +147,14 @@ namespace iLgs.Services.Codes
            return model;
        });
 
+        
         public ValueTask<ItemCodeRequestVM> DeleteAsync(ItemCodeRequestVM model, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             var entity = await _db.ItemCodeRequests.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
             ValidateRecord(entity, model.Id);
+            ValidateStatus(entity);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -177,7 +189,6 @@ namespace iLgs.Services.Codes
             entity.IsConsumable = model.IsConsumable;
             entity.IsForDistribution = model.IsForDistribution;
             entity.IsIncorporated = model.IsIncorporated;
-            entity.Status = model.Status;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
         }
@@ -223,6 +234,25 @@ namespace iLgs.Services.Codes
             }
 
             _imex.ThrowIfContainsErrors();
+        }
+
+        private void ValidateStatus(ItemCodeRequest entity)
+        {
+            if (!string.IsNullOrWhiteSpace(entity.Status) || !string.IsNullOrWhiteSpace(entity.StatusRemarks))
+            {
+                _imex.UpsertDataList(_getDisplayName(nameof(entity.Status)), "Request already with status, cannot update.");
+            }
+
+            _imex.ThrowIfContainsErrors();
+        }
+
+        private void ValidateUser(ItemCodeRequestVM model)
+        {
+            var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+            if (!isAdmin)
+            {
+                throw new RecordLockedException($"Record can only be updated by an Admin.");
+            }            
         }
     }
 }

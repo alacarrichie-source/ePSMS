@@ -48,7 +48,6 @@ namespace iLgs.Services.StockCards
             Validate(
                 (Rule: IsInvalid(text: model.Fund), Parameter: _getDisplayName(nameof(StockCardVM.Fund))),
                 (Rule: IsInvalid(text: model.PsNo), Parameter: _getDisplayName(nameof(StockCardVM.PsNo)))
-                //(Rule: Field.IsInvalid(text: card.Description), Parameter: nameof(Course.Description)),
                 //(Rule: Field.IsInvalid(card.Status), Parameter: nameof(Course.Status)),
                 //(Rule: Field.IsInvalid(card.CreatedDate), Parameter: nameof(Course.CreatedDate)),
                 //(Rule: Field.IsInvalid(card.UpdatedDate), Parameter: nameof(Course.UpdatedDate)),

@@ -10,10 +10,7 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardId)
-    @Html.HiddenFor(model => model.OrderItemId)
-    @Html.HiddenFor(model => model.SetLotNo)
-    @Html.HiddenFor(model => model.SetLotAmount)
-    @Html.HiddenFor(model => model.SetLotRemarks)
+    @Html.HiddenFor(model => model.OrderItemId)    
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -327,39 +324,9 @@
                 </div>
             </div>
         </div>
-
-        @*<br />
-            <div class="row k-mb-2">
-                <div class="col-md-6">
-                    @Html.DisplayFor(m => m.Remarks, "Label")
-                    <div class="col-md-9">
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.Remarks)
-                                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                                .Placeholder("Select Remarks")
-                                .DataTextField("Description")
-                                .DataValueField("Description")
-                                .ValuePrimitive(true)
-                                .Filter(FilterType.Contains)
-                                .DataSource(source =>
-                                {
-                                    source.Read(read =>
-                                    {
-                                        read.Action("GetCodeList", "Getters", new { mastCode = "PS-REMARKS", addAll = false });
-                                    })
-                                    .ServerFiltering(true);
-                                })
-                                .Columns(c =>
-                                {
-                                    c.Add().Field("Description").Title("Description").Width("100%");
-                                })
-                                .Suggest(true)
-                        )
-                        @Html.ValidationMessageFor(m => m.Remarks)
-                    </div>
-                </div>
-            </div>*@
-
+        
         <br />
+
         <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-3">
@@ -371,6 +338,18 @@
                 </div>
             </div>
 
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.OtherDesc, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(5).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.OtherDesc)
+                </div>
+            </div>            
+        </div>
+
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.InvDist, "Label")
@@ -402,41 +381,6 @@
             </div>
         </div>
 
-        @*@if (ViewBag.FieldSw.InvDist)
-            {
-                <div class="row k-mb-2">
-                    <div class="col-md-6">
-                        <div class="col-md-3">
-                            @Html.DisplayFor(m => m.InvDist, "Label")
-                            </div>
-                            <div class="col-md-9">
-                                @(Html.Kendo().MultiColumnComboBoxFor(m => m.InvDist)
-                                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                                .Placeholder("Select Remarks")
-                                .DataTextField("Description")
-                                .DataValueField("Code")
-                                .ValuePrimitive(true)
-                                .Filter(FilterType.Contains)
-                                .DataSource(source =>
-                                {
-                                    source.Read(read =>
-                                    {
-                                        read.Action("GetinvDistList", "Getters");
-                                    })
-                                    .ServerFiltering(true);
-                                })
-                                .Columns(c =>
-                                {
-                                    c.Add().Field("Description").Title("Description").Width("100%");
-                                })
-                                .Suggest(true)
-                                )
-                                @Html.ValidationMessageFor(m => m.InvDist)
-                            </div>
-                        </div>
-                </div>
-            }*@
-
         <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-3">
@@ -447,9 +391,6 @@
                     @Html.ValidationMessageFor(m => m.PrevPsNo)
                 </div>
             </div>
-        </div>
-
-        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.Remarks, "Label")
@@ -461,6 +402,39 @@
             </div>
         </div>
 
+        <div class="row k-mb-2">
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.SetLotNo, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextBoxFor(m => m.SetLotNo).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.SetLotNo)
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.SetLotAmount, "LabelDecimal")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.SetLotAmount).Decimals(2).Format("{0:n2}").Enable(true).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.SetLotAmount)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">            
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.SetLotRemarks, "Label")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().TextAreaFor(m => m.SetLotRemarks).Rows(2).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.SetLotRemarks)
+                </div>
+            </div>
+        </div>
+
         <br />
 
         @if (!string.IsNullOrEmpty(partialViewName))
@@ -468,7 +442,8 @@
             @Html.Partial(partialViewName)
         }
 
-        @if (ViewBag.FieldSw.AcqDate)
+        
+        @*@if (ViewBag.FieldSw.AcqDate)
         {
             <div class="row k-mb-2">
                 <div class="col-md-6">
@@ -481,9 +456,9 @@
                     </div>
                 </div>
             </div>
-        }
+        }*@
 
-        @if (ViewBag.FieldSw.AcqYear)
+        @*@if (ViewBag.FieldSw.AcqYear)
         {
             <div class="row k-mb-2">
                 <div class="col-md-6">
@@ -535,20 +510,8 @@
                     </div>
                 </div>
             </div>
-        }
+        }*@
 
-        @*@if (ViewBag.FieldSw.CapitalOutlay)
-            {
-                <div class="row k-mb-2">
-                    <div class="col-md-6">
-                        @Html.DisplayFor(m => m.CapitalOutlay, "Label")
-                        <div class="col-md-9">
-                            @(Html.Kendo().TextBoxFor(m => m.Type).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                            @Html.ValidationMessageFor(m => m.Type)
-                        </div>
-                    </div>
-                </div>
-            }*@
-
+        
     </fieldset>
 }

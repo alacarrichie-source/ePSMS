@@ -169,7 +169,8 @@ namespace iLgs.Services.PurchaseRequest
                 foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems)
                 {
                     var priceRate = unitGroupDescriptionItem.RequestItem.PriceRate ?? 0;
-                    _requestItemUnitGroupDescriptionItemService.UpdateRequestItem(unitGroupDescriptionItem.RequestItemId, priceRate, user, date);
+                    var unitCost = unitGroupDescriptionItem.RequestItem.UnitCost ?? 0;
+                    _requestItemUnitGroupDescriptionItemService.UpdateRequestItem(unitGroupDescriptionItem.RequestItemId, priceRate, unitCost, user, date);
                 }
             }
 

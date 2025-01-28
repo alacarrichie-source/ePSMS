@@ -410,7 +410,7 @@ namespace iLgs.Services.CustodianReports
         private MemoryStream ProcessExcelFileTemplate(Guid id, string templateFilePath)
         {
             int sw = 1;
-            int row = 8;
+            int row = 9;
             int col = 0;
             decimal? tAcqCost = 0;
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
@@ -503,7 +503,7 @@ namespace iLgs.Services.CustodianReports
         private MemoryStream ProcessExcelFileAnnexTemplate(Guid id, string templateFilePath, string annex)
         {
             int sw = 1;
-            int row = 9;
+            int row = 10;
             int col = 0;
             decimal? tAcqCost = 0;
             string hdg = "";

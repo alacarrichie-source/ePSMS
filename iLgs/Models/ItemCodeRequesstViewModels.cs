@@ -34,6 +34,9 @@ namespace iLgs.Models
         public Nullable<bool> IsIncorporated { get; set; }
         public string Status { get; set; }
 
+        [Display(Name = "Remarks")]
+        public string StatusRemarks { get; set; }
+
         [Display(Name = "Inserted By")]
         public string InsertedBy { get; set; }
 
@@ -49,5 +52,7 @@ namespace iLgs.Models
         // transient
         [Display(Name = "Requesting Department")]
         public string Department { get; set; }
+
+        public bool? StatusSw { get; set; }
     }
 }

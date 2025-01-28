@@ -8,6 +8,7 @@
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PrNo)
     @Html.HiddenFor(model => model.PrDate)
+    @Html.HiddenFor(model => model.SupName)
     @Html.HiddenFor(model => model.SupBusiness)
     @Html.HiddenFor(model => model.SupContactNo)
     @Html.HiddenFor(model => model.SupEmail)
@@ -143,13 +144,17 @@
             <div class="col-md-12">
                 @Html.LabelFor(model => model.SupAddress, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.SupAddress).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextBoxFor(m => m.SupAddress)
+                        //.Readonly(true)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
             <div class="col-md-6">
                 @Html.LabelFor(model => model.SupTIN, htmlAttributes: new { @class = "col-md-12" })
                 <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.SupTIN).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                    
+                    @(Html.Kendo().TextBoxFor(m => m.SupTIN)
+                        //.Readonly(true)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                    
                 </div>
             </div>
         </div>

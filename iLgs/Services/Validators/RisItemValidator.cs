@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.UI.WebControls;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.Validators
 {
@@ -43,7 +44,7 @@ namespace iLgs.Services.Validators
         public void ValidateOnCreate(RisItemEntryVM model)
         {
             ValidateModel(model);
-            ValidateIfPosted((Guid)model.RisId);
+            ValidateIfPosted((Guid)model.RisId, Mode.ADD);
             ValidateFieldsOnCreateUpdate(model);
         }
 
@@ -51,7 +52,7 @@ namespace iLgs.Services.Validators
         {
             ValidateModel(model);
             ValidateRecord(model.Id);
-            ValidateIfPosted((Guid)model.RisId);
+            ValidateIfPosted((Guid)model.RisId, Mode.EDIT);
             ValidateFieldsOnCreateUpdate(model);
         }
 
@@ -59,7 +60,13 @@ namespace iLgs.Services.Validators
         {
             ValidateModel(model);
             ValidateRecord(model.Id);
-            ValidateIfPosted((Guid)model.RisId);
+            ValidateIfPosted((Guid)model.RisId, Mode.DELETE);
+
+            var pr = _db.Requests.Where(w => w.RequestItems.Any(a => a.RisItemId == model.Id)).FirstOrDefault();
+            if (pr != null)
+            {
+                throw new RecordRelationshipException($"Record is in use by PR No. {pr.PrNo}, cannot delete!");
+            }
 
             if (_db.RisItemUnitGroupDescriptionItems.Any(a => a.RisItemId == model.Id))
             {
@@ -111,12 +118,19 @@ namespace iLgs.Services.Validators
             }
         }
 
-        public void ValidateIfPosted(Guid risId)
+        public void ValidateIfPosted(Guid risId, Mode mode)
         {
             var isPosted = _risService.IsPosted(risId);
             if (isPosted)
             {
-                throw new RecordAlreadyPostedException();
+                if (mode == Mode.DELETE)
+                {
+                    throw new RecordAlreadyPostedException("Record already posted, cannot delete!");
+                }                
+                else
+                {
+                    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+                }
             }
         }
     }

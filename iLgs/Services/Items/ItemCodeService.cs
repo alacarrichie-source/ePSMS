@@ -1,4 +1,5 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
 using System;
@@ -319,6 +320,7 @@ namespace iLgs.Services.Items
 
         public ValueTask<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            ValidateIfNull(model);
             ValidateFields(model);
 
             model.Id = Guid.NewGuid();
@@ -361,12 +363,14 @@ namespace iLgs.Services.Items
 
         public ValueTask<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            ValidateIfNull(model);
             ValidateFields(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
+            ValidateRecord(entity, model.Id);
 
             model.Code = GetItemCode(model.ItemTypeId, model.ItemNo, model.Description);
             model.ItemNoIndex = ItemNoIndex(model.ItemNo);
@@ -395,10 +399,13 @@ namespace iLgs.Services.Items
 
         public ValueTask<ItemCodeVM> DeleteAsync(ItemCodeVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {
+            ValidateIfNull(model);
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
             ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
+            ValidateRecord(entity, model.Id);
+            ValidateRelationship(model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
@@ -437,6 +444,68 @@ namespace iLgs.Services.Items
                 itemNoIndex += (x > 0 ? "-" : "") + raItemNo[x].PadLeft(3, '0');
             }
             return itemNoIndex;
+        }
+
+        private void ValidateRelationship(Guid itemcodeId)
+        {
+            var psCards = _db.PsCards.Where(w => w.ItemCodeId == itemcodeId);
+            if (psCards.Any())
+            {
+                //var cardNos = string.Join("/", psCards.Select(s => s.PsNo));
+                throw new RecordRelationshipException($"Item Code is in use in Stock/Property Card, cannot delete!");
+            }
+
+            var cust1 = _db.CustodianReportItems.Where(w => w.ItemCodeId == itemcodeId);
+            if (cust1.Any())
+            {
+                throw new RecordRelationshipException("Item Code is in use in custodian report, cannot delete!");
+            }
+
+            var cust2 = _db.CustodianReportBldgItems.Where(w => w.ItemCodeId == itemcodeId);
+            if (cust2.Any())
+            {
+                throw new RecordRelationshipException("Item Code is in use in custodian structures, cannot delete!");
+            }
+
+            var cust3 = _db.CustodianReportLandItems.Where(w => w.ItemCodeId == itemcodeId);
+            if (cust3.Any())
+            {
+                throw new RecordRelationshipException("Item Code is in use in custodian land, cannot delete!");
+            }
+
+            var rpciItems = _db.RPCIItems.Where(w => w.ItemCodeId == itemcodeId);
+            if (rpciItems.Any())
+            {
+                throw new RecordRelationshipException("Item Code is in use in RPCI, cannot delete!");
+            }
+
+            var risItems = _db.RisItems.Where(w => w.ItemCodeId == itemcodeId);
+            if (risItems.Any())
+            {
+                throw new RecordRelationshipException("Item Code is in use in RIS, cannot delete!");
+            }
+
+            var orderItems = _db.OrderItems.Where(w => w.ItemCodeId == itemcodeId);
+            if (orderItems.Any())
+            {
+                throw new RecordRelationshipException("Item Code is in use in PURHASE ORDERS, cannot delete!");
+            }
+        }
+
+        private void ValidateRecord(ItemCode entity, Guid id)
+        {
+            if (entity is null)
+            {
+                throw new NotFoundException(id);
+            }
+        }
+
+        private static void ValidateIfNull(ItemCodeVM model)
+        {
+            if (model is null)
+            {
+                throw new NullException();
+            }
         }
     }
 }

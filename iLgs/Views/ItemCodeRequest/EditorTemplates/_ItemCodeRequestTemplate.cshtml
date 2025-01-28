@@ -6,6 +6,7 @@
 
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.StatusSw)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -90,7 +91,7 @@
                 <div class="col-md-12">
                     <p>
                         (Describe the use or purpose of the item and indicate its intended recipients.)
-                    </p>                    
+                    </p>
                 </div>
             </div>
         </div>
@@ -103,7 +104,7 @@
                 </div>
             </div>
         </div>
-        
+
         <br />
         <div class="row k-mb-2">
             <div class="col-md-12">
@@ -136,6 +137,12 @@
                     <p>
                         Addt'l example: Fuelling Purposes
                     </p>
+                    <p>
+                        Example: Glucose Plus Juice
+                    </p>
+                    <p>
+                        Addt'l example: Dietary Supplement
+                    </p>
                 </div>
             </div>
         </div>
@@ -154,10 +161,10 @@
                         (to be handed out as welfare items, for outreach, giveaways, or informational materials)
                     </p>
                     <p>
-                        Example: Concrete Hollow Blocks
+                        Example: Glucose Plus Juice
                     </p>
                     <p>
-                        Addt'l example: Building Materials
+                        Addt'l example: Dietary Supplement
                     </p>
                 </div>
             </div>
@@ -177,14 +184,45 @@
                         (intended to be permanently integrated into a structure)
                     </p>
                     <p>
-                        Example: Glucose Plus Juice
+                        Example: Concrete Hollow Blocks
                     </p>
                     <p>
-                        Addt'l example: Dietary Supplement
-                    </p>
+                        Addt'l example: Building Materials
+                    </p>                    
                 </div>
             </div>
         </div>
+
+        <div id="DIV_STATUS" class="hidden">
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.Status, "Label")
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(m => m.Status).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.Status)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.DisplayFor(m => m.StatusRemarks, "Label")
+                    </div>
+                </div>
+            </div>
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    <div class="col-md-12">
+                        @(Html.Kendo().TextAreaFor(m => m.StatusRemarks).Rows(3).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        @Html.ValidationMessageFor(m => m.StatusRemarks)
+                    </div>
+                </div>
+            </div>
+        </div>
+        
     </fieldset>
 }
 

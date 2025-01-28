@@ -91,6 +91,9 @@ namespace iLgs.Models
         public string LocationCode { get; set; }
         public string Location { get; set; }
 
+        [Display(Name = "Item Code")]
+        public string ItemCode { get; set; }
+
         [Display(Name = "Stock No.")]
         public string StockNo { get; set; }
 
@@ -158,6 +161,9 @@ namespace iLgs.Models
         public Nullable<System.DateTime> DateTo { get; set; }
 
         public bool SavePrints { get; set; }
+
+        [Display(Name = "With Daily Recap")]
+        public bool WithDailyRecap { get; set; } = true;
 
         public string Fund { get; set; }
 

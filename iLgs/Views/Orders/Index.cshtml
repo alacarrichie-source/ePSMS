@@ -301,6 +301,9 @@
             $(".k-grid-btnPostPO", grid).hide();
             $(".k-grid-btnUnpostPO", grid).hide();
         }
+        else {
+            $(".k-grid-btnPrintPO", grid).show();
+        }
     }
 
     function onEditGrid(e) {
@@ -575,18 +578,21 @@
 
     function onSelectSupplier(e) {
         var dataItem = this.dataItem(e.item.index());
-
+        //var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
         $("#SupName").val(dataItem.Name).trigger("change");
         $("#SupAddress").val(dataItem.Address).trigger("change");
         $("#SupBusiness").val(dataItem.BusinessName).trigger("change");
         $("#SupZipCode").val(dataItem.ZipCode).trigger("change");
         $("#SupEmail").val(dataItem.Email).trigger("change");
         $("#SupTIN").val(dataItem.TIN).trigger("change");
+        $("#SupContactNo").val(dataItem.ContactNo).trigger("change");
+
+        //disabled.attr('disabled', 'disabled')
     }
 
     function onSelectItemCode(e) {
         var dataItem = this.dataItem(e.item.index());
-
+        
         $("#ItemCodeId").val(dataItem.Id).trigger("change");
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
         $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");

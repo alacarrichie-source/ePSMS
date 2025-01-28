@@ -23,6 +23,7 @@ namespace iLgs.Models
         public Nullable<bool> IsForDistribution { get; set; }
         public Nullable<bool> IsIncorporated { get; set; }
         public string Status { get; set; }
+        public string StatusRemarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

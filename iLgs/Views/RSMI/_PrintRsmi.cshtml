@@ -51,7 +51,18 @@
             @Html.ValidationMessageFor(m => m.DateTo)
         </div>
     </div>
-            
+
+    <div class="row k-mb-2">
+        <div class="text-right col-md-3">
+            @*@Html.Label("With Daily Recap")*@
+            &nbsp;
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().CheckBoxFor(m => m.WithDailyRecap))
+            @Html.ValidationMessageFor(m => m.WithDailyRecap)
+        </div>
+    </div>
+
     <hr />
     
     <div class="row k-mb-2">

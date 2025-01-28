@@ -178,11 +178,7 @@ namespace iLgs.Controllers
                 if (!access.AllowDelete)
                 {
                     ModelState.AddModelError("DeleteError", "Delete Access Denied!");
-                }
-                else if (await _requestService.IsPostedAsync(model.Id))
-                {
-                    ModelState.AddModelError("DeleteError", "PR Number already Posted, cannot delete!");
-                }
+                }                
                 else
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;

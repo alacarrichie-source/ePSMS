@@ -16,14 +16,14 @@ namespace iLgs.Reports {
     using CrystalDecisions.CrystalReports.Engine;
     
     
-    public class Card_Po_ : ReportClass {
+    public class ParSet : ReportClass {
         
-        public Card_Po_() {
+        public ParSet() {
         }
         
         public override string ResourceName {
             get {
-                return "Card_Po_.rpt";
+                return "ParSet.rpt";
             }
             set {
                 // Do nothing
@@ -41,7 +41,7 @@ namespace iLgs.Reports {
         
         public override string FullResourceName {
             get {
-                return "iLgs.Reports.Card_Po_.rpt";
+                return "iLgs.Reports.ParSet.rpt";
             }
             set {
                 // Do nothing
@@ -154,7 +154,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_cPoNo {
+        public CrystalDecisions.Shared.IParameterField Parameter_LGU {
             get {
                 return this.DataDefinition.ParameterFields[0];
             }
@@ -162,7 +162,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_LGU {
+        public CrystalDecisions.Shared.IParameterField Parameter_cRefNo {
             get {
                 return this.DataDefinition.ParameterFields[1];
             }
@@ -170,7 +170,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_IsOriginal {
+        public CrystalDecisions.Shared.IParameterField Parameter_cRefType {
             get {
                 return this.DataDefinition.ParameterFields[2];
             }
@@ -178,9 +178,9 @@ namespace iLgs.Reports {
     }
     
     [System.Drawing.ToolboxBitmapAttribute(typeof(CrystalDecisions.Shared.ExportOptions), "report.bmp")]
-    public class CachedCard_Po_ : Component, ICachedReport {
+    public class CachedParSet : Component, ICachedReport {
         
-        public CachedCard_Po_() {
+        public CachedParSet() {
         }
         
         [Browsable(false)]
@@ -217,7 +217,7 @@ namespace iLgs.Reports {
         }
         
         public virtual CrystalDecisions.CrystalReports.Engine.ReportDocument CreateReport() {
-            Card_Po_ rpt = new Card_Po_();
+            ParSet rpt = new ParSet();
             rpt.Site = this.Site;
             return rpt;
         }

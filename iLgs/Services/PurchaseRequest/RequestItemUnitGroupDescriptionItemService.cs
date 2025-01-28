@@ -20,7 +20,7 @@ namespace iLgs.Services.PurchaseRequest
         ValueTask<RequestItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id);
         //IQueryable<RequestItemUnitGroupDescriptionItemVM> GetAvailableUnitGroupItem(Guid? risId);
         //ValueTask<RequestItemUnitGroupDescriptionItemVM> CreateAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date);
-        void UpdateRequestItem(Guid? requestItemId, decimal? priceRate, string user, DateTime date);
+        void UpdateRequestItem(Guid? requestItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date);
         ValueTask<RequestItemUnitGroupDescriptionItemVM> UpdateAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date);
         ValueTask<RequestItemUnitGroupDescriptionItemVM> DeleteAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date);
     }
@@ -172,28 +172,30 @@ namespace iLgs.Services.PurchaseRequest
             await _db.SaveChangesAsync();
 
             //var totalCost = entity.RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost;
-            UpdateRequestItem(model.RequestItemId, model.PriceRate, user, date);
+            UpdateRequestItem(model.RequestItemId, model.PriceRate, model.UnitCost, user, date);
 
             return model;
         });
 
         //public void UpdateRequestItem(Guid? requestItemId, decimal? groupTotalCost, decimal? priceRate, string user, DateTime date)
-        public void UpdateRequestItem(Guid? requestItemId, decimal? priceRate, string user, DateTime date)
+        public void UpdateRequestItem(Guid? requestItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date)
         {
             var reqItem = _db.RequestItems.Include(i => i.RequestItemUnitGroupDescriptionItems).Where(w => w.Id == requestItemId).FirstOrDefault();
-            var totalCost = reqItem.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost;
-            reqItem.PriceRate = priceRate;
-
+            var unitGroup = _db.RequestItemUnitGroups.Where(w => w.RequestItemUnitGroupDescriptions.Any(a => a.RequestItemUnitGroupDescriptionItems.Any(a2 => a2.RequestItemId == requestItemId))).FirstOrDefault();
+            var setCost = reqItem.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost;
+            var setQty = _db.RisItemUnitGroups.Where(w => w.Id == unitGroup.RisItemUnitGroupId).FirstOrDefault().Qty;                
+           
             if (priceRate == 0)
             {
-                reqItem.UnitCost = 0;
+                reqItem.UnitCost = unitCost;
             }
             else
             {
-                //reqItem.UnitCost = decimal.Round((decimal)(totalCost * (priceRate / 100) * reqItem.Qty), 2, MidpointRounding.AwayFromZero);
-                reqItem.UnitCost = decimal.Round((decimal)(totalCost * (priceRate / 100)), 2, MidpointRounding.AwayFromZero);
+                reqItem.PriceRate = priceRate;
+                reqItem.UnitCost = decimal.Round((decimal)(setCost * (priceRate / 100)), 2, MidpointRounding.AwayFromZero) / reqItem.Qty;
             }
-            reqItem.TotalCost = reqItem.Qty * reqItem.UnitCost;
+            
+            reqItem.TotalCost = (reqItem.Qty * reqItem.UnitCost) * setQty;
             reqItem.UpdatedBy = user;
             reqItem.UpdatedDt = date;
             _db.RequestItems.Attach(reqItem);

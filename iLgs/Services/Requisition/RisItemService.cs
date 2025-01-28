@@ -77,7 +77,8 @@ namespace iLgs.Services.Requisition
                     InsertedDt = s.InsertedDt,
                     Department = s.RISs.Office,
                     IsPosted = s.RISs.PostedDt != null,
-                    AllField = s.AllField
+                    AllField = s.AllField,
+                    SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo                    
                 }).ToList()
                 .Select(s => new RisItemEntryVM {
                     Id = s.Id,
@@ -102,7 +103,8 @@ namespace iLgs.Services.Requisition
                     InsertedDt = s.InsertedDt,
                     Department = s.Department,
                     IsPosted = s.IsPosted,
-                    AllField = s.AllField
+                    AllField = s.AllField,
+                    SetLotNo = s.SetLotNo
                 }).FirstOrDefault();
             return data;
         }
@@ -133,7 +135,8 @@ namespace iLgs.Services.Requisition
                     InsertedDt = s.InsertedDt,
                     Department = s.RISs.Office,
                     IsPosted = s.RISs.PostedDt != null,
-                    AllField = s.AllField
+                    AllField = s.AllField,
+                    SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo
                 }).ToList()
                 .Select(s => new RisItemEntryVM
                 {
@@ -159,7 +162,8 @@ namespace iLgs.Services.Requisition
                     InsertedDt = s.InsertedDt,
                     Department = s.Department,
                     IsPosted = s.IsPosted,
-                    AllField = s.AllField
+                    AllField = s.AllField,
+                    SetLotNo = s.SetLotNo
                 }).FirstOrDefault();
             return data;
         }
@@ -198,7 +202,8 @@ namespace iLgs.Services.Requisition
                     InsertedDt = s.InsertedDt,
                     Department = s.RISs.Office,
                     IsPosted = s.RISs.PostedDt != null,
-                    AllField = s.AllField
+                    AllField = s.AllField,
+                    SetLotNo = s.RisItemUnitGroupDescriptionItems.FirstOrDefault().RisItemUnitGroupDescription.RisItemUnitGroup.SetLotNo
                 }).ToList()
                 .Select(s => new RisItemEntryVM
                 {
@@ -224,7 +229,8 @@ namespace iLgs.Services.Requisition
                     InsertedDt = s.InsertedDt,
                     Department = s.Department,
                     IsPosted = s.IsPosted,
-                    AllField = s.AllField
+                    AllField = s.AllField,
+                    SetLotNo = s.SetLotNo
                 }).AsQueryable();
             return data;
         });
@@ -351,12 +357,38 @@ namespace iLgs.Services.Requisition
 
             _db.RisItems.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
+            
             // cascade updates
-            // PR, Description, Qty
+            // PR, Qty
             // PO, Description, Qty
             // AIR, Qty            
+
+            var prItem = _db.RequestItems.Where(w => w.RisItemId == model.Id).FirstOrDefault();
+            if (prItem != null)
+            {
+                prItem.Qty = model.QtyRequest;
+                prItem.TotalCost = model.QtyRequest * prItem.UnitCost;
+                _db.RequestItems.Attach(prItem);
+                _db.Entry(prItem).State = EntityState.Modified;
+
+                var poItem = _db.OrderItems.Where(w => w.RequestItemId == prItem.Id).FirstOrDefault();
+                if (poItem != null)
+                {
+                    poItem.Qty = model.QtyRequest;
+                    poItem.Description = model.Description;
+                    poItem.Amount = model.QtyRequest * poItem.UnitCost;
+                    poItem.Unit = model.Unit;
+                    _db.OrderItems.Attach(poItem);
+                    _db.Entry(poItem).State = EntityState.Modified;
+
+                    var airItem = _db.AIRItems.Where(w => w.OrderItemId == poItem.Id).FirstOrDefault();
+                    airItem.Qty = model.QtyRequest;
+                    _db.AIRItems.Attach(airItem);
+                    _db.Entry(airItem).State = EntityState.Modified;
+                }
+            }
+
+            await _db.SaveChangesAsync();
 
             return model;
         });
