@@ -243,6 +243,8 @@
                     success: function (result) {
                         window.kendo.ui.progress($("#form"), false);
                         if (!result.Errors) {
+                            selectedId = result.Id;
+                            $("#IsDuplicateStockNo").val("true").trigger("change");
                             $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
                         }
                         else {

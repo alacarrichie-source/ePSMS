@@ -432,6 +432,15 @@
     <Compile Include="Models\IcsParItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\IcsPartUnitGroupDescription.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\IcsParUnitGroup.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\IcsParUnitGroupDescriptionItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\IcsParViewModels.cs" />
     <Compile Include="Models\ItemCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -654,6 +663,18 @@
       <DependentUpon>PropertyCard.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Reports\Ris.cs">
+      <DependentUpon>Ris.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Reports\RisDepartment.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RisDepartment.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Reports\Rpceffoppe.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -670,6 +691,30 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>RpcPpe.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\Rsmi.cs">
+      <DependentUpon>Rsmi.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Reports\RsmiOverallRecap.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RsmiOverallRecap.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\RsmiSerialRecap.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RsmiSerialRecap.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\Rsmi_bak.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Rsmi_bak.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Reports\StickerIcs.cs">
@@ -894,18 +939,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Pr_.rpt</DependentUpon>
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Reports\Ris.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Ris.rpt</DependentUpon>
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Reports\Rsmi.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Rsmi.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Reports\UserAccess.cs">
@@ -1558,9 +1591,17 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Po_1.cs</LastGenOutput>
     </Content>
+    <Content Include="Reports\Ris.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>Ris.cs</LastGenOutput>
+    </Content>
     <Content Include="Reports\Rpci.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Rpci.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\Rsmi.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>Rsmi.cs</LastGenOutput>
     </Content>
     <Content Include="Reports\StockCard.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
@@ -3861,7 +3902,6 @@
     <Content Include="Views\Uploads\_Upload.cshtml" />
     <Content Include="Views\Orders\_OrderAdd_Killed.cshtml" />
     <Content Include="Views\Suppliers\Index.cshtml" />
-    <Content Include="Views\Orders\EditorTemplates\_OrderItemTemplate.cshtml" />
     <Content Include="Views\Issueds\Index.cshtml" />
     <Content Include="Views\Issueds\Order.cshtml" />
     <Content Include="Views\Issueds\_OrderItem.cshtml" />
@@ -3908,6 +3948,18 @@
     <Content Include="Views\Orders\_FieldSerial_D.cshtml" />
     <Content Include="Views\Orders\_FieldSerial_E.cshtml" />
     <Content Include="Views\Orders\_FieldSerial_F.cshtml" />
+    <Content Include="Views\IcsSet\_Ics.cshtml" />
+    <Content Include="Views\IcsSet\_IcsItemEdit.cshtml" />
+    <Content Include="Views\IcsSet\_GenerateIcsSet.cshtml" />
+    <Content Include="Views\IcsSet\EditorTemplates\_FieldLand.cshtml" />
+    <Content Include="Views\IcsSet\EditorTemplates\_FieldOther.cshtml" />
+    <Content Include="Views\IcsSet\EditorTemplates\_FieldTransportation.cshtml" />
+    <Content Include="Views\AIRs\_UnitGroup.cshtml" />
+    <Content Include="Views\AIRs\EditorTemplates\_PriceRateTemplate.cshtml" />
+    <Content Include="Views\AIRs\EditorTemplates\_TotalCostTemplate.cshtml" />
+    <Content Include="Views\AIRs\EditorTemplates\_UnitCostTemplate.cshtml" />
+    <Content Include="Views\AIRs\EditorTemplates\_OtherParticularsTemplate.cshtml" />
+    <Content Include="Views\IcsSet\EditorTemplates\_IsForIcsTemplate.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4233,6 +4285,11 @@
     <Content Include="Views\StockCard\_UnpostBatch.cshtml" />
     <Content Include="Views\Query\Po.cshtml" />
     <Content Include="Views\StockCard\_PoTransfer.cshtml" />
+    <Content Include="Views\RIS\_PrintRisDepartment.cshtml" />
+    <Content Include="Views\ParSet\_GenerateParSet.cshtml" />
+    <Content Include="Views\ParSet\_Upload.cshtml" />
+    <Content Include="Views\ParSet\_Pars.cshtml" />
+    <Content Include="Views\ParSet\_ParSet.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4278,17 +4335,9 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>UserRoles.cs</LastGenOutput>
     </Content>
-    <Content Include="Reports\Rsmi.rpt">
-      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
-      <LastGenOutput>Rsmi.cs</LastGenOutput>
-    </Content>
     <Content Include="Reports\Pr_.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Pr_1.cs</LastGenOutput>
-    </Content>
-    <Content Include="Reports\Ris.rpt">
-      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
-      <LastGenOutput>Ris.cs</LastGenOutput>
     </Content>
     <Content Include="Reports\Air.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
@@ -4334,6 +4383,22 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>IcsSet.cs</LastGenOutput>
     </Content>
+    <Content Include="Reports\RisDepartment.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RisDepartment.cs</LastGenOutput>
+    </Content>
+    <EmbeddedResource Include="Reports\RsmiOverallRecap.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RsmiOverallRecap.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Reports\RsmiSerialRecap.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RsmiSerialRecap.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Content Include="Reports\Rsmi_bak.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>Rsmi_bak.cs</LastGenOutput>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
@@ -4355,7 +4420,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

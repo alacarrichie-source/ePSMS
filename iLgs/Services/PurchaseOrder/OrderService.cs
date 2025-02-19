@@ -2,6 +2,7 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -45,13 +46,16 @@ namespace iLgs.Services.PurchaseOrder
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
         private readonly IExceptionService<OrderVM> _orderVmExceptionService = new ExceptionService<OrderVM>();
         private readonly IExceptionService<Order> _orderExceptionService = new ExceptionService<Order>();
-        private IAllFieldService _allFieldService;
+        private readonly IAllFieldService _allFieldService;
+        private readonly IItemCodeService _itemCodeService;
         private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly decimal _parPrice = 50000;
 
         public OrderService(AppManEntities db)
         {
             _db = db;
             _allFieldService = new AllFieldService(_db);
+            _itemCodeService = new ItemCodeService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
         }
 
@@ -252,15 +256,16 @@ namespace iLgs.Services.PurchaseOrder
 
             // include items during add, PR Items not yet in Order Items
             var requestItems = _db.RequestItems.Include(i => i.RisItem.AllField).AsNoTracking()
-                .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).ToList();
+                .Where(w => w.PrId == model.PrId && !w.OrderItems.Any()).OrderBy(o => o.InsertedDt).ToList();
             foreach (var requestItem in requestItems)
-            {                
+            {
+                var insertedDt = DateTime.Now;
                 OrderItem orderItem = new OrderItem()
                 {
                     Id = Guid.NewGuid(),
                     OrderId = entity.Id,
                     ItemCodeId = requestItem.RisItem.ItemCodeId,
-                    PsNo = "",
+                    PsNo = requestItem.RisItem.PsNo,
                     PsNoDisplay = requestItem.RisItem.PsNoDisplay,
                     RequestItemId = requestItem.Id,
                     ItemName = requestItem.RisItem.ItemName,
@@ -272,26 +277,26 @@ namespace iLgs.Services.PurchaseOrder
                     Amount = requestItem.TotalCost,
                     PriceRate = requestItem.PriceRate,
                     InsertedBy = user,
-                    InsertedDt = date,
+                    InsertedDt = insertedDt,
                     UpdatedBy = user,
-                    UpdatedDt = date
-                    
+                    UpdatedDt = insertedDt
                 };
 
-                // Map Fields
-                var allField = _db.Database.SqlQuery<AllField>("Select * From AllFields where Id = {0}", requestItem.RisItem.Id).FirstOrDefault();
-                allField.Id = orderItem.Id;
-                allField.UpdatedBy = user;
-                allField.UpdatedDt = date;
-                orderItem.AllField = allField;
-                
+                //Map Fields
+                var reqAllField = _db.Database.SqlQuery<AllField>("Select * From AllFields where Id = {0}", requestItem.RisItem.Id).FirstOrDefault();
+                reqAllField.Id = orderItem.Id;
+                reqAllField.UpdatedBy = user;
+                reqAllField.UpdatedDt = date;
+                orderItem.AllField = reqAllField;                
+
                 entity.OrderItems.Add(orderItem);
             }
 
             // Unit Groups
             var unitGroups = _db.RequestItemUnitGroups
                 .Include(i => i.RisItemUnitGroup.RisItemUnitGroupDescriptions)
-                .Include(i => i.RequestItemUnitGroupDescriptions).Where(w => w.PrId == model.PrId).OrderBy(o => o.InsertedDt).ToList();
+                .Include(i => i.RequestItemUnitGroupDescriptions).Where(w => w.PrId == model.PrId && !w.OrderItemUnitGroups.Any())
+                .OrderBy(o => o.InsertedDt).ToList();
             foreach (var unitGroup in unitGroups)
             {
                 var unitGroupDt = DateTime.Now;
@@ -672,7 +677,6 @@ namespace iLgs.Services.PurchaseOrder
         
         private async ValueTask ValidateOnPost(Order entity)
         {
-            var ex = new InvalidModelException();
             if (!string.IsNullOrWhiteSpace(entity.PostedBy))
             {
                 var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
@@ -694,10 +698,22 @@ namespace iLgs.Services.PurchaseOrder
                     if (string.IsNullOrWhiteSpace(request.SubmittedBy))
                     {
                         throw new RecordNotYetPostedException("Record is not yet posted.");
-                    }
+                    }                    
                 }
             }
 
+            var unitGroupItems = _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItem)
+                .Where(w => w.OrderItemUnitGroupDescription.OrderItemUnitGroup.OrderId == entity.Id).ToList();
+            if (unitGroupItems.Any())
+            {
+                var rate = unitGroupItems.Sum(s => s.OrderItem.PriceRate) ?? 0;
+                if (rate != 100)
+                {
+                    throw new InvalidValueException("Price rate must be 100%");
+                }
+            }
+
+            string brandMsg = "";
             var orderItems = await _db.OrderItems
                 .Include(i => i.ItemCode.ItemType)
                 .Include(i => i.AllField)
@@ -708,20 +724,74 @@ namespace iLgs.Services.PurchaseOrder
                 {
                     if (_allFieldService.IsBrandRequired(c))
                     {
-                        var allfield = _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
+                        var allfield = await _db.AllFields.FirstOrDefaultAsync(f => f.Id == orderItem.Id);
                         if (allfield == null)
                         {
-                            var msg = $"Field is Required for {orderItem.ItemCode.Description}";
-                            ex.UpsertDataList(_getDisplayName(nameof(orderItem.AllField.Brand)), msg);
+                            throw new RecordRelationshipException("Required fields is missing, please recreate this Order.");
+                        }                                                
+                        {
+                            if (string.IsNullOrWhiteSpace(allfield.Brand))
+                            {
+                                brandMsg = brandMsg == "" ? $"{orderItem.ItemCode.Description}" : brandMsg += ", " + $"{orderItem.ItemCode.Description}";
+                            }
                         }
                     }                    
-                }        
+                }                        
+
                 if (string.IsNullOrWhiteSpace(orderItem.PsNo))
                 {
                     throw new InvalidValueException("All items must have a valid Stock No.");
                 }
+
+                // validate unit cost
+                if (!orderItem.UnitCost.HasValue || orderItem.UnitCost == 0)
+                {
+                    throw new InvalidValueException("All items must unit cost.");
+                }
+                decimal? unitCost = 0;
+                var unitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == orderItem.Id))).FirstOrDefault();
+                if (unitGroup != null)
+                {
+                    unitCost = unitGroup.UnitCost;
+                    if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
+                    {
+                        if (unitCost < _parPrice)
+                        {
+                            throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {_parPrice:n0}.");
+                        }
+                    }
+                    else
+                    {
+                        if (unitCost >= _parPrice)
+                        {
+                            throw new InvalidValueException($"Please use property code for items with a group unit cost of {_parPrice:n0} and above.");
+                        }
+                    }
+                }
+                else
+                {
+                    unitCost = orderItem.UnitCost;
+                    if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
+                    {
+                        if (unitCost < _parPrice)
+                        {
+                            throw new InvalidValueException($"Please use supplies code for items with a unit cost below {_parPrice:n0}.");
+                        }
+                    }
+                    else
+                    {
+                        if (unitCost >= _parPrice)
+                        {
+                            throw new InvalidValueException($"Please use property code for items with a unit cost of {_parPrice:n0} and above.");
+                        }
+                    }
+                }                                
+            }       
+            
+            if (!string.IsNullOrWhiteSpace(brandMsg))
+            {
+                throw new InvalidValueException($"Brand is required for {brandMsg}.");
             }
-            ex.ThrowIfContainsErrors();
         }
 
         private async ValueTask ValidateOnUnpost(Order entity)

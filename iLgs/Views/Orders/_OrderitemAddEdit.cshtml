@@ -140,7 +140,7 @@
                     @Html.DisplayFor(m => m.Unit, "Label")
                 </div>
                 <div class="col-md-10">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Unit)
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Unit).Enable(false)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select unit")
                         .DataTextField("Code")
@@ -175,7 +175,7 @@
                     @Html.DisplayFor(model => model.Qty, "LabelDecimal")
                 </div>
                 <div class="col-md-10">
-                    @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(2).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(2).Format("{0:n0}").Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Events(e => e.Change("changeAmount"))
                     )
                     @Html.ValidationMessageFor(model => model.Qty)

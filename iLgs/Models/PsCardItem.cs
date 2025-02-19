@@ -44,6 +44,9 @@ namespace iLgs.Models
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> Amount { get; set; }
         public Nullable<decimal> PriceRate { get; set; }
+        public Nullable<decimal> AddCost { get; set; }
+        public Nullable<decimal> TUnitCost { get; set; }
+        public Nullable<decimal> GTotalCost { get; set; }
         public string Remarks { get; set; }
         public Nullable<System.Guid> DeptId { get; set; }
         public Nullable<System.Guid> LocationId { get; set; }
@@ -89,8 +92,8 @@ namespace iLgs.Models
         public virtual PsCard PsCard { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransfer> PsCardItemTransfers { get; set; }
-        public virtual OrderItem OrderItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
+        public virtual OrderItem OrderItem { get; set; }
     }
 }

@@ -31,7 +31,8 @@
     .ToolBar(t =>
     {
         t.Create().Text("Add New Record");
-        t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintRIS").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Print - Issuance by GSO").IconClass("k-icon k-i-print").Name("btnPrintRIS").HtmlAttributes(new { @class = "k-button", href = "" });
+        t.Custom().Text("Print - Issuance by Department").IconClass("k-icon k-i-print").Name("btnPrintRIS2").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPostRIS").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostRIS").HtmlAttributes(new { @class = "k-button", href = "" });
         //t.Custom().Text("Issue").IconClass("k-icon k-i-unlock").Name("btnIssueRIS").HtmlAttributes(new { @class = "k-button", href = "" });
@@ -211,7 +212,7 @@
                 }
             });
 
-            alert(message); // You can replace this with any other UI method to display errors                        
+            alert(message); // You can replace this with any other UI method to display errors
         }
     }
 
@@ -715,11 +716,11 @@
             }
         });
     }
-    
+
     function onDataBoundItemCode(e) {
         var comboBox = this;
         var selectedValue = comboBox.value();
-        
+
         if (selectedValue !== null && selectedValue !== undefined && selectedValue != "") {
             var dataItem = comboBox.dataItem();
             $("#SubAccount").val(dataItem.MainDesc).trigger("change");
@@ -934,6 +935,32 @@
         mywindow.open();
     });
 
+    $(".k-grid-btnPrintRIS2").click(function (e) {
+        e.preventDefault();
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "RIS Issuance by Department ",
+            width: 400,
+            height: 220
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_PrintRisDepartment", "RIS")?risNo=' + selectedRisNo
+        });
+        mywindow.center().open();        
+    });
+
 
     function onClickBtnAddRisItem(e) {
         e.preventDefault();
@@ -1061,7 +1088,7 @@
                 }
             });
 
-            alert(message); // You can replace this with any other UI method to display errors                        
+            alert(message); // You can replace this with any other UI method to display errors
             $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();
         }
     }
@@ -1171,7 +1198,7 @@
                 }
             });
 
-            alert(message); // You can replace this with any other UI method to display errors                        
+            alert(message); // You can replace this with any other UI method to display errors
             $("#gridItemUnitGroupDescriptions_" + selectedUnitGroupId).data("kendoGrid").dataSource.read();
         }
     }
@@ -1254,7 +1281,7 @@
                 }
             });
 
-            alert(message); // You can replace this with any other UI method to display errors                        
+            alert(message); // You can replace this with any other UI method to display errors
             $("#gridItemUnitGroupDescriptionItems_" + selectedUnitGroupDescriptionId).data("kendoGrid").dataSource.read();
         }
     }

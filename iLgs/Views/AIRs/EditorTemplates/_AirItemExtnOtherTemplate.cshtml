@@ -13,13 +13,37 @@
 
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.AIRItemId)
-    @Html.HiddenFor(model => model.ContentNo)
+    
 
     <fieldset>
 
         <div class="row k-mb-2">
-            @Html.LabelFor(m => m.SerialNo, htmlAttributes: new { @class = "col-md-2" })
-            <div class="col-md-10">
+            @Html.LabelFor(m => m.SetLotNo, htmlAttributes: new { @class = "col-md-3" })
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.SetLotNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.SetLotNo)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            @Html.LabelFor(m => m.SetLotQtyNo, htmlAttributes: new { @class = "col-md-3" })
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.SetLotQtyNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.SetLotQtyNo)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            @Html.LabelFor(m => m.ContentNo, htmlAttributes: new { @class = "col-md-3" })
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.ContentNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.ContentNo)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            @Html.LabelFor(m => m.SerialNo, htmlAttributes: new { @class = "col-md-3" })
+            <div class="col-md-9">
                 @(Html.Kendo().TextBoxFor(m => m.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.SerialNo)
             </div>
@@ -27,8 +51,8 @@
 
         
         @*<div class="row k-mb-2">
-            @Html.LabelFor(m => m.Condition, htmlAttributes: new { @class = "col-md-2" })
-            <div class="col-md-10">
+            @Html.LabelFor(m => m.Condition, htmlAttributes: new { @class = "col-md-3" })
+            <div class="col-md-9">
                 @(Html.Kendo().TextBoxFor(m => m.Condition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.Condition)
             </div>

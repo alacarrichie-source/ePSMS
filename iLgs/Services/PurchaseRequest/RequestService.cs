@@ -406,6 +406,23 @@ namespace iLgs.Services.PurchaseRequest
             var entity = await _db.Requests.FindAsync(requestId);
             if (entity != null)
             {
+
+                var unitGroupItems = _db.RequestItemUnitGroupDescriptionItems.Include(i => i.RequestItem)
+                    .Where(w => w.RequestItemUnitGroupDescription.RequestItemUnitGroup.PrId == entity.Id).ToList();
+                if (unitGroupItems.Any())
+                {
+                    var rate = unitGroupItems.Sum(s => s.RequestItem.PriceRate) ?? 0;
+                    if (rate != 100)
+                    {
+                        throw new InvalidValueException("Price rate must be 100%");
+                    }
+                }
+
+                if (_db.RequestItems.Any(a => a.PrId == requestId && (!a.UnitCost.HasValue || a.UnitCost == 0)))
+                {
+                    throw new InvalidValueException("All items must have a unit cost.");
+                }
+
                 entity.SubmittedBy = user;
                 entity.SubmittedDt = date;
                 entity.UpdatedBy = user;

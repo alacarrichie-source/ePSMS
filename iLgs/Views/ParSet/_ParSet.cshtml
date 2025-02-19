@@ -1,0 +1,59 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.IcsPar>()
+    .Name("gridItemsPar")
+    .Columns(col =>
+    {
+        col.Bound(c => c.RefDate).Title("PAR Date").Width(50)
+            .ClientTemplate("#= kendo.toString(kendo.parseDate(RefDate), 'MM/dd/yyyy') #");
+        col.Bound(c => c.RefNo).Title("PAR No.").Width(50);
+        //col.Bound(c => c.PsCardItemExtn.PropNo).Title("Property No.").Width(200);
+        //col.Bound(c => c.IcsPar.Location).Width(100);
+        col.Command(command =>
+        {
+            //command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditParsItem");
+            if (string.IsNullOrEmpty((string)ViewData["postedBy"]))
+            {
+                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridParItems").SendDataKeys(true);
+            }
+            command.Custom("Print PAR").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintSet");
+            command.Custom("Uploads").Click("onClickSetUploads");
+        }).Width(120);
+    })
+        //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ParsTemplate").Window(w => w.Width(800)))
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Sortable()
+        .Resizable(r => r.Columns(true))
+        .Navigatable()
+        .Scrollable(s => s.Height(250))
+        .NoRecords()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("InlineGridError").RequestEnd("onRequestEndGridParItemSet")
+            )
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+            })
+            .Sort(s => { s.Add(a => a.RefNo); })
+            .Read(read => read.Action("_ParSetRead", "ParSet", new { cardItemGroupId = ViewData["cardItemGroupId"] }))
+            .Destroy(destroy => destroy.Action("_ParSetDestroy", "ParSet"))
+        )
+        .AutoBind(true)
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+    //.ToClientTemplate()
+    .Events(e => e
+        //.Edit("onEditGridItemsPar")
+        .Change("onChangeGridItemsParSet")
+        .DataBound("onDataBoundGridItemsParSet")
+    )
+)
+
+

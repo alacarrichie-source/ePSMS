@@ -1,6 +1,9 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Items;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -24,10 +27,12 @@ namespace iLgs.Services
     public class ItemTypeService : IItemTypeService
     {
         private readonly AppManEntities _db ;
+        private readonly IItemCodeService _itemCodeService;
 
         public ItemTypeService(AppManEntities db)
         {
             _db = db;
+            _itemCodeService = new ItemCodeService(_db);
         }
         
         private Expression<Func<ItemType, ItemTypeVM>> Projection(AppManEntities _db)
@@ -128,7 +133,10 @@ namespace iLgs.Services
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            ItemType entity = await _db.ItemTypes.FindAsync(model.Id);
+            ItemType entity = await _db.ItemTypes.Include(i => i.ItemCodes).FirstOrDefaultAsync(f => f.Id == model.Id);
+
+            ValidateRecord(entity, model.Id);
+            ValidateRelationship(entity);
 
             entity.Code = model.Code;
             entity.Description = model.Description;
@@ -152,6 +160,9 @@ namespace iLgs.Services
 
             ItemType entity = await _db.ItemTypes.FindAsync(model.Id);
 
+            ValidateRecord(entity, model.Id);
+            ValidateRelationship(entity);
+
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 
@@ -166,5 +177,20 @@ namespace iLgs.Services
             return model;
         }
 
+        private void ValidateRecord(ItemType entity, Guid id)
+        {
+            if (entity is null)
+            {
+                throw new NotFoundException(id);
+            }
+        }
+
+        private void ValidateRelationship(ItemType entity)
+        {
+            foreach(var itemCode in entity.ItemCodes)
+            {
+                _itemCodeService.ValidateRelationship(itemCode.Id);
+            }
+        }
     }
 }

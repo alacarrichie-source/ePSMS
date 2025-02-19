@@ -16,6 +16,7 @@ namespace iLgs.Services.AIRs
     public interface IAirItemService
     {
         string GetItemExtnName(Guid? id);
+        string GetItemExtnNameByCategory(string category);
         IQueryable<AIRItemVM> GetByAirId(Guid? airId);
         ValueTask<AIRItemVM> GetByIdAsync(Guid? id);
 
@@ -46,6 +47,11 @@ namespace iLgs.Services.AIRs
         public string GetItemExtnName(Guid? id)
         {
             var category = _db.AIRItems.Where(w => w.Id == id).Select(s => s.OrderItem.RequestItem.RisItem.ItemCode.ItemType.Code).FirstOrDefault();
+            return GetItemExtnNameByCategory(category);
+        }
+
+        public string GetItemExtnNameByCategory(string category)
+        {
             if (string.IsNullOrWhiteSpace(category))
             {
                 return "";
@@ -83,6 +89,8 @@ namespace iLgs.Services.AIRs
             }
             return itemExtnName;
         }
+
+
 
         private Expression<Func<AIRItem, AIRItemVM>> Projection()
         {
@@ -217,11 +225,10 @@ namespace iLgs.Services.AIRs
                     throw new InvalidValueException("Please complete the entry of all serial numbers before posting.");
                 }
 
-                //var airItemExtnVehicles = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItem.Id == airItemId).ToList();
-                //foreach(var item in airItemExtnVehicles)
-                //{
-                //    validationService.ValidateEntity(item);
-                //}
+                if (_db.AIRItems.Any(a => a.Id == airItemId && a.InvDist == "I" && a.AIRItemExtns.OfType<AIRItemExtnVehicle>().Any(b => b.ConductionNo == "" || b.ConductionNo == null)))
+                {
+                    throw new InvalidValueException("Empty serial numbers detected, complete all serial numbers before posting.");
+                }
             }
             else if (itemExtnName == "ItemExtnOther")
             {
@@ -230,11 +237,10 @@ namespace iLgs.Services.AIRs
                     throw new InvalidValueException("Please complete the entry of all serial numbers before posting.");
                 }
 
-                //var airItemExtnOthers = _db.AIRItemExtns.OfType<AIRItemExtnVehicle>().Where(w => w.AIRItem.Id == airItemId).ToList();
-                //foreach (var item in airItemExtnOthers)
-                //{
-                //    validationService.ValidateEntity(item);
-                //}
+                if (_db.AIRItems.Any(a => a.Id == airItemId && a.InvDist == "I" && a.AIRItemExtns.OfType<AIRItemExtnOther>().Any(b => b.SerialNo == "" || b.SerialNo == null)))
+                {
+                    throw new InvalidValueException("Empty serial numbers detected, complete all serial numbers before posting.");
+                }
             }
         }
 

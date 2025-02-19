@@ -35,12 +35,15 @@ namespace iLgs.Services.Items
         IQueryable<ItemCodeVM> GetCustodianItemLand(string item);
         IQueryable<ItemCodeVM> GetCustodianItemBldg(string item);
 
-        bool? IsProperty(Guid? id);
+        bool IsProperty(Guid? id);
+        bool IsWithParIcs(Guid? id);
         string GetInvDist(Guid? id);
 
         ValueTask<ItemCodeVM> CreateAsync(ItemCodeVM model, string user, DateTime date);
         ValueTask<ItemCodeVM> UpdateAsync(ItemCodeVM model, string user, DateTime date);
         ValueTask<ItemCodeVM> DeleteAsync(ItemCodeVM model, string user, DateTime date);
+
+        void ValidateRelationship(Guid itemcodeId);
     }
 
     public class ItemCodeService : IItemCodeService
@@ -251,7 +254,7 @@ namespace iLgs.Services.Items
             return data;
         }
 
-        public bool? IsProperty(Guid? id)
+        public bool IsProperty(Guid? id)
         {
             var itemCode = _db.ItemCodes.Include(i => i.ItemType).Where(w => w.Id == id).AsNoTracking().FirstOrDefault();
             if (itemCode != null)
@@ -261,22 +264,43 @@ namespace iLgs.Services.Items
             return false;
         }
 
+        public bool IsWithParIcs(Guid? id)
+        {
+            var itemCode = _db.ItemCodes.Include(i => i.ItemType).Where(w => w.Id == id).AsNoTracking().FirstOrDefault();
+            if (itemCode != null)
+            {
+                if (itemCode.IsConsumable == "Y" || itemCode.IsIncorporated == "Y" || itemCode.ForDistribution == "Y")
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public string GetInvDist(Guid? id)
         {
             var itemCode = _db.ItemCodes.Include(i => i.ItemType).Where(w => w.Id == id).AsNoTracking().FirstOrDefault();
             if (itemCode != null)
             {
-                if (itemCode.ItemType.Category != "S")
+                //if (itemCode.ItemType.Category != "S")
+                //{
+                //    return "I";
+                //}
+                //if (itemCode.ForDistribution == "Y" || itemCode.IsConsumable == "Y" || itemCode.IsIncorporated == "Y")
+                //{
+                //    return "D";
+                //}                
+                if (itemCode.ForDistribution == "Y")
+                {
+                    return "D";
+                }
+                if (itemCode.ForDistribution == "N")
                 {
                     return "I";
                 }
-                if (itemCode.ForDistribution == "Y" || itemCode.IsConsumable == "Y" || itemCode.IsIncorporated == "Y")
-                {
-                    return "D";
-                }                
             }
 
-            return "I";
+            return "";
         }
 
         private void ValidateFields(ItemCodeVM model)
@@ -371,6 +395,7 @@ namespace iLgs.Services.Items
 
             ItemCode entity = await _db.ItemCodes.FindAsync(model.Id);
             ValidateRecord(entity, model.Id);
+            //ValidateRelationship(model.Id);
 
             model.Code = GetItemCode(model.ItemTypeId, model.ItemNo, model.Description);
             model.ItemNoIndex = ItemNoIndex(model.ItemNo);
@@ -446,49 +471,49 @@ namespace iLgs.Services.Items
             return itemNoIndex;
         }
 
-        private void ValidateRelationship(Guid itemcodeId)
+        public void ValidateRelationship(Guid itemcodeId)
         {
             var psCards = _db.PsCards.Where(w => w.ItemCodeId == itemcodeId);
             if (psCards.Any())
             {
                 //var cardNos = string.Join("/", psCards.Select(s => s.PsNo));
-                throw new RecordRelationshipException($"Item Code is in use in Stock/Property Card, cannot delete!");
+                throw new RecordRelationshipException($"Item Code is in use in Stock/Property Card, cannot proceed!");
             }
 
             var cust1 = _db.CustodianReportItems.Where(w => w.ItemCodeId == itemcodeId);
             if (cust1.Any())
             {
-                throw new RecordRelationshipException("Item Code is in use in custodian report, cannot delete!");
+                throw new RecordRelationshipException("Item Code is in use in custodian report, cannot proceed!");
             }
 
             var cust2 = _db.CustodianReportBldgItems.Where(w => w.ItemCodeId == itemcodeId);
             if (cust2.Any())
             {
-                throw new RecordRelationshipException("Item Code is in use in custodian structures, cannot delete!");
+                throw new RecordRelationshipException("Item Code is in use in custodian structures, cannot proceed!");
             }
 
             var cust3 = _db.CustodianReportLandItems.Where(w => w.ItemCodeId == itemcodeId);
             if (cust3.Any())
             {
-                throw new RecordRelationshipException("Item Code is in use in custodian land, cannot delete!");
+                throw new RecordRelationshipException("Item Code is in use in custodian land, cannot proceed!");
             }
 
             var rpciItems = _db.RPCIItems.Where(w => w.ItemCodeId == itemcodeId);
             if (rpciItems.Any())
             {
-                throw new RecordRelationshipException("Item Code is in use in RPCI, cannot delete!");
+                throw new RecordRelationshipException("Item Code is in use in RPCI, cannot proceed!");
             }
 
             var risItems = _db.RisItems.Where(w => w.ItemCodeId == itemcodeId);
             if (risItems.Any())
             {
-                throw new RecordRelationshipException("Item Code is in use in RIS, cannot delete!");
+                throw new RecordRelationshipException("Item Code is in use in RIS, cannot proceed!");
             }
 
             var orderItems = _db.OrderItems.Where(w => w.ItemCodeId == itemcodeId);
             if (orderItems.Any())
             {
-                throw new RecordRelationshipException("Item Code is in use in PURHASE ORDERS, cannot delete!");
+                throw new RecordRelationshipException("Item Code is in use in PURHASE ORDERS, cannot proceed!");
             }
         }
 
@@ -497,7 +522,7 @@ namespace iLgs.Services.Items
             if (entity is null)
             {
                 throw new NotFoundException(id);
-            }
+            }            
         }
 
         private static void ValidateIfNull(ItemCodeVM model)

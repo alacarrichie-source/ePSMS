@@ -83,7 +83,7 @@
 <script id="Details" type="text/x-kendo-tmpl">
     @(Html.Kendo().TabStrip()
     .Name("tabStrip_#=Id#")
-    .HtmlAttributes(new { @class = "no-text-tabstrip" })
+    //.HtmlAttributes(new { @class = "no-text-tabstrip" })
     .TabPosition(TabStripTabPosition.Top)
     .Animation(animation =>
     {
@@ -95,9 +95,11 @@
     .SelectedIndex(0)
     .Items(items =>
     {
-        items.Add()
+        items.Add().Text("Items")
             .Selected(true)
             .LoadContentFrom("_AIRItem", "AIRs", new { airId = "#=Id#" });
+        items.Add().Text("Groups")
+                    .LoadContentFrom("_UnitGroup", "AIRs", new { orderId = "#=OrderId#" });
     }).ToClientTemplate())
 </script>
 
@@ -106,21 +108,24 @@
     .Name("gridItemExtn_#=Id#")
     .Columns(col =>
     {
-        col.Bound(c => c.YearModel).Width(40);
+        col.Bound(c => c.SetLotNo).Width(50);
+        col.Bound(c => c.SetLotQtyNo).Width(50);
+        col.Bound(c => c.ContentNo).Width(50);
+        //col.Bound(c => c.YearModel).Width(40);
         col.Bound(c => c.ConductionNo).Width(50);
-        col.Bound(c => c.PlateNo).Width(50);
-        col.Bound(c => c.BodyNo).Width(50);
-        col.Bound(c => c.EngineNo).Width(50);
-        col.Bound(c => c.ChasisNo).Width(50);
-        col.Bound(c => c.Color).Width(50);
-        col.Bound(c => c.CRN).Width(50);
-        col.Bound(c => c.CRDate).Width(50);
-        col.Bound(c => c.MVFileNo).Width(50);
-        col.Bound(c => c.OrNo).Width(50);
-        col.Bound(c => c.OrDate).Width(50);
-        col.Bound(c => c.NetWeight).Width(50);
-        col.Bound(c => c.InsPolicyNo).Width(50);
-        col.Bound(c => c.SubLocation).Width(50);
+        //col.Bound(c => c.PlateNo).Width(50);
+        //col.Bound(c => c.BodyNo).Width(50);
+        //col.Bound(c => c.EngineNo).Width(50);
+        //col.Bound(c => c.ChasisNo).Width(50);
+        //col.Bound(c => c.Color).Width(50);
+        //col.Bound(c => c.CRN).Width(50);
+        //col.Bound(c => c.CRDate).Width(50);
+        //col.Bound(c => c.MVFileNo).Width(50);
+        //col.Bound(c => c.OrNo).Width(50);
+        //col.Bound(c => c.OrDate).Width(50);
+        //col.Bound(c => c.NetWeight).Width(50);
+        //col.Bound(c => c.InsPolicyNo).Width(50);
+        //col.Bound(c => c.SubLocation).Width(50);
         col.Command(command =>
         {
             command.Edit();
@@ -143,6 +148,12 @@
         {
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        })
+        .Sort(s =>
+        {
+            s.Add(a => a.SetLotNo);
+            s.Add(a => a.SetLotQtyNo);
+            s.Add(a => a.ContentNo);
         })
         .Read(read => read.Action("_AIRItemExtnVehicleRead", "AIRs", new { airItemId = "#=Id#" }))
         .Create(create => create.Action("_AIRItemExtnVehicleCreate", "AIRs"))
@@ -168,6 +179,9 @@
     .Name("gridItemExtn_#=Id#")
     .Columns(col =>
     {
+        col.Bound(c => c.SetLotNo).Width(50);
+        col.Bound(c => c.SetLotQtyNo).Width(50);
+        col.Bound(c => c.ContentNo).Width(50);
         col.Bound(c => c.SerialNo).Width(100);
         //col.Bound(c => c.Condition).Width(100);
         col.Command(command =>
@@ -192,6 +206,11 @@
         {
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        })
+        .Sort(s => {
+            s.Add(a => a.SetLotNo);
+            s.Add(a => a.SetLotQtyNo);
+            s.Add(a => a.ContentNo);
         })
         .Read(read => read.Action("_AIRItemExtnOtherRead", "AIRs", new { airItemId = "#=Id#" }))
         .Create(create => create.Action("_AIRItemExtnOtherCreate", "AIRs"))
@@ -364,7 +383,7 @@
     var selectedGrid = null;
     var selectedId = null;
     var selectedId_OrderId = null;
-    var selecteItemId = null;
+    var selectedItemId = null;
     var postedBy = null;
     var selectedAirNo = null;
 
@@ -449,10 +468,10 @@
         // Get the grid instance explicitly
         const grid = $(e.currentTarget).closest(".k-grid").data("kendoGrid");
         selectedGrid = grid;
-        
+
         const tr = $(e.currentTarget).closest("tr");
         const dataItem = grid.dataItem(tr);
-        
+
         // Confirm deletion
         if (confirm(`Are you sure you want to delete this record?`)) {
             grid.select(tr);
@@ -543,7 +562,29 @@
         }
     }
 
+    function onDetailCollapse(e) {
+        // Find the corresponding row in the main grid and select it
+        var mainGridRow = $(e.sender.wrapper).closest("tr").prev();
+        var mainGrid = mainGridRow.closest("[data-role=grid]").data("kendoGrid");
+        mainGrid.select(mainGridRow);
+
+        var grid = e.sender; // Get the grid instance dynamically
+        var row = $(e.masterRow);
+        grid.select(row);
+    }
+
+
     function onDetailExpand(e) {
+        // Find the corresponding row in the main grid and select it
+        var mainGridRow = $(e.sender.wrapper).closest("tr").prev();
+        var mainGrid = mainGridRow.closest("[data-role=grid]").data("kendoGrid");
+        mainGrid.select(mainGridRow);
+
+        // Find the current row in the grid and select it
+        var grid = e.sender;
+        var row = $(e.masterRow);
+        grid.select(row);
+
         var dataItem = this.dataItem(e.masterRow); // Get the data item for the current row
         var templateId = null;
 
@@ -570,17 +611,17 @@
                 return false;
             }
         });
-        
+
     }
 
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
-        selecteItemId = selectedData.Id;
+        selectedItemId = selectedData.Id;
     }
 
     function onDataBoundGridItems(e) {
-        if (selecteItemId) {
-            var dataItem = this.dataSource.get(selecteItemId);
+        if (selectedItemId) {
+            var dataItem = this.dataSource.get(selectedItemId);
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
             }
@@ -596,11 +637,11 @@
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-            selecteItemId = null;
+            selectedItemId = null;
             e.model.set("AirId", selectedId);
         } else {
-            selecteItemId = e.model.get("Id");
-            var rowitem = selectedGrid.dataSource.get(selecteItemId);
+            selectedItemId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedItemId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
             //$("#Code").attr("readonly", "readonly");
         }
@@ -869,7 +910,7 @@
                 }
             });
 
-            alert(message); // You can replace this with any other UI method to display errors                        
+            alert(message); // You can replace this with any other UI method to display errors
             $("#gridInvoices").data("kendoGrid").dataSource.read();
         }
     }
@@ -1003,7 +1044,12 @@
         } else {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-        }        
+        }
+
+        this.bind("detailExpand", function (e) {
+            // Select the expanded master row
+            this.select(e.masterRow);
+        });
     }
 
     function onEditGridItemExtn(e) {
@@ -1078,6 +1124,204 @@
         }
     }
     // END GRID ITEMEXTN
+
+    // ITEM UNIT GROUPS
+    function onGridItemUnitGroupsRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();
+            }
+        }
+    }
+
+    var selectedUnitGroupId;
+    var selectedUnitGroupDescriptionId = null;
+    var selectedUnitGroupDescriptionItemId = null;
+
+    function onChangeGridItemUnitGroups(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedUnitGroupId = selectedData.Id;
+        selectedUnitGroupDescriptionId = null;
+        selectedUnitGroupDescriptionItemId = null;
+    }
+
+    function onDataBoundGridItemUnitGroups(e) {
+        if (selectedUnitGroupId) {
+            var dataItem = this.dataSource.get(selectedUnitGroupId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+
+            // Attach a handler to the "detailExpand" event
+            this.bind("detailExpand", function (e) {
+                // Select the expanded master row
+                this.select(e.masterRow);
+            });
+        }
+    }
+
+    function onEditGridItemUnitGroups(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedUnitGroupId = null;
+            selectedUnitGroupDescriptionId = null;
+            selectedUnitGroupDescriptionItemId = null;
+            e.model.set("OrderId", selectedId_OrderId);
+        } else {
+            selectedUnitGroupId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedUnitGroupId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onClickDeleteGridItemUnitGroups(e) {
+        e.preventDefault();
+
+        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
+        selectedGrid = grid;
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+
+        if (confirm("Are you sure you want to delete this record?")) {
+            grid.dataSource.remove(dataItem);
+            grid.dataSource.sync();
+            selectedUnitGroupDescriptionId = null;
+        }
+    }
+    // END RIS ITEM UNIT GROUPS
+
+    // RIS ITEM UNIT GROUP DESCRIPTIONS
+    function onGridItemUnitGroupDescriptionsRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridItemUnitGroupDescriptions_" + selectedUnitGroupId).data("kendoGrid").dataSource.read();
+            }
+        }
+    }
+
+    function onChangeGridItemUnitGroupDescriptions(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedUnitGroupDescriptionId = selectedData.Id;
+        selectedUnitGroupDescriptionItemId = null;
+    }
+
+    function onDataBoundGridItemUnitGroupDescriptions(e) {
+        if (selectedUnitGroupDescriptionId) {
+            var dataItem = this.dataSource.get(selectedUnitGroupDescriptionId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+
+            // Attach a handler to the "detailExpand" event
+            this.bind("detailExpand", function (e) {
+                // Select the expanded master row
+                this.select(e.masterRow);
+            });
+        }
+    }
+
+    function onEditGridItemUnitGroupDescriptions(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedUnitGroupDescriptionId = null;
+            selectedUnitGroupDescriptionItemId = null;
+            e.model.set("UnitGroupId", selectedUnitGroupId);
+        } else {
+            selectedUnitGroupDescriptionId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedUnitGroupDescriptionId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onClickDeleteGridItemUnitGroupDescriptions(e) {
+        e.preventDefault();
+
+        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
+        selectedGrid = grid;
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+
+        if (confirm("Are you sure you want to delete this record?")) {
+            grid.dataSource.remove(dataItem);
+            grid.dataSource.sync();
+        }
+    }
+    // END RIS ITEM UNIT GROUP DESCRIPTIONS
+
+    // RIS UNIT GROUP DESCRIPTION ITEMS
+    function onGridItemUnitGroupDescriptionItemsRequestEnd(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridItemUnitGroupDescriptionItems_" + selectedUnitGroupDescriptionId).data("kendoGrid").dataSource.read();
+            }
+        }
+    }
+
+    function onChangeGridItemUnitGroupDescriptionItems(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedUnitGroupDescriptionItemId = selectedData.Id;
+    }
+
+    function onDataBoundGridItemUnitGroupDescriptionItems(e) {
+        if (selectedUnitGroupDescriptionItemId) {
+            var dataItem = this.dataSource.get(selectedUnitGroupDescriptionItemId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onEditGridItemUnitGroupDescriptionItems(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            selectedUnitGroupDescriptionItemId = null;
+            e.model.set("UnitGroupDescriptionId", selectedUnitGroupDescriptionId);
+        } else {
+            selectedUnitGroupDescriptionItemId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedUnitGroupDescriptionItemId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onClickDeleteGridItemUnitGroupDescriptionItems(e) {
+        e.preventDefault();
+
+        var grid = $(e.target).closest(".k-grid").data("kendoGrid");
+        selectedGrid = grid;
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+
+        if (confirm("Are you sure you want to delete this record?")) {
+            grid.dataSource.remove(dataItem);
+            grid.dataSource.sync();
+        }
+    }
 </script>
 
 

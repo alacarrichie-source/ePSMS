@@ -56,6 +56,7 @@
         col.Bound(c => c.Item).Width(100).Title("Articles");
         col.Bound(c => c.InsertedBy).Width(70).Title("Created by");
         col.Bound(c => c.ItemCount).Width(70);
+        col.Bound(c => c.NotPosted).Width(70);
         //col.Bound(c => c.Description).Width(100);
         col.Command(command =>
         {
@@ -923,7 +924,7 @@
                 var newRecord = responseData.Data[0];
                 selectedId = newRecord.Id;
             }
-        }
+        }        
     }
 
     var postedBy = null;
@@ -1094,7 +1095,7 @@
                     modal: true,
                     visible: false,
                     autoheight: true,
-                    close: function () {
+                    close: function () {                        
                         $("#grid").data("kendoGrid").dataSource.read();
                         var duplicate = $("#IsDuplicateStockNo").val();
                         if (duplicate == "true") {
@@ -1106,7 +1107,41 @@
                                 operator: "eq", // The filtering operator (e.g., "eq", "contains")
                                 value: psNo        // The value to filter by
                             });
-                        }
+
+                            // Wait for filtering to complete
+                            grid.dataSource.read().then(function () {
+                                // Find the first visible row in the filtered data
+                                var masterRow = grid.tbody.find("> tr:not(.k-detail-row)").first();
+
+                                if (masterRow.length) {
+                                    // Select the row
+                                    grid.select(masterRow);
+                                    // Get the DataItem from the selected row
+                                    var selectedDataItem = grid.dataItem(masterRow);
+
+                                    // Access the `Id` field or other data
+                                    if (selectedDataItem) {
+                                        selectedId = selectedDataItem.Id;                                     
+                                    }
+
+                                    // Expand subgrid
+                                    grid.expandRow(masterRow);
+
+                                    //// Wait for subgrid rendering and trigger add row
+                                    setTimeout(function () {
+                                        //var subgrid = masterRow.next(".k-detail-row").find(".k-grid").data("kendoGrid");
+                                        var subGrid = $("#gridItems_" + selectedId).data("kendoGrid");
+                                        if (subGrid) {
+                                            subGrid.addRow(); // Trigger the "Add" action
+                                        }
+                                    }, 2000); // Delay for rendering subgrid
+                                    
+                                } else {
+                                    console.log("No visible rows to select.");
+                                }
+                            });
+                            
+                        }                        
                     },
                     deactivate: function () {
                         this.destroy();
@@ -1384,7 +1419,64 @@
             var row = e.sender.tbody.find("tr[data-uid='" + e.model.uid + "']");
             e.sender.select(row);
         }
-    }
+        var popupWindow = e.container.data("kendoWindow");
+
+        if (popupWindow) {
+            // Unbind previous events to avoid duplicates
+            //popupWindow.unbind("close");
+
+            //// Handle the window close (X) icon event
+            //popupWindow.bind("close", function (event) {
+            //    var isCancelButton = $(document.activeElement).hasClass("k-grid-cancel");
+            //    if (!isCancelButton) {
+            //        if (!confirm("Are you sure you want to close this form? Unsaved changes will be lost.")) {
+            //            event.preventDefault(); // Prevent window from closing
+            //        }
+            //    }
+            //});
+
+
+            // Handle the Cancel button click separately
+            setTimeout(function () {
+                e.container.find(".k-grid-cancel").off("click").on("click", function (event) {
+                    if (!confirm("Are you sure you want to close this form? Unsaved changes will be lost.")) {
+                        event.preventDefault();         // Stop default closing
+                        event.stopImmediatePropagation(); // Prevent further event execution
+                    }
+                });
+            });
+        }
+
+        //if (popupWindow) {
+        //    // Attach a click event to the Cancel button dynamically
+        //    setTimeout(function () {
+        //        e.container.find(".k-grid-cancel").off("click").on("click", function (event) {
+        //            if (!confirm("Are you sure you want to close this form? Unsaved changes will be lost.")) {
+        //                event.preventDefault();
+        //                //popupWindow.close(false); // Ensure Kendo doesn't force close
+        //                event.stopImmediatePropagation(); // Block Kendo internal destroy
+        //            }
+        //        });
+        //    });
+        //}
+
+        //var window = e.container.data("kendoWindow");
+        //window.bind("close", function (e) {
+        //    if (!confirm("Are you sure you want to close this form? Unsaved changes will be lost.")) {
+        //        e.preventDefault(); // Prevent the popup from closing
+        //    }            
+        //});
+
+        //var popupWindow = e.container.data("kendoWindow");
+
+        //if (popupWindow) {            
+        //    popupWindow.unbind("close").bind("close", function (e) {
+        //        if (!confirm("Are you sure you want to close this form? Unsaved changes will be lost.")) {
+        //            e.preventDefault(); // Prevents the window from closing
+        //        }
+        //    });
+        //}
+    }    
 
     function onSaveGridItems(e) {
         var container = e.container;
@@ -2289,6 +2381,26 @@
             deptId: $("#DeptId").val(),
             text: text
         };
+    }
+
+    function onCloseCardTemplate(e) {
+        if (!confirm("Are you sure you want to close this form? Unsaved changes will be lost.")) {
+            e.preventDefault(); // Prevents the window from closing
+        }
+    }
+    
+    function onOpenPopupTemplate(e) {
+        var popupWindow = $(".k-window-content.k-popup-edit-form").data("kendoWindow");
+
+        if (popupWindow) {
+            // Ensure the event is not bound multiple times
+            popupWindow.unbind("close");
+            popupWindow.bind("close", function (e) {
+                if (!confirm("Are you sure you want to close this form? Unsaved changes will be lost.")) {
+                    e.preventDefault(); // Prevents the window from closing
+                }
+            });
+        }
     }
     // END CARD ITEM TEMPLATE
 

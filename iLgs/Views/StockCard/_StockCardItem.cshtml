@@ -6,15 +6,15 @@
                 .Columns(info =>
                 {
                     info.Bound(f => f.PoNo).Width(50);
-                    info.Bound(f => f.PoDate).Width(50);
+                    info.Bound(f => f.PoDate).Width(50).Filterable(false);
                     info.Bound(f => f.AirNo).Width(50);
-                    info.Bound(f => f.AirDate).Width(50);
+                    info.Bound(f => f.AirDate).Width(50).Filterable(false);
                 }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
             );
             columns.Bound(f => f.UnitCost).Width(50).Title("PO<br>Unit Cost")
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Bound(f => f.Unit).Width(50).Title("Unit<br>of<br>Measurement");
+                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+            columns.Bound(f => f.Unit).Width(50).Title("Unit<br>of<br>Measurement").Filterable(false);
             columns.Group(group =>
             {
                 group.Title("Receipt Quantity").HeaderHtmlAttributes(new { Style = "text-align:center;" })
@@ -27,10 +27,11 @@
         {
             info.Bound(f => f.Department).Width(70).Title("PO Owner");
             info.Bound(f => f.Qty)
-.Width(50).Title("In")
-.HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-.HeaderHtmlAttributes(new { style = "text-align:right;" });
+                .Width(50).Title("In")
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientGroupFooterTemplate("#=kendo.format('{0:n0}', sum)#")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
         });
                     });
                     col.Group(g =>
@@ -41,10 +42,11 @@
             info.Bound(f => f.LocCode).Width(50).Title("Code");
             info.Bound(f => f.Location).Width(50).Title("Location");
             info.Bound(f => f.TransferIn)
-.Width(50).Title("Transit-In")
-.HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-.ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-.HeaderHtmlAttributes(new { style = "text-align:right;" });
+                .Width(50).Title("Transit-In")
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
         });
                     });
                 });
@@ -53,22 +55,45 @@
                 .Columns(info =>
                 {
                     info.Bound(f => f.TransferOut)
-        .Width(50).Title("Intermediary<br><br>Transit-Out")
-        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                        .Width(50).Title("Intermediary<br><br>Transit-Out")
+                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                        .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                        .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
                     info.Bound(f => f.QtyIss)
-        .Width(50).Title("Issued")
-        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-        .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                        .Width(50).Title("Issued")
+                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                        .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                        .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
                 }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
             );
             columns.Bound(f => f.QtyBal).Width(50).Title("Balance<br>Quantity")
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Bound(f => f.Remarks).Width(50);
+                .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+                .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+            columns.Group(group => group.Title("PO Amounts")
+                .Columns(info =>
+                {
+                    info.Bound(f => f.Amount).Width(50).Title("Original<br>PO")
+                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                        .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                        .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    info.Bound(f => f.IssueAmount).Width(50).Title("Issued")
+                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                        .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                        .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    info.Bound(f => f.BalanceAmount).Width(50).Title("Balance")
+                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                        .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                        .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            );
+            //columns.Bound(f => f.Remarks).Width(50);
             columns.Bound(f => f.InsertedBy).Width(50).Title("Created by");
             columns.Bound(f => f.PostedBy).Width(50);
             columns.Command(commands =>
@@ -81,13 +106,11 @@
                 commands.Custom("Print PO - Update").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintPoUpdate");
                 commands.Custom("Transfer").IconClass("k-icon k-i-close").SendDataKeys(true).Click("onClickTransfer").Visible("IsNotPosted");
             }).Width(150);
-        })        
-        .ToolBar(t =>
-        {
-            t.Create();
-            //t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost_" + @ViewData["cardId"]).HtmlAttributes(new { @class = "k-button", href = "" });
-            //t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost_" + @ViewData["cardId"]).HtmlAttributes(new { @class = "k-button", href = "" });
         })
+        //.ToolBar(t =>
+        //{
+        //    t.Create();
+        //})
         @*.ToolBar(toolbar =>
             {
                 toolbar.Template(@<text>
@@ -99,6 +122,8 @@
         .Navigatable()
         .NoRecords()
         .Sortable()
+        .Filterable()
+        .Groupable()
         .ClientDetailTemplateId("default-template")
         .DataSource(dataSource => dataSource
             .Ajax()
@@ -110,7 +135,7 @@
                 //model.Field(p => p.QtyIss).DefaultValue(0);
                 //model.Field(p => p.QtyBal).DefaultValue(0);
             })
-            .Sort(s => { s.Add(a => a.PoNo);  s.Add(a => a.InsertedDt); })
+            .Sort(s => { s.Add(a => a.PoNo); s.Add(a => a.InsertedDt); })
             .Aggregates(a =>
             {
                 a.Add(p => p.Qty).Sum();
@@ -119,12 +144,14 @@
                 a.Add(p => p.TransferOut).Sum();
                 a.Add(p => p.QtyBal).Sum();
                 a.Add(p => p.Amount).Sum();
+                a.Add(p => p.BalanceAmount).Sum();
+                a.Add(p => p.IssueAmount).Sum();
             })
             .Events(events => events.Error("GridItemError").RequestEnd("onRequestEndGridItems"))
             //.Read("ItemRead", "StockCard", new
             //{
             //    cardId = @ViewData["cardId"]
-            //})            
+            //})
             .Read(read => read.Action("ItemRead", "StockCard").Data("DataStockCardItem"))
             .Create("ItemCreate", "StockCard")
             .Update("ItemUpdate", "StockCard")
@@ -132,7 +159,8 @@
         )
         .Events(e => e
             .Edit("onEditGridItems")
-            .Change("onChangeGridItems").DataBound("onDataBoundGridItems")
+            .Change("onChangeGridItems")
+            .DataBound("onDataBoundGridItems")
             .Remove("onRemoveGridItems")
             .DetailExpand("onDetailExpand")
         //.Save("onSaveGridItems")

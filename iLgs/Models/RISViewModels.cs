@@ -197,7 +197,6 @@ namespace iLgs.Models
         public bool IssuanceSw { get; set; }
     }
 
-
     public class RisItemCommonVM
     {
         [Required]
@@ -234,7 +233,7 @@ namespace iLgs.Models
         public string Unit { get; set; }
         public Nullable<decimal> PriceRate { get; set; }
 
-        [Display(Name = "Set/Lot No.")]
+        [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
     }
 
@@ -488,7 +487,7 @@ namespace iLgs.Models
             public System.Guid Id { get; set; }
             public Nullable<System.Guid> RisId { get; set; }
 
-            [Display(Name = "Set/Lot No.")]
+            [Display(Name = "Group No.")]
             public string SetLotNo { get; set; }
 
             public Nullable<int> Qty { get; set; }
@@ -557,5 +556,17 @@ namespace iLgs.Models
         public Nullable<int> QtyRequest { get; set; }
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> InsertedDt { get; set; }
+    }
+
+    public class RisPrintVM 
+    {
+        [Display(Name = "RIS No.")]
+        public string RisNo { get; set; }
+
+        [Required]
+        [Display(Name = "As Of")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> AsOfDate { get; set; }
+        
     }
 }

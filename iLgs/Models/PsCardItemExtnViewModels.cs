@@ -13,12 +13,15 @@ namespace iLgs.Models
         public string LocationCode { get; set; }
         public string Location { get; set; }
 
+        [Display(Name = "Ref. No.")]
+        public string RefNo { get; set; }
+
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }
             public Nullable<System.Guid> PsCardItemId { get; set; }
             public Nullable<System.Guid> AIRItemExtnId { get; set; }
-            public Nullable<int> ContentNo { get; set; }
+
             public Nullable<int> CustItemNo { get; set; }
             public Nullable<System.Guid> LocationId { get; set; }
             public string PropNo { get; set; }
@@ -30,7 +33,7 @@ namespace iLgs.Models
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }
             public Nullable<System.DateTime> UpdatedDt { get; set; }
-        }        
+        }
     }
 
     [MetadataType(typeof(PsCardItemExtnOther.Metadata))]
@@ -42,8 +45,17 @@ namespace iLgs.Models
         [Display(Name = "Ending Serial No.")]
         public string EndSerial { get; set; }
 
-        internal sealed class Metadata
+        new internal sealed class Metadata
         {
+            [Display(Name = "Group No.")]
+            public string SetLotNo { get; set; }
+
+            [Display(Name = "Group Qty No.")]
+            public Nullable<int> SetLotQtyNo { get; set; }
+
+            [Display(Name = "Item Qty No.")]
+            public Nullable<int> ContentNo { get; set; }
+
             [Display(Name = "Serial No.")]
             public string SerialNo { get; set; }
             public string Condition { get; set; }
@@ -53,8 +65,9 @@ namespace iLgs.Models
     [MetadataType(typeof(PsCardItemExtnVehicle.Metadata))]
     public partial class PsCardItemExtnVehicle : PsCardItemExtn
     {
-        internal sealed class Metadata
+        new internal sealed class Metadata
         {
+
             [Display(Name = "Series No.")]
             public Nullable<int> SeriesNo { get; set; }
 
@@ -194,7 +207,7 @@ namespace iLgs.Models
     public class PsCardItemExtnParVm
     {
         public Guid Id { get; set; }
-        
+
         [Display(Name = "Property No.")]
         public string PropNo { get; set; }
 
@@ -215,6 +228,28 @@ namespace iLgs.Models
         public Guid? LocationId { get; set; }
 
         [Display(Name = "Location Code")]
-        public string LocationCode { get; set; }        
+        public string LocationCode { get; set; }
+    }
+
+    public class PsCardItemExtnSetVM
+    {        
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> PsCardItemId { get; set; }
+        public Nullable<System.Guid> AIRItemExtnId { get; set; }
+
+        [Display(Name = "Group No.")]
+        public string SetLotNo { get; set; }
+
+        [Display(Name = "Group Qty No.")]
+        public Nullable<int> SetLotQtyNo { get; set; }
+
+        [Display(Name = "Item Qty No.")]
+        public Nullable<int> ContentNo { get; set; }
+
+        [Display(Name = "Ref. No.")]
+        public string RefNo { get; set; }
+        public string Description { get; set; }
+
+        public string PoNo { get; set; }
     }
 }

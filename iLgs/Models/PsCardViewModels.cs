@@ -117,6 +117,9 @@ namespace iLgs.Models
 
         [Display(Name = "Item Count")]
         public int? ItemCount { get; set; }
+
+        [Display(Name = "Not Posted")]
+        public int? NotPosted { get; set; }
     }
 
     public class PsCardItemVM 
@@ -180,9 +183,26 @@ namespace iLgs.Models
         [Display(Name = "PO Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
 
+        [Display(Name = "PO Amount")]
         public Nullable<decimal> Amount { get; set; }
+
+        [Display(Name = "Issued Amount")]
+        public Nullable<decimal> IssueAmount { get; set; }
+
+        [Display(Name = "Balance Amount")]
+        public Nullable<decimal> BalanceAmount { get; set; }
+
         [Display(Name = "Price Rate (%)")]
         public Nullable<decimal> PriceRate { get; set; }
+
+        [Display(Name = "Additional Cost")]
+        public Nullable<decimal> AddCost { get; set; }
+
+        public Nullable<decimal> TUnitCost { get; set; }
+
+        [Display(Name = "Total Cost")]
+        public Nullable<decimal> GTotalCost { get; set; }
+
         public string Remarks { get; set; }
 
         [Display(Name = "Originating PO Department")]

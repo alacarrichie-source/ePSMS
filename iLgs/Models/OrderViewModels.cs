@@ -292,10 +292,10 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderId { get; set; }
         public Nullable<System.Guid> RequestItemUnitGroupId { get; set; }
 
-        [Display(Name = "Set/Lot No.")]
+        [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
 
-        [Display(Name = "Set Unit Cost")]
+        [Display(Name = "Group Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> TotalCost { get; set; }
         public string InsertedBy { get; set; }
@@ -325,6 +325,9 @@ namespace iLgs.Models
 
         //public RequestItemUnitGroupDescription RequestItemUnitGroupDescription { get; set; }
         public string Description { get; set; }
+
+        [Display(Name = "Other Particulars")]
+        public string OtherParticulars { get; set; }
     }
 
     public class OrderItemUnitGroupDescriptionItemVM

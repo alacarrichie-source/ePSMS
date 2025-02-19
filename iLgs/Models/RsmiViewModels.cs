@@ -167,6 +167,8 @@ namespace iLgs.Models
 
         public string Fund { get; set; }
 
+        public string Custodian { get; set; }
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (DateTo < DateFrom)

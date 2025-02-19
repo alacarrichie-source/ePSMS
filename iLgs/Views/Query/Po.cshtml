@@ -45,11 +45,113 @@
     .Columns(col =>
     {
         //col.Bound(c => c.Id).Hidden();
-        col.Bound(c => c.PoNo).Width(100);
-        col.Bound(c => c.PoDate).Width(100);
-        col.Bound(c => c.ItemCount).Width(100)
+        col.Bound(c => c.PoNo).Width(50);
+        col.Bound(c => c.PoDate).Width(50);
+        col.Bound(c => c.DeptCode).Width(50);
+        col.Bound(c => c.Department).Width(100);
+        col.Bound(c => c.ItemCount).Width(50)
             .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
+            .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
             .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Group(group => group.Title("PO Amounts")
+            .Columns(info =>
+            {
+                info.Bound(f => f.Amount).Width(70).Title("Original<br>PO")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                    .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                info.Bound(f => f.IssueAmount).Width(70).Title("Issued")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                    .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                info.Bound(f => f.BalanceAmount).Width(70).Title("Balance")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                    .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        );
+        col.Group(group => group.Title("Issuance")
+            .Columns(info =>
+            {
+                info.Bound(f => f.PastAmount).Width(70).Title("Past<br>Year/s")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                    .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                info.Bound(f => f.CurAmount).Width(70).Title("Current<br>Year")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                    .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                info.Bound(f => f.FutureAmount).Width(70).Title("Future<br>Year/s")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                    .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        );
+        //col.Group(group =>
+        //{
+        //    group.Title("Issuances").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        //    .Columns(c =>
+        //    {
+        //        c.Group(g =>
+        //        {
+        //            g.Title("Past").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        //            .Columns(info =>
+        //            {
+        //                info.Bound(f => f.PastQty)
+        //                  .Width(50).Title("Qty")
+        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+        //                  .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        //                info.Bound(f => f.PastAmount)
+        //                  .Width(50).Title("Amount")
+        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+        //                  .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        //            });
+        //        });
+        //        c.Group(g =>
+        //        {
+        //            g.Title("Current").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        //            .Columns(info =>
+        //            {
+        //                info.Bound(f => f.CurQty)
+        //                  .Width(50).Title("Qty")
+        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+        //                  .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        //                info.Bound(f => f.CurAmount)
+        //                  .Width(50).Title("Amount")
+        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+        //                  .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        //            });
+        //        });
+        //        c.Group(g =>
+        //        {
+        //            g.Title("Future").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        //            .Columns(info =>
+        //            {
+        //                info.Bound(f => f.FutureQty)
+        //                  .Width(50).Title("Qty")
+        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+        //                  .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        //                info.Bound(f => f.FutureAmount)
+        //                  .Width(50).Title("Amount")
+        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+        //                  .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        //            });
+        //        });
+        //    });
+        //});
     })
     .ToolBar(t =>
     {
@@ -88,6 +190,19 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
+        .Aggregates(a =>
+        {
+            a.Add(p => p.ItemCount).Sum();
+            a.Add(p => p.Amount).Sum();
+            a.Add(p => p.BalanceAmount).Sum();
+            a.Add(p => p.IssueAmount).Sum();
+            //a.Add(p => p.PastQty).Sum();
+            a.Add(p => p.PastAmount).Sum();
+            //a.Add(p => p.CurQty).Sum();
+            a.Add(p => p.CurAmount).Sum();
+            //a.Add(p => p.FutureQty).Sum();
+            a.Add(p => p.FutureAmount).Sum();
+        })
         .Sort(s => s.Add(a => a.PoNo).Descending())
         .Read(read => read.Action("PoRead", "Query").Data("DataStockCard"))
     )
@@ -112,7 +227,7 @@
                 .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_QtyTemplate");
         col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_AmountTemplate");
+                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_AmountTemplate");        
         col.Bound(c => c.InsertedBy).Width(70);
         col.Bound(c => c.InsertedDt).Width(100);
         col.Bound(c => c.UpdatedBy).Width(70);
@@ -189,7 +304,7 @@
 
     .max-grid-2 .k-grid-content {
         overflow-x: auto;
-        height: calc(90vh - 180px) !important;
+        height: calc(90vh - 230px) !important;
     }
 </style>
 

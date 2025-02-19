@@ -10,7 +10,10 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardId)
-    @Html.HiddenFor(model => model.OrderItemId)    
+    @Html.HiddenFor(model => model.OrderItemId)
+    @Html.HiddenFor(model => model.AddCost)
+    @Html.HiddenFor(model => model.TUnitCost)
+    @Html.HiddenFor(model => model.GTotalCost)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">

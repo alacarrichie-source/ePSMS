@@ -88,7 +88,7 @@
                     @(Html.Kendo().TextBoxFor(m => m.Department).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
             </div>
-        </div>        
+        </div>
 
         <br />
 
@@ -217,6 +217,36 @@
             </div>
         </div>
 
+        <div class="row k-mb-2">
+            <div class="col-md-6">
+                @Html.LabelFor(model => model.InvDist, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.InvDist)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select a value..")
+                            .DataTextField("Description")
+                            .DataValueField("Code")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetinvDistList", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Description").Title("Description").Width("100%");
+                            })
+                //.Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(m => m.InvDist)
+                </div>
+            </div>
+        </div>
+
         <br />
 
         <div class="row k-mb-2">
@@ -226,27 +256,27 @@
         </div>
 
         @*<div>
-            <label>invoice:</label>
-            <div class="k-edit-field">
-                <div id="invoiceContainer" data-bind="source:AIRInvoices">
-                    @foreach (var invoice in Model.AIRInvoices)
-                    {
-                        <div class="invoice-row">
-                            <div>
-                                <label for="InvoiceNo">Invoice No:</label>
-                                <input type="text" class=" k-textbox" required value="@invoice.InvoiceNo" />
+                <label>invoice:</label>
+                <div class="k-edit-field">
+                    <div id="invoiceContainer" data-bind="source:AIRInvoices">
+                        @foreach (var invoice in Model.AIRInvoices)
+                        {
+                            <div class="invoice-row">
+                                <div>
+                                    <label for="InvoiceNo">Invoice No:</label>
+                                    <input type="text" class=" k-textbox" required value="@invoice.InvoiceNo" />
+                                </div>
+                                <div>
+                                    <label for="InvoiceDate">Date:</label>
+                                    <input type="date" class="k-textbox" required value="@invoice.InvoiceDate" />
+                                </div>
+                                <button type="button" class="remove-invoice k-button">Remove</button>
                             </div>
-                            <div>
-                                <label for="InvoiceDate">Date:</label>
-                                <input type="date" class="k-textbox" required value="@invoice.InvoiceDate" />
-                            </div>
-                            <button type="button" class="remove-invoice k-button">Remove</button>                            
-                        </div>                        
-                    }
+                        }
+                    </div>
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Add").Name("addInvoice"))
                 </div>
-                @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Add").Name("addInvoice"))
-            </div>            
-        </div>*@        
+            </div>*@
 
         <br />
         <div class="row k-mb-2">

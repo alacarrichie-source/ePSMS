@@ -444,6 +444,7 @@ namespace iLgs.Controllers
 
             crReportDocument.SetParameterValue("LGU", lgu);
             crReportDocument.SetParameterValue("WithDailyRecap", model.WithDailyRecap);
+            crReportDocument.SetParameterValue("Custodian", model.Custodian ?? "");
             crReportDocument.SetParameterValue("@cFund", model.Fund);
             crReportDocument.SetParameterValue("@dBdate", model.DateFrom);
             crReportDocument.SetParameterValue("@dEdate", model.DateTo);            

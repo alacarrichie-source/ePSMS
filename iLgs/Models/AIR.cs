@@ -36,6 +36,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InspectedDate { get; set; }
         public Nullable<bool> IsInspected { get; set; }
         public string Officer { get; set; }
+        public string InvDist { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

@@ -18,6 +18,7 @@ namespace iLgs.Models
         public IcsPar()
         {
             this.IcsParItems = new HashSet<IcsParItem>();
+            this.IcsParUnitGroups = new HashSet<IcsParUnitGroup>();
         }
     
         public System.Guid Id { get; set; }
@@ -27,7 +28,10 @@ namespace iLgs.Models
         public Nullable<System.Guid> LocationId { get; set; }
         public string LocationCode { get; set; }
         public string Location { get; set; }
+        public Nullable<System.Guid> ReceivedById { get; set; }
+        public string ReceivedByTitle { get; set; }
         public string ReceivedBy { get; set; }
+        public string ReceivedByTitle2 { get; set; }
         public string ReceivedByPosition { get; set; }
         public Nullable<System.DateTime> ReceivedDate { get; set; }
         public string ReceivedDept { get; set; }
@@ -45,5 +49,7 @@ namespace iLgs.Models
         public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IcsParItem> IcsParItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<IcsParUnitGroup> IcsParUnitGroups { get; set; }
     }
 }

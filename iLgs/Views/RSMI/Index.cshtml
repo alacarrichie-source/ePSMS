@@ -27,9 +27,7 @@
                 @(Html.Kendo().Button().Name("btnAdd").Content("Add New Record").Enable(false)
                     .Events(e => e.Click("onClickBtnAdd"))
                 )
-            <span id="span_">
-                @(Html.Kendo().Button().Icon("k-icon k-i-print").Content("Print").Name("btnPrint").Events(e => e.Click("onClickBtnPrint")).Enable(true))                
-            </span>
+                @(Html.Kendo().Button().Icon("k-icon k-i-print").Content("Print").Name("btnPrint").Events(e => e.Click("onClickBtnPrint")).Enable(true))                            
         </text>);
         })
         //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_StockTemplate").Window(w => w.Width(500).Title("Stocks")))
@@ -255,7 +253,7 @@
     var selectedId = null;
     var selecteItemId = null;
 
-    // MAIN GRID
+    // MAIN GRID 
 
     function onClickBtnAdd(e) {
         e.preventDefault()
@@ -401,7 +399,7 @@
         mywindow.setOptions({
             title: "RSMI Printing",
             width: 400,
-            height: 250
+            height: 290
         });
 
         mywindow.refresh({

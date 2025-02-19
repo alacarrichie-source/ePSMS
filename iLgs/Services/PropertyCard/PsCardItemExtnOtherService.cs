@@ -116,6 +116,8 @@ namespace iLgs.Services.PropertyCard
                 {
                     Id = model.Id,
                     PsCardItemId = model.PsCardItemId,
+                    SetLotNo = model.SetLotNo,
+                    SetLotQtyNo = model.SetLotQtyNo,
                     ContentNo = model.ContentNo,
                     CustItemNo = model.CustItemNo,
                     SerialNo = model.SerialNo,
@@ -182,6 +184,8 @@ namespace iLgs.Services.PropertyCard
 
             var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
+            entity.SetLotNo = model.SetLotNo;
+            entity.SetLotQtyNo = model.SetLotQtyNo;
             entity.ContentNo = model.ContentNo;
             entity.CustItemNo = model.CustItemNo;
             entity.SerialNo = model.SerialNo;

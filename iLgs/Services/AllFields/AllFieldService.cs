@@ -26,6 +26,7 @@ namespace iLgs.Services.AllFields
         ValueTask<AllField> CreateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date);
         ValueTask<AllField> UpdatePsCardFieldsAsync(PsCardVM model, string user, DateTime date);
         ValueTask<AllField> UpdateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date);
+        ValueTask<AllField> UpdateOrderFieldsAsync(OrderItemVM model, string user, DateTime date);
         ValueTask<AllField> DeleteAsync(AllField model, string user, DateTime date);
 
         string GetRisDescription(RisItemEntryVM model);
@@ -43,6 +44,8 @@ namespace iLgs.Services.AllFields
         bool IsBrandRequired(Category c);
         //bool IsNoIcs(Guid? itemCodeId);
         AllField ChangeAllFieldCase(AllField allField);
+
+        void SetEntity(AllField entity, AllField model, Mode mode);
 
         //ValueTask<ServiceResult<PsCardVM>> ValidatePsCardAllField(PsCardVM model);
     }
@@ -111,6 +114,16 @@ namespace iLgs.Services.AllFields
         }
 
         public void ValidateRisAllField(RisItemEntryVM model)
+        {
+            var ex = new InvalidModelException();
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+            _validator.ValidateAllFieldsPartial(model.AllField, partialView, ex);
+            //_validator.ValidateAllFields(model.AllField, model.PsType, model.ItemNo, ex);
+            ex.ThrowIfContainsErrors();
+        }
+
+        public void ValidateOrderAllField(OrderItemVM model)
         {
             var ex = new InvalidModelException();
             var itemCode = _itemCodeService.GetById(model.ItemCodeId);
@@ -217,6 +230,13 @@ namespace iLgs.Services.AllFields
             return model.AllField;
         });
 
+        public ValueTask<AllField> UpdateOrderFieldsAsync(OrderItemVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+            ValidateOrderAllField(model);
+            await UpdateAsync(model.AllField, user, date);
+            return model.AllField;
+        });
+
         private async ValueTask UpdateAsync(AllField model, string user, DateTime date)
         {
             var entity = await GetByIdAsync(model.Id);
@@ -270,6 +290,48 @@ namespace iLgs.Services.AllFields
             _db.AllFields.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
+        }
+
+
+        public void SetEntity(AllField entity, AllField model, Mode mode)
+        {
+            if (mode == Mode.ADD)
+            {
+                model.Id = Guid.NewGuid();
+                entity.InsertedBy = model.InsertedBy;
+                entity.InsertedDt = model.InsertedDt;
+                entity.Id = model.Id; // cannot put outside, referential constraint integrity error
+            }
+
+            model = ChangeAllFieldCase(model);
+
+            entity.AcqMode = model.AcqMode;
+            entity.AcqCost = model.AcqCost;
+            entity.InvDist = model.InvDist;
+            entity.GenericName = model.GenericName;
+            entity.DosageStrength = model.DosageStrength;
+            entity.DosageForm = model.DosageForm;
+            entity.DosageVolume = model.DosageVolume;
+            entity.Others = model.Others;
+            entity.Brand = model.Brand;
+            entity.Multipliers = model.Multipliers;
+            entity.Model_ = model.Model_;
+            entity.Dimension = model.Dimension;
+            entity.Size = model.Size;
+            entity.Weight = model.Weight;
+            entity.Capacity = model.Capacity;
+            entity.Materials = model.Materials;
+            entity.Color = model.Color;
+            entity.Area = model.Area;            
+            entity.SerialNo = model.SerialNo;
+            entity.PropNo = model.PropNo;
+            entity.PlateNo = model.PlateNo;
+            entity.BodyNo = model.BodyNo;
+            entity.MVFileNo = model.MVFileNo;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            
         }
 
         public ValueTask<AllField> DeleteAsync(AllField model, string user, DateTime date) => _exceptionService.TryCatch(async () =>

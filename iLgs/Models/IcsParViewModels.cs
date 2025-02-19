@@ -18,9 +18,19 @@ namespace iLgs.Models
             public Nullable<System.DateTime> RefDate { get; set; }
             public string RefType { get; set; }
 
+            [Display(Name = "Received by")]
+            [Required]
+            public Nullable<System.Guid> ReceivedById { get; set; }
+
             [Required]
             [Display(Name = "Received by")]
             public string ReceivedBy { get; set; }
+
+            [Display(Name = "Title")]
+            public string ReceivedByTitle { get; set; }
+
+            [Display(Name = "Add'l Title")]
+            public string ReceivedByTitle2 { get; set; }
 
             [Required]
             [Display(Name = "Position")]
@@ -36,7 +46,7 @@ namespace iLgs.Models
             public string ReceivedDept { get; set; }
 
             [Required]
-            [Display(Name = "Received From")]
+            [Display(Name = "Issued By")]
             public string IssuedBy { get; set; }
 
             [Required]
@@ -92,14 +102,16 @@ namespace iLgs.Models
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
         public DateTime? PoDate { get; set; }
+        public Guid? UnitGroupId { get; set; }
         public Guid? PsCardItemId { get; set; }
 
         public Guid? DeptId { get; set; }
 
-        [Display(Name = "Location")]
+        [Display(Name = "Location Code")]
         [Required]
         public Guid? LocationId { get; set; }
 
+        [Required]
         [Display(Name = "Location Code")]
         public string LocationCode { get; set; }
 
@@ -115,6 +127,7 @@ namespace iLgs.Models
         public IcsPar IcsPar { get; set; }
 
         public string SelectedIds { get; set; }
+        public string IndSet { get; set; } // I-Individual; S-Set
     }
 
     public class ParVM
@@ -173,6 +186,12 @@ namespace iLgs.Models
         public Nullable<decimal> Amount { get; set; }
         public Nullable<decimal> PriceRate { get; set; }
         public Nullable<int> Days { get; set; }
+
+        [Display(Name = "Additional Cost")]
+        public Nullable<decimal> AddCost { get; set; }
+
+        [Display(Name = "Amount")]
+        public Nullable<decimal> GTotalCost { get; set; }
         public string Remarks { get; set; }
 
         [Display(Name = "Department/Office")]
@@ -317,6 +336,8 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
         // Transients
+        public string InvDist { get; set; }
+
         public string Article { get; set; }
 
         [Display(Name = "Department")]
@@ -403,13 +424,24 @@ namespace iLgs.Models
         public System.Guid? GroupId { get; set; }
         public System.Guid? PsCardId { get; set; }
         public int? Qty { get; set; }
+
+        [Display(Name = "Total Qty")]
+        public int? TotalQty { get; set; }
+
         public string Unit { get; set; }
 
         [Display(Name = "Unit Cost")]
-        public Nullable<decimal> UnitCost { get; set; }
+        public Nullable<decimal> UnitCost { get; set; }        
 
         [Display(Name = "Total Cost")]
         public Nullable<decimal> TotalCost { get; set; }
+
+        [Display(Name = "Additional Cost")]
+        public Nullable<decimal> AddCost { get; set; }
+
+        [Display(Name = "Total Cost")]
+        public Nullable<decimal> GTotalCost { get; set; }
+
         public string Article { get; set; }
         public string Description { get; set; }
         public string StockNo { get; set; }
@@ -444,6 +476,9 @@ namespace iLgs.Models
         [Display(Name = "Inventory/For Distribution")]
         public string InvDist { get; set; }
 
+        [Display(Name = "Inventory/For Distribution")]
+        public string InvDistDisplay { get; set; }
+
         [Display(Name = "Posted by")]
         public string ParPostedBy { get; set; }
 
@@ -451,10 +486,10 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> ParPostedDt { get; set; }
 
-        [Display(Name = "Set/Lot No.")]
+        [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
 
-        [Display(Name = "Set/Lot Description")]
+        [Display(Name = "Group Description")]
         public string SetLotDesc { get; set; }
     }
 
@@ -465,8 +500,17 @@ namespace iLgs.Models
         public string Unit { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> TotalCost { get; set; }
+        public Nullable<decimal> AddCost { get; set; }
+        public Nullable<decimal> GTotalCost { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public ICollection<PsCardItemUnitGroupDescription> UnitGroupDescriptions { get; set; }
+
+        [Display(Name = "Posted By")]
+        public string SetPostedBy { get; set; }
+
+        [Display(Name = "Posted Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> SetPostedDt { get; set; }
     }
 
     public class ParIcsPoVM
@@ -477,5 +521,14 @@ namespace iLgs.Models
         public Nullable<System.DateTime> AirDate { get; set; }
         public string Department { get; set; }
         public string Status { get; set; }
+    }
+
+    public class EmployeeVM
+    {
+        public System.Guid Id { get; set; }
+        public string Name { get; set; }
+        public string Department { get; set; }
+        public string Position { get; set; }
+        public string Status { get; set; }        
     }
 }

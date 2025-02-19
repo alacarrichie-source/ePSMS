@@ -22,14 +22,20 @@ namespace iLgs.Models
     
         public System.Guid Id { get; set; }
         public string PoNo { get; set; }
+        public string SetLotNo { get; set; }
         public Nullable<int> Qty { get; set; }
         public string Unit { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> TotalCost { get; set; }
+        public Nullable<decimal> AddCost { get; set; }
+        public Nullable<decimal> TUnitCost { get; set; }
+        public Nullable<decimal> GTotalCost { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+        public string PostedBy { get; set; }
+        public Nullable<System.DateTime> PostedDt { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }

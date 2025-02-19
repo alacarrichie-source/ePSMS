@@ -574,6 +574,8 @@
 
         $("#PrDate").val(prDate).trigger("change");
         $("#DeliveryPlace").val(dataItem.Department).trigger("change");
+        $("#SignedByAuthName").val(dataItem.ApprovedBy).trigger("change");
+        $("#SignedByAuthDesignation").val(dataItem.ApprovedDesig).trigger("change");
     }
 
     function onSelectSupplier(e) {
@@ -586,7 +588,7 @@
         $("#SupEmail").val(dataItem.Email).trigger("change");
         $("#SupTIN").val(dataItem.TIN).trigger("change");
         $("#SupContactNo").val(dataItem.ContactNo).trigger("change");
-
+        $("#SignedBySuppName").val(dataItem.Name).trigger("change");
         //disabled.attr('disabled', 'disabled')
     }
 

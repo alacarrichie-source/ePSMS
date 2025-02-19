@@ -145,8 +145,7 @@ namespace iLgs.Services.PurchaseOrder
             
             OrderItem entity = new OrderItem();
             
-            SetItemEntity(entity, model, Mode.ADD);
-            
+            SetItemEntity(entity, model, Mode.ADD);            
 
             _db.OrderItems.Add(entity);
             await _db.SaveChangesAsync();
@@ -270,7 +269,9 @@ namespace iLgs.Services.PurchaseOrder
             entity.UpdatedDt = model.UpdatedDt;
             //entity.RequestItem = requestItem;
 
-            entity.AllField = model.AllField;
+            //entity.AllField = model.AllField;
+
+            _allFieldService.SetEntity(entity.AllField, model.AllField, mode);
 
             //var allField = entity.RequestItem.RisItem.AllField;
             //if (Enum.TryParse(model.PsType, out Category c))
@@ -338,7 +339,7 @@ namespace iLgs.Services.PurchaseOrder
             SetItemEntity(entity, model, Mode.EDIT);
             //model.PsNo = entity.RequestItem.RisItem.ItemCode.Code + _allFieldService.GetStockNo(entity.RequestItem.RisItem.AllField, model.PsType, model.ItemCode);
             //entity.StockNo = model.PsNo;
-
+            
             _db.OrderItems.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
@@ -398,6 +399,10 @@ namespace iLgs.Services.PurchaseOrder
             {
                 throw new RecordRelationshipException("PO Number already with PAR, cannot delete!");
             }
+            //if (!string.IsNullOrEmpty(model.SetLotNo))
+            //{
+            //    throw new RecordRelationshipException("Item belongs to a set, cannot delete!");
+            //}
         }
     }
 }

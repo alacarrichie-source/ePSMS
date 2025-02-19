@@ -18,6 +18,9 @@
         col.Bound(c => c.SubAccount4).Width(100);
         //col.Bound(c => c.PsName).Width(70);
         //col.Bound(c => c.Description).Width(100);
+        col.Bound(c => c.InsertedBy).Width(70).Title("Created by");
+        col.Bound(c => c.ItemCount).Width(70);
+        col.Bound(c => c.NotPosted).Width(70);
         col.Command(command =>
         {
             //command.Edit();
@@ -591,7 +594,6 @@
     }
 </style>
 
-
 <script type="text/x-kendo-template" id="validationMessageTemplate">
     # if (messages.length) { #
     @*<li>
@@ -607,8 +609,6 @@
     # } #
     # } #
 </script>
-
-
 
 <script type="text/javascript">
     function columnTemplate(data) {
@@ -1000,6 +1000,39 @@
                                 field: "PsNo",         // The column field name
                                 operator: "eq", // The filtering operator (e.g., "eq", "contains")
                                 value: psNo        // The value to filter by
+                            });
+
+                            // Wait for filtering to complete
+                            grid.dataSource.read().then(function () {
+                                // Find the first visible row in the filtered data
+                                var masterRow = grid.tbody.find("> tr:not(.k-detail-row)").first();
+
+                                if (masterRow.length) {
+                                    // Select the row
+                                    grid.select(masterRow);
+                                    // Get the DataItem from the selected row
+                                    var selectedDataItem = grid.dataItem(masterRow);
+
+                                    // Access the `Id` field or other data
+                                    if (selectedDataItem) {
+                                        selectedId = selectedDataItem.Id;
+                                    }
+
+                                    // Expand subgrid
+                                    grid.expandRow(masterRow);                                    
+
+                                    //// Wait for subgrid rendering and trigger add row
+                                    setTimeout(function () {
+                                        //var subgrid = masterRow.next(".k-detail-row").find(".k-grid").data("kendoGrid");
+                                        var subGrid = $("#gridItems_" + selectedId).data("kendoGrid");
+                                        if (subGrid) {
+                                            subGrid.addRow(); // Trigger the "Add" action
+                                        }
+                                    }, 2000); // Delay for rendering subgrid
+
+                                } else {
+                                    console.log("No visible rows to select.");
+                                }
                             });
                         }
                     },

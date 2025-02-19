@@ -1,0 +1,60 @@
+﻿@model iLgs.Models.IcsParItem
+
+@{
+    var vehicle = Model.PsCardItemExtn as iLgs.Models.PsCardItemExtnVehicle;
+}
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.LabelFor(m => vehicle.YearModel, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => vehicle.YearModel).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.YearModel)
+        </div>
+    </div>
+    <div class="col-md-6">
+        @Html.LabelFor(m => vehicle.NetWeight, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => vehicle.NetWeight).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.NetWeight)
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.LabelFor(m => vehicle.PlateNo, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => vehicle.PlateNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.PlateNo)
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.LabelFor(m => vehicle.BodyNo, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => vehicle.BodyNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.BodyNo)
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.LabelFor(m => vehicle.CRDate, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().DatePickerFor(m => vehicle.CRDate).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.CRDate)
+        </div>
+    </div>
+    <div class="col-md-6">
+        @Html.LabelFor(m => vehicle.CRN, htmlAttributes: new { @class = "col-md-3" })
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => vehicle.CRN).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => vehicle.CRN)
+        </div>
+    </div>
+</div>
+

@@ -24,6 +24,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderItemUnitGroupId { get; set; }
         public Nullable<System.Guid> RequestItemUnitGroupDescriptionId { get; set; }
         public string Description { get; set; }
+        public string OtherParticulars { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
@@ -31,7 +32,7 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
-        public virtual OrderItemUnitGroup OrderItemUnitGroup { get; set; }
         public virtual RequestItemUnitGroupDescription RequestItemUnitGroupDescription { get; set; }
+        public virtual OrderItemUnitGroup OrderItemUnitGroup { get; set; }
     }
 }

@@ -1,9 +1,9 @@
 ﻿@{
-    var gridName = "gridImages_" + ViewData["imageId"];
+    var gridName = "gridImages_"; // + ViewData["imageId"];
 }
 
 @(Html.Kendo().Grid<iLgs.Models.Upload>()
-    .Name("gridImages_" + @ViewData["imageId"])
+    .Name("gridImages_")
     .Columns(col =>
     {        
         col.Bound(p => p.Description).Title("")
@@ -15,8 +15,11 @@
         //col.Bound(p => p.FileName).Width(50);
         col.Command(command =>
         {
-            command.Edit();
-            command.Destroy();
+            if (string.IsNullOrEmpty((string)ViewData["postedBy"]))
+            {
+                command.Edit();
+                command.Destroy();
+            }
             command.Custom("Preview").Click("onClickPreview");
         }).Width(100);
 
@@ -24,10 +27,13 @@
     .ToolBar(toolbar =>
     {
     toolbar.Template(@<text>
-        @(Html.Kendo().Button().Name("btnUpload_" + @ViewData["imageId"]).Content("Upload")
-            .HtmlAttributes(new { data_gridname = gridName })  // Add a data attribute
-            .Events(e => e.Click("onClickUpload"))            
+        @if (string.IsNullOrEmpty((string)ViewData["postedBy"]))
+        {
+            @(Html.Kendo().Button().Name("btnUpload_" + @ViewData["imageId"]).Content("Upload")
+            .HtmlAttributes(new { data_gridname = gridName, data_imageId = @ViewData["imageId"] })  // Add a data attribute
+            .Events(e => e.Click("onClickUpload"))
             )
+        }
     </text>);
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ImagesTemplate").Window(w => w.Width(500).Title("Edit")))

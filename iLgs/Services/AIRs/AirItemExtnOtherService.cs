@@ -47,12 +47,7 @@ namespace iLgs.Services.AIRs
             if (await IsPostedAsync(model.AIRItemId))
             {
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }
-            
-            if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.SerialNo == model.SerialNo))
-            {
-                throw new  RecordAlreadyExistsException("Serial No. already exists!");
-            }
+            }                       
 
             var airItem = _db.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId);
             var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == airItem.OrderItemId))).FirstOrDefault();
@@ -66,6 +61,13 @@ namespace iLgs.Services.AIRs
                 throw new InvalidValueException($"Cannot create more than {totalQty} record(s).");
             }
 
+            if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.SerialNo == model.SerialNo))
+            {
+                throw new RecordAlreadyExistsException("Serial No. already exists!");
+            }
+
+            var contentNo = _db.AIRItemExtns.Where(w => w.AIRItemId == model.AIRItemId).Max(m => m.ContentNo) ?? 0;
+            model.ContentNo = contentNo + 1;
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;

@@ -4,7 +4,7 @@
 {
     @Html.HiddenFor(m => m.SavePrints)
     <br />
-    <div class="row k-mb-2">        
+    <div class="row k-mb-2">
         @Html.LabelFor(model => model.Fund, htmlAttributes: new { @class = "col-md-3 text-right" })
         <div class="col-md-9">
             @(Html.Kendo().MultiColumnComboBoxFor(m => m.Fund)
@@ -29,7 +29,7 @@
                         .Suggest(true)
             )
             @Html.ValidationMessageFor(model => model.Fund)
-        </div>        
+        </div>
     </div>
 
     <div class="row k-mb-2">
@@ -54,23 +54,52 @@
 
     <div class="row k-mb-2">
         <div class="text-right col-md-3">
-            @*@Html.Label("With Daily Recap")*@
-            &nbsp;
+            @Html.LabelFor(model => model.Custodian)
         </div>
         <div class="col-md-9">
-            @(Html.Kendo().CheckBoxFor(m => m.WithDailyRecap))
-            @Html.ValidationMessageFor(m => m.WithDailyRecap)
-        </div>
+            @(Html.Kendo().MultiColumnComboBoxFor(m => m.Custodian)
+                    .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    .Placeholder("Select Custodian")
+                    .DataTextField("Description")
+                    .DataValueField("Description")
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetCustodians", "Getters");
+                        })
+                        .ServerFiltering(true);
+                    })
+                    .Columns(c =>
+                    {
+                        c.Add().Field("Description").Title("Name").Width("60%");
+                        c.Add().Field("Desc2").Title("Designation").Width("40%");
+                    })
+            )
+            @Html.ValidationMessageFor(model => model.Custodian)
+        </div>    
     </div>
 
-    <hr />
-    
-    <div class="row k-mb-2">
-        <div id="span_submit">
-            @(Html.Kendo().Button().Content("Submit").Name("btnPrintSubmit"))
-            @(Html.Kendo().Button().Name("btnSaveSubmit").Content("Save to Excel File"))
+        <div class="row k-mb-2">
+            <div class="text-right col-md-3">
+                @*@Html.Label("With Daily Recap")*@
+                &nbsp;
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().CheckBoxFor(m => m.WithDailyRecap))
+                @Html.ValidationMessageFor(m => m.WithDailyRecap)
+            </div>
         </div>
-    </div>
+
+        <hr />
+
+        <div class="row k-mb-2">
+            <div id="span_submit">
+                @(Html.Kendo().Button().Content("Submit").Name("btnPrintSubmit"))
+                @(Html.Kendo().Button().Name("btnSaveSubmit").Content("Save to Excel File"))
+            </div>
+        </div>
 }
 
 <div id="windowcontainer"></div>
@@ -79,6 +108,7 @@
     .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
         width: auto;
     }
+
     #span_submit {
         display: flex;
         margin-left: auto;
@@ -111,7 +141,7 @@
 
     function Print()
     {
-        var data = $("#form").serialize();        
+        var data = $("#form").serialize();
         var url = '@Url.Action("RsmiRpt", "RSMI")' + '?' + data;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
@@ -133,7 +163,7 @@
             height: 700
         });
         mywindow.refresh({
-            url: url            
+            url: url
         });
         mywindow.center();
         mywindow.open();

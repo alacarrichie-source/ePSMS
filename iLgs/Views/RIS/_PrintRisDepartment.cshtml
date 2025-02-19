@@ -1,0 +1,108 @@
+﻿@model iLgs.Models.RisPrintVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+
+    <br />
+    <div class="row k-mb-2">
+        <div class="text-right col-md-3">
+            @Html.LabelFor(model => model.RisNo)
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.RisNo).Enable(false))
+            @Html.ValidationMessageFor(m => m.RisNo)
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="text-right col-md-3">
+            @Html.LabelFor(model => model.AsOfDate)
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().DatePickerFor(m => m.AsOfDate))
+            @Html.ValidationMessageFor(m => m.AsOfDate)
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="row k-mb-2">
+        <div id="span_submit">
+            @(Html.Kendo().Button().Content("Submit").Name("btnPrintSubmit"))
+            @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+        </div>
+    </div>
+}
+
+<div id="windowcontainer"></div>
+
+<style>
+    .k-edit-form-container, .k-widget.k-window, .k-popup-edit-form.k-window-content.k-content {
+        width: auto;
+    }
+
+    #span_submit {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+        width: 16em;
+    }
+</style>
+
+<script type="text/javascript">
+
+    //$("#divRange").addClass("hidden");
+
+    $("#btnPrintSubmit").click(function (e) {
+        e.preventDefault();
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            Print();
+        }
+    })
+
+    
+    function Print()
+    {
+        var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+        var data = $("#form").serialize();
+        var url = '@Url.Action("RisDepartmentRpt", "RIS")' + '?' + data;
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        disabled.attr('disabled', 'disabled');
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+
+</script>
+
+
+
+
+
+

@@ -28,6 +28,9 @@ namespace iLgs.Models
         public string Unit { get; set; }
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> TotalCost { get; set; }
+        public Nullable<decimal> AddCost { get; set; }
+        public Nullable<decimal> TUnitCost { get; set; }
+        public Nullable<decimal> GTotalCost { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
@@ -35,7 +38,7 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
-        public virtual RequestItemUnitGroup RequestItemUnitGroup { get; set; }
         public virtual Order Order { get; set; }
+        public virtual RequestItemUnitGroup RequestItemUnitGroup { get; set; }
     }
 }

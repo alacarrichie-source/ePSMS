@@ -79,8 +79,14 @@ namespace iLgs.Services.PropertyCard
                 Days = s.Days,
                 Unit = s.Unit,
                 UnitCost = s.UnitCost,
-                Amount = s.Amount,
+                //Amount = s.Amount,
+                Amount = s.UnitCost * s.Qty,
+                IssueAmount = (s.PsCardItemIssuances.Sum(sum => sum.Qty) ?? 0) * s.UnitCost,
+                BalanceAmount = (s.UnitCost * s.Qty) - ((s.PsCardItemIssuances.Sum(sum => sum.Qty) ?? 0) * s.UnitCost),
                 PriceRate = s.PriceRate,
+                AddCost = s.AddCost,
+                TUnitCost = s.TUnitCost,
+                GTotalCost = s.GTotalCost,
                 Remarks = s.Remarks,
                 DeptId = s.DeptId,
                 LocationId = s.LocationId,
@@ -161,82 +167,7 @@ namespace iLgs.Services.PropertyCard
         });
 
         private IQueryable<PsCardItemVM> GetAll(string category)
-        {
-            //var data = _db.PsCardItems
-            //    .Include(i => i.PsCard.ItemCode.ItemType)
-            //    .Include(i => i.Codextn) // Department
-            //    .Include(i => i.Codextn1) // Location
-            //    .Where(w => w.PsCard.ItemCode.ItemType.Category == category)
-            //    .AsNoTracking()
-            //    .Select(s => new PsCardItemVM
-            //    {
-            //        Id = s.Id,
-            //        Fund = s.PsCard.Fund,
-            //        ItemCodeId = s.PsCard.ItemCodeId,
-            //        Account = s.PsCard.ItemCode.ItemType.Description,
-            //        StockNo = s.PsCard.PsNo,
-            //        Article = s.PsCard.ItemCode.Description,
-            //        PoDate = s.PoDate,
-            //        PoNo = s.PoNo,
-            //        AirDate = s.AirDate,
-            //        AirNo = s.AirNo,
-            //        AirIssueDate = s.AirIssueDate,
-            //        Qty = s.Qty,
-            //        QtyIss = s.QtyIss,
-            //        QtyBal = s.QtyBal,
-            //        TransferIn = s.TransferIn,
-            //        TransferOut = s.TransferOut,
-            //        TranType = s.TranType,
-            //        Days = s.Days,
-            //        Unit = s.Unit,
-            //        UnitCost = s.UnitCost,
-            //        Amount = s.Amount,
-            //        PriceRate = s.PriceRate,
-            //        Remarks = s.Remarks,
-            //        DeptId = s.DeptId,
-            //        LocationId = s.LocationId,
-            //        DeptDisplay = s.DeptDisplay,
-            //        Description = s.Description,
-            //        InsertedBy = s.InsertedBy,
-            //        InsertedDt = s.InsertedDt,
-            //        Department = s.Codextn.Description,
-            //        Location = s.Codextn1.Description,
-            //        LocCode = s.Codextn1.Code
-            //    }).ToList()
-            //    .Select(s => new PsCardItemVM
-            //    {
-            //        Id = s.Id,
-            //        Fund = s.Fund,
-            //        Account = s.Account,
-            //        SubAccount = _itemCodeService.GetSubAccounts(s.ItemCodeId),
-            //        StockNo = s.StockNo,
-            //        Article = s.Article,
-            //        PoDate = s.PoDate,
-            //        PoNo = s.PoNo,
-            //        AirDate = s.AirDate,
-            //        AirNo = s.AirNo,
-            //        AirIssueDate = s.AirIssueDate,
-            //        Qty = s.Qty,
-            //        QtyIss = s.QtyIss,
-            //        QtyBal = s.QtyBal,
-            //        TransferIn = s.TransferIn,
-            //        TransferOut = s.TransferOut,
-            //        TranType = s.TranType,
-            //        Days = s.Days,
-            //        Unit = s.Unit,
-            //        UnitCost = s.UnitCost,
-            //        Amount = s.Amount,
-            //        PriceRate = s.PriceRate,
-            //        DeptId = s.DeptId,
-            //        LocationId = s.LocationId,
-            //        DeptDisplay = s.DeptDisplay,
-            //        Description = s.Description,
-            //        InsertedBy = s.InsertedBy,
-            //        InsertedDt = s.InsertedDt,
-            //        Department = s.Department,
-            //        Location = s.Location,
-            //        LocCode = s.LocCode
-            //    }).AsQueryable();
+        {            
             var data = _db.Database.SqlQuery<PsCardItemVM>("Exec Card_GetQueryRecords {0}", category).AsQueryable();
             return data;
         }
@@ -248,14 +179,15 @@ namespace iLgs.Services.PropertyCard
 
         public ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            _psCardItemValidator.ValidateOnCreate(model);
-
-            model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
+            _psCardItemValidator.ValidateOnCreate(model);
+
+            model.Id = Guid.NewGuid();
+            
             var entity = new PsCardItem();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
@@ -267,14 +199,15 @@ namespace iLgs.Services.PropertyCard
 
         public ValueTask<PsCardItemVM> UpdateAsync(PsCardItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            _psCardItemValidator.ValidateOnUpdate(model);
-
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
+            _psCardItemValidator.ValidateOnUpdate(model);
+            
             var entity = await _db.PsCardItems.FindAsync(model.Id);
 
             ValidateUser(entity, model);
+            //ValidateRelationship(model);
             MapModelToEntityFields(entity, model, Mode.EDIT);
 
             _db.PsCardItems.Attach(entity);
@@ -317,6 +250,12 @@ namespace iLgs.Services.PropertyCard
                 }
             }
 
+            var addCost = model.AddCost ?? 0;
+            var tUnitCost = addCost + model.UnitCost;
+            var gTotalCost = model.Qty * tUnitCost;
+            entity.AddCost = addCost;
+            entity.TUnitCost = tUnitCost;
+            entity.GTotalCost = gTotalCost;
             entity.IsForICS = model.IsForICS;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
@@ -399,6 +338,7 @@ namespace iLgs.Services.PropertyCard
 
             var entity = await _db.PsCardItems.FindAsync(model.Id);
             ValidateUser(entity, model);
+            ValidateRelationship(model);
 
             // Get transfer record if any
             PsCardItemTransfer psCardItemTransfer = null;
@@ -493,6 +433,7 @@ namespace iLgs.Services.PropertyCard
             if (mode == Mode.ADD)
             {
                 entity.Id = model.Id;
+                entity.GroupId = model.Id;
                 entity.InsertedBy = model.InsertedBy;
                 entity.InsertedDt = model.InsertedDt;
             }
@@ -500,7 +441,7 @@ namespace iLgs.Services.PropertyCard
             entity.PsCardId = model.PsCardId;
             entity.OrderItemId = model.OrderItemId;
             entity.PoDate = model.PoDate;
-            entity.PoNo = model.PoNo;
+            entity.PoNo = model.PoNo.Trim();
             entity.AirDate = model.AirDate;
             entity.AirNo = model.AirNo;
             entity.AirIssueDate = model.AirIssueDate;
@@ -516,6 +457,9 @@ namespace iLgs.Services.PropertyCard
             entity.Remarks = model.Remarks;
             entity.Amount = model.Amount;
             entity.PriceRate = model.PriceRate;
+            entity.AddCost = model.AddCost;
+            entity.TUnitCost = model.TUnitCost;
+            entity.GTotalCost = model.Amount + model.AddCost;
             entity.DeptId = model.DeptId;
             entity.LocationId = model.LocationId;
             entity.Description = model.Description;
@@ -654,6 +598,25 @@ namespace iLgs.Services.PropertyCard
                     throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
                 }
             }
+        }
+
+        private void ValidateRelationship(PsCardItemVM model)
+        {
+            if (model.OrderItemId != null)
+            {
+                throw new RecordRelationshipException("Record is from AIR, cannot delete here!");
+            }
+
+            if (_db.PsCardItemIssuances.Any(a => a.PsCardItemId == model.Id))
+            {
+                throw new RecordRelationshipException("Issuance already exists, cannot delete!");
+            }
+
+            if (_db.PsCardItemTransfers.Any(a => a.PsCardItemId == model.Id))
+            {
+                throw new RecordRelationshipException("Transit already exists, cannot delete!");
+            }
+
         }
     }
 }

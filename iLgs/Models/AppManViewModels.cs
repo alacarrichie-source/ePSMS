@@ -142,7 +142,8 @@ namespace iLgs.Models
             AllowDelete = false;
             AllowPost = false;
             AllowUnpost = false;
-            AllowPrint = false;            
+            AllowPrint = false;
+            AllowTransfer = false;
         }
         public bool IsAdmin { get; set; }
         public bool IsAllowed { get; set; }
@@ -152,6 +153,7 @@ namespace iLgs.Models
         public bool AllowPost { get; set; }
         public bool AllowUnpost { get; set; }
         public bool AllowPrint { get; set; }
+        public bool AllowTransfer { get; set; }
 
         //public bool AllowAdd
         //{

@@ -14,6 +14,8 @@ namespace iLgs.Services.ParIcs
     public interface IIcsParService
     {
         IQueryable<IcsPar> GetAll();
+        IQueryable<IcsPar> GetAllPars(Guid? psCardItemGroupId);
+        IQueryable<IcsPar> GetAllIcs(Guid? psCardItemGroupId);
         ValueTask<IcsPar> CreateAsync(IcsPar model, string user, DateTime date);
         ValueTask<IcsPar> UpdateAsync(IcsPar model, string user, DateTime date);
         ValueTask<IcsPar> DeleteAsync(IcsPar model, string user, DateTime date);
@@ -36,6 +38,24 @@ namespace iLgs.Services.ParIcs
             var data = _db.IcsPars.AsNoTracking().AsQueryable();
             return data;
         });
+
+
+        public IQueryable<IcsPar> GetAllIcs(Guid? psCardItemGroupId)
+        {
+            return GetAllIcsPars(psCardItemGroupId, "I");
+        }
+
+        public IQueryable<IcsPar> GetAllPars(Guid? psCardItemGroupId)
+        {
+            return GetAllIcsPars(psCardItemGroupId, "P");
+        }
+
+        private IQueryable<IcsPar> GetAllIcsPars(Guid? psCardItemGroupId, string refType) 
+        {
+            var data = _db.IcsPars.Where(w => w.RefType == refType 
+                && w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.GroupId == psCardItemGroupId)).AsNoTracking().AsQueryable();            
+            return data;
+        }
 
         public ValueTask<IcsPar> CreateAsync(IcsPar model, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
@@ -63,6 +83,8 @@ namespace iLgs.Services.ParIcs
                 throw new RecordNotFoundException(model.Id);
             }
 
+            ValidateIfPosted(entity);
+
             MapModelToEntityFields(entity, model, Mode.EDIT);
             
             _db.IcsPars.Attach(entity);
@@ -81,6 +103,8 @@ namespace iLgs.Services.ParIcs
             {
                 throw new RecordNotFoundException(model.Id);
             }
+
+            ValidateIfPosted(entity);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;            
@@ -112,7 +136,9 @@ namespace iLgs.Services.ParIcs
             entity.Location = model.Location;
             entity.RefNo = model.RefNo;
             entity.RefDate = model.RefDate;
-            entity.RefType = model.RefType;            
+            entity.RefType = model.RefType;
+            entity.ReceivedByTitle = model.ReceivedByTitle;
+            entity.ReceivedByTitle2 = model.ReceivedByTitle2;
             entity.ReceivedBy = model.ReceivedBy;
             entity.ReceivedByPosition = model.ReceivedByPosition;
             entity.ReceivedDate = model.ReceivedDate;
@@ -125,6 +151,14 @@ namespace iLgs.Services.ParIcs
             entity.PostedDt = model.PostedDt;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
+        }
+
+        public void ValidateIfPosted(IcsPar entity)
+        {
+            if (!string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordAlreadyPostedException($"Record was already posted by {entity.PostedBy} on {entity.PostedDt}, cannot proceed!");
+            }
         }
     }
 }

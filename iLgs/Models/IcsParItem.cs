@@ -14,6 +14,12 @@ namespace iLgs.Models
     
     public partial class IcsParItem
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public IcsParItem()
+        {
+            this.IcsParUnitGroupDescriptionItems = new HashSet<IcsParUnitGroupDescriptionItem>();
+        }
+    
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> IcsParId { get; set; }
         public Nullable<System.Guid> PsCardItemExtnId { get; set; }
@@ -26,5 +32,7 @@ namespace iLgs.Models
     
         public virtual PsCardItemExtn PsCardItemExtn { get; set; }
         public virtual IcsPar IcsPar { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<IcsParUnitGroupDescriptionItem> IcsParUnitGroupDescriptionItems { get; set; }
     }
 }

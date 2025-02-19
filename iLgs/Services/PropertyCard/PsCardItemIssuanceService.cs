@@ -105,6 +105,11 @@ namespace iLgs.Services.PropertyCard
         {
             await ValidateFieldsAsync(model, Mode.ADD);
 
+            model.InsertedBy = user;
+            model.InsertedDt = date;
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
             if (model.SelectedIds != null)
             {
                 string[] selectedIds = model.SelectedIds.Split(',');
@@ -397,18 +402,37 @@ namespace iLgs.Services.PropertyCard
                     {
                         _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Date issued must be on or after the {refName} date for this item, {refDate.Value.ToShortDateString()}");
                     }
-                    if (model.IssuedDate.Value.Year < 2024)
-                    {
-                        _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Year of date issued must be {DateTime.Now.Year} onward.");
-                    }
+                    //if (model.IssuedDate.Value.Year < 2024)
+                    //{
+                    //    _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Year of date issued must be within the allowed year.");
+                    //}
                     var issuanceYears = _codextnService.GetIssuanceYears();
                     if (issuanceYears.Any())
                     {
+                        var minYear =  int.Parse(issuanceYears.Min(m => m.Description));
+                        var maxYear = int.Parse(issuanceYears.Max(m => m.Description));
+
+                        if (model.IssuedDate.Value.Year < minYear)
+                        {
+                            if (minYear == maxYear)
+                            {
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Year of date issued must be for year {minYear}.");
+                            }
+                            else
+                            {
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Year of date issued must be from {minYear} to {maxYear}.");
+                            }
+                        }
+
                         var year = model.IssuedDate.Value.Year.ToString().Trim();
                         if (!issuanceYears.Any(a => a.Description == year))
                         {
                             _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Issuance for this year is not allowed.");
                         }
+                    }
+                    else
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.IssuedDate)), $"Issuance year setup is not a available.");
                     }
                 }
                 else

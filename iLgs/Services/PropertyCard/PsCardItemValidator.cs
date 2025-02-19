@@ -141,7 +141,7 @@ namespace iLgs.Services.PropertyCard
             {
                 if (mode == Mode.ADD)
                 {
-                    if (_db.PsCardItems.Where(w => w.PoNo == cardItem.PoNo && w.PsCardId == cardItem.PsCardId).Any())
+                    if (_db.PsCardItems.Where(w => w.PoNo == cardItem.PoNo && w.PsCardId == cardItem.PsCardId && w.InsertedBy != cardItem.InsertedBy).Any())
                     {
                         ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), "Already exists under this Stock/Property No.");
                     }

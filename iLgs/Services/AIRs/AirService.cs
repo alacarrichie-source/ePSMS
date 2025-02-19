@@ -24,7 +24,7 @@ namespace iLgs.Services.AIRs
         bool IsPosted(Guid airId);
         bool IsPosted(AIR air);
         bool IsPosted(AIRItem airItem);
-        bool IsPosted(AIRItemExtn airItemExtn);        
+        bool IsPosted(AIRItemExtn airItemExtn);
         ValueTask<bool> IsPostedAsync(Guid airId);
         ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date);
@@ -77,6 +77,7 @@ namespace iLgs.Services.AIRs
                     InspectedDate = s.InspectedDate,
                     IsInspected = s.IsInspected,
                     Officer = s.Officer,
+                    InvDist = s.InvDist,
                     Remarks = s.Remarks,
                     PostedBy = s.PostedBy,
                     PostedDt = s.PostedDt,
@@ -121,6 +122,7 @@ namespace iLgs.Services.AIRs
                     IsInspected = s.IsInspected,
                     Officer = s.Officer,
                     Remarks = s.Remarks,
+                    InvDist = s.InvDist,
                     PostedBy = s.PostedBy,
                     PostedDt = s.PostedDt,
                     AIRInvoices = s.AIRInvoices
@@ -216,6 +218,13 @@ namespace iLgs.Services.AIRs
 
                 foreach (var orderItem in orderItemList)
                 {
+                    var risItem = await _db.RisItems.FindAsync(orderItem.RequestItem.RisItemId);
+                    risItem.QtyIssue = (int?)orderItem.Qty;
+                    risItem.UpdatedBy = user;
+                    risItem.UpdatedDt = date;
+                    _db.RisItems.Attach(risItem);
+                    _db.Entry(risItem).State = EntityState.Modified;
+
                     var isNew = false;
                     var psCard = await _db.PsCards.Include(i => i.PsCardItems)
                         .Include(i => i.AllField)
@@ -226,7 +235,8 @@ namespace iLgs.Services.AIRs
 
                     var orderAllField = await _db.AllFields.AsNoTracking().Where(w => w.Id == orderItem.Id).FirstOrDefaultAsync();
                     var office = orderItem.RequestItem.RisItem.RISs.Office;
-                    var deptId = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description.Trim() == office).FirstOrDefault()?.Id;
+                    //var deptId = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description.Trim() == office).FirstOrDefault()?.Id;
+                    var deptId = orderItem.RequestItem.RisItem.RISs.OfficeId;
 
                     if (psCard == null)
                     {
@@ -326,8 +336,11 @@ namespace iLgs.Services.AIRs
                             UnitCost = orderItem.UnitCost,
                             Amount = orderItem.Amount,
                             PriceRate = orderItem.PriceRate,
+                            AddCost = 0,
+                            TUnitCost = 0,
+                            GTotalCost = orderItem.Amount,
                             DeptId = deptId,
-                            DeptDisplay = office,                            
+                            DeptDisplay = office,
                             Description = oig.Description,
                             //OtherDesc = orderItem.RequestItem.RisItem.OtherDesc,
                             OtherDesc = orderItem.OtherDesc,
@@ -356,6 +369,9 @@ namespace iLgs.Services.AIRs
                                     Id = Guid.NewGuid(),
                                     PsCardItemId = psCardItem.Id,
                                     AIRItemExtnId = airItemExtnOther.Id,
+                                    SetLotNo = airItemExtnOther.SetLotNo,
+                                    SetLotQtyNo = airItemExtnOther.SetLotQtyNo,
+                                    ContentNo = airItemExtnOther.ContentNo,
                                     SerialNo = airItemExtnOther.SerialNo,
                                     InsertedBy = user,
                                     InsertedDt = date,
@@ -378,6 +394,9 @@ namespace iLgs.Services.AIRs
                                     Id = Guid.NewGuid(),
                                     PsCardItemId = psCardItem.Id,
                                     AIRItemExtnId = airItemExtnVehicle.Id,
+                                    SetLotNo = airItemExtnVehicle.SetLotNo,
+                                    SetLotQtyNo = airItemExtnVehicle.SetLotQtyNo,
+                                    ContentNo = airItemExtnVehicle.ContentNo,
                                     YearModel = airItemExtnVehicle.YearModel,
                                     PlateNo = airItemExtnVehicle.PlateNo,
                                     BodyNo = airItemExtnVehicle.BodyNo,
@@ -440,14 +459,14 @@ namespace iLgs.Services.AIRs
                                 {
                                     Id = Guid.NewGuid(),
                                     PoNo = psCardItem.PoNo,
-                                    //Qty = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup.Qty,
-                                    //Unit = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.RisItemUnitGroup.Unit,
-                                    //UnitCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost,
-                                    //TotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
+                                    SetLotNo = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo,
                                     Qty = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty,
                                     Unit = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Unit,
                                     UnitCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost,
                                     TotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
+                                    AddCost = 0,
+                                    TUnitCost = 0,
+                                    GTotalCost = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost,
                                     InsertedBy = user,
                                     InsertedDt = date,
                                     UpdatedBy = user,
@@ -483,7 +502,6 @@ namespace iLgs.Services.AIRs
                             {
                                 // if with psCardItemUnitGroup, check UnitGroupDescription
                                 var psCardItemUnitGroupDescription = psCardItemUnitGroup.PsCardItemUnitGroupDescriptions
-                                    //.Where(w => w.Description == orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description)
                                     .Where(w => w.Description == orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description)
                                     .FirstOrDefault();
                                 if (psCardItemUnitGroupDescription == null)
@@ -492,7 +510,6 @@ namespace iLgs.Services.AIRs
                                     {
                                         Id = Guid.NewGuid(),
                                         UnitGroupId = psCardItemUnitGroup.Id,
-                                        ///Description = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description,
                                         Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
                                         InsertedBy = user,
                                         InsertedDt = date,
@@ -574,6 +591,7 @@ namespace iLgs.Services.AIRs
 
             var orderItems = _db.OrderItems
                 //.Include(i => i.RequestItem.RisItem.ItemCode.ItemType)
+                .Include(i => i.RequestItem.RisItem.RISs)
                 .Where(w => w.OrderId == entity.OrderId).ToList();
 
             foreach (var orderItem in orderItems)
@@ -625,9 +643,9 @@ namespace iLgs.Services.AIRs
                         _db.PsCardItems.Remove(item);
                         _db.Entry(item).State = EntityState.Deleted;
                         await _db.SaveChangesAsync();
-                    }                    
+                    }
                 }
-                
+
                 if (psCardId != null)
                 {
                     if (!_db.PsCardItems.Any(a => a.PsCardId == psCardId)) // no other  order item is using this item
@@ -646,6 +664,16 @@ namespace iLgs.Services.AIRs
                         await _db.SaveChangesAsync();
                     }
                 }
+            }
+
+            foreach (var orderItem in orderItems)
+            {
+                var risItem = await _db.RisItems.FindAsync(orderItem.RequestItem.RisItemId);
+                risItem.QtyIssue = null;
+                risItem.UpdatedBy = user;
+                risItem.UpdatedDt = date;
+                _db.RisItems.Attach(risItem);
+                _db.Entry(risItem).State = EntityState.Modified;
             }
 
             entity.PostedBy = null;
@@ -723,7 +751,7 @@ namespace iLgs.Services.AIRs
             model.InsertedDt = date;
             model.UpdatedBy = user;
             model.UpdatedDt = date;
-            
+
             var entity = new AIR()
             {
                 Id = model.Id,
@@ -741,6 +769,7 @@ namespace iLgs.Services.AIRs
                 IsInspected = model.IsInspected,
                 Officer = model.Officer ?? "",
                 Remarks = model.Remarks ?? "",
+                InvDist = model.InvDist,
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
@@ -749,12 +778,20 @@ namespace iLgs.Services.AIRs
 
             // include items during add
             var orderItems = _db.OrderItems
-                //.Include(i => i.RequestItem.RisItem)
-                .Where(w => w.OrderId == model.OrderId).AsNoTracking().ToList();
+                .Include(i => i.Order.OrderItemUnitGroups)
+                .Include(i => i.RequestItem.RisItem.ItemCode.ItemType)
+                .Where(w => w.OrderId == model.OrderId).AsNoTracking().OrderBy(o => o.InsertedDt).ToList();
             foreach (var orderItem in orderItems)
             {
-
+                var insertedDt = DateTime.Now;
                 var invDist = _itemCodeService.GetInvDist(orderItem.ItemCodeId);
+                var isWithParIcs = _itemCodeService.IsWithParIcs(orderItem.ItemCodeId);
+
+                if (string.IsNullOrWhiteSpace(invDist))
+                {
+                    invDist = model.InvDist;
+                }
+
                 AIRItem airItem = new AIRItem()
                 {
                     Id = Guid.NewGuid(),
@@ -763,10 +800,39 @@ namespace iLgs.Services.AIRs
                     Qty = orderItem.Qty,
                     InvDist = invDist,
                     InsertedBy = user,
-                    InsertedDt = date,
+                    InsertedDt = insertedDt,
                     UpdatedBy = user,
-                    UpdatedDt = date
+                    UpdatedDt = insertedDt
                 };
+
+                if (invDist == "I" && isWithParIcs)
+                {
+                    var unitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup).Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
+                    var qty = orderItem.Qty;
+                    string category = orderItem.RequestItem.RisItem.ItemCode.ItemType.Code;
+                    string itemExtnName = _airItemService.GetItemExtnNameByCategory(category);
+
+                    // create template based on number of qty
+                    if (unitGroupDescriptionItem != null)
+                    {
+                        var setLotNo = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
+                        var groupQty = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
+                        for (int gQty = 1; gQty <= groupQty; gQty++)
+                        {
+                            for (int q = 1; q <= qty; q++)
+                            {
+                                SetAirItmExtn(itemExtnName, setLotNo, gQty, q, airItem, user, date);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (int q = 1; q <= qty; q++)
+                        {
+                            SetAirItmExtn(itemExtnName, "", null, q, airItem, user, date);
+                        }
+                    }
+                }
 
                 entity.AIRItems.Add(airItem);
             }
@@ -775,6 +841,49 @@ namespace iLgs.Services.AIRs
             await _db.SaveChangesAsync();
 
             return model;
+        }
+
+        private void SetAirItmExtn(string itemExtnName, string setLotNo, int? setLotQtyNo, int? contentNo, AIRItem airItem, string user, DateTime date)
+        {
+            if (itemExtnName == "ItemExtnLand")
+            {
+                // To do: Add Land process here
+            }
+            else if (itemExtnName == "ItemExtnVehicle")
+            {
+                var airItemExtnVehicle = new AIRItemExtnVehicle()
+                {
+                    Id = Guid.NewGuid(),
+                    AIRItemId = airItem.Id,
+                    SetLotNo = setLotNo,
+                    SetLotQtyNo = setLotQtyNo,
+                    ContentNo = contentNo,
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+
+                airItem.AIRItemExtns.Add(airItemExtnVehicle);
+            }
+            else if (itemExtnName == "ItemExtnOther")
+            {
+                var airItemExtnOther = new AIRItemExtnOther()
+                {
+                    Id = Guid.NewGuid(),
+                    AIRItemId = airItem.Id,
+                    SetLotNo = setLotNo,
+                    SetLotQtyNo = setLotQtyNo,
+                    ContentNo = contentNo,
+                    SerialNo = "",
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+
+                airItem.AIRItemExtns.Add(airItemExtnOther);
+            }
         }
 
         public async ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date)
@@ -804,13 +913,14 @@ namespace iLgs.Services.AIRs
                 var orderItems = _db.OrderItems.Where(w => w.OrderId == model.OrderId).AsNoTracking().ToList();
                 foreach (var orderItem in orderItems)
                 {
-                    var invDist = "I"; // _itemCodeService.GetInvDist(orderItem.RequestItem.RisItem.ItemCodeId);
+                    //var invDist = "I"; // _itemCodeService.GetInvDist(orderItem.RequestItem.RisItem.ItemCodeId);
+                    var invDist = model.InvDist;
                     AIRItem airItem = new AIRItem()
                     {
                         Id = Guid.NewGuid(),
                         AirId = entity.Id,
                         OrderItemId = orderItem.Id,
-                        Qty = orderItem.Qty,                        
+                        Qty = orderItem.Qty,
                         InvDist = invDist,
                         InsertedBy = user,
                         InsertedDt = date,
@@ -836,6 +946,7 @@ namespace iLgs.Services.AIRs
             entity.IsInspected = model.IsInspected;
             entity.Officer = model.Officer ?? "";
             entity.Remarks = model.Remarks ?? "";
+            entity.InvDist = model.InvDist;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

@@ -24,28 +24,28 @@
                     {
                         g.Title("Originating Department").HeaderHtmlAttributes(new { Style = "text-align:center;" })
         .Columns(info =>
-                {
-                    info.Bound(f => f.Department).Width(70).Title("PO Owner");
-                    info.Bound(f => f.Qty)
-    .Width(50).Title("In")
-    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-    .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                });
+        {
+            info.Bound(f => f.Department).Width(70).Title("PO Owner");
+            info.Bound(f => f.Qty)
+.Width(50).Title("In")
+.HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+.HeaderHtmlAttributes(new { style = "text-align:right;" });
+        });
                     });
                     col.Group(g =>
                     {
                         g.Title("Intermediary").HeaderHtmlAttributes(new { Style = "text-align:center;" })
         .Columns(info =>
-                {
-                    info.Bound(f => f.LocCode).Width(50).Title("Code");
-                    info.Bound(f => f.Location).Width(50).Title("Location");
-                    info.Bound(f => f.TransferIn)
-    .Width(50).Title("Transit-In")
-    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-    .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-    .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                });
+        {
+            info.Bound(f => f.LocCode).Width(50).Title("Code");
+            info.Bound(f => f.Location).Width(50).Title("Location");
+            info.Bound(f => f.TransferIn)
+.Width(50).Title("Transit-In")
+.HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+.ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+.HeaderHtmlAttributes(new { style = "text-align:right;" });
+        });
                     });
                 });
             });
@@ -76,16 +76,10 @@
                 commands.Destroy();
             }).Width(120);
         })
-        .ToolBar(t =>
-        {
-            t.Create();
-        })
-        @*.ToolBar(toolbar =>
-            {
-                toolbar.Template(@<text>
-                        @(Html.Kendo().Button().Name("btnAddItem_" + ViewData["cardId"]).Content("Add New Record").Icon("k-icon k-i-add").Events(e => e.Click("onClickBtnAddItem")))
-                    </text>);
-            })*@
+        //.ToolBar(t =>
+        //{
+        //    t.Create();
+        //})        
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemTemplate").Window(w => w.Width(1000).Title("Stock Card Item")))
         .Selectable()
         .Navigatable()

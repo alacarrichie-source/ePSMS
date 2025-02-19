@@ -181,18 +181,23 @@ namespace iLgs.Services.PurchaseRequest
         public void UpdateRequestItem(Guid? requestItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date)
         {
             var reqItem = _db.RequestItems.Include(i => i.RequestItemUnitGroupDescriptionItems).Where(w => w.Id == requestItemId).FirstOrDefault();
-            var unitGroup = _db.RequestItemUnitGroups.Where(w => w.RequestItemUnitGroupDescriptions.Any(a => a.RequestItemUnitGroupDescriptionItems.Any(a2 => a2.RequestItemId == requestItemId))).FirstOrDefault();
-            var setCost = reqItem.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost;
-            var setQty = _db.RisItemUnitGroups.Where(w => w.Id == unitGroup.RisItemUnitGroupId).FirstOrDefault().Qty;                
-           
+            var unitGroup = _db.RequestItemUnitGroups.Include(i => i.RisItemUnitGroup).Where(w => w.RequestItemUnitGroupDescriptions.Any(a => a.RequestItemUnitGroupDescriptionItems.Any(a2 => a2.RequestItemId == requestItemId))).FirstOrDefault();
+            //var setUnitCost = reqItem.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost;
+            //var setTotalCost = reqItem.RequestItemUnitGroupDescriptionItems.FirstOrDefault().RequestItemUnitGroupDescription.RequestItemUnitGroup.TotalCost;
+            //var setQty = _db.RisItemUnitGroups.Where(w => w.Id == unitGroup.RisItemUnitGroupId).FirstOrDefault().Qty;                
+            var setUnitCost = unitGroup.UnitCost;
+            var setTotalCost = unitGroup.TotalCost;
+            var setQty = unitGroup.RisItemUnitGroup.Qty;
+
             if (priceRate == 0)
             {
                 reqItem.UnitCost = unitCost;
+                reqItem.PriceRate = decimal.Round((decimal)((unitCost * reqItem.Qty * setQty) / setTotalCost) * 100, 2, MidpointRounding.AwayFromZero);
             }
             else
             {
                 reqItem.PriceRate = priceRate;
-                reqItem.UnitCost = decimal.Round((decimal)(setCost * (priceRate / 100)), 2, MidpointRounding.AwayFromZero) / reqItem.Qty;
+                reqItem.UnitCost = decimal.Round((decimal)(setUnitCost * (priceRate / 100)), 2, MidpointRounding.AwayFromZero) / reqItem.Qty;
             }
             
             reqItem.TotalCost = (reqItem.Qty * reqItem.UnitCost) * setQty;

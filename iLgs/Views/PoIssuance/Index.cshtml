@@ -84,9 +84,7 @@
     })
     .ToolBar(t =>
     {
-        t.Custom().Text("Transit Selected Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Generate PARs").IconClass("k-icon k-i-add").Name("btnAddPars").HtmlAttributes(new { @class = "k-button", href = "" });
-        //t.Custom().Text("Generate ICS").IconClass("k-icon k-i-add").Name("btnAddIcs").HtmlAttributes(new { @class = "k-button", href = "" });
+        //t.Custom().Text("Transit Selected Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });        
         t.Search();
     })
     .Search(s =>
@@ -322,17 +320,12 @@
         selectedDepartment = selectedData.Department;
         postedBy = null;
 
-        //if (selectedData.IsWithPar == true) {
-        //    $(".k-grid-btnAddPars", grid).show();
+        //if (selectedData.ParPostedBy) {
+        //    $("#btnTransfer").show();
         //} else {
-        //    $(".k-grid-btnAddPars", grid).hide();
+        //    $("#btnTransfer").hide();
         //}
 
-        //if (selectedData.IsWithIcs == true) {
-        //    $(".k-grid-btnAddIcs", grid).show();
-        //} else {
-        //    $(".k-grid-btnAddIcs", grid).hide();
-        //}
     }
 
     function onDataBoundGrid(e) {
@@ -355,6 +348,16 @@
             });
         }
 
+         if (this.dataSource.data().length == 0) {
+             //$("#btnTransfer").hide();            
+        }
+        else {
+            var selectedRow = this.select();
+            var dataItem = this.dataItem(selectedRow);
+            //if (!dataItem.DeptCode) {
+            //    $("#btnTransfer").hide();
+            //}
+        }
 
         //var trs = this.tbody.find('tr').each(function () {
         //    var item = grid.dataItem($(this));
@@ -1152,13 +1155,13 @@
                 async: true,
                 success: function (result) {
                     if (result.Errors == "" && result.IsSelected == true) {
-                        grid.select(this); // Select the row if Id is in the pre-selected list                        
+                        grid.select(this); // Select the row if Id is in the pre-selected list
                     }
                 },
                 error: function (req, status, errorObj) {
                     alert(req.responseText);
                 }
-            });            
+            });
         });
     }
     // END ISSUANCE TEMPLATE

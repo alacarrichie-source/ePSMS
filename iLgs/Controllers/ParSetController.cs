@@ -29,6 +29,7 @@ namespace iLgs.Controllers
         private readonly AppManEntities _db;
         private readonly IParService _parService;
         private readonly ICodextnService _codextnService;
+        private object groupId;
 
         public ParSetController()
         {
@@ -350,14 +351,123 @@ namespace iLgs.Controllers
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PostPoItemSet(Guid? unitGroupId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _parService.PostSetAsync(unitGroupId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> UnpostPoItemSet(Guid? unitGroupId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _parService.UnPostSetAsync(unitGroupId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
         #endregion
 
 
         #region PAR ITEMS
-        public ActionResult _Pars(Guid? cardItemId, decimal? unitCost)
+        //public ActionResult _Pars(Guid? cardItemId, decimal? unitCost)
+        //{
+        //    ViewData["CardItemId"] = cardItemId;
+        //    ViewData["UnitCost"] = unitCost;
+        //    return PartialView();
+        //}
+
+        public ActionResult _Pars(Guid? cardItemGroupId, string postedBy)
         {
-            ViewData["CardItemId"] = cardItemId;
-            ViewData["UnitCost"] = unitCost;
+            ViewData["cardItemGroupId"] = cardItemGroupId;
+            ViewData["postedBy"] = postedBy;
             return PartialView();
         }
 
@@ -372,68 +482,7 @@ namespace iLgs.Controllers
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
             return result;
-        }
-
-        public async Task<ActionResult> _ParItemEdit(Guid? parItemId)
-        {
-            var data = await _parService.IcsParItem.GetByIdAsync(parItemId);
-            
-            return PartialView(data);
-        }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ParItemSave(IcsParItem model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
-                Access access = await accessTask;
-                if (!access.AllowEdit)
-                {
-                    ModelState.AddModelError("Access", "Update Access Denied!");
-                }
-
-                if (model != null && ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    var result = await _parService.IcsParItem.UpdateAsync(model, user, date);
-                    if (!result.IsSuccess)
-                    {
-                        return Json(new { Errors = string.Join("; ", result.Errors.Select(e => e.Value)) }, JsonRequestBehavior.DenyGet);
-                    }
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("UpdateError", error.Message);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("UpdateError", e.Message);
-            }
-
-            var query = from state in ModelState.Values
-                        from error in state.Errors
-                        select error.ErrorMessage;
-
-            var errorList = query.ToList();
-            if (errorList.Count() > 0)
-            {
-                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-            }
-
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        }
+        }        
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> _ParsUpdate([DataSourceRequest] DataSourceRequest request, IcsParItem model)
@@ -452,12 +501,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await _parService.IcsParItem.UpdateAsync(model, user, date);
-                    if (result.IsSuccess)
-                    {
-                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
-                    }
-                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
+                    model = await _parService.IcsParItem.UpdateAsync(model, user, date);                    
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -496,15 +540,10 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await _parService.IcsParItem.DeleteAsync(model, user, date);
-                    if (result.IsSuccess)
-                    {
-                        return Json(new[] { result.Data }.ToDataSourceResult(request, ModelState));
-                    }
-                    return Json(new { Errors = result.Errors }, JsonRequestBehavior.DenyGet);
+                    var result = await _parService.IcsParItem.DeleteAsync(model, user, date);                    
                 }
             }
-            catch (ValidationException validationException)
+            catch (ValidationException validationException) 
             {
                 ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
             }
@@ -516,16 +555,74 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
+        public async Task<ActionResult> _ParItemEdit(Guid? parItemId)
+        {
+            var data = await _parService.IcsParItem.GetByIdAsync(parItemId);
+
+            return PartialView(data);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ParItemSave(IcsParItem model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("Access", "Update Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _parService.IcsParItem.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
         public async Task<ActionResult> _GeneratePar(Guid? psCardItemId, string refType)
         {            
             var psCardItem = await _parService.GetByIdAsync(psCardItemId);
             var model = new GenerateIcsParVM()
             {
                 PsCardItemId = psCardItemId,
-                Qty = refType == "P" ? psCardItem.ParBalance : psCardItem.IcsBalance,
+                Qty = psCardItem.ParBalance,
                 Date = DateTime.Now,
                 RefType = refType,
-                IcsPar = new IcsPar()
+                IcsPar = new IcsPar(),
+                IndSet = "I"
             };
 
             //ViewData["poNo"] = psCardItem.PoNo;
@@ -534,6 +631,22 @@ namespace iLgs.Controllers
             ViewData["psCardItemId"] = psCardItemId;
             ViewBag.ItemExtnName = _parService.PsCard.GetItemExtnName(psCardItemId);
 
+            return PartialView(model);
+        }
+
+        public ActionResult _GenerateParSet(Guid? unitGroupId, string refType)
+        {
+            var model = new GenerateIcsParVM()
+            {
+                UnitGroupId = unitGroupId,
+                Date = DateTime.Now,
+                RefType = refType,
+                IcsPar = new IcsPar(),
+                IndSet = "S"
+            };
+
+            ViewData["unitGroupId"] = unitGroupId;
+            
             return PartialView(model);
         }
 
@@ -554,7 +667,14 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _parService.GeneratePAR(model, user, date);
+                    if (model.IndSet == "I")
+                    {
+                        await _parService.GeneratePAR(model, user, date);
+                    }
+                    else
+                    {
+                        await _parService.GenerateParSet(model, user, date);
+                    }
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -597,9 +717,132 @@ namespace iLgs.Controllers
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet,
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
-            return result;
+            return result;            
+        }
+
+        public ActionResult _GenerateParSelectionSetRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
+        {
+            var data = _parService.PsCardItemExtn.GetCardItemExtnSetForIcsParByUnitGroupId(unitGroupId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;            
         }
         #endregion
+
+        #region PAR SET ITEM
+        public ActionResult _ParSet(Guid? cardItemGroupId, string postedBy)
+        {
+            ViewData["cardItemGroupId"] = cardItemGroupId;
+            ViewData["postedBy"] = postedBy;
+            return PartialView();
+        }
+
+        public ActionResult _ParSetRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemGroupId)
+        {
+            var data = _parService.IcsPar.GetAllPars(cardItemGroupId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+        
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ParSetDestroy([DataSourceRequest]DataSourceRequest request, IcsPar model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    var result = await _parService.IcsPar.DeleteAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> _ParSetItemEdit(Guid? parItemId)
+        {
+            var data = await _parService.IcsParItem.GetByIdAsync(parItemId);
+
+            return PartialView(data);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ParSetItemSave(IcsParItem model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("Access", "Update Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _parService.IcsParItem.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+        #endregion  
 
         #region Issuance View
         public ActionResult _Issuance(Guid? cardItemId)
@@ -691,10 +934,6 @@ namespace iLgs.Controllers
             }
             return PartialView(partialView, data);
         }
-        #endregion
-
-        #region UPLOADS
-            
-        #endregion  
+        #endregion        
     }
 }

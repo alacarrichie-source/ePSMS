@@ -115,6 +115,7 @@ namespace iLgs.Services.PurchaseOrder
             entity.OrderItemUnitGroupId = model.OrderItemUnitGroupId;
             entity.RequestItemUnitGroupDescriptionId = model.RequestItemUnitGroupDescriptionId;
             entity.Description = model.Description;
+            entity.OtherParticulars = model.OtherParticulars;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
 

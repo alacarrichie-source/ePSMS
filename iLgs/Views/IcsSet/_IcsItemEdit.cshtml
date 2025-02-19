@@ -1,0 +1,236 @@
+﻿@model iLgs.Models.IcsParItem
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.IcsParId)
+    @Html.HiddenFor(model => model.Qty)
+    @Html.HiddenFor(model => model.Amount)
+    @Html.HiddenFor(model => model.PsCardItemExtn.PsCardItemId) // need to Include the PsCardItemId, PsCardItemExtn is null when not included
+    @Html.HiddenFor(model => model.PsCardItemExtnId)
+
+<div id="ErrorContent" class="hidden x-bootstrap-content">
+    <div class="alert alert-danger x-popup-alert">
+        <ul class="errors"></ul>
+    </div>
+</div>
+
+<fieldset>
+
+    <div class="row k-mb-2">
+        <div class="col-md-6">
+            <div class="col-md-3">
+                <span class="required-marker">
+                    <span class="text-danger">*</span>
+                </span>
+                @Html.LabelFor(m => m.IcsPar.RefNo, "Par No.")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.IcsPar.RefNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.RefNo)
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="col-md-3">
+                <span class="required-marker">
+                    <span class="text-danger">*</span>
+                </span>
+                @Html.LabelFor(m => m.IcsPar.RefDate, "Date")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().DatePickerFor(m => m.IcsPar.RefDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.RefDate)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-6">
+            <div class="col-md-3">
+                <span class="required-marker">
+                    <span class="text-danger">*</span>
+                </span>
+                @Html.LabelFor(m => m.PsCardItemExtn.PropNo, "Property No.")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.PsCardItemExtn.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.PsCardItemExtn.PropNo)
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row k-mb-2">
+        <div class="col-md-6">
+            <div class="col-md-3">
+                @Html.DisplayFor(m => m.IcsPar.ReceivedByTitle, "Label")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedByTitle).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.ReceivedByTitle)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-6">
+            <div class="col-md-3">
+                @Html.DisplayFor(m => m.IcsPar.ReceivedBy, "Label")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.ReceivedBy)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="col-md-3">
+                @Html.DisplayFor(m => m.IcsPar.ReceivedByPosition, "Label")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.ReceivedByPosition)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-6">
+            <div class="col-md-3">
+                @Html.DisplayFor(m => m.IcsPar.ReceivedByTitle2, "Label")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedByTitle2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.ReceivedByTitle2)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-6">
+            <div class="col-md-3">
+                @Html.DisplayFor(m => m.IcsPar.ReceivedDept, "Label")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.ReceivedDept)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="col-md-3">
+                @Html.DisplayFor(m => m.IcsPar.ReceivedDate, "LabelDate")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().DatePickerFor(m => m.IcsPar.ReceivedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.ReceivedDate)
+            </div>
+        </div>
+    </div>
+
+    <br />
+
+    <div class="row k-mb-2">
+        <div class="col-md-6">
+            <div class="col-md-3">
+                @Html.DisplayFor(m => m.IcsPar.IssuedBy, "Label")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.IssuedBy)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="col-md-3">
+                @Html.DisplayFor(m => m.IcsPar.IssuedByPosition, "Label")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.IssuedByPosition)
+            </div>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-6">
+            <div class="col-md-3">
+                @Html.DisplayFor(m => m.IcsPar.IssuedDept, "Label")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.IssuedDept)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="col-md-3">
+                @Html.DisplayFor(m => m.IcsPar.IssuedDate, "LabelDate")
+            </div>
+            <div class="col-md-9">
+                @(Html.Kendo().DatePickerFor(m => m.IcsPar.IssuedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.IcsPar.IssuedDate)
+            </div>
+        </div>
+    </div>
+
+    <br />
+
+    <div id="DIV_ALLFIELDS">
+
+    </div>
+
+    <br />
+    <div class="row k-mb-2">
+        <div class="col-md-12">
+            <span id="span_">
+                @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave"))
+                @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))
+            </span>
+        </div>
+    </div>
+
+</fieldset>
+}
+
+<script type="text/javascript">
+    $("#btnSave").click(function (e) {
+        e.preventDefault();
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            var data = $("#form").serialize();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_ParItemSave", "iCSSet")',
+                data: data,
+                beforeSend: function () {
+                    window.kendo.ui.progress($("#form"), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($("#form"), false);
+                    if (result.Errors == "") {
+                        $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                    }
+                    else {
+                        alert(result.Errors);
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+            disabled.attr('disabled', 'disabled');
+        }
+    });
+
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+</script>
+
+
+
+
+
+

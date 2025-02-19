@@ -102,7 +102,9 @@ namespace iLgs.Services.AIRs
                 InsertedBy = model.InsertedBy,
                 InsertedDt = model.InsertedDt,
                 UpdatedBy = model.UpdatedBy,
-                UpdatedDt = model.UpdatedDt
+                UpdatedDt = model.UpdatedDt,
+                SetLotNo = model.SetLotNo,
+                SetLotQtyNo = model.SetLotQtyNo
             };
 
             _db.AIRItemExtns.Add(entity);
@@ -157,6 +159,8 @@ namespace iLgs.Services.AIRs
             entity.InsPolicyNo = model.InsPolicyNo;
             entity.SubLocation = model.SubLocation;
             entity.ConductionNo = model.ConductionNo;
+            entity.SetLotNo = model.SetLotNo;
+            entity.SetLotQtyNo = model.SetLotQtyNo;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
 

@@ -317,31 +317,18 @@ namespace iLgs.Controllers
 
         public JsonResult GetSupplier(string text)
         {
-
             var model = _db.Database.SqlQuery<SupplierVM>("Exec Supplier_GetAll {0}", text).AsQueryable().Take(100);
-
-            //if (!string.IsNullOrWhiteSpace(text))
-            //{
-            //    model = model.Where(p => p.Id.ToString() == text || p.Name.Contains(text) || p.BusinessName.Contains(text));
-            //}
 
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Name = c.Name, BusinessName = c.BusinessName, Address = c.Address, TIN = c.TIN, ZipCode = c.ZipCode, Email = c.Email, ContactNo = c.ContactNo }), JsonRequestBehavior.AllowGet);
         }
 
-
-        //public JsonResult GetPsCode(string text)
-        //{
-
-        //    var model = db.PsCodes.AsQueryable();
-
-        //    if (!string.IsNullOrWhiteSpace(text))
-        //    {
-        //        model = model.Where(p => p.Id.ToString() == text || p.ItemName.Contains(text) || p.ItemDescription.Contains(text) || p.PsNo.Contains(text));
-        //    }
-
-        //    return Json(model.Select(c => new { Id = c.Id, Code = c.PsNo, Name = c.ItemName, Description = c.ItemDescription, Unit = c.UnitMeas, Type = c.PsType }), JsonRequestBehavior.AllowGet);
-        //}
-
+        public JsonResult GetEmployee(string text)
+        {
+            var model = _db.Database.SqlQuery<EmployeeVM>("Exec Employee_GetAll {0}", text).AsQueryable().Take(100);
+            
+            return Json(model.Select(c => new { Id = c.Id, Name = c.Name, Department = c.Department, Position = c.Position, Status = c.Status }), JsonRequestBehavior.AllowGet);
+        }
+        
         public JsonResult GetPrNos(string text)
         {
 
@@ -374,7 +361,7 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Id.ToString() == text || p.PrNo.Contains(text));
             }
 
-            return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.RISs.Office }), JsonRequestBehavior.AllowGet);
+            return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.RISs.Office, ApprovedBy = c.ApprovedBy, ApprovedDesig = c.ApprovedDesig }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetFpp(string department, string text)

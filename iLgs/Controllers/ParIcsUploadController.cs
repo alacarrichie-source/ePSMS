@@ -29,9 +29,10 @@ namespace iLgs.Controllers
             _uploadService = new ParIcsUploadService(_db);            
         }
 
-        public ActionResult _Images(Guid? imageId)
+        public ActionResult _Images(Guid? imageId, string postedBy)
         {
             ViewData["imageId"] = imageId;
+            ViewData["postedBy"] = postedBy;
             return PartialView();
         }
 
@@ -193,5 +194,6 @@ namespace iLgs.Controllers
                 return HttpNotFound("File not found"); // Handle not found case
             }
         }
+
     }
 }

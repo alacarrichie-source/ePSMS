@@ -123,10 +123,10 @@ namespace iLgs.Models
         public Nullable<System.Guid> PrId { get; set; }
         public Nullable<System.Guid> RisItemUnitGroupId { get; set; }
 
-        [Display(Name = "Set/Lot No.")]
+        [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
 
-        [Display(Name = "Set Unit Cost")]
+        [Display(Name = "Group Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
 
         [Display(Name = "Total Cost")]

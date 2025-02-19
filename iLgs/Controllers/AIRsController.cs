@@ -34,7 +34,9 @@ namespace iLgs.Controllers
         private IAirItemService _airItemService;
         private ICodextnService _codextnService;
         private IOrderService _orderService;
-        //private IOrderItemExtnService _orderItemExtnService;
+        private readonly IOrderItemUnitGroupService _unitGroupService;
+        private readonly IOrderItemUnitGroupDescriptionService _unitGroupDescriptionService;
+        private readonly IOrderItemUnitGroupDescriptionItemService _unitGroupDescriptionItemService;
         private IServiceAgent _sa;
 
         public AIRsController()
@@ -43,9 +45,11 @@ namespace iLgs.Controllers
             _airService = new AirService(_db);
             _airItemService = new AirItemService(_db);
             _codextnService = new CodextnService(_db);
-            _orderService = new OrderService(_db);
-            //_orderItemExtnService = new OrderItemExtnService(_db);
+            _orderService = new OrderService(_db);            
             _sa = new ServiceAgent(_db);
+            _unitGroupService = new OrderItemUnitGroupService(_db);
+            _unitGroupDescriptionService = new OrderItemUnitGroupDescriptionService(_db);
+            _unitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
         }
 
         // GET: 
@@ -791,7 +795,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _AIRItemOtherVehicleUpdate([DataSourceRequest] DataSourceRequest request, AIRItemExtnOther model)
+        public async Task<ActionResult> _AIRItemExtnOtherUpdate([DataSourceRequest] DataSourceRequest request, AIRItemExtnOther model)
         {
             try
             {
@@ -1087,5 +1091,126 @@ namespace iLgs.Controllers
             return Json(new { Errors = "", ItemExtnName = itemExtnName}, JsonRequestBehavior.AllowGet);
 
         }
+
+        #region UNIT GROUP
+        public ActionResult _UnitGroup(Guid orderId)
+        {
+            ViewData["orderId"] = orderId;
+            return PartialView();
+        }
+
+        public ActionResult _UnitGroupRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
+        {
+            var data = _unitGroupService.GetByOrderId(orderId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _UnitGroupUpdate([DataSourceRequest] DataSourceRequest request, OrderItemUnitGroupVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _unitGroupService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdteError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("UpdateError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        
+        #endregion
+
+        #region UNIT GROUP DESCRIPTION
+        public ActionResult _UnitGroupDescription(Guid unitGroupId)
+        {
+            ViewData["unitGroupId"] = unitGroupId;
+            return PartialView();
+        }
+
+        public ActionResult _UnitGroupDescriptionRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
+        {
+            var data = _unitGroupDescriptionService.GetByUnitGroupId(unitGroupId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _UnitGroupDescriptionUpdate([DataSourceRequest] DataSourceRequest request, OrderItemUnitGroupDescriptionVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _unitGroupDescriptionService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("UpdateError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion
+
+        #region UNIT GROUP DESCRIPTION ITEMS        
+        public ActionResult _UnitGroupDescriptionItemRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupDescriptionId)
+        {
+            var data = _unitGroupDescriptionItemService.GetByUnitGroupDescriptionId(unitGroupDescriptionId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+        
+        #endregion
     }
 }

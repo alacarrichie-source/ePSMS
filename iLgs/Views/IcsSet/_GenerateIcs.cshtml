@@ -12,15 +12,22 @@
     </div>
 
     //@Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.PoNo)
+    @Html.HiddenFor(model => model.PoDate)
+    @Html.HiddenFor(model => model.DeptId)
     @Html.HiddenFor(model => model.PsCardItemId)
     @Html.HiddenFor(model => model.RefType)
-    @Html.HiddenFor(model => model.Location)
+    @Html.HiddenFor(model => model.LocationCode)
     @Html.HiddenFor(model => model.SelectedIds)
+    @Html.HiddenFor(model => model.IndSet)
+    @Html.HiddenFor(model => model.IcsPar.ReceivedBy)
 
     <fieldset>
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.Date, "Reference Date", htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(model => model.Date, "LabelDate")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().DatePickerFor(model => model.Date).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.Date)
@@ -28,28 +35,20 @@
             </div>
         </div>
 
-        @*<div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(model => model.Qty, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().NumericTextBoxFor(model => model.Qty).Decimals(2).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.Qty)
-                </div>
-            </div>
-        </div>*@
-
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(model => model.LocationId, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Location")
-                            .DataTextField("Description")
+                            .Placeholder("Select Location Code")
+                            .DataTextField("Code")
                             .DataValueField("Id")
                             .ValuePrimitive(true)
                             .Filter(FilterType.Contains)
-                             .DataSource(source =>
+                            .DataSource(source =>
                             {
                                 source.Read(read =>
                                 {
@@ -64,7 +63,7 @@
                                 c.Add().Field("Desc2").Title("Location").Width("40%").Template("#= columnTemplate(data.Desc2) #");
                             })
                             .Events(e => e.Select("onSelectGenerateParLocationId"))
-                            //.Suggest(true)
+                            .Suggest(false)
                     )
                     @Html.ValidationMessageFor(model => model.LocationId)
                 </div>
@@ -73,10 +72,12 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.LocationCode, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(model => model.Location, "Label")
+                </div>
                 <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(model => model.LocationCode).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.LocationCode)
+                    @(Html.Kendo().TextBoxFor(model => model.Location).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.Location)
                 </div>
             </div>
         </div>
@@ -84,17 +85,68 @@
         <br />
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.ReceivedBy, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(model => model.IcsPar.ReceivedByTitle, "Label")
+                </div>
                 <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.IcsPar.ReceivedBy)
+                    @(Html.Kendo().TextBoxFor(model => model.IcsPar.ReceivedByTitle).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.IcsPar.ReceivedByTitle)
                 </div>
             </div>
         </div>
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.ReceivedByPosition, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.ReceivedById, "LabelGuid")
+                </div>
+                <div class="col-md-10">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.IcsPar.ReceivedById)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;", data_value_primitive = "true" })
+                            .Placeholder("Select Employee..")
+                            .DataTextField("Name")
+                            .DataValueField("Id")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetEmployee", "Getters").Data("DataEmployeeId");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Name").Title("Name").Width("30%").Template("#= columnTemplate(data.Name) #");
+                                c.Add().Field("Department").Title("Department").Width("30%").Template("#= columnTemplate(data.Department) #");
+                                c.Add().Field("Position").Title("Position").Width("30%").Template("#= columnTemplate(data.Position) #");
+                                c.Add().Field("Status").Title("Status").Width("10%").Template("#= columnTemplate(data.Status) #");
+                            })
+                            //.MinLength(3)
+                            .Events(e => { e.Select("onSelectEmployee"); })
+                    )
+                    @Html.ValidationMessageFor(m => m.IcsPar.ReceivedById)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    @Html.DisplayFor(model => model.IcsPar.ReceivedByTitle2, "Label")
+                </div>
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(model => model.IcsPar.ReceivedByTitle2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(model => model.IcsPar.ReceivedByTitle2)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.ReceivedByPosition, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.ReceivedByPosition)
@@ -104,7 +156,9 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.ReceivedDept, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.ReceivedDept, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.IcsPar.ReceivedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.ReceivedDept)
@@ -114,7 +168,9 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.ReceivedDate, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.ReceivedDate, "LabelDate")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().DatePickerFor(m => m.IcsPar.ReceivedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.ReceivedDate)
@@ -122,11 +178,36 @@
             </div>
         </div>
 
+        <br />
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.IssuedBy, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.IssuedBy, "Label")
+                </div>
                 <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.IcsPar.IssuedBy)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;", data_value_primitive = "true" })
+                            .Placeholder("Select Issued by")
+                            .DataTextField("Description")
+                            .DataValueField("Description")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetIssuedBy", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Description").Title("Name").Width("40%").Template("#= columnTemplate(data.Description) #");
+                                c.Add().Field("Desc3").Title("Department").Width("30%").Template("#= columnTemplate(data.Desc3) #");
+                                c.Add().Field("Desc2").Title("Position").Width("30%").Template("#= columnTemplate(data.Desc2) #");
+                            })
+                            //.MinLength(3)
+                            .Events(e => { e.Select("onSelectIssuedBy"); })
+                    )
                     @Html.ValidationMessageFor(m => m.IcsPar.IssuedBy)
                 </div>
             </div>
@@ -134,7 +215,9 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.IssuedByPosition, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.IssuedByPosition, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedByPosition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.IssuedByPosition)
@@ -144,7 +227,9 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.IssuedDept, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.IssuedDept, "Label")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().TextBoxFor(m => m.IcsPar.IssuedDept).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.IssuedDept)
@@ -154,7 +239,9 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(m => m.IcsPar.IssuedDate, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IcsPar.IssuedDate, "LabelDate")
+                </div>
                 <div class="col-md-10">
                     @(Html.Kendo().DatePickerFor(m => m.IcsPar.IssuedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.IcsPar.IssuedDate)
@@ -188,6 +275,8 @@ if (@ViewBag.ItemExtnName == "ItemExtnOther")
             .Columns(col =>
             {
                 col.Select().Width(30);
+                col.Bound(c => c.ContentNo).Width(50);
+                col.Bound(c => c.PsCardItem.PsCard.ItemCode.Description).Width(100);
                 col.Bound(c => c.SerialNo).Width(100);
             })
             .Filterable()
@@ -205,9 +294,10 @@ if (@ViewBag.ItemExtnName == "ItemExtnOther")
                     model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
                 })
                 .Sort(s =>
-                {
-                    s.Add(a => a.SerialNo);
-                })
+                        {
+                            s.Add(a => a.PsCardItem.PsCard.ItemCode.Description);
+                            s.Add(a => a.ContentNo);
+                        })
                 .Read(read => read.Action("_GenerateIcsSelectionRead", "IcsSet", new { psCardItemId = @ViewData["psCardItemId"] }))
             )
             .AutoBind(true)
@@ -220,15 +310,17 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
             .Columns(col =>
             {
                 col.Select().Width(30);
-                col.Bound(c => c.YearModel).Width(50);
-                col.Bound(c => c.PlateNo).Width(50);
-                col.Bound(c => c.BodyNo).Width(70);
-                col.Bound(c => c.EngineNo).Width(70);
-                col.Bound(c => c.ChasisNo).Width(70);
-                col.Bound(c => c.Color).Width(50);
-                col.Bound(c => c.CRN).Width(70);
-                col.Bound(c => c.CRDate).Width(50);
-                col.Bound(c => c.MVFileNo).Width(70);
+                col.Bound(c => c.ContentNo).Width(50);
+                col.Bound(c => c.ConductionNo).Width(50);
+                //col.Bound(c => c.YearModel).Width(50);
+                //col.Bound(c => c.PlateNo).Width(50);
+                //col.Bound(c => c.BodyNo).Width(70);
+                //col.Bound(c => c.EngineNo).Width(70);
+                //col.Bound(c => c.ChasisNo).Width(70);
+                //col.Bound(c => c.Color).Width(50);
+                //col.Bound(c => c.CRN).Width(70);
+                //col.Bound(c => c.CRDate).Width(50);
+                //col.Bound(c => c.MVFileNo).Width(70);
             })
             .Filterable()
             .NoRecords()
@@ -245,9 +337,10 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
                     model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
                 })
                 .Sort(s =>
-                {
-                    s.Add(a => a.PlateNo);
-                })
+                        {
+                            s.Add(a => a.PsCardItem.PsCard.ItemCode.Description);
+                            s.Add(a => a.ContentNo);
+                        })
                 .Read(read => read.Action("_GenerateIcsSelectionRead", "IcsSet", new { psCardItemId = @ViewData["psCardItemId"] }))
             )
             .AutoBind(true)

@@ -1,7 +1,9 @@
-﻿using System;
+﻿using iLgs.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Data.Entity.Infrastructure;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +14,36 @@ namespace iLgs.Utilities
 {
     public static class Utility
     {
+        public static void ValidateReferences(DbEntityEntry entry)
+        {
+            var entityType = entry.Entity.GetType();
+
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.PropertyType.IsGenericType &&
+                    typeof(ICollection<>).IsAssignableFrom(property.PropertyType.GetGenericTypeDefinition()))
+                {
+                    // This is a collection navigation property
+                    var collection = entry.Collection(property.Name);
+                    collection.Load(); // Explicitly load related data
+                    if (collection.CurrentValue != null && ((ICollection<object>)collection.CurrentValue).Any())
+                    {
+                        throw new InvalidOperationException("Cannot modify the record because it has references in other tables.");
+                    }
+                }
+                else if (!property.PropertyType.IsValueType && property.PropertyType != typeof(string))
+                {
+                    // This is a reference navigation property
+                    var reference = entry.Reference(property.Name);
+                    reference.Load(); // Explicitly load related data
+                    if (reference.CurrentValue != null)
+                    {
+                        throw new InvalidOperationException("Cannot modify the record because it has references in other tables.");
+                    }
+                }
+            }
+        }
+
         public static string ExportDate(DateTime? date)
         {
             if (date.HasValue)

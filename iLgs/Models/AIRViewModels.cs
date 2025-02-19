@@ -61,6 +61,9 @@ namespace iLgs.Models
         [Display(Name = "Officer/Committee")]
         public string Officer { get; set; }
 
+        [Display(Name = "Inventory/For Distribution")]
+        public string InvDist { get; set; }
+
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
@@ -139,7 +142,7 @@ namespace iLgs.Models
         [Display(Name = "Inventory/For Distribution")]
         public string InvDistDesc { get { return this.InvDist == "I" ? "Inventory" : this.InvDist == "D" ? "For Distribution" : ""; } }
 
-        [Display(Name = "Set/Lot No.")]
+        [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
     }
 
@@ -168,9 +171,17 @@ namespace iLgs.Models
     [MetadataType(typeof(AIRItemExtnVehicle.Metadata))]
     public partial class AIRItemExtnVehicle : AIRItemExtn
     {
-        internal sealed class Metadata
+        new internal sealed class Metadata
         {
-            
+            [Display(Name = "Group No.")]
+            public string SetLotNo { get; set; }
+
+            [Display(Name = "Group Qty No.")]
+            public Nullable<int> SetLotQtyNo { get; set; }
+
+            [Display(Name = "Item Qty No.")]
+            public Nullable<int> ContentNo { get; set; }
+
             [Display(Name = "Series No.")]
             public string SeriesNo { get; set; }
 
@@ -178,11 +189,11 @@ namespace iLgs.Models
             [Display(Name = "Year Model")]
             public Nullable<int> YearModel { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Plate No.")]
             public string PlateNo { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Body No.")]
             public string BodyNo { get; set; }
 
@@ -194,7 +205,7 @@ namespace iLgs.Models
 
             public string Color { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "CR No.")]
             public string CRN { get; set; }
 
@@ -202,7 +213,7 @@ namespace iLgs.Models
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> CRDate { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "MV File No.")]
             public string MVFileNo { get; set; }
 
@@ -213,7 +224,7 @@ namespace iLgs.Models
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> OrDate { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Net Weight")]
             public Nullable<int> NetWeight { get; set; }
 
@@ -234,7 +245,7 @@ namespace iLgs.Models
     [MetadataType(typeof(AIRItemExtnBuilding.Metadata))]
     public partial class AIRItemExtnBuilding : AIRItemExtn
     {
-        internal sealed class Metadata
+        new internal sealed class Metadata
         {                        
             public string Address { get; set; }
 
@@ -283,7 +294,7 @@ namespace iLgs.Models
     [MetadataType(typeof(AIRItemExtnLand.Metadata))]
     public partial class AIRItemExtnLand : AIRItemExtn
     {
-        internal sealed class Metadata
+        new internal sealed class Metadata
         {            
             public string PIN { get; set; }
             public string Address { get; set; }
@@ -327,8 +338,17 @@ namespace iLgs.Models
     [MetadataType(typeof(AIRItemExtnOther.Metadata))]
     public partial class AIRItemExtnOther : AIRItemExtn
     {
-        internal sealed class Metadata
-        {                                    
+        new internal sealed class Metadata
+        {
+            [Display(Name = "Group No.")]
+            public string SetLotNo { get; set; }
+
+            [Display(Name = "Group Qty No.")]
+            public Nullable<int> SetLotQtyNo { get; set; }
+
+            [Display(Name = "Item Qty No.")]
+            public Nullable<int> ContentNo { get; set; }
+
             [Display(Name = "Serial No.")]
             public string SerialNo { get; set; }
 
@@ -347,8 +367,14 @@ namespace iLgs.Models
             public System.Guid Id { get; set; }
             public Nullable<System.Guid> AIRItemId { get; set; }
 
-            [Display(Name = "Content No.")]
-            public Nullable<int> ContentNo { get; set; }
+            //[Display(Name = "Group No.")]
+            //public string SetLotNo { get; set; }
+
+            //[Display(Name = "Group Qty No.")]
+            //public Nullable<int> SetLotQtyNo { get; set; }
+
+            //[Display(Name = "Item Qty No.")]
+            //public Nullable<int> ContentNo { get; set; }
 
             [Display(Name = "Custodian Item No.")]
             public Nullable<int> CustItemNo { get; set; }

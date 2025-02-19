@@ -217,19 +217,23 @@ namespace iLgs.Services.PurchaseOrder
         {
             var orderItem = _db.OrderItems.Include(i => i.OrderItemUnitGroupDescriptionItems).Where(w => w.Id == orderItemId).FirstOrDefault();
             var unitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(a2 => a2.OrderItemId == orderItemId))).FirstOrDefault();
-            var totalCost = orderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost;
-            var setCost = orderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost;
+            //var totalCost = orderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost;
+            //var setUnitCost = orderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost;
+            //var setTotalCost = orderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost;
+            var setUnitCost = unitGroup.UnitCost;
+            var setTotalCost = unitGroup.TotalCost;
             var setQty = unitGroup.Qty;
             orderItem.PriceRate = priceRate;
 
             if (priceRate == 0)
             {
                 orderItem.UnitCost = unitCost;
+                orderItem.PriceRate = decimal.Round((decimal)((unitCost * orderItem.Qty * setQty) / setTotalCost) * 100, 2, MidpointRounding.AwayFromZero);
             }
             else
             {
                 orderItem.PriceRate = priceRate;
-                orderItem.UnitCost = decimal.Round((decimal)(setCost * (priceRate / 100)), 2, MidpointRounding.AwayFromZero) / orderItem.Qty;
+                orderItem.UnitCost = decimal.Round((decimal)(setUnitCost * (priceRate / 100)), 2, MidpointRounding.AwayFromZero) / orderItem.Qty;
             }
             orderItem.Amount = (orderItem.Qty * orderItem.UnitCost) * setQty;
             orderItem.UpdatedBy = user;

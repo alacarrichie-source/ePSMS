@@ -233,5 +233,35 @@
             </div>
         </div>
 
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.InvDist)
+            </div>
+            <div class="col-md-12">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.InvDist)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select a value..")
+                            .DataTextField("Description")
+                            .DataValueField("Code")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetinvDistList", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Description").Title("Description").Width("100%");
+                            })
+                            //.Suggest(true)
+                )
+                @Html.ValidationMessageFor(m => m.InvDist)
+            </div>
+        </div>
+
     </fieldset>
 }
