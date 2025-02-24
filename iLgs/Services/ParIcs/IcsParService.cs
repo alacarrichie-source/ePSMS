@@ -1,4 +1,5 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
 using System;
@@ -19,6 +20,9 @@ namespace iLgs.Services.ParIcs
         ValueTask<IcsPar> CreateAsync(IcsPar model, string user, DateTime date);
         ValueTask<IcsPar> UpdateAsync(IcsPar model, string user, DateTime date);
         ValueTask<IcsPar> DeleteAsync(IcsPar model, string user, DateTime date);
+
+        ValueTask<IcsPar> PostAsync(string refNo, string refType, string user, DateTime date);
+        ValueTask<IcsPar> UnPostAsync(string refNo, string refType, string user, DateTime date);        
     }
 
     public class IcsParService : IIcsParService
@@ -39,7 +43,6 @@ namespace iLgs.Services.ParIcs
             return data;
         });
 
-
         public IQueryable<IcsPar> GetAllIcs(Guid? psCardItemGroupId)
         {
             return GetAllIcsPars(psCardItemGroupId, "I");
@@ -53,7 +56,7 @@ namespace iLgs.Services.ParIcs
         private IQueryable<IcsPar> GetAllIcsPars(Guid? psCardItemGroupId, string refType) 
         {
             var data = _db.IcsPars.Where(w => w.RefType == refType 
-                && w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.GroupId == psCardItemGroupId)).AsNoTracking().AsQueryable();            
+                && w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.Id == psCardItemGroupId)).AsNoTracking().AsQueryable();            
             return data;
         }
 
@@ -157,8 +160,74 @@ namespace iLgs.Services.ParIcs
         {
             if (!string.IsNullOrWhiteSpace(entity.PostedBy))
             {
-                throw new RecordAlreadyPostedException($"Record was already posted by {entity.PostedBy} on {entity.PostedDt}, cannot proceed!");
+                throw new RecordAlreadyPostedException($"Record was already posted by {entity.PostedBy} on {entity.PostedDt}, cannot proceed.");
             }
         }
+
+        public void ValidateIfNotPosted(IcsPar entity)
+        {
+            if (string.IsNullOrWhiteSpace(entity.PostedBy))
+            {
+                throw new RecordAlreadyPostedException($"Record is not yet posted, please verify.");
+            }
+        }
+       
+        public async ValueTask<IcsPar> PostAsync(string refNo, string refType, string user, DateTime date) 
+        {
+            var entity = _db.IcsPars.Where(w => w.RefNo == refNo && w.RefType == refType).SingleOrDefault();
+            if (entity == null)
+            {
+                throw new NotFoundException(refNo);
+            }
+
+            ValidateIfPosted(entity); ;
+            await ValidateUploadAsync(entity.Id, entity.RefNo);
+
+            entity.PostedBy = user;
+            entity.PostedDt = date;
+
+            _db.IcsPars.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+            
+            return entity;
+        }
+        
+        public async ValueTask<IcsPar> UnPostAsync(string refNo, string refType, string user, DateTime date)
+        {
+            var entity = _db.IcsPars.Where(w => w.RefNo == refNo && w.RefType == refType).SingleOrDefault();
+            if (entity == null)
+            {
+                throw new NotFoundException(refNo);
+            }
+
+            ValidateIfNotPosted(entity); ;
+            
+            entity.PostedBy = null;
+            entity.PostedDt = null;
+            entity.UpdatedBy = user;
+            entity.UpdatedDt = date;
+
+            _db.IcsPars.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            return entity;
+        }
+
+        private async Task<bool> IsWwithUploadAsync(Guid? icsParId)
+        {
+            var result = await _db.Uploads.AnyAsync(a => a.ImageId == icsParId);
+            return result;
+        }
+
+        private async Task ValidateUploadAsync(Guid? icsParId, string parNo)
+        {
+            if (!await IsWwithUploadAsync(icsParId))
+            {
+                throw new InvalidValueException($"No uploaded files found PAR No. {parNo}, cannot post!");
+            }
+        }
+
     }
 }

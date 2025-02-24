@@ -242,7 +242,7 @@ namespace iLgs.Services.PropertyCard
                     }
                     else
                     {
-                        if (model.IsForICS == false && icsParItem.IcsPar.RefType == "I")
+                        if (model.IsForICS != true && icsParItem.IcsPar.RefType == "I")
                         {
                             throw new InvalidValueException("Item with ICS already exists, cannot remove this as For ICS.");
                         }
@@ -299,9 +299,9 @@ namespace iLgs.Services.PropertyCard
                     }
                     else
                     {
-                        if ((model.IsConsumable == false
-                            || model.IsIncorporated == false
-                            || model.IsOthers == false)
+                        if ((model.IsConsumable != true
+                            || model.IsIncorporated != true
+                            || model.IsOthers != true)
                             && icsParItem.IcsPar.RefType == "I")
                         {
                             throw new InvalidValueException("Item with ICS already exists, cannot remove this as For ICS.");

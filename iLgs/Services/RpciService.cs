@@ -36,7 +36,8 @@ namespace iLgs.Services
         public RpciService(AppManEntities db)
         {
             _db = db;
-            _orderService = new OrderService(_db);
+            _db.Database.CommandTimeout = 3000;
+            _orderService = new OrderService(_db);            
         }
 
         public ValueTask<RPCI> GetByIdAsync(Guid? id) =>

@@ -203,27 +203,28 @@
         <AssociationConnector Association="AppManModel.FK_RisItems_RISs" />
         <AssociationConnector Association="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItems" />
         </Diagram>
-      <Diagram DiagramId="fbc3eecf83604e868f53056709be554c" Name="ICS-PAR" ZoomLevel="79" >
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnLand" Width="1.5" PointX="24.75" PointY="6.5" />
-        <EntityTypeShape EntityType="AppManModel.IcsParItem" Width="1.5" PointX="19.625" PointY="6.5" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnBuilding" Width="1.5" PointX="16.25" PointY="6.5" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnVehicle" Width="1.5" PointX="27" PointY="6.5" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtn" Width="1.5" PointX="19.625" PointY="0.75" />
+      <Diagram DiagramId="fbc3eecf83604e868f53056709be554c" Name="ICS-PAR" ZoomLevel="103" >
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnLand" Width="1.5" PointX="27.375" PointY="6.5" />
+        <EntityTypeShape EntityType="AppManModel.IcsParItem" Width="1.5" PointX="22.25" PointY="6.5" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnBuilding" Width="1.5" PointX="16.125" PointY="6.5" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnVehicle" Width="1.5" PointX="29.625" PointY="6.5" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtn" Width="1.5" PointX="22.25" PointY="0.75" />
         <AssociationConnector Association="AppManModel.FK_IcsParItems_PsCardItemExtns" />
         <InheritanceConnector EntityType="AppManModel.PsCardItemExtnBuilding" />
         <InheritanceConnector EntityType="AppManModel.PsCardItemExtnLand" />
         <InheritanceConnector EntityType="AppManModel.PsCardItemExtnVehicle" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnOther" Width="1.5" PointX="13.5" PointY="6.5" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnOther" Width="1.5" PointX="18.875" PointY="6.5" />
         <InheritanceConnector EntityType="AppManModel.PsCardItemExtnOther" />
-        <EntityTypeShape EntityType="AppManModel.IcsPar" Width="1.5" PointX="17.375" PointY="15.125" />
-        <AssociationConnector Association="AppManModel.FK_IcsParItems_IcsPars" />
-        <EntityTypeShape EntityType="AppManModel.IcsPartUnitGroupDescription" Width="1.5" PointX="19.625" PointY="22.75" />
-        <EntityTypeShape EntityType="AppManModel.IcsParUnitGroupDescriptionItem" Width="1.5" PointX="21.875" PointY="6.75" />
+        <EntityTypeShape EntityType="AppManModel.IcsPartUnitGroupDescription" Width="1.5" PointX="22.25" PointY="23.75" />
+        <EntityTypeShape EntityType="AppManModel.IcsParUnitGroupDescriptionItem" Width="1.5" PointX="24.5" PointY="6.75" />
         <AssociationConnector Association="AppManModel.FK_IcsParUnitGroupDescriptionItems_IcsParItems" />
         <AssociationConnector Association="AppManModel.FK_IcsParUnitGroupDescriptionItems_IcsPartUnitGroupDescriptions" />
-        <EntityTypeShape EntityType="AppManModel.IcsParUnitGroup" Width="1.5" PointX="19.625" PointY="16.125" />
-        <AssociationConnector Association="AppManModel.FK_IcsParUnitGroups_IcsPars" />
+        <EntityTypeShape EntityType="AppManModel.IcsParUnitGroup" Width="1.5" PointX="20" PointY="23.125" />
         <AssociationConnector Association="AppManModel.FK_IcsPartUnitGroupDescriptions_IcsParUnitGroups" />
+        <EntityTypeShape EntityType="AppManModel.IcsPar" Width="1.5" PointX="20" PointY="15.25" />
+        <AssociationConnector Association="AppManModel.FK_IcsParItems_IcsPars" />
+        <AssociationConnector Association="AppManModel.FK_IcsParUnitGroups_IcsPars" />
+        <EntityTypeShape EntityType="AppManModel.IcsParUpdate" Width="1.5" PointX="0.75" PointY="0.75" />
       </Diagram>
       <Diagram DiagramId="5281ca684b7a4764922ab420d0687839" Name="AIR" ZoomLevel="85" >
         <EntityTypeShape EntityType="AppManModel.AIRItemExtnBuilding" Width="1.5" PointX="7.5" PointY="13" />

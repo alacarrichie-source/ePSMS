@@ -29,8 +29,7 @@ namespace iLgs.Services.AIRs
         ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date);
-        ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date);
-
+        ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date);        
         ValueTask<AIR> PostAsync(Guid airId, string user, DateTime date);
         ValueTask<AIR> UnpostAsync(Guid airId, string user, DateTime date);
     }
@@ -313,8 +312,8 @@ namespace iLgs.Services.AIRs
                     {
                         var unitGroupDescriptionItem = _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup).Where(w => w.OrderItemId == orderItem.Id).FirstOrDefault();
                         var setQty = unitGroupDescriptionItem == null ? 1 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
-                        var setLotNo = unitGroupDescriptionItem == null ? "" : orderItem.Order.PoNo + "-" + unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
-                        var setLotAmount = unitGroupDescriptionItem == null ? 0 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.TotalCost;
+                        var setLotNo = unitGroupDescriptionItem == null ? "" : orderItem.Order.PoNo.Trim() + "-" + unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
+                        var setLotAmount = unitGroupDescriptionItem == null ? 0 : unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost;
                         var setLotRemarks = unitGroupDescriptionItem == null ? "" : unitGroupDescriptionItem.OrderItemUnitGroupDescription.Description;
                         var psCardItemId = Guid.NewGuid();
                         psCardItem = new PsCardItem()
@@ -785,8 +784,7 @@ namespace iLgs.Services.AIRs
             {
                 var insertedDt = DateTime.Now;
                 var invDist = _itemCodeService.GetInvDist(orderItem.ItemCodeId);
-                var isWithParIcs = _itemCodeService.IsWithParIcs(orderItem.ItemCodeId);
-
+                
                 if (string.IsNullOrWhiteSpace(invDist))
                 {
                     invDist = model.InvDist;
@@ -805,35 +803,39 @@ namespace iLgs.Services.AIRs
                     UpdatedDt = insertedDt
                 };
 
-                if (invDist == "I" && isWithParIcs)
-                {
-                    var unitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems.Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup).Where(w => w.OrderItemId == orderItem.Id).FirstOrDefaultAsync();
-                    var qty = orderItem.Qty;
-                    string category = orderItem.RequestItem.RisItem.ItemCode.ItemType.Code;
-                    string itemExtnName = _airItemService.GetItemExtnNameByCategory(category);
+                //if (invDist == "I" && isWithParIcs)
+                //{
+                //    var unitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
+                //        .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
+                //        .Where(w => w.OrderItemId == orderItem.Id)
+                //        .FirstOrDefaultAsync();
+                //    var qty = orderItem.Qty;
+                //    string category = orderItem.RequestItem.RisItem.ItemCode.ItemType.Code;
+                //    string itemExtnName = _airItemService.GetItemExtnNameByCategory(category);
 
-                    // create template based on number of qty
-                    if (unitGroupDescriptionItem != null)
-                    {
-                        var setLotNo = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
-                        var groupQty = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
-                        for (int gQty = 1; gQty <= groupQty; gQty++)
-                        {
-                            for (int q = 1; q <= qty; q++)
-                            {
-                                SetAirItmExtn(itemExtnName, setLotNo, gQty, q, airItem, user, date);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for (int q = 1; q <= qty; q++)
-                        {
-                            SetAirItmExtn(itemExtnName, "", null, q, airItem, user, date);
-                        }
-                    }
-                }
+                //    // create template based on number of qty
+                //    if (unitGroupDescriptionItem != null)
+                //    {
+                //        var setLotNo = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
+                //        var groupQty = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
+                //        for (int gQty = 1; gQty <= groupQty; gQty++)
+                //        {
+                //            for (int q = 1; q <= qty; q++)
+                //            {
+                //                SetAirItmExtn(itemExtnName, setLotNo, gQty, q, airItem, user, date);
+                //            }
+                //        }
+                //    }
+                //    else
+                //    {
+                //        for (int q = 1; q <= qty; q++)
+                //        {
+                //            SetAirItmExtn(itemExtnName, "", null, q, airItem, user, date);
+                //        }
+                //    }
+                //}
 
+                await _airItemService.AirItemExtn.CreateAirItemExtnAsync(airItem, orderItem, user, date);
                 entity.AIRItems.Add(airItem);
             }
 
@@ -841,50 +843,7 @@ namespace iLgs.Services.AIRs
             await _db.SaveChangesAsync();
 
             return model;
-        }
-
-        private void SetAirItmExtn(string itemExtnName, string setLotNo, int? setLotQtyNo, int? contentNo, AIRItem airItem, string user, DateTime date)
-        {
-            if (itemExtnName == "ItemExtnLand")
-            {
-                // To do: Add Land process here
-            }
-            else if (itemExtnName == "ItemExtnVehicle")
-            {
-                var airItemExtnVehicle = new AIRItemExtnVehicle()
-                {
-                    Id = Guid.NewGuid(),
-                    AIRItemId = airItem.Id,
-                    SetLotNo = setLotNo,
-                    SetLotQtyNo = setLotQtyNo,
-                    ContentNo = contentNo,
-                    InsertedBy = user,
-                    InsertedDt = date,
-                    UpdatedBy = user,
-                    UpdatedDt = date
-                };
-
-                airItem.AIRItemExtns.Add(airItemExtnVehicle);
-            }
-            else if (itemExtnName == "ItemExtnOther")
-            {
-                var airItemExtnOther = new AIRItemExtnOther()
-                {
-                    Id = Guid.NewGuid(),
-                    AIRItemId = airItem.Id,
-                    SetLotNo = setLotNo,
-                    SetLotQtyNo = setLotQtyNo,
-                    ContentNo = contentNo,
-                    SerialNo = "",
-                    InsertedBy = user,
-                    InsertedDt = date,
-                    UpdatedBy = user,
-                    UpdatedDt = date
-                };
-
-                airItem.AIRItemExtns.Add(airItemExtnOther);
-            }
-        }
+        }        
 
         public async ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date)
         {

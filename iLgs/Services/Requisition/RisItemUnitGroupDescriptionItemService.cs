@@ -50,7 +50,9 @@ namespace iLgs.Services.Requisition
         public IQueryable<RisItemUnitGroupDescriptionItemVM> GetByUnitGroupDescriptionId(Guid? unitGroupDescriptionId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.RisItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescriptionId)
+            var data = _db.RisItemUnitGroupDescriptionItems
+                .Where(w => w.UnitGroupDescriptionId == unitGroupDescriptionId)
+                .AsNoTracking()
                 .Select(s => new RisItemUnitGroupDescriptionItemVM
                 {
                     Id = s.Id,
@@ -69,7 +71,9 @@ namespace iLgs.Services.Requisition
         public IQueryable<RisItemUnitGroupAvailableVM> GetAvailableUnitGroupItem(Guid? risId) =>
         _vmUnitGroupAvailableExceptionService.TryCatch(() =>
         {
-            var data = _db.RisItems.Where(w => w.RisId == risId && !w.RisItemUnitGroupDescriptionItems.Any(a => a.RisItemId == w.Id))
+            var data = _db.RisItems
+            .Where(w => w.RisId == risId && !w.RisItemUnitGroupDescriptionItems.Any(a => a.RisItemId == w.Id))
+            .AsNoTracking()
             .Select(s => new RisItemUnitGroupAvailableVM
             {
                 Id = s.Id,

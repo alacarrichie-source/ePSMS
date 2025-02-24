@@ -139,13 +139,34 @@ namespace iLgs.Services.PropertyCard
             }
             else
             {
+                var psCardItems = _db.PsCardItems.AsNoTracking().Where(w => w.PoNo == cardItem.PoNo);
                 if (mode == Mode.ADD)
-                {
-                    if (_db.PsCardItems.Where(w => w.PoNo == cardItem.PoNo && w.PsCardId == cardItem.PsCardId && w.InsertedBy != cardItem.InsertedBy).Any())
+                {                    
+                    //if (_db.PsCardItems.Where(w => w.PoNo == cardItem.PoNo && w.PsCardId == cardItem.PsCardId && w.InsertedBy != cardItem.InsertedBy).Any())
+                    if (psCardItems.Any(a => a.PsCardId == cardItem.PsCardId && a.InsertedBy != cardItem.InsertedBy))
                     {
-                        ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), "Already exists under this Stock/Property No.");
+                        ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), $"Already exists under this Stock/Property No. created by other user.");
                     }
+
+                    //var psCardItem = psCardItems.FirstOrDefault(f => f.PoDate != cardItem.PoDate);
+                    //if (psCardItem != null)
+                    //{
+                    //    ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), $"PO Number with a date of {cardItem.PoDate.Value.ToString("yyyy-MM-dd")} already exists.");
+                    //}
                 }
+                //else
+                //{
+                //    if (psCardItems.Any(a => a.PsCardId == cardItem.PsCardId && a.Id != cardItem.Id))
+                //    {
+                //        ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), "Already exists under this Stock/Property No.");
+                //    }
+
+                //    var psCardItem = psCardItems.FirstOrDefault(f => f.Id != cardItem.Id && f.PoDate != cardItem.PoDate);
+                //    if (psCardItem != null)
+                //    {
+                //        ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), $"PO Number with a date of {cardItem.PoDate.Value.ToString("yyyy-MM-dd")} already exists.");
+                //    }
+                //}
             }
 
 

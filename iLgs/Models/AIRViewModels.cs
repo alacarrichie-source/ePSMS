@@ -119,6 +119,9 @@ namespace iLgs.Models
         public string PsItem { get; set; }
 
         [Display(Name = "Description")]
+        public string Description { get; set; }
+
+        [Display(Name = "Other Description")]
         public string OrderDescription { get; set; }
 
         [Display(Name = "Unit of Measurement")]
@@ -343,7 +346,7 @@ namespace iLgs.Models
             [Display(Name = "Group No.")]
             public string SetLotNo { get; set; }
 
-            [Display(Name = "Group Qty No.")]
+            [Display(Name = "Set/Lot No.")]
             public Nullable<int> SetLotQtyNo { get; set; }
 
             [Display(Name = "Item Qty No.")]
@@ -351,6 +354,9 @@ namespace iLgs.Models
 
             [Display(Name = "Serial No.")]
             public string SerialNo { get; set; }
+
+            [Display(Name = "Auto Generated")]
+            public Nullable<bool> IsAutoGen { get; set; }
 
             [Display(Name = "Condition")]
             public string Condition { get; set; }
@@ -378,6 +384,9 @@ namespace iLgs.Models
 
             [Display(Name = "Custodian Item No.")]
             public Nullable<int> CustItemNo { get; set; }
+
+            [Display(Name = "Auto Generated")]
+            public Nullable<bool> IsAutoGen { get; set; }
 
             public string InsertedBy { get; set; }
             public Nullable<System.DateTime> InsertedDt { get; set; }

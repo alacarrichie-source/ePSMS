@@ -63,10 +63,19 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
+                @Html.DisplayFor(m => m.Description, "Label")
+            </div>
+            <div class="col-md-12">
+                @(Html.Kendo().TextAreaFor(m => m.Description).Rows(3).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
                 @Html.DisplayFor(m => m.OrderDescription, "Label")
             </div>
             <div class="col-md-12">
-                @(Html.Kendo().TextBoxFor(m => m.OrderDescription).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @(Html.Kendo().TextAreaFor(m => m.OrderDescription).Rows(3).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
             </div>
         </div>
 
@@ -126,7 +135,7 @@
                 @Html.DisplayFor(m => m.Remarks, "Label")
             </div>
             <div class="col-md-12">
-                @(Html.Kendo().TextBoxFor(m => m.Remarks).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(3).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(model => model.Remarks)
             </div>
         </div>

@@ -34,7 +34,7 @@ namespace iLgs.Models
         public Nullable<bool> IsIncorporated { get; set; }
         public string Status { get; set; }
 
-        [Display(Name = "Remarks")]
+        [Display(Name = "Status Remarks")]
         public string StatusRemarks { get; set; }
 
         [Display(Name = "Inserted By")]

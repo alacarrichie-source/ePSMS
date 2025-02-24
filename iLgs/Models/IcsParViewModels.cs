@@ -12,6 +12,10 @@ namespace iLgs.Models
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }
+
+            [Display(Name = "Update Code")]
+            public string UpdateCode { get; set; }
+
             public string RefNo { get; set; }
 
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
@@ -66,9 +70,12 @@ namespace iLgs.Models
             public string PostedBy { get; set; }
 
             [Display(Name = "Posted Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> PostedDt { get; set; }
 
             public string InsertedBy { get; set; }
+
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }
             public Nullable<System.DateTime> UpdatedDt { get; set; }            
@@ -491,11 +498,15 @@ namespace iLgs.Models
 
         [Display(Name = "Group Description")]
         public string SetLotDesc { get; set; }
+
+        public int? ParIcsBalance { get { return this.Qty - this.GeneratedItems; } }
     }
 
     public class ParIcsItemSetVm
     {
         public System.Guid Id { get; set; }
+        [Display(Name = "Group No.")]
+        public string SetLotNo { get; set; }
         public int? Qty { get; set; }
         public string Unit { get; set; }
         public Nullable<decimal> UnitCost { get; set; }

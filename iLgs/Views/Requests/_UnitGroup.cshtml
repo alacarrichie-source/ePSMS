@@ -131,9 +131,13 @@
         col.Bound(c => c.PsNo).Width(50);
         col.Bound(c => c.ItemName).Width(100);
         col.Bound(c => c.Description).Width(100);
-        col.Bound(c => c.Unit).Width(30);
+        col.Bound(c => c.Unit).Width(50).Title("Unit of<br>Measurement");
         col.Bound(c => c.QtyRequest).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Bound(c => c.GroupQty).Width(30).Title("Qty of<br>Sets/Lots")
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                //.ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
         col.Bound(c => c.PriceRate).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}\\%")
                 .ClientFooterTemplate("\\#=kendo.format('{0:n2}\\%', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
@@ -170,6 +174,7 @@
             model.Field(p => p.Description).Editable(false);
             model.Field(p => p.Unit).Editable(false);
             model.Field(p => p.QtyRequest).Editable(false);
+            model.Field(p => p.GroupQty).Editable(false);
             model.Field(p => p.TotalCost).Editable(false);
         })
         .Aggregates(a =>

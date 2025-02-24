@@ -490,6 +490,7 @@ namespace iLgs.Models
             [Display(Name = "Group No.")]
             public string SetLotNo { get; set; }
 
+            [Display(Name = "Qty per Set/Lot")]
             public Nullable<int> Qty { get; set; }
 
             [Display(Name = "Unit of Measurement")]
@@ -528,7 +529,10 @@ namespace iLgs.Models
 
         [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
-        public Nullable<int> QtyRequest { get; set; }
+
+        [Display(Name = "Qty")]
+        public Nullable<int> QtyRequest { get; set; }        
+
         public string GridItems { get; set; }
         internal sealed class Metadata
         {

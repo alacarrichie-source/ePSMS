@@ -7,15 +7,17 @@
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
-        col.Bound(c => c.Department).Width(100);
-        col.Bound(c => c.Description).Width(100);
+        col.Bound(c => c.Department).Width(70);
+        col.Bound(c => c.Description).Width(70);
         col.Bound(c => c.Remarks).Width(100);
-        col.Bound(c => c.EstCost).Width(100).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+        col.Bound(c => c.EstCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        col.Bound(c => c.IsConsumable).Width(70).ClientTemplate("#= IsConsumable ? 'Y' : 'N' #").EditorTemplateName("_IsConsumableTemplate");
-        col.Bound(c => c.IsForDistribution).Width(70).ClientTemplate("#= IsForDistribution ? 'Y' : 'N' #").EditorTemplateName("_IsForDistributionTemplate");
-        col.Bound(c => c.IsIncorporated).Width(70).ClientTemplate("#= IsIncorporated ? 'Y' : 'N' #").EditorTemplateName("_IsIncorporatedTemplate");
-        col.Bound(c => c.InsertedBy).Width(70);
+        col.Bound(c => c.IsConsumable).Width(50).ClientTemplate("#= IsConsumable ? 'Y' : 'N' #").EditorTemplateName("_IsConsumableTemplate");
+        col.Bound(c => c.IsForDistribution).Width(50).ClientTemplate("#= IsForDistribution ? 'Y' : 'N' #").EditorTemplateName("_IsForDistributionTemplate");
+        col.Bound(c => c.IsIncorporated).Width(50).ClientTemplate("#= IsIncorporated ? 'Y' : 'N' #").EditorTemplateName("_IsIncorporatedTemplate");
+        col.Bound(c => c.Status).Width(70);
+        col.Bound(c => c.StatusRemarks).Width(100);
+        col.Bound(c => c.InsertedBy).Width(50);
         col.Bound(c => c.InsertedDt).Width(70);
         col.Command(command =>
         {

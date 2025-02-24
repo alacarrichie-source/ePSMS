@@ -32,6 +32,7 @@ namespace iLgs.Controllers
         private AppManEntities _db;
         private IAirService _airService;
         private IAirItemService _airItemService;
+        //private IAirItemExtnService _airItemExtnService;
         private ICodextnService _codextnService;
         private IOrderService _orderService;
         private readonly IOrderItemUnitGroupService _unitGroupService;
@@ -44,6 +45,7 @@ namespace iLgs.Controllers
             _db = new AppManEntities();
             _airService = new AirService(_db);
             _airItemService = new AirItemService(_db);
+            //_airItemExtnService = new AirItemExtnService(_db);
             _codextnService = new CodextnService(_db);
             _orderService = new OrderService(_db);            
             _sa = new ServiceAgent(_db);
@@ -868,6 +870,57 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> GenerateSerials(Guid airItemId, string type)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _airItemService.AirItemExtn.AirItemExtnOther.GenerateSerialAsync(airItemId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
         #endregion  
 
         public async Task<ActionResult> AIRRpt(string airNo)
@@ -898,6 +951,97 @@ namespace iLgs.Controllers
             TableLogOnInfo crTableLogOnInfo;
             rpt = new ReportDocument();
             rpt.FileName = Server.MapPath(Url.Content("~/Reports/Air.rpt"));
+            rpt.Refresh();
+
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            string conString = _db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
+
+            string un = decoder.UserID;
+            string pw = decoder.Password;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            crDatabase = rpt.Database;
+            crTables = crDatabase.Tables;
+            crConnectionInfo = new ConnectionInfo();
+            crConnectionInfo.ServerName = svr;
+            crConnectionInfo.DatabaseName = db_;
+            crConnectionInfo.UserID = un;
+            crConnectionInfo.Password = pw;
+
+            foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+            {
+                crTableLogOnInfo = aTable.LogOnInfo;
+                crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+                aTable.ApplyLogOnInfo(crTableLogOnInfo);
+            }
+            // THIS STUFF HERE IS FOR REPORTS HAVING SUBREPORTS 
+            // set the sections object to the current report's section 
+            crSections = rpt.ReportDefinition.Sections;
+            // loop through all the sections to find all the report objects 
+            foreach (CrystalDecisions.CrystalReports.Engine.Section crSection in crSections)
+            {
+                crReportObjects = crSection.ReportObjects;
+                //loop through all the report objects in there to find all subreports 
+                foreach (ReportObject crReportObject in crReportObjects)
+                {
+                    if (crReportObject.Kind == ReportObjectKind.SubreportObject)
+                    {
+                        crSubreportObject = (SubreportObject)crReportObject;
+                        //open the subreport object and logon as for the general report 
+                        crSubreportDocument = crSubreportObject.OpenSubreport(crSubreportObject.SubreportName);
+                        crDatabase = crSubreportDocument.Database;
+                        crTables = crDatabase.Tables;
+                        foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+                        {
+                            crTableLogOnInfo = aTable.LogOnInfo;
+                            crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+                            aTable.ApplyLogOnInfo(crTableLogOnInfo);
+                        }
+                    }
+                }
+            }
+
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
+
+            rpt.SetParameterValue("@cAirNo", airNo);
+            rpt.SetParameterValue("LGU", lgu);
+
+            Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+            rpt.Close();
+            rpt.Dispose();
+            return File(stream, "application/pdf");
+        }
+
+        public async Task<ActionResult> RisByAirRpt(string airNo)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "report_air");
+                Access access = await accessTask;
+                if (access == null)
+                {
+                    throw new Exception("Access Denied!");
+                }
+
+            }
+            catch (Exception e)
+            {
+                ViewBag.Error = e.Message;
+                return View("Error");
+            }
+
+            Sections crSections;
+            ReportDocument rpt, crSubreportDocument;
+            SubreportObject crSubreportObject;
+            ReportObjects crReportObjects;
+            ConnectionInfo crConnectionInfo;
+            CrystalDecisions.CrystalReports.Engine.Database crDatabase;
+            Tables crTables;
+            TableLogOnInfo crTableLogOnInfo;
+            rpt = new ReportDocument();
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/RisByAir.rpt"));
             rpt.Refresh();
 
             string user = ControllerContext.HttpContext.User.Identity.Name;

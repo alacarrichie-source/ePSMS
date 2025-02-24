@@ -285,7 +285,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _CategorytUserDestroy([DataSourceRequest]DataSourceRequest request, DepartmentUserVM model)
+        public async Task<ActionResult> _CategoryUserDestroy([DataSourceRequest]DataSourceRequest request, DepartmentUserVM model)
         {
             try
             {

@@ -1,6 +1,8 @@
 ﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Items;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -18,16 +20,22 @@ namespace iLgs.Services.AIRs
         ValueTask<AIRItemExtnOther> CreateAsync(AIRItemExtnOther model, string user, DateTime date);
         ValueTask<AIRItemExtnOther> UpdateAsync(AIRItemExtnOther model, string user, DateTime date);
         ValueTask<AIRItemExtnOther> DeleteAsync(AIRItemExtnOther model, string user, DateTime date);
+
+        ValueTask<AIRItemExtnOther> GenerateSerialAsync(Guid airItemId, string user, DateTime date);
     }
 
     public class AirItemExtnOtherService : IAirItemExtnOtherService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<AIRItemExtnOther> _exceptionService = new ExceptionService<AIRItemExtnOther>();        
+        private readonly IExceptionService<AIRItemExtnOther> _exceptionService = new ExceptionService<AIRItemExtnOther>();
+        private readonly IAirItemExtnService _airItemExtnService;
+        private readonly IItemCodeService _itemCodeService;
 
-        public AirItemExtnOtherService(AppManEntities db)
+        public AirItemExtnOtherService(AppManEntities db, AirItemExtnService airItemExtnService)
         {
             _db = db;
+            _airItemExtnService = airItemExtnService;
+            _itemCodeService = new ItemCodeService(db);
         }
 
         public IQueryable<AIRItemExtnOther> GetByAirItemId(Guid? airItemId)
@@ -47,7 +55,7 @@ namespace iLgs.Services.AIRs
             if (await IsPostedAsync(model.AIRItemId))
             {
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }                       
+            }
 
             var airItem = _db.AIRItems.FirstOrDefault(f => f.Id == model.AIRItemId);
             var orderItemUnitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == airItem.OrderItemId))).FirstOrDefault();
@@ -82,6 +90,7 @@ namespace iLgs.Services.AIRs
                 AIRItemId = model.AIRItemId,
                 ContentNo = model.ContentNo,
                 CustItemNo = model.CustItemNo,
+                IsAutoGen = model.IsAutoGen,
                 SerialNo = model.SerialNo,
                 Condition = model.Condition,
                 InsertedBy = model.InsertedBy,
@@ -141,6 +150,7 @@ namespace iLgs.Services.AIRs
 
             entity.ContentNo = model.ContentNo;
             entity.CustItemNo = model.CustItemNo;
+            entity.IsAutoGen = model.IsAutoGen;
             entity.SerialNo = model.SerialNo;
             entity.Condition = model.Condition;
             entity.UpdatedBy = user;
@@ -153,10 +163,70 @@ namespace iLgs.Services.AIRs
             return model;
         });
 
+        public ValueTask<AIRItemExtnOther> GenerateSerialAsync(Guid airItemId, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+            if (await IsPostedAsync(airItemId))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
+            
+            var airItem = await _db.AIRItems.FirstOrDefaultAsync(f => f.Id == airItemId);
+
+            if (airItem.InvDist != "I")
+            {
+                throw new InvalidValueException("Item is not For Inventory, cannot proceed.");
+            }            
+
+            var orderItem = await _db.OrderItems
+                .Include(i => i.Order.OrderItemUnitGroups)
+                .Include(i => i.RequestItem.RisItem.ItemCode.ItemType)
+                .Where(w => w.Id == airItem.OrderItemId).FirstOrDefaultAsync();
+
+            var isWithParIcs = _itemCodeService.IsWithParIcs(orderItem.ItemCodeId);
+            if (isWithParIcs != true)
+            {
+                throw new InvalidValueException("Item is not For PAR/ICS, cannot proceed.");
+            }
+
+            // complete the serial number template here, new airitemExtn is injected inside airItem
+            await _airItemExtnService.CreateAirItemExtnAsync(airItem, orderItem, user, date);
+            _db.AIRItems.Attach(airItem);
+            _db.Entry(airItem).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            var airItemExtns = await _db.AIRItemExtns
+                .Include(i => i.AIRItem.OrderItem.Order)
+                .OfType<AIRItemExtnOther>().Where(w => w.AIRItemId == airItemId && (w.SerialNo == "" || w.SerialNo == null)).ToListAsync();
+
+            if (airItemExtns.Count() == 0)
+            {
+                throw new NotFoundException("No items found without a serial number.");
+            }
+
+            foreach (var airItemExtn in airItemExtns)
+            {
+                var serialNo = airItemExtn.AIRItem.OrderItem.Order.PoNo.Trim() + "-" + airItemExtn.AIRItem.OrderItem.PsNo.Trim() + "-" +
+                    (string.IsNullOrWhiteSpace(airItemExtn.SetLotNo) ? "0" : airItemExtn.SetLotNo.Trim()) + "-" +
+                    (!airItemExtn.SetLotQtyNo.HasValue ? "0" : airItemExtn.SetLotQtyNo.ToString().Trim()) + "-" + airItemExtn.ContentNo.ToString().Trim();
+
+                airItemExtn.IsAutoGen = true;
+                airItemExtn.SerialNo = serialNo;
+                airItemExtn.UpdatedBy = user;
+                airItemExtn.UpdatedDt = date;
+
+                _db.AIRItemExtns.Attach(airItemExtn);
+                _db.Entry(airItemExtn).State = EntityState.Modified;
+            }
+
+            await _db.SaveChangesAsync();
+
+            return new AIRItemExtnOther();
+        });
+
         private async ValueTask<bool> IsPostedAsync(Guid? airItemId)
         {
             var entity = await _db.AIRs.Where(w => w.AIRItems.Any(a => a.Id == airItemId)).FirstOrDefaultAsync();
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
-        }        
+        }
     }
 }

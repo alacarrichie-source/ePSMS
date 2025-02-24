@@ -5,19 +5,26 @@
         col.Bound(c => c.IcsPar.RefDate).Title("PAR Date").Width(50)
             .ClientTemplate("#= kendo.toString(kendo.parseDate(IcsPar.RefDate), 'MM/dd/yyyy') #");
         col.Bound(c => c.IcsPar.RefNo).Title("PAR No.").Width(50);
-        col.Bound(c => c.PsCardItemExtn.PropNo).Title("Property No.").Width(200);
         col.Bound(c => c.IcsPar.Location).Width(100);
+        col.Bound(c => c.PsCardItemExtn.PropNo).Title("Property No.").Width(100);        
+        col.Bound(c => c.IcsPar.PostedBy).Width(50);
+        col.Bound(c => c.IcsPar.PostedDt).Width(70);
         col.Command(command =>
         {
             command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditParsItem");
-            if (string.IsNullOrEmpty((string)ViewData["postedBy"]))
-            {                
-                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridParItems").SendDataKeys(true);
-            }
+            //if (string.IsNullOrEmpty((string)ViewData["postedBy"]))
+            //{
+            //    command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridParItems").SendDataKeys(true);
+            //}
+            command.Custom("Delete").IconClass("k-icon k-i-close").SendDataKeys(true).Click("onClickDeleteGridParItems").Visible("IsNotPosted");
             command.Custom("Print PAR").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrint");
-            command.Custom("Uploads").Click("onClickUploads");
-        }).Width(120);
-    })    
+            command.Custom("Uploads").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
+            command.Custom("Post").IconClass("k-icon k-i-lock").Click("onClickBtnPostPar").SendDataKeys(true).Visible("IsNotPosted");
+            command.Custom("Unpost").IconClass("k-icon k-i-unlock").Click("onClickBtnUnpostPar").SendDataKeys(true).Visible("IsPosted");
+            //@(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPostItemSet_").Events(e => e.Click("onClickBtnPostParSet")))
+            //@(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpostItemSet_").Events(e => e.Click("onClickBtnUnpostParSet")))
+        }).Width(200);
+    })
         //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ParsTemplate").Window(w => w.Width(800)))
         .Pageable(pager => pager
             .Input(false)

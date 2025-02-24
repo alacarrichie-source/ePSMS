@@ -37,6 +37,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         public string SetLotNo { get; set; }
         public Nullable<int> SetLotQtyNo { get; set; }
+        public Nullable<bool> IsAutoGen { get; set; }
     
         public virtual AIRItemExtn AIRItemExtn { get; set; }
         public virtual Codextn Codextn { get; set; }

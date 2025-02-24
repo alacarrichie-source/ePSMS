@@ -100,7 +100,6 @@ namespace iLgs.Models
         public virtual DbSet<AIR> AIRs { get; set; }
         public virtual DbSet<AllField> AllFields { get; set; }
         public virtual DbSet<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
-        public virtual DbSet<IcsPar> IcsPars { get; set; }
         public virtual DbSet<IcsPartUnitGroupDescription> IcsPartUnitGroupDescriptions { get; set; }
         public virtual DbSet<IcsParUnitGroupDescriptionItem> IcsParUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
@@ -109,5 +108,7 @@ namespace iLgs.Models
         public virtual DbSet<OrderItemUnitGroup> OrderItemUnitGroups { get; set; }
         public virtual DbSet<IcsParUnitGroup> IcsParUnitGroups { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
+        public virtual DbSet<IcsPar> IcsPars { get; set; }
+        public virtual DbSet<IcsParUpdate> IcsParUpdates { get; set; }
     }
 }

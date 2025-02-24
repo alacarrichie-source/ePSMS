@@ -35,8 +35,8 @@ namespace iLgs.Models
         public string Updatedby { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual IcsPar IcsPar { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IcsPartUnitGroupDescription> IcsPartUnitGroupDescriptions { get; set; }
+        public virtual IcsPar IcsPar { get; set; }
     }
 }

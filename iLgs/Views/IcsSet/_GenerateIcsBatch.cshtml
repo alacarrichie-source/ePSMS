@@ -13,6 +13,7 @@
 
     //@Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PoNo)
+    @Html.HiddenFor(model => model.PoDate)
     @Html.HiddenFor(model => model.DeptId)
     @Html.HiddenFor(model => model.RefType)
     @Html.HiddenFor(model => model.LocationCode)
@@ -261,7 +262,6 @@
 <script type="text/javascript">
     $("#btnSave").click(function (e) {
         e.preventDefault();
-        window.kendo.ui.progress($(document.body), true);
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
@@ -270,11 +270,11 @@
                 url: '@Url.Action("GenerateIcsBatch", "IcsSet")',
                 data: $("#form").serialize(),
                 async: true,
-                //beforeSend: function () {
-                //    window.kendo.ui.progress($(document.body), true);
-                //},
+                beforeSend: function () {
+                    window.kendo.ui.progress($("#form"), true);
+                },
                 success: function (result) {
-                    window.kendo.ui.progress($(document.body), false);
+                    window.kendo.ui.progress($("#form"), false);
                     if (result.Errors == "") {
                         $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
                     }

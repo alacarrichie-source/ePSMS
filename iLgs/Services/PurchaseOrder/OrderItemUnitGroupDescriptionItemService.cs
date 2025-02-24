@@ -208,7 +208,7 @@ namespace iLgs.Services.PurchaseOrder
             //_db.Entry(item).State = EntityState.Modified;
             //await _db.SaveChangesAsync();
 
-            UpdateOrderItem(model.OrderItemId, model.PriceRate, model.UnitCost, user, date);
+            UpdateOrderItem(model.OrderItemId, model.PriceRate ?? 0, model.UnitCost ?? 0, user, date);
 
             return model;
         });

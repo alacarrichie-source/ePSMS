@@ -22,6 +22,7 @@ namespace iLgs.Models
         }
     
         public System.Guid Id { get; set; }
+        public string UpdateCode { get; set; }
         public string RefNo { get; set; }
         public Nullable<System.DateTime> RefDate { get; set; }
         public string RefType { get; set; }

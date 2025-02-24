@@ -295,7 +295,7 @@ namespace iLgs.Models
         [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
 
-        [Display(Name = "Group Unit Cost")]
+        [Display(Name = "Set Unit Cost")]
         public Nullable<decimal> UnitCost { get; set; }
         public Nullable<decimal> TotalCost { get; set; }
         public string InsertedBy { get; set; }
@@ -305,6 +305,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
         // transients
+        [Display(Name = "Qty")]
         public int? Qty { get; set; }
 
         [Display(Name = "Unit of Measurement")]
@@ -352,7 +353,7 @@ namespace iLgs.Models
         [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
 
-        [Display(Name = "Qty")]
+        [Display(Name = "Qty per Set/Lot")]
         public Nullable<int> QtyRequest { get; set; }
 
         [Display(Name = "Price Rate")]
@@ -366,6 +367,8 @@ namespace iLgs.Models
 
         public Nullable<decimal> GroupUnitCost { get; set; }
         public Nullable<decimal> GroupTotalCost { get; set; }
+
+        [Display(Name = "Qty of Sets/Lots")]
         public Nullable<int> GroupQty { get; set; }
     }
 }

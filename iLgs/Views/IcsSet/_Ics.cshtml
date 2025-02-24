@@ -5,8 +5,10 @@
         col.Bound(c => c.IcsPar.RefDate).Title("ICS Date").Width(50)
             .ClientTemplate("#= kendo.toString(kendo.parseDate(IcsPar.RefDate), 'MM/dd/yyyy') #");
         col.Bound(c => c.IcsPar.RefNo).Title("ICS No.").Width(50);
-        col.Bound(c => c.PsCardItemExtn.PropNo).Title("Property No.").Width(200);
         col.Bound(c => c.IcsPar.Location).Width(100);
+        col.Bound(c => c.PsCardItemExtn.PropNo).Title("Property No.").Width(200);
+        col.Bound(c => c.IcsPar.PostedBy).Width(50);
+        col.Bound(c => c.IcsPar.PostedDt).Width(70);
         col.Command(command =>
         {
             if (string.IsNullOrEmpty((string)ViewData["postedBy"]))

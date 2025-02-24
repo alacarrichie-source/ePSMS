@@ -42,7 +42,7 @@ namespace iLgs.Services.AIRs
             _validationService = new ValidationService<AIRItemVM>(new AirItemValidator(this));
         }
 
-        public IAirItemExtnService AirItemExtn { get { return _airItemExtnService = _airItemExtnService ?? new AirItemExtnService(_db); } }
+        public IAirItemExtnService AirItemExtn { get { return _airItemExtnService = _airItemExtnService ?? new AirItemExtnService(_db, this); } }
 
         public string GetItemExtnName(Guid? id)
         {
@@ -90,8 +90,6 @@ namespace iLgs.Services.AIRs
             return itemExtnName;
         }
 
-
-
         private Expression<Func<AIRItem, AIRItemVM>> Projection()
         {
             return s => new AIRItemVM
@@ -105,7 +103,8 @@ namespace iLgs.Services.AIRs
                 PsType = s.OrderItem.ItemCode.ItemType.Code,
                 PsNo = s.OrderItem.PsNo,
                 PsItem = s.OrderItem.ItemCode.Description,
-                OrderDescription = s.OrderItem.Description,
+                Description = s.OrderItem.Description,
+                OrderDescription = s.OrderItem.OtherDesc,
                 PsUnit = s.OrderItem.RequestItem.RisItem.Unit,
                 Qty = s.Qty,
                 Remarks = s.Remarks,
@@ -249,7 +248,7 @@ namespace iLgs.Services.AIRs
             if (await IsPostedAsync(model.AirId))
             {
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }
+            }            
 
             ValidateFields(model);
 
@@ -257,6 +256,14 @@ namespace iLgs.Services.AIRs
             model.UpdatedDt = date;
 
             AIRItem entity = await _db.AIRItems.FindAsync(model.Id);
+
+            if (entity.InvDist != model.InvDist)
+            {
+                if (_db.AIRItemExtns.Any(w => w.AIRItemId == model.Id))
+                {
+                    throw new RecordRelationshipException("Serial Numbers for this item already exist, cannot change Inventory/For Distribution.");
+                }
+            }
 
             entity.AirId = model.AirId;
             entity.OrderItemId = model.OrderItemId;

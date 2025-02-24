@@ -27,35 +27,19 @@ namespace iLgs.Services.ParIcs
         IQueryable<PsCardItemUnitGroupDescription> GetItemSetDescriptionsByUnitGroupId(Guid? unitGroupId);
         IQueryable<ParIcsItemVm> GetItemSetDescriptionItemsByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
 
-        ValueTask<PsCardItem> PostAsync(Guid? groupId, string user, DateTime date);
-        ValueTask<PsCardItem> UnPostAsync(Guid? groupId, string user, DateTime date);
+        //ValueTask<PsCardItem> PostAsync(Guid? groupId, string user, DateTime date);
+        //ValueTask<PsCardItem> UnPostAsync(Guid? groupId, string user, DateTime date);        
 
-        ValueTask<PsCardItem> PostSetAsync(Guid? unitGroupId, string user, DateTime date);
-        ValueTask<PsCardItem> UnPostSetAsync(Guid? unitGroupId, string user, DateTime date);
+        //ValueTask<PsCardItem> PostSetAsync(Guid? unitGroupId, string user, DateTime date);
+        //ValueTask<PsCardItem> UnPostSetAsync(Guid? unitGroupId, string user, DateTime date);
 
         ValueTask<ParVM> GetByIdAsync(Guid? id);
 
-        //IQueryable<PARAcknowledgementVM> GetAcknowledgedOrderItems(Guid? orderItemId);
-        //Task<PARAcknowledgementVM> GetAcknowledgedOrderItemByItemId(Guid? parItemId);
-        //Task<Models.PAR> GetByIdAsync(Guid parId);
-        //Task<Models.PAR> GetByParNoAsync(string parNo);
-        //Task<int?> GetRemainingQty(Guid? orderItemId, Guid? parItemId);
-        //Task<bool> IsAnyParNoAsync(Guid parId, string parNo);
-        //Task<bool> IsPostedAsync(Guid parId);
-
-        //Task<PAR_VM> CreateAsync(PAR_VM model, string user, DateTime date);
-        //Task<PAR_VM> UpdateAsync(PAR_VM model, string user, DateTime date);
-        //Task<PAR_VM> DeleteAsync(PAR_VM model, string user, DateTime date);
-
-        //Task PostAsync(Guid parId, string user, DateTime date);
-        //Task UnpostAsync(Guid parId, string user, DateTime date);
-        //Task GeneratePAR(GenerateParVM model, string user, DateTime date);
-
-        //Task<PARAcknowledgementVM> CreateAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date);
-        //Task<PARAcknowledgementVM> UpdateAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date);
-        //Task<PARAcknowledgementVM> DeleteAcknowledgementAsync(PARAcknowledgementVM model, string user, DateTime date);
         ValueTask<GenerateIcsParVM> GeneratePAR(GenerateIcsParVM model, string user, DateTime date);
         ValueTask<GenerateIcsParVM> GenerateParSet(GenerateIcsParVM model, string user, DateTime date);
+
+        ValueTask<IcsPar> PostAsync(string refNo, string user, DateTime date);
+        ValueTask<IcsPar> UnPostAsync(string refNo, string user, DateTime date);
 
         IIcsParService IcsPar { get; }
         IIcsParItemService IcsParItem { get; }
@@ -78,6 +62,7 @@ namespace iLgs.Services.ParIcs
         private IPsCardItemIssuanceService _psCardItemIssaunceService;
         private readonly IExceptionService<GenerateIcsParVM> _generateParExceptionService = new ExceptionService<GenerateIcsParVM>();
         private readonly IExceptionService<PsCardItem> _postExceptionService = new ExceptionService<PsCardItem>();
+        private readonly IExceptionService<IcsPar> _icsParExceptionService = new ExceptionService<IcsPar>();
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
 
@@ -148,34 +133,7 @@ namespace iLgs.Services.ParIcs
 
         public IQueryable<ParIcsPOGroupVM> GetAllPo()
         {
-            //var data = _db.PsCardItems.AsNoTracking()
-            //    .Where(w => w.TransferRefId == null
-            //        && (w.OrderItem.OrderItemUnitGroupDescriptionItems
-            //            .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-            //                || w.UnitCost >= _parPrice))
-            //    .Select(s => new
-            //    {
-            //        s.PoNo,
-            //        s.PoDate,
-            //        s.AirDate,
-            //        s.AirNo,
-            //        s.DeptId,
-            //        s.Codextn.Description
-            //    }).GroupBy(g => new { g.DeptId, g.Description, g.PoNo, g.PoDate, g.AirNo, g.AirDate })
-            //    .Select(s => new ParIcsPOGroupVM
-            //    {
-            //        Id = Guid.NewGuid(),
-            //        PoNo = s.Key.PoNo,
-            //        PoDate = s.Key.PoDate,
-            //        AirNo = s.Key.AirNo,
-            //        AirDate = s.Key.AirDate,
-            //        DeptId = s.Key.DeptId,
-            //        Department = s.Key.Description
-            //    })
-            //    .AsQueryable();
-
             var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo").AsQueryable();
-
             return data;
         }
 
@@ -229,9 +187,11 @@ namespace iLgs.Services.ParIcs
                     && w.PoNo == (string.IsNullOrEmpty(poNo) ? w.PoNo : poNo)
                     && w.PoDate == (poDate == null ? w.PoDate : poDate)
                     && w.DeptId == (deptId == null ? w.DeptId : deptId)
-                    && w.UnitCost >= _parPrice
-                    && !w.OrderItem.OrderItemUnitGroupDescriptionItems
-                        .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
+                    && w.UnitCost >= _parPrice 
+                    && !w.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == w.Id)
+                    //&& w.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == w.Id) // not in set
+                    //&& !w.OrderItem.OrderItemUnitGroupDescriptionItems
+                    //    .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
                 //&& (w.UnitCost >= _parPrice
                 //    || w.OrderItem.OrderItemUnitGroupDescriptionItems
                 //        .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
@@ -455,6 +415,7 @@ namespace iLgs.Services.ParIcs
                 icsPar = new IcsPar()
                 {
                     Id = Guid.NewGuid(),
+                    UpdateCode = "N",
                     LocationId = model.LocationId,
                     LocationCode = model.LocationCode,
                     Location = model.Location,
@@ -605,6 +566,7 @@ namespace iLgs.Services.ParIcs
                 var icsPar = new IcsPar()
                 {
                     Id = Guid.NewGuid(),
+                    UpdateCode = "N",
                     LocationId = model.LocationId,
                     LocationCode = model.LocationCode,
                     Location = model.Location,
@@ -778,6 +740,16 @@ namespace iLgs.Services.ParIcs
             return model;
         });
 
+        public ValueTask<IcsPar> PostAsync(string parNo, string user, DateTime date) => _icsParExceptionService.TryCatch(async () =>
+        {
+            return await _icsParService.PostAsync(parNo, "P", user, date);
+        });
+
+        public ValueTask<IcsPar> UnPostAsync(string parNo, string user, DateTime date) => _icsParExceptionService.TryCatch(async () =>
+        {
+            return await _icsParService.UnPostAsync(parNo, "P", user, date);
+        });
+
         private string NextPropNo(string acqYear, string stockNo, string locationCode, string refType)
         {
             var propNo = _db.Database.SqlQuery<string>("Exec PoIssuance_GetNextSeqNo {0}, {1}, {2}, {3}", acqYear, stockNo, locationCode, refType).ToList();
@@ -827,195 +799,195 @@ namespace iLgs.Services.ParIcs
             }
         }
 
-        public ValueTask<PsCardItem> PostAsync(Guid? groupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
-        {
-            var entity = _db.PsCardItems.Include(i => i.PsCard.ItemCode).Where(w => w.GroupId == groupId);
-            if (entity.Count() == 0)
-            {
-                throw new NotFoundException((Guid)groupId);
-            }
+        //public ValueTask<PsCardItem> PostAsync(Guid? groupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
+        //{
+        //    var entity = _db.PsCardItems.Include(i => i.PsCard.ItemCode).Where(w => w.GroupId == groupId);
+        //    if (entity.Count() == 0)
+        //    {
+        //        throw new NotFoundException((Guid)groupId);
+        //    }
 
-            var psCardItem = entity.FirstOrDefault(f => f.TransferRefId == null);
-            if (psCardItem.IsForICS == true)
-            {
-                throw new InvalidValueException("Cannot post items for ICS.");
-            }
+        //    var psCardItem = entity.FirstOrDefault(f => f.TransferRefId == null);
+        //    if (psCardItem.IsForICS == true)
+        //    {
+        //        throw new InvalidValueException("Cannot post items for ICS.");
+        //    }
 
-            var partItems = _icsParItemService.GetAllParItems(groupId);
-            if (partItems.Count() < psCardItem.Qty)
-            {
-                throw new InvalidValueException($"Insufficient PAR Item created for {psCardItem.PsCard.ItemCode.Description}.");
-            }
+        //    var partItems = _icsParItemService.GetAllParItems(groupId);
+        //    if (partItems.Count() < psCardItem.Qty)
+        //    {
+        //        throw new InvalidValueException($"Insufficient PAR Item created for {psCardItem.PsCard.ItemCode.Description}.");
+        //    }
 
-            foreach (var parItem in partItems)
-            {
-                await ValidateUploadAsync(parItem.IcsParId, parItem.IcsPar.RefNo);
-            }
-                        
-            var icsPars = _db.IcsPars.Where(w => w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.GroupId == groupId));
-            await PostPsCardItemAsync(entity, user, date);
-            await PostIcsParAsync(icsPars, user, date);            
-            await _db.SaveChangesAsync();
+        //    foreach (var parItem in partItems)
+        //    {
+        //        await ValidateUploadAsync(parItem.IcsParId, parItem.IcsPar.RefNo);
+        //    }
 
-            return entity.FirstOrDefault();
-        });
+        //    var icsPars = _db.IcsPars.Where(w => w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.GroupId == groupId));
+        //    await PostPsCardItemAsync(entity, user, date);
+        //    await PostIcsParAsync(icsPars, user, date);            
+        //    await _db.SaveChangesAsync();
 
-        public ValueTask<PsCardItem> UnPostAsync(Guid? groupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
-        {
-            var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
+        //    return entity.FirstOrDefault();
+        //});        
 
-            if (entity.Count() == 0)
-            {
-                throw new NotFoundException((Guid)groupId);
-            }
-            //await ValidateOnUnpost(entity);
+        //public ValueTask<PsCardItem> UnPostAsync(Guid? groupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
+        //{
+        //    var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
 
-            var icsPars = _db.IcsPars.Where(w => w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.GroupId == groupId));
+        //    if (entity.Count() == 0)
+        //    {
+        //        throw new NotFoundException((Guid)groupId);
+        //    }
+        //    //await ValidateOnUnpost(entity);
 
-            await UnPostPsCardItemAsync(entity, user, date);
-            await UnPostIcsParAsync(icsPars, user, date);
-            await _db.SaveChangesAsync();
+        //    var icsPars = _db.IcsPars.Where(w => w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.GroupId == groupId));
 
-            return entity.FirstOrDefault();
-        });
+        //    await UnPostPsCardItemAsync(entity, user, date);
+        //    await UnPostIcsParAsync(icsPars, user, date);
+        //    await _db.SaveChangesAsync();
 
-        private async Task PostPsCardItemAsync(IQueryable<PsCardItem> psCardItems, string user, DateTime date)
-        {
-            await psCardItems.ForEachAsync(f =>
-            {
-                f.ParPostedBy = user;
-                f.ParPostedDt = date;
-                //f.UpdatedBy = user;
-                //f.UpdatedDt = date;
-            });
-        }
+        //    return entity.FirstOrDefault();
+        //});
 
-        private async Task PostIcsParAsync(IQueryable<IcsPar> icsPars, string user, DateTime date)
-        {
-            await icsPars.ForEachAsync(f =>
-            {
-                f.PostedBy = user;
-                f.PostedDt = date;
-                //f.UpdatedBy = user;
-                //f.UpdatedDt = date;
-            });
-        }
+        //private async Task PostPsCardItemAsync(IQueryable<PsCardItem> psCardItems, string user, DateTime date)
+        //{
+        //    await psCardItems.ForEachAsync(f =>
+        //    {
+        //        f.ParPostedBy = user;
+        //        f.ParPostedDt = date;
+        //        //f.UpdatedBy = user;
+        //        //f.UpdatedDt = date;
+        //    });
+        //}
 
-        private async Task UnPostPsCardItemAsync(IQueryable<PsCardItem> psCardItems, string user, DateTime date)
-        {
-            await psCardItems.ForEachAsync(f =>
-            {
-                f.ParPostedBy = null;
-                f.ParPostedDt = null;
-                f.UpdatedBy = user;
-                f.UpdatedDt = date;
-            });                        
-        }
+        //private async Task PostIcsParAsync(IQueryable<IcsPar> icsPars, string user, DateTime date)
+        //{
+        //    await icsPars.ForEachAsync(f =>
+        //    {
+        //        f.PostedBy = user;
+        //        f.PostedDt = date;
+        //        //f.UpdatedBy = user;
+        //        //f.UpdatedDt = date;
+        //    });
+        //}
 
-        private async Task UnPostIcsParAsync(IQueryable<IcsPar> icsPars, string user, DateTime date)
-        {
-            await icsPars.ForEachAsync(f =>
-            {
-                f.PostedBy = null;
-                f.PostedDt = null;
-                f.UpdatedBy = user;
-                f.UpdatedDt = date;
-            });            
-        }
+        //private async Task UnPostPsCardItemAsync(IQueryable<PsCardItem> psCardItems, string user, DateTime date)
+        //{
+        //    await psCardItems.ForEachAsync(f =>
+        //    {
+        //        f.ParPostedBy = null;
+        //        f.ParPostedDt = null;
+        //        f.UpdatedBy = user;
+        //        f.UpdatedDt = date;
+        //    });                        
+        //}
 
-        public ValueTask<PsCardItem> PostSetAsync(Guid? unitGroupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
-        {
-            var unitGroupDescriptions = await _db.PsCardItemUnitGroupDescriptions
-                .Include(i => i.PsCardItemUnitGroup)
-                .Include(i => i.PsCardItemUnitGroupDescriptionItems).Where(w => w.UnitGroupId == unitGroupId).ToListAsync();
-            if (!unitGroupDescriptions.Any())
-            {
-                throw new NotFoundException((Guid)unitGroupId);
-            }
+        //private async Task UnPostIcsParAsync(IQueryable<IcsPar> icsPars, string user, DateTime date)
+        //{
+        //    await icsPars.ForEachAsync(f =>
+        //    {
+        //        f.PostedBy = null;
+        //        f.PostedDt = null;
+        //        f.UpdatedBy = user;
+        //        f.UpdatedDt = date;
+        //    });            
+        //}
 
-            // validate unit group items
-            foreach (var unitGroupDescription in unitGroupDescriptions)
-            {
-                foreach (var unitGroupDescriptionItem in unitGroupDescription.PsCardItemUnitGroupDescriptionItems)
-                {
-                    var entity = _db.PsCardItems.Include(i => i.PsCard.ItemCode).Where(w => w.GroupId == unitGroupDescriptionItem.PsCardItemId);
-                    if (entity.Count() == 0)
-                    {
-                        throw new NotFoundException((Guid)unitGroupDescriptionItem.PsCardItemId);
-                    }
+        //public ValueTask<PsCardItem> PostSetAsync(Guid? unitGroupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
+        //{
+        //    var unitGroupDescriptions = await _db.PsCardItemUnitGroupDescriptions
+        //        .Include(i => i.PsCardItemUnitGroup)
+        //        .Include(i => i.PsCardItemUnitGroupDescriptionItems).Where(w => w.UnitGroupId == unitGroupId).ToListAsync();
+        //    if (!unitGroupDescriptions.Any())
+        //    {
+        //        throw new NotFoundException((Guid)unitGroupId);
+        //    }
 
-                    var psCardItem = entity.FirstOrDefault(f => f.TransferRefId == null);
-                    if (psCardItem.IsForICS == true)
-                    {
-                        throw new InvalidValueException("Cannot post items for ICS.");
-                    }
+        //    // validate unit group items
+        //    foreach (var unitGroupDescription in unitGroupDescriptions)
+        //    {
+        //        foreach (var unitGroupDescriptionItem in unitGroupDescription.PsCardItemUnitGroupDescriptionItems)
+        //        {
+        //            var entity = _db.PsCardItems.Include(i => i.PsCard.ItemCode).Where(w => w.GroupId == unitGroupDescriptionItem.PsCardItemId);
+        //            if (entity.Count() == 0)
+        //            {
+        //                throw new NotFoundException((Guid)unitGroupDescriptionItem.PsCardItemId);
+        //            }
 
-                    var partItems = _icsParItemService.GetAllParItems(unitGroupDescriptionItem.PsCardItemId);
-                    if (partItems.Count() < psCardItem.Qty)
-                    {
-                        throw new InvalidValueException("Insufficient PAR Item created.");
-                    }
+        //            var psCardItem = entity.FirstOrDefault(f => f.TransferRefId == null);
+        //            if (psCardItem.IsForICS == true)
+        //            {
+        //                throw new InvalidValueException("Cannot post items for ICS.");
+        //            }
 
-                    foreach (var parItem in partItems)
-                    {
-                        await ValidateUploadAsync(parItem.IcsParId, parItem.IcsPar.RefNo);
-                    }                    
-                }
-            }
+        //            var partItems = _icsParItemService.GetAllParItems(unitGroupDescriptionItem.PsCardItemId);
+        //            if (partItems.Count() < psCardItem.Qty)
+        //            {
+        //                throw new InvalidValueException("Insufficient PAR Item created.");
+        //            }
 
-            foreach (var unitGroupDescription in unitGroupDescriptions)
-            {
-                foreach (var unitGroupDescriptionItem in unitGroupDescription.PsCardItemUnitGroupDescriptionItems)
-                {
-                    var groupId = unitGroupDescriptionItem.PsCardItemId;
-                    var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
-                    var icsPars = _db.IcsPars.Where(w => w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.GroupId == groupId));
-                    await PostPsCardItemAsync(entity, user, date);
-                    await PostIcsParAsync(icsPars, user, date);
-                }
-            }
+        //            foreach (var parItem in partItems)
+        //            {
+        //                await ValidateUploadAsync(parItem.IcsParId, parItem.IcsPar.RefNo);
+        //            }                    
+        //        }
+        //    }
 
-            var unitGroup = await _db.PsCardItemUnitGroups.FindAsync(unitGroupId);
-            unitGroup.PostedBy = user;
-            unitGroup.PostedDt = date;
-            unitGroup.UpdatedBy = user;
-            unitGroup.UpdatedDt = date;
-            await _db.SaveChangesAsync();
+        //    foreach (var unitGroupDescription in unitGroupDescriptions)
+        //    {
+        //        foreach (var unitGroupDescriptionItem in unitGroupDescription.PsCardItemUnitGroupDescriptionItems)
+        //        {
+        //            var groupId = unitGroupDescriptionItem.PsCardItemId;
+        //            var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
+        //            var icsPars = _db.IcsPars.Where(w => w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.GroupId == groupId));
+        //            await PostPsCardItemAsync(entity, user, date);
+        //            await PostIcsParAsync(icsPars, user, date);
+        //        }
+        //    }
 
-            return new PsCardItem(); // just return null item
-        });
+        //    var unitGroup = await _db.PsCardItemUnitGroups.FindAsync(unitGroupId);
+        //    unitGroup.PostedBy = user;
+        //    unitGroup.PostedDt = date;
+        //    unitGroup.UpdatedBy = user;
+        //    unitGroup.UpdatedDt = date;
+        //    await _db.SaveChangesAsync();
 
-        public ValueTask<PsCardItem> UnPostSetAsync(Guid? unitGroupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
-        {
-            var unitGroupDescriptions = await _db.PsCardItemUnitGroupDescriptions
-                .Include(i => i.PsCardItemUnitGroup)
-                .Include(i => i.PsCardItemUnitGroupDescriptionItems).Where(w => w.UnitGroupId == unitGroupId).ToListAsync();
-            if (!unitGroupDescriptions.Any())
-            {
-                throw new NotFoundException((Guid)unitGroupId);
-            }
+        //    return new PsCardItem(); // just return null item
+        //});
 
-            foreach (var unitGroupDescription in unitGroupDescriptions)
-            {
-                foreach (var unitGroupDescriptionItem in unitGroupDescription.PsCardItemUnitGroupDescriptionItems)
-                {                    
-                    var groupId = unitGroupDescriptionItem.PsCardItemId;
-                    var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
-                    var icsPars = _db.IcsPars.Where(w => w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.GroupId == groupId));
-                    await UnPostPsCardItemAsync(entity, user, date);
-                    await UnPostIcsParAsync(icsPars, user, date);
-                }
-            }
+        //public ValueTask<PsCardItem> UnPostSetAsync(Guid? unitGroupId, string user, DateTime date) => _postExceptionService.TryCatch(async () =>
+        //{
+        //    var unitGroupDescriptions = await _db.PsCardItemUnitGroupDescriptions
+        //        .Include(i => i.PsCardItemUnitGroup)
+        //        .Include(i => i.PsCardItemUnitGroupDescriptionItems).Where(w => w.UnitGroupId == unitGroupId).ToListAsync();
+        //    if (!unitGroupDescriptions.Any())
+        //    {
+        //        throw new NotFoundException((Guid)unitGroupId);
+        //    }
 
-            var unitGroup = await _db.PsCardItemUnitGroups.FindAsync(unitGroupId);
-            unitGroup.PostedBy = null;
-            unitGroup.PostedDt = null;
-            unitGroup.UpdatedBy = user;
-            unitGroup.UpdatedDt = date;
-            await _db.SaveChangesAsync();
+        //    foreach (var unitGroupDescription in unitGroupDescriptions)
+        //    {
+        //        foreach (var unitGroupDescriptionItem in unitGroupDescription.PsCardItemUnitGroupDescriptionItems)
+        //        {                    
+        //            var groupId = unitGroupDescriptionItem.PsCardItemId;
+        //            var entity = _db.PsCardItems.Where(w => w.GroupId == groupId);
+        //            var icsPars = _db.IcsPars.Where(w => w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.GroupId == groupId));
+        //            await UnPostPsCardItemAsync(entity, user, date);
+        //            await UnPostIcsParAsync(icsPars, user, date);
+        //        }
+        //    }
 
-            return new PsCardItem(); // just return null item
-        });
+        //    var unitGroup = await _db.PsCardItemUnitGroups.FindAsync(unitGroupId);
+        //    unitGroup.PostedBy = null;
+        //    unitGroup.PostedDt = null;
+        //    unitGroup.UpdatedBy = user;
+        //    unitGroup.UpdatedDt = date;
+        //    await _db.SaveChangesAsync();
+
+        //    return new PsCardItem(); // just return null item
+        //});
 
         private void ValidateRecord(PsCardItem entity)
         {

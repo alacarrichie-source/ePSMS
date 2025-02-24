@@ -3,9 +3,9 @@
 }
 <br />
 <div class="row k-mb-2">
-    <div class="col-md-4">
-        @Html.Label("Department", htmlAttributes: new { @class = "col-md-3" })
-        <div class="col-md-9">
+    <div class="col-md-6">
+        @Html.Label("Department", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
             @(Html.Kendo().MultiColumnComboBox()
                 .Name("deptId")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -27,7 +27,7 @@
                     c.Add().Field("Code").Title("Code").Width("30%");
                     c.Add().Field("Description").Title("Description").Width("70%");
                 })
-                .Events(e => e.Select("onSelectDeptId"))
+                .Events(e => e.Select("onSelectDeptId").Change("onChangeDeptId"))
                 .Suggest(true)
             )
         </div>
@@ -370,6 +370,13 @@
         $("#grid").data("kendoGrid").dataSource.read({deptId: dataItem.Id, accountGroup : '@ViewBag.AccountGroup'});
     }
 
+    function onChangeDeptId(e) {
+        var comboBox = this;
+        if (!comboBox.value()) {
+            $("#grid").data("kendoGrid").dataSource.data([]);
+        }
+    }
+
     function columnTemplate(data) {
         return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
     }
@@ -418,7 +425,12 @@
             //});
         }
 
-        this.wrapper.find(".k-grid-add").show();
+        if ($("#deptId").data("kendoMultiColumnComboBox").value()) {
+            this.wrapper.find(".k-grid-add").show();
+        }
+        else {
+            this.wrapper.find(".k-grid-add").hide();
+        }
 
         if (this.dataSource.data().length == 0) {
             $(".k-grid-btnExport", grid).hide();

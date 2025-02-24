@@ -320,12 +320,18 @@
             // Get reference to Grid object
             var grid = $("#gridSelections").data("kendoGrid");
             // Get selected rows
-            var sel = $("input:checked", grid.tbody).closest("tr");
+            var selectedRows = $("input:checked", grid.tbody).closest("tr");
             // Get data item for each
 
-            var selectedIds = grid.selectedKeyNames().join(",");
+            //var selectedIds = grid.selectedKeyNames().join(",");
 
-            $("#SelectedIds").val(selectedIds);
+            // Retrieve the dataItems of the selected rows
+            var selectedIds = selectedRows.map(function () {
+                return grid.dataItem(this);
+            }).get(); // Convert to an array
+
+            //$("#SelectedIds").val(selectedIds);
+            $("#SelectedIds").val(JSON.stringify(selectedIds));
 
             $.ajax({
                 type: "POST",
@@ -333,10 +339,10 @@
                 data: $("#form").serialize(),
                 async: true,
                 beforeSend: function () {
-                    window.kendo.ui.progress($(document.body), true);
+                    window.kendo.ui.progress($("#form"), true);
                 },
                 success: function (result) {
-                    window.kendo.ui.progress($(document.body), false);
+                    window.kendo.ui.progress($("#form"), false);
                     if (result.Errors == "") {
                         $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
                     }

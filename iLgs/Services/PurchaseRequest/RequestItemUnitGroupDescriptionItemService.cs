@@ -172,7 +172,7 @@ namespace iLgs.Services.PurchaseRequest
             await _db.SaveChangesAsync();
 
             //var totalCost = entity.RequestItemUnitGroupDescription.RequestItemUnitGroup.UnitCost;
-            UpdateRequestItem(model.RequestItemId, model.PriceRate, model.UnitCost, user, date);
+            UpdateRequestItem(model.RequestItemId, model.PriceRate ?? 0, model.UnitCost ?? 0, user, date);
 
             return model;
         });

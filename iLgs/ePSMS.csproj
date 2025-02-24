@@ -441,6 +441,9 @@
     <Compile Include="Models\IcsParUnitGroupDescriptionItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\IcsParUpdate.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\IcsParViewModels.cs" />
     <Compile Include="Models\ItemCode.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -669,11 +672,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Include="Reports\RisDepartment.cs">
+    <Compile Include="Reports\RisByAir.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
+      <DependentUpon>RisByAir.rpt</DependentUpon>
+    </Compile>
+    <Compile Include="Reports\RisDepartment.cs">
       <DependentUpon>RisDepartment.rpt</DependentUpon>
       <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Reports\Rpceffoppe.cs">
       <AutoGen>True</AutoGen>
@@ -1594,6 +1602,10 @@
     <Content Include="Reports\Ris.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Ris.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\RisDepartment.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RisDepartment.cs</LastGenOutput>
     </Content>
     <Content Include="Reports\Rpci.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
@@ -3960,6 +3972,7 @@
     <Content Include="Views\AIRs\EditorTemplates\_UnitCostTemplate.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_OtherParticularsTemplate.cshtml" />
     <Content Include="Views\IcsSet\EditorTemplates\_IsForIcsTemplate.cshtml" />
+    <Content Include="Views\IcsSet\_IcsSet.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4383,9 +4396,9 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>IcsSet.cs</LastGenOutput>
     </Content>
-    <Content Include="Reports\RisDepartment.rpt">
+    <Content Include="Reports\RisByAir.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
-      <LastGenOutput>RisDepartment.cs</LastGenOutput>
+      <LastGenOutput>RisByAir.cs</LastGenOutput>
     </Content>
     <EmbeddedResource Include="Reports\RsmiOverallRecap.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
@@ -4420,7 +4433,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -356,7 +356,6 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
 <script type="text/javascript">
     $("#btnSave").click(function (e) {
         e.preventDefault();
-        window.kendo.ui.progress($(document.body), true);
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
@@ -376,11 +375,11 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
                 url: '@Url.Action("GeneratePar", "ParSet")',
                 data: $("#form").serialize(),
                 async: true,
-                //beforeSend: function () {
-                //    window.kendo.ui.progress($(document.body), true);
-                //},
+                beforeSend: function () {
+                    window.kendo.ui.progress($("#form"), true);
+                },
                 success: function (result) {
-                    window.kendo.ui.progress($(document.body), false);
+                    window.kendo.ui.progress($("#form"), false);
                     if (result.Errors == "") {
                         $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
                     }

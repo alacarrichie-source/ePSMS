@@ -144,23 +144,24 @@
                             .Title("For ICS")
                             .HtmlAttributes(new { style = "text-align:center;" })
                             .HeaderHtmlAttributes(new { style = "text-align:center;" });
-                        col.Bound(c => c.ParPostedBy).Width(50);
-                        col.Bound(c => c.ParPostedDt).Width(50);
+                        // posting is per par number
+                        //col.Bound(c => c.ParPostedBy).Width(50);
+                        //col.Bound(c => c.ParPostedDt).Width(50);
                         //col.Bound(c => c.SetLotNo).Width(50);
                         //col.Bound(c => c.SetLotDesc).Width(50);
                         col.Command(command =>
                         {
-                            command.Edit().Visible("IsNotPosted");
+                            command.Edit().Visible("IsNoGenerated");
                             //command.Custom("Uploads").Click("onClickUploads");
-                            command.Custom("PARs").Click("onClickPars");
+                            command.Custom("PARs").IconClass("k-icon k-i-document-manager").Click("onClickPars");
                         }).Width(100);
                     })
                     .ToolBar(t =>
                     {
-                        t.Template(@<text>
+                    t.Template(@<text>
                             @(Html.Kendo().Button().Icon("k-icon k-i-add").Name("btnParsAddItem").Content("Generate PAR").Events(e => e.Click("onClickBtnAddPar")))
-                            @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_").Events(e => e.Click("onClickBtnPostPar")))
-                            @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_").Events(e => e.Click("onClickBtnUnpostPar")))                            
+                            @*@(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPost_").Events(e => e.Click("onClickBtnPostPar")))
+                            @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpost_").Events(e => e.Click("onClickBtnUnpostPar")))*@                            
                         </text>);
                     })
                     .Resizable(r => r.Columns(true))
@@ -196,7 +197,6 @@
                         .Sort(s => s.Add(a => a.InsertedDt))
                         .Read(read => read.Action("_PoItemsRead", "ParSet").Data("DataGridItems"))
                         .Update(update => update.Action("_PoItemsUpdate", "ParSet"))
-
                     ).AutoBind(false)
                     .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Events(e => e
@@ -221,15 +221,15 @@
             col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                     .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.SetPostedBy).Width(50);
-            col.Bound(c => c.SetPostedDt).Width(50);
+            //col.Bound(c => c.SetPostedBy).Width(50);
+            //col.Bound(c => c.SetPostedDt).Width(50);
         })
         .ToolBar(t =>
         {
-            t.Template(@<text>
+        t.Template(@<text>
             @(Html.Kendo().Button().Content("Generate PAR").Icon("k-icon k-i-add").Name("btnParsAddItemSet").Events(e => e.Click("onClickBtnAddParSet")))
-            @(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPostItemSet_").Events(e => e.Click("onClickBtnPostParSet")))
-            @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpostItemSet_").Events(e => e.Click("onClickBtnUnpostParSet")))
+            @*@(Html.Kendo().Button().Content("Post").Icon("k-icon k-i-lock").Name("btnPostItemSet_").Events(e => e.Click("onClickBtnPostParSet")))
+            @(Html.Kendo().Button().Content("Unpost").Icon("k-icon k-i-unlock").Name("btnUnpostItemSet_").Events(e => e.Click("onClickBtnUnpostParSet")))*@
             </text>);
         })
         .ClientDetailTemplateId("item-set-description-template")
@@ -418,7 +418,7 @@
             {
                 //command.Edit();
                 //command.Custom("Uploads").Click("onClickSetUploads");
-                command.Custom("PARs").Click("onClickSetPars");
+                command.Custom("PARs").IconClass("k-icon k-i-document-manager").Click("onClickSetPars");
             }).Width(100);
         })
         //.ClientDetailTemplateId("GeneratedItems")
@@ -872,7 +872,6 @@
 
         var grid = this;
         var items = grid.items(); // Get all the rows (tr elements) in the grid
-
         items.each(function (index, row) {
             var dataItem = grid.dataItem(row); // Get the corresponding data item for each row
             if (dataItem.QtyBalance === 0) {
@@ -903,7 +902,7 @@
     }
 
     function resizeWindow() {
-        var mywindow = $("#window").data("kendoWindow");
+        var mywindow = $("#window-par-item").data("kendoWindow");
         if (mywindow) {
             mywindow.setOptions({
                 width: "1000",
@@ -1100,23 +1099,26 @@
 
     function onClickBtnPostPar(e) {
         e.preventDefault();
-        selectedGrid = $("#gridItems").data("kendoGrid");
-        var selectedRow = selectedGrid.select();
+        selectedGrid = $("#gridItemsPar").data("kendoGrid");
+        var selectedRow  = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(selectedRow);
-        var postedBy = dataItem.ParPostedBy;
+
+        selectedGrid.select(selectedRow);
+        var refNo = dataItem.IcsPar.RefNo;
+        var postedBy = dataItem.IcsPar.PostedBy;
 
         if (postedBy) {
             alert("Record is already posted by " + postedBy);
         }
         else {
-            var msg = "Post selected record?";
+            var msg = "Post PAR No. " + refNo + "?";
 
             if (confirm(msg)) {
                 var popupNotification = $("#popupNotification").data("kendoNotification");
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("PostPoItem", "ParSet")',
-                    data: { groupId: dataItem.GroupId },
+                    url: '@Url.Action("PostPar", "ParSet")',
+                    data: { parNo: refNo },
                     async: true,
                     beforeSend: function () {
                         window.kendo.ui.progress($(document.body), true);
@@ -1125,7 +1127,7 @@
                         window.kendo.ui.progress($(document.body), false);
                         if (result.Errors == "") {
                             popupNotification.show("Record Posted...", "info");
-                            $("#grid").data("kendoGrid").dataSource.read();
+                            //$("#grid").data("kendoGrid").dataSource.read();
                             selectedGrid.dataSource.read();
                         } else {
                             alert(result.Errors);
@@ -1144,23 +1146,26 @@
 
     function onClickBtnPostParSet(e) {
         e.preventDefault();
-        selectedGrid = $("#gridItemSet").data("kendoGrid");
-        var selectedRow = selectedGrid.select();
+        selectedGrid = $("#gridItemsPar").data("kendoGrid");
+        var selectedRow = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(selectedRow);
-        var postedBy = dataItem.SetPostedBy;
+        selectedGrid.select(selectedRow);
+
+        var refNo = dataItem.RefNo;
+        var postedBy = dataItem.PostedBy;
 
         if (postedBy) {
             alert("Record is already posted by " + postedBy);
         }
         else {
-            var msg = "Post selected record?";
+            var msg = "Post PAR No. " + refNo + "?";
 
             if (confirm(msg)) {
                 var popupNotification = $("#popupNotification").data("kendoNotification");
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("PostPoItemSet", "ParSet")',
-                    data: { unitGroupId: dataItem.Id },
+                    url: '@Url.Action("PostPar", "ParSet")',
+                    data: { parNo: refNo },
                     async: true,
                     beforeSend: function () {
                         window.kendo.ui.progress($(document.body), true);
@@ -1169,8 +1174,73 @@
                         window.kendo.ui.progress($(document.body), false);
                         if (result.Errors == "") {
                             popupNotification.show("Record Posted...", "info");
-                            $("#grid").data("kendoGrid").dataSource.read();
+                            //$("#grid").data("kendoGrid").dataSource.read();
                             selectedGrid.dataSource.read();
+                        } else {
+                            alert(result.Errors);
+                            return false;
+                        }
+                    },
+                    error: function (req, status, errorObj) {
+                        disabled.attr('disabled', 'disabled');
+                        alert(req.responseText);
+                        return false;
+                    }
+                });
+            }
+        }
+    }
+
+    function onClickBtnUnpostPar(e) {
+        e.preventDefault();
+        selectedGrid = $("#gridItemsPar").data("kendoGrid");
+        var selectedRow = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(selectedRow);
+
+        selectedGrid.select(selectedRow);
+        var refNo = dataItem.IcsPar.RefNo;
+        var postedBy = dataItem.IcsPar.PostedBy;
+
+        if (!postedBy) {
+            alert("Record is not yet posted!");
+        }
+        else {
+            var msg = "Unpost PAR No. " + refNo + "?";
+
+            if (confirm(msg)) {
+                var popupNotification = $("#popupNotification").data("kendoNotification");
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("UnpostPar", "ParSet")',
+                    data: { parNo: refNo },
+                    async: true,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($(document.body), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($(document.body), false);
+                        if (result.Errors == "") {
+                            popupNotification.show("Done...", "info");
+                            //$("#grid").data("kendoGrid").dataSource.read();
+                            selectedGrid.dataSource.read();
+                            //.then(function () {
+                            //    //// Find the row with the specified Id.
+                            //    //var dataItem = grid.dataSource.get(selectedId);
+
+                            //    //// If the row is found, read geneared items.
+                            //    //if (dataItem) {
+                            //    //    selectedGrid.dataSource.read();
+                            //    //}
+                            //    var selectedRow = selectRowByConditions("grid", {
+                            //        PoNo: selectedPoNo,
+                            //        PoDate: selectedPoDate,
+                            //        DeptId: selectedDeptId
+                            //    });
+
+                            //    if (selectedRow) {
+                            //        selectedGrid.dataSource.read();
+                            //    }
+                            //});
                         } else {
                             alert(result.Errors);
                             return false;
@@ -1188,23 +1258,26 @@
 
     function onClickBtnUnpostParSet(e) {
         e.preventDefault();
-        selectedGrid = $("#gridItemSet").data("kendoGrid");
-        var selectedRow = selectedGrid.select();
+        selectedGrid = $("#gridItemsPar").data("kendoGrid");
+        var selectedRow = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(selectedRow);
-        var postedBy = dataItem.SetPostedBy;
+
+        selectedGrid.select(selectedRow);
+        var refNo = dataItem.RefNo;
+        var postedBy = dataItem.PostedBy;
 
         if (!postedBy) {
             alert("Record is not yet posted!");
         }
         else {
-            var msg = "Unpost selected record?";
+            var msg = "Unpost PAR No. " + refNo + "?";
 
             if (confirm(msg)) {
                 var popupNotification = $("#popupNotification").data("kendoNotification");
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("UnpostPoItemSet", "ParSet")',
-                    data: { unitGroupId: dataItem.Id },
+                    url: '@Url.Action("UnpostPar", "ParSet")',
+                    data: { parNo: refNo },
                     async: true,
                     beforeSend: function () {
                         window.kendo.ui.progress($(document.body), true);
@@ -1213,7 +1286,7 @@
                         window.kendo.ui.progress($(document.body), false);
                         if (result.Errors == "") {
                             popupNotification.show("Done...", "info");
-                            $("#grid").data("kendoGrid").dataSource.read();
+                            //$("#grid").data("kendoGrid").dataSource.read();
                             selectedGrid.dataSource.read();
                             //.then(function () {
                             //    //// Find the row with the specified Id.
@@ -1286,69 +1359,6 @@
         }
 
         return null;  // No matching row found
-    }
-
-
-    function onClickBtnUnpostPar(e) {
-        e.preventDefault();
-        selectedGrid = $("#gridItems").data("kendoGrid");
-        var selectedRow = selectedGrid.select();
-        var dataItem = selectedGrid.dataItem(selectedRow);
-        var postedBy = dataItem.ParPostedBy;
-
-        if (!postedBy) {
-            alert("Record is not yet posted!");
-        }
-        else {
-            var msg = "Unpost selected record?";
-
-            if (confirm(msg)) {
-                var popupNotification = $("#popupNotification").data("kendoNotification");
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("UnpostPoItem", "ParSet")',
-                    data: { groupId: dataItem.GroupId },
-                    async: true,
-                    beforeSend: function () {
-                        window.kendo.ui.progress($(document.body), true);
-                    },
-                    success: function (result) {
-                        window.kendo.ui.progress($(document.body), false);
-                        if (result.Errors == "") {
-                            popupNotification.show("Done...", "info");
-                            $("#grid").data("kendoGrid").dataSource.read();
-                            selectedGrid.dataSource.read();
-                            //.then(function () {
-                            //    //// Find the row with the specified Id.
-                            //    //var dataItem = grid.dataSource.get(selectedId);
-
-                            //    //// If the row is found, read geneared items.
-                            //    //if (dataItem) {
-                            //    //    selectedGrid.dataSource.read();
-                            //    //}
-                            //    var selectedRow = selectRowByConditions("grid", {
-                            //        PoNo: selectedPoNo,
-                            //        PoDate: selectedPoDate,
-                            //        DeptId: selectedDeptId
-                            //    });
-
-                            //    if (selectedRow) {
-                            //        selectedGrid.dataSource.read();
-                            //    }
-                            //});
-                        } else {
-                            alert(result.Errors);
-                            return false;
-                        }
-                    },
-                    error: function (req, status, errorObj) {
-                        disabled.attr('disabled', 'disabled');
-                        alert(req.responseText);
-                        return false;
-                    }
-                });
-            }
-        }
     }
 
     function onClickBtnAddPar(e) {
@@ -1604,18 +1614,18 @@
 
         selectedItemId = selectedData.Id;
         selectedCardItemId = selectedData.Id;
-        selectedCardItemGroupId = selectedData.GroupId;
+        selectedCardItemGroupId = selectedData.Id;
         //var parGrid = $("#gridItemsPar").data("kendoGrid");
         //parGrid.dataSource.read();
 
-        postedBy = selectedData.ParPostedBy
-        if (postedBy) {
-            $("#btnUnpost_").show();
-            $("#btnPost_").hide();
-        } else {
-            $("#btnUnpost_").hide();
-            $("#btnPost_").show();
-        }
+        //postedBy = selectedData.ParPostedBy
+        //if (postedBy) {
+        //    $("#btnUnpost_").show();
+        //    $("#btnPost_").hide();
+        //} else {
+        //    $("#btnUnpost_").hide();
+        //    $("#btnPost_").show();
+        //}
 
         if (selectedData.IsForICS == true) {
             $("#btnParsAddItem").hide();
@@ -1660,15 +1670,25 @@
         //});
 
         if (grid.dataSource.data().length == 0) {
-            $("#btnUnpost_").hide();
-            $("#btnPost_").hide();
+            //$("#btnUnpost_").hide();
+            //$("#btnPost_").hide();
             $("#btnParsAddItem").hide();
         }
         else {
             var selectedRow = grid.select();
             var dataItem = grid.dataItem(selectedRow);
-            if (!dataItem.ParPostedBy) {
+
+            if (dataItem.IsForICS == true) {
+                $("#btnParsAddItem").hide();
+            }
+            else {
                 $("#btnParsAddItem").show();
+                //if (dataItem.ParPostedBy) {
+                //    $("#btnParsAddItem").hide();
+                //}
+                //else {
+                //    $("#btnParsAddItem").show();
+                //}
             }
         }
     }
@@ -1739,16 +1759,16 @@
         var selectedData = this.dataItem(this.select());
 
         selectedItemSetId = selectedData.Id;
-        setPostedBy = selectedData.SetPostedBy
-        if (setPostedBy) {
-            $("#btnUnpostItemSet_").show();
-            $("#btnPostItemSet_").hide();
-            $("#btnParsAddItemSet").hide();
-        } else {
-            $("#btnUnpostItemSet_").hide();
-            $("#btnPostItemSet_").show();
-            $("#btnParsAddItemSet").show();
-        }
+        //setPostedBy = selectedData.SetPostedBy
+        //if (setPostedBy) {
+        //    $("#btnUnpostItemSet_").show();
+        //    $("#btnPostItemSet_").hide();
+        //    $("#btnParsAddItemSet").hide();
+        //} else {
+        //    $("#btnUnpostItemSet_").hide();
+        //    $("#btnPostItemSet_").show();
+        //    $("#btnParsAddItemSet").show();
+        //}
     }
 
     function onDataBoundGridItemSet(e) {
@@ -1767,19 +1787,19 @@
             grid.expandRow(firstRow); // Expand the first row
         }
 
-        if (this.dataSource.data().length == 0) {
-            $("#btnUnpostItemSet_").hide();
-            $("#btnPostItemSet_").hide();
-            $("#btnParsAddItemSet").hide();
-        }
-        else {
-            var selectedRow = this.select();
-            var dataItem = this.dataItem(selectedRow);
-            setPostedBy = dataItem.SetPostedBy
-            if (!setPostedBy) {
-                $("#btnParsAddItemSet").show();
-            }
-        }
+        //if (this.dataSource.data().length == 0) {
+        //    $("#btnUnpostItemSet_").hide();
+        //    $("#btnPostItemSet_").hide();
+        //    $("#btnParsAddItemSet").hide();
+        //}
+        //else {
+        //    var selectedRow = this.select();
+        //    var dataItem = this.dataItem(selectedRow);
+        //    setPostedBy = dataItem.SetPostedBy
+        //    if (!setPostedBy) {
+        //        $("#btnParsAddItemSet").show();
+        //    }
+        //}
     }
 
     function onClickBtnPrintSet(e) {
@@ -1862,10 +1882,11 @@
             grid.expandRow(firstRow); // Expand the first row
         }
 
-        // the master row for this detail
-        var parentRow = this.wrapper.closest("tr").prev();
-        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        var parentModel = parentGrid.dataItem(parentRow);
+        //// the master row for this detail
+        //var parentRow = this.wrapper.closest("tr").prev();
+        //var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+
         //var poNo = parentModel.PoNo;
     }
     // END GRID ITEM SET
@@ -1879,7 +1900,7 @@
 
         selectedItemSetDescriptionId = selectedData.Id;
         selectedCardItemId = selectedData.Id;
-        selectedCardItemGroupId = selectedData.GroupId
+        selectedCardItemGroupId = selectedData.Id
         //selectedItemSetDescriptionItemGroupId = selectedData.GroupId;
         //$("#gridItemsPar").data("kendoGrid").dataSource.read({ cardItemId: selectedItemSetDescriptionId });
         //$("#gridItemsPar").data("kendoGrid").dataSource.read({ cardItemGroupId: selectedCardItemGroupId });
@@ -2043,8 +2064,8 @@
         var myTitle = "PAR Item - EDIT";
         var width = 1000;
         var height = 650;
-        $("#windowcontainer").append("<div id='window'></div>");
-        var mywindow = $("#window")
+        $("#windowcontainer").append("<div id='window-par-item'></div>");
+        var mywindow = $("#window-par-item")
                 .kendoWindow({
                     actions: ["Minimize", "Close"],
                     draggable: true,
@@ -2275,13 +2296,13 @@
         selectedId = dataItem.Id;
         var rowitem = selectedGrid.dataSource.get(selectedId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        GeneratedPars(dataItem.GroupId, dataItem.ParPostedBy);
+        GeneratedPars(dataItem.Id, "");
     }
 
     function GeneratedPars(groupId, postedBy) {
         var myTitle = "Generated PARS";
-        var width = 1000;
-        var height = 800;
+        var width = 1200;
+        var height = 1000;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -2291,7 +2312,7 @@
                     visible: false,
                     autoheight: true,
                     deactivate: function () {
-                        //refreshAllGrids();
+                        refreshAllGrids();
                         this.destroy();
                     }
                 }).data("kendoWindow");
@@ -2324,13 +2345,13 @@
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        GeneratedParSet(dataItem.GroupId, dataItem.ParPostedBy);
+        GeneratedParSet(dataItem.Id, "");
     }
 
     function GeneratedParSet(groupId, postedBy) {
         var myTitle = "Generated PARS";
-        var width = 1000;
-        var height = 800;
+        var width = 1200;
+        var height = 1000;
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -2340,7 +2361,7 @@
                     visible: false,
                     autoheight: true,
                     deactivate: function () {
-                        //refreshAllGrids();
+                        refreshAllGrids();
                         this.destroy();
                     }
                 }).data("kendoWindow");
@@ -2383,7 +2404,7 @@
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        Uploads(dataItem.Id, dataItem.Postedby);
+        Uploads(dataItem.Id, dataItem.PostedBy);
     }
 
 
@@ -2443,11 +2464,23 @@
     }
 
     function IsPosted(dataItem) {
-        return dataItem.ParPostedDt != null;
+        return dataItem.IcsPar.PostedDt != null;
     }
 
     function IsNotPosted(dataItem) {
         return !IsPosted(dataItem);
+    }
+
+    function IsSetPosted(dataItem) {
+        return dataItem.PostedDt != null;
+    }
+
+    function IsSetNotPosted(dataItem) {
+        return !IsSetPosted(dataItem);
+    }
+
+    function IsNoGenerated(dataItem) {
+        return dataItem.GeneratedItems == 0;
     }
 
     function onSelectIssuedBy(e) {

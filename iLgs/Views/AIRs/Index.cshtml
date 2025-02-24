@@ -21,6 +21,7 @@
             //command.Edit();
             command.Custom("Edit").IconClass("k-icon k-i-edit").Click("onGridEditClick").SendDataKeys(true);
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            command.Custom("Print RIS").IconClass("k-icon k-i-print").Click("onGridPrintRisClick").SendDataKeys(true);
             //command.Destroy();
         }).Width(120);
     })
@@ -183,6 +184,7 @@
         col.Bound(c => c.SetLotQtyNo).Width(50);
         col.Bound(c => c.ContentNo).Width(50);
         col.Bound(c => c.SerialNo).Width(100);
+        col.Bound(c => c.IsAutoGen).Width(70).ClientTemplate("\\#= IsAutoGen ? 'Y' : 'N' \\#");
         //col.Bound(c => c.Condition).Width(100);
         col.Command(command =>
         {
@@ -193,7 +195,8 @@
     })
     .ToolBar(t =>
     {
-        t.Create();
+        //t.Create();
+        t.Custom().Text("Generate Serial No.").IconClass("k-icon k-i-gears").Name("btnGenerateSerial").HtmlAttributes(new { @class = "k-button", href = "" });
     })
     .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AirItemExtnOtherTemplate").Window(w => w.Width(500).Title("Item Details")))
     .Sortable()
@@ -213,7 +216,7 @@
             s.Add(a => a.ContentNo);
         })
         .Read(read => read.Action("_AIRItemExtnOtherRead", "AIRs", new { airItemId = "#=Id#" }))
-        .Create(create => create.Action("_AIRItemExtnOtherCreate", "AIRs"))
+        //.Create(create => create.Action("_AIRItemExtnOtherCreate", "AIRs"))
         .Update(update => update.Action("_AIRItemExtnOtherUpdate", "AIRs"))
         .Destroy(destroy => destroy.Action("_AIRItemExtnOtherDestroy", "AIRs"))
     )
@@ -299,6 +302,25 @@
         padding: 0; /* Remove padding */
         text-indent: -9999px; /* Move the text outside the visible area */
         overflow: hidden; /* Hide any overflow */
+    }
+
+    .k-switch .k-switch-label-on,
+    .k-switch .k-switch-label-off {
+        display: inline-block;
+        position: absolute;
+        top: 50%;
+    }
+
+    .k-switch .k-switch-label-on {
+        left: 5px;
+        opacity: 1;
+        color: white;
+    }
+
+    .k-switch .k-switch-label-off {
+        color: black;
+        left: 30px;
+        opacity: 1;
     }
 </style>
 
@@ -478,6 +500,42 @@
             grid.dataSource.remove(dataItem); // Triggers the Destroy action
             grid.dataSource.sync(); // Send the delete request to the server
         }
+    }
+
+    function onGridPrintRisClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var dataItem = selectedGrid.dataItem($(e.currentTarget).closest("tr"));
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+        selectedGrid.select(row);
+        var selectedAirNo = selectedGrid.dataItem(selectedGrid.select()).AIRNo;
+        
+        var url = '@Url.Action("RisByAirRpt", "AIRs")?airNo=' + selectedAirNo;
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
     }
 
     $(".k-grid-btnAddAir_").click(function (e) {
@@ -1322,6 +1380,49 @@
             grid.dataSource.sync();
         }
     }
+
+    //  Itemextns
+    //$(".k-grid-btnGenerateSerial").click(function (e) {
+    //    e.preventDefault();
+    //    if (confirm("Generate serial numbers for items without serial numbers?")) {
+    //        alert("Generated!");
+    //    }
+    //});
+
+    $(document).ready(function () {
+        $(document).on("click", ".k-grid-btnGenerateSerial", function (e) {
+            e.preventDefault(); // Prevent any default action if necessary
+            if (confirm("Generate serial numbers for items without serial numbers?")) {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("GenerateSerials", "AIRs")',
+                    data: {
+                        airItemId: selectedItemId,
+                        type: "OTHER"
+                    },
+                    async: true,
+                    beforeSend: function () {
+                        window.kendo.ui.progress($(document.body), true);
+                    },
+                    success: function (result) {
+                        window.kendo.ui.progress($(document.body), false);
+                        if (result.Errors == "") {
+                            //popupNotification.show("Orders Posted...", "info");
+                            $("#gridItemExtn_" + selectedItemId).data("kendoGrid").dataSource.read();
+                        } else {
+                            alert(result.Errors);
+                            return false;
+                        }
+                    },
+                    error: function (req, status, errorObj) {
+                        alert(req.responseText);
+                        return false;
+                    }
+                });
+            }
+        });
+    });
+    //
 </script>
 
 

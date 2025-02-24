@@ -50,7 +50,7 @@ namespace iLgs.Models
             [Display(Name = "Group No.")]
             public string SetLotNo { get; set; }
 
-            [Display(Name = "Group Qty No.")]
+            [Display(Name = "Set/Lot No.")]
             public Nullable<int> SetLotQtyNo { get; set; }
 
             [Display(Name = "Item Qty No.")]
@@ -240,7 +240,7 @@ namespace iLgs.Models
         [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
 
-        [Display(Name = "Group Qty No.")]
+        [Display(Name = "Set/Lot No.")]
         public Nullable<int> SetLotQtyNo { get; set; }
 
         [Display(Name = "Item Qty No.")]
