@@ -16,14 +16,14 @@ namespace iLgs.Reports {
     using CrystalDecisions.CrystalReports.Engine;
     
     
-    public class RpcPpe : ReportClass {
+    public class RsmiAcctSum : ReportClass {
         
-        public RpcPpe() {
+        public RsmiAcctSum() {
         }
         
         public override string ResourceName {
             get {
-                return "RpcPpe.rpt";
+                return "RsmiAcctSum.rpt";
             }
             set {
                 // Do nothing
@@ -41,7 +41,7 @@ namespace iLgs.Reports {
         
         public override string FullResourceName {
             get {
-                return "iLgs.Reports.RpcPpe.rpt";
+                return "iLgs.Reports.RsmiAcctSum.rpt";
             }
             set {
                 // Do nothing
@@ -66,7 +66,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.CrystalReports.Engine.Section Section3 {
+        public CrystalDecisions.CrystalReports.Engine.Section PageHeaderSection1 {
             get {
                 return this.ReportDefinition.Sections[2];
             }
@@ -74,7 +74,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.CrystalReports.Engine.Section Section4 {
+        public CrystalDecisions.CrystalReports.Engine.Section Section3 {
             get {
                 return this.ReportDefinition.Sections[3];
             }
@@ -82,7 +82,7 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.CrystalReports.Engine.Section Section5 {
+        public CrystalDecisions.CrystalReports.Engine.Section ReportFooterSection1 {
             get {
                 return this.ReportDefinition.Sections[4];
             }
@@ -90,7 +90,15 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_dAsOf {
+        public CrystalDecisions.CrystalReports.Engine.Section PageFooterSection1 {
+            get {
+                return this.ReportDefinition.Sections[5];
+            }
+        }
+        
+        [Browsable(false)]
+        [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+        public CrystalDecisions.Shared.IParameterField Parameter_dBdate {
             get {
                 return this.DataDefinition.ParameterFields[0];
             }
@@ -98,17 +106,49 @@ namespace iLgs.Reports {
         
         [Browsable(false)]
         [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-        public CrystalDecisions.Shared.IParameterField Parameter_uRpcId {
+        public CrystalDecisions.Shared.IParameterField Parameter_dEdate {
             get {
                 return this.DataDefinition.ParameterFields[1];
+            }
+        }
+        
+        [Browsable(false)]
+        [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+        public CrystalDecisions.Shared.IParameterField Parameter_cFund {
+            get {
+                return this.DataDefinition.ParameterFields[2];
+            }
+        }
+        
+        [Browsable(false)]
+        [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+        public CrystalDecisions.Shared.IParameterField Parameter_LGU {
+            get {
+                return this.DataDefinition.ParameterFields[3];
+            }
+        }
+        
+        [Browsable(false)]
+        [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+        public CrystalDecisions.Shared.IParameterField Parameter_WithDailyRecap {
+            get {
+                return this.DataDefinition.ParameterFields[4];
+            }
+        }
+        
+        [Browsable(false)]
+        [DesignerSerializationVisibilityAttribute(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+        public CrystalDecisions.Shared.IParameterField Parameter_Custodian {
+            get {
+                return this.DataDefinition.ParameterFields[5];
             }
         }
     }
     
     [System.Drawing.ToolboxBitmapAttribute(typeof(CrystalDecisions.Shared.ExportOptions), "report.bmp")]
-    public class CachedRpcPpe : Component, ICachedReport {
+    public class CachedRsmiAcctSum : Component, ICachedReport {
         
-        public CachedRpcPpe() {
+        public CachedRsmiAcctSum() {
         }
         
         [Browsable(false)]
@@ -145,7 +185,7 @@ namespace iLgs.Reports {
         }
         
         public virtual CrystalDecisions.CrystalReports.Engine.ReportDocument CreateReport() {
-            RpcPpe rpt = new RpcPpe();
+            RsmiAcctSum rpt = new RsmiAcctSum();
             rpt.Site = this.Site;
             return rpt;
         }

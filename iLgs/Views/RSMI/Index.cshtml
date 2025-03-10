@@ -10,7 +10,15 @@
         {
             col.Bound(c => c.Fund).Width(50);
             col.Bound(c => c.Date).Width(50);
-            col.Bound(c => c.SerialNo).Width(50);
+            col.Bound(c => c.SerialNo).Width(50);            
+            col.Bound(f => f.Qty).Width(50)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(f => f.Amount).Width(70)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.Custodian).Width(50);
             col.Bound(c => c.PostedBy).Width(50);
             col.Bound(c => c.PostedDt).Width(50);
@@ -23,11 +31,12 @@
         })
         .ToolBar(toolbar =>
         {
-            toolbar.Template(@<text>
+        toolbar.Template(@<text>
                 @(Html.Kendo().Button().Name("btnAdd").Content("Add New Record").Enable(false)
                     .Events(e => e.Click("onClickBtnAdd"))
                 )
-                @(Html.Kendo().Button().Icon("k-icon k-i-print").Content("Print").Name("btnPrint").Events(e => e.Click("onClickBtnPrint")).Enable(true))                            
+                @(Html.Kendo().Button().Icon("k-icon k-i-print").Content("Print RSMI").Name("btnPrint").Events(e => e.Click("onClickBtnPrint")).Enable(true))                            
+                @(Html.Kendo().Button().Icon("k-icon k-i-print").Content("Print Summary").Name("btnPrintSum").Events(e => e.Click("onClickBtnPrintSum")).Enable(true))                            
         </text>);
         })
         //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_StockTemplate").Window(w => w.Width(500).Title("Stocks")))
@@ -63,6 +72,12 @@
                 model.Field(p => p.Date).Editable(false);
                 model.Field(p => p.SerialNo).Editable(false);
             })
+            .Aggregates(a =>
+            {
+                a.Add(p => p.Qty).Sum();
+                a.Add(p => p.Amount).Sum();
+            })
+            .Sort(s => { s.Add(a => a.Fund); s.Add(a => a.Date); })
             .Read(read => read.Action("RSMIRead", "RSMI"))
             //.Create(create => create.Action("StockCreate", "RSMI"))
             .Update(update => update.Action("RSMIUpdate", "RSMI"))
@@ -253,7 +268,7 @@
     var selectedId = null;
     var selecteItemId = null;
 
-    // MAIN GRID 
+    // MAIN GRID
 
     function onClickBtnAdd(e) {
         e.preventDefault()
@@ -333,6 +348,7 @@
         var records = this.dataSource.total();
         $("#btnAdd").data('kendoButton').enable(true);
         $("#btnPrint").data('kendoButton').enable(records > 0);
+        $("#btnPrintSum").data('kendoButton').enable(records > 0);
     }
 
     function onEditGrid(e) {
@@ -404,6 +420,30 @@
 
         mywindow.refresh({
             url: '@Url.Action("_PrintRsmi", "RSMI")'
+        });
+        mywindow.center().open();
+    }
+
+    function onClickBtnPrintSum(e) {
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "RSMI Printing",
+            width: 400,
+            height: 300
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_PrintSum", "RSMI")'
         });
         mywindow.center().open();
     }

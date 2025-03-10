@@ -71,36 +71,7 @@ namespace iLgs.Services.PropertyCard
         public IPsCardItemIssuanceService PsCardItemIssuance { get { return _psCardItemIssuanceService = _psCardItemIssuanceService ?? new PsCardItemIssuanceService(_db); } }
 
         public IQueryable<PsCardVM> GetAll(string userName) => _vmExceptionService.TryCatch(() =>
-        {
-            //var data = _db.PsCards.AsNoTracking()
-            //    .Select(s => new PsCardVM
-            //    {
-            //        Id = s.Id,
-            //        ItemCodeId = s.ItemCodeId,
-            //        Item = s.ItemCode.Description,
-            //        ItemNo = s.ItemCode.ItemNo,
-            //        ItemCode = s.ItemCode.Code,
-            //        ItemType = s.ItemCode.ItemType.Description,
-            //        ItemTypeCode = s.ItemCode.ItemType.Code,
-            //        PartialPage = s.ItemCode.PartialPage == null ? s.ItemCode.ItemType.PartialPage : s.ItemCode.PartialPage,
-            //        CardCategory = s.CardCategory,
-            //        Description = s.Description,
-            //        SubAccountCode = s.SubAccountCode,
-            //        SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
-            //        Fund = s.Fund,
-            //        Unit = s.Unit,
-            //        PsNo = s.PsNo,
-            //        PsName = s.PsName,
-            //        PrevPsNo = s.PrevPsNo,
-            //        Amount = s.Amount,
-            //        FromDonation = s.FromDonation,
-            //        AllField = s.AllField,
-            //        InsertedDt = s.InsertedDt,
-            //        PostedBy = s.PostedBy, 
-            //        PostedDt = s.PostedDt
-            //    });
-            //return data;
-            //return GetAllByCategory(data);
+        {            
             var data = _db.Database.SqlQuery<PsCardVM>("Exec Card_GetRecords 'P', {0}", userName).AsQueryable();
             return data;
         });

@@ -4,7 +4,7 @@
     {
         col.Bound(c => c.IssuedDate).Width(40);
         //col.Bound(c => c.IssuedTo).Width(50);
-        col.Bound(c => c.Location).Width(150);        
+        col.Bound(c => c.Location).Width(150);
         col.Bound(c => c.Qty).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -14,9 +14,12 @@
         //col.Bound(c => c.PostedBy).Width(50);        
         col.Command(command =>
         {
-            command.Edit();
-            //command.Destroy();
+            if ((bool)@ViewData["IsWithItemExtn"] != true)
+            {
+                command.Edit();
+            }
             command.Custom("Delete").IconClass("k-icon k-i-close").Click("onClickDeleteGridItems").SendDataKeys(true);
+            command.Custom("Uploads").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
         }).Width(100);
     })
     .ToolBar(t =>
@@ -32,7 +35,7 @@
             .HtmlAttributes(new { data_CardItemId = @ViewData["CardItemId"] }).Events(events => events.Click("onGridItemClickUnPost")))*@
         </text>);
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_IssuanceTemplate").Window(w => w.Width(800)))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_IssuanceTemplate").Window(w => w.Width(1000)))
     .Sortable()
     .NoRecords()
     .DataSource(dataSource => dataSource

@@ -53,8 +53,6 @@ namespace iLgs.Models
         public virtual DbSet<AIRInvoice> AIRInvoices { get; set; }
         public virtual DbSet<RPCEFFOPPEItem> RPCEFFOPPEItems { get; set; }
         public virtual DbSet<RPCEFFOPPE> RPCEFFOPPEs { get; set; }
-        public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
-        public virtual DbSet<RpcPpe> RpcPpes { get; set; }
         public virtual DbSet<PARItem> PARItems { get; set; }
         public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
@@ -69,7 +67,6 @@ namespace iLgs.Models
         public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
-        public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
         public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
         public virtual DbSet<CardItemExtn> CardItemExtns { get; set; }
@@ -88,7 +85,6 @@ namespace iLgs.Models
         public virtual DbSet<CustodianIirupItem> CustodianIirupItems { get; set; }
         public virtual DbSet<CustodianIIRUP> CustodianIIRUPs { get; set; }
         public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
-        public virtual DbSet<RPCIItem> RPCIItems { get; set; }
         public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<PsCardItemTransaction> PsCardItemTransactions { get; set; }
         public virtual DbSet<RISs> RISses { get; set; }
@@ -96,7 +92,6 @@ namespace iLgs.Models
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
-        public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<AIR> AIRs { get; set; }
         public virtual DbSet<AllField> AllFields { get; set; }
         public virtual DbSet<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
@@ -110,5 +105,12 @@ namespace iLgs.Models
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<IcsPar> IcsPars { get; set; }
         public virtual DbSet<IcsParUpdate> IcsParUpdates { get; set; }
+        public virtual DbSet<RSMIItem> RSMIItems { get; set; }
+        public virtual DbSet<RPCIItem> RPCIItems { get; set; }
+        public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
+        public virtual DbSet<PsCardItemIssuanceItem> PsCardItemIssuanceItems { get; set; }
+        public virtual DbSet<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
+        public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
+        public virtual DbSet<RpcPpe> RpcPpes { get; set; }
     }
 }

@@ -19,6 +19,7 @@ namespace iLgs.Models
         {
             this.IcsParItems = new HashSet<IcsParItem>();
             this.IcsParUnitGroups = new HashSet<IcsParUnitGroup>();
+            this.IcsParUpdates = new HashSet<IcsParUpdate>();
         }
     
         public System.Guid Id { get; set; }
@@ -52,5 +53,7 @@ namespace iLgs.Models
         public virtual ICollection<IcsParItem> IcsParItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IcsParUnitGroup> IcsParUnitGroups { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<IcsParUpdate> IcsParUpdates { get; set; }
     }
 }

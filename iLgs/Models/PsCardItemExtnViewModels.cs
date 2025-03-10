@@ -6,21 +6,63 @@ using System.Web;
 
 namespace iLgs.Models
 {
-    [MetadataType(typeof(PsCardItemExtn.Metadata))]
-    public partial class PsCardItemExtn
+    public class PsCardItemExtnVM : PsCardItemExtn
     {
+        public string Account { get; set; }
+
+        [Display(Name = "Sub-Account")]
+        public string SubAccount { get; set; }
+
+        public string Article { get; set; }
+
+        public string Description { get; set; }
+
+        [Display(Name = "PO No.")]
+        public string PoNo { get; set; }
+
+        [Display(Name = "PO Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PoDate { get; set; }
+
         [Display(Name = "Location Code")]
-        public string LocationCode { get; set; }
-        public string Location { get; set; }
+        public string DeptCode { get; set; }
+        public string Department { get; set; }
 
         [Display(Name = "Ref. No.")]
         public string RefNo { get; set; }
 
+        [Display(Name = "P/S Card No.")]
+        public string PsNo { get; set; }
+
+        [Display(Name = "ICS/PAR Count")]
+        public Nullable<int> IcsParCount { get; set; }
+
+        [Display(Name = "Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+
+        [Display(Name = "Set/Lot Unit Cost")]
+        public Nullable<decimal> SetUnitCost { get; set; }
+    }
+
+    [MetadataType(typeof(PsCardItemExtn.Metadata))]
+    public partial class PsCardItemExtn
+    {
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }
+            public Nullable<System.Guid> GroupId { get; set; }
             public Nullable<System.Guid> PsCardItemId { get; set; }
             public Nullable<System.Guid> AIRItemExtnId { get; set; }
+            public Nullable<System.Guid> PsCardItemTransferItemId { get; set; }
+
+            [Display(Name = "Group No.")]
+            public string SetLotNo { get; set; }
+
+            [Display(Name = "Set/Lot No.")]
+            public Nullable<int> SetLotQtyNo { get; set; }
+
+            [Display(Name = "Item Qty No.")]
+            public Nullable<int> ContentNo { get; set; }
 
             public Nullable<int> CustItemNo { get; set; }
             public Nullable<System.Guid> LocationId { get; set; }
@@ -46,71 +88,62 @@ namespace iLgs.Models
         public string EndSerial { get; set; }
 
         new internal sealed class Metadata
-        {
-            [Display(Name = "Group No.")]
-            public string SetLotNo { get; set; }
-
-            [Display(Name = "Set/Lot No.")]
-            public Nullable<int> SetLotQtyNo { get; set; }
-
-            [Display(Name = "Item Qty No.")]
-            public Nullable<int> ContentNo { get; set; }
-
+        {            
             [Display(Name = "Serial No.")]
             public string SerialNo { get; set; }
             public string Condition { get; set; }
         }
     }
 
-    [MetadataType(typeof(PsCardItemExtnVehicle.Metadata))]
+    [MetadataType(typeof(PsCardItemExtnVehicle.Metadata2))]
     public partial class PsCardItemExtnVehicle : PsCardItemExtn
     {
-        new internal sealed class Metadata
+        internal sealed class Metadata2
         {
 
             [Display(Name = "Series No.")]
             public Nullable<int> SeriesNo { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Year Model")]
             public Nullable<int> YearModel { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Plate No.")]
             public string PlateNo { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Body No.")]
             public string BodyNo { get; set; }
 
-            [Display(Name = "Engine No.")]
+            //[Display(Name = "Engine No.")]
             public string EngineNo { get; set; }
 
-            [Display(Name = "Chasis No.")]
+            //[Display(Name = "Chasis No.")]
             public string ChasisNo { get; set; }
             public string Color { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "CR No.")]
             public string CRN { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "CR Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> CRDate { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "MV File No.")]
             public string MVFileNo { get; set; }
 
-            [Display(Name = "OR No.")]
+            //[Display(Name = "OR No.")]
             public string OrNo { get; set; }
 
-            [Display(Name = "OR Date")]
+            //[Display(Name = "OR Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> OrDate { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Net Weight")]
             public Nullable<int> NetWeight { get; set; }
 
@@ -122,7 +155,7 @@ namespace iLgs.Models
             [Display(Name = "Sub location")]
             public string SubLocation { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Conduction Sticker No.")]
             public string ConductionNo { get; set; }
         }
@@ -232,10 +265,11 @@ namespace iLgs.Models
     }
 
     public class PsCardItemExtnSetVM
-    {        
+    {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
         public Nullable<System.Guid> AIRItemExtnId { get; set; }
+        public Nullable<System.Guid> PsCardItemTransferItemId { get; set; }
 
         [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
@@ -251,5 +285,41 @@ namespace iLgs.Models
         public string Description { get; set; }
 
         public string PoNo { get; set; }
+    }
+
+    public class SelectedIds
+    {
+        public System.Guid Id { get; set; }
+    }
+
+    public class PsCardItemExtnTransitVM
+    {
+        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> PsCardItemId { get; set; }
+
+        [Display(Name = "Group No.")]
+        public string SetLotNo { get; set; }
+
+        [Display(Name = "Set/Lot No.")]
+        public Nullable<int> SetLotQtyNo { get; set; }
+
+        [Display(Name = "Item Qty No.")]
+        public Nullable<int> ContentNo { get; set; }
+
+        [Display(Name = "Ref. No.")]
+        public string RefNo { get; set; }
+
+        public Nullable<System.Guid> IcsParId { get; set; }
+        public Nullable<System.Guid> IcsParItemId { get; set; }
+
+        [Display(Name = "ICS/PAR No.")]
+        public string IcsParNo { get; set; }
+
+        public Nullable<System.Guid> LocationId { get; set; }
+
+        [Display(Name = "Location Code")]
+        public string LocationCode { get; set; }
+
+        public string Location { get; set; }
     }
 }

@@ -1,0 +1,76 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.IcsParVM>()
+    .Name("gridItems_" + @ViewData["Id"])
+    .Columns(col =>
+    {
+        //col.Bound(p => p.RefNo).Title("")
+        //        .ClientTemplate(
+        //        @"<div class='upload-photo'
+        //           style='background-image: url(" + @Url.Content("~/ParIcsUpload/GridPreview?id=#:Id#") + ");'></div></div>")
+        //            .Width(70);
+        col.Bound(c => c.RefNo).Width(50);
+        col.Bound(c => c.RefDate).Width(50);
+        col.Bound(c => c.UpdateCode).Width(30);
+        col.Bound(c => c.LocationCode).Width(30);
+        col.Bound(c => c.Location).Width(100);
+        col.Bound(c => c.ReceivedBy).Width(100);
+        col.Bound(c => c.ReceivedDate).Width(50);
+        col.Bound(c => c.PostedBy).Width(50);
+        col.Bound(c => c.PostedDt).Width(70);
+        col.Bound(c => c.Status_).Width(50);
+        col.Command(command =>
+        {
+            command.Custom("Print").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrint");
+            command.Custom("Uploads").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
+        }).Width(250);
+    })
+    .ToolBar(t =>
+    {
+        t.Search();
+    })
+    .Search(s =>
+    {
+        s.Field(o => o.RefNo, "contains");
+        s.Field(o => o.LocationCode, "contains");
+        s.Field(o => o.Location, "contains");
+        s.Field(o => o.ReceivedBy, "contains");
+        s.Field(o => o.IssuedBy, "contains");
+        s.Field(o => o.PostedBy, "contains");
+    })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+    )
+    .Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    //.Scrollable()
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Sortable()
+    //.ClientDetailTemplateId("DetailTemplate")
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        //.PageSize(30)
+        .Events(events => events.Error("GridError")
+            .RequestEnd("onRequestEndGridItems")
+        )
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+        })
+        //.Sort(s => s.Add(a => a.RefNo).Descending())
+        .Read(read => read.Action("_ItemsRead", "PropNoItem", new { propNo = @ViewData["PropNo"], refType = @ViewBag.RefType }))
+    //.Destroy(destroy => destroy.Action("Destroy", "IcsParUpdate"))
+    )
+.Events(events => events
+    .Change("onChangeGridItems")
+    .DataBound("onDataBoundGridItems")
+//.DetailExpand("onDetailExpand")
+//.DetailCollapse("onDetailCollapse")
+)
+)

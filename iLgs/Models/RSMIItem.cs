@@ -16,6 +16,7 @@ namespace iLgs.Models
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RsmiId { get; set; }
+        public Nullable<System.Guid> ItemCodeId { get; set; }
         public string RisNo { get; set; }
         public string PoNo { get; set; }
         public string Department { get; set; }
@@ -35,6 +36,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        public virtual ItemCode ItemCode1 { get; set; }
         public virtual RSMI RSMI { get; set; }
     }
 }

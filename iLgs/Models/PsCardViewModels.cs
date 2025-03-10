@@ -395,6 +395,7 @@ namespace iLgs.Models
         public int? IssuedToSw { get; set; }
 
         public string SelectedIds { get; set; }
+        public bool? IsWithItemExtn { get; set; } = false;
     }
 
     public class FieldSw

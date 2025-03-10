@@ -8,6 +8,7 @@
     //.HtmlAttributes(new { @class = "max-grid" })
     .Columns(columns =>
     {
+        columns.Bound(f => f.Fund).Width(40);
         columns.Bound(f => f.Account).Width(70);
         columns.Bound(f => f.Article).Width(100).Title("Sub-Accounts/Articles");
         columns.Bound(f => f.StockNo).Width(70);
@@ -84,11 +85,12 @@
     })
     .ToolBar(t =>
     {
-        //t.Custom().Text("Transit Selected Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });        
+        t.Custom().Text("Transit Selected Record").IconClass("k-icon k-i-add").Name("btnTransfer").HtmlAttributes(new { @class = "k-button", href = "" });        
         t.Search();
     })
     .Search(s =>
     {
+        s.Field(o => o.Fund, "contains");
         s.Field(o => o.Account, "contains");
         s.Field(o => o.StockNo, "contains");
         s.Field(o => o.DeptCode, "contains");
@@ -222,15 +224,7 @@
 
 
 <script type="text/x-kendo-template" id="validationMessageTemplate">
-    # if (messages.length) { #
-    @*<li>
-            #=field#
-            <ul>
-                # for (var i = 0; i < messages.length; ++i) { #
-                <li>#= messages[i] #</li>
-                # } #
-            </ul>
-        </li>*@
+    # if (messages.length) { #    
     # for (var i = 0; i < messages.length; ++i) { #
     <li>#= messages[i] #</li>
     # } #
@@ -306,6 +300,7 @@
 
     var selectedGrid = null;
     var selectedId = null;
+    var selectedGroupId = null;
     var selectedItemId = null;
     var selectedUnitCost = null;
     var selectedDepartment = null;
@@ -315,6 +310,7 @@
         var grid = $("#grid");
 
         selectedId = selectedData.Id;
+        selectedGroupId = selectedData.GroupId;
         selectedUnitCost = selectedData.UnitCost;
         selectedItemId = null;
         selectedDepartment = selectedData.Department;
@@ -349,7 +345,7 @@
         }
 
          if (this.dataSource.data().length == 0) {
-             //$("#btnTransfer").hide();            
+             //$("#btnTransfer").hide();
         }
         else {
             var selectedRow = this.select();
@@ -390,8 +386,8 @@
 
     $(".k-grid-btnTransfer").click(function (e) {
         e.preventDefault();
-        var myTitle = "Transfer";
-        var width = 800;
+        var myTitle = "Transit";
+        var width = 1000;
 
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
@@ -415,8 +411,9 @@
         });
         mywindow.refresh({
            url: '@Url.Action("_Transfer", "PoIssuance")',
-            data: {
-                cardItemId: selectedId
+           data: {
+                cardItemId: selectedId,
+                groupId: selectedGroupId
             },
             //// Specify a callback function to execute after content is loaded
             complete: function () {
@@ -1165,6 +1162,220 @@
         });
     }
     // END ISSUANCE TEMPLATE
+    var selectedGridImagesItem = null;
+    function onEditGridImages(e) {
+        e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("ImageId", '@ViewData["imageId"]');
+        } else {
+            selectedGridImagesItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridImagesItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onClickUploads(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        selectedItemId = dataItem.Id;
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        Uploads(dataItem.Id, "");
+    }
+
+    function Uploads(imageId, postedBy) {
+        var myTitle = "Uploads";
+        var width = 1000;
+        var height = 650;
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+            //height: height
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_Images", "PoIssuance")',
+            data: {
+                imageId: imageId,
+                postedBy: postedBy
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        //mywindow.center();
+        mywindow.open();
+        //resizeWindow();
+    }
+
+    function onDataBoundGridImages(e) {
+        if (selectedGridImagesItem) {
+            var dataItem = this.dataSource.get(selectedGridImagesItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onRequestEndGridUpload(e) {
+        if (e.response && !e.response.Errors) {
+            if (e.type === "create" || e.type === "update" || e.type === "destroy") {
+                var grid = $("#gridImages_").data("kendoGrid"); //e.sender.element ? e.sender.element.data("kendoGrid") : null;
+                if (grid) {
+                    setTimeout(function () {
+                        grid.dataSource.read();
+                    }, 200); // Small delay to ensure data is processed
+                }
+                else {
+                    console.log("grid is null");
+                }
+            }
+        }
+    }
+
+    function onDeleteGridImages(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+    function onClickUpload(e) {
+        var button = e.sender.element; // Use the sender's element;
+        // Retrieve the grid name from the data attribute
+        //selectedGrid =  $("#gridImages_" + selectedItemId).data("kendoGrid");
+        var imageId = $(button).data("imageid"); 
+        var myUrl = '@Url.Action("_ImagesAdd", "PoIssuance")?imageId=' + imageId;
+        var myTitle = "Upload Images/Documents";
+        var width = 800;
+        var height = 650;
+
+        $("#windowcontainer").append("<div id='windowUpload'></div>");
+        var mywindow = $("#windowUpload")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,                    
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+
+    }
+
+    function UploadPara(e) {
+        var data = JSON.stringify({ model: $("#formUpload").serialize() });
+        //alert(additional);
+        //e.data = JSON.parse(additional);
+        //$('#chkSMS').is(':checked');
+        e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val() }
+    }
+
+    function onClickPreview(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGridImagesItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("PreviewUpload", "PoIssuance")?id=' + selectedGridImagesItem;
+
+        window.open(myUrl, "_blank");
+    }
+
+    function onClickDownload(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        if (dataItem) {
+            window.kendo.ui.progress($(document.body), true);
+            var fileName = dataItem.FileName;
+            var url = '@Url.Action("DownloadFile", "PoIssuance")?fileName=' + fileName;
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row to export.");
+        }
+    }
+
+    function onError(e) {
+        // invalid because the responseText is a raw string, not JSON
+        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
+        var err = e.XMLHttpRequest.responseText;
+        alert(err);
+    }
+
+    function onUploadSuccess(e) {
+        $("#gridImages_").data("kendoGrid").dataSource.read();
+        //selectedGrid.dataSource.read();
+    }
+
+
+    function GridUploadError(e) {
+        if (e.errors) {
+
+            var subgrid = $("#gridImages_" + selectedItemId).data("kendoGrid");
+
+            if (subgrid) {
+                subgrid.dataSource.read(); // Refresh the subgrid
+            }
+
+            $.each(e.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                }
+            });
+        }
+    }
 </script>
 
 

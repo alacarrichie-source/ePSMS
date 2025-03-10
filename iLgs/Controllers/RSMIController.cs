@@ -24,11 +24,13 @@ namespace iLgs.Controllers
     {
         private readonly AppManEntities _db;
         private readonly ICodextnService _codextnService;
+        private readonly IRsmiService _rsmiService;
 
         public RSMIController()
         {
             _db = new AppManEntities();
             _codextnService = new CodextnService(_db);
+            _rsmiService = new RsmiService(_db);
         }
 
         // GET: RSMI
@@ -39,7 +41,7 @@ namespace iLgs.Controllers
 
         public ActionResult RSMIRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _db.RSMIs.AsQueryable();
+            var data = _rsmiService.GetAll();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -90,6 +92,7 @@ namespace iLgs.Controllers
                         .Where(w => w.IssuedDate >= model.DateFrom && w.IssuedDate <= model.DateTo)
                         .Select(s => new RSMIItemVM
                         {
+                            ItemCodeId = s.PsCardItem.PsCard.ItemCodeId,
                             RisNo = s.PsCardItem.OrderItem.RequestItem.RisItem.RISs.RisNo,
                             Date = s.IssuedDate,
                             Fund = s.PsCardItem.PsCard.Fund,
@@ -121,13 +124,13 @@ namespace iLgs.Controllers
                         DateTime? groupDate = null;
                         string serialNo = "";
                         var rsmiDateList = rsmiItemList.GroupBy(g => new { g.Date, g.Fund})
-                            .Select(s => new { s.Key.Date, s.Key.Fund }).OrderBy(o => o.Date).ToList();
+                            .Select(s => new { s.Key.Date, s.Key.Fund }).OrderBy(o => o.Fund).ThenBy(o => o.Date).ToList();
                         
                         foreach (var rsmiDate in rsmiDateList)
                         {
                             if (groupDate != rsmiDate.Date)
                             {
-                                serialNo = NextSerialNo(rsmiDate.Date);
+                                serialNo = NextSerialNo(rsmiDate.Fund, rsmiDate.Date);
                                 groupDate = rsmiDate.Date;
                             }
                             var entity = new RSMI()
@@ -154,6 +157,7 @@ namespace iLgs.Controllers
                                 {
                                     Id = Guid.NewGuid(),
                                     RsmiId = entity.Id,
+                                    ItemCodeId = itemIssued.ItemCodeId,
                                     RisNo = itemIssued.RisNo,
                                     PoNo = itemIssued.PoNo,
                                     Department = itemIssued.Department,
@@ -464,9 +468,117 @@ namespace iLgs.Controllers
                 return File(stream, "application/pdf");                
             }
         }
+
+        public ActionResult _PrintSum()
+        {
+            var date = DateTime.Now;
+            var model = new RsmiPrintVM()
+            {
+                DateFrom = date,
+                DateTo = date
+            };
+
+            return PartialView(model);
+        }
+
+        public async Task<ActionResult> RsmiSumRpt(RsmiPrintVM model)
+        {
+            Sections crSections;
+            ReportDocument crReportDocument, crSubreportDocument;
+            SubreportObject crSubreportObject;
+            ReportObjects crReportObjects;
+            ConnectionInfo crConnectionInfo;
+            CrystalDecisions.CrystalReports.Engine.Database crDatabase;
+            Tables crTables;
+            TableLogOnInfo crTableLogOnInfo;
+            crReportDocument = new ReportDocument();
+
+            if (model.Type == "1")
+            {
+                crReportDocument.FileName = Server.MapPath(Url.Content("~/Reports/RsmiAcctSum.rpt"));
+            }
+            else
+            {
+                crReportDocument.FileName = Server.MapPath(Url.Content("~/Reports/RsmiPoSum.rpt"));
+            }
+
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            string conString = _db.Database.Connection.ConnectionString.ToString();
+            SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
+
+            string un = decoder.UserID;
+            string pw = decoder.Password;
+            string svr = decoder.DataSource;
+            string db_ = decoder.InitialCatalog;
+
+            crDatabase = crReportDocument.Database;
+            crTables = crDatabase.Tables;
+            crConnectionInfo = new ConnectionInfo();
+            crConnectionInfo.ServerName = svr;
+            crConnectionInfo.DatabaseName = db_;
+            crConnectionInfo.UserID = un;
+            crConnectionInfo.Password = pw;
+
+            foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+            {
+                crTableLogOnInfo = aTable.LogOnInfo;
+                crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+                aTable.ApplyLogOnInfo(crTableLogOnInfo);
+            }
+            // THIS STUFF HERE IS FOR REPORTS HAVING SUBREPORTS 
+            // set the sections object to the current report's section 
+            crSections = crReportDocument.ReportDefinition.Sections;
+            // loop through all the sections to find all the report objects 
+            foreach (CrystalDecisions.CrystalReports.Engine.Section crSection in crSections)
+            {
+                crReportObjects = crSection.ReportObjects;
+                //loop through all the report objects in there to find all subreports 
+                foreach (ReportObject crReportObject in crReportObjects)
+                {
+                    if (crReportObject.Kind == ReportObjectKind.SubreportObject)
+                    {
+                        crSubreportObject = (SubreportObject)crReportObject;
+                        //open the subreport object and logon as for the general report 
+                        crSubreportDocument = crSubreportObject.OpenSubreport(crSubreportObject.SubreportName);
+                        crDatabase = crSubreportDocument.Database;
+                        crTables = crDatabase.Tables;
+                        foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
+                        {
+                            crTableLogOnInfo = aTable.LogOnInfo;
+                            crTableLogOnInfo.ConnectionInfo = crConnectionInfo;
+                            aTable.ApplyLogOnInfo(crTableLogOnInfo);
+                        }
+                    }
+                }
+            }
+
+            var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault()?.Description;
+
+            crReportDocument.SetParameterValue("LGU", lgu);
+            crReportDocument.SetParameterValue("WithDailyRecap", model.WithDailyRecap);
+            crReportDocument.SetParameterValue("Custodian", model.Custodian ?? "");
+            crReportDocument.SetParameterValue("@cFund", model.Fund);
+            crReportDocument.SetParameterValue("@dBdate", model.DateFrom);
+            crReportDocument.SetParameterValue("@dEdate", model.DateTo);
+
+            if (model.SavePrints)
+            {
+                Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
+                crReportDocument.Close();
+                crReportDocument.Dispose();
+                return File(stream, "application/xlsx");
+            }
+            else
+            {
+                Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+                crReportDocument.Close();
+                crReportDocument.Dispose();
+                return File(stream, "application/pdf");
+            }
+        }
         #endregion
 
-        public string NextSerialNo(DateTime? date)
+        public string NextSerialNo(string fund, DateTime? date)
         {
             string yyyy = date.Value.Year.ToString().Trim();
             string mm = date.Value.Month.ToString().Trim();
@@ -477,7 +589,7 @@ namespace iLgs.Controllers
             // yyyy-mm-9999
             // 123456789012
 
-            var data = _db.RSMIs.Where(w => w.Date.Value.Year == date.Value.Year && w.Date.Value.Month == date.Value.Month).OrderByDescending(o => o.SerialNo).FirstOrDefault();
+            var data = _db.RSMIs.Where(w => w.Fund == fund && w.Date.Value.Year == date.Value.Year && w.Date.Value.Month == date.Value.Month).OrderByDescending(o => o.SerialNo).FirstOrDefault();
             if (data == null)
             {
                 return keyName + "-" + "0001";

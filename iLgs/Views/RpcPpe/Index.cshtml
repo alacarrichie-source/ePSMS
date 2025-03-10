@@ -1,10 +1,9 @@
-﻿@{
-    ViewBag.Title = "Report on the Physical Count of Equipment, Furnitures and Fixtures, and other PPE (RPCEFFOPPE)";
+﻿@{    
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
 
-@(Html.Kendo().Grid<iLgs.Models.RpcPpeVM>()
+@(Html.Kendo().Grid<iLgs.Models.RpcPpe>()
     .Name("grid")
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
@@ -23,13 +22,13 @@
     })
     .ToolBar(t =>
     {
-        t.Create().Text("Add New Record");
+        t.Create().Text("Generate");
         t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrint_").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost_").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost_").HtmlAttributes(new { @class = "k-button", href = "" });
         t.Search();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpcTemplate").Window(w => w.Width(500).Title("RPCEFFOPPE")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RpcTemplate").Window(w => w.Width(500).Title("Generate RPC")))
     .Search(s =>
     {
         s.Field(o => o.Department, "contains");
@@ -61,8 +60,9 @@
         {
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            model.Field(p => p.AccountGroup).DefaultValue(@ViewBag.AccountGroup);
         })
-        .Read(read => read.Action("Read", "RpcPpe"))
+        .Read(read => read.Action("Read", "RpcPpe", new { accountGroup = @ViewBag.AccountGroup }))
         .Create(create => create.Action("Create", "RpcPpe"))
         .Update(update => update.Action("Update", "RpcPpe"))
         .Destroy(destroy => destroy.Action("Destroy", "RpcPpe"))
@@ -92,7 +92,7 @@
     {
         items.Add().Text("Items")
             .Selected(true)
-            .LoadContentFrom("_Item", "RpcPpe", new { rpcId = "#=Id#" });
+            .LoadContentFrom("_Item", "RpcPpe", new { rpcPpeId = "#=Id#", accountGroup = @ViewBag.AccountGroup });
     }).ToClientTemplate())
 </script>
 
@@ -264,8 +264,8 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
 
-            var firstRow = this.tbody.find("tr.k-master-row").first();
-            this.expandRow(firstRow);
+            //var firstRow = this.tbody.find("tr.k-master-row").first();
+            //this.expandRow(firstRow);
 
             // Attach a handler to the "detailExpand" event
             this.bind("detailExpand", function (e) {
@@ -290,7 +290,6 @@
             selectedId = null;
             selectedAsOf = null;
             e.container.find("[id=EditDiv]").toggle(false);
-
             //var popupWindow = e.container.data("kendoWindow");
             //// Change the width of the pop-up window when entering edit mode
             //popupWindow.setOptions({
@@ -538,9 +537,9 @@
 
     $(".k-grid-btnPrint_").click(function (e) {
         e.preventDefault();
-        var AsOf = new Date(selectedAsOf);        
+        //var AsOf = new Date(selectedAsOf);
 
-        var url = '@Url.Action("RpcRpt", "RpcPpe")?AsOf=' + AsOf + "&id=" + selectedId;
+        var url = '@Url.Action("RpcPpeRpt", "RpcPpe")?id=' + selectedId + "&accountGroup=" + '@ViewBag.AccountGroup';
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -567,12 +566,27 @@
         mywindow.open();
     });
 
+    // _RpcTemplate
+    function onSelectDeptId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        $("#Department").val(dataItem.Description).trigger("change");
+    }
+
+    function onChangeDeptId(e) {
+        var comboBox = this;
+        if (!comboBox.value()) {
+            $("#Department").val("").trigger("change");            
+        }
+    }
+    // end _RpcTempate
+
     // Item Template
     function onSelectItemCode(e) {
         var dataItem = this.dataItem(e.item.index());
 
         $("#Account").val(dataItem.Account).trigger("change");
-        $("#SubArticle").val(dataItem.SubArticle).trigger("change");        
+        $("#SubArticle").val(dataItem.SubArticle).trigger("change");
     }
 
     // end Item Template

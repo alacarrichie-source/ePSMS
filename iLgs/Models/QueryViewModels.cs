@@ -34,6 +34,8 @@ namespace iLgs.Models
     {
         public Guid Id { get; set; }
 
+        public string Fund { get; set; }
+
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 

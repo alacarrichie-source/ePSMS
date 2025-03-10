@@ -212,7 +212,7 @@ namespace iLgs.Services.ParIcs
                     Description = s.Description,
                     StockNo = s.PsCard.PsNo,
                     IsForICS = s.IsForICS,
-                    GeneratedItems = (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    GeneratedItems = (_db.IcsParItems.Where(w => !w.IcsPar.IcsParUpdates.Any() && w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
                     InsertedDt = s.InsertedDt,
                     IsConsumableSetup = s.PsCard.ItemCode.IsConsumable,
                     IsIncorporatedSetup = s.PsCard.ItemCode.IsIncorporated,
@@ -290,7 +290,7 @@ namespace iLgs.Services.ParIcs
                     IsIncorporated = s.IsIncorporated,
                     IsOthers = s.IsOthers,
                     OtherRemarks = s.OtherRemarks,
-                    GeneratedItems = (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    GeneratedItems = (_db.IcsParItems.Where(w => !w.IcsPar.IcsParUpdates.Any() && w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
                     InsertedDt = s.InsertedDt,
                     ParPostedBy = s.ParPostedBy,
                     ParPostedDt = s.ParPostedDt

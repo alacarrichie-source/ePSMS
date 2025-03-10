@@ -237,7 +237,7 @@ namespace iLgs.Models
             [Display(Name = "Sub-Location")]
             public string SubLocation { get; set; }
 
-            [Required]
+            //[Required]
             [Display(Name = "Conduction Sticker No.")]
             public string ConductionNo { get; set; }
 

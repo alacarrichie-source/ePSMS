@@ -20,6 +20,8 @@
     @Html.HiddenFor(model => model.LocationCode)
     @Html.HiddenFor(model => model.SelectedIds)
     @Html.HiddenFor(model => model.IndSet)
+    @*@Html.HiddenFor(model => model.IcsPar.RefDate)
+    @Html.HiddenFor(model => model.IcsPar.LocationId)*@
     @Html.HiddenFor(model => model.IcsPar.ReceivedBy)
 
     <fieldset>
@@ -313,7 +315,7 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
                     .Columns(col =>
                     {
                         col.Select().Width(30);
-                        col.Bound(c => c.ContentNo).Width(50);
+                        col.Bound(c => c.ContentNo).Width(50).Title("Item Qty No.");
                         col.Bound(c => c.ConductionNo).Width(50);
                         //col.Bound(c => c.YearModel).Width(50);
                         //col.Bound(c => c.PlateNo).Width(50);

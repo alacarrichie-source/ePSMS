@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace iLgs.Services
+namespace iLgs.Services.RPC
 {
     public interface IRpciService
     {
@@ -104,7 +104,9 @@ namespace iLgs.Services
                     PostedDt = s.PostedDt,
                     InsertedDt = s.InsertedDt,
                     InvDistDesc = s.InvDist == "I" ? "Inventory" : s.InvDist == "D" ? "For Distribution" : "",
-                    AcqMode = s.FromDonation == true ? "From Donation" : "Purchase"
+                    AcqMode = s.FromDonation == true ? "From Donation" : "Purchase",
+                    QtyBalance = s.RPCIItems.Sum(x => x.TotalBalance),
+                    AcqCost = s.RPCIItems.Sum(x => x.AcqCost)
                 });
             return data;
         });

@@ -17,6 +17,7 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> RpciId { get; set; }
         public Nullable<System.Guid> ItemCodeId { get; set; }
+        public string ItemCode { get; set; }
         public string Account { get; set; }
         public string SubAccount { get; set; }
         public string Article { get; set; }
@@ -28,6 +29,7 @@ namespace iLgs.Models
         public string Unit { get; set; }
         public Nullable<int> Qty { get; set; }
         public Nullable<System.Guid> DeptId { get; set; }
+        public string DepartmentCode { get; set; }
         public string Department { get; set; }
         public Nullable<System.Guid> LocationId { get; set; }
         public string LocationCode { get; set; }
@@ -53,7 +55,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual Codextn Codextn { get; set; }
-        public virtual ItemCode ItemCode { get; set; }
+        public virtual ItemCode ItemCode1 { get; set; }
         public virtual RPCI RPCI { get; set; }
     }
 }

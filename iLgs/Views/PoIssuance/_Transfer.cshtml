@@ -120,11 +120,22 @@
                 </div>
             </div>
         </div>
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-3">                   
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+        
+        
+
+        @if (Model.IsWithItemExtn == true)
+        {
+            @Html.HiddenFor(model => model.Unit)
+            @Html.HiddenFor(model => model.UnitCost)
+            @RenderGridSelections();
+        }
+        else
+        {
+            <div class="row k-mb-2">
+                <div class="col-md-12">
+                    @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-3">
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Location")
                             .DataTextField("Code")
@@ -147,20 +158,20 @@
                             })
                             .Events(e => e.Select("onSelectLocationId"))
                     //.Suggest(true)
-                    )
-                    @Html.ValidationMessageFor(model => model.LocationId)
-                </div>
-                <div class="col-md-9">
-                    @(Html.Kendo().TextBoxFor(m => m.Location).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                        )
+                        @Html.ValidationMessageFor(model => model.LocationId)
+                    </div>
+                    <div class="col-md-9">
+                        @(Html.Kendo().TextBoxFor(m => m.Location).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-12" })
+            <div class="row k-mb-2">
                 <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Unit)
+                    @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.Unit)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select unit")
                         .DataTextField("Description")
@@ -182,39 +193,32 @@
                         })
                         .Suggest(true)
                         .Enable(false)
-                    )
-                    @Html.ValidationMessageFor(m => m.Unit)
+                        )
+                        @Html.ValidationMessageFor(m => m.Unit)
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.UnitCost, htmlAttributes: new { @class = "col-md-12" })
+            <div class="row k-mb-2">
                 <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.UnitCost).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                    @Html.ValidationMessageFor(m => m.UnitCost)
+                    @Html.LabelFor(m => m.UnitCost, htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.UnitCost).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
+                        @Html.ValidationMessageFor(m => m.UnitCost)
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.QtyBal, "Balance", htmlAttributes: new { @class = "col-md-12" })
+            <div class="row k-mb-2">
                 <div class="col-md-12">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyBal).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                    @Html.ValidationMessageFor(m => m.QtyBal)
+                    @Html.LabelFor(m => m.QtyBal, "Balance", htmlAttributes: new { @class = "col-md-12" })
+                    <div class="col-md-12">
+                        @(Html.Kendo().NumericTextBoxFor(m => m.QtyBal).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
+                        @Html.ValidationMessageFor(m => m.QtyBal)
+                    </div>
                 </div>
             </div>
-        </div>        
-        
 
-        @if (Model.IsWithItemExtn == true)
-        {
-            @RenderGridSelections();
-        }
-        else
-        {
             <div class="row k-mb-2">
                 <div class="col-md-12">
                     @Html.LabelFor(m => m.TransferOut, htmlAttributes: new { @class = "col-md-12" })
@@ -243,8 +247,8 @@
         <div class="row k-mb-2">
             <div class="col-md-12">
                 <span id="span_">
-                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave_" + @ViewData["CardItemId"]))
-                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel_" + @ViewData["CardItemId"]))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave_" + @ViewData["GroupId"]))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel_" + @ViewData["GroupId"]))
                 </span>
             </div>
         </div>
@@ -253,6 +257,46 @@
 }
 
 @helper RenderGridSelections()
+{
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnTransitVM>()
+        .Name("gridSelections")
+        .Columns(col =>
+        {
+            col.Select().Width(30);
+            col.Bound(c => c.SetLotNo).Width(50);
+            col.Bound(c => c.SetLotQtyNo).Width(50);
+            col.Bound(c => c.ContentNo).Width(50);
+            col.Bound(c => c.RefNo).Width(150);
+            col.Bound(c => c.LocationCode).Width(50);
+            col.Bound(c => c.Location).Width(150);
+        })
+        .NoRecords("No records with ICS/PAR available.")
+        .Resizable(r => r.Columns(true))
+        .Selectable(s => s.Mode(GridSelectionMode.Multiple))
+        .PersistSelection(true)
+        .Scrollable(s => s.Height(200))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Sort(s =>
+            {
+                s.Add(a => a.SetLotNo);
+                s.Add(a => a.SetLotQtyNo);
+                s.Add(a => a.ContentNo);
+            })
+            .Read(read => read.Action("_TransferSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"], groupId = @ViewData["GroupId"] }))
+        )
+        //.Events(e => e.Change("onChangeGridItemExtns"))
+        .AutoBind(true)
+    )
+}
+
+@helper RenderGridSelections_Old()
 {
 if (@ViewBag.ItemExtnName == "ItemExtnOther")
 {
@@ -281,7 +325,7 @@ if (@ViewBag.ItemExtnName == "ItemExtnOther")
                 {
                     s.Add(a => a.SerialNo);
                 })
-                .Read(read => read.Action("_TransferSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"] }))
+                .Read(read => read.Action("_TransferSelectionRead", "PoIssuance", new { cardItemId = @ViewData["GroupId"] }))
             )
             .AutoBind(true)
         )
@@ -321,7 +365,7 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
                 {
                     s.Add(a => a.PlateNo);
                 })
-                .Read(read => read.Action("_TransferSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"] }))
+                .Read(read => read.Action("_TransferSelectionRead", "PoIssuance", new { cardItemId = @ViewData["GroupId"] }))
             )
             .AutoBind(true)
         )
@@ -330,7 +374,7 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
 
 
 <script type="text/javascript">
-    $("#btnSave_" + '@ViewData["CardItemId"]').click(function (e) {
+    $("#btnSave_" + '@ViewData["GroupId"]').click(function (e) {
         e.preventDefault();
 
         var validator = $("#form").kendoValidator().data("kendoValidator");
@@ -341,12 +385,15 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
                 // Get reference to Grid object
                 var grid = $("#gridSelections").data("kendoGrid");
                 // Get selected rows
-                var sel = $("input:checked", grid.tbody).closest("tr");
+                var selectedRows = $("input:checked", grid.tbody).closest("tr");
                 // Get data item for each
 
-                var selectedIds = grid.selectedKeyNames().join(",");
+                var selectedIds = selectedRows.map(function () {
+                    return grid.dataItem(this);
+                }).get(); // Convert to an array
 
-                $("#SelectedIds").val(selectedIds);                
+                //$("#SelectedIds").val(selectedIds);
+                $("#SelectedIds").val(JSON.stringify(selectedIds));                
             }
             
             $.ajax({
@@ -359,10 +406,19 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
                 success: function (result) {
                     window.kendo.ui.progress($("#form"), false);
                     if (result.Errors == "") {
-                        $("#btnSave_" + '@ViewData["CardItemId"]').closest(".k-window-content").data("kendoWindow").close();
+                        $("#btnSave_" + '@ViewData["GroupId"]').closest(".k-window-content").data("kendoWindow").close();
                     }
                     else {
-                        alert(result.Errors);
+                        var $errorList = $("#ErrorContent .errors");
+                        $errorList.empty(); // Clear previous errors
+
+                        // Append errors to the list
+                        $.each(result.Errors, function (index, error) {
+                            $errorList.append("<li>" + error + "</li>");
+                        });
+
+                        // Show the error container
+                        $("#ErrorContent").removeClass("hidden");
                     }
                 },
                 error: function (req, status, errorObj) {
@@ -373,9 +429,9 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
         }
     });
 
-    $("#btnCancel_" +  '@ViewData["CardItemId"]').click(function (e) {
+    $("#btnCancel_" +  '@ViewData["GroupId"]').click(function (e) {
         e.preventDefault();
-        $("#btnCancel_" + '@ViewData["CardItemId"]').closest(".k-window-content").data("kendoWindow").close();
+        $("#btnCancel_" + '@ViewData["GroupId"]').closest(".k-window-content").data("kendoWindow").close();
     });
 
     

@@ -306,6 +306,8 @@
     <Compile Include="Controllers\CustodianReportController.cs" />
     <Compile Include="Controllers\CustodianReportLandController.cs" />
     <Compile Include="Controllers\DollarRateController.cs" />
+    <Compile Include="Controllers\IcsParRptController.cs" />
+    <Compile Include="Controllers\IcsParUpdateController.cs" />
     <Compile Include="Controllers\IcsSetController.cs" />
     <Compile Include="Controllers\ItemCodeRequestController.cs" />
     <Compile Include="Controllers\ItemHelperController.cs" />
@@ -316,6 +318,7 @@
     <Compile Include="Controllers\PoIssuanceController.cs" />
     <Compile Include="Controllers\PropertyCardTranspoControoller.cs" />
     <Compile Include="Controllers\PsCategoryController.cs" />
+    <Compile Include="Controllers\PropNoItemController.cs" />
     <Compile Include="Controllers\RpceffoppeController.cs" />
     <Compile Include="Controllers\RpciController.cs" />
     <Compile Include="Controllers\RpcPpeController.cs" />
@@ -525,11 +528,17 @@
     <Compile Include="Models\PsCardItemIssuance.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PsCardItemIssuanceItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PsCardItemTransactionViewModels.cs" />
     <Compile Include="Models\PsCardItemTransaction.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardItemTransfer.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemTransferItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardItemUnitGroup.cs">
@@ -593,6 +602,7 @@
     <Compile Include="Models\RpcPpeItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\RpcPpeViewModels.cs" />
     <Compile Include="Models\RpcViewModels.cs" />
     <Compile Include="Models\RSMI.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -676,6 +686,7 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>RisByAir.rpt</DependentUpon>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Reports\RisDepartment.cs">
       <DependentUpon>RisDepartment.rpt</DependentUpon>
@@ -695,14 +706,56 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Include="Reports\RpcPpe.cs">
+    <Compile Include="Reports\RpciAcctSum.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>RpcPpe.rpt</DependentUpon>
+      <DependentUpon>RpciAcctSum.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\RpciLeft.cs">
+      <DependentUpon>RpciLeft.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Reports\RpciPoSum.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RpciPoSum.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\RpciRight.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RpciRight.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\RpcPpeEquipment.cs">
+      <DependentUpon>RpcPpeEquipment.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Reports\RpcPpeVehicles.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RpcPpeVehicles.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\RpcPpe_Old.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RpcPpe_Old.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Reports\Rsmi.cs">
       <DependentUpon>Rsmi.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Reports\RsmiAcctSum.cs">
+      <DependentUpon>RsmiAcctSum.rpt</DependentUpon>
       <SubType>Component</SubType>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -712,6 +765,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>RsmiOverallRecap.rpt</DependentUpon>
       <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\RsmiPoSum.cs">
+      <DependentUpon>RsmiPoSum.rpt</DependentUpon>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Reports\RsmiSerialRecap.cs">
       <AutoGen>True</AutoGen>
@@ -787,6 +846,8 @@
     <Compile Include="Services\ParIcs\IcsService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\LoggingService.cs" />
+    <Compile Include="Services\PoIssuance\PoIssuanceUploadService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnUpdateService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupService.cs" />
@@ -805,11 +866,12 @@
     <Compile Include="Services\Requisition\RisItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\Requisition\RisItemUnitGroupService.cs" />
     <Compile Include="Services\RpceffoppeItemService.cs" />
-    <Compile Include="Services\RpciItemService.cs" />
-    <Compile Include="Services\RpciService.cs" />
+    <Compile Include="Services\RPC\RpciItemService.cs" />
+    <Compile Include="Services\RPC\RpciService.cs" />
     <Compile Include="Services\RpceffoppeService.cs" />
-    <Compile Include="Services\RpcPpeItemService.cs" />
-    <Compile Include="Services\RpcPpeService.cs" />
+    <Compile Include="Services\RPC\RpcPpeItemService.cs" />
+    <Compile Include="Services\RPC\RpcPpeService.cs" />
+    <Compile Include="Services\RsmiService.cs" />
     <Compile Include="Services\ServiceResult.cs" />
     <Compile Include="Services\StockCards\StockCardService.cs" />
     <Compile Include="Services\ParIcs\ParIcsUploadService.cs" />
@@ -990,7 +1052,7 @@
     <Compile Include="Services\Interfaces\IRisItemService.cs" />
     <Compile Include="Services\Interfaces\IRisService.cs" />
     <Compile Include="Services\Interfaces\IUserService.cs" />
-    <Compile Include="Services\PoIssuanceService.cs" />
+    <Compile Include="Services\PoIssuance\PoIssuanceService.cs" />
     <Compile Include="Services\Items\ItemCodeService.cs" />
     <Compile Include="Services\ItemFieldService.cs" />
     <Compile Include="Services\Items\ItemTypeService.cs" />
@@ -1611,9 +1673,21 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Rpci.cs</LastGenOutput>
     </Content>
+    <Content Include="Reports\RpciLeft.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpciLeft.cs</LastGenOutput>
+    </Content>
     <Content Include="Reports\Rsmi.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Rsmi.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\RsmiAcctSum.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RsmiAcctSum.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\RsmiPoSum.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RsmiPoSum.cs</LastGenOutput>
     </Content>
     <Content Include="Reports\StockCard.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
@@ -3973,6 +4047,8 @@
     <Content Include="Views\AIRs\EditorTemplates\_OtherParticularsTemplate.cshtml" />
     <Content Include="Views\IcsSet\EditorTemplates\_IsForIcsTemplate.cshtml" />
     <Content Include="Views\IcsSet\_IcsSet.cshtml" />
+    <Content Include="Views\IcsParUpdate\Index.cshtml" />
+    <Content Include="Views\IcsParUpdate\_Transfer.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4046,7 +4122,6 @@
     <Content Include="Views\RpcPpe\Index.cshtml" />
     <Content Include="Views\RpcPpe\EditorTemplates\_RpcTemplate.cshtml" />
     <Content Include="Views\RpcPpe\_Item.cshtml" />
-    <Content Include="Views\RpcPpe\EditorTemplates\_ItemTemplate.cshtml" />
     <Content Include="Views\PropertyCardPpe\Index.cshtml" />
     <Content Include="Views\PropertyCardPpe\EditorTemplates\_CardItemTemplate.cshtml" />
     <Content Include="Views\PropertyCardTranspo\Index.cshtml" />
@@ -4303,6 +4378,15 @@
     <Content Include="Views\ParSet\_Upload.cshtml" />
     <Content Include="Views\ParSet\_Pars.cshtml" />
     <Content Include="Views\ParSet\_ParSet.cshtml" />
+    <Content Include="Views\PropNoItem\Index.cshtml" />
+    <Content Include="Views\PropNoItem\Supplies.cshtml" />
+    <Content Include="Views\PropNoItem\_Items.cshtml" />
+    <Content Include="Views\PropNoItem\_Images.cshtml" />
+    <Content Include="Views\PoIssuance\_Images.cshtml" />
+    <Content Include="Views\PoIssuance\EditorTemplates\_ImagesTemplate.cshtml" />
+    <Content Include="Views\PoIssuance\_ImagesAdd.cshtml" />
+    <Content Include="Views\RSMI\_PrintSum.cshtml" />
+    <Content Include="Views\Rpci\_PrintSum.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4310,6 +4394,8 @@
     <Folder Include="Views\Cards\" />
     <Folder Include="Views\CustodianUpload\" />
     <Folder Include="Views\Getters\" />
+    <Folder Include="Views\IcsParRpt\" />
+    <Folder Include="Views\IcsParUpdate\EditorTemplates\" />
     <Folder Include="Views\Issuances\" />
     <Folder Include="Views\ItemHelper\" />
     <Folder Include="Views\MenuAccessAction\" />
@@ -4368,9 +4454,9 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>ItemCode.cs</LastGenOutput>
     </Content>
-    <Content Include="Reports\RpcPpe.rpt">
+    <Content Include="Reports\RpcPpe_Old.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
-      <LastGenOutput>RpcPpe.cs</LastGenOutput>
+      <LastGenOutput>RpcPpe_Old.cs</LastGenOutput>
     </Content>
     <Content Include="Reports\CustodianStock.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
@@ -4400,6 +4486,26 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RisByAir.cs</LastGenOutput>
     </Content>
+    <Content Include="Reports\RpciPoSum.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpciPoSum.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\RpciAcctSum.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpciAcctSum.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\RpciRight.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpciRight.cs</LastGenOutput>
+    </Content>
+    <EmbeddedResource Include="Reports\RpcPpeEquipment.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpcPpeEquipment.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Reports\RpcPpeVehicles.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpcPpeVehicles.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Reports\RsmiOverallRecap.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RsmiOverallRecap.cs</LastGenOutput>
@@ -4433,7 +4539,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

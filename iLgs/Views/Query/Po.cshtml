@@ -45,6 +45,7 @@
     .Columns(col =>
     {
         //col.Bound(c => c.Id).Hidden();
+        col.Bound(c => c.Fund).Width(40);
         col.Bound(c => c.PoNo).Width(50);
         col.Bound(c => c.PoDate).Width(50);
         col.Bound(c => c.DeptCode).Width(50);
@@ -161,6 +162,7 @@
     })
     .Search(s =>
     {
+        s.Field(o => o.Fund, "contains");
         s.Field(o => o.PoNo, "contains");
     })
     .Pageable(pager => pager

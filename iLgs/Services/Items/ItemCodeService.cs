@@ -308,7 +308,7 @@ namespace iLgs.Services.Items
             if (!string.IsNullOrWhiteSpace(model.ItemSw))
             {
                 var f = model.ItemSw.ToUpper().Trim();
-                if (f != "Y" && f != "N" && f != "")
+                if (f != "Y" && f != "N" && f != "A" && f != "")
                 {
                     throw new InvalidValueException("Invalid Article value!");
                 }

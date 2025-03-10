@@ -294,7 +294,7 @@ namespace iLgs.Services.AIRs
                                 Capacity = orderAllField.Capacity,
                                 Color = orderAllField.Color,
                                 SerialNo = orderAllField.SerialNo,
-                                PropNo = orderAllField.PropNo,
+                                PropNo = orderAllField.PropNo,                                
                                 PlateNo = orderAllField.PlateNo,
                                 BodyNo = orderAllField.BodyNo,
                                 MVFileNo = orderAllField.MVFileNo,
@@ -352,7 +352,9 @@ namespace iLgs.Services.AIRs
                             InsertedBy = user,
                             InsertedDt = date,
                             UpdatedBy = user,
-                            UpdatedDt = date
+                            UpdatedDt = date,
+                            PostedBy = user,
+                            PostedDt = date
                         };
 
                         // include ItemExtns
@@ -363,9 +365,11 @@ namespace iLgs.Services.AIRs
                                 .FirstOrDefaultAsync(f => f.AIRItemExtnId == airItemExtnOther.Id);
                             if (psCardItemExtnOther == null)
                             {
+                                var psCardItemExtnId = Guid.NewGuid();
                                 psCardItemExtnOther = new PsCardItemExtnOther()
                                 {
-                                    Id = Guid.NewGuid(),
+                                    Id = psCardItemExtnId,
+                                    GroupId = psCardItemExtnId,
                                     PsCardItemId = psCardItem.Id,
                                     AIRItemExtnId = airItemExtnOther.Id,
                                     SetLotNo = airItemExtnOther.SetLotNo,
@@ -388,9 +392,11 @@ namespace iLgs.Services.AIRs
                                     .FirstOrDefaultAsync(f => f.AIRItemExtnId == airItemExtnVehicle.Id);
                             if (psCardItemExtnVehicle == null)
                             {
+                                var psCardItemExtnId = Guid.NewGuid();
                                 psCardItemExtnVehicle = new PsCardItemExtnVehicle()
                                 {
-                                    Id = Guid.NewGuid(),
+                                    Id = psCardItemExtnId,
+                                    GroupId = psCardItemExtnId,
                                     PsCardItemId = psCardItem.Id,
                                     AIRItemExtnId = airItemExtnVehicle.Id,
                                     SetLotNo = airItemExtnVehicle.SetLotNo,
@@ -409,6 +415,7 @@ namespace iLgs.Services.AIRs
                                     OrDate = airItemExtnVehicle.OrDate,
                                     NetWeight = airItemExtnVehicle.NetWeight,
                                     InsPolicyNo = airItemExtnVehicle.InsPolicyNo,
+                                    ConductionNo = airItemExtnVehicle.ConductionNo,
                                     //ParReissuance = airItemExtnVehicle.ParReissuance,
                                     //Condition = airItemExtnVehicle.Condition,
                                     SubLocation = airItemExtnVehicle.SubLocation,

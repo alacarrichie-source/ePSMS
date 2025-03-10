@@ -6,6 +6,28 @@ using System.Web;
 
 namespace iLgs.Models
 {
+
+    public class IcsParVM : IcsPar
+    {
+        [Display(Name = "Status")]
+        public string Status_ { get; set; }
+
+        [Display(Name = "Prev. Ref. No.")]
+        public string PrevRefNo { get; set; }
+
+        public string Remarks { get; set; }
+
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [Display(Name = "Date")]
+        [Required]
+        new public Nullable<System.DateTime> RefDate { get; set; }
+
+        [Display(Name = "Location Code")]
+        [Required]
+        new public Nullable<System.Guid> LocationId { get; set; }
+    }
+
+
     [MetadataType(typeof(IcsPar.Metadata))]
     public partial class IcsPar
     {        
@@ -19,8 +41,16 @@ namespace iLgs.Models
             public string RefNo { get; set; }
 
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+            [Display(Name = "Date")]
             public Nullable<System.DateTime> RefDate { get; set; }
             public string RefType { get; set; }
+
+            [Display(Name = "Location Code")]
+            public Nullable<System.Guid> LocationId { get; set; }
+
+            public string LocationCode { get; set; }
+
+            public string Location { get; set; }
 
             [Display(Name = "Received by")]
             [Required]

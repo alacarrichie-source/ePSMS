@@ -40,6 +40,7 @@ namespace iLgs.Services.ParIcs
         ValueTask<GenerateIcsParVM> GenerateIcs(GenerateIcsParVM model, string user, DateTime date);
         ValueTask<GenerateIcsParVM> GenerateIcsSet(GenerateIcsParVM model, string user, DateTime date);
         ValueTask<GenerateIcsParVM> GenerateIcsBatch(GenerateIcsParVM model, string user, DateTime date);
+
         ValueTask<PsCardItemUnitGroupDescriptionItem> UpdateNoICSAsync(PsCardItemUnitGroupDescriptionItem model, string user, DateTime date);
 
         IIcsParService IcsPar { get; }
@@ -171,7 +172,7 @@ namespace iLgs.Services.ParIcs
                     IsIncorporated = s.IsIncorporated,
                     IsOthers = s.IsOthers,
                     OtherRemarks = s.OtherRemarks,
-                    GeneratedItems = (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                    GeneratedItems = (_db.IcsParItems.Where(w => !w.IcsPar.IcsParUpdates.Any() && w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
                     InsertedDt = s.InsertedDt,
                     InvDist = s.InvDist == "I" ? "Inventory" : s.InvDist == "D" ? "For Distribution" : "",
                     IsConsumableSetup = s.PsCard.ItemCode.IsConsumable,
@@ -240,7 +241,7 @@ namespace iLgs.Services.ParIcs
                     IsOthers = s.IsOthers,
                     OtherRemarks = s.OtherRemarks,
                     //GeneratedItems = s.PsCardItemExtns.Count(c => c.IcsParItems.Any()),                    
-                    GeneratedItems = (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                    GeneratedItems = (_db.IcsParItems.Where(w => !w.IcsPar.IcsParUpdates.Any() && w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
                     InsertedDt = s.InsertedDt,
                     InvDist = s.InvDist,
                     InvDistDisplay = s.InvDist == "I" ? "Inventory" : s.InvDist == "D" ? "For Distribution" : "",
@@ -309,7 +310,7 @@ namespace iLgs.Services.ParIcs
         public IQueryable<ParIcsItemVm> GetItemSetDescriptionItemsByUnitGroupDescriptionId(Guid? unitGroupDescriptionId)
         {
             var data = _db.PsCardItems.AsNoTracking()
-                .Where(w => w.PsCardItemUnitGroupDescriptionItems
+                .Where(w => w.TransferRefId == null && w.PsCardItemUnitGroupDescriptionItems
                     .Any(a => a.UnitGroupDescriptionId == unitGroupDescriptionId
                     //&& a.PsCardItemId == w.Id                        
                     )
@@ -335,7 +336,7 @@ namespace iLgs.Services.ParIcs
                     IsIncorporated = s.IsIncorporated,
                     IsOthers = s.IsOthers,
                     OtherRemarks = s.OtherRemarks,
-                    GeneratedItems = (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                    GeneratedItems = (_db.IcsParItems.Where(w => !w.IcsPar.IcsParUpdates.Any() && w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
                     InsertedDt = s.InsertedDt,
                     InvDist = s.InvDist == "I" ? "Inventory" : s.InvDist == "D" ? "For Distribution" : "",
                     IsConsumableSetup = s.PsCard.ItemCode.IsConsumable,
@@ -495,7 +496,7 @@ namespace iLgs.Services.ParIcs
                         icsPar = new IcsPar()
                         {
                             Id = (Guid)icsParId,
-                            UpdateCode = "N",
+                            UpdateCode = "I",
                             LocationId = model.LocationId,
                             LocationCode = model.LocationCode,
                             Location = model.Location,
@@ -623,7 +624,7 @@ namespace iLgs.Services.ParIcs
             var icsPar = new IcsPar()
             {
                 Id = Guid.NewGuid(),
-                UpdateCode = "N",
+                UpdateCode = "I",
                 LocationId = model.LocationId,
                 LocationCode = model.LocationCode,
                 Location = model.Location,
@@ -875,7 +876,7 @@ namespace iLgs.Services.ParIcs
             var icsPar = new IcsPar()
             {
                 Id = Guid.NewGuid(),
-                UpdateCode = "N",
+                UpdateCode = "I",
                 LocationId = model.LocationId,
                 LocationCode = model.LocationCode,
                 Location = model.Location,
@@ -916,15 +917,17 @@ namespace iLgs.Services.ParIcs
                     var propNo = NextPropNo(acqYear, cardItem.StockNo, model.LocationCode, model.RefType);
                     var propSplit = propNo.Split('/');
                     var propSeq = propSplit[propSplit.Length - 2];
+                    var psCardItemExtnEntity = _db.PsCardItemExtns.Find(psCardItemExtn.Id);
 
-                    psCardItemExtn.PropNo = propNo;
-                    psCardItemExtn.PropYear = acqYear;
-                    psCardItemExtn.PropSeq = propSeq;
-                    psCardItemExtn.UpdatedBy = user;
-                    psCardItemExtn.UpdatedDt = date;
+                    psCardItemExtnEntity.LocationId = model.LocationId;
+                    psCardItemExtnEntity.PropNo = propNo;
+                    psCardItemExtnEntity.PropYear = acqYear;
+                    psCardItemExtnEntity.PropSeq = propSeq;
+                    psCardItemExtnEntity.UpdatedBy = user;
+                    psCardItemExtnEntity.UpdatedDt = date;
 
-                    _db.PsCardItemExtns.Attach(psCardItemExtn);
-                    _db.Entry(psCardItemExtn).State = EntityState.Modified;
+                    _db.PsCardItemExtns.Attach(psCardItemExtnEntity);
+                    _db.Entry(psCardItemExtnEntity).State = EntityState.Modified;
                     await _db.SaveChangesAsync();
 
                     var icsParItem = new IcsParItem()
@@ -1211,7 +1214,7 @@ namespace iLgs.Services.ParIcs
                              icsPar = new IcsPar()
                              {
                                  Id = (Guid)icsParId,
-                                 UpdateCode = "N",
+                                 UpdateCode = "I",
                                  LocationId = model.LocationId,
                                  LocationCode = model.LocationCode,
                                  Location = model.Location,

@@ -52,7 +52,6 @@ namespace iLgs.Services.CustodianReports
             return data;
         });
 
-
         public ValueTask<CustodianReport> GetByAsOfAsync(DateTime? AsOf) =>
         _exceptionService.TryCatch(async () =>
         {

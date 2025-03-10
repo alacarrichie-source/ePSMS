@@ -1471,6 +1471,7 @@
     function onSelectGenerateParLocationId(e) {
         var dataItem = this.dataItem(e.item.index());
 
+        //$("#IcsPar.LocationId").val(dataItem.Id).trigger("change");
         $("#LocationCode").val(dataItem.Code).trigger("change");
         $("#Location").val(dataItem.Description).trigger("change");
     }
@@ -1714,7 +1715,7 @@
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
-        var url = '@Url.Action("ParSetRpt", "ParSet")?parNo=' + dataItem.IcsPar.RefNo;
+        var url = '@Url.Action("ParSetRpt", "IcsParRpt")?parNo=' + dataItem.IcsPar.RefNo;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -1812,7 +1813,7 @@
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
-        var url = '@Url.Action("ParSetRpt", "ParSet")?parNo=' + dataItem.RefNo;
+        var url = '@Url.Action("ParSetRpt", "IcsParRpt")?parNo=' + dataItem.RefNo;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -2180,7 +2181,6 @@
         mywindow.refresh({ url: myUrl });
         mywindow.center();
         mywindow.open();
-
     }
 
     function UploadPara(e) {

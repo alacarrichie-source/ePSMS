@@ -17,7 +17,7 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("PARSET", "ICSSET")]
+    [AppAuthorize("PARSET", "ICSSET", "ICSPARUPDATE")]
     public class ParIcsUploadController : BaseController
     {
         private readonly AppManEntities _db;
@@ -63,7 +63,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par", "ics");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par", "ics", "ics_par_update");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -96,7 +96,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par", "ics");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par", "ics", "ics_par_update");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -136,7 +136,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par", "ics");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "par", "ics", "ics_par_update");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -185,6 +185,19 @@ namespace iLgs.Controllers
         public async Task<ActionResult> PreviewUpload(Guid id)
         {
             var fileResult = await _uploadService.GetUploadedFileAsync(id);
+            if (fileResult != null)
+            {
+                return fileResult; // Return the file result directly
+            }
+            else
+            {
+                return HttpNotFound("File not found"); // Handle not found case
+            }
+        }
+
+        public async Task<ActionResult> GridPreview(Guid id)
+        {
+            var fileResult = await _uploadService.GetImageIdFirstUploadAsync(id);
             if (fileResult != null)
             {
                 return fileResult; // Return the file result directly

@@ -1526,6 +1526,7 @@
     function onSelectGenerateParLocationId(e) {
         var dataItem = this.dataItem(e.item.index());
 
+        //$("#IcsPar.LocationId").val(dataItem.Id).trigger("change");
         $("#LocationCode").val(dataItem.Code).trigger("change");
         $("#Location").val(dataItem.Description).trigger("change");
     }
@@ -1784,7 +1785,7 @@
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
-        var url = '@Url.Action("IcsSetRpt", "IcsSet")?icsNo=' + dataItem.IcsPar.RefNo;
+        var url = '@Url.Action("IcsSetRpt", "IcsParRpt")?icsNo=' + dataItem.IcsPar.RefNo;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")
@@ -2550,7 +2551,7 @@
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
-        var url = '@Url.Action("IcsSetRpt", "IcsSet")?icsNo=' + dataItem.RefNo;
+        var url = '@Url.Action("IcsSetRpt", "IcsParRpt")?icsNo=' + dataItem.RefNo;
 
         $("#windowcontainer").append("<div id='windowPrint'></div>");
         var mywindow = $("#windowPrint")

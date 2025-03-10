@@ -17,6 +17,16 @@ namespace iLgs.Models
             BUILDING = 5
         }
 
+        public enum AccountGroup
+        {
+            ALL = 0,
+            SUPPLIES = 1,
+            PPE = 2,
+            VEHICLE = 3,
+            LAND = 4,
+            BUILDING = 5
+        }
+
         public enum CategoryGroup
         {            
             LAND,

@@ -19,6 +19,7 @@ namespace iLgs.Services
         IQueryable<Upload> GetAllByImageId(Guid? imageId);
         ValueTask<Upload> GetByIdAsync(Guid? id);
         ValueTask<ActionResult> GetUploadedFileAsync(Guid? id);
+        ValueTask<ActionResult> GetImageIdFirstUploadAsync(Guid? id);
 
         ValueTask<Upload> UploadAsync(IEnumerable<HttpPostedFileBase> files, Upload model, string user, DateTime date);
         ValueTask<Upload> UpdateAsync(Upload model, string user, DateTime date);
@@ -91,7 +92,34 @@ namespace iLgs.Services
             //return File(fileBytes, mimeType);
         }
 
-        
+        public async ValueTask<ActionResult> GetImageIdFirstUploadAsync(Guid? imageId)
+        {
+            var file = await _db.Uploads.Where(w => w.ImageId == imageId).OrderBy(o => o.InsertedDt).FirstOrDefaultAsync();
+            var fileName = file.FileName;
+
+            var physicalPath = Path.Combine(_directory, fileName);
+            var fileExt = Path.GetExtension(fileName).Substring(1).ToLower();
+
+            if (fileExt == "pdf")
+            {
+                return new FilePathResult(physicalPath, "application/pdf");
+            }
+            else
+            {
+                return new FilePathResult(physicalPath, "image/jpg");
+            }
+
+            //// Read the file bytes
+            //byte[] fileBytes = System.IO.File.ReadAllBytes(physicalPath);
+
+            //// Get MIME type based on the file extension
+            //string mimeType = MimeMapping.GetMimeMapping(fileName);
+
+            //// Return the file content to be viewed in the browser
+            //return File(fileBytes, mimeType);
+        }
+
+
         public virtual async ValueTask<Upload> UploadAsync(IEnumerable<HttpPostedFileBase> files, Upload model, string user, DateTime date)
         {            
             if (files == null || !files.Any())

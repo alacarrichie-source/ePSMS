@@ -15,7 +15,7 @@ namespace iLgs.Models
     public partial class IcsParUpdate
     {
         public System.Guid Id { get; set; }
-        public string RefNo { get; set; }
+        public Nullable<System.Guid> IcsParId { get; set; }
         public string RefType { get; set; }
         public string PrevRefNo { get; set; }
         public string Remarks { get; set; }
@@ -23,5 +23,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
+    
+        public virtual IcsPar IcsPar { get; set; }
     }
 }

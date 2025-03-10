@@ -63,7 +63,7 @@ namespace iLgs.Models
         [Display(Name = "Item Code")]
         public string Code { get; set; }
         public string Description { get; set; }
-        [Display(Name = "Article (Y/N)")]
+        [Display(Name = "Article (Y/N/A)")]
         public string ItemSw { get; set; }
 
         [Display(Name = "Consumable (Y/N)")]

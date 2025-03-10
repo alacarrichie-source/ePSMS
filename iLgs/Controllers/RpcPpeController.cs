@@ -1,24 +1,22 @@
-﻿using iLgs.Models;
-using Kendo.Mvc.UI;
+﻿using CrystalDecisions.CrystalReports.Engine;
+using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
+using iLgs.Models;
+using iLgs.Services;
+using iLgs.Services.Codes;
+using iLgs.Services.RPC;
+using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
+using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using System.Data.Entity;
-using Microsoft.AspNet.Identity;
-using iLgs.Utilities;
-using Newtonsoft.Json;
-using iLgs.Services.Interfaces;
-using iLgs.Services;
-using CrystalDecisions.Shared;
-using CrystalDecisions.CrystalReports.Engine;
-using System.Data.SqlClient;
-using System.IO;
-using System.Collections.Generic;
-using iLgs.Exceptions;
-using iLgs.Exceptions.Service;
-using iLgs.Services.Codes;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Controllers
 {
@@ -29,6 +27,8 @@ namespace iLgs.Controllers
         private readonly IRpcPpeService _rpcService;
         private readonly IRpcPpeItemService _rpcItemService;
         private readonly ICodextnService _codextnService;
+        private readonly IUserService _userService;
+
 
         public RpcPpeController()
         {
@@ -36,17 +36,49 @@ namespace iLgs.Controllers
             _rpcService = new RpcPpeService(_db);
             _rpcItemService = new RpcPpeItemService(_db);
             _codextnService = new CodextnService(_db);
+            _userService = new UserService(_db);
         }
 
-        // GET: RpcPpe
+
+        public ActionResult Equipment()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)AccountGroup.PPE;
+            ViewBag.Title = "Report on the Physical Count of Equipments";
+            return View("Index");
+        }
+
+        public ActionResult Vehicle()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)AccountGroup.VEHICLE;
+            ViewBag.Title = "Report on the Physical Count of Vehicles";
+            return View("Index");
+        }
+
+        public ActionResult Supplies()
+        {
+            TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
+            ViewBag.AccountGroup = (int?)AccountGroup.SUPPLIES;
+            ViewBag.Title = "Report on the Physical Count of Supplies";
+            return View("Index");
+        }
+
+
         public ActionResult Index()
         {
+            if (TempData["AllowIndexAccess"] == null || !(bool)TempData["AllowIndexAccess"])
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error"); // Or some other handling
+            }
             return View();
         }
 
-        public ActionResult Read([DataSourceRequest] DataSourceRequest request)
+
+        public ActionResult Read([DataSourceRequest] DataSourceRequest request, int? accountGroup)
         {
-            var data = _rpcService.GetAll();
+            var data = _rpcService.GetAllByAccountGroup(accountGroup);
 
             var result = new JsonNetResult
             {
@@ -57,12 +89,12 @@ namespace iLgs.Controllers
             return result;
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Create([DataSourceRequest] DataSourceRequest request, RpcPpeVM model)
+        public async Task<ActionResult> Create([DataSourceRequest] DataSourceRequest request, RpcPpe model)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
+                var menuId = _rpcService.GetAccountGroupMenuId(model.AccountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -75,7 +107,6 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    //model = await _rpcService.GenerateAsync(model, user, date);
                     model = await _rpcService.CreateAsync(model, user, date);
                 }
             }
@@ -100,11 +131,12 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Update([DataSourceRequest] DataSourceRequest request, RpcPpeVM model)
+        public async Task<ActionResult> Update([DataSourceRequest] DataSourceRequest request, RpcPpe model)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
+                var menuId = _rpcService.GetAccountGroupMenuId(model.AccountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -140,11 +172,12 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, RpcPpeVM model)
+        public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, RpcPpe model)
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
+                var menuId = _rpcService.GetAccountGroupMenuId(model.AccountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -170,139 +203,126 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public ActionResult _Item(Guid? rpcId)
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> Post(Guid? id, int? accountGroup)
         {
-            ViewData["rpcId"] = rpcId;
-            return PartialView();
-        }        
+            try
+            {
+                var menuId = _rpcService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Add Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
 
-        public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, Guid? rpcId)
+                    await _rpcService.PostAsync((Guid)id, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> UnPost(Guid? id, int? accountGroup)
         {
-            var data = _rpcItemService.GetByRpcId(rpcId);
+            try
+            {
+                var menuId = _rpcService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.AllowUnpost)
+                {
+                    ModelState.AddModelError("Access", "Add Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _rpcService.UnPostAsync((Guid)id, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult _Item(Guid? rpcPpeId, int? accountGroup)
+        {
+            ViewData["RpcPpeId"] = rpcPpeId;
+            ViewBag.AccountGroup = accountGroup;
+            return PartialView();
+        }
+
+        public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, Guid? rpcPpeId, int? accountGroup)
+        {
+            var data = _rpcItemService.GetByRpcPpeId(rpcPpeId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemCreate([DataSourceRequest] DataSourceRequest request, RpcPpeItemVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
-                Access access = await accessTask;
-                if (!access.AllowAdd)
-                {
-                    ModelState.AddModelError("Access", "Access Denied!");
-                }
-
-                if (model != null && ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    model = await _rpcItemService.CreateAsync(model, user, date);
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", e.Message);
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemUpdate([DataSourceRequest] DataSourceRequest request, RpcPpeItemVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
-                Access access = await accessTask;
-                if (!access.AllowEdit)
-                {
-                    ModelState.AddModelError("UpdateError", "Access Denied!");
-                }
-
-                if (ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    model = await _rpcItemService.UpdateAsync(model, user, date);
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", e.Message);
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemDestroy([DataSourceRequest]DataSourceRequest request, RpcPpeItemVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "rpcppe");
-                Access access = await accessTask;
-                if (!access.AllowDelete)
-                {
-                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
-                }
-
-                if (ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    model = await _rpcItemService.DeleteAsync(model, user, date);
-                    // TO DO: update stocks
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("DeleteError", e.Message);
-            }
-
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
 
         #region PRINTOUTS
         //public ActionResult RpciRpt(DateTime? asAt)
         //{
         //    return RpciRpt(asAt, "");
         //}
-        public ActionResult RpcRpt(DateTime? asOf, Guid? id)
+        public ActionResult RpcPpeRpt(Guid? id, int? accountGroup)
         {
             //var rpci = _db.RPCIs.Find(id);
             string stringname = _db.Database.Connection.ConnectionString.ToString();
@@ -314,7 +334,18 @@ namespace iLgs.Controllers
             string db_ = decoder.InitialCatalog;
 
             ReportClass rpt = new ReportClass();
-            rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpe.rpt"));
+            if (accountGroup == (int?)AccountGroup.PPE)
+            {
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeEquipment.rpt"));
+            }
+            else if (accountGroup == (int?)AccountGroup.VEHICLE)
+            {
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeVehicles.rpt"));
+            }
+            else if (accountGroup == (int?)AccountGroup.SUPPLIES)
+            {
+                rpt.FileName = Server.MapPath(Url.Content("~/Reports/RpcPpeSupplies.rpt"));
+            }
             rpt.Load();
             rpt.Refresh();
 
@@ -332,8 +363,7 @@ namespace iLgs.Controllers
             var lgu = _codextnService.GetByMastCode("LGU").Where(w => w.Code == "Name").FirstOrDefault().Description;
 
             //rpt.SetParameterValue("LGU", lgu);
-            rpt.SetParameterValue("@dAsOf", asOf);
-            rpt.SetParameterValue("@uRpcId", id == null ? null : id.ToString());
+            rpt.SetParameterValue("@uRpcId", id.ToString());
 
             Stream stream = rpt.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             rpt.Close();

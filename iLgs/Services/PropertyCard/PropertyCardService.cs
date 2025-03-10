@@ -33,56 +33,7 @@ namespace iLgs.Services.PropertyCard
         }
 
         public new IQueryable<PropertyCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
-        {
-            //var data = _db.PsCards.AsNoTracking()
-            //    .Where(w => w.ItemCode.ItemType.Category != "S")
-            //    .Select(s => new PropertyCardVM
-            //    {
-            //        Id = s.Id,
-            //        ItemCodeId = s.ItemCodeId,
-            //        Item = s.ItemCode.Description,
-            //        ItemNo = s.ItemCode.ItemNo,
-            //        ItemCode = s.ItemCode.Code,
-            //        ItemType = s.ItemCode.ItemType.Description,
-            //        ItemTypeCode = s.ItemCode.ItemType.Code,
-            //        PartialPage = s.ItemCode.PartialPage == null ? s.ItemCode.ItemType.PartialPage : s.ItemCode.PartialPage,
-            //        CardCategory = s.CardCategory,
-            //        Description = s.Description,
-            //        SubAccountCode = s.SubAccountCode,                    
-            //        Fund = s.Fund,
-            //        Unit = s.Unit,
-            //        PsNo = s.PsNo,
-            //        PsName = s.PsName,
-            //        PrevPsNo = s.PrevPsNo,
-            //        Amount = s.Amount,
-            //        FromDonation = s.FromDonation,
-            //        AllField = s.AllField,
-            //        InsertedDt = s.InsertedDt
-            //    }).ToList()
-            //    .Select(s => new PropertyCardVM
-            //    {
-            //        Id = s.Id,
-            //        ItemCodeId = s.ItemCodeId,
-            //        Item = s.Item,
-            //        ItemNo = s.ItemNo,
-            //        ItemCode = s.ItemCode,
-            //        ItemType = s.ItemType,
-            //        ItemTypeCode = s.ItemTypeCode,
-            //        PartialPage = s.PartialPage,
-            //        CardCategory = s.CardCategory,
-            //        Description = s.Description,
-            //        SubAccountCode = s.SubAccountCode,
-            //        SubAccount = _itemCodeService.GetSubAccounts(s.ItemCodeId), 
-            //        Fund = s.Fund,
-            //        Unit = s.Unit,
-            //        PsNo = s.PsNo,
-            //        PsName = s.PsName,
-            //        PrevPsNo = s.PrevPsNo,
-            //        Amount = s.Amount,
-            //        FromDonation = s.FromDonation,
-            //        AllField = s.AllField,
-            //        InsertedDt = s.InsertedDt
-            //    }).AsQueryable();
+        {            
             var data = _db.Database.SqlQuery<PropertyCardVM>("Exec Card_GetRecords 'P'").AsQueryable();
             return data;
         });

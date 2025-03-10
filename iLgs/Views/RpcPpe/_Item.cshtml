@@ -1,85 +1,76 @@
-﻿@(Html.Kendo().Grid<iLgs.Models.RpcPpeItemVM>()
-        .Name("gridItems_" + @ViewData["rpcId"])
-        .Columns(col =>
-        {
-            col.Bound(c => c.Fund).Width(70);
-            col.Bound(c => c.Account).Width(70);
-            col.Bound(c => c.Article).Width(70);
-            col.Bound(c => c.SubArticle).Width(70);
-            col.Bound(c => c.Type).Width(70);
-            col.Bound(c => c.Brand).Width(70);
-            col.Bound(c => c.Model_).Width(70);
-            col.Bound(c => c.SerialNo).Width(70);
-            col.Bound(c => c.Others).Width(70);
-            col.Bound(c => c.Color).Width(70);
-            col.Bound(c => c.PropNo).Width(70);
-            col.Bound(c => c.OldPropNo).Width(70);
-            col.Bound(c => c.Cost).Width(100).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.AcqDate).Width(70);
-            col.Bound(c => c.ActMode).Width(70);
-            col.Bound(c => c.Location).Width(70);
-            col.Bound(c => c.IssuedTo).Width(70);
-            //col.Bound(c => c.RefType).Width(70);
-            col.Bound(c => c.RefNo).Width(70);
-            col.Bound(c => c.Officer).Width(70);
-            col.Bound(c => c.OldPropNo).Width(70);
-            col.Bound(c => c.Condition).Width(50);
-            col.Bound(c => c.Remarks).Width(50);
-            col.Bound(c => c.Annex).Width(50);
-            col.Command(command =>
+﻿@(Html.Kendo().Grid<iLgs.Models.RpcPpeItem>()
+            .Name("gridItems_" + @ViewData["RpcPpeId"])
+            .Columns(col =>
             {
-                command.Edit();
-                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridItemDeleteClick").SendDataKeys(true);
-            }).Width(172);
-        })
-        .ToolBar(t =>
-        {
-            t.Create().Text("Add New Record");
-        })
-        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ItemTemplate").Window(w => w.Width(500).Title("RPC Item")))
-        .Pageable(pager => pager
-            .Input(false)
-            .Numeric(true)
-            .Info(true)
-            .PreviousNext(true)
-            .Refresh(true)
-            .PageSizes(true)
-            .ButtonCount(5)
-        )
-        .Filterable()
-        .NoRecords()
-        .Resizable(r => r.Columns(true))
-        .Selectable(s => s.Mode(GridSelectionMode.Single))
-        .Sortable()
-        .DataSource(dataSource => dataSource
-            .Ajax()
-            .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
-            .Model(model =>
-            {
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                col.Bound(c => c.Fund).Width(50);
+                col.Bound(c => c.Account).Width(70);
+                col.Bound(c => c.SubAccount).Width(70);
+                col.Bound(c => c.Article).Width(70);
+                col.Bound(c => c.Description).Width(100);
+                col.Bound(c => c.PropNo).Width(70);
+                col.Bound(c => c.PoNo).Width(70);
+                col.Bound(c => c.PoDate).Width(70);
+                if (ViewBag.AccoungGroup == 1 || ViewBag.AccoungGroup == 2)
+                {
+                    col.Bound(c => c.SerialNo).Width(70);
+                } else if (ViewBag.AccoungGroup == 3)
+                {
+                    col.Bound(c => c.ConductionNo).Width(70);
+                }
+                col.Bound(c => c.Unit).Width(70);
+                col.Bound(c => c.TotalCost).Width(100).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                //col.Command(command =>
+                //{
+                //    command.Edit();
+                //    command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridItemDeleteClick").SendDataKeys(true);
+                //}).Width(172);
             })
-            .Aggregates(a =>
-            {
-                a.Add(p => p.Cost).Sum();
-            })
-            .Sort(s =>
-            {
-                s.Add(a => a.InsertedDt);
-            })
-            .Read(read => read.Action("_ItemRead", "RpcPpe", new { rpcId = @ViewData["rpcId"] }))
-            .Create(create => create.Action("_ItemCreate", "RpcPpe"))
-            .Update(update => update.Action("_ItemUpdate", "RpcPpe"))
-            .Destroy(destroy => destroy.Action("_ItemDestroy", "RpcPpe"))
-        )
-        .Events(events => events
-            .Change("onChangeGridItems")
-            .Edit("onEditGridItems")
-            .DataBound("onDataBoundGridItems")
-        )
-        .AutoBind(true)
+            //.ToolBar(t =>
+            //{
+            //    t.Create().Text("Add New Record");
+            //})
+            //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ItemTemplate").Window(w => w.Width(500).Title("RPC Item")))
+            .Pageable(pager => pager
+                .Input(false)
+                .Numeric(true)
+                .Info(true)
+                .PreviousNext(true)
+                .Refresh(true)
+                .PageSizes(true)
+                .ButtonCount(5)
+            )
+            .Filterable()
+            .NoRecords()
+            .Resizable(r => r.Columns(true))
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+            .Sortable()
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                })
+                .Aggregates(a =>
+                {
+                    a.Add(p => p.TotalCost).Sum();
+                })
+                .Sort(s =>
+                {
+                    s.Add(a => a.PoNo);
+                    s.Add(a => a.Article);
+                })
+                .Read(read => read.Action("_ItemRead", "RpcPpe", new { rpcPpeId = @ViewData["RpcPpeId"], accountGroup = @ViewBag.AccountGroup }))
+
+            )
+            .Events(events => events
+                .Change("onChangeGridItems")
+                .DataBound("onDataBoundGridItems")
+            )
+            .AutoBind(true)
 )
 
 

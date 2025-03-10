@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.RpcPpeVM
+﻿@model iLgs.Models.RpcPpe
 
 @using (Html.BeginForm())
 {
@@ -6,6 +6,14 @@
 
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.AccountGroup)
+    @Html.HiddenFor(model => model.Department)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
 
     <fieldset>
         <div class="row k-mb-2">
@@ -17,13 +25,14 @@
         </div>
 
         <div class="row k-mb-2">
-            @Html.LabelFor(m => m.Department, htmlAttributes: new { @class = "col-md-12" })
+            @Html.LabelFor(m => m.DeptId, htmlAttributes: new { @class = "col-md-12" })
             <div class="col-md-12">
-                @(Html.Kendo().MultiColumnComboBoxFor(m => m.Department)
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
                     .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                     .Placeholder("Select Department")
                     .DataTextField("Description")
-                    .DataValueField("Description")
+                    .DataValueField("Id")
+                    .ValuePrimitive(true)
                     .Filter(FilterType.Contains)
                     .DataSource(source =>
                     {
@@ -38,9 +47,10 @@
                         c.Add().Field("Code").Title("Code").Width("30%");
                         c.Add().Field("Description").Title("Description").Width("70%");
                     })
+                    .Events(e => e.Select("onSelectDeptId").Change("onChangeDeptId"))
                     .Suggest(true)
                 )
-                @Html.ValidationMessageFor(model => model.Department)
+                @Html.ValidationMessageFor(model => model.Id)
             </div>
         </div>
 

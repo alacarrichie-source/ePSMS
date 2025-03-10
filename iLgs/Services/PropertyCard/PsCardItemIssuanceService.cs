@@ -119,75 +119,60 @@ namespace iLgs.Services.PropertyCard
                     throw new InvalidValueException(string.Format("No selected items, cannot continue!"));
                 }
 
-                // get all selected ids, put them in a list
-                List<PsCardItemExtnLocationVm> psCardItemExtnLocationList = new List<PsCardItemExtnLocationVm>();
+                model.Qty = selectedIds.Count();
+                var psCardItemIssuance = CreatePsCardItemIssuance(model);
+
                 foreach (var selectedId in selectedIds)
                 {
-                    var itemExtnId = Guid.Parse(selectedId);
-                    var psCardItemExtnLocation = await _psCardItemExtnService.GetCardItemExtnLocationAsync(itemExtnId);
-                    psCardItemExtnLocationList.Add(psCardItemExtnLocation);
-                }
-
-                var locationCodeGroup = psCardItemExtnLocationList.GroupBy(g => new { g.LocationId, g.LocationCode, g.Location });
-                foreach (var locationCode in locationCodeGroup)
-                {
-                    var qty = locationCode.Count();
-                    var entity = new PsCardItemIssuance
+                    var psCardItemIssuanceItem = new PsCardItemIssuanceItem()
                     {
                         Id = Guid.NewGuid(),
-                        LocationId = locationCode.Key.LocationId,
-                        PsCardItemId = model.PsCardItemId,
-                        IssuedTo = model.IssuedTo,
-                        IssuedDate = model.IssuedDate,
-                        Qty = qty,
-                        Amount = model.UnitCost * qty,
-                        IssuedToCode = model.IssuedToCode,
-                        IssuedToDescription = model.IssuedToDescription,
-                        InsertedBy = model.InsertedBy,
-                        InsertedDt = model.InsertedDt,
-                        UpdatedBy = model.UpdatedBy,
-                        UpdatedDt = model.UpdatedDt,
-                        DeptId = model.DeptId
+                        PsCardItemIssuanceId = psCardItemIssuance.Id,
+                        PsCardItemExtnId = Guid.Parse(selectedId),
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
                     };
-
-                    _db.PsCardItemIssuances.Add(entity);
-                    await _db.SaveChangesAsync();
-
-                    var psCardItemExtns = psCardItemExtnLocationList.Where(w => w.LocationCode == locationCode.Key.LocationCode).ToList();
-                    foreach (var psCardItemExtn in psCardItemExtns)
-                    {
-                        await _psCardItemTransactionService.LogUpdates(psCardItemExtn.Id, entity.Id, "ISSUANCE", user, date);
-                    }
+                    _db.PsCardItemIssuanceItems.Add(psCardItemIssuanceItem);
                 }
+                _db.SaveChanges();
             }
             else
             {
-                var entity = new PsCardItemIssuance
-                {
-                    Id = Guid.NewGuid(),
-                    LocationId = model.LocationId,
-                    PsCardItemId = model.PsCardItemId,
-                    IssuedTo = model.IssuedTo,
-                    IssuedDate = model.IssuedDate,
-                    Qty = model.Qty,
-                    Amount = model.UnitCost * model.Qty,
-                    IssuedToCode = model.IssuedToCode,
-                    IssuedToDescription = model.IssuedToDescription,
-                    InsertedBy = model.InsertedBy,
-                    InsertedDt = model.InsertedDt,
-                    UpdatedBy = model.UpdatedBy,
-                    UpdatedDt = model.UpdatedDt,
-                    DeptId = model.DeptId
-                };
-
-                _db.PsCardItemIssuances.Add(entity);
-                await _db.SaveChangesAsync();
+                var psCardItemIssuance = CreatePsCardItemIssuance(model);                
             }
 
             await UpdatePsItems(model.PsCardItemId, user, date);
 
             return model;
         });
+
+        public PsCardItemIssuance CreatePsCardItemIssuance(PsCardItemIssuanceVM model)
+        {
+            var entity = new PsCardItemIssuance
+            {
+                Id = Guid.NewGuid(),
+                PsCardItemId = model.PsCardItemId,
+                LocationId = model.LocationId,
+                DeptId = model.DeptId,
+                IssuedToCode = model.IssuedToCode,
+                IssuedToDescription = model.IssuedToDescription,
+                IssuedTo = model.IssuedTo,
+                IssuedDate = model.IssuedDate,
+                Qty = model.Qty,
+                Amount = model.UnitCost * model.Qty,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
+
+            _db.PsCardItemIssuances.Add(entity);
+            _db.SaveChanges();
+
+            return entity;
+        }
 
         public ValueTask<PsCardItemIssuanceVM> UpdateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
         {

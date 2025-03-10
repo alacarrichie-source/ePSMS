@@ -17,6 +17,7 @@ namespace iLgs.Services.PropertyCard
         IQueryable<PsCardItemVM> GetAllStocks();
         IQueryable<PsCardItemVM> GetAllProperties();
         ValueTask<PsCardItemVM> GetByIdAsync(Guid? id);
+        ValueTask<PsCardItemVM> GetByGroupIdAsync(Guid? groupId);
         ValueTask<string> GetCategoryAsync(Guid? psCardItemId);
 
         ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date);
@@ -65,6 +66,7 @@ namespace iLgs.Services.PropertyCard
                 GroupId = s.GroupId,
                 PsCardId = s.PsCardId,
                 OrderItemId = s.OrderItemId,
+                TransferRefId = s.TransferRefId,
                 PoDate = s.PoDate,
                 PoNo = s.PoNo,
                 AirDate = s.AirDate,
@@ -119,7 +121,8 @@ namespace iLgs.Services.PropertyCard
                 SetLotRemarks = s.SetLotRemarks,
                 PostedBy = s.PostedBy,
                 PostedDt = s.PostedDt,
-                IsWithItemExtn = s.PsCardItemExtns.Any()
+                //IsWithItemExtn = s.PsCardItemExtns.Any(a => a.Id == s.GroupId)
+                IsWithItemExtn = (_db.PsCardItemExtns.Any(a => a.PsCardItemId == s.GroupId))
             };
         }
 
@@ -130,6 +133,17 @@ namespace iLgs.Services.PropertyCard
                 .Include(i => i.Codextn1) // Location
                 .Include(i => i.PsCardItemExtns)
                 .Where(w => w.Id == id)
+                .Select(GetPsCardItemProjection()).FirstOrDefaultAsync();
+            return data;
+        }
+
+        public async ValueTask<PsCardItemVM> GetByGroupIdAsync(Guid? groupId)
+        {
+            var data = await _db.PsCardItems
+                .Include(i => i.Codextn) // Department
+                .Include(i => i.Codextn1) // Location
+                .Include(i => i.PsCardItemExtns)
+                .Where(w => w.GroupId == groupId)
                 .Select(GetPsCardItemProjection()).FirstOrDefaultAsync();
             return data;
         }
@@ -353,16 +367,16 @@ namespace iLgs.Services.PropertyCard
                 var psCardItem = await _db.PsCardItems.FindAsync(psCardItemTransfer.PsCardItemId);
                 if (psCardItem != null)
                 {
-                    // transfer itemextn if any
-                    var psCardItemId = psCardItemTransfer.PsCardItemId;
-                    var psCardItemExtn = _db.PsCardItemExtns.Where(w => w.PsCardItemId == model.Id);
-                    await psCardItemExtn.ForEachAsync(f =>
-                    {
-                        f.PsCardItemId = psCardItemId;
-                        f.UpdatedBy = user;
-                        f.UpdatedDt = date;
-                    });
-                    await _db.SaveChangesAsync();
+                    //// transfer itemextn if any
+                    //var psCardItemId = psCardItemTransfer.PsCardItemId;
+                    //var psCardItemExtn = _db.PsCardItemExtns.Where(w => w.PsCardItemId == model.Id);
+                    //await psCardItemExtn.ForEachAsync(f =>
+                    //{
+                    //    f.PsCardItemId = psCardItemId;
+                    //    f.UpdatedBy = user;
+                    //    f.UpdatedDt = date;
+                    //});
+                    //await _db.SaveChangesAsync();
 
                     psCardItem.TransferOut -= (psCardItemTransfer.Qty ?? 0);
                     psCardItem.QtyBal = ((psCardItem.Qty ?? 0) + (psCardItem.TransferIn ?? 0)) - ((psCardItem.TransferOut ?? 0) + (psCardItem.QtyIss ?? 0));
@@ -387,8 +401,8 @@ namespace iLgs.Services.PropertyCard
             }
 
             // manually remove transaction log
-            var psCardItemTransacctions = _db.PsCardItemTransactions.Where(w => w.PsCardItemId == entity.Id);
-            _db.PsCardItemTransactions.RemoveRange(psCardItemTransacctions);
+            var psCardItemTransactions = _db.PsCardItemTransactions.Where(w => w.PsCardItemId == entity.Id);
+            _db.PsCardItemTransactions.RemoveRange(psCardItemTransactions);
             await _db.SaveChangesAsync();
 
             entity.UpdatedBy = model.UpdatedBy;
@@ -602,7 +616,7 @@ namespace iLgs.Services.PropertyCard
 
         private void ValidateRelationship(PsCardItemVM model)
         {
-            if (model.OrderItemId != null)
+            if (model.OrderItemId != null && model.TransferRefId == null)
             {
                 throw new RecordRelationshipException("Record is from AIR, cannot delete here!");
             }

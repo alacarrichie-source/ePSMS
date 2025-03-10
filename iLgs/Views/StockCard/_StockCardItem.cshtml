@@ -73,26 +73,31 @@
                 .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #")
                 .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n0}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
-            columns.Group(group => group.Title("PO Amounts")
-                .Columns(info =>
-                {
-                    info.Bound(f => f.Amount).Width(50).Title("Original<br>PO")
-                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                    info.Bound(f => f.IssueAmount).Width(50).Title("Issued")
-                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                    info.Bound(f => f.BalanceAmount).Width(50).Title("Balance")
-                        .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                        .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
-                        .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                        .HeaderHtmlAttributes(new { style = "text-align:right;" });
-                }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
-            );
+            columns.Bound(f => f.Amount).Width(50)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+            //columns.Group(group => group.Title("PO Amounts")
+            //    .Columns(info =>
+            //    {
+            //        info.Bound(f => f.Amount).Width(50).Title("Original<br>PO")
+            //            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            //            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+            //            .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            //            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            //        info.Bound(f => f.IssueAmount).Width(50).Title("Issued")
+            //            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            //            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+            //            .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            //            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            //        info.Bound(f => f.BalanceAmount).Width(50).Title("Balance")
+            //            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            //            .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+            //            .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            //            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            //    }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            //);
             //columns.Bound(f => f.Remarks).Width(50);
             columns.Bound(f => f.InsertedBy).Width(50).Title("Created by");
             columns.Bound(f => f.PostedBy).Width(50);
@@ -123,7 +128,7 @@
         .NoRecords()
         .Sortable()
         .Filterable()
-        .Groupable()
+        //.Groupable()
         .ClientDetailTemplateId("default-template")
         .DataSource(dataSource => dataSource
             .Ajax()
@@ -144,8 +149,8 @@
                 a.Add(p => p.TransferOut).Sum();
                 a.Add(p => p.QtyBal).Sum();
                 a.Add(p => p.Amount).Sum();
-                a.Add(p => p.BalanceAmount).Sum();
-                a.Add(p => p.IssueAmount).Sum();
+                //a.Add(p => p.BalanceAmount).Sum();
+                //a.Add(p => p.IssueAmount).Sum();
             })
             .Events(events => events.Error("GridItemError").RequestEnd("onRequestEndGridItems"))
             //.Read("ItemRead", "StockCard", new

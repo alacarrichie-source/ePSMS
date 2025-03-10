@@ -65,6 +65,12 @@ namespace iLgs.Models
         [Display(Name = "Acquisition Mode")]
         //public string AcqMode { get { return this.FromDonation == true ? "From Donation" : "Purchase"; } }
         public string AcqMode { get; set; }
+
+        [Display(Name = "Qty Balance")]
+        public Nullable<int> QtyBalance { get; set; }
+
+        [Display(Name = "Acquisition Cost")]
+        public Nullable<decimal> AcqCost { get; set; }
     }
 
     public class RPCIItemVM

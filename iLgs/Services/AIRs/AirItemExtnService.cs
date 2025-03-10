@@ -124,6 +124,7 @@ namespace iLgs.Services.AIRs
                     SetLotNo = setLotNo,
                     SetLotQtyNo = setLotQtyNo,
                     ContentNo = contentNo,
+                    ConductionNo = "",
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
