@@ -102,7 +102,7 @@
             //{
             //    s.Add(a => a.InsertedDt).Descending();
             //})
-            .Read(read => read.Action("_SuppliesRead", "PropNoItem"))
+            .Read(read => read.Action("_SuppliesRead", "ItemCard"))
         )
         .Events(events => events
             .Change("onChangeGrid")
@@ -124,7 +124,7 @@
         {
             //items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReport", new { imageId = "#=Id#" });
             //items.Add().Text("PAR").LoadContentFrom("_StockParIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            items.Add().Text("ICS").LoadContentFrom("_Ics", "PropNoItem", new { id = "#=Id#", propNo = "#=PropNo#" });
+            items.Add().Text("ICS").LoadContentFrom("_Ics", "ItemCard", new { id = "#=Id#", propNo = "#=PropNo#" });
             //items.Add().Text("ARE").LoadContentFrom("_StockAreIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
             //items.Add().Text("MR").LoadContentFrom("_StockMrIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
         })

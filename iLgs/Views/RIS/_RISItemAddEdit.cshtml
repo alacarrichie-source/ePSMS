@@ -53,10 +53,32 @@
                             c.Add().Field("SubAccount4").Title("Sub-Account4").Width("10%").Template("#= columnTemplate(data.SubAccount4) #");
                             c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");
                         })
-                        .Suggest(true)
+                        //.Suggest(true)
                         .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
                     )
                     @Html.ValidationMessageFor(m => m.ItemCodeId)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-6`">
+                    <div class="col-md-2">
+                        @Html.DisplayFor(m => m.Category, "Label")
+                    </div>
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextBoxFor(m => m.Category).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    </div>
+                </div>
+
+                <div class="col-md-6`">
+                    <div class="col-md-2">
+                        @Html.DisplayFor(m => m.PsNoDisplay, "Label")
+                    </div>
+                    <div class="col-md-10">
+                        @(Html.Kendo().TextBoxFor(m => m.PsNoDisplay).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    </div>
                 </div>
             </div>
         </div>
@@ -140,7 +162,7 @@
                             c.Add().Field("Desc2").Title("Category").Width("40%").Template("#= columnTemplate(data.Desc2) #");
 
                         })
-                        .Suggest(true)
+                        //.Suggest(true)
                     )
                     @Html.ValidationMessageFor(m => m.Unit)
                 </div>
@@ -165,7 +187,7 @@
                     @Html.DisplayFor(model => model.QtyIssue, "LabelInt")
                 </div>
                 <div class="col-md-10">
-                    @(Html.Kendo().NumericTextBoxFor(model => model.QtyIssue).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().NumericTextBoxFor(model => model.QtyIssue).Decimals(0).Enable(false).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.QtyIssue)
                 </div>
             </div>

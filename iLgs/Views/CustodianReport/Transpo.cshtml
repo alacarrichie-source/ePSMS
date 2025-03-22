@@ -58,7 +58,8 @@
             col.Bound(c => c.PsNo).Width(70);
             col.Bound(c => c.Description).Width(150);
             col.Bound(c => c.Annex).Width(50);
-            //col.Bound(c => c.InsertedDt).Width(70);
+            col.Bound(c => c.InsertedBy).Width(50);
+            col.Bound(c => c.InsertedDt).Width(50);
             col.Command(command =>
             {
                 command.Edit();

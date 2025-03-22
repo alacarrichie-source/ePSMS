@@ -31,7 +31,7 @@ namespace iLgs.Services.PurchaseRequest
 
         public IQueryable<RequestItemVM> GetByPrId(Guid? prId)
         {
-            var data = _db.RequestItems.Where(w => w.PrId == prId)
+            var data = _db.RequestItems.AsNoTracking().Where(w => w.PrId == prId)
                 .Select(s => new RequestItemVM
                 {
                     Id = s.Id,
@@ -39,6 +39,7 @@ namespace iLgs.Services.PurchaseRequest
                     RisItemId = s.RisItemId,
                     ItemCode = s.RisItem.ItemCode.Code,
                     ItemType = s.RisItem.ItemCode.Description,
+                    Category = s.RisItem.ItemCode.ItemType.Category,
                     PsType = s.RisItem.ItemCode.ItemType.Code,
                     PsTypeDesc = s.RisItem.ItemCode.ItemType.Description,
                     PsNo = s.RisItem.PsNo,
@@ -58,7 +59,7 @@ namespace iLgs.Services.PurchaseRequest
 
         public async Task<RequestItemVM> GetVmByIdAsync(Guid? id)
         {
-            var data = await _db.RequestItems.Where(w => w.Id == id)
+            var data = await _db.RequestItems.AsNoTracking().Where(w => w.Id == id)
                 .Select(s => new RequestItemVM
                 {
                     Id = s.Id,
@@ -66,6 +67,7 @@ namespace iLgs.Services.PurchaseRequest
                     RisItemId = s.RisItemId,
                     ItemCode = s.RisItem.ItemCode.Code,
                     ItemType = s.RisItem.ItemCode.Description,
+                    Category = s.RisItem.ItemCode.ItemType.Category,
                     PsType = s.RisItem.ItemCode.ItemType.Code,
                     PsTypeDesc = s.RisItem.ItemCode.ItemType.Description,
                     PsNo = s.RisItem.PsNo,

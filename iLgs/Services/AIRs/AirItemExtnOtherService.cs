@@ -22,6 +22,7 @@ namespace iLgs.Services.AIRs
         ValueTask<AIRItemExtnOther> DeleteAsync(AIRItemExtnOther model, string user, DateTime date);
 
         ValueTask<AIRItemExtnOther> GenerateSerialAsync(Guid airItemId, string user, DateTime date);
+        ValueTask<AIRItemExtnOther> GenerateSerialItemExtnAsync(Guid airItemExtnId, string user, DateTime date);
     }
 
     public class AirItemExtnOtherService : IAirItemExtnOtherService
@@ -69,9 +70,12 @@ namespace iLgs.Services.AIRs
                 throw new InvalidValueException($"Cannot create more than {totalQty} record(s).");
             }
 
-            if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.SerialNo == model.SerialNo))
+            if (!string.IsNullOrWhiteSpace(model.SerialNo))
             {
-                throw new RecordAlreadyExistsException("Serial No. already exists!");
+                if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.SerialNo == model.SerialNo))
+                {
+                    throw new RecordAlreadyExistsException("Serial No. already exists!");
+                }
             }
 
             var contentNo = _db.AIRItemExtns.Where(w => w.AIRItemId == model.AIRItemId).Max(m => m.ContentNo) ?? 0;
@@ -138,9 +142,12 @@ namespace iLgs.Services.AIRs
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }
 
-            if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.SerialNo == model.SerialNo && f.Id != model.Id))
+            if (!string.IsNullOrWhiteSpace(model.SerialNo))
             {
-                throw new RecordAlreadyExistsException("Serial No.", "Serial No. already exists!");
+                if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.SerialNo == model.SerialNo && f.Id != model.Id))
+                {
+                    throw new RecordAlreadyExistsException("Serial No.", "Serial No. already exists!");
+                }
             }
 
             model.UpdatedBy = user;
@@ -194,9 +201,71 @@ namespace iLgs.Services.AIRs
             _db.Entry(airItem).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
+            //var airItemExtns = await _db.AIRItemExtns
+            //    .Include(i => i.AIRItem.OrderItem.Order)
+            //    .OfType<AIRItemExtnOther>().Where(w => w.AIRItemId == airItemId && (w.SerialNo == "" || w.SerialNo == null)).ToListAsync();
+
+            //if (airItemExtns.Count() == 0)
+            //{
+            //    throw new NotFoundException("No items found without a serial number.");
+            //}
+
+            //foreach (var airItemExtn in airItemExtns)
+            //{
+            //    var serialNo = airItemExtn.AIRItem.OrderItem.Order.PoNo.Trim() + "-" + airItemExtn.AIRItem.OrderItem.PsNo.Trim() + "-" +
+            //        (string.IsNullOrWhiteSpace(airItemExtn.SetLotNo) ? "0" : airItemExtn.SetLotNo.Trim()) + "-" +
+            //        (!airItemExtn.SetLotQtyNo.HasValue ? "0" : airItemExtn.SetLotQtyNo.ToString().Trim()) + "-" + airItemExtn.ContentNo.ToString().Trim();
+
+            //    airItemExtn.IsAutoGen = true;
+            //    airItemExtn.SerialNo = serialNo;
+            //    airItemExtn.UpdatedBy = user;
+            //    airItemExtn.UpdatedDt = date;
+
+            //    _db.AIRItemExtns.Attach(airItemExtn);
+            //    _db.Entry(airItemExtn).State = EntityState.Modified;
+            //}
+
+            //await _db.SaveChangesAsync();
+
+            return new AIRItemExtnOther();
+        });
+
+
+        public ValueTask<AIRItemExtnOther> GenerateSerialItemExtnAsync(Guid airItemExtnId, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+
+            var entity = _db.AIRItemExtns.Include(i => i.AIRItem).FirstOrDefault(f => f.Id == airItemExtnId);
+
+            if (entity == null)
+            {
+                throw new NotFoundException(airItemExtnId);
+            }
+
+            if (await IsPostedAsync(entity.AIRItemId))
+            {
+                throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            }
+
+            
+            if (entity.AIRItem.InvDist != "I")
+            {
+                throw new InvalidValueException("Item is not For Inventory, cannot proceed.");
+            }
+
+            var orderItem = await _db.OrderItems
+                .Include(i => i.Order.OrderItemUnitGroups)
+                .Include(i => i.RequestItem.RisItem.ItemCode.ItemType)
+                .Where(w => w.Id == entity.AIRItem.OrderItemId).FirstOrDefaultAsync();
+
+            var isWithParIcs = _itemCodeService.IsWithParIcs(orderItem.ItemCodeId);
+            if (isWithParIcs != true)
+            {
+                throw new InvalidValueException("Item is not For PAR/ICS, cannot proceed.");
+            }
+            
             var airItemExtns = await _db.AIRItemExtns
                 .Include(i => i.AIRItem.OrderItem.Order)
-                .OfType<AIRItemExtnOther>().Where(w => w.AIRItemId == airItemId && (w.SerialNo == "" || w.SerialNo == null)).ToListAsync();
+                .OfType<AIRItemExtnOther>().Where(w => w.Id == airItemExtnId && (w.SerialNo == "" || w.SerialNo == null)).ToListAsync();
 
             if (airItemExtns.Count() == 0)
             {

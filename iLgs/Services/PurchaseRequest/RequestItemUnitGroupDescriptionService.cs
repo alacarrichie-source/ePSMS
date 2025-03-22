@@ -42,7 +42,7 @@ namespace iLgs.Services.PurchaseRequest
         public IQueryable<RequestItemUnitGroupDescriptionVM> GetByUnitGroupId(Guid? unitGroupId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.RequestItemUnitGroupDescriptions.Where(w => w.RequestItemUnitGroupId == unitGroupId)
+            var data = _db.RequestItemUnitGroupDescriptions.AsNoTracking().Where(w => w.RequestItemUnitGroupId == unitGroupId)
                 .Select(s => new RequestItemUnitGroupDescriptionVM
                 {
                     Id = s.Id,

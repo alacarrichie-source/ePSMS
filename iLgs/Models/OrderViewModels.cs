@@ -9,6 +9,7 @@ namespace iLgs.Models
 {
     public class OrderVM
     {
+        public string Fund { get; set; }
 
         [Display(Name = "Mode of Procurement")]
         public string PoModeDesc { get; set; }
@@ -22,7 +23,7 @@ namespace iLgs.Models
         [Required]
         public Nullable<System.Guid> SupplierId { get; set; }
 
-        [Display(Name = "Name")]
+        [Display(Name = "Supplier")]
         public string SupName { get; set; }
 
         [Display(Name = "Business Name")]
@@ -49,13 +50,13 @@ namespace iLgs.Models
         [Display(Name = "PR No.")]
         public Nullable<System.Guid> PrId { get; set; }
 
-        [Display(Name = "Date")]
+        [Display(Name = "PO Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [Required]
         public Nullable<System.DateTime> PoDate { get; set; }
 
         [Display(Name = "Mode of Procurement")]
-        [Required]
+        //[Required]
         public string PoMode { get; set; }
 
 
@@ -74,7 +75,7 @@ namespace iLgs.Models
         //[Required]
         public string TermPayment { get; set; }
 
-        [Display(Name = "Signed by Supplier")]
+        [Display(Name = "Conforme: Signature over printed name of Supplier")]
         public string SignedBySuppName { get; set; }
 
         [Display(Name = "Date Signed")]
@@ -82,7 +83,7 @@ namespace iLgs.Models
         //[Required]
         public Nullable<System.DateTime> SignedBySuppDate { get; set; }
 
-        [Display(Name = "Authorized Official")]
+        [Display(Name = "Very truly yours, City Mayor")]
         public string SignedByAuthName { get; set; }
 
         [Display(Name = "Designation")]
@@ -91,7 +92,7 @@ namespace iLgs.Models
         [Display(Name = "Resolution No.")]
         public string ResoNo { get; set; }
 
-        [Display(Name = "Certified Correct")]
+        [Display(Name = "Certified Correct: Secretary of the Sanggunian")]
         //[Required]
         public string CertifiedCorrectBy { get; set; }
 
@@ -115,6 +116,9 @@ namespace iLgs.Models
 
         [Display(Name = "PR No.")]
         public string PrNo { get; set; }
+
+        [Display(Name = "PR Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? PrDate { get; set; }
 
         public Nullable<decimal> QtyTotal { get; set; }
@@ -344,6 +348,8 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
         public RequestItemUnitGroupDescriptionItem RequestItemUnitGroupDescriptionItem { get; set; }
+
+        public string Category { get; set; }
 
         [Display(Name = "Stock/Prop No.")]
         public string PsNo { get; set; }

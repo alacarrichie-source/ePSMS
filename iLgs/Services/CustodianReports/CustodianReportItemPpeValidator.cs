@@ -61,6 +61,11 @@ namespace iLgs.Services.CustodianReports
             string partialView = AllFieldsUtil.GetPartialView(itemCode);
             _allFieldsValidator.ValidateAllFieldsPartial(model.AllField, partialView, ex, Module.CARD);
 
+            if (model.MainDeptId == null || model.MainDeptId == Guid.Empty)
+            {
+                ex.UpsertDataList("Department", "Please select department before creating an entry.");
+            }
+
             if (!string.IsNullOrWhiteSpace(model.ItemSerialNo)) {
                 if (mode == Mode.ADD)
                 {

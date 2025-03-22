@@ -20,7 +20,8 @@ namespace iLgs.Services
     public interface IUserService
     {
         ValueTask<bool> UserInRole(string userId, string role);
-        ValueTask<bool> IsAdmin(string userId);
+        ValueTask<bool> IsAdminAsync(string userId);
+
         bool IsUserNameAdmin(string userName);
         //bool IsAnnexDUser(string userName);
     }
@@ -61,7 +62,7 @@ namespace iLgs.Services
             return retVal;
         }
 
-        public async ValueTask<bool> IsAdmin(string userId)
+        public async ValueTask<bool> IsAdminAsync(string userId)
         {
             var isAdmin = await UserInRole(userId, "ADMIN");
             var isSysAdmin = await UserInRole(userId, _sysAdmin);

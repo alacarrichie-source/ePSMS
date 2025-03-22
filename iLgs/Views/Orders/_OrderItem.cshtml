@@ -2,6 +2,7 @@
         .Name("gridItems_" + @ViewData["orderId"])
         .Columns(col =>
         {
+            col.Bound(c => c.Category).Width(50);
             col.Bound(c => c.PsNo).Width(100);
             col.Bound(c => c.Unit).Width(50);
             col.Bound(c => c.ItemName).Width(100);

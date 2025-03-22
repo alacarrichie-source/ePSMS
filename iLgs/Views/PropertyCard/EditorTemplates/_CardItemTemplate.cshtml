@@ -149,30 +149,7 @@
                 <div class="col-md-3">
                     @Html.DisplayFor(model => model.LocationId, "Label")
                 </div>
-                <div class="col-md-9">
-                    @*@(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
-                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                            .Placeholder("Select Location")
-                            .DataTextField("Code")
-                            .DataValueField("Id")
-                            .ValuePrimitive(true)
-                            .Filter(FilterType.Contains)
-                            .DataSource(source =>
-                            {
-                                source.Read(read =>
-                                {
-                                    read.Action("GetLocations", "Getters");
-                                })
-                                .ServerFiltering(true);
-                            })
-                            .Columns(c =>
-                            {
-                                c.Add().Field("Code").Title("Code").Width("100");
-                                c.Add().Field("Description").Title("Description").Width("300");
-                            })
-                            .Events(e => e.Select("onSelectLocationId"))
-                            .Suggest(true)
-                    )*@
+                <div class="col-md-9">                   
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Location")
@@ -289,7 +266,7 @@
                     @Html.DisplayFor(m => m.QtyIss, "LabelInt")
                 </div>
                 <div class="col-md-9">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyIss).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateBalance")))
+                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyIss).Decimals(0).Format("{0:n0}").Enable(false).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateBalance")))
                     @Html.ValidationMessageFor(m => m.QtyIss)
                 </div>
             </div>
@@ -313,7 +290,7 @@
                     @Html.DisplayFor(m => m.QtyBal, "LabelInt")
                 </div>
                 <div class="col-md-9">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyBal).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyBal).Decimals(0).Format("{0:n0}").Enable(false).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.QtyBal)
                 </div>
             </div>
@@ -445,76 +422,5 @@
             @Html.Partial(partialViewName)
         }
 
-        
-        @*@if (ViewBag.FieldSw.AcqDate)
-        {
-            <div class="row k-mb-2">
-                <div class="col-md-6">
-                    <div class="col-md-3">
-                        @Html.DisplayFor(m => m.AcqDate, "LabelDate")
-                    </div>
-                    <div class="col-md-9">
-                        @(Html.Kendo().DatePickerFor(m => m.AcqDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(m => m.AcqDate)
-                    </div>
-                </div>
-            </div>
-        }*@
-
-        @*@if (ViewBag.FieldSw.AcqYear)
-        {
-            <div class="row k-mb-2">
-                <div class="col-md-6">
-                    <div class="col-md-3">
-                        @Html.DisplayFor(m => m.ConstructionYear, "LabelInt")
-                    </div>
-                    <div class="col-md-9">
-                        @(Html.Kendo().NumericTextBoxFor(m => m.ConstructionYear).Decimals(0).Spinners(false).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(m => m.ConstructionYear)
-                    </div>
-                </div>
-            </div>
-        }
-
-        @if (ViewBag.FieldSw.PhaseNo)
-        {
-            <div class="row k-mb-2">
-                <div class="col-md-6">
-                    <div class="col-md-3">
-                        @Html.DisplayFor(m => m.PhaseNo, "LabelInt")
-                    </div>
-                    <div class="col-md-9">
-                        @(Html.Kendo().NumericTextBoxFor(m => m.PhaseNo).Decimals(0).Spinners(false).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(m => m.PhaseNo)
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="col-md-3">
-                        @Html.DisplayFor(m => m.PhaseAmount, "LabelDecimal")
-                    </div>
-                    <div class="col-md-9">
-                        @(Html.Kendo().NumericTextBoxFor(m => m.PhaseAmount).Decimals(2).Spinners(false).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(m => m.PhaseAmount)
-                    </div>
-                </div>
-            </div>
-        }
-
-        @if (ViewBag.FieldSw.Type)
-        {
-            <div class="row k-mb-2">
-                <div class="col-md-6">
-                    <div class="col-md-3">
-                        @Html.DisplayFor(m => m.Type, "Label")
-                    </div>
-                    <div class="col-md-9">
-                        @(Html.Kendo().TextBoxFor(m => m.Type).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(m => m.Type)
-                    </div>
-                </div>
-            </div>
-        }*@
-
-        
     </fieldset>
 }

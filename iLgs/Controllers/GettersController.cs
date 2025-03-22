@@ -14,12 +14,14 @@ using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
+    [Authorize]
     public class GettersController : BaseController
     {
         private readonly AppManEntities _db;
         private readonly ICodextnService _codextnService;
         private readonly ILocationService _locationService;
         private readonly ILocationBudgetService _locationBudgetService;
+        private readonly IUserService _userService;
 
         public GettersController()
         {
@@ -27,6 +29,7 @@ namespace iLgs.Controllers
             _codextnService = new CodextnService(_db);
             _locationService = new LocationService(_db);
             _locationBudgetService = new LocationBudgetService(_db);
+            _userService = new UserService(_db);
         }
 
         //public ActionResult GetSysCodeList(string text)
@@ -167,8 +170,8 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Code.Contains(text) || p.Description.Contains(text));
             }
 
-            var retModel = model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description }).ToList();
-
+            //model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description }).ToList();
+            var retModel = model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }).ToList();
             return Json(retModel, JsonRequestBehavior.AllowGet);
 
         }
@@ -342,10 +345,21 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, PrNo = c.PrNo, PrDate = c.PrDate, Department = c.RISs.Office }), JsonRequestBehavior.AllowGet);
         }
 
-        public JsonResult GetPrNoWithRemainingItems(Guid? orderId, string text)
+        public async Task<JsonResult> GetPrNoWithRemainingItems(Guid? orderId, string text)
         {
             orderId = orderId ?? Guid.Empty;
-            var model = _db.Requests.Where(w => w.SubmittedBy != null).AsNoTracking().AsQueryable();
+            var userId = User.Identity.GetUserId();
+            var IsAdmin = await _userService.IsAdminAsync(userId);
+            IQueryable<Request> model;
+            if (IsAdmin)
+            {
+                model = _db.Requests.Where(w => w.SubmittedBy != null).AsNoTracking().AsQueryable();
+            }
+            else
+            {
+                model = _db.Requests.Where(w => w.RISs.Codextn.DepartmentUsers.Any(a => a.UserId == userId) && w.SubmittedBy != null).AsNoTracking().AsQueryable();
+            }
+
             if (orderId == Guid.Empty)
             {
                 model = model.Where(w => w.RequestItems.Any(a => !a.OrderItems.Any()));
@@ -405,11 +419,22 @@ namespace iLgs.Controllers
                 ApprovedBy = c.ApprovedBy,
                 ApprovedByDesignation = c.ApprovedByDesignation}), JsonRequestBehavior.AllowGet);
         }
-
-        public JsonResult GetRisNosWithNoPr(Guid? prId, string text)
+        
+        public async Task<JsonResult> GetRisNosWithNoPr(Guid? prId, string text)
         {
             prId = prId ?? Guid.Empty;
-            var model = _db.RISses.Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
+            var userId = User.Identity.GetUserId();
+            var IsAdmin = await _userService.IsAdminAsync(userId);
+            IQueryable<RISs> model;
+            if (IsAdmin)
+            {
+                model = _db.RISses.Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
+            }
+            else
+            {
+                model = _db.RISses.Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId) && w.PostedBy != null).AsNoTracking().AsQueryable();
+            }
+
             if (prId == Guid.Empty)
             {
                 model = model.Where(w => !w.Requests.Any());
@@ -506,10 +531,21 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, PoNo = c.PoNo, PoDate = c.PoDate, Department = c.Request.RISs.Office, Supplier = c.SupName }), JsonRequestBehavior.AllowGet);
         }
 
-        public JsonResult GetPoNosWithoutPr(Guid? airId, string text)
+        public async Task<JsonResult> GetPoNosWithoutPr(Guid? airId, string text)
         {
             airId = airId ?? Guid.Empty;
-            var model = _db.Orders.Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
+            var userId = User.Identity.GetUserId();
+            var IsAdmin = await _userService.IsAdminAsync(userId);
+            IQueryable<Order> model;
+            if (IsAdmin)
+            {
+                model = _db.Orders.Where(w => w.PostedBy != null).AsNoTracking().AsQueryable();
+            }
+            else
+            {
+                model = _db.Orders.Where(w => w.Request.RISs.Codextn.DepartmentUsers.Any(a => a.UserId == userId) && w.PostedBy != null).AsNoTracking().AsQueryable();
+            }
+
             if (airId == Guid.Empty)
             {
                 model = model.Where(w => !w.AIRs.Any());
@@ -566,29 +602,10 @@ namespace iLgs.Controllers
             })
             , JsonRequestBehavior.AllowGet);
         }
-
-        //public JsonResult GetOrderItem(Guid orderId, string text)
-        //{
-
-        //    var model = db.OrderItems.Include("PsCodes").Where(w => w.OrderId == orderId).AsQueryable();
-
-        //    if (!string.IsNullOrWhiteSpace(text))
-        //    {
-        //        model = model.Where(p => p.Id.ToString() == text || p.PsCode.ItemName.Contains(text) || p.PsCode.ItemDescription.Contains(text) || p.PsCode.PsNo.Contains(text));
-        //    }
-
-        //    return Json(model.Select(c => new { Id = c.Id, Code = c.PsCode.PsNo, Name = c.PsCode.ItemName, Description = c.PsCode.ItemDescription
-        //        , Unit = c.PsCode.UnitMeas, Type = c.PsCode.PsType
-        //        , Qty = c.Qty// - (c.IssuedItems.Sum(s => s.Qty) ?? 0)
-        //        , UnitCost = c.UnitCost
-        //        })//.Where(w => w.Qty > 0)
-        //    , JsonRequestBehavior.AllowGet);
-        //}
-
+        
         public JsonResult GetDepartments(string text)
         {
 
-            //var model = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Desc3 != "N").OrderBy(o => o.Description).AsNoTracking();
             var model = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS" && w.Code.Substring(w.Code.Length-2) == "00").OrderBy(o => o.Description).AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
@@ -746,6 +763,18 @@ namespace iLgs.Controllers
         public JsonResult GetCustodians(string text)
         {
             var model = _db.Codextns.Where(w => w.CodeMast.Code == "CUSTODIANS").AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                model = model.Where(p => p.Description.Contains(text));
+            }
+
+            return Json(model.Select(c => new { Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3 }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetAirCustodians(string text)
+        {
+            var model = _db.Codextns.Where(w => w.CodeMast.Code == "AIR-CUSTODIANS").AsNoTracking();
 
             if (!string.IsNullOrEmpty(text))
             {

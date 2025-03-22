@@ -137,6 +137,22 @@ namespace iLgs.Services.Validators
                 ex.UpsertDataList(_getDisplayName(nameof(model.Purpose)), "Field is required.");
             }            
 
+            if (model.RisDate.HasValue && model.RequestedDate.HasValue)
+            {
+                if (model.RequestedDate < model.RisDate)
+                {
+                    ex.UpsertDataList("Requested Date", "Must be on or after the RIS Date.");
+                }
+            }
+
+            if (model.ApprovedDate.HasValue && model.RequestedDate.HasValue)
+            {
+                if (model.ApprovedDate < model.RequestedDate)
+                {
+                    ex.UpsertDataList("Approved Date", "Must be on or after the Requested Date.");
+                }
+            }
+
             ex.ThrowIfContainsErrors();
         }
 
@@ -151,6 +167,11 @@ namespace iLgs.Services.Validators
             if (!string.IsNullOrWhiteSpace(rec.PostedBy))
             {
                 throw new RecordAlreadyPostedException(string.Format("RIS No {0} already posted. Please verify!", rec.RisNo));
+            }
+
+            if (!_db.RisItems.Any(a => a.RisId == risId))
+            {
+                throw new NotFoundException("No RIS Items found, cannot post.");
             }
         }
         public void ValidateOnUnpost(Guid risId)

@@ -32,6 +32,47 @@
     </div>
 
     <fieldset>
+
+        @*<div class="row k-mb-2">
+            <div class="col-md-12">
+                @Html.LabelFor(m => m.RequestItemId, htmlAttributes: new { @class = "col-md-12" })
+                <div class="col-md-12">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.RequestItemId).Enable(Model.Mode == "A")
+            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+            .Placeholder("Select stock/property Code")
+            .DataTextField("PsNo")
+            .DataValueField("Id")
+            .ValuePrimitive(true)
+            .Filter(FilterType.Contains)
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetPrItemsWithNoPo", "Getters").Data("DataRequestItemId");
+                })
+                .ServerFiltering(true);
+            })
+            .Columns(c =>
+            {
+                c.Add().Field("ItemCode").Title("Item Code").Width("10%");
+                c.Add().Field("PsNo").Title("P/S No.").Width("20%");
+                c.Add().Field("ItemName").Title("Item Name").Width("20%");
+                c.Add().Field("Description").Title("Description").Width("30%");
+                c.Add().Field("Unit").Title("Unit").Width("10%");
+                c.Add().Field("Qty").Title("Qty").Width("10%");
+
+            })
+            .Suggest(true)
+                    //.Events(e =>
+                    //{
+                    //    e.Select("onSelectRequestItemId");             
+                    //})
+                    )
+                    @Html.ValidationMessageFor(m => m.RequestItemId)
+                </div>
+            </div>
+        </div>*@
+
         <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-2">
@@ -63,7 +104,7 @@
                             c.Add().Field("SubAccount4").Title("Sub-Account4").Width("15%").Template("#= columnTemplate(data.SubAccount4) #");
                             c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");
                         })
-                        .Suggest(true)
+                        //.Suggest(true)
                         .Events(e => { e.Select("onSelectItemCode").DataBound("onDataBoundItemCode"); })
                     )
                     @Html.ValidationMessageFor(m => m.ItemCodeId)
@@ -162,7 +203,7 @@
                             c.Add().Field("Desc2").Title("Category").Width("40%").Template("#= columnTemplate(data.Desc2) #");
 
                         })
-                        .Suggest(true)
+                        //.Suggest(true)
                     )
                     @Html.ValidationMessageFor(m => m.Unit)
                 </div>

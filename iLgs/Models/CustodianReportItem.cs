@@ -111,6 +111,10 @@ namespace iLgs.Models
         public Nullable<System.DateTime> PostedDt { get; set; }
         public Nullable<decimal> SetLotAmount { get; set; }
         public string SetLotRemarks { get; set; }
+        public Nullable<decimal> PriceRate { get; set; }
+        public Nullable<decimal> AddCost { get; set; }
+        public Nullable<decimal> TUnitCost { get; set; }
+        public Nullable<decimal> GTotalCost { get; set; }
     
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }

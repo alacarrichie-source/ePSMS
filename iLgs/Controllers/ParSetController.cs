@@ -154,211 +154,7 @@ namespace iLgs.Controllers
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
             return result;
-        }
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> PostPoItem(Guid? groupId)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
-        //        Access access = await accessTask;
-        //        if (!access.AllowPost)
-        //        {
-        //            ModelState.AddModelError("Access", "Access Denied!");
-        //        }
-
-        //        if (ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            await _parService.PostAsync(groupId, user, date);
-        //        }
-        //    }
-        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-        //    {
-        //        var errors = validationException.GetErrorsForModelState();
-        //        foreach (var error in errors)
-        //        {
-        //            ModelState.AddModelError(error.Key, error.Message);
-        //        }
-        //    }
-        //    catch (ValidationException validationException)
-        //    {
-        //        ModelState.AddModelError("", validationException.InnerException.Message);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        ModelState.AddModelError("", e.Message);
-        //    }
-
-        //    var query = from state in ModelState.Values
-        //                from error in state.Errors
-        //                select error.ErrorMessage;
-
-        //    var errorList = query.ToList();
-
-        //    if (errorList.Count() > 0)
-        //    {
-        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-        //    }
-
-        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        //}
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> UnpostPoItem(Guid? groupId)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
-        //        Access access = await accessTask;
-        //        if (!access.AllowPost)
-        //        {
-        //            ModelState.AddModelError("Access", "Access Denied!");
-        //        }
-
-        //        if (ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            await _parService.UnPostAsync(groupId, user, date);
-        //        }
-        //    }
-        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-        //    {
-        //        var errors = validationException.GetErrorsForModelState();
-        //        foreach (var error in errors)
-        //        {
-        //            ModelState.AddModelError(error.Key, error.Message);
-        //        }
-        //    }
-        //    catch (ValidationException validationException)
-        //    {
-        //        ModelState.AddModelError("", validationException.InnerException.Message);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        ModelState.AddModelError("", e.Message);
-        //    }
-
-        //    var query = from state in ModelState.Values
-        //                from error in state.Errors
-        //                select error.ErrorMessage;
-
-        //    var errorList = query.ToList();
-
-        //    if (errorList.Count() > 0)
-        //    {
-        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-        //    }
-
-        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        //}
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> PostPoItemSet(Guid? unitGroupId)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
-        //        Access access = await accessTask;
-        //        if (!access.AllowPost)
-        //        {
-        //            ModelState.AddModelError("Access", "Access Denied!");
-        //        }
-
-        //        if (ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            await _parService.PostSetAsync(unitGroupId, user, date);
-        //        }
-        //    }
-        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-        //    {
-        //        var errors = validationException.GetErrorsForModelState();
-        //        foreach (var error in errors)
-        //        {
-        //            ModelState.AddModelError(error.Key, error.Message);
-        //        }
-        //    }
-        //    catch (ValidationException validationException)
-        //    {
-        //        ModelState.AddModelError("", validationException.InnerException.Message);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        ModelState.AddModelError("", e.Message);
-        //    }
-
-        //    var query = from state in ModelState.Values
-        //                from error in state.Errors
-        //                select error.ErrorMessage;
-
-        //    var errorList = query.ToList();
-
-        //    if (errorList.Count() > 0)
-        //    {
-        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-        //    }
-
-        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        //}
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> UnpostPoItemSet(Guid? unitGroupId)
-        //{
-        //    try
-        //    {
-        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
-        //        Access access = await accessTask;
-        //        if (!access.AllowPost)
-        //        {
-        //            ModelState.AddModelError("Access", "Access Denied!");
-        //        }
-
-        //        if (ModelState.IsValid)
-        //        {
-        //            string user = ControllerContext.HttpContext.User.Identity.Name;
-        //            DateTime date = System.DateTime.Now;
-
-        //            await _parService.UnPostSetAsync(unitGroupId, user, date);
-        //        }
-        //    }
-        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-        //    {
-        //        var errors = validationException.GetErrorsForModelState();
-        //        foreach (var error in errors)
-        //        {
-        //            ModelState.AddModelError(error.Key, error.Message);
-        //        }
-        //    }
-        //    catch (ValidationException validationException)
-        //    {
-        //        ModelState.AddModelError("", validationException.InnerException.Message);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        ModelState.AddModelError("", e.Message);
-        //    }
-
-        //    var query = from state in ModelState.Values
-        //                from error in state.Errors
-        //                select error.ErrorMessage;
-
-        //    var errorList = query.ToList();
-
-        //    if (errorList.Count() > 0)
-        //    {
-        //        return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-        //    }
-
-        //    return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-        //}
+        }        
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> PostPar(string parNo)
@@ -418,7 +214,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowUnpost)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
@@ -461,18 +257,10 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
-
         #endregion
 
 
         #region PAR ITEMS
-        //public ActionResult _Pars(Guid? cardItemId, decimal? unitCost)
-        //{
-        //    ViewData["CardItemId"] = cardItemId;
-        //    ViewData["UnitCost"] = unitCost;
-        //    return PartialView();
-        //}
-
         public ActionResult _Pars(Guid? cardItemGroupId, string postedBy)
         {
             ViewData["cardItemGroupId"] = cardItemGroupId;
@@ -664,7 +452,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "par");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowAdd)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }

@@ -571,7 +571,12 @@ namespace iLgs.Models
 
             [MaxLength(1)]
             public string Annex { get; set; }
+
+            [Display(Name = "Inserted By")]
             public string InsertedBy { get; set; }
+
+            [Display(Name = "Inserted Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }
             public Nullable<System.DateTime> UpdatedDt { get; set; }
@@ -580,6 +585,7 @@ namespace iLgs.Models
             public string PostedBy { get; set; }
 
             [Display(Name = "Posted Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> PostedDt { get; set; }
         }
     }
@@ -687,7 +693,7 @@ namespace iLgs.Models
             [Display(Name = "Building Area (sqm)")]
             public Nullable<decimal> Area { get; set; }
 
-            [Display(Name = "Acquisition Cost")]
+            [Display(Name = "Phase Amount Total")]
             public Nullable<decimal> TotalAmount { get; set; }
 
             //[Required]
@@ -744,7 +750,12 @@ namespace iLgs.Models
             public string Condition { get; set; }
             public string Remarks { get; set; }
             public string Annex { get; set; }
+
+            [Display(Name = "Inserted By")]
             public string InsertedBy { get; set; }
+
+            [Display(Name = "Inserted Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }
             public Nullable<System.DateTime> UpdatedDt { get; set; }
@@ -753,6 +764,7 @@ namespace iLgs.Models
             public string PostedBy { get; set; }
 
             [Display(Name = "Posted Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> PostedDt { get; set; }
             public Nullable<double> Latitude { get; set; }
             public Nullable<double> Longitude { get; set; }

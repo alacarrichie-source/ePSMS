@@ -9,9 +9,9 @@
     .Columns(col =>
     {
         //col.Bound(c => c.Id);
+        col.Bound(c => c.Fund).Width(50);
         col.Bound(c => c.RisNo).Width(70);
         col.Bound(c => c.RisDate).Width(70);
-        col.Bound(c => c.Fund).Width(70);
         col.Bound(c => c.Office).Width(100);
         col.Bound(c => c.FPP).Width(70);
         col.Bound(c => c.RequestedBy).Width(100);
@@ -23,8 +23,7 @@
         col.Command(command =>
         {
             command.Edit();
-            //command.Destroy();
-            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted"); 
             command.Custom("Issue").IconClass("k-icon k-i-book").Click("onClickIssue").Visible("CheckPostedBy");
         }).Width(170);
     })
@@ -78,6 +77,7 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
+        .Sort(s => s.Add(a => a.InsertedDt).Descending())
         .Read(read => read.Action("RISRead", "RIS"))
         .Create(create => create.Action("RISCreate", "RIS"))
         .Update(update => update.Action("RISUpdate", "RIS"))
@@ -102,6 +102,7 @@
                     config.Fade(FadeDirection.In);
                 });
             })
+            .Events(e => e.Select("onSelectTabStrip"))
             .SelectedIndex(0)
             .Items(items =>
             {
@@ -170,6 +171,30 @@
 
 
 <script type="text/javascript">
+    function onSelectTabStrip(e) {
+        var tabStrip = this;
+        for (var idx = 0; ; ++idx) {
+            var tab = tabStrip.contentElement(idx);
+            if (tab == null)
+                break;
+            if (tab == e.contentElement) {
+                //current tab logic - just let it go
+            }
+            else {
+                //all other tabs
+                $(tab).html("");
+            }
+        }
+    }
+    
+    function IsPosted(dataItem) {
+        return dataItem.IsPosted == true;
+    }
+
+    function IsNotPosted(dataItem) {
+        return dataItem.IsPosted != true;
+    }
+
     function columnTemplate(data) {
         return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
     }
@@ -609,6 +634,15 @@
         };
     }
 
+    function onChangeRisDate(e) {
+        var date = $("#RisDate").data("kendoDatePicker").value();
+        $("#RequestedDate").data("kendoDatePicker").value(date);
+        $("#ApprovedDate").data("kendoDatePicker").value(date);
+
+        $("#RequestedDate").data("kendoDatePicker").trigger("change");
+        $("#ApprovedDate").data("kendoDatePicker").trigger("change");
+    }
+
     function onSelectRequestedBy(e) {
         var dataItem = this.dataItem(e.item.index());
 
@@ -672,7 +706,30 @@
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('OfficeId', $('#OfficeId').val());
         model.set('Office', $('#Office').val());
+
+        setTimeout(function () {
+            var fppComboBox = $("#FPP").data("kendoMultiColumnComboBox");
+            if (fppComboBox) {
+                fppComboBox.dataSource.read();
+            }
+        }, 500);
     }
+
+    function onChangeOffice(e) {
+        var fppComboBox = $("#FPP").data("kendoMultiColumnComboBox");
+        if (fppComboBox) {
+            fppComboBox.dataSource.read();
+        }
+    }
+
+    //$(document).ready(function () {
+    //    setTimeout(function () {
+    //        var fppComboBox = $("#FPP").data("kendoMultiColumnComboBox");
+    //        if (fppComboBox) {
+    //            fppComboBox.dataSource.read();
+    //        }
+    //    }, 500);
+    //});
 
     function onSelectFpp(e) {
         var dataItem = this.dataItem(e.item.index());
@@ -693,6 +750,9 @@
         $("#ItemType").val(dataItem.Article).trigger("change");
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
         $("#SubAccountCode").val(dataItem.MainDescCode).trigger("change");
+
+        $("#Category").val(dataItem.Category).trigger("change");
+        $("#PsNoDisplay").val(dataItem.Code).trigger("change");
 
         RefreshDivs(dataItem);
     }
@@ -958,7 +1018,7 @@
         mywindow.refresh({
             url: '@Url.Action("_PrintRisDepartment", "RIS")?risNo=' + selectedRisNo
         });
-        mywindow.center().open();        
+        mywindow.center().open();
     });
 
 
@@ -1353,7 +1413,7 @@
 
     function UpdateDescription(e)
     {
-        return;
+        //return;
 
         // Manually enter description
 

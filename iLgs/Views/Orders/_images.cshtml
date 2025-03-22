@@ -1,0 +1,92 @@
+﻿@{
+    var gridName = "gridImages_" + ViewData["imageId"];
+}
+
+@(Html.Kendo().Grid<iLgs.Models.Upload>()
+    .Name("gridImages_")
+    .Columns(col =>
+    {
+        col.Bound(p => p.Description).Title("")
+                .ClientTemplate(
+                @"<div class='upload-photo'
+                   style='background-image: url(" + @Url.Content("~/Orders/PreviewUpload?id=#:Id#") + ");'></div></div>")
+                    .Width(70);
+        col.Bound(p => p.Description).Width(100);
+        //col.Bound(p => p.FileName).Width(50);
+        col.Command(command =>
+        {
+            if (string.IsNullOrEmpty((string)ViewData["postedBy"]))
+            {
+                command.Edit();
+                command.Destroy();
+            }
+            command.Custom("Preview").IconClass("k-icon k-i-eye").Click("onClickPreview");
+            command.Custom("Download").IconClass("k-icon k-i-download").Click("onClickDownload");
+        }).Width(100);
+
+    })
+    .ToolBar(toolbar =>
+    {
+        toolbar.Template(@<text>
+            @if (string.IsNullOrEmpty((string)ViewData["postedBy"]))
+            {
+                @(Html.Kendo().Button().Name("btnUpload_" + @ViewData["imageId"]).Content("Upload")
+                .HtmlAttributes(new { data_gridname = gridName, data_imageId = @ViewData["imageId"] })  // Add a data attribute
+                .Events(e => e.Click("onClickUpload"))
+                )
+            }
+        </text>);
+    })
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ImagesTemplate").Window(w => w.Width(500).Title("Edit")))
+    .Pageable(pageable => pageable.Refresh(true).PageSizes(true).ButtonCount(5))
+    .Sortable(sortable => sortable
+        .AllowUnsort(true)
+        .SortMode(GridSortMode.MultipleColumn))
+    .Filterable()
+    .Scrollable()
+    .NoRecords()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Events(events => events.Error("GridUploadError").RequestEnd("onRequestEndGridUpload"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        })
+        .Read(read => read.Action("_ImagesRead", "Orders", new { imageId = ViewData["imageId"] }))
+        .Update(update => update.Action("_ImagesUpdate", "Orders"))
+        .Destroy(destroy => destroy.Action("_ImagesDestroy", "Orders"))
+        )
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .AutoBind(true)
+            .Events(events => events.Edit("onEditGridImages")
+            .DataBound("onDataBoundGridImages")
+        )
+)
+
+<style>
+    .upload-photo {
+        display: inline-block;
+        width: 70px;
+        height: 70px;
+        border-radius: 1%;
+        background-size: 70px 70px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 80px;
+        box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+        margin-left: 5px;
+    }
+
+    .file-name {
+        display: inline-block;
+        width: 150px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 32px;
+        padding-left: 3px;
+    }
+</style>
+
+

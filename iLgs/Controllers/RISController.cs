@@ -1,13 +1,10 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
-using iLgs.Agents.Services;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
 using iLgs.Services.AllFields;
 using iLgs.Services.Codes;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Items;
 using iLgs.Services.Requisition;
 using iLgs.Utilities;
@@ -21,9 +18,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
-using static iLgs.Models.Enums;
 
 namespace iLgs.Controllers
 {
@@ -59,9 +54,10 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult RISRead([DataSourceRequest] DataSourceRequest request)
+        public async Task<ActionResult> RISRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _risService.GetAll();
+            var userId = User.Identity.GetUserId();
+            var data = await _risService.GetAllAsync(userId);
 
             var result = new JsonNetResult
             {
@@ -239,7 +235,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowUnpost)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
@@ -310,17 +306,27 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "ris");
                 Access access = await accessTask;
-                if (!access.AllowAdd || !access.AllowEdit)
+
+                var entity = await _risItemService.GetByIdAsync(model.Id);
+                if (entity == null)
                 {
-                    ModelState.AddModelError("Access", "Access Denied!");
+                    if (!access.AllowAdd)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
+                }
+                else
+                {
+                    if (!access.AllowEdit)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
                 }
                 
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-                    
-                    var entity = await _risItemService.GetByIdAsync(model.Id);
+                    DateTime date = System.DateTime.Now;                                        
 
                     if (entity == null)
                     {
@@ -829,8 +835,19 @@ namespace iLgs.Controllers
                 {
                     model.AllField = allField;
                 }
-            }            
-
+                else
+                {
+                    model.AllField = new AllField();
+                    model.AllField.Id = model.Id;
+                    model.AllField.Multipliers = 0;
+                }
+            }    
+            else
+            {
+                model.AllField = new AllField();
+                model.AllField.Multipliers = 0;                
+            }
+            
             var itemCode = await _itemCodeService.GetByIdAsync(model.ItemCodeId);
             string partialView = AllFieldsUtil.GetPartialView(itemCode);
             if (!string.IsNullOrEmpty(partialView))
@@ -839,21 +856,7 @@ namespace iLgs.Controllers
             }
             return PartialView(partialView, model);
         }
-
-        //[Authorize]
-        //public ActionResult _RISItemExtnBatchRead([DataSourceRequest] DataSourceRequest request, Guid? risItemId, string psType)
-        //{
-        //    var data = _sa.RisItemExtn.GetBatchInfo(risItemId, psType);
-        //    var result = new JsonNetResult
-        //    {
-        //        Data = data.ToDataSourceResult(request),
-        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-        //    };
-
-        //    return result;
-        //}
-
+        
         public ActionResult _PrintRisDepartment(string risNo)
         {
             var date = DateTime.Now;

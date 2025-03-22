@@ -22,18 +22,18 @@ namespace iLgs.Models
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> AIRItemId { get; set; }
+        public string SetLotNo { get; set; }
+        public Nullable<int> SetLotQtyNo { get; set; }
         public Nullable<int> ContentNo { get; set; }
         public Nullable<int> CustItemNo { get; set; }
+        public Nullable<bool> IsAutoGen { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        public string SetLotNo { get; set; }
-        public Nullable<int> SetLotQtyNo { get; set; }
-        public Nullable<bool> IsAutoGen { get; set; }
     
+        public virtual AIRItem AIRItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
-        public virtual AIRItem AIRItem { get; set; }
     }
 }

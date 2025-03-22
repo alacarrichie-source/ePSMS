@@ -214,10 +214,13 @@ namespace iLgs.Models
         [Display(Name = "Item Name")]
         public string ItemName { get; set; }
 
+        [Display(Name = "Category")]
+        public string Category { get; set; } // Used as category
+
         [Display(Name = "Category Code")]
         public string PsType { get; set; } // Used as category
 
-        [Display(Name = "Category Name")]
+        [Display(Name = "Account")]
         public string PsTypeDesc { get; set; } // Used as category description
 
         [Display(Name = "Item Code")]
@@ -490,7 +493,7 @@ namespace iLgs.Models
             [Display(Name = "Group No.")]
             public string SetLotNo { get; set; }
 
-            [Display(Name = "Qty per Set/Lot")]
+            [Display(Name = "Qty")]
             public Nullable<int> Qty { get; set; }
 
             [Display(Name = "Unit of Measurement")]
@@ -522,6 +525,8 @@ namespace iLgs.Models
     [MetadataType(typeof(RisItemUnitGroupDescriptionItemVM.Metadata))]
     public class RisItemUnitGroupDescriptionItemVM : RisItemUnitGroupDescriptionItem
     {
+        public string Category { get; set; }
+
         [Display(Name = "Stock/Prop No.")]
         public string PsNo { get; set; }
         public string ItemName { get; set; }
@@ -550,6 +555,9 @@ namespace iLgs.Models
     public class RisItemUnitGroupAvailableVM
     {
         public System.Guid Id { get; set; }
+
+        public string Category { get; set; }
+
         [Display(Name = "Stock/Prop No.")]
         public string PsNo { get; set; }
         public string ItemName { get; set; }

@@ -60,6 +60,7 @@ namespace iLgs.Services.PurchaseOrder
                 //Account = s.RequestItem.RisItem.ItemCode.ItemType.Description,
                 //PsNo = s.RequestItem.RisItem.PsNo,
                 // Use Account description of deligated ItemCodeId
+                Category = s.ItemCode.ItemType.Category,
                 ItemCodeId = s.ItemCodeId,
                 ItemCode = s.ItemCode.Code,
                 ItemType = s.ItemCode.Description,
@@ -86,14 +87,14 @@ namespace iLgs.Services.PurchaseOrder
 
         public ValueTask<OrderItemVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
         {
-            var data = await _db.OrderItems.Where(w => w.Id == id)
+            var data = await _db.OrderItems.AsNoTracking().Where(w => w.Id == id)
                 .Select(Projection()).FirstOrDefaultAsync();
             return data;
         });
 
         public IQueryable<OrderItemVM> GetByPoId(Guid? poId) => _VmExceptionService.TryCatch(() =>
         {
-            var data = _db.OrderItems.Where(w => w.OrderId == poId)
+            var data = _db.OrderItems.AsNoTracking().Where(w => w.OrderId == poId)
                 .Select(Projection());
             return data;
         });

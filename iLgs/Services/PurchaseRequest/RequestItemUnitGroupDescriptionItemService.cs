@@ -52,13 +52,14 @@ namespace iLgs.Services.PurchaseRequest
         public IQueryable<RequestItemUnitGroupDescriptionItemVM> GetByUnitGroupDescriptionId(Guid? unitGroupDescriptionId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.RequestItemUnitGroupDescriptionItems.Where(w => w.RequestItemUnitGroupDescriptionId == unitGroupDescriptionId)
+            var data = _db.RequestItemUnitGroupDescriptionItems.AsNoTracking().Where(w => w.RequestItemUnitGroupDescriptionId == unitGroupDescriptionId)
                 .Select(s => new RequestItemUnitGroupDescriptionItemVM
                 {
                     Id = s.Id,
                     RequestItemUnitGroupDescriptionId = s.RequestItemUnitGroupDescriptionId,
                     RisItemUnitGroupDescriptionItemId = s.RisItemUnitGroupDescriptionItemId,
                     RequestItemId = s.RequestItemId,
+                    Category = s.RequestItem.RisItem.ItemCode.ItemType.Category,
                     PsNo = s.RisItemUnitGroupDescriptionItem.RisItem.PsNoDisplay,
                     ItemName = s.RisItemUnitGroupDescriptionItem.RisItem.ItemName,
                     Description = s.RisItemUnitGroupDescriptionItem.RisItem.Description,
@@ -74,59 +75,7 @@ namespace iLgs.Services.PurchaseRequest
                 });
             return data;
         });
-
-        //public IQueryable<RisItemUnitGroupAvailableVM> GetAvailableUnitGroupItem(Guid? risId) =>
-        //_vmUnitGroupAvailableExceptionService.TryCatch(() =>
-        //{
-        //    var data = _db.RisItems.Where(w => w.RisId == risId && !w.RisItemUnitGroupDescriptionItems.Any(a => a.RisItemId == w.Id))
-        //    .Select(s => new RisItemUnitGroupAvailableVM
-        //    {
-        //        Id = s.Id,
-        //        PsNo = s.PsNo,
-        //        ItemName = s.ItemName,
-        //        Description = s.Description,
-        //        Unit = s.Unit,
-        //        QtyRequest = s.QtyRequest,
-        //        InsertedDt = s.InsertedDt
-        //    });
-        //    return data;
-        //});
-
-        //public ValueTask<RequestItemUnitGroupDescriptionItemVM> CreateAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date) =>
-        //_vmExceptionService.TryCatch(async () =>
-        //{
-        //    if (string.IsNullOrWhiteSpace(model.GridItems))
-        //    {
-        //        throw new InvalidValueException("No selected items, cannot continue!");
-        //    }
-
-        //    model.InsertedBy = user;
-        //    model.UpdatedBy = user;
-        //    model.InsertedDt = date;
-        //    model.UpdatedDt = date;
-
-        //    var selectedItems = model.GridItems.Split(',');
-        //    foreach (var item in selectedItems)
-        //    {
-        //        model.Id = Guid.NewGuid();
-        //        RisItemUnitGroupDescriptionItem entity = new RisItemUnitGroupDescriptionItem()
-        //        {
-        //            Id = model.Id,
-        //            UnitGroupDescriptionId = model.UnitGroupDescriptionId,
-        //            RisItemId = Guid.Parse(item),
-        //            InsertedBy = model.InsertedBy,
-        //            InsertedDt = model.InsertedDt,
-        //            UpdatedBy = model.UpdatedBy,
-        //            UpdatedDt = model.UpdatedDt
-        //        };
-
-        //        _db.RisItemUnitGroupDescriptionItems.Add(entity);
-        //    }
-
-        //    await _db.SaveChangesAsync();
-        //    return model;
-        //});
-
+        
         public ValueTask<RequestItemUnitGroupDescriptionItemVM> DeleteAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {

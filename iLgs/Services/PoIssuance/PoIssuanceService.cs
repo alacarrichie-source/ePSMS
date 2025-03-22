@@ -87,7 +87,7 @@ namespace iLgs.Services.PoIssuance
 
         public async ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId)
         {
-            var IsAdmin = await _userService.IsAdmin(userId);
+            var IsAdmin = await _userService.IsAdminAsync(userId);
             var data = _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_GetRecords {0}, {1}", IsAdmin, userId).AsQueryable();
             return data;
         }

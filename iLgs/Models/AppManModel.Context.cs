@@ -62,7 +62,6 @@ namespace iLgs.Models
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<IcsParItem> IcsParItems { get; set; }
-        public virtual DbSet<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
@@ -84,15 +83,12 @@ namespace iLgs.Models
         public virtual DbSet<AIRItem> AIRItems { get; set; }
         public virtual DbSet<CustodianIirupItem> CustodianIirupItems { get; set; }
         public virtual DbSet<CustodianIIRUP> CustodianIIRUPs { get; set; }
-        public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
         public virtual DbSet<RisItemUnitGroupDescription> RisItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<PsCardItemTransaction> PsCardItemTransactions { get; set; }
         public virtual DbSet<RISs> RISses { get; set; }
         public virtual DbSet<RisItemUnitGroup> RisItemUnitGroups { get; set; }
-        public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
-        public virtual DbSet<AIR> AIRs { get; set; }
         public virtual DbSet<AllField> AllFields { get; set; }
         public virtual DbSet<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<IcsPartUnitGroupDescription> IcsPartUnitGroupDescriptions { get; set; }
@@ -112,5 +108,9 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
         public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
         public virtual DbSet<RpcPpe> RpcPpes { get; set; }
+        public virtual DbSet<AIRItemExtn> AIRItemExtns { get; set; }
+        public virtual DbSet<AIR> AIRs { get; set; }
+        public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
     }
 }

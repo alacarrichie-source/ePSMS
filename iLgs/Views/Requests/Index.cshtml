@@ -5,71 +5,72 @@
 
 
 @(Html.Kendo().Grid<iLgs.Models.RequestVM>()
-    .Name("grid")
-    .HtmlAttributes(new { @class = "max-grid" })
-    .Columns(col =>
-    {
-        col.Bound(c => c.PrNo).Width(70);
-        col.Bound(c => c.PrDate).Width(70);
-        col.Bound(c => c.Fund).Width(70);
-        col.Bound(c => c.RisNo).Width(70);
-        col.Bound(c => c.Department).Width(100);
-        //col.Bound(c => c.FPP).Width(70);
-        col.Bound(c => c.RequestedBy).Width(100);
-        col.Bound(c => c.Availability).Width(100);
-        col.Bound(c => c.ApprovedBy).Width(100);
-        col.Bound(c => c.SubmittedBy).Width(100);
-        col.Command(command =>
+        .Name("grid")
+        .HtmlAttributes(new { @class = "max-grid" })
+        .Columns(col =>
         {
-            command.Edit();
-            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-        }).Width(120);
-    })
-    .ToolBar(t =>
-    {
-        t.Create().Text("Add Request");
-        t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintPR").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnSubmitPR").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPR").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Search();
-    })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RequestTemplate").Window(w => w.Width(800).Title("Purchase Request")))
-    .Search(s =>
-    {
-        s.Field(o => o.PrNo, "contains");
-        s.Field(o => o.Fund, "contains");
-        s.Field(o => o.Department, "contains");
-        s.Field(o => o.FPP, "contains");
-        s.Field(o => o.RequestedBy, "contains");
-        s.Field(o => o.Availability, "contains");
-        s.Field(o => o.ApprovedBy, "contains");
-    })
-    .Pageable(pager => pager
-        .Input(false)
-        .Numeric(true)
-        .Info(true)
-        .PreviousNext(true)
-        .Refresh(true)
-        .PageSizes(true)
-        .ButtonCount(5)
-    )
-    .Filterable()
-    .NoRecords()
-    .Resizable(r => r.Columns(true))    
-    //.Scrollable(s => s.Height(430))
-    .Scrollable()
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .Sortable()
-    .ClientDetailTemplateId("Details")
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .PageSize(20)
-        .Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            col.Bound(c => c.Fund).Width(50);
+            col.Bound(c => c.PrNo).Width(70);
+            col.Bound(c => c.PrDate).Width(70);            
+            col.Bound(c => c.RisNo).Width(70);
+            col.Bound(c => c.Department).Width(100);
+            //col.Bound(c => c.FPP).Width(70);
+            col.Bound(c => c.RequestedBy).Width(100);
+            col.Bound(c => c.Availability).Width(100);
+            col.Bound(c => c.ApprovedBy).Width(100);
+            col.Bound(c => c.SubmittedBy).Width(100);
+            col.Command(command =>
+            {
+                command.Edit();
+                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            }).Width(120);
         })
+        .ToolBar(t =>
+        {
+            t.Create().Text("Add Request");
+            t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrintPR").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnSubmitPR").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpostPR").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Search();
+        })
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_RequestTemplate").Window(w => w.Width(800).Title("Purchase Request")))
+        .Search(s =>
+        {
+            s.Field(o => o.PrNo, "contains");
+            s.Field(o => o.Fund, "contains");
+            s.Field(o => o.Department, "contains");
+            s.Field(o => o.FPP, "contains");
+            s.Field(o => o.RequestedBy, "contains");
+            s.Field(o => o.Availability, "contains");
+            s.Field(o => o.ApprovedBy, "contains");
+        })
+        .Pageable(pager => pager
+            .Input(false)
+            .Numeric(true)
+            .Info(true)
+            .PreviousNext(true)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5)
+        )
+        .Filterable()
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        //.Scrollable(s => s.Height(430))
+        .Scrollable()
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Sortable()
+        .ClientDetailTemplateId("Details")
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(20)
+            .Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Sort(s => s.Add(a => a.InsertedDt).Descending())
         .Read(read => read.Action("RequestRead", "Requests"))
         .Create(create => create.Action("RequestCreate", "Requests"))
         .Update(update => update.Action("RequestUpdate", "Requests"))
@@ -94,6 +95,7 @@
                     config.Fade(FadeDirection.In);
                 });
             })
+            .Events(e => e.Select("onSelectTabStrip"))
             .SelectedIndex(0)
             .Items(items =>
             {
@@ -161,6 +163,22 @@
 
 
 <script type="text/javascript">
+    function onSelectTabStrip(e) {
+        var tabStrip = this;
+        for (var idx = 0; ; ++idx) {
+            var tab = tabStrip.contentElement(idx);
+            if (tab == null)
+                break;
+            if (tab == e.contentElement) {
+                //current tab logic - just let it go
+            }
+            else {
+                //all other tabs
+                $(tab).html("");
+            }
+        }
+    }
+
     function error_handler(e, status) {
         if ((e.errors)) {
             var message = "Errors:\n";
@@ -468,7 +486,7 @@
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('AvaialbilityDesig', $('#AvaialbilityDesig').val());
     }
-
+    
     function DataApprovedBy() {
         var text = $("#ApprovedBy").data("kendoMultiColumnComboBox").text();
         return {
@@ -801,7 +819,8 @@
 
     function onSelectRisId(e) {
         var dataItem = this.dataItem(e.item.index());
-        var risDate = kendo.toString(new Date(parseInt(dataItem.RisDate.substr(6))), 'MM/dd/yyyy');
+        //var risDate = kendo.toString(new Date(parseInt(dataItem.RisDate.substr(6))), 'MM/dd/yyyy');
+        var risDate = kendo.parseDate(dataItem.RisDate);
 
         $("#RisNo").val(dataItem.RisNo).trigger("change");
         $("#RisDate").val(risDate).trigger("change");

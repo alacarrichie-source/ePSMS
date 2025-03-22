@@ -61,7 +61,7 @@ namespace iLgs.Models
         [Display(Name = "Officer/Committee")]
         public string Officer { get; set; }
 
-        [Display(Name = "Inventory/For Distribution")]
+        [Display(Name = "Inventory / For Distribution")]
         public string InvDist { get; set; }
 
         public string InsertedBy { get; set; }

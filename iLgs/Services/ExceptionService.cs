@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Validation;
@@ -23,9 +24,9 @@ namespace iLgs.Services
 
         public ExceptionService()
         {
-            _loggingService = new LoggingService();
-        }        
-
+            _loggingService = new LoggingService();            
+        }
+        
         public async ValueTask<T> TryCatch(Func<ValueTask<T>> returningFunction)
         {
             try
@@ -172,9 +173,9 @@ namespace iLgs.Services
         {
             var validationException = new ValidationException(exception);
             //var lockedException =
-            //    new RecordLockedException(exception);
+            //    new RecordLockedException(validationException);
 
-            //_loggingService.LogError(dependencyValidationException);
+            //_loggingService.LogError(validationException);
 
             return validationException;
         }
@@ -188,6 +189,12 @@ namespace iLgs.Services
 
             //_loggingService.LogError(dependencyValidationException);
 
+            //int logId = _loggingService.LogErrorWithId(LogLevel.Error, exception.Message, exception.ToString());
+
+            //// Append Log ID to exception message
+            //var trackedException = new Exception($"Log ID: {logId} | {exception.Message}", exception);
+
+
             return dependencyValidationException;
         }
 
@@ -195,10 +202,10 @@ namespace iLgs.Services
         {
             var dependencyException = new DependencyException(exception);
             //_loggingService.LogError(dependencyException);
-
+            
             return dependencyException;
         }
-
+        
         private DependencyException CreateAndLogCriticalDependencyException(Exception exception)
         {
             var dependencyException = new DependencyException(exception);

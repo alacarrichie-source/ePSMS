@@ -13,10 +13,12 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
@@ -34,6 +36,8 @@ namespace iLgs.Controllers
         private readonly IOrderItemUnitGroupDescriptionItemService _unitGroupDescriptionItemService;
         private readonly IItemCodeService _itemCodeService;
         private readonly IAllFieldService _allFieldService;
+        private readonly IOrderUploadService _uploadPoService;
+        private readonly IOrderUploadService _uploadCafoaService;
 
         public OrdersController()
         {
@@ -47,6 +51,8 @@ namespace iLgs.Controllers
             _unitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _allFieldService = new AllFieldService(_db);
+            _uploadPoService = new OrderUploadServiceService(_db);
+            _uploadCafoaService = new OrderUploadServiceService(_db, "CAFOA");
         }
 
         // GET: Codes
@@ -55,9 +61,10 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult OrderRead([DataSourceRequest] DataSourceRequest request)
+        public async Task<ActionResult> OrderRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _orderService.GetAll();
+            var userId = User.Identity.GetUserId();
+            var data = await _orderService.GetAllAsync(userId);
 
             var result = new JsonNetResult
             {
@@ -184,6 +191,7 @@ namespace iLgs.Controllers
             ViewData["orderId"] = orderId;
             return PartialView();
         }
+
         public async Task<ActionResult> _OrderItemAddEdit(Guid orderId, Guid? orderItemId)
         {
             var data = await _orderItemService.GetByIdAsync(orderItemId);
@@ -211,11 +219,25 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+
+                var entity = await _orderItemService.GetByIdAsync(model.Id);
+                if (entity == null)
                 {
-                    ModelState.AddModelError("Access", "Access Denied!");
+                    if (!access.AllowAdd)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
                 }
-                else if (await _orderService.IsPostedAsync((Guid)model.OrderId))
+                else
+                {
+                    if (!access.AllowEdit)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
+                }
+
+                
+                if (await _orderService.IsPostedAsync((Guid)model.OrderId))
                 {
                     ModelState.AddModelError("PO No.", "PO Number already Posted, cannot update!");
                 }
@@ -223,9 +245,7 @@ namespace iLgs.Controllers
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
-
-                    var entity = await _orderItemService.GetByIdAsync(model.Id);
+                    DateTime date = System.DateTime.Now;                    
 
                     if (entity == null)
                     {
@@ -234,9 +254,7 @@ namespace iLgs.Controllers
                     else
                     {
                         model = await _orderItemService.UpdateAsync(model, user, date);
-                    }
-                    //var orderItemExtns = (List<OrderItemExtnVM>)Newtonsoft.Json.JsonConvert.DeserializeObject(model.GridOrderItemExtns, typeof(List<OrderItemExtnVM>));
-                    //await orderItemExtnService.SaveAsync(model.Id, orderItemExtns, user, date);
+                    }                    
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -255,19 +273,7 @@ namespace iLgs.Controllers
             {
                 ModelState.AddModelError("", e.Message);
             }
-
-            //var query = from state in ModelState.Values
-            //            from error in state.Errors
-            //            select error.ErrorMessage;
-
-            //var errorList = query.ToList();
-            //if (errorList.Count() > 0)
-            //{
-            //    return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
-            //}
-
-            //return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
-
+            
             var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
                        .Select(ms => new
                        {
@@ -440,7 +446,6 @@ namespace iLgs.Controllers
         public ActionResult _UnitGroupRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
         {
             var data = _unitGroupService.GetByOrderId(orderId);
-
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
@@ -449,7 +454,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "order");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -489,7 +494,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "order");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -536,7 +541,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "order");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -585,7 +590,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "order");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -625,7 +630,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "order");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -740,7 +745,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowUnpost)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
@@ -843,6 +848,384 @@ namespace iLgs.Controllers
             rpt.Close();
             rpt.Dispose();
             return File(stream, "application/pdf");
+        }
+        #endregion
+
+        #region PO UPLOADS
+        public ActionResult _Images(Guid? imageId, string postedBy)
+        {
+            ViewData["imageId"] = imageId;
+            ViewData["postedBy"] = postedBy;
+            return PartialView();
+        }
+
+                
+        public ActionResult _ImagesAdd(Guid? imageId)
+        {
+            var model = new Models.Upload()
+            {
+                ImageId = imageId
+            };
+            ViewData["imageId"] = imageId;
+            ViewData["fileSize"] = model.FileSize;
+            return PartialView(model);
+        }
+
+        public ActionResult _ImagesRead([DataSourceRequest] DataSourceRequest request, Guid imageId)
+        {
+            var data = _uploadPoService.GetAllByImageId(imageId);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        public async Task<ActionResult> _ImagesDestroy([DataSourceRequest]DataSourceRequest request, Models.Upload model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadPoService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ImagesUpdate([DataSourceRequest] DataSourceRequest request, Models.Upload model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadPoService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("UpdateError", e.Message);
+            }
+
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> _ImagesUpload(IEnumerable<HttpPostedFileBase> files, Models.Upload model, int? accountGroup)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("AddError", "Upload Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadPoService.UploadAsync(files, model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("AddError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("AddError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("AddError", e.Message);
+            }
+
+            var errorList = ModelState.Values.SelectMany(v => v.Errors)
+                                       .Select(e => e.ErrorMessage)
+                                       .ToList();
+
+            if (errorList.Any())
+            {
+                var errorMessage = string.Join("\n", errorList);
+                return Content(errorMessage);
+            }
+
+            return Content("");
+        }
+
+        public ActionResult DownloadFile(string fileName)
+        {
+            try
+            {
+                // Call the service to get the file bytes
+                byte[] fileBytes = _uploadPoService.DownloadFile(fileName);
+
+                // Return the file as a download
+                return File(fileBytes, MimeMapping.GetMimeMapping(fileName), fileName);
+            }
+            catch (FileNotFoundException ex)
+            {
+                // Handle file not found case
+                return HttpNotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions
+                return new HttpStatusCodeResult(500, "Error downloading file: " + ex.Message);
+            }
+        }
+
+        public async Task<ActionResult> PreviewUpload(Guid id)
+        {
+            var fileResult = await _uploadPoService.GetUploadedFileAsync(id);
+            if (fileResult != null)
+            {
+                return fileResult; // Return the file result directly
+            }
+            else
+            {
+                return HttpNotFound("File not found"); // Handle not found case
+            }
+        }
+        #endregion
+
+        #region CAFOA UPLOADS
+        public ActionResult _CafoaImages(Guid? imageId, string postedBy)
+        {
+            ViewData["imageId"] = imageId;
+            ViewData["postedBy"] = postedBy;
+            return PartialView();
+        }
+
+
+        public ActionResult _CafoaImagesAdd(Guid? imageId)
+        {
+            var model = new Models.Upload()
+            {
+                ImageId = imageId
+            };
+            ViewData["imageId"] = imageId;
+            ViewData["fileSize"] = model.FileSize;
+            return PartialView(model);
+        }
+
+        public ActionResult _CafoaImagesRead([DataSourceRequest] DataSourceRequest request, Guid imageId)
+        {
+            var data = _uploadCafoaService.GetAllByImageId(imageId);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        public async Task<ActionResult> _CafoaImagesDestroy([DataSourceRequest]DataSourceRequest request, Models.Upload model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadCafoaService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _CafoaImagesUpdate([DataSourceRequest] DataSourceRequest request, Models.Upload model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadCafoaService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("UpdateError", e.Message);
+            }
+
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> _CafoaImagesUpload(IEnumerable<HttpPostedFileBase> files, Models.Upload model, int? accountGroup)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("AddError", "Upload Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadCafoaService.UploadAsync(files, model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("AddError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("AddError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("AddError", e.Message);
+            }
+
+            var errorList = ModelState.Values.SelectMany(v => v.Errors)
+                                       .Select(e => e.ErrorMessage)
+                                       .ToList();
+
+            if (errorList.Any())
+            {
+                var errorMessage = string.Join("\n", errorList);
+                return Content(errorMessage);
+            }
+
+            return Content("");
+        }
+
+        public ActionResult CafoaDownloadFile(string fileName)
+        {
+            try
+            {
+                // Call the service to get the file bytes
+                byte[] fileBytes = _uploadCafoaService.DownloadFile(fileName);
+
+                // Return the file as a download
+                return File(fileBytes, MimeMapping.GetMimeMapping(fileName), fileName);
+            }
+            catch (FileNotFoundException ex)
+            {
+                // Handle file not found case
+                return HttpNotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions
+                return new HttpStatusCodeResult(500, "Error downloading file: " + ex.Message);
+            }
+        }
+
+        public async Task<ActionResult> CafoaPreviewUpload(Guid id)
+        {
+            var fileResult = await _uploadCafoaService.GetUploadedFileAsync(id);
+            if (fileResult != null)
+            {
+                return fileResult; // Return the file result directly
+            }
+            else
+            {
+                return HttpNotFound("File not found"); // Handle not found case
+            }
         }
         #endregion
     }

@@ -318,7 +318,7 @@
     <Compile Include="Controllers\PoIssuanceController.cs" />
     <Compile Include="Controllers\PropertyCardTranspoControoller.cs" />
     <Compile Include="Controllers\PsCategoryController.cs" />
-    <Compile Include="Controllers\PropNoItemController.cs" />
+    <Compile Include="Controllers\ItemCardController.cs" />
     <Compile Include="Controllers\RpceffoppeController.cs" />
     <Compile Include="Controllers\RpciController.cs" />
     <Compile Include="Controllers\RpcPpeController.cs" />
@@ -806,6 +806,7 @@
     <Compile Include="Services\AIRs\AirItemExtnOtherService.cs" />
     <Compile Include="Services\AIRs\AirItemExtnService.cs" />
     <Compile Include="Services\AIRs\AirItemExtnVehicleService.cs" />
+    <Compile Include="Services\AIRs\AirUploadService.cs" />
     <Compile Include="Services\AllFields\AllFieldService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\Codes\AnnexDService.cs" />
@@ -841,6 +842,8 @@
     <Compile Include="Services\DepartmentUserService.cs" />
     <Compile Include="Services\DollarRate_\DollarRateService.cs" />
     <Compile Include="Services\Items\ItemTypeExclusionService.cs" />
+    <Compile Include="Services\Logs\DatabaseLogger.cs" />
+    <Compile Include="Services\Logs\DatabaseLoggerProvider.cs" />
     <Compile Include="Services\ParIcs\IcsParItemService.cs" />
     <Compile Include="Services\ParIcs\IcsParService.cs" />
     <Compile Include="Services\ParIcs\IcsService.cs" />
@@ -859,6 +862,7 @@
     <Compile Include="Services\PropertyCard\PsCardItemTransactionService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemService.cs" />
     <Compile Include="Services\PropertyCard\PsCardService.cs" />
+    <Compile Include="Services\PurchaseOrder\OrderUploadService.cs" />
     <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupService.cs" />
@@ -4049,6 +4053,14 @@
     <Content Include="Views\IcsSet\_IcsSet.cshtml" />
     <Content Include="Views\IcsParUpdate\Index.cshtml" />
     <Content Include="Views\IcsParUpdate\_Transfer.cshtml" />
+    <Content Include="Views\Orders\_Images.cshtml" />
+    <Content Include="Views\Orders\EditorTemplates\_ImagesTemplate.cshtml" />
+    <Content Include="Views\Orders\_ImagesAdd.cshtml" />
+    <Content Include="Views\Orders\_CafoaImages.cshtml" />
+    <Content Include="Views\Orders\_CafoaImagesAdd.cshtml" />
+    <Content Include="Views\AIRs\_Images.cshtml" />
+    <Content Include="Views\AIRs\_ImagesAdd.cshtml" />
+    <Content Include="Views\AIRs\EditorTemplates\_ImagesTemplate.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4378,15 +4390,16 @@
     <Content Include="Views\ParSet\_Upload.cshtml" />
     <Content Include="Views\ParSet\_Pars.cshtml" />
     <Content Include="Views\ParSet\_ParSet.cshtml" />
-    <Content Include="Views\PropNoItem\Index.cshtml" />
-    <Content Include="Views\PropNoItem\Supplies.cshtml" />
-    <Content Include="Views\PropNoItem\_Items.cshtml" />
-    <Content Include="Views\PropNoItem\_Images.cshtml" />
+    <Content Include="Views\ItemCard\Index.cshtml" />
+    <Content Include="Views\ItemCard\Supplies.cshtml" />
+    <Content Include="Views\ItemCard\_Items.cshtml" />
+    <Content Include="Views\ItemCard\_Images.cshtml" />
     <Content Include="Views\PoIssuance\_Images.cshtml" />
     <Content Include="Views\PoIssuance\EditorTemplates\_ImagesTemplate.cshtml" />
     <Content Include="Views\PoIssuance\_ImagesAdd.cshtml" />
     <Content Include="Views\RSMI\_PrintSum.cshtml" />
     <Content Include="Views\Rpci\_PrintSum.cshtml" />
+    <Content Include="Views\PropertyCard\ItemQuery.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

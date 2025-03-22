@@ -31,12 +31,12 @@
     .Name("grid")
     .Columns(col =>
     {
-        col.Bound(p => p.Id).Title("")
-                .ClientTemplate(
-                @"<div class='upload-photo'
-                   style='background-image: url(" + @Url.Content("~/ParIcsUpload/GridPreview?id=#:Id#") + ");" +
-                   "onclick='oClickImage(#:Id#)'></div></div>")
-                    .Width(70);
+        //col.Bound(p => p.Id).Title("")
+        //        .ClientTemplate(
+        //        @"<div class='upload-photo'
+        //           style='background-image: url(" + @Url.Content("~/ParIcsUpload/GridPreview?id=#:Id#") + ");" +
+        //           "onclick='oClickImage(#:Id#)'></div></div>")
+        //            .Width(70);
         col.Bound(c => c.RefNo).Width(50);
         col.Bound(c => c.RefDate).Width(50);
         col.Bound(c => c.UpdateCode).Width(30);

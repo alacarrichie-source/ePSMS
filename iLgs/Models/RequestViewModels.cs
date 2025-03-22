@@ -52,6 +52,7 @@ namespace iLgs.Models
         // From RIS
 
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [Display(Name = "RIS Date")]
         public Nullable<System.DateTime> RisDate { get; set; }
         public string Fund { get; set; }
         public string Department { get; set; }
@@ -64,6 +65,8 @@ namespace iLgs.Models
 
         [Display(Name = "Designation")]
         public string RequestedDesig { get; set; }
+
+        public Nullable<System.DateTime> ApprovedDate { get; set; }
 
         [Display(Name = "RIS No.")]
         public string RisNo { get; set; }
@@ -157,7 +160,7 @@ namespace iLgs.Models
             [Display(Name = "Group No.")]
             public string SetLotNo { get; set; }
 
-            [Display(Name = "Qty per Set/Lot")]
+            [Display(Name = "Qty")]
             public Nullable<int> Qty { get; set; }
 
             [Display(Name = "Unit of Measurement")]
@@ -193,21 +196,8 @@ namespace iLgs.Models
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-
-        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        //public virtual ICollection<OrderItemUnitGroupDescriptionItem> OrderItemUnitGroupDescriptionItems { get; set; }
-        //public RequestItem RequestItem { get; set; }
-        //public virtual RequestItemUnitGroupDescription RequestItemUnitGroupDescription { get; set; }
-        //public virtual RisItemUnitGroupDescriptionItem RisItemUnitGroupDescriptionItem { get; set; }
-
-        //public System.Guid Id { get; set; }
-        //public Nullable<System.Guid> UnitGroupDescriptionId { get; set; }
-        //public Nullable<System.Guid> RisItemId { get; set; }
-        //public string InsertedBy { get; set; }
-        //[DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
-        //public Nullable<System.DateTime> InsertedDt { get; set; }
-        //public string UpdatedBy { get; set; }
-        //public Nullable<System.DateTime> UpdatedDt { get; set; }
+        
+        public string Category { get; set; }
         [Display(Name = "Stock/Prop No.")]
         public string PsNo { get; set; }
         public string ItemName { get; set; }
@@ -216,7 +206,7 @@ namespace iLgs.Models
         [Display(Name = "Unit of Measurement")]
         public string Unit { get; set; }
 
-        [Display(Name = "Qty")]
+        [Display(Name = "Qty per Set/Lot")]
         public Nullable<int> QtyRequest { get; set; }
 
         [Display(Name = "Price Rate")]

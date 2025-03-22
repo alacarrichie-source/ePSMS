@@ -50,9 +50,9 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult Read([DataSourceRequest] DataSourceRequest request)
+        public ActionResult Read([DataSourceRequest] DataSourceRequest request, string userName)
         {
-            var data = _propertyCardService.GetAll();
+            var data = _propertyCardService.GetAll(userName);
 
             var result = new JsonNetResult
             {
@@ -231,57 +231,51 @@ namespace iLgs.Controllers
                     }
                 }
             }
-            catch (ValidationException validationException)
-                when (validationException.InnerException is AlreadyExistsException)
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
             {
-                ModelState.AddModelError(errorKey, validationException.InnerException);
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
             }
             catch (ValidationException validationException)
             {
-                var jErrors = validationException.GetFormattedErrorsAsJson();
-                return Json(new { Errors = jErrors }, JsonRequestBehavior.AllowGet);
+                ModelState.AddModelError("", validationException.InnerException.Message);
             }
             catch (Exception e)
             {
-                if (e.GetType().Name == "ServiceException")
-                {
-                    ModelState.AddModelError(errorKey, "Unable to save changes, Try again, and if the problem persists " +
-                         "please contact tech support with this message: " + e.Message);
-                }
-                else
-                {
-                    ModelState.AddModelError(errorKey, e.Message);
-                }
+                ModelState.AddModelError("", e.Message);
             }
 
-            // Extracting all errors from ModelState, including inner exceptions if they exist
-            var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                          .Select(e =>
-                                          {
-                                              // Get the basic error message
-                                              var errorMessage = e.ErrorMessage;
+            var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
+                       .Select(ms => new
+                       {
+                           Key = ms.Key, // The field name
+                           Message = ms.Value.Errors.Select(e =>
+                           {
+                               var errorMessage = e.ErrorMessage;
+                               if (e.Exception != null)
+                               {
+                                   var exceptionMessage = e.Exception.Message;
+                                   var innerExceptionMessage = e.Exception.InnerException?.Message;
 
-                                              // Check for an exception and add inner exception details if present
-                                              if (e.Exception != null)
-                                              {
-                                                  var exceptionMessage = e.Exception.Message;
-                                                  var innerExceptionMessage = e.Exception.InnerException?.Message;
+                                   // Append exception details
+                                   errorMessage += $" Exception: {exceptionMessage}";
+                                   if (innerExceptionMessage != null)
+                                   {
+                                       errorMessage += $" InnerException: {innerExceptionMessage}";
+                                   }
+                               }
 
-                                                  // Append inner exception details if available
-                                                  errorMessage += $" Exception: {exceptionMessage}";
-                                                  if (innerExceptionMessage != null)
-                                                  {
-                                                      errorMessage += $" InnerException: {innerExceptionMessage}";
-                                                  }
-                                              }
+                               return errorMessage;
+                           }).ToList() // List of messages for the current field
+                       })
+                       .ToList();
 
-                                              return errorMessage;
-                                          })
-                                          .ToList();
-
-            if (errors.Any())
+            if (errorList.Any())
             {
-                return Json(new { Errors = errors }, JsonRequestBehavior.AllowGet);
+                return Json(new { Errors = errorList }, JsonRequestBehavior.AllowGet);
             }
 
             return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
@@ -292,8 +286,8 @@ namespace iLgs.Controllers
         {
             var description = _propertyCardService.GetDescription(fields);
             var stockNo = _propertyCardService.GetStockNo(fields);
-
             var psCard = await _propertyCardService.GetByPsNoAsync(stockNo);
+
             Guid id = Guid.NewGuid();
             if (psCard != null)
             {
@@ -348,18 +342,28 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+
+                var entity = await _propertyCardService.PsCardItem.GetByIdAsync(model.Id);
+                if (entity == null)
                 {
-                    ModelState.AddModelError("Access", "Access Denied!");
+                    if (!access.AllowAdd)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
+                }
+                else
+                {
+                    if (!access.AllowEdit)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
                 }
 
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
-
-                    var entity = await _propertyCardService.PsCardItem.GetByIdAsync(model.Id);
-
+                    
                     if (entity == null)
                     {
                         model = await _propertyCardService.PsCardItem.CreateAsync(model, user, date);
@@ -640,54 +644,7 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] PropertyCardVM model)
-        //{
-        //    if (model.Id != Guid.Empty)
-        //    {
-        //        //model = await _cardService.GetVmByIdAsync(model.Id);
-        //        var allField = await _propertyCardService.AllField.GetByIdAsync(model.Id);
-        //        if (allField != null)
-        //        {
-        //            model.AllField = allField;
-        //        }
-        //    }
-        //    string partialView = "";
-        //    if (Enum.TryParse(model.ItemTypeCode, out Category c))
-        //    {
-        //        if (c == CatLandsProp())
-        //        {
-        //            partialView = "_FieldLand";
-        //        }
-        //        else if (c == CatMachineriesProp()
-        //            || c == CatTransportationProp()
-        //            || c == CatFurnituresProp()
-        //            || c == CatOtherProperties()
-        //            || c == CatMedicalSupply()
-        //            || c == CatAgriculturalSupply()
-        //            || c == CatAnimalSupplies()
-        //            || c == CatConstructionMaterialsSupply()
-        //            || c == CatOfficeSupplies()
-        //            || c == CatAccountableFormsSupply()
-        //            || c == CatNonAccountableFornsSupply()
-        //            || c == CatMilitarySupply()
-        //            || c == CatOtherSupplies())
-        //        {
-        //            partialView = "_FieldBrand";
-        //        }
-        //        else if (c == CatDrugsSupply())
-        //        {
-        //            partialView = "_FieldDrugs";
-        //        }
-        //        else if (c == CatRepairSupply())
-        //        {
-        //            partialView = "_FieldSerial";
-        //        }
-        //    }
-        //    return PartialView(partialView, model);
-        //}
+        }        
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] PropertyCardVM model)
@@ -702,7 +659,6 @@ namespace iLgs.Controllers
                 }
             }
             //string partialView = AllFieldsUtil.GetPartialField(model.ItemTypeCode, model.ItemCode);
-
             var itemCode = _itemCodeService.GetById(model.ItemCodeId);
             string partialView = AllFieldsUtil.GetPartialView(itemCode);
             
@@ -722,53 +678,7 @@ namespace iLgs.Controllers
             string partialView = AllFieldsUtil.GetPartialItemField(psCard.ItemTypeCode, psCard.ItemCode);
 
             return PartialView(partialView, model);
-        }
-
-        //[AcceptVerbs(HttpVerbs.Post)]
-        //public async Task<ActionResult> LoadItemFields([System.Web.Http.FromBody] PsCardItemVM model)
-        //{
-        //    var psCard = await _propertyCardService.GetByIdAsync((Guid)model.PsCardId);
-        //    if (model.Id != Guid.Empty)
-        //    {
-        //        var data = await _propertyCardService.PsCardItem.GetByIdAsync(model.Id);
-        //        model = _propertyCardService.PsCardItem.TransferItemField(data, model);
-
-        //    }
-        //    string partialView = "";
-        //    if (Enum.TryParse(psCard.ItemTypeCode, out Category c))
-        //    {
-        //        if (c == CatLandsProp())
-        //        {
-        //            partialView = "_ItemFieldLand";
-        //        }
-        //        else if (c == CatMachineriesProp()
-        //            || c == CatTransportationProp()
-        //            || c == CatFurnituresProp()
-        //            || c == CatOtherProperties()
-        //            || c == CatMedicalSupply()
-        //            || c == CatAgriculturalSupply()
-        //            || c == CatAnimalSupplies()
-        //            || c == CatConstructionMaterialsSupply()
-        //            || c == CatOfficeSupplies()
-        //            || c == CatAccountableFormsSupply()
-        //            || c == CatNonAccountableFornsSupply()
-        //            || c == CatMilitarySupply()
-        //            || c == CatOtherSupplies())
-        //        {
-        //            partialView = "_ItemFieldBrand";
-        //        }
-        //        else if (c == CatDrugsSupply())
-        //        {
-        //            partialView = "_ItemFieldDrugs";
-        //        }
-        //        else if (c == CatRepairSupply())
-        //        {
-        //            partialView = "_ItemFieldSerial";
-        //        }
-        //    }
-        //    return PartialView(partialView, model);
-        //}
-
+        }        
 
         #region PRINTOUTS
 
@@ -812,15 +722,7 @@ namespace iLgs.Controllers
             rpt.Dispose();
             return File(stream, "application/pdf");
         }
-        #endregion
-
-        [HttpPost]
-        public ActionResult GetItemExtnTemplate(Guid? id)
-        {
-            string itemExtnName = _propertyCardService.GetItemExtnName(id);
-
-            return Json(new { Errors = "", ItemExtnName = itemExtnName }, JsonRequestBehavior.AllowGet);
-        }
+        #endregion        
 
         #region ITEMEXTN VEHICLES
         public ActionResult _ItemExtnVehicleRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
@@ -1068,9 +970,38 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
-        #endregion  
+        #endregion
+
+        #region QUERY
+        public ActionResult ItemQuery()
+        {
+            return View();
+        }
+
+        public ActionResult ItemQueryRead([DataSourceRequest] DataSourceRequest request)
+        {
+            var data = _propertyCardService.PsCardItem.GetAllProperties();
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+        #endregion
 
         #region AJAX CALLS
+        [HttpPost]
+        public ActionResult GetItemExtnTemplate(Guid? id)
+        {
+            string itemExtnName = _propertyCardService.GetItemExtnName(id);
+
+            return Json(new { Errors = "", ItemExtnName = itemExtnName }, JsonRequestBehavior.AllowGet);
+        }
+
         [HttpGet]
         public ActionResult GetEndSeries(string startSeries, Guid? itemId)
         {
@@ -1078,6 +1009,187 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = "", EndSeries = endSeries }, JsonRequestBehavior.AllowGet);
         }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> PostItemRecord(Guid psCardItemId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
+                if (!access.AllowPost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _propertyCardService.PsCardItem.PostAsync(psCardItemId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> UnpostItemRecord(Guid psCardItemId)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
+                if (!access.AllowUnpost)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _propertyCardService.PsCardItem.UnpostAsync(psCardItemId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
         #endregion
+
+        public ActionResult _PoTransfer(Guid psCardItemId)
+        {
+            var model = new GetPsNoVM()
+            {
+                PsCardItemId = psCardItemId
+            };
+
+            return PartialView(model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _PoTransferSave(GetPsNoVM model)
+        {
+            string errorKey = "";
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+                Access access = await accessTask;
+                if (!access.AllowTransfer) 
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _propertyCardService.TransferPo(model.PsCardItemId, model.Id, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var errorList = ModelState.Where(ms => ms.Value.Errors.Any())
+                       .Select(ms => new
+                       {
+                           Key = ms.Key, // The field name
+                           Message = ms.Value.Errors.Select(e =>
+                           {
+                               var errorMessage = e.ErrorMessage;
+                               if (e.Exception != null)
+                               {
+                                   var exceptionMessage = e.Exception.Message;
+                                   var innerExceptionMessage = e.Exception.InnerException?.Message;
+
+                                   // Append exception details
+                                   errorMessage += $" Exception: {exceptionMessage}";
+                                   if (innerExceptionMessage != null)
+                                   {
+                                       errorMessage += $" InnerException: {innerExceptionMessage}";
+                                   }
+                               }
+
+                               return errorMessage;
+                           }).ToList() // List of messages for the current field
+                       })
+                       .ToList();
+
+            if (errorList.Any())
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
+        }
     }
 }

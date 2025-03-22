@@ -64,7 +64,7 @@
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
         //.Sort(s => s.Add(a => a.RefNo).Descending())
-        .Read(read => read.Action("_ItemsRead", "PropNoItem", new { propNo = @ViewData["PropNo"], refType = @ViewBag.RefType }))
+        .Read(read => read.Action("_ItemsRead", "ItemCard", new { propNo = @ViewData["PropNo"], refType = @ViewBag.RefType }))
     //.Destroy(destroy => destroy.Action("Destroy", "IcsParUpdate"))
     )
 .Events(events => events

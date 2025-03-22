@@ -183,7 +183,17 @@ namespace iLgs.Services.ParIcs
         _exceptionService.TryCatch(async () =>
         {
             ValidateIfPosted(model);
-            IcsParItem entity = await _db.IcsParItems.FindAsync(model.Id);            
+            IcsParItem entity = await _db.IcsParItems.Include(i => i.IcsPar).FirstOrDefaultAsync(f => f.Id == model.Id);            
+
+            if (_db.IcsParUpdates.Any(a => a.PrevRefNo == entity.IcsPar.RefNo && a.RefType == entity.IcsPar.RefType))
+            {
+                throw new RecordRelationshipException("This record was already updated or transfered to other ICS/PAR, cannot continue.");
+            }
+
+            if (_db.PsCardItemTransferItems.Any(a => a.IcsParItemId == entity.Id))
+            {
+                throw new RecordRelationshipException("Transit/Issuance was already made for this record, cannot continue.");
+            }
 
             var psCardItemExtnId = entity.PsCardItemExtnId;
 

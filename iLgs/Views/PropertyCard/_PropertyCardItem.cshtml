@@ -68,12 +68,24 @@
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            columns.Bound(f => f.Remarks).Width(50);
+            columns.Bound(f => f.Amount).Width(50)
+                .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" }).Filterable(false);
+            columns.Bound(f => f.InsertedBy).Width(50).Title("Created by");
+            columns.Bound(f => f.PostedBy).Width(50);
+            //columns.Bound(f => f.Remarks).Width(50);
             columns.Command(commands =>
             {
                 commands.Edit();
                 //commands.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
                 commands.Destroy();
+                commands.Custom("Post").IconClass("k-icon k-i-lock").SendDataKeys(true).Click("onClickBtnPostItem").Visible("IsNotPosted");
+                commands.Custom("Unpost").IconClass("k-icon k-i-unlock").SendDataKeys(true).Click("onClickBtnUnPostItem").Visible("IsPosted");
+                commands.Custom("Print PO - Original").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintPo");
+                commands.Custom("Print PO - Update").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrintPoUpdate");
+                commands.Custom("Transfer").IconClass("k-icon k-i-close").SendDataKeys(true).Click("onClickTransfer").Visible("IsNotPosted");
             }).Width(120);
         })
         //.ToolBar(t =>
@@ -108,17 +120,15 @@
                 a.Add(p => p.Amount).Sum();
             })
             .Events(events => events.Error("GridItemError").RequestEnd("onRequestEndGridItems"))
-            .Read("ItemRead", "StockCard", new
-            {
-                cardId = @ViewData["cardId"]
-            })
+            .Read(read => read.Action("ItemRead", "StockCard").Data("DataStockCardItem"))
             .Create("ItemCreate", "PropertyCard")
             .Update("ItemUpdate", "PropertyCard")
             .Destroy("ItemDestroy", "PropertyCard")
         )
         .Events(e => e
             .Edit("onEditGridItems")
-            .Change("onChangeGridItems").DataBound("onDataBoundGridItems")
+            .Change("onChangeGridItems")
+            .DataBound("onDataBoundGridItems")
             .Remove("onRemoveGridItems")
             .DetailExpand("onDetailExpand")
         //.Save("onSaveGridItems")

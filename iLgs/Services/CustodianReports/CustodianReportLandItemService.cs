@@ -562,6 +562,10 @@ namespace iLgs.Services.CustodianReports
 
         private void ValidateRequired(CustodianReportLandItemVM model)
         {
+            if (model.MainDeptId == null || model.MainDeptId == Guid.Empty)
+            {
+                _imex.UpsertDataList("Department", "Please select department before creating an entry.");
+            }
             //if (!model.Area.HasValue)
             //{
             //    _imex.UpsertDataList(_getDisplayName(nameof(model.Area)), "Field is required.");

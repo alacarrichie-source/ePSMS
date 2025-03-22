@@ -90,15 +90,15 @@ namespace iLgs.Services.RPC
             string menuId = "";
             if (accountGroup == (int?)AccountGroup.PPE)
             {
-                menuId = "rpc_report_equipment";
+                menuId = "rpc_equipment";
             }
             else if (accountGroup == (int?)AccountGroup.SUPPLIES)
             {
-                menuId = "rpc_report_supplies";
+                menuId = "rpc_supplies";
             }
             else if (accountGroup == (int?)AccountGroup.VEHICLE)
             {
-                menuId = "rpc_report_vehicle";
+                menuId = "rpc_vehicle";
             }
             return menuId;
         }

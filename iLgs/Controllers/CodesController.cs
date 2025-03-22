@@ -137,12 +137,39 @@ namespace iLgs.Controllers
             return View("Codextn", codeMast);
         }
 
-        public async Task<ActionResult> Officers()
+        public async Task<ActionResult> AirOfficers()
         {
             var code = "OFFICERS";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
-            ViewData["title"] = "Inspection Officer/Inspection Committee";
+            ViewData["title"] = "AIR Inspection Officer/Inspection Committee";
+            return View("Codextn", codeMast);
+        }
+
+        public async Task<ActionResult> AirCustodians()
+        {
+            var code = "AIR-CUSTODIANS";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "AIR Acceptance Custodians";
+            return View("Codextn", codeMast);
+        }
+
+        public async Task<ActionResult> ParIssuedBy()
+        {
+            var code = "PAR-ISSUED-BY";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "PAR - Issued by";
+            return View("Codextn", codeMast);
+        }
+
+        public async Task<ActionResult> IcsReceivedFrom()
+        {
+            var code = "ICS-RECEIVED-FROM";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "ICS - Received from";
             return View("Codextn", codeMast);
         }
 

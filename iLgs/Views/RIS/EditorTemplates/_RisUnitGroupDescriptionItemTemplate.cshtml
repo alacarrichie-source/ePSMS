@@ -24,6 +24,7 @@
                     .Columns(col =>
                     {
                         col.Select().Width(30);
+                        col.Bound(c => c.Category).Width(50);
                         col.Bound(c => c.PsNo).Width(50);
                         col.Bound(c => c.ItemName).Width(70);
                         col.Bound(c => c.Description).Width(120);

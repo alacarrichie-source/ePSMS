@@ -49,14 +49,7 @@ namespace iLgs.Controllers
         {
             return View();
         }
-
-        //// GET: PerUser
-        //public ActionResult PerUser()
-        //{
-        //    ViewBag.Mode = 2;
-        //    return View("Index");
-        //}
-
+        
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, string userName)
         {
             var data = _stockCardService.GetAll(userName);
@@ -294,6 +287,7 @@ namespace iLgs.Controllers
             var description = _stockCardService.GetDescription(fields);
             var stockNo = _stockCardService.GetStockNo(fields);
             var psCard = await _stockCardService.GetByPsNoAsync(stockNo);
+
             Guid id = Guid.NewGuid();
             if (psCard != null)
             {
@@ -676,7 +670,6 @@ namespace iLgs.Controllers
             return PartialView(partialView, model);
         }
 
-
         #region PRINTOUTS
 
         public ActionResult StockCardRpt(Guid? selectedId)
@@ -1039,7 +1032,6 @@ namespace iLgs.Controllers
         [HttpPost]
         public ActionResult GetItemExtnTemplate(Guid? id)
         {
-
             string itemExtnName = _stockCardService.GetItemExtnName(id);
 
             return Json(new { Errors = "", ItemExtnName = itemExtnName }, JsonRequestBehavior.AllowGet);

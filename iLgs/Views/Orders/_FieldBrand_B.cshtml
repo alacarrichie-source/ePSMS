@@ -4,7 +4,10 @@
 <div class="row k-mb-2">
     <div class="col-md-12">
         <div class="col-md-2">
-            @Html.DisplayFor(m => m.AllField.Brand, "Label")
+            @*@Html.DisplayFor(m => m.AllField.Brand, "Label")*@
+            <span style="color: red;">
+                @Html.DisplayFor(m => m.AllField.Brand, "Label")
+            </span>
         </div>
         <div class="col-md-10">
             @(Html.Kendo().TextBoxFor(m => m.AllField.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))

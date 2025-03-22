@@ -4,6 +4,7 @@ using iLgs.Models;
 using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -37,15 +38,17 @@ namespace iLgs.Services.ParIcs
     public class IcsParService : BaseValidator, IIcsParService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<IcsPar> _exceptionService = new ExceptionService<IcsPar>();
-        private readonly IExceptionService<IcsParVM> _vmExceptionService = new ExceptionService<IcsParVM>();
+        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();        
+        private readonly IExceptionService<IcsPar> _exceptionService;
+        private readonly IExceptionService<IcsParVM> _vmExceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public IcsParService(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<IcsParVM>(propertyName);
+            _exceptionService = new ExceptionService<IcsPar>();
+            _vmExceptionService = new ExceptionService<IcsParVM>();
         }
 
         public IQueryable<IcsParVM> GetAll() =>

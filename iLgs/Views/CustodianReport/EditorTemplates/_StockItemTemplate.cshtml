@@ -13,7 +13,7 @@
     @Html.HiddenFor(model => model.Item_Code)
     @Html.HiddenFor(model => model.MainDeptId)
     @Html.HiddenFor(model => model.MainDeptName)
-    @Html.HiddenFor(model => model.AccountGroup)
+    @Html.HiddenFor(model => model.AccountGroup)    
     @*@Html.HiddenFor(model => model.PostedBy)
         @Html.HiddenFor(model => model.PostedDt)*@
 
@@ -652,13 +652,28 @@
                     @Html.DisplayFor(m => m.SetLotAmount, "LabelDecimal")
                 </div>
                 <div class="col-md-8">
-                    @(Html.Kendo().NumericTextBoxFor(m => m.SetLotAmount).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().NumericTextBoxFor(m => m.SetLotAmount).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("onChangeSetValues"))
+                    )
                     @Html.ValidationMessageFor(m => m.SetLotAmount)
                 </div>
             </div>
         </div>
 
         <div class="row k-mb-2">
+            <div class="col-md-6">
+                <div class="col-md-4">
+                    @Html.DisplayFor(m => m.PriceRate, "LabelDecimal")
+                </div>
+                <div class="col-md-8">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.PriceRate).Decimals(2).Format("{0:n2}").Spinners(false)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("onChangeSetValues"))
+                    )
+                    @Html.ValidationMessageFor(m => m.PriceRate)
+                </div>
+            </div>
+
             <div class="col-md-12">
                 <div class="col-md-12">
                     @Html.DisplayFor(m => m.SetLotRemarks, "Label")

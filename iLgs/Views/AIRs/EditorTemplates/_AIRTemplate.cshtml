@@ -160,7 +160,7 @@
                                         {
                                             source.Read(read =>
                                             {
-                                                read.Action("GetCustodians", "Getters");
+                                                read.Action("GetAirCustodians", "Getters");
                                             })
                                             .ServerFiltering(true);
                                         })
@@ -212,7 +212,7 @@
                                         {
                                             source.Read(read =>
                                             {
-                                                read.Action("GetOfficers", "Getters");
+                                                read.Action("GetAirOfficers", "Getters");
                                             })
                                             .ServerFiltering(true);
                                         })

@@ -1,12 +1,10 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using System;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
-using System.Data.SqlClient;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
@@ -15,6 +13,7 @@ namespace iLgs.Services.Requisition
     public interface IRisService
     {
         IQueryable<RIS_VM> GetAll();
+        ValueTask<IQueryable<RIS_VM>> GetAllAsync(string userId);
         ValueTask<RISs> GetByIdAsync(Guid id);
         ValueTask<RISs> GetByRisNoAsync(string risNo);
         ValueTask<RISs> GetByOrderIdAsync(Guid orderId);
@@ -37,12 +36,7 @@ namespace iLgs.Services.Requisition
         ValueTask<RIS_VM> DeleteAsync(RIS_VM model, string user, DateTime date);
 
         ValueTask<RISs> PostAsync(Guid risId, string user, DateTime date);
-        ValueTask<RISs> UnpostAsync(Guid risId, string user, DateTime date);
-
-        //IRisItemService RisItem { get; }
-        //IRisItemUnitGroupService RisItemUnitGroup { get; }
-        //IRisItemUnitGroupDescriptionService RisItemUnitGroupDescription { get; }
-        //IRisItemUnitGroupDescriptionItemService RisItemUnitGroupDescriptionItem { get; }
+        ValueTask<RISs> UnpostAsync(Guid risId, string user, DateTime date);        
     }
 
     public class RisService : IRisService
@@ -52,78 +46,72 @@ namespace iLgs.Services.Requisition
         private readonly IExceptionService<RIS_VM> _risVmExceptionService = new ExceptionService<RIS_VM>();
         private readonly IExceptionService<RISs> _risExceptionService = new ExceptionService<RISs>();
         private readonly IRisValidator _validator;
-
-        //private IRisItemService _risItemService;
-        //private IRisItemUnitGroupService _risItemUnitGroupService;
-        //private IRisItemUnitGroupDescriptionService _risItemUnitGroupDescriptionService;
-        //private IRisItemUnitGroupDescriptionItemService _risItemUnitGroupDescriptionItemService;
+        private readonly IUserService _userService;
 
         public RisService(AppManEntities db)
         {
             _db = db;            
             _validator = new RisValidator(_db);
-            //_risItemService = new RisItemService(db);
-            //_risItemUnitGroupService = new RisItemUnitGroupService(db);
-            //_risItemUnitGroupDescriptionService = new RisItemUnitGroupDescriptionService(db);
-            //_risItemUnitGroupDescriptionItemService = new RisItemUnitGroupDescriptionItemService(db);
+            _userService = new UserService(_db);
+        }        
+
+        private static Expression<Func<RISs, RIS_VM>> RisProjection
+        = s => new RIS_VM
+        {
+            Id = s.Id,
+            Fund = s.Fund,
+            Division = s.Division,
+            OfficeId = s.OfficeId,
+            Office = s.Office,
+            FPP = s.FPP,
+            RisNo = s.RisNo,
+            RisDate = s.RisDate,
+            Purpose = s.Purpose,
+            RequestedBy = s.RequestedBy,
+            RequestedByDesignation = s.RequestedByDesignation,
+            RequestedDate = s.RequestedDate,
+            ApprovedBy = s.ApprovedBy,
+            ApprovedByDesignation = s.ApprovedByDesignation,
+            ApprovedDate = s.ApprovedDate,
+            IssuedBy = s.IssuedBy,
+            IssuedByDesignation = s.IssuedByDesignation,
+            IssuedDate = s.IssuedDate,
+            ReceivedBy = s.ReceivedBy,
+            ReceivedByDesignation = s.ReceivedByDesignation,
+            ReceivedDate = s.ReceivedDate,
+            InsertedBy = s.InsertedBy,
+            InsertedDt = s.InsertedDt,
+            UpdatedBy = s.UpdatedBy,
+            UpdatedDt = s.UpdatedDt,
+            PostedBy = s.PostedBy,
+            PostedDt = s.PostedDt,
+            IsPosted = s.PostedDt != null,
+            IssuanceSw = false
+        };        
+
+        public async ValueTask<IQueryable<RIS_VM>> GetAllAsync(string userId)
+        {
+            IQueryable<RIS_VM> data = null;
+            if (await _userService.IsAdminAsync(userId))
+            {
+                data = _db.RISses.AsNoTracking()
+                    .Select(RisProjection).OrderByDescending(o => o.RisNo);
+            }
+            else
+            {
+                data = _db.RISses.AsNoTracking()
+                    .Where(w => w.Codextn.DepartmentUsers.Any(a => a.UserId == userId))                    
+                    .Select(RisProjection).OrderByDescending(o => o.RisNo);
+            }
+            return data;
         }
 
-        //public IRisItemService RisItem { get { return _risItemService = _risItemService ?? new RisItemService(_db); } }
-        //public IRisItemUnitGroupService RisItemUnitGroup { get { return _risItemUnitGroupService = _risItemUnitGroupService ?? new RisItemUnitGroupService(_db); } }
-        //public IRisItemUnitGroupDescriptionService RisItemUnitGroupDescription
-        //{
-        //    get
-        //    {
-        //        return _risItemUnitGroupDescriptionService = _risItemUnitGroupDescriptionService ?? new RisItemUnitGroupDescriptionService(_db);
-        //    }
-        //}
-        //public IRisItemUnitGroupDescriptionItemService RisItemUnitGroupDescriptionItem
-        //{
-        //    get
-        //    {
-        //        return _risItemUnitGroupDescriptionItemService = _risItemUnitGroupDescriptionItemService ?? new RisItemUnitGroupDescriptionItemService(_db);
-        //    }
-        //}
-
-
-        public IQueryable<RIS_VM> GetAll() =>
-        _risVmExceptionService.TryCatch(() =>
+        public IQueryable<RIS_VM> GetAll() 
         {
             var data = _db.RISses
-                .Select(s => new RIS_VM
-                {
-                    Id = s.Id,
-                    Fund = s.Fund,
-                    Division = s.Division,
-                    OfficeId = s.OfficeId,
-                    Office = s.Office,
-                    FPP = s.FPP,
-                    RisNo = s.RisNo,
-                    RisDate = s.RisDate,
-                    Purpose = s.Purpose,
-                    RequestedBy = s.RequestedBy,
-                    RequestedByDesignation = s.RequestedByDesignation,
-                    RequestedDate = s.RequestedDate,
-                    ApprovedBy = s.ApprovedBy,
-                    ApprovedByDesignation = s.ApprovedByDesignation,
-                    ApprovedDate = s.ApprovedDate,
-                    IssuedBy = s.IssuedBy,
-                    IssuedByDesignation = s.IssuedByDesignation,
-                    IssuedDate = s.IssuedDate,
-                    ReceivedBy = s.ReceivedBy,
-                    ReceivedByDesignation = s.ReceivedByDesignation,
-                    ReceivedDate = s.ReceivedDate,
-                    InsertedBy = s.InsertedBy,
-                    InsertedDt = s.InsertedDt,
-                    UpdatedBy = s.UpdatedBy,
-                    UpdatedDt = s.UpdatedDt,
-                    PostedBy = s.PostedBy,
-                    PostedDt = s.PostedDt,
-                    IsPosted = s.PostedDt != null,
-                    IssuanceSw = false
-                }).OrderByDescending(o => o.RisNo);
+                .Select(RisProjection).OrderByDescending(o => o.RisNo);
             return data;
-        });
+        }
 
         public async ValueTask<bool> GetAnyRisNoAsync(Guid risId, string risNo)
         {

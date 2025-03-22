@@ -6,6 +6,7 @@
         .Name("grid")
         .Columns(col =>
         {
+            col.Bound(c => c.Fund).Width(30);
             col.Bound(c => c.PropNo).Width(150);
             col.Bound(c => c.Account).Width(70);
             col.Bound(c => c.SubAccount).Width(70);
@@ -51,6 +52,7 @@
         })
         .Search(s =>
         {
+            s.Field(o => o.Fund, "contains");
             s.Field(o => o.Account, "contains");
             s.Field(o => o.SubAccount, "contains");
             s.Field(o => o.Article, "contains");
@@ -91,11 +93,12 @@
             //    a.Add(p => p.TransferIn).Sum();
             //    a.Add(p => p.QtyBalance).Sum();
             //})
-            //.Sort(s =>
-            //{
-            //    s.Add(a => a.InsertedDt).Descending();
-            //})
-            .Read(read => read.Action("Read", "PropNoItem", new { accountGroup = @ViewBag.AccountGroup }))
+            .Sort(s =>
+            {
+                s.Add(a => a.Fund);
+                s.Add(a => a.PropNo);
+            })
+            .Read(read => read.Action("Read", "ItemCard", new { accountGroup = @ViewBag.AccountGroup }))
         )
         .Events(events => events
             .Change("onChangeGrid")
@@ -119,10 +122,10 @@
             //items.Add().Text("PAR").LoadContentFrom("_StockParIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
             if (ViewBag.AccountGroup == 1)
             {
-                items.Add().Text("Inventory Custodian Slips").LoadContentFrom("_Items", "PropNoItem", new { id = "#=Id#", propNo = "#=PropNo#", refType = @ViewBag.RefType });
+                items.Add().Text("Inventory Custodian Slips").LoadContentFrom("_Items", "ItemCard", new { id = "#=Id#", propNo = "#=PropNo#", refType = @ViewBag.RefType });
             } else
             {
-                items.Add().Text("Property Acknowledgment Receipts").LoadContentFrom("_Items", "PropNoItem", new { id = "#=Id#", propNo = "#=PropNo#", refType = @ViewBag.RefType });
+                items.Add().Text("Property Acknowledgment Receipts").LoadContentFrom("_Items", "ItemCard", new { id = "#=Id#", propNo = "#=PropNo#", refType = @ViewBag.RefType });
             }
 
             //items.Add().Text("ARE").LoadContentFrom("_StockAreIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
@@ -903,7 +906,7 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         selectedGridImagesItem = dataItem.Id;
 
-        var myUrl = '@Url.Action("PreviewUpload", "PropNoItem")?id=' + selectedGridImagesItem;
+        var myUrl = '@Url.Action("PreviewUpload", "ItemCard")?id=' + selectedGridImagesItem;
 
         window.open(myUrl, "_blank");        
     }
@@ -1164,7 +1167,7 @@
             //height: height
         });
         mywindow.refresh({
-            url: '@Url.Action("_Images", "PropNoItem")',
+            url: '@Url.Action("_Images", "ItemCard")',
             data: {
                 imageId: imageId,
                 postedBy: postedBy

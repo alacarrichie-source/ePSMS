@@ -44,7 +44,6 @@ namespace iLgs.Models
         public Nullable<System.Guid> PsCardItemTransferItemId { get; set; }
         public Nullable<System.Guid> GroupId { get; set; }
     
-        public virtual AIRItemExtn AIRItemExtn { get; set; }
         public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IcsParItem> IcsParItems { get; set; }
@@ -55,5 +54,6 @@ namespace iLgs.Models
         public virtual ICollection<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RpcPpeItem> RpcPpeItems { get; set; }
+        public virtual AIRItemExtn AIRItemExtn { get; set; }
     }
 }

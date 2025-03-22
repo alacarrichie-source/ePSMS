@@ -54,7 +54,7 @@ namespace iLgs.Services.Codes
 
         public async ValueTask<IQueryable<Codextn>> GetUserDepartmentsAsync(string userId)
         {
-            var IsAdmin = await _userService.IsAdmin(userId);
+            var IsAdmin = await _userService.IsAdminAsync(userId);
             var data = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS"
                 //&& w.Desc3 != "N"
                 && w.Code.Substring(w.Code.Length - 2) == "00"

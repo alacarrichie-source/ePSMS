@@ -41,7 +41,7 @@
     //.Scrollable(s => s.Height(180))
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRItemTemplate").Window(w => w.Width(500).Title("Acceptance and Inspection Item")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRItemTemplate").Window(w => w.Width(800).Title("Acceptance and Inspection Item")))
     .DataSource(dataSource => dataSource
         .Ajax()
         .Events(events => events.Error("GridItemError").RequestEnd("onGridItemsRequestEnd"))

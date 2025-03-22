@@ -30,14 +30,14 @@ namespace iLgs.Models
         [Display(Name = "Card Category")]
         public string CardCategory { get; set; } // P or S only, to identify where the item belongs.
 
-        [Display(Name = "Property/Stock No.")]
+        [Display(Name = "Property/Stock Card No.")]
         [Required]
         public string PsNo { get; set; }
         
         [Display(Name = "Property/Stock Name")]
         public string PsName { get; set; }
 
-        [Display(Name = "Previous Property/Stock No.")]
+        [Display(Name = "Previous Property/Stock Card No.")]
         public string PrevPsNo { get; set; }
 
         //[Display(Name = "Acq. Date")]

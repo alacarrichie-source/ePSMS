@@ -32,12 +32,12 @@ namespace iLgs.Controllers
         private AppManEntities _db;
         private IAirService _airService;
         private IAirItemService _airItemService;
-        //private IAirItemExtnService _airItemExtnService;
         private ICodextnService _codextnService;
         private IOrderService _orderService;
         private readonly IOrderItemUnitGroupService _unitGroupService;
         private readonly IOrderItemUnitGroupDescriptionService _unitGroupDescriptionService;
         private readonly IOrderItemUnitGroupDescriptionItemService _unitGroupDescriptionItemService;
+        private readonly IAirUploadService _uploadService;
         private IServiceAgent _sa;
 
         public AIRsController()
@@ -45,13 +45,13 @@ namespace iLgs.Controllers
             _db = new AppManEntities();
             _airService = new AirService(_db);
             _airItemService = new AirItemService(_db);
-            //_airItemExtnService = new AirItemExtnService(_db);
             _codextnService = new CodextnService(_db);
             _orderService = new OrderService(_db);            
             _sa = new ServiceAgent(_db);
             _unitGroupService = new OrderItemUnitGroupService(_db);
             _unitGroupDescriptionService = new OrderItemUnitGroupDescriptionService(_db);
             _unitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
+            _uploadService = new AirUploadService(_db);
         }
 
         // GET: 
@@ -255,9 +255,21 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
-                if (!access.AllowAdd)
+
+                var entity = await _airService.GetByIdAsync(model.Id);
+                if (entity == null)
                 {
-                    ModelState.AddModelError("Access Error", "Access Denied!");
+                    if (!access.AllowAdd)
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+                else
+                {
+                    if (!access.AllowEdit)
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
                 }
                 
                 if (model != null && ModelState.IsValid)
@@ -265,7 +277,14 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;                    
                     DateTime date = System.DateTime.Now;
 
-                    model = await _sa.Air.SaveAsync(model, user, date);                    
+                    if (entity == null)
+                    {
+                        model = await _airService.CreateAsync(model, user, date);
+                    }
+                    else
+                    {
+                        model = await _airService.UpdateAsync(model, user, date);
+                    }                    
                     
                     return Json(new { Errors = "", Model = model });
                 }
@@ -440,7 +459,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowEdit)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
@@ -610,9 +629,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airItemService.DeleteAsync(model, user, date);
-                    
-                    // TO DO: update stocks
+                    model = await _airItemService.DeleteAsync(model, user, date);                                        
                 }
             }
             catch (ValidationException validationException)
@@ -724,15 +741,14 @@ namespace iLgs.Controllers
                 {
                     ModelState.AddModelError("GridError", "Delete Access Denied!");
                 }
+
                 if (ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airItemService.AirItemExtn.AirItemExtnVehicle.DeleteAsync(model, user, date);
-                    // TO DO: update stocks
+                    model = await _airItemService.AirItemExtn.AirItemExtnVehicle.DeleteAsync(model, user, date);                    
                 }
-
             }
             catch (ValidationException validationException)
             {
@@ -772,8 +788,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airItemService.AirItemExtn.AirItemExtnOther.CreateAsync(model, user, date);
-                    // TO DO: save to stock card
+                    model = await _airItemService.AirItemExtn.AirItemExtnOther.CreateAsync(model, user, date);                    
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -813,9 +828,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airItemService.AirItemExtn.AirItemExtnOther.UpdateAsync(model, user, date);
-
-                    // TO DO: update stock card
+                    model = await _airItemService.AirItemExtn.AirItemExtnOther.UpdateAsync(model, user, date);                    
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -854,10 +867,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _airItemService.AirItemExtn.AirItemExtnOther.DeleteAsync(model, user, date);
-                    // TO DO: update stocks
+                    model = await _airItemService.AirItemExtn.AirItemExtnOther.DeleteAsync(model, user, date);                    
                 }
-
             }
             catch (ValidationException validationException)
             {
@@ -878,11 +889,10 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowAdd)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
-
 
                 if (ModelState.IsValid)
                 {
@@ -890,6 +900,56 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
                     await _airItemService.AirItemExtn.AirItemExtnOther.GenerateSerialAsync(airItemId, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> GenerateItemExtnSerial(Guid airItemExtnId, string type)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _airItemService.AirItemExtn.AirItemExtnOther.GenerateSerialItemExtnAsync(airItemExtnId, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -933,7 +993,6 @@ namespace iLgs.Controllers
                 {
                     throw new Exception("Access Denied!");
                 }
-
             }
             catch (Exception e)
             {
@@ -1024,7 +1083,6 @@ namespace iLgs.Controllers
                 {
                     throw new Exception("Access Denied!");
                 }
-
             }
             catch (Exception e)
             {
@@ -1115,8 +1173,7 @@ namespace iLgs.Controllers
                 if (!access.AllowPost)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
-                }
-                
+                }                
 
                 if (ModelState.IsValid)
                 {
@@ -1163,7 +1220,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowUnpost)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
@@ -1246,7 +1303,6 @@ namespace iLgs.Controllers
         public ActionResult _UnitGroupRead([DataSourceRequest] DataSourceRequest request, Guid? orderId)
         {
             var data = _unitGroupService.GetByOrderId(orderId);
-
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
@@ -1354,7 +1410,196 @@ namespace iLgs.Controllers
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
-        
+
+        #endregion
+
+        #region UPLOADS
+        public ActionResult _Images(Guid? imageId, string postedBy)
+        {
+            ViewData["imageId"] = imageId;
+            ViewData["postedBy"] = postedBy;
+            return PartialView();
+        }
+
+
+        public ActionResult _ImagesAdd(Guid? imageId)
+        {
+            var model = new Models.Upload()
+            {
+                ImageId = imageId
+            };
+            ViewData["imageId"] = imageId;
+            ViewData["fileSize"] = model.FileSize;
+            return PartialView(model);
+        }
+
+        public ActionResult _ImagesRead([DataSourceRequest] DataSourceRequest request, Guid imageId)
+        {
+            var data = _uploadService.GetAllByImageId(imageId);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        public async Task<ActionResult> _ImagesDestroy([DataSourceRequest]DataSourceRequest request, Models.Upload model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ImagesUpdate([DataSourceRequest] DataSourceRequest request, Models.Upload model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "airs");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("UpdateError", e.Message);
+            }
+
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> _ImagesUpload(IEnumerable<HttpPostedFileBase> files, Models.Upload model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "orders");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("AddError", "Upload Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadService.UploadAsync(files, model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("AddError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("AddError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("AddError", e.Message);
+            }
+
+            var errorList = ModelState.Values.SelectMany(v => v.Errors)
+                                       .Select(e => e.ErrorMessage)
+                                       .ToList();
+
+            if (errorList.Any())
+            {
+                var errorMessage = string.Join("\n", errorList);
+                return Content(errorMessage);
+            }
+
+            return Content("");
+        }
+
+        public ActionResult DownloadFile(string fileName)
+        {
+            try
+            {
+                // Call the service to get the file bytes
+                byte[] fileBytes = _uploadService.DownloadFile(fileName);
+
+                // Return the file as a download
+                return File(fileBytes, MimeMapping.GetMimeMapping(fileName), fileName);
+            }
+            catch (FileNotFoundException ex)
+            {
+                // Handle file not found case
+                return HttpNotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions
+                return new HttpStatusCodeResult(500, "Error downloading file: " + ex.Message);
+            }
+        }
+
+        public async Task<ActionResult> PreviewUpload(Guid id)
+        {
+            var fileResult = await _uploadService.GetUploadedFileAsync(id);
+            if (fileResult != null)
+            {
+                return fileResult; // Return the file result directly
+            }
+            else
+            {
+                return HttpNotFound("File not found"); // Handle not found case
+            }
+        }
         #endregion
     }
 }

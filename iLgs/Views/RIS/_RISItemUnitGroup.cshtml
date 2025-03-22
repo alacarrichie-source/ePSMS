@@ -120,6 +120,7 @@
     .Name("gridItemUnitGroupDescriptionItems_#=Id#")
     .Columns(col =>
     {
+        col.Bound(c => c.Category).Width(50);
         col.Bound(c => c.PsNo).Width(50);
         col.Bound(c => c.ItemName).Width(50);
         col.Bound(c => c.Description).Width(50);

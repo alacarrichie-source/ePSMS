@@ -53,7 +53,7 @@ namespace iLgs.Services.Requisition
 
         public RisItemEntryVM GetVmById(Guid? id) 
         {
-            var data =  _db.RisItems.Where(w => w.Id == id)
+            var data =  _db.RisItems.AsNoTracking().Where(w => w.Id == id)
                 .Select(s => new RisItemEntryVM
                 {
                     Id = s.Id,
@@ -62,6 +62,7 @@ namespace iLgs.Services.Requisition
                     ItemCode = s.ItemCode.Code,
                     ItemNo = s.ItemCode.ItemNo,
                     ItemType = s.ItemCode.Description,
+                    Category = s.ItemCode.ItemType.Category,
                     PsType = s.ItemCode.ItemType.Code,
                     PsTypeDesc = s.ItemCode.ItemType.Description,
                     PsNo = s.PsNo,
@@ -87,6 +88,7 @@ namespace iLgs.Services.Requisition
                     ItemCode = s.ItemCode,
                     ItemNo = s.ItemNo,
                     ItemType = s.ItemType,
+                    Category = s.Category,
                     PsType = s.PsType,
                     PsTypeDesc = s.PsTypeDesc,
                     PsNo = s.PsNo,
@@ -111,7 +113,7 @@ namespace iLgs.Services.Requisition
 
         public RisItemEntryVM GetEntryVmById(Guid? id) 
         {
-            var data = _db.RisItems.Where(w => w.Id == id)
+            var data = _db.RisItems.AsNoTracking().Where(w => w.Id == id)
                 .Select(s => new RisItemEntryVM
                 {
                     Id = s.Id,
@@ -120,6 +122,7 @@ namespace iLgs.Services.Requisition
                     ItemCode = s.ItemCode.Code,
                     ItemNo = s.ItemCode.ItemNo,
                     ItemType = s.ItemCode.Description,
+                    Category = s.ItemCode.ItemType.Category,
                     PsType = s.ItemCode.ItemType.Code,
                     PsTypeDesc = s.ItemCode.ItemType.Description,
                     PsNo = s.PsNo,
@@ -146,6 +149,7 @@ namespace iLgs.Services.Requisition
                     ItemCode = s.ItemCode,
                     ItemNo = s.ItemNo,
                     ItemType = s.ItemType,
+                    Category = s.Category,
                     PsType = s.PsType,
                     PsTypeDesc = s.PsTypeDesc,
                     PsNo = s.PsNo,
@@ -178,7 +182,7 @@ namespace iLgs.Services.Requisition
         public IQueryable<RisItemEntryVM> GetByRisId(Guid? risId) =>
         _entryVmExceptionService.TryCatch(() =>
         {
-            var data = _db.RisItems.Where(w => w.RisId == risId)
+            var data = _db.RisItems.AsNoTracking().Where(w => w.RisId == risId)
                 .Select(s => new RisItemEntryVM
                 {
                     Id = s.Id,
@@ -187,6 +191,7 @@ namespace iLgs.Services.Requisition
                     ItemCode = s.ItemCode.Code,
                     ItemNo = s.ItemCode.ItemNo,
                     ItemType = s.ItemCode.Description,
+                    Category = s.ItemCode.ItemType.Category,
                     PsType = s.ItemCode.ItemType.Code,
                     PsTypeDesc = s.ItemCode.ItemType.Description,
                     PsNo = s.PsNo,
@@ -213,6 +218,7 @@ namespace iLgs.Services.Requisition
                     ItemCode = s.ItemCode,
                     ItemNo = s.ItemNo,
                     ItemType = s.ItemType,
+                    Category = s.Category,
                     PsType = s.PsType,
                     PsTypeDesc = s.PsTypeDesc,
                     PsNo = s.PsNo,
@@ -391,130 +397,7 @@ namespace iLgs.Services.Requisition
             await _db.SaveChangesAsync();
 
             return model;
-        });
-
-        //private RisItem SetItemEntity(RisItem entity, RisItemEntryVM model)
-        //{
-        //    entity.FieldsAccountableForm = null;
-        //    entity.FieldsAgricultural = null;
-        //    entity.FieldsAnimal = null;
-        //    entity.FieldsFurniture = null;
-        //    entity.FieldsLand = null;
-        //    entity.FieldsMachinery = null;
-        //    entity.FieldsMedical = null;
-        //    entity.FieldsMedicine = null;
-        //    entity.FieldsMilitarySuuply = null;
-        //    entity.FieldsNonAccountableForm = null;
-        //    entity.FieldsOfficeSupply = null;
-        //    entity.FieldsOther = null;
-        //    entity.FieldsOtherSupplyMaterial = null;
-        //    entity.FieldsRepair = null;
-        //    entity.FieldsTransportation = null;
-        //    entity.FieldsVehicle = null;
-        //    entity.FieldsConstruction = null;            
-
-        //    if (Enum.TryParse(model.PsType, out Category category))
-        //    {
-        //        if (category == Category.A)
-        //        {
-        //            model.FieldsAccountableForm.Id = entity.Id;
-        //            entity.FieldsAccountableForm = model.FieldsAccountableForm;
-        //        }
-        //        else if (category == Category.B)
-        //        {
-
-        //        }
-        //        else if (category == Category.C)
-        //        {
-
-        //        }
-        //        else  if (category == Category.D)
-        //        {
-        //            model.FieldsMedicine.Id = entity.Id;
-        //            entity.FieldsMedicine = model.FieldsMedicine;
-        //        }
-        //        else if (category == Category.E)
-        //        {
-        //            model.FieldsMachinery.Id = entity.Id;
-        //            entity.FieldsMachinery = model.FieldsMachinery;
-        //        }
-        //        else if (category == Category.F) // food supplies
-        //        {
-
-        //        }
-        //        else if (category == Category.G) 
-        //        {
-        //            model.FieldsAgricultural.Id = entity.Id;
-        //            entity.FieldsAgricultural = model.FieldsAgricultural;
-        //        }
-        //        else if (category == Category.I)
-        //        {
-
-        //        }                                
-        //        else if (category == Category.L)
-        //        {
-        //            model.FieldsLand.Id = entity.Id;
-        //            entity.FieldsLand = model.FieldsLand;
-        //        }
-        //        else if (category == Category.M)
-        //        {
-        //            model.FieldsMedical.Id = entity.Id;
-        //            entity.FieldsMedical = model.FieldsMedical;
-        //        }
-        //        else if (category == Category.N)
-        //        {
-        //            model.FieldsNonAccountableForm.Id = entity.Id;
-        //            entity.FieldsNonAccountableForm = model.FieldsNonAccountableForm;
-        //        }
-        //        else if (category == Category.O)
-        //        {
-        //            model.FieldsOfficeSupply.Id = entity.Id;
-        //            entity.FieldsOfficeSupply = model.FieldsOfficeSupply;
-        //        }
-        //        else if (category == Category.P)
-        //        {
-        //            model.FieldsMilitarySuuply.Id = entity.Id;
-        //            entity.FieldsMilitarySuuply = model.FieldsMilitarySuuply;
-        //        }
-        //        else if (category == Category.R)
-        //        {
-        //            model.FieldsRepair.Id = entity.Id;
-        //            entity.FieldsRepair = model.FieldsRepair;
-        //        }
-        //        else if (category == Category.S)
-        //        {
-        //            model.FieldsRepair.Id = entity.Id;
-        //            entity.FieldsRepair = model.FieldsRepair;
-        //        }
-        //        else if (category == Category.T)
-        //        {
-        //            model.FieldsTransportation.Id = entity.Id;
-        //            entity.FieldsTransportation = model.FieldsTransportation;
-        //        }
-        //        else if (category == Category.U)
-        //        {
-        //            model.FieldsFurniture.Id = entity.Id;
-        //            entity.FieldsFurniture = model.FieldsFurniture;
-        //        }
-        //        else if (category == Category.V)
-        //        {
-        //            model.FieldsAnimal.Id = entity.Id;
-        //            entity.FieldsAnimal = model.FieldsAnimal;
-        //        }
-        //        else if (category == Category.X)
-        //        {
-        //            model.FieldsOtherSupplyMaterial.Id = entity.Id;
-        //            entity.FieldsOtherSupplyMaterial = model.FieldsOtherSupplyMaterial;
-        //        }
-        //        else if (category == Category.Z)
-        //        {
-        //            model.FieldsOther.Id = entity.Id;
-        //            entity.FieldsOther = model.FieldsOther;
-        //        }
-        //    }
-
-        //    return entity;
-        //}
+        });        
 
         private string PsNo(RisItemEntryVM fields)
         {

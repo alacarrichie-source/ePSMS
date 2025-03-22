@@ -8,6 +8,7 @@ using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
@@ -16,6 +17,7 @@ namespace iLgs.Services.PurchaseOrder
     public interface IOrderService
     {
         IQueryable<OrderVM> GetAll();
+        ValueTask<IQueryable<OrderVM>> GetAllAsync(string userId);
         IQueryable<OrderVM> GetAllParOrders();
         ValueTask<Models.Order> GetByIdAsync(Guid orderId);
         ValueTask<Models.Order> GetByPoNoAsync(string poNo);
@@ -50,6 +52,9 @@ namespace iLgs.Services.PurchaseOrder
         private readonly IItemCodeService _itemCodeService;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly decimal _parPrice = 50000;
+        private readonly IUserService _userService;
+        private readonly IOrderUploadService _uploadPoService;
+        private readonly IOrderUploadService _uploadCafoaService;
 
         public OrderService(AppManEntities db)
         {
@@ -57,48 +62,75 @@ namespace iLgs.Services.PurchaseOrder
             _allFieldService = new AllFieldService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
+            _userService = new UserService(_db);
+            _uploadPoService = new OrderUploadServiceService(_db);
+            _uploadCafoaService = new OrderUploadServiceService(_db, "CAFOA");
         }
 
-        public IQueryable<OrderVM> GetAll() => _orderVmExceptionService.TryCatch(() =>
+        private static Expression<Func<Order, OrderVM>> Projection(AppManEntities db)
+        {
+            return s => new OrderVM
+            {
+                Id = s.Id,
+                Fund = s.Request.RISs.Fund,
+                PoNo = s.PoNo,
+                PrId = s.PrId,
+                PrDate = s.Request.PrDate,
+                PoDate = s.PoDate,
+                PoMode = s.PoMode,
+                PoModeDesc = db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC-MODE").FirstOrDefault().Description,
+                PrNo = s.Request.PrNo,
+                Department = s.Request.RISs.Office,
+                SupplierId = s.SupplierId,
+                SupName = s.SupName,
+                SupBusiness = s.SupBusiness,
+                SupAddress = s.SupAddress,
+                SupTIN = s.SupTIN,
+                SupContactNo = s.SupContactNo,
+                SupEmail = s.SupEmail,
+                SupZipCode = s.SupZipCode,
+                DeliveryPlace = s.DeliveryPlace,
+                DeliveryDate = s.DeliveryDate,
+                TermDelivery = s.TermDelivery,
+                TermPayment = s.TermPayment,
+                SignedBySuppName = s.SignedBySuppName,
+                SignedBySuppDate = s.SignedBySuppDate,
+                SignedByAuthName = s.SignedByAuthName,
+                SignedByAuthDesignation = s.SignedByAuthDesignation,
+                ResoNo = s.ResoNo,
+                CertifiedCorrectBy = s.CertifiedCorrectBy,
+                CertifiedCorrectDate = s.CertifiedCorrectDate,
+                PostedBy = s.PostedBy,
+                PostedDt = s.PostedDt,
+                IsLocked = false,
+                InsertedDt = s.InsertedDt
+            };
+        }
+
+        public IQueryable<OrderVM> GetAll()
         {
             var data = _db.Orders.AsNoTracking()
-                .Select(s => new OrderVM
-                {
-                    Id = s.Id,
-                    PoNo = s.PoNo,
-                    PrId = s.PrId,
-                    PrDate = s.Request.PrDate,
-                    PoDate = s.PoDate,
-                    PoMode = s.PoMode,
-                    PoModeDesc = _db.Codextns.Where(w => w.Code == s.PoMode && w.CodeMast.Code == "PROC-MODE").FirstOrDefault().Description,
-                    PrNo = s.Request.PrNo,
-                    Department = s.Request.RISs.Office,
-                    SupplierId = s.SupplierId,
-                    SupName = s.SupName,
-                    SupBusiness = s.SupBusiness,
-                    SupAddress = s.SupAddress,
-                    SupTIN = s.SupTIN,
-                    SupContactNo = s.SupContactNo,
-                    SupEmail = s.SupEmail,
-                    SupZipCode = s.SupZipCode,
-                    DeliveryPlace = s.DeliveryPlace,
-                    DeliveryDate = s.DeliveryDate,
-                    TermDelivery = s.TermDelivery,
-                    TermPayment = s.TermPayment,
-                    SignedBySuppName = s.SignedBySuppName,
-                    SignedBySuppDate = s.SignedBySuppDate,
-                    SignedByAuthName = s.SignedByAuthName,
-                    SignedByAuthDesignation = s.SignedByAuthDesignation,
-                    ResoNo = s.ResoNo,
-                    CertifiedCorrectBy = s.CertifiedCorrectBy,
-                    CertifiedCorrectDate = s.CertifiedCorrectDate,
-                    PostedBy = s.PostedBy,
-                    PostedDt = s.PostedDt,
-                    IsLocked = false
-                })
+                .Select(Projection(_db))
                 .AsQueryable();
             return data;
-        });
+        }
+
+        public async ValueTask<IQueryable<OrderVM>> GetAllAsync(string userId)
+        {
+            IQueryable<OrderVM> data = null;
+            if (await _userService.IsAdminAsync(userId))
+            {
+                data = _db.Orders.AsNoTracking()
+                    .Select(Projection(_db)).OrderByDescending(o => o.PoNo);
+            }
+            else
+            {
+                data = _db.Orders.AsNoTracking()
+                    .Where(w => w.Request.RISs.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
+                    .Select(Projection(_db)).OrderByDescending(o => o.PoNo);
+            }
+            return data;
+        }
 
         public IQueryable<OrderVM> GetAllParOrders() => _orderVmExceptionService.TryCatch(() =>
         {
@@ -287,7 +319,7 @@ namespace iLgs.Services.PurchaseOrder
                 reqAllField.Id = orderItem.Id;
                 reqAllField.UpdatedBy = user;
                 reqAllField.UpdatedDt = date;
-                orderItem.AllField = reqAllField;                
+                orderItem.AllField = reqAllField;
 
                 entity.OrderItems.Add(orderItem);
             }
@@ -407,7 +439,7 @@ namespace iLgs.Services.PurchaseOrder
                         InsertedBy = user,
                         InsertedDt = date,
                         UpdatedBy = user,
-                        UpdatedDt = date                        
+                        UpdatedDt = date
                     };
 
                     AllField allfield = prItem.RisItem.AllField;
@@ -492,10 +524,11 @@ namespace iLgs.Services.PurchaseOrder
             }
 
             await ValidateOnPost(entity);
+            await ValidateUploadAsync(orderId, entity.PoNo);            
 
             entity.PostedBy = user;
             entity.PostedDt = date;
-            
+
             _db.Orders.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
@@ -644,10 +677,12 @@ namespace iLgs.Services.PurchaseOrder
             {
                 throw new RecordRelationshipException(string.Format("PR Number {0} does exists!", model.PrNo));
             }
-
-            else if (pr.PrDate > model.PoDate)
+            else 
             {
-                throw new InvalidValueException("P.O. date must be greather than or equal to P.R. date!");
+                if (pr.PrDate > model.PoDate)
+                {
+                    throw new InvalidValueException("PO date must be greather than or equal to PR date!");
+                }
             }
         }
 
@@ -674,7 +709,7 @@ namespace iLgs.Services.PurchaseOrder
                 throw new RecordRelationshipException("PO Number already with PAR, cannot delete!");
             }
         }
-        
+
         private async ValueTask ValidateOnPost(Order entity)
         {
             if (!string.IsNullOrWhiteSpace(entity.PostedBy))
@@ -698,7 +733,7 @@ namespace iLgs.Services.PurchaseOrder
                     if (string.IsNullOrWhiteSpace(request.SubmittedBy))
                     {
                         throw new RecordNotYetPostedException("Record is not yet posted.");
-                    }                    
+                    }
                 }
             }
 
@@ -717,7 +752,7 @@ namespace iLgs.Services.PurchaseOrder
             var orderItems = await _db.OrderItems
                 .Include(i => i.ItemCode.ItemType)
                 .Include(i => i.AllField)
-                .Where(w => w.OrderId == entity.Id).ToListAsync();        
+                .Where(w => w.OrderId == entity.Id).ToListAsync();
             foreach (var orderItem in orderItems)
             {
                 if (Enum.TryParse(orderItem.ItemCode.ItemType.Code, out Category c))
@@ -728,19 +763,19 @@ namespace iLgs.Services.PurchaseOrder
                         if (allfield == null)
                         {
                             throw new RecordRelationshipException("Required fields is missing, please recreate this Order.");
-                        }                                                
+                        }
                         {
                             if (string.IsNullOrWhiteSpace(allfield.Brand))
                             {
                                 brandMsg = brandMsg == "" ? $"{orderItem.ItemCode.Description}" : brandMsg += ", " + $"{orderItem.ItemCode.Description}";
                             }
                         }
-                    }                    
-                }                        
+                    }
+                }
 
                 if (string.IsNullOrWhiteSpace(orderItem.PsNo))
                 {
-                    throw new InvalidValueException("All items must have a valid Stock No.");
+                    throw new InvalidValueException("All items must have a valid Property/Stock No.");
                 }
 
                 // validate unit cost
@@ -748,6 +783,7 @@ namespace iLgs.Services.PurchaseOrder
                 {
                     throw new InvalidValueException("All items must unit cost.");
                 }
+
                 decimal? unitCost = 0;
                 var unitGroup = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == orderItem.Id))).FirstOrDefault();
                 if (unitGroup != null)
@@ -785,9 +821,9 @@ namespace iLgs.Services.PurchaseOrder
                             throw new InvalidValueException($"Please use property code for items with a unit cost of {_parPrice:n0} and above.");
                         }
                     }
-                }                                
-            }       
-            
+                }
+            }
+
             if (!string.IsNullOrWhiteSpace(brandMsg))
             {
                 throw new InvalidValueException($"Brand is required for {brandMsg}.");
@@ -806,6 +842,31 @@ namespace iLgs.Services.PurchaseOrder
             foreach (var air in airs)
             {
                 throw new RecordRelationshipException(string.Format("AIR Number {0} of this PO is already posted.", air.AIRNo));
+            }
+        }
+
+        private async Task<bool> IsWwithPoUploadAsync(Guid? id)
+        {
+            var result = await _uploadPoService.GetAllByImageId(id).AnyAsync();
+            return result;
+        }
+
+        private async Task<bool> IsWwithCafoaUploadAsync(Guid? id)
+        {
+            var result = await _uploadCafoaService.GetAllByImageId(id).AnyAsync();
+            return result;
+        }
+
+        private async Task ValidateUploadAsync(Guid? id, string poNo)
+        {
+            if (!await IsWwithPoUploadAsync(id))
+            {
+                throw new InvalidValueException($"No PO attachments found for PO No. {poNo}, cannot post!");
+            }
+
+            if (!await IsWwithCafoaUploadAsync(id))
+            {
+                throw new InvalidValueException($"No CAFOA attachments found for PO No. {poNo}, cannot post!");
             }
         }
         #endregion

@@ -8,12 +8,14 @@ using iLgs.Models;
 using System.Data.Entity;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
+using System.Linq.Expressions;
 
 namespace iLgs.Services.PurchaseRequest
 {
     public interface IRequestService
     {
         IQueryable<RequestVM> GetAll();
+        ValueTask<IQueryable<RequestVM>> GetAllAsync(string userId);
         Task<Request> GetByIdAsync(Guid? prId);
         Task<Request> GetByPrNoAsync(string prNo);
         Task<bool> IsAnyPrNoAsync(Guid id, string prNo);
@@ -39,38 +41,63 @@ namespace iLgs.Services.PurchaseRequest
     public class RequestService : IRequestService
     {
         private readonly AppManEntities _db;
+        private readonly IUserService _userService;
+        private readonly decimal _priceCap = 50000;
+
         public RequestService(AppManEntities db)
         {
-            _db = db;        
+            _db = db;
+            _userService = new UserService(_db);
         }
+
+        private static Expression<Func<Request, RequestVM>> Projection
+        = s => new RequestVM
+        {
+            Id = s.Id,
+            PrNo = s.PrNo,
+            PrDate = s.PrDate,
+            Availability = s.Availability,
+            AvaialbilityDesig = s.AvaialbilityDesig,
+            ApprovedBy = s.ApprovedBy,
+            ApprovedDesig = s.ApprovedDesig,
+            SubmittedBy = s.SubmittedBy,
+            SubmittedDt = s.SubmittedDt,
+            IsWithPO = s.Orders.Any(),
+            InsertedBy = s.InsertedBy,
+            InsertedDt = s.InsertedDt,
+            // Transients from RIS
+            RisNo = s.RISs.RisNo,
+            Fund = s.RISs.Fund,
+            Department = s.RISs.Office,
+            Section = s.RISs.Division,
+            FPP = s.RISs.FPP,
+            Purpose = s.RISs.Purpose,
+            RequestedBy = s.RISs.RequestedBy,
+            RequestedDesig = s.RISs.ReceivedByDesignation,
+            RisDate = s.RISs.RisDate,
+            RisId = s.RisId
+        };
+
         public IQueryable<RequestVM> GetAll()
         {
-            return _db.Requests
-                .Select(s => new RequestVM
-                {
-                    Id = s.Id,
-                    PrNo = s.PrNo,
-                    PrDate = s.PrDate,
-                    Availability = s.Availability,
-                    AvaialbilityDesig = s.AvaialbilityDesig,
-                    ApprovedBy = s.ApprovedBy,
-                    ApprovedDesig = s.ApprovedDesig,
-                    SubmittedBy = s.SubmittedBy,
-                    SubmittedDt = s.SubmittedDt,
-                    IsWithPO = s.Orders.Any(),
-                    // Transients from RIS
-                    RisNo = s.RISs.RisNo,
-                    Fund = s.RISs.Fund,
-                    Department = s.RISs.Office,
-                    Section = s.RISs.Division,
-                    FPP = s.RISs.FPP,
-                    Purpose = s.RISs.Purpose,
-                    RequestedBy = s.RISs.RequestedBy,
-                    RequestedDesig = s.RISs.ReceivedByDesignation,
-                    RisDate = s.RISs.RisDate,
-                    RisId = s.RisId                    
-                })
-                .AsQueryable();
+            return _db.Requests.AsNoTracking().Select(Projection).AsQueryable();
+        }
+
+        public async ValueTask<IQueryable<RequestVM>> GetAllAsync(string userId)
+        {
+            IQueryable<RequestVM> data = null;
+            if (await _userService.IsAdminAsync(userId))
+            {
+                data = _db.Requests.AsNoTracking()
+                    .Select(Projection).OrderByDescending(o => o.RisNo);
+            }
+            else
+            {
+                data = _db.Requests.AsNoTracking()
+                    .Where(w => w.RISs.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
+                    .Select(Projection).OrderByDescending(o => o.RisNo);
+            }
+            return data;
         }
 
         public async Task<Request> GetByIdAsync(Guid? prId)
@@ -177,6 +204,8 @@ namespace iLgs.Services.PurchaseRequest
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
+            ValidateOnCreate(model);
+
             var entity = new Request()
             {
                 Id = model.Id,
@@ -205,9 +234,10 @@ namespace iLgs.Services.PurchaseRequest
             };
 
             // include items during add
-            var risItems = _db.RisItems.Where(w => w.RisId == model.RisId).ToList();
+            var risItems = _db.RisItems.Where(w => w.RisId == model.RisId).OrderBy(o => o.InsertedDt).ToList();
             foreach (var risItem in risItems)
             {
+                var insertedDt = DateTime.Now;
                 RequestItem requestItem = new RequestItem()
                 {
                     Id = Guid.NewGuid(),
@@ -215,9 +245,9 @@ namespace iLgs.Services.PurchaseRequest
                     PrId = entity.Id,
                     Qty = risItem.QtyRequest,
                     InsertedBy = user,
-                    InsertedDt = date,
+                    InsertedDt = insertedDt,
                     UpdatedBy = user,
-                    UpdatedDt = date
+                    UpdatedDt = insertedDt
                 };
 
                 //foreach (var risItemExtn in risItem.RisItemExtns)
@@ -307,6 +337,7 @@ namespace iLgs.Services.PurchaseRequest
             var entity = await _db.Requests.Where(w => w.Id == model.Id).FirstOrDefaultAsync();
             ValidateRecord(entity, model.Id);
             ValidateIfPosted(entity);
+            ValidateOnUpdate(entity, model);
 
             // if there's a change of requisition item
             if (entity.RisId != model.RisId)
@@ -406,8 +437,21 @@ namespace iLgs.Services.PurchaseRequest
             var entity = await _db.Requests.FindAsync(requestId);
             if (entity != null)
             {
+                if (string.IsNullOrEmpty(entity.Availability))
+                {
+                    throw new InvalidValueException("Cash availability is Required.");
+                }
 
-                var unitGroupItems = _db.RequestItemUnitGroupDescriptionItems.Include(i => i.RequestItem)
+                if (string.IsNullOrEmpty(entity.ApprovedBy))
+                {
+                    throw new InvalidValueException("Approved by is Required.");
+                }
+
+
+                var unitGroupItems = _db.RequestItemUnitGroupDescriptionItems
+                    .AsNoTracking()
+                    .Include(i => i.RequestItem)
+                    .Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup)
                     .Where(w => w.RequestItemUnitGroupDescription.RequestItemUnitGroup.PrId == entity.Id).ToList();
                 if (unitGroupItems.Any())
                 {
@@ -421,6 +465,51 @@ namespace iLgs.Services.PurchaseRequest
                 if (_db.RequestItems.Any(a => a.PrId == requestId && (!a.UnitCost.HasValue || a.UnitCost == 0)))
                 {
                     throw new InvalidValueException("All items must have a unit cost.");
+                }
+
+                // validate item price
+                var requestItems = _db.RequestItems.Include(i => i.RisItem.ItemCode.ItemType).AsNoTracking().Where(w => w.PrId == requestId).ToList();
+                foreach(var requestItem in requestItems)
+                {                    
+                    var category = requestItem.RisItem.ItemCode.ItemType.Category;
+                    decimal? unitCost = 0;
+                    var unitGroup = _db.RequestItemUnitGroups.Where(w => w.RequestItemUnitGroupDescriptions.Any(a => a.RequestItemUnitGroupDescriptionItems.Any(b => b.RequestItemId == requestItem.Id))).FirstOrDefault();
+                    if (unitGroup != null)
+                    {
+                        unitCost = unitGroup.UnitCost;
+                        if (category != "S")
+                        {
+                            if (unitCost < _priceCap)
+                            {
+                                throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {_priceCap:n0}.");
+                            }
+                        }
+                        else
+                        {
+                            if (unitCost >= _priceCap)
+                            {
+                                throw new InvalidValueException($"Please use property code for items with a group unit cost of {_priceCap:n0} and above.");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        unitCost = requestItem.UnitCost;
+                        if (category != "S")
+                        {
+                            if (unitCost < _priceCap)
+                            {
+                                throw new InvalidValueException($"Please use supplies code for items with a unit cost below {_priceCap:n0}.");
+                            }
+                        }
+                        else
+                        {
+                            if (unitCost >= _priceCap)
+                            {
+                                throw new InvalidValueException($"Please use property code for items with a unit cost of {_priceCap:n0} and above.");
+                            }
+                        }
+                    }
                 }
 
                 entity.SubmittedBy = user;
@@ -472,6 +561,77 @@ namespace iLgs.Services.PurchaseRequest
                 return keyName + "-" + sequence.PadLeft(4, '0');
             }
         }
+
+        private void ValidateOnCreate(RequestVM model)
+        {
+            if (!string.IsNullOrWhiteSpace(model.PrNo) && _db.Requests.Any(a => a.PrNo == model.PrNo))
+            {
+                throw new RecordAlreadyExistsException(string.Format("PR Number {0} already exists", model.PrNo));
+            }
+            else
+            {
+                var ris = _db.RISses.Find(model.RisId);
+                if (ris == null)
+                {
+                    throw new NotFoundException((Guid)model.RisId);
+                }
+                else
+                {
+                    if (ris.RisDate > model.PrDate)
+                    {
+                        throw new InvalidValueException("PR Date must be greater than or equal to RIS date!");
+                    }
+                }
+            }
+        }
+
+        private void ValidateOnUpdate(Request entity, RequestVM model)
+        {            
+            if (entity.SubmittedDt != null)
+            {
+                throw new RecordAlreadyPostedException(string.Format("PR Number {0} already posted, cannot update!", model.PrNo));
+            }
+
+            if (_db.Requests.Any(a => a.PrNo == model.PrNo && a.Id != model.Id))
+            {
+                throw new RecordAlreadyExistsException(string.Format("PR Number {0} already exists!", model.PrNo));
+            }
+
+            var ris = _db.RISses.Find(model.RisId);
+            if (ris == null)
+            {
+                throw new RecordRelationshipException(string.Format("RIS Number {0} does exists!", model.RisNo));
+            }
+
+            else if (ris.RisDate > model.PrDate)
+            {
+                throw new InvalidValueException("PR date must be greather than or equal to RIS date!");
+            }
+        }
+
+        //private async ValueTask ValidateOnDestroy(RequestVM model)
+        //{
+        //    var order = await _db.Orders.FindAsync(model.Id);
+        //    if (order == null)
+        //    {
+        //        throw new RecordNotFoundException(model.Id);
+        //    }
+
+        //    if (await IsPostedAsync(model.Id))
+        //    {
+        //        throw new RecordAlreadyPostedException(string.Format("PO Number {0} already Posted, cannot delete!", model.PoNo));
+        //    }
+
+        //    if (await GetAnyAirsAsync(model.Id))
+        //    {
+        //        throw new RecordRelationshipException("PO Number already with AIR, cannot delete!");
+        //    }
+
+        //    if (await GetAnyParsAsync(model.Id))
+        //    {
+        //        throw new RecordRelationshipException("PO Number already with PAR, cannot delete!");
+        //    }
+        //}
 
         private void ValidateRelationship(Guid prId)
         {

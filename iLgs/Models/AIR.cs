@@ -23,7 +23,6 @@ namespace iLgs.Models
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> OrderId { get; set; }
-        public string Fund { get; set; }
         public string AIRNo { get; set; }
         public Nullable<System.DateTime> AIRDate { get; set; }
         public string InvoiceNo { get; set; }

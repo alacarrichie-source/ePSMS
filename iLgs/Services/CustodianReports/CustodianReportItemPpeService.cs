@@ -39,7 +39,7 @@ namespace iLgs.Services.CustodianReports
             Id = s.Id,
             MainDeptId = s.CustodianReport.DeptId,
             MainDeptName = s.CustodianReport.Department,
-            AccountGroup = s.CustodianReport.AccountGroup,            
+            AccountGroup = s.CustodianReport.AccountGroup,
             ReportId = s.ReportId,
             Fund = s.Fund,
             CustodianItemNo = s.CustodianItemNo,
@@ -141,7 +141,7 @@ namespace iLgs.Services.CustodianReports
 
         public IQueryable<CustodianReportItemPpeVM> GetAll(Guid? reportId, string userName)
         {
-            IQueryable<CustodianReportItemPpeVM> data = null;            
+            IQueryable<CustodianReportItemPpeVM> data = null;
             if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
             {
                 data = _db.CustodianReportItems
@@ -168,6 +168,7 @@ namespace iLgs.Services.CustodianReports
         public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup, string userName)
         {
             IQueryable<CustodianReportItemPpeVM> data = null;
+
             if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
             {
                 data = _db.CustodianReportItems
@@ -225,7 +226,7 @@ namespace iLgs.Services.CustodianReports
             }
 
             SetDefaultValues(model);
-            
+
             _validator.ValidateOnCreate(model);
             await base.CreateAsync(model, user, date);
             return model;

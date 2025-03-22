@@ -102,7 +102,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "ics_par_update");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowEdit)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
@@ -203,7 +203,7 @@ namespace iLgs.Controllers
             {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), "ics_par_update");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowUnpost)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }

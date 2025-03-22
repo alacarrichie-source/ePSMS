@@ -275,6 +275,7 @@ namespace iLgs.Utilities
                     AllowPost = true,
                     AllowUnpost = true,
                     AllowPrint = true,
+                    AllowTransfer = true,
                     Actions = new List<MenuAccessAction>()
                 };
             }

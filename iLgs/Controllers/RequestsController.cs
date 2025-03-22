@@ -50,9 +50,11 @@ namespace iLgs.Controllers
             return View();
         }
 
-        public ActionResult RequestRead([DataSourceRequest] DataSourceRequest request)
+        public async Task<ActionResult> RequestRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _requestService.GetAll();
+            var userId = User.Identity.GetUserId();
+            var data = await _requestService.GetAllAsync(userId);
+
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -224,14 +226,27 @@ namespace iLgs.Controllers
         public async Task<ActionResult> _RequestItemSave(RequestItemVM model)
         {
             try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "request");
+            {                
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+
+                var entity = await _requestItemService.GetByIdAsync(model.Id);
+                if (entity == null)
                 {
-                    ModelState.AddModelError("Access", "Access Denied!");
+                    if (!access.AllowAdd)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
                 }
-                else if (await _requestService.IsPostedAsync(model.PrId))
+                else
+                {
+                    if (!access.AllowEdit)
+                    {
+                        ModelState.AddModelError("Access", "Access Denied!");
+                    }
+                }
+                
+                if (await _requestService.IsPostedAsync(model.PrId))
                 {
                     ModelState.AddModelError("PR No.", "PR Number already Posted, cannot update!");
                 }
@@ -240,9 +255,7 @@ namespace iLgs.Controllers
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
-
-                    var entity = await _requestItemService.GetByIdAsync(model.Id);
-
+                   
                     if (entity == null)
                     {
                         model = await _requestItemService.CreateAsync(model, user, date);
@@ -332,7 +345,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "request");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests");
                 Access access = await accessTask;
                 if (!access.AllowPost)
                 {
@@ -394,9 +407,9 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "request");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests");
                 Access access = await accessTask;
-                if (!access.AllowPost)
+                if (!access.AllowUnpost)
                 {
                     ModelState.AddModelError("Access", "Access Denied!");
                 }
@@ -470,7 +483,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "request");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -510,7 +523,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "request");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -557,7 +570,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "request");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -607,7 +620,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "request");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "requests");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {

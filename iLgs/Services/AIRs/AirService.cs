@@ -29,7 +29,7 @@ namespace iLgs.Services.AIRs
         ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date);
-        ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date);        
+        ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR> PostAsync(Guid airId, string user, DateTime date);
         ValueTask<AIR> UnpostAsync(Guid airId, string user, DateTime date);
     }
@@ -41,6 +41,7 @@ namespace iLgs.Services.AIRs
         private readonly IExceptionService<AIR> _ExceptionService = new ExceptionService<AIR>();
         private readonly IAirItemService _airItemService;
         private readonly IItemCodeService _itemCodeService;
+        private readonly IAirUploadService _uploadService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public AirService(AppManEntities db)
@@ -48,6 +49,7 @@ namespace iLgs.Services.AIRs
             _db = db;
             _airItemService = new AirItemService(_db);
             _itemCodeService = new ItemCodeService(_db);
+            _uploadService = new AirUploadService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
         }
 
@@ -59,12 +61,12 @@ namespace iLgs.Services.AIRs
                 .Select(s => new AIR_VM
                 {
                     Id = s.Id,
+                    Fund = s.Order.Request.RISs.Fund,
                     OrderId = s.OrderId,
                     PoNo = s.Order.PoNo,
                     Supplier = s.Order.SupName,
                     PoDate = s.Order.PoDate,
                     Department = s.Order.DeliveryPlace,
-                    Fund = s.Fund,
                     AIRNo = s.AIRNo,
                     AIRDate = s.AIRDate,
                     InvoiceNo = s.InvoiceNo,
@@ -80,7 +82,8 @@ namespace iLgs.Services.AIRs
                     Remarks = s.Remarks,
                     PostedBy = s.PostedBy,
                     PostedDt = s.PostedDt,
-                    AIRInvoices = s.AIRInvoices
+                    AIRInvoices = s.AIRInvoices,
+                    InsertedDt = s.InsertedDt
                 });
             return data;
         });
@@ -108,7 +111,7 @@ namespace iLgs.Services.AIRs
                     Supplier = s.Order.SupName,
                     PoDate = s.Order.PoDate,
                     Department = s.Order.DeliveryPlace,
-                    Fund = s.Fund,
+                    Fund = s.Order.Request.RISs.Fund,
                     AIRNo = s.AIRNo,
                     AIRDate = s.AIRDate,
                     InvoiceNo = s.InvoiceNo,
@@ -190,6 +193,51 @@ namespace iLgs.Services.AIRs
                 throw new RecordAlreadyPostedException();
             }
 
+            var order = await _db.Orders.FindAsync(entity.OrderId);
+            if (order == null)
+            {
+                throw new RecordRelationshipException("Purchase Order not found.");
+            }
+            else
+            {
+                if (order.PoDate > entity.AIRDate)
+                {
+                    throw new InvalidValueException("AIR Date Must be on or after the PO Date.");
+                }
+            }
+
+            if (!entity.AcceptedDate.HasValue)
+            {
+                throw new InvalidValueException("Date received is required.");
+            }            
+
+            if (!entity.IsComplete == true && !entity.IsPartial == true)
+            {
+                throw new InvalidValueException("Please select if Acceptance is Complete or Partial.");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.Custodian))
+            {
+                throw new InvalidValueException("Acceptance Custodian is required.");
+            }
+
+            if (!entity.InspectedDate.HasValue)
+            {
+                throw new InvalidValueException("Date inspected is required.");
+            }
+
+            if (!entity.IsInspected == true)
+            {
+                throw new InvalidValueException("Please mark Inspected checkbox as checked.");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.Officer))
+            {
+                throw new InvalidValueException("Inspection Officer is required.");
+            }
+
+            await ValidateUploadAsync(airId, entity.AIRNo);
+
             _airItemService.ValidAirItems(airId);
 
             entity.PostedBy = user;
@@ -232,7 +280,7 @@ namespace iLgs.Services.AIRs
                         //&& w.Unit == oig.Unit
                         ).FirstOrDefaultAsync();
 
-                    var orderAllField = await _db.AllFields.AsNoTracking().Where(w => w.Id == orderItem.Id).FirstOrDefaultAsync();
+                    var oAf = await _db.AllFields.AsNoTracking().Where(w => w.Id == orderItem.Id).FirstOrDefaultAsync();
                     var office = orderItem.RequestItem.RisItem.RISs.Office;
                     //var deptId = _db.Codextns.Where(w => w.CodeMast.Code == "DEPARTMENTS" && w.Description.Trim() == office).FirstOrDefault()?.Id;
                     var deptId = orderItem.RequestItem.RisItem.RISs.OfficeId;
@@ -260,50 +308,379 @@ namespace iLgs.Services.AIRs
                             UpdatedDt = date
                         };
 
-                        AllField allField = null;
-                        if (orderAllField != null)
+                        AllField af = null;
+                        if (oAf != null)
                         {
-                            allField = new AllField()
+                            var itemCode = _itemCodeService.GetById(oig.ItemCodeId);
+                            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+                            //_FieldAlcohol
+                            //_FieldBrand
+                            //_FieldBrand_A
+                            //_FieldBrand_B
+                            //_FieldDrugs
+                            //_FieldLand
+                            //_FieldMultiple
+                            //_FieldMultiple_A
+                            //_FieldSeral_A
+                            //_FieldSerial
+                            //_FieldSerial_B
+                            //_FieldSerial_C
+                            //_FieldSerial_D
+                            //_FieldSerial_E
+                            //_FieldSerial_F
+                            af = new AllField()
                             {
                                 Id = psCardId,
-                                AcqMode = orderAllField.AcqMode,
-                                InvDist = orderAllField.InvDist,
-                                GenericName = orderAllField.GenericName,
-                                DosageStrength = orderAllField.DosageStrength,
-                                DosageForm = orderAllField.DosageForm,
-                                DosageVolume = orderAllField.DosageVolume,
-                                Others = orderAllField.Others,
-                                Brand = orderAllField.Brand,
-                                Multipliers = orderAllField.Multipliers,
-                                Model_ = orderAllField.Model_,
-                                Area = orderAllField.Area,
-                                Barangay = orderAllField.Barangay,
-                                DateSale = orderAllField.DateSale,
-                                DateDonation = orderAllField.DateDonation,
-                                DateAcquisition = orderAllField.DateAcquisition,
-                                DateConstruction = orderAllField.DateConstruction,
-                                AreaSoldDonated = orderAllField.AreaSoldDonated,
-                                PricePerSqm = orderAllField.PricePerSqm,
-                                AcqCost = orderAllField.AcqCost,
-                                VendorDonor = orderAllField.VendorDonor,
-                                Type = orderAllField.Type,
-                                Dimension = orderAllField.Dimension,
-                                Size = orderAllField.Size,
-                                Weight = orderAllField.Weight,
-                                Materials = orderAllField.Materials,
-                                Capacity = orderAllField.Capacity,
-                                Color = orderAllField.Color,
-                                SerialNo = orderAllField.SerialNo,
-                                PropNo = orderAllField.PropNo,                                
-                                PlateNo = orderAllField.PlateNo,
-                                BodyNo = orderAllField.BodyNo,
-                                MVFileNo = orderAllField.MVFileNo,
+                                AcqMode = oAf.AcqMode,
+                                InvDist = oAf.InvDist,
                                 InsertedBy = user,
                                 InsertedDt = date,
                                 UpdatedBy = user,
                                 UpdatedDt = date
                             };
-                            psCard.AllField = allField;
+
+                            if (partialView == "_FieldAlcohol")
+                            {
+                                af.GenericName = oAf.GenericName;
+                                af.DosageVolume = oAf.DosageVolume;
+                                af.Multipliers = oAf.Multipliers;
+                                af.Brand = oAf.Brand;
+                            }
+                            else if (partialView.Contains("_FieldBrand"))
+                            {
+                                if (partialView == "_FieldBrand")
+                                {
+                                    af.Multipliers = oAf.Multipliers;
+                                }
+                                af.Brand = oAf.Brand;
+
+                                if (partialView == "_FieldBrand_A")
+                                {
+                                    if (oAf.Model_.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (oAf.Dimension.IsNullOrWhiteSpaceX())
+                                        {
+                                            if (oAf.Size.IsNullOrWhiteSpaceX())
+                                            {
+                                                if (oAf.Weight.IsNullOrWhiteSpaceX())
+                                                {
+                                                    if (oAf.Materials.IsNullOrWhiteSpaceX())
+                                                    {
+                                                        if (oAf.Capacity.IsNullOrWhiteSpaceX())
+                                                        {
+                                                            af.Color = oAf.Color;
+                                                        }
+                                                        else
+                                                        {
+                                                            af.Capacity = oAf.Capacity;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        af.Materials = oAf.Materials;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    af.Weight = oAf.Weight;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                af.Size = oAf.Size;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            af.Dimension = oAf.Dimension;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.Model_ = oAf.Model_;
+                                    }
+                                }
+                                else
+                                {
+                                    af.Model_ = oAf.Model_;
+                                }
+                            }
+                            else if (partialView == "_FieldDrugs")
+                            {
+                                af.GenericName = oAf.GenericName;
+                                af.DosageStrength = oAf.DosageStrength;
+                                af.DosageForm = oAf.DosageForm;
+                                af.DosageVolume = oAf.DosageVolume;
+                                af.Multipliers = oAf.Multipliers;
+                                af.Brand = oAf.Brand;
+                            }
+                            else if (partialView == "_FieldLand")
+                            {
+                                af.Area = oAf.Area;
+                            }
+                            else if (partialView == "_FieldMultiple")
+                            {
+                                af.Multipliers = oAf.Multipliers;
+                            }
+                            else if (partialView == "_FieldMultiple_A")
+                            {
+                                af.Multipliers = oAf.Multipliers;
+                                af.Brand = oAf.Brand;
+                            }
+                            else if (partialView == "_FieldSerial")
+                            {
+                                if (oAf.Model_.IsNullOrWhiteSpaceX())
+                                {
+                                    af.PropNo = oAf.PropNo;
+                                }
+                                else
+                                {
+                                    af.SerialNo = oAf.SerialNo;
+                                }
+
+                                af.Multipliers = oAf.Multipliers;
+                                af.Brand = oAf.Brand;
+
+                                if (oAf.Model_.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.Dimension.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (oAf.Size.IsNullOrWhiteSpaceX())
+                                        {
+                                            if (oAf.Weight.IsNullOrWhiteSpaceX())
+                                            {
+                                                if (oAf.Materials.IsNullOrWhiteSpaceX())
+                                                {
+                                                    if (oAf.Capacity.IsNullOrWhiteSpaceX())
+                                                    {
+                                                        af.Color = oAf.Color;
+                                                    }
+                                                    else
+                                                    {
+                                                        af.Capacity = oAf.Capacity;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    af.Materials = oAf.Materials;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                af.Weight = oAf.Weight;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            af.Size = oAf.Size;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.Dimension = oAf.Dimension;
+                                    }
+                                }
+                                else
+                                {
+                                    af.Model_ = oAf.Model_;
+                                }
+                            }
+                            else if (partialView == "_FieldSerial_A")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.BodyNo.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (!oAf.MVFileNo.IsNullOrWhiteSpaceX())
+                                        {
+                                            af.MVFileNo = oAf.MVFileNo;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.BodyNo = oAf.BodyNo;
+                                    }
+                                }
+                                else
+                                {
+                                    af.PlateNo = oAf.PlateNo;
+                                }
+
+                                af.Multipliers = oAf.Multipliers;
+                                af.Brand = oAf.Brand;
+
+                                if (oAf.Model_.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.Dimension.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (oAf.Size.IsNullOrWhiteSpaceX())
+                                        {
+                                            if (oAf.Weight.IsNullOrWhiteSpaceX())
+                                            {
+                                                if (oAf.Materials.IsNullOrWhiteSpaceX())
+                                                {
+                                                    if (oAf.Capacity.IsNullOrWhiteSpaceX())
+                                                    {
+                                                        af.Color = oAf.Color;
+                                                    }
+                                                    else
+                                                    {
+                                                        af.Capacity = oAf.Capacity;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    af.Materials = oAf.Materials;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                af.Weight = oAf.Weight;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            af.Size = oAf.Size;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.Dimension = oAf.Dimension;
+                                    }
+                                }
+                                else
+                                {
+                                    af.Model_ = oAf.Model_;
+                                }
+                            }
+                            else if (partialView == "_FieldSerial_B")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    af.PropNo = oAf.PropNo;
+                                }
+                                else
+                                {
+                                    af.SerialNo = oAf.SerialNo;
+                                }
+
+                                af.Multipliers = oAf.Multipliers;
+                            }
+                            else if (partialView == "_FieldSerial_C")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.BodyNo.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (!oAf.MVFileNo.IsNullOrWhiteSpaceX())
+                                        {
+                                            af.MVFileNo = oAf.MVFileNo;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.BodyNo = oAf.BodyNo;
+                                    }
+                                }
+                                else
+                                {
+                                    af.PlateNo = oAf.PlateNo;
+                                }
+
+                                af.Multipliers = oAf.Multipliers;
+                            }
+                            else if (partialView == "_FieldSerial_D")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    af.PropNo = oAf.PropNo;
+                                }
+                                else
+                                {
+                                    af.SerialNo = oAf.SerialNo;
+                                }
+
+                                af.Brand = oAf.Brand;
+
+                                if (oAf.Model_.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.Dimension.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (oAf.Size.IsNullOrWhiteSpaceX())
+                                        {
+                                            if (oAf.Weight.IsNullOrWhiteSpaceX())
+                                            {
+                                                if (oAf.Materials.IsNullOrWhiteSpaceX())
+                                                {
+                                                    if (oAf.Capacity.IsNullOrWhiteSpaceX())
+                                                    {
+                                                        af.Color = oAf.Color;
+                                                    }
+                                                    else
+                                                    {
+                                                        af.Capacity = oAf.Capacity;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    af.Materials = oAf.Materials;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                af.Weight = oAf.Weight;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            af.Size = oAf.Size;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.Dimension = oAf.Dimension;
+                                    }
+                                }
+                                else
+                                {
+                                    af.Model_ = oAf.Model_;
+                                }
+                            }
+                            else if (partialView == "_FieldSerial_E")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    if (oAf.BodyNo.IsNullOrWhiteSpaceX())
+                                    {
+                                        if (!oAf.MVFileNo.IsNullOrWhiteSpaceX())
+                                        {
+                                            af.MVFileNo = oAf.MVFileNo;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        af.BodyNo = oAf.BodyNo;
+                                    }
+                                }
+                                else
+                                {
+                                    af.PlateNo = oAf.PlateNo;
+                                }
+                            }
+                            else if (partialView == "_FieldSerial_F")
+                            {
+                                if (oAf.PlateNo.IsNullOrWhiteSpaceX())
+                                {
+                                    af.PropNo = oAf.PropNo;
+                                }
+                                else
+                                {
+                                    af.SerialNo = oAf.SerialNo;
+                                }
+                            }
+
+                            psCard.AllField = af;
                         }
                     }
 
@@ -343,7 +720,7 @@ namespace iLgs.Services.AIRs
                             Description = oig.Description,
                             //OtherDesc = orderItem.RequestItem.RisItem.OtherDesc,
                             OtherDesc = orderItem.OtherDesc,
-                            Type = orderAllField.Type,
+                            Type = oAf.Type,
                             InvDist = oig.InvDist,
                             FPP = orderItem.RequestItem.RisItem.RISs.FPP,
                             SetLotNo = setLotNo,
@@ -566,6 +943,20 @@ namespace iLgs.Services.AIRs
             return entity;
         });
 
+        private async Task<bool> IsWwithUploadAsync(Guid? id)
+        {
+            var result = await _uploadService.GetAllByImageId(id).AnyAsync();
+            return result;
+        }
+        
+        private async Task ValidateUploadAsync(Guid? id, string airNo)
+        {
+            if (!await IsWwithUploadAsync(id))
+            {
+                throw new InvalidValueException($"No attachments found for AIR No. {airNo}, cannot post!");
+            }            
+        }
+
         public ValueTask<AIR> UnpostAsync(Guid airId, string user, DateTime date) => _ExceptionService.TryCatch(async () =>
         {
             var entity = await _db.AIRs.FindAsync(airId);
@@ -585,6 +976,13 @@ namespace iLgs.Services.AIRs
             }
 
             if (await _db.IcsParItems.Include(i => i.PsCardItemExtn.PsCardItem).AsNoTracking().AnyAsync(a => a.PsCardItemExtn.PsCardItem.OrderItemId == entity.OrderId))
+            {
+                throw new RecordRelationshipException("PAR/ICS already issued cannot unpost!");
+            }
+
+            if (await _db.AIRItems.AnyAsync(a => a.AirId == entity.Id && a.AIRItemExtns
+                .Any(b => b.PsCardItemExtns
+                    .Any(c => c.IcsParItems.Any()))))
             {
                 throw new RecordRelationshipException("PAR/ICS already issued cannot unpost!");
             }
@@ -747,6 +1145,7 @@ namespace iLgs.Services.AIRs
         public async ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date)
         {
             await ValidateOnCreate(model);
+            await ValidateOnCreateUpdate(model, Mode.ADD);
 
             model.Id = (model.Id == Guid.Empty || model.Id == null) ? Guid.NewGuid() : model.Id;
             if (string.IsNullOrWhiteSpace(model.AIRNo))
@@ -761,7 +1160,6 @@ namespace iLgs.Services.AIRs
             var entity = new AIR()
             {
                 Id = model.Id,
-                Fund = model.Fund,
                 AIRNo = model.AIRNo,
                 AIRDate = model.AIRDate,
                 OrderId = model.OrderId,
@@ -791,7 +1189,7 @@ namespace iLgs.Services.AIRs
             {
                 var insertedDt = DateTime.Now;
                 var invDist = _itemCodeService.GetInvDist(orderItem.ItemCodeId);
-                
+
                 if (string.IsNullOrWhiteSpace(invDist))
                 {
                     invDist = model.InvDist;
@@ -809,39 +1207,7 @@ namespace iLgs.Services.AIRs
                     UpdatedBy = user,
                     UpdatedDt = insertedDt
                 };
-
-                //if (invDist == "I" && isWithParIcs)
-                //{
-                //    var unitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
-                //        .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
-                //        .Where(w => w.OrderItemId == orderItem.Id)
-                //        .FirstOrDefaultAsync();
-                //    var qty = orderItem.Qty;
-                //    string category = orderItem.RequestItem.RisItem.ItemCode.ItemType.Code;
-                //    string itemExtnName = _airItemService.GetItemExtnNameByCategory(category);
-
-                //    // create template based on number of qty
-                //    if (unitGroupDescriptionItem != null)
-                //    {
-                //        var setLotNo = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
-                //        var groupQty = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
-                //        for (int gQty = 1; gQty <= groupQty; gQty++)
-                //        {
-                //            for (int q = 1; q <= qty; q++)
-                //            {
-                //                SetAirItmExtn(itemExtnName, setLotNo, gQty, q, airItem, user, date);
-                //            }
-                //        }
-                //    }
-                //    else
-                //    {
-                //        for (int q = 1; q <= qty; q++)
-                //        {
-                //            SetAirItmExtn(itemExtnName, "", null, q, airItem, user, date);
-                //        }
-                //    }
-                //}
-
+                
                 await _airItemService.AirItemExtn.CreateAirItemExtnAsync(airItem, orderItem, user, date);
                 entity.AIRItems.Add(airItem);
             }
@@ -850,11 +1216,12 @@ namespace iLgs.Services.AIRs
             await _db.SaveChangesAsync();
 
             return model;
-        }        
+        }
 
         public async ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date)
         {
             await ValidateOnUpdate(model);
+            await ValidateOnCreateUpdate(model, Mode.EDIT);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -898,12 +1265,9 @@ namespace iLgs.Services.AIRs
                 }
             }
 
-            entity.Fund = model.Fund;
             entity.AIRNo = model.AIRNo;
             entity.AIRDate = model.AIRDate;
             entity.OrderId = model.OrderId;
-            //entity.InvoiceNo = model.InvoiceNo ?? "";
-            //entity.InvoiceDate = model.InvoiceDate;
             entity.AcceptedDate = model.AcceptedDate;
             entity.IsComplete = model.IsComplete;
             entity.IsPartial = model.IsPartial;
@@ -975,7 +1339,41 @@ namespace iLgs.Services.AIRs
             if (await _db.AIRs.AnyAsync(a => a.AIRNo == model.AIRNo))
             {
                 throw new RecordAlreadyExistsException(string.Format("AIR Number {0} already exists", model.AIRNo));
+            }            
+        }
+
+        private async ValueTask ValidateOnCreateUpdate(AIR_VM model, Mode mode)
+        {
+            var order = await _db.Orders.FindAsync(model.OrderId);
+            if (order == null)
+            {
+                throw new RecordRelationshipException("Purchase Order not found.");
             }
+            else
+            {
+                if (order.PoDate > model.AIRDate)
+                {
+                    throw new InvalidValueException("AIR Date must be on or after the PO Date.");
+                }
+            }
+
+            if (model.AcceptedDate.HasValue)
+            {
+                if (model.AcceptedDate < model.AIRDate)
+                {
+                    throw new InvalidValueException("Date Received must be on or after the PO Date.");
+                }
+            }
+
+            if (model.IsInspected.HasValue)
+            {
+                if (model.InspectedDate < model.AIRDate)
+                {
+                    throw new InvalidValueException("Date Inspected must be on or after the PO Date.");
+                }
+            }
+
+            //_imex.ThrowIfContainsErrors();
         }
 
         private async ValueTask ValidateOnUpdate(AIR_VM model)

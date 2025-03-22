@@ -9,22 +9,25 @@
     .HtmlAttributes(new { @class = "max-grid" })
     .Columns(col =>
     {
+        col.Bound(c => c.Fund).Width(50);
         col.Bound(c => c.PoNo).Width(70);
         col.Bound(c => c.PoDate).Width(70);
         //col.Bound(c => c.PoModeDesc).Width(70);
         col.Bound(c => c.PrNo).Width(70);
         col.Bound(c => c.Department).Width(100);
         col.Bound(c => c.SupName).Width(100);
-        col.Bound(c => c.SupBusiness).Width(100);
-        col.Bound(c => c.SupAddress).Width(100);
-        col.Bound(c => c.SupTIN).Width(70);
+        //col.Bound(c => c.SupBusiness).Width(100);
+        //col.Bound(c => c.SupAddress).Width(150);
+        //col.Bound(c => c.SupTIN).Width(70);
         col.Bound(c => c.PostedBy).Width(70);
         col.Command(command =>
         {
             command.Edit();
-            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted");
             //command.Custom("Post").IconClass("k-icon k-i-lock").Click("onGridPostClick").SendDataKeys(true);
-        }).Width(150);
+            command.Custom("PO").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
+            command.Custom("CAFOA").IconClass("k-icon k-i-upload").Click("onClickUploadsCafoa").SendDataKeys(true);
+        }).Width(170);
     })
     .ToolBar(t =>
     {
@@ -70,6 +73,7 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
+        .Sort(s => s.Add(a => a.InsertedDt).Descending())
         .Read(read => read.Action("OrderRead", "Orders"))
         .Create(create => create.Action("OrderCreate", "Orders"))
         .Update(update => update.Action("OrderUpdate", "Orders"))
@@ -95,7 +99,7 @@
         });
     })
     .SelectedIndex(0)
-    .Events(e => e.Select("onSelectTab"))
+    .Events(e => e.Select("onSelectTabStrip"))
     .Items(items =>
     {
         items.Add().Text("Items")
@@ -162,6 +166,30 @@
 
 
 <script type="text/javascript">
+    function onSelectTabStrip(e) {
+        var tabStrip = this;
+        for (var idx = 0; ; ++idx) {
+            var tab = tabStrip.contentElement(idx);
+            if (tab == null)
+                break;
+            if (tab == e.contentElement) {
+                //current tab logic - just let it go
+            }
+            else {
+                //all other tabs
+                $(tab).html("");
+            }
+        }
+    }
+
+    function IsPosted(dataItem) {
+        return dataItem.PostedDt != null;
+    }
+
+    function IsNotPosted(dataItem) {
+        return !IsPosted(dataItem);
+    }
+
     function columnTemplate(data) {
         return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
     }
@@ -570,7 +598,9 @@
 
     function onSelectPrId(e) {
         var dataItem = this.dataItem(e.item.index());
-        var prDate = kendo.toString(new Date(parseInt(dataItem.PrDate.substr(6))), 'MM/dd/yyyy');
+        //var prDate = kendo.toString(new Date(parseInt(dataItem.PrDate.substr(6))), 'MM/dd/yyyy');
+        //var prDate = kendo.parseDate(dataItem.PrDate);
+        var prDate = kendo.toString(kendo.parseDate(dataItem.PrDate), 'MM/dd/yyyy');
 
         $("#PrDate").val(prDate).trigger("change");
         $("#DeliveryPlace").val(dataItem.Department).trigger("change");
@@ -594,7 +624,7 @@
 
     function onSelectItemCode(e) {
         var dataItem = this.dataItem(e.item.index());
-        
+
         $("#ItemCodeId").val(dataItem.Id).trigger("change");
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
         $("#PsTypeDesc").val(dataItem.TypeDesc).trigger("change");
@@ -1082,7 +1112,334 @@
         $("#GridItems").val(this.selectedKeyNames().join(",")).trigger("change");
     }
     // END RIS UNIT GROUP DESCRIPTION ITEMS
+    var selectedGridImagesItem = null;
+    function onEditGridImages(e) {
+        e.preventDefault();
 
+        //// the master row for this detail
+        //var parentRow = this.wrapper.closest("tr").prev();
+        //var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        ////var parentModel = parentGrid.dataItem(parentRow);
+        //parentGrid.select(parentRow);
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("ImageId", '@ViewData["imageId"]');
+        } else {
+            selectedGridImagesItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridImagesItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onClickUploads(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        selectedId = dataItem.Id;
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        Uploads(dataItem.Id, dataItem.PostedBy);
+    }
+
+    function Uploads(imageId, postedBy) {
+        var myTitle = "PO Attachments";
+        var width = 1000;
+        var height = 650;
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+            //height: height
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_Images", "Orders")',
+            data: {
+                imageId: imageId,
+                postedBy: postedBy
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        //mywindow.center();
+        mywindow.open();
+        //resizeWindow();
+    }
+
+    function onClickUploadsCafoa(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        selectedId = dataItem.Id;
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        UploadCafoa(dataItem.Id, dataItem.PostedBy);
+    }
+
+    function UploadCafoa(imageId, postedBy) {
+        var myTitle = "CAFOA Attachments";
+        var width = 1000;
+        var height = 650;
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+            //height: height
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_CafoaImages", "Orders")',
+            data: {
+                imageId: imageId,
+                postedBy: postedBy
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        //mywindow.center();
+        mywindow.open();
+        //resizeWindow();
+    }
+
+    function onDataBoundGridImages(e) {
+        if (selectedGridImagesItem) {
+            var dataItem = this.dataSource.get(selectedGridImagesItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onRequestEndGridUpload(e) {
+        if (e.response && !e.response.Errors) {
+            if (e.type === "create" || e.type === "update" || e.type === "destroy") {
+                var grid = $("#gridImages_").data("kendoGrid"); //e.sender.element ? e.sender.element.data("kendoGrid") : null;
+                if (grid) {
+                    setTimeout(function () {
+                        grid.dataSource.read();
+                    }, 200); // Small delay to ensure data is processed
+                }
+                else {
+                    console.log("grid is null");
+                }
+            }
+        }
+    }
+
+    function onDeleteGridImages(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+    function onClickUpload(e) {
+        e.preventDefault();
+        var button = e.sender.element; // Use the sender's element;
+        // Retrieve the grid name from the data attribute
+
+        var myUrl = '@Url.Action("_ImagesAdd", "Orders")?imageId=' + selectedId;
+        var myTitle = "Upload Images/Documents";
+        var width = 800;
+        var height = 650;
+
+        $("#windowcontainer").append("<div id='windowUpload'></div>");
+        var mywindow = $("#windowUpload")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function onClickUploadCafoa(e) {
+        e.preventDefault();
+        var button = e.sender.element; // Use the sender's element;
+        // Retrieve the grid name from the data attribute
+
+        var myUrl = '@Url.Action("_CafoaImagesAdd", "Orders")?imageId=' + selectedId;
+        var myTitle = "Upload Images/Documents";
+        var width = 800;
+        var height = 650;
+
+        $("#windowcontainer").append("<div id='windowUpload'></div>");
+        var mywindow = $("#windowUpload")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function UploadPara(e) {
+        var data = JSON.stringify({ model: $("#formUpload").serialize() });
+        //alert(additional);
+        //e.data = JSON.parse(additional);
+        //$('#chkSMS').is(':checked');
+        e.data = { imageId: $("#ImageId").val(), Description: $("#Description").val(), accountGroup: '@ViewBag.AccountGroup' }
+    }
+
+    function onClickPreview(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGridImagesItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("PreviewUpload", "Orders")?id=' + selectedGridImagesItem;
+
+        window.open(myUrl, "_blank");
+    }
+
+    function onClickDownload(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        if (dataItem) {
+            window.kendo.ui.progress($(document.body), true);
+            var fileName = dataItem.FileName;
+            var url = '@Url.Action("DownloadFile", "Orders")?fileName=' + fileName;
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row to export.");
+        }
+    }
+
+    function onClickPreviewCafoa(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGridImagesItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("CafoaPreviewUpload", "Orders")?id=' + selectedGridImagesItem;
+
+        window.open(myUrl, "_blank");
+    }
+
+    function onClickDownloadCafoa(e) {
+        selectedGrid = this;
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        if (dataItem) {
+            window.kendo.ui.progress($(document.body), true);
+            var fileName = dataItem.FileName;
+            var url = '@Url.Action("CafoaDownloadFile", "Orders")?fileName=' + fileName;
+
+            // Redirect to the export URL to trigger download
+            window.location.href = url;
+            window.kendo.ui.progress($(document.body), false);
+        } else {
+            alert("Please select a row to export.");
+        }
+    }
+
+    function onError(e) {
+        // invalid because the responseText is a raw string, not JSON
+        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
+        var err = e.XMLHttpRequest.responseText;
+        alert(err);
+    };
+
+    function onUploadSuccess(e)
+    {
+        $("#gridImages_").data("kendoGrid").dataSource.read();
+    }
+
+    function GridUploadError(e) {
+        if (e.errors) {
+
+            var subgrid = $("#gridImages_").data("kendoGrid");
+
+            if (subgrid) {
+                subgrid.dataSource.read(); // Refresh the subgrid
+            }
+
+            $.each(e.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                }
+            });
+        }
+    }
 </script>
 
 

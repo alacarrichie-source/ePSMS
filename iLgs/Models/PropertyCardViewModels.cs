@@ -12,7 +12,7 @@ namespace iLgs.Models
     {
         internal sealed class Metadata
         {
-            [Display(Name = "Property No.")]
+            [Display(Name = "Property Card No.")]
             [Required]
             public string PsNo { get; set; }            
         }

@@ -42,7 +42,7 @@ namespace iLgs.Services.PurchaseOrder
         public IQueryable<OrderItemUnitGroupDescriptionVM> GetByUnitGroupId(Guid? unitGroupId) =>
         _vmExceptionService.TryCatch(() =>
         {
-            var data = _db.OrderItemUnitGroupDescriptions.Where(w => w.OrderItemUnitGroupId == unitGroupId).AsNoTracking()
+            var data = _db.OrderItemUnitGroupDescriptions.AsNoTracking().Where(w => w.OrderItemUnitGroupId == unitGroupId).AsNoTracking()
                 .Select(s => new OrderItemUnitGroupDescriptionVM
                 {
                     Id = s.Id,

@@ -50,15 +50,17 @@ namespace iLgs.Services
         }
         public IQueryable<Upload> GetAll()
         {
-            var data = _db.Uploads.AsQueryable();
+            var subDir = "/" + _subDir + "/";
+            var data = _db.Uploads.AsNoTracking().Where(w => w.VirtualDirectory.EndsWith(subDir)).AsQueryable();
             return data;
-        }
+        }        
 
         public IQueryable<Upload> GetAllByImageId(Guid? imageId)
         {
-            var data = _db.Uploads.Where(w => w.ImageId == imageId);
+            var subDir = "/" + _subDir + "/";
+            var data = _db.Uploads.AsNoTracking().Where(w => w.ImageId == imageId && w.VirtualDirectory.EndsWith(subDir));
             return data;
-        }
+        }        
 
         public async ValueTask<Upload> GetByIdAsync(Guid? id)
         {

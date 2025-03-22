@@ -2,6 +2,7 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Interfaces;
+using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -32,12 +33,14 @@ namespace iLgs.Services.Requisition
         private readonly IExceptionService<RisItemUnitGroupDescriptionItem> _exceptionService = new ExceptionService<RisItemUnitGroupDescriptionItem>();
         private readonly IRisService _risService;
         private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly IItemCodeService _itemCodeService;
 
         public RisItemUnitGroupDescriptionItemService(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RisItemUnitGroupDescriptionItemVM>(propertyName);
             _risService = new RisService(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
 
         public ValueTask<RisItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id) =>
@@ -56,6 +59,7 @@ namespace iLgs.Services.Requisition
                 .Select(s => new RisItemUnitGroupDescriptionItemVM
                 {
                     Id = s.Id,
+                    Category = s.RisItem.ItemCode.ItemType.Category,
                     UnitGroupDescriptionId = s.UnitGroupDescriptionId,
                     RisItemId = s.RisItemId,
                     PsNo = s.RisItem.PsNoDisplay,
@@ -77,6 +81,7 @@ namespace iLgs.Services.Requisition
             .Select(s => new RisItemUnitGroupAvailableVM
             {
                 Id = s.Id,
+                Category = s.ItemCode.ItemType.Category,
                 PsNo = s.PsNoDisplay,
                 ItemName = s.ItemName,
                 Description = s.Description,
@@ -102,7 +107,46 @@ namespace iLgs.Services.Requisition
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
+            /*
+             * All items must of same category
+             */
+
+            bool? isProperty = null;
             var selectedItems = model.GridItems.Split(',');
+
+            foreach (var item in selectedItems)
+            {
+                var itemId = Guid.Parse(item);
+                var risItem = _db.RisItems
+                    .AsNoTracking()
+                    .Include(i => i.ItemCode.ItemType)
+                    .FirstOrDefault(f => f.Id == itemId);
+                if (isProperty == null)
+                {
+                    isProperty = _itemCodeService.IsProperty(risItem.ItemCodeId);                    
+                }
+                else
+                {
+                    if (_itemCodeService.IsProperty(risItem.ItemCodeId) != isProperty)
+                    {
+                        throw new InvalidValueException("Selected Items must be of same category.");
+                    }
+                }
+            }
+
+            // verify selected items vs existing item
+            var risItemUnitGroupDescriptionItem = _db.RisItemUnitGroupDescriptionItems
+                .AsNoTracking()
+                .Include(i => i.RisItem)
+                .FirstOrDefault(f => f.RisItemUnitGroupDescription.Id == model.UnitGroupDescriptionId);
+            if (risItemUnitGroupDescriptionItem != null)
+            {
+                if (_itemCodeService.IsProperty(risItemUnitGroupDescriptionItem.RisItem.ItemCodeId) != isProperty)
+                {
+                    throw new InvalidValueException("The category of the Selected Items must be the same as category of the Existing items.");
+                }
+            }
+
             foreach (var item in selectedItems)
             {
                 model.Id = Guid.NewGuid();

@@ -8,6 +8,7 @@ namespace iLgs.Models
 {
     public class PsCardItemExtnVM : PsCardItemExtn
     {
+        public string Fund { get; set; }
         public string Account { get; set; }
 
         [Display(Name = "Sub-Account")]

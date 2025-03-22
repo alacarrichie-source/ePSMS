@@ -453,29 +453,7 @@ namespace iLgs.Controllers
         public ActionResult Preview()
         {
             return View();
-        }
-
-        //public ActionResult PreviewRead([DataSourceRequest] DataSourceRequest request)
-        //{
-        //    var data = _budgetService.GetLocationPreview();
-
-        //    var result = new JsonNetResult
-        //    {
-        //        Data = data.ToDataSourceResult(request),
-        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-        //    };
-
-        //    return result;
-        //}
-        #endregion
-
-        //public async Task UpdateIndexNo()
-        //{
-        //    string user = ControllerContext.HttpContext.User.Identity.Name;
-        //    DateTime date = System.DateTime.Now;
-
-        //    await _budgetService.UpdateIndexNo(user, date);
-        //}
+        }        
+        #endregion        
     }
 }
