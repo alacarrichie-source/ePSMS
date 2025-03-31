@@ -341,6 +341,20 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedId = null;
+
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetCurrentDate", "Getters")',                
+                success: function (result) {
+                    $("#PoDate").val(result.Date).trigger("change");
+                    disabled.attr('disabled', 'disabled')
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+
         } else {
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);

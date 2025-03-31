@@ -126,8 +126,11 @@ namespace iLgs.Services.CustodianReports
             PostedDt = s.PostedDt,
             SetLotAmount = s.SetLotAmount,
             SetLotRemarks = s.SetLotRemarks,
+            PriceRate = s.PriceRate,
+            ProRatedCost = s.ProRatedCost,
             ItemType_Code = s.ItemCode.ItemType.Code,
-            Item_Code = s.ItemCode.Code
+            Item_Code = s.ItemCode.Code,
+            Category = s.ItemCode.ItemType.Category
         };
 
         public new ValueTask<CustodianReportItemPpeVM> GetByIdAsync(Guid id) =>

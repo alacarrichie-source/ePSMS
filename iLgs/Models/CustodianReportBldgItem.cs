@@ -49,6 +49,7 @@ namespace iLgs.Models
         public string ProjectName { get; set; }
         public string BuildingType { get; set; }
         public Nullable<decimal> Area { get; set; }
+        public Nullable<decimal> AppraiseValue { get; set; }
         public Nullable<decimal> TotalAmount { get; set; }
         public Nullable<decimal> OldAmount { get; set; }
         public string PsNo { get; set; }

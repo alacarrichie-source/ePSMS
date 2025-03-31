@@ -1359,9 +1359,16 @@ namespace iLgs.Services.AIRs
 
             if (model.AcceptedDate.HasValue)
             {
-                if (model.AcceptedDate < model.AIRDate)
+                if (!model.InspectedDate.HasValue)
                 {
-                    throw new InvalidValueException("Date Received must be on or after the PO Date.");
+                    throw new InvalidValueException("Inspection Date is requred.");
+                }
+                else
+                {
+                    if (model.AcceptedDate < model.InspectedDate)
+                    {
+                        throw new InvalidValueException("Date Received must be on or after the Inspection Date.");
+                    }
                 }
             }
 

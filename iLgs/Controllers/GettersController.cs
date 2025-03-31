@@ -176,6 +176,24 @@ namespace iLgs.Controllers
 
         }
 
+        public async Task<ActionResult> GetUserDepartmentsWithAllAsync(string text)
+        {
+            var userId = User.Identity.GetUserId();
+            List<Codextn> retModel;
+            var model = await _codextnService.GetUserDepartmentsAsync(userId);
+            if (!string.IsNullOrEmpty(text))
+            {
+                text = text.Trim();
+                model = model.Where(p => p.Code.Contains(text) || p.Description.Contains(text));
+            }
+
+            retModel = model.ToList();            
+            retModel.Insert(0, new Codextn { Id = Guid.Empty , Code = "ALL", Description = "ALL" });
+
+            return Json(retModel.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
+
+        }
+
         public ActionResult GetRoleList(string text)
         {
 
@@ -872,6 +890,36 @@ namespace iLgs.Controllers
                 Article = c.Article
             }), JsonRequestBehavior.AllowGet);
         }
+
+        public JsonResult GetCustodianMainAccounts(int? accountGroup, string text)
+        {
+            List<CustodianAccountVM> model;
+
+            var query = _db.CustodianReportItems
+                .Where(w => w.CustodianReport.AccountGroup == accountGroup);
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                query = query.Where(w => w.ItemCode.ItemType.Description.Contains(text));
+            }
+
+            model = query
+                .GroupBy(g => g.ItemCode.ItemType.Description)
+                .Select(s => new CustodianAccountVM { MainAccount = s.Key })
+                .OrderBy(o => o.MainAccount)
+                .ToList();
+
+            // Insert "ALL" at the top
+            model.Insert(0, new CustodianAccountVM { MainAccount = "ALL" });
+
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetCurrentDate()
+        {
+            
+            return Json(new { Date = DateTime.Now }, JsonRequestBehavior.AllowGet);
+        }
     }
     
     public class GetPsNoVM
@@ -897,6 +945,11 @@ namespace iLgs.Controllers
     {
         public string Code { get; set; }
         public string Description { get; set; }        
+    }
+
+    public class CustodianAccountVM
+    {
+        public string MainAccount { get; set; }
     }
 
     public class GetDepartmentVM

@@ -259,7 +259,7 @@
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExport", "CustodianReport")" + "?reportId=" + reportId + '&accountGroup=@ViewBag.AccountGroup';
+            var url = "@Url.Action("ExcelExportReport", "CustodianReport")" + "?reportId=" + reportId + '&accountGroup=@ViewBag.AccountGroup';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -282,7 +282,7 @@
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnex", "CustodianReport")" + "?reportId=" + reportId + '&annex=A';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")" + "?reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=A';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -305,7 +305,7 @@
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnex", "CustodianReport")" + "?reportId=" + reportId + '&annex=B';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")" + "?reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=B';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -328,7 +328,7 @@
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnex", "CustodianReport")" + "?reportId=" + reportId + '&annex=C';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")" + "?reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=C';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -351,7 +351,7 @@
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnex", "CustodianReport")" + "?reportId=" + reportId + '&annex=D';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")" + "?reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=D';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -733,6 +733,7 @@
         $("#ItemType_Code").val(dataItem.Type).trigger("change");
         $("#SubAccount").val(dataItem.MainDesc).trigger("change");
         $("#Account").val(dataItem.TypeDesc).trigger("change");
+        $("#Category").val(dataItem.Category).trigger("change");
 
         RefreshDivs(dataItem);
 
@@ -1206,5 +1207,23 @@
         }
     }
     // END GRID MR ISSUANCE
+
+    function onChangeSetValues(e) {
+        var setLotAmount = $("#SetLotAmount").data("kendoNumericTextBox").value();
+        var priceRate = $("#PriceRate").data("kendoNumericTextBox").value();
+        var unitCost = 0;
+
+        if (setLotAmount) {
+            if (priceRate) {
+                unitCost = setLotAmount * (priceRate / 100);
+
+                $("#TotalCost").data("kendoNumericTextBox").value(0);
+                $("#TotalCost").data("kendoNumericTextBox").trigger("change");
+            }
+        }
+
+        $("#ProRatedCost").data("kendoNumericTextBox").value(unitCost);
+        $("#ProRatedCost").data("kendoNumericTextBox").trigger("change");
+    }
 </script>
 

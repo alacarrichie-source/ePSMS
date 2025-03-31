@@ -242,7 +242,7 @@
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExport", "CustodianReportLand")" + "?reportId=" + reportId;
+            var url = "@Url.Action("ExcelExport", "CustodianReportLand")" + "?reportId=" + reportId + '&accountGroup=@ViewBag.AccountGroup';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;

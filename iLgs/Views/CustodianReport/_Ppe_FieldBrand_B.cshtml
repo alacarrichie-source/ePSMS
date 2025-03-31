@@ -23,21 +23,39 @@
 </div>
 
 <div class="row k-mb-2">
+    <div class="col-md-12">
+        <div class="col-md-6">
+            <label class="form-label">
+                <span class="required-marker">
+                </span>
+                @Html.Label("Alternative to Model:")
+            </label>
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
     <div class="col-md-6">
+        <div class="col-md-1">
+            &nbsp;
+        </div>
         <div class="col-md-3">
             @Html.DisplayFor(m => m.Weight, "Label")
         </div>
-        <div class="col-md-9">
+        <div class="col-md-8">
             @(Html.Kendo().TextBoxFor(m => m.Weight).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.Weight)
         </div>
     </div>
 
     <div class="col-md-6">
+        <div class="col-md-1">
+            &nbsp;
+        </div>
         <div class="col-md-3">
             @Html.DisplayFor(m => m.Color, "Label")
         </div>
-        <div class="col-md-9">
+        <div class="col-md-8">
             @(Html.Kendo().TextBoxFor(m => m.Color).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.Color)
         </div>

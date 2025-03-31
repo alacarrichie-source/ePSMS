@@ -28,9 +28,9 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportBldgItemVM> UpdateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItem> PostAsync(Guid id, string user, DateTime date);
-        ValueTask <CustodianReportBldgItem> UnPostAsync(Guid id, string user, DateTime date);
-        MemoryStream ProcessExcelFile(Guid id, string templateFilePath);
-        MemoryStream ProcessExcelFileAnnex(Guid id, string templateFilePath, string annex);
+        ValueTask<CustodianReportBldgItem> UnPostAsync(Guid id, string user, DateTime date);
+        MemoryStream ProcessExcelFile(Guid? id, string templateFilePath, int? accountGroup);
+        MemoryStream ProcessExcelFileAnnex(Guid? id, string templateFilePath, int? accontGroup, string annex);
     }
 
     public class CustodianReportBldgItemService : BaseValidator, ICustodianReportBldgItemService
@@ -39,7 +39,7 @@ namespace iLgs.Services.CustodianReports
         private readonly IExceptionService<CustodianReportBldgItemVM> _vmExceptionService = new ExceptionService<CustodianReportBldgItemVM>();
         private readonly IExceptionService<CustodianReportBldgItem> _exceptionService = new ExceptionService<CustodianReportBldgItem>();
         private readonly ICustodianReportItemPpeValidator _validator;
-        private readonly IAllFieldService _allFieldService;        
+        private readonly IAllFieldService _allFieldService;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IUserService _userService;
 
@@ -67,7 +67,7 @@ namespace iLgs.Services.CustodianReports
             ItemCodeId = s.ItemCodeId,
             SubAccount = s.SubAccount,
             Article = s.Article,
-            BldgItem = s.BldgItem,            
+            BldgItem = s.BldgItem,
             PsNo = s.PsNo,
             PoNo = s.PoNo,
             PropNo = s.PropNo,
@@ -88,6 +88,7 @@ namespace iLgs.Services.CustodianReports
             ProjectName = s.ProjectName,
             BuildingType = s.BuildingType,
             Area = s.Area,
+            AppraiseValue = s.AppraiseValue,
             TotalAmount = s.TotalAmount,
             PhaseNo = s.PhaseNo,
             PhaseAmountMooe = s.PhaseAmountMooe,
@@ -279,7 +280,7 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new NotFoundException("No uploaded images found for this record, cannot post!");
             }
-            
+
             entity.PostedBy = user;
             entity.PostedDt = date;
             entity.UpdatedBy = user;
@@ -358,7 +359,7 @@ namespace iLgs.Services.CustodianReports
             entity.AcqMonth = model.AcqMonth;
             entity.AcqYear = model.AcqYear;
             entity.AcqDay = model.AcqDay;
-            entity.AcqDate = model.AcqDate;
+            entity.AcqDate = new DateTime((int)model.AcqYear, (int)((model.AcqMonth == null || model.AcqMonth == 0) ? 1 : model.AcqMonth), (int)((model.AcqDay == null || model.AcqDay == 0) ? 1 : model.AcqDay));
             entity.PsNo = model.PsNo;
             entity.PropNo = model.PropNo;
             entity.OldAmount = model.OldAmount;
@@ -366,6 +367,7 @@ namespace iLgs.Services.CustodianReports
             entity.ProjectName = model.ProjectName;
             entity.BuildingType = model.BuildingType;
             entity.Area = model.Area;
+            entity.AppraiseValue = model.AppraiseValue;
             entity.TotalAmount = model.TotalAmount;
             entity.PhaseNo = model.PhaseNo;
             entity.PhaseAmountMooe = model.PhaseAmountMooe;
@@ -373,11 +375,11 @@ namespace iLgs.Services.CustodianReports
             entity.StartYear = model.StartYear;
             entity.StartMonth = model.StartMonth;
             entity.StartDay = model.StartDay;
-            entity.StartDate = model.StartDate;
+            entity.StartDate = new DateTime((int)model.StartYear, (int)((model.StartMonth == null || model.StartMonth == 0) ? 1 : model.StartMonth), (int)((model.StartDay == null || model.StartDay == 0) ? 1 : model.StartDay));
             entity.TargetYear = model.TargetYear;
             entity.TargetMonth = model.TargetMonth;
             entity.TargetDay = model.TargetDay;
-            entity.TargetDate = model.TargetDate;
+            entity.TargetDate = new DateTime((int)model.TargetYear, (int)((model.TargetMonth == null || model.TargetMonth == 0) ? 1 : model.TargetMonth), (int)((model.TargetDay == null || model.TargetDay == 0) ? 1 : model.TargetDay));
             entity.PercentComplete = model.PercentComplete;
             entity.CompletionYear = model.CompletionYear;
             entity.CompletionMonth = model.CompletionMonth;
@@ -395,7 +397,7 @@ namespace iLgs.Services.CustodianReports
             entity.Longitude = model.Longitude;
         }
 
-        public MemoryStream ProcessExcelFile(Guid id, string templateFilePath)
+        public MemoryStream ProcessExcelFile(Guid? id, string templateFilePath, int? accountGroup)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -403,7 +405,7 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new FileNotFoundException("The template file does not exist.", templateFilePath);
             }
-            return ProcessExcelFileTemplate(id, templateFilePath);
+            return ProcessExcelFileTemplate(id, accountGroup, templateFilePath);
         }
 
         private string GetSubAccount(string itemCode)
@@ -412,77 +414,199 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        private MemoryStream ProcessExcelFileTemplate(Guid id, string templateFilePath)
+        private void SetRowColValue(IXLWorksheet ws, CustodianReportBldgItem reportItem, int row, bool isAnnex)
         {
-            int sw = 1;
-            int row = 9;
-            int col = 0;
-            decimal? tAcqCost = 0;
+            int col = 1;
+            //ws.Row(row).InsertRowsBelow(1);
+            ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
+            ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
+            ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
+            ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
+            ws.Row(row).Cell(++col).SetValue(reportItem.Location);
+            ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
+            ws.Row(row).Cell(++col).SetValue(reportItem.Latitude);
+            ws.Row(row).Cell(++col).SetValue(reportItem.Longitude);
+            ws.Row(row).Cell(++col).SetValue(reportItem.BldgItem);
+            ws.Row(row).Cell(++col).SetValue(reportItem.ProjectName);
+            ws.Row(row).Cell(++col).SetValue(reportItem.BuildingType);
+
+            //if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
+            //{
+            //    ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
+            //}
+            //else
+            //{
+            //    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+            //}            
+           
+            if (reportItem.FromDonation == true)
+            {
+                ws.Row(row).Cell(++col).SetValue("From Donation");
+            }
+            else
+            {
+                ws.Row(row).Cell(++col).SetValue("Purchased");
+            }
+            ws.Row(row).Cell(++col).SetValue(reportItem.StartDate.HasValue ? reportItem.StartDate.Value.Year.ToString() : "");
+            ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate.HasValue ? reportItem.AcqDate.Value.Year.ToString() : "");
+            ws.Row(row).Cell(++col).SetValue(reportItem.Area);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AppraiseValue);
+            ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AcqCost);
+            ws.Row(row).Cell(++col).SetValue(reportItem.PhaseNo);
+            ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountCo);
+            ws.Row(row).Cell(++col).SetValue(reportItem.TotalAmount);
+            ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountMooe);
+            ws.Row(row).Cell(++col).SetValue(reportItem.StartDate).Style.DateFormat.Format = "MM/dd/yyyy"; 
+            ws.Row(row).Cell(++col).SetValue($"{reportItem.TargetMonth}/{reportItem.TargetYear}");
+            ws.Row(row).Cell(++col).SetValue(reportItem.PercentComplete);
+            ws.Row(row).Cell(++col).SetValue(reportItem.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
+            ws.Row(row).Cell(++col).SetValue(reportItem.Status);
+            ws.Row(row).Cell(++col).SetValue(reportItem.Fund);
+            ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
+            ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
+            if (!isAnnex)
+            {
+                ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+            }
+        }
+
+        private MemoryStream ProcessExcelFileTemplate(Guid? id, int? accountGroup, string templateFilePath)
+        {
+            return ProcessExcelFileTemplate(id, accountGroup, templateFilePath, "", "");
+        }
+
+        private MemoryStream ProcessExcelFileTemplate(Guid? id, int? accountGroup, string templateFilePath, string hdg, string annex)
+        {            
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
+                int sw = 1;
+                int row = 12;
+                string account = "";
+                string department = "";
+                decimal? tAcqCost = 0;                
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportBldgItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).ToList();
-                foreach (var reportItem in reportItemList)
+                var reportItems = _db.CustodianReportBldgItems
+                    .Include(i => i.ItemCode.ItemType)
+                    .Include(i => i.CustodianReport.Codextn)
+                    .Include(i => i.Codextn) // deptId
+                    .Where(w => w.CustodianReport.AccountGroup == accountGroup)
+                    .AsNoTracking();
+
+                if (!string.IsNullOrWhiteSpace(annex))
+                {
+                    reportItems = reportItems.Where(w => w.Annex == annex);
+                }
+
+                if (id != null)
+                {
+                    reportItems = reportItems.Where(w => w.ReportId == id).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
+                }
+                else
+                {
+                    reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
+                }
+                foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
                     {
-                        ws.Row(3).Cell(3).SetValue(reportItem.CustodianReport.Codextn.Description);
-                        ws.Row(2).Cell(1).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        account = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Description;
+                        department = reportItem.CustodianReport.Department;
+                        if (!string.IsNullOrWhiteSpace(annex))
+                        {
+                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                            ws.Row(4).Cell(2).SetValue(hdg);
+                        }
+                        ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+
+                        if (id == null)
+                        {
+                            ws.Row(8).Cell(3).SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        }
+                        else
+                        {
+                            ws.Row(8).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        }
                         sw = 0;
                     }
+
+                    if (reportItem.ItemCode != null && (account != reportItem.ItemCode.ItemType.Description || department != reportItem.CustodianReport.Department))
+                    {
+                        account = reportItem.ItemCode.ItemType.Description;
+                        department = reportItem.CustodianReport.Department;
+                        row += 3;
+                        ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        row += 2;
+                        ws.Row(row).Cell(2).SetValue("Custodian:");
+                        if (id == null)
+                        {
+                            ws.Row(row).Cell(3).SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        }
+                        else
+                        {
+                            ws.Row(row).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        }
+                        row += 2;                        
+                        ws.Row(10).CopyTo(ws.Row(++row));
+                        ws.Row(11).CopyTo(ws.Row(++row));
+                        ws.Row(12).CopyTo(ws.Row(++row));
+                        ws.Range($"B{row - 2}:B{row}").Merge();
+                        ws.Range($"C{row - 2}:C{row}").Merge();
+                        ws.Range($"D{row - 2}:D{row}").Merge();
+                        ws.Range($"E{row - 2}:E{row}").Merge();
+                        ws.Range($"F{row - 2}:F{row}").Merge();
+                        ws.Range($"G{row - 2}:G{row}").Merge();
+                        ws.Range($"H{row - 2}:H{row}").Merge();
+                        ws.Range($"I{row - 2}:I{row}").Merge();
+                        ws.Range($"J{row - 2}:J{row}").Merge();
+                        ws.Range($"K{row - 2}:K{row}").Merge();
+                        ws.Range($"O{row - 2}:O{row}").Merge();
+                        ws.Range($"P{row - 2}:P{row}").Merge();
+                        ws.Range($"Q{row - 2}:Q{row}").Merge();
+                        ws.Range($"R{row - 2}:R{row}").Merge();
+                        ws.Range($"S{row - 2}:S{row}").Merge();
+                        ws.Range($"T{row - 1}:T{row}").Merge();
+                        ws.Range($"U{row - 1}:U{row}").Merge();
+                        ws.Range($"V{row - 1}:V{row}").Merge();
+                        ws.Range($"W{row - 1}:W{row}").Merge();
+                        ws.Range($"X{row - 1}:X{row}").Merge();
+                        ws.Range($"AC{row - 2}:AC{row}").Merge();
+                        ws.Range($"AD{row - 2}:AD{row}").Merge();
+                        ws.Range($"AE{row - 2}:AE{row}").Merge();
+                        ws.Range($"AF{row - 2}:AF{row}").Merge();                                                
+                    }
+
                     row++;
-                    col = 0;
-                    ws.Row(row).InsertRowsBelow(1);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    //var subAccount = GetSubAccount(reportItem.ItemCode.Code);
-                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
+                    if (string.IsNullOrWhiteSpace(annex))
                     {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
+                        SetRowColValue(ws, reportItem, row, false);
+                        ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                     }
                     else
                     {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                        SetRowColValue(ws, reportItem, row, true);
+                        ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                     }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.BldgItem);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Location);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ProjectName);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.BuildingType);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Area);
-                    if (reportItem.FromDonation == true)
-                    {
-                        ws.Row(row).Cell(++col).SetValue("From Donation");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue("Purchased");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
-                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.AcqYear}/{reportItem.AcqMonth}/{reportItem.AcqDay}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PhaseNo);                                        
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountCo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.TotalAmount);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountMooe);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.StartDate);
-                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.StartYear}/{reportItem.StartMonth}/{reportItem.StartDay}");
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.TargetMonth}/{reportItem.TargetYear}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PercentComplete);
-                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.CompletionYear}/{reportItem.CompletionMonth}/{reportItem.CompletionDay}");                    
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CompletionDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Status);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Fund);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
+                                                          
                     tAcqCost += (reportItem.TotalAmount ?? 0);
                 }
-                ws.Row(++row).Cell(14).SetValue("TOTAL");
-                ws.Row(row).Cell(15).SetValue(tAcqCost);
+                //ws.Row(++row).Cell(14).SetValue("TOTAL");
+                //ws.Row(row).Cell(15).SetValue(tAcqCost);
+
+                row += 4;
+                ws.Row(row).Cell(3).SetValue("Certified Correct by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(10).SetValue("Verified by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                row += 3;
+                ws.Row(row).Cell(4).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(11).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Range($"D{row}:G{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
+                ws.Range($"K{row}:L{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
+                row++;
+                ws.Row(row).Cell(4).SetValue("Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(11).SetValue("Assistant to the Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Range($"D{row}:G{row}").Merge();
+                ws.Range($"K{row}:L{row}").Merge();
 
                 // Create a MemoryStream to save the output
                 var memoryStream = new MemoryStream();
@@ -494,7 +618,7 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        public MemoryStream ProcessExcelFileAnnex(Guid id, string templateFilePath, string annex)
+        public MemoryStream ProcessExcelFileAnnex(Guid? id, string templateFilePath, int? accountGroup, string annex)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -502,15 +626,6 @@ namespace iLgs.Services.CustodianReports
             {
                 throw new FileNotFoundException("The template file does not exist.", templateFilePath);
             }
-            return ProcessExcelFileAnnexTemplate(id, templateFilePath, annex);
-        }
-
-        private MemoryStream ProcessExcelFileAnnexTemplate(Guid id, string templateFilePath, string annex)
-        {
-            int sw = 1;
-            int row = 10;
-            int col = 0;
-            decimal? tAcqCost = 0;
             string hdg = "";
 
             if (annex == "A")
@@ -526,84 +641,8 @@ namespace iLgs.Services.CustodianReports
                 hdg = "(LIST OF NON-EXISTING/MISSING PPEs)";
             }
 
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportBldgItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).ToList();
-                foreach (var reportItem in reportItemList)
-                {
-                    if (sw == 1)
-                    {
-                        ws.Row(1).Cell(1).SetValue($"ANNEX {annex}");
-                        ws.Row(3).Cell(1).SetValue(hdg);
-                        ws.Row(4).Cell(1).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(5).Cell(3).SetValue(reportItem.CustodianReport.Codextn.Description);
-                        sw = 0;
-                    }
-
-                    row++;
-                    col = 0;
-                    ws.Row(row).InsertRowsBelow(1);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
-                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.BldgItem);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Location);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ProjectName);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.BuildingType);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Area);
-                    if (reportItem.FromDonation == true)
-                    {
-                        ws.Row(row).Cell(++col).SetValue("From Donation");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue("Purchased");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
-                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.AcqYear}/{reportItem.AcqMonth}/{reportItem.AcqDay}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PhaseNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountCo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.TotalAmount);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountMooe);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.StartDate);
-                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.StartYear}/{reportItem.StartMonth}/{reportItem.StartDay}");
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.TargetMonth}/{reportItem.TargetYear}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PercentComplete);
-                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.CompletionYear}/{reportItem.CompletionMonth}/{reportItem.CompletionDay}");                    
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CompletionDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Status);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Fund);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += (reportItem.TotalAmount ?? 0);
-                }
-                ws.Row(++row).Cell(14).SetValue("TOTAL");
-                ws.Row(row).Cell(15).SetValue(tAcqCost);
-
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }
-        }
+            return ProcessExcelFileTemplate(id, accountGroup, templateFilePath, hdg, annex);
+        }        
 
         private void ValidateRecord(CustodianReportBldgItem entity)
         {

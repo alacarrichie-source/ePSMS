@@ -96,7 +96,7 @@ namespace iLgs.Models
             public string SubAccount { get; set; }
             public string Article { get; set; }
 
-            [Display(Name = "PO No.")]
+            [Display(Name = "Originating PO No.")]
             public string PoNo { get; set; }
 
             [Display(Name = "PO Date (mm/dd/yyyy)")]
@@ -115,18 +115,23 @@ namespace iLgs.Models
             public Nullable<System.DateTime> AcqDate { get; set; }
 
             //[Required]
-            [Display(Name = "P.O. Unit Cost")]
+            [Display(Name = "PO Unit Cost")]
             public Nullable<decimal> UnitCost { get; set; }
+            
+            [Display(Name = "Set Price Rate (%)")]
+            public Nullable<decimal> PriceRate { get; set; }
 
+            [Display(Name = "Pro-rated Set Cost")]
+            public Nullable<decimal> ProRatedCost { get; set; }
             //[Required]
-            [Display(Name = "P.O. Unit of Measurement")]
+            [Display(Name = "PO Unit of Measurement")]
             public string Unit { get; set; }
 
             [Display(Name = "Set/Lot No.")]
             public string SetLotNo { get; set; }
 
             //[Required]
-            [Display(Name = "Originating P.O. Department")]
+            [Display(Name = "Originating PO Department")]
             public Nullable<System.Guid> DeptId { get; set; }
 
             [Display(Name = "Department Display")]
@@ -144,7 +149,7 @@ namespace iLgs.Models
             [Display(Name = "Acquisition Cost")]
             public Nullable<decimal> TotalCost { get; set; }
 
-            [Display(Name = "Old Amounts (Recorded in RPCPPE)")]
+            [Display(Name = "Old Amount/s (in RPCPPE)")]
             public Nullable<decimal> OldAmount { get; set; }
 
 
@@ -229,7 +234,7 @@ namespace iLgs.Models
             [Display(Name = "Other Particulars")]
             public string OtherDesc { get; set; }
 
-            [Display(Name = "Other Particulars (Qty)")]
+            [Display(Name = "Other Particulars (Qty) *for monoblocks and books only")]
             public Nullable<int> OtherQty { get; set; }
             public string Condition { get; set; }
             public string Remarks { get; set; }
@@ -332,6 +337,8 @@ namespace iLgs.Models
 
         [Display(Name = "Model")]
         public new string Model_ { get => base.Model_; set => base.Model_ = value; }
+
+        public string Category { get; set; }
     }
 
     public class CustodianReportItemPpeVM : CustodianReportItem
@@ -350,6 +357,11 @@ namespace iLgs.Models
 
         [Display(Name = "Model")]
         public new string Model_ { get => base.Model_; set => base.Model_ = value; }
+
+        //[Display(Name = "Pro-rated Set Cost")]
+        ////public new Nullable<decimal> UnitCost { get => base.UnitCost; set => base.UnitCost = value; }
+        //public Nullable<decimal> UnitCost { get; set; }
+        public string Category { get; set; }
     }
 
     public class CustodianReportItemVehicleVM : CustodianReportItem
@@ -389,6 +401,8 @@ namespace iLgs.Models
 
         [Display(Name = "Model/Series")]
         public new string Model_ { get => base.Model_; set => base.Model_ = value; }
+
+        public string Category { get; set; }
 
     }
 
@@ -456,6 +470,10 @@ namespace iLgs.Models
             //[Required]
             [Display(Name = "Area (sqm)")]
             public Nullable<decimal> Area { get; set; }
+            public string Unit { get; set; }
+
+            [Display(Name = "Area X Price per UM")]
+            public Nullable<decimal> AreaXPrice { get; set; }
 
             //[Required]
             [Display(Name = "Price per sqm.")]
@@ -541,20 +559,23 @@ namespace iLgs.Models
             [Display(Name = "Transfer Tax")]
             public Nullable<decimal> TransferTax { get; set; }
 
+            [Display(Name = "25% Surcharge")]
             public Nullable<decimal> Surcharge { get; set; }
+
+            [Display(Name = "2% Interest")]
             public Nullable<decimal> Interest { get; set; }
 
             [Display(Name = "Confirmation Fee")]
             public Nullable<decimal> ConfirmationFee { get; set; }
 
-            [Display(Name = "Transfer Regs. Fee")]
+            [Display(Name = "Transfer & Regs. Fee")]
             public Nullable<decimal> TransferRegsFee { get; set; }
 
             [Display(Name = "Real Property Tax")]
             public Nullable<decimal> RealPropertyFee { get; set; }
             public Nullable<decimal> VAT { get; set; }
 
-            [Display(Name = "Estate Fee")]
+            [Display(Name = "Estate Tax")]
             public Nullable<decimal> EstateFee { get; set; }
             public Nullable<decimal> Titling { get; set; }
 
@@ -611,7 +632,8 @@ namespace iLgs.Models
 
         [Display(Name = "Custodian Department")]
         public string MainDeptName { get; set; }
-        public int? AccountGroup { get; set; }
+        public int? AccountGroup { get; set; }        
+
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }
@@ -638,10 +660,10 @@ namespace iLgs.Models
             [Display(Name = "Building Item")]
             public string BldgItem { get; set; }
 
-            [Display(Name = "PO No.")]
+            [Display(Name = "Originating PO No.")]
             public string PoNo { get; set; }
 
-            [Display(Name = "PO Date")]
+            [Display(Name = "PO Date (mm/dd/yyyy)")]
             public Nullable<System.DateTime> PoDate { get; set; }
 
             [Display(Name = "Acquisition Cost")]
@@ -657,13 +679,13 @@ namespace iLgs.Models
             [Display(Name = "Location Code")]
             public string LocationCode { get; set; }
 
-            [Display(Name = "Location/Barangay")]
+            [Display(Name = "Location (Barangay)")]
             public string Location { get; set; }
 
-            [Display(Name = "Sub-Location/Address")]
+            [Display(Name = "Sub-Location (Address)")]
             public string SubLocation { get; set; }
 
-            [Display(Name = "Engineering Project Name")]
+            [Display(Name = "Project Name")]
             public string ProjectName { get; set; }
 
             [Display(Name = "Property Card No.")]
@@ -672,7 +694,7 @@ namespace iLgs.Models
             [Display(Name = "Acquisition Month")]
             public Nullable<int> AcqMonth { get; set; }
 
-            [Display(Name = "Acquisition Year")]
+            [Display(Name = "Year of Acquisition")]
             public Nullable<int> AcqYear { get; set; }
 
             [Display(Name = "Acquisition Day")]
@@ -687,11 +709,14 @@ namespace iLgs.Models
             [Display(Name = "Old Amounts (Recorded in RPCPPE)")]
             public Nullable<decimal> OldAmount { get; set; }
 
-            [Display(Name = "Building/Structure Type")]
+            [Display(Name = "Construction Type")]
             public string BuildingType { get; set; }
 
             [Display(Name = "Building Area (sqm)")]
             public Nullable<decimal> Area { get; set; }
+
+            [Display(Name = "Appraised Value")]
+            public Nullable<decimal> AppraiseValue { get; set; }
 
             [Display(Name = "Phase Amount Total")]
             public Nullable<decimal> TotalAmount { get; set; }
@@ -707,7 +732,7 @@ namespace iLgs.Models
             [Display(Name = "Phase Amount Capital Outlay")]
             public Nullable<decimal> PhaseAmountCo { get; set; }
 
-            [Display(Name = "Start Year")]
+            [Display(Name = "Year of Contruction")]
             public Nullable<int> StartYear { get; set; }
 
             [Display(Name = "Start Month")]
@@ -731,7 +756,7 @@ namespace iLgs.Models
             [Display(Name = "Target Date")]
             public Nullable<System.DateTime> TargetDate { get; set; }
 
-            [Display(Name = "Percent Complete (%)")]
+            [Display(Name = "Percent of Completion (%)")]
             public Nullable<decimal> PercentComplete { get; set; }
 
             [Display(Name = "Completion Year")]

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.Validators
 {
@@ -42,7 +43,7 @@ namespace iLgs.Services.Validators
             {
                 throw new RecordAlreadyExistsException(string.Format("RIS Number {0} already exists", model.RisNo));
             }
-            ValidateFieldsOnCreateUpdate(model);
+            ValidateFieldsOnCreateUpdate(model, Mode.ADD);
         }
 
         public void ValidateOnUpdate(RIS_VM model)
@@ -77,7 +78,7 @@ namespace iLgs.Services.Validators
                 throw new RecordAlreadyExistsException(string.Format("RIS Number {0} already exists", model.RisNo));
             }
             
-            ValidateFieldsOnCreateUpdate(model);
+            ValidateFieldsOnCreateUpdate(model, Mode.EDIT);
         }
 
         public void ValidateOnDelete(RIS_VM model)
@@ -86,9 +87,21 @@ namespace iLgs.Services.Validators
             ValidateRecord(model.Id);            
         }
         
-        public void ValidateFieldsOnCreateUpdate(RIS_VM model)
+        public void ValidateFieldsOnCreateUpdate(RIS_VM model, Mode mode)
         {
             var ex = new InvalidModelException();
+
+            if (mode == Mode.ADD) {
+                if (model.RisDate.Value.Date > DateTime.Now.Date)
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.OfficeId)), "Future Date is not allowed.");
+                }
+
+                if (model.RisDate.Value.Date < DateTime.Now.Date)
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.OfficeId)), "Past Date is not allowed.");
+                }
+            }
 
             if (model.OfficeId.HasValue)
             {

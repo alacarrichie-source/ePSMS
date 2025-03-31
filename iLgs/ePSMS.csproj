@@ -1638,13 +1638,13 @@
     <Content Include="Content\Sidebar\src\scss\_theme-default.scss" />
     <Content Include="Content\Sidebar\src\scss\_toggle.scss" />
     <Content Include="Department-Codes %2897%29.xls" />
-    <Content Include="App_Data\CustodianEquipmentAnnexTemplate.xlsx" />
-    <Content Include="App_Data\CustodianEquipmentTemplate.xlsx" />
     <Content Include="App_Data\CustodianIrrupTemplate.xlsx" />
     <Content Include="App_Data\CustodianLandAnnexTemplate.xlsx" />
     <Content Include="App_Data\CustodianLandTemplate.xlsx" />
     <Content Include="App_Data\CustodianStructureAnnexTemplate.xlsx" />
     <Content Include="App_Data\CustodianStructureTemplate.xlsx" />
+    <Content Include="App_Data\CustodianEquipmentAnnexTemplate.xlsx" />
+    <Content Include="App_Data\CustodianEquipmentTemplate.xlsx" />
     <Content Include="App_Data\CustodianSuppliesAnnexTemplate.xlsx" />
     <Content Include="App_Data\CustodianSuppliesTemplate.xlsx" />
     <Content Include="App_Data\CustodianVehiclesAnnexTemplate.xlsx" />

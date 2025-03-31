@@ -163,6 +163,7 @@ namespace iLgs.Models
         [Display(Name = "Date")]
         public Nullable<System.DateTime> ApprovedDate { get; set; }
 
+        [Required]
         [Display(Name = "Issued by")]
         public string IssuedBy { get; set; }
 

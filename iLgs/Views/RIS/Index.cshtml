@@ -186,7 +186,7 @@
             }
         }
     }
-    
+
     function IsPosted(dataItem) {
         return dataItem.IsPosted == true;
     }
@@ -416,6 +416,20 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedId = null;
+
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetCurrentDate", "Getters")',
+                success: function (result) {
+                    var date = kendo.toString(kendo.parseDate(result.Date), 'MM/dd/yyyy');
+                    $("#RisDate").val(date).trigger("change");
+                    disabled.attr('disabled', 'disabled')
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
         } else {
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);

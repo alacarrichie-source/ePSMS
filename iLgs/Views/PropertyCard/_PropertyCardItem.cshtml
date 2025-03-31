@@ -120,7 +120,7 @@
                 a.Add(p => p.Amount).Sum();
             })
             .Events(events => events.Error("GridItemError").RequestEnd("onRequestEndGridItems"))
-            .Read(read => read.Action("ItemRead", "StockCard").Data("DataStockCardItem"))
+            .Read(read => read.Action("ItemRead", "PropertyCard").Data("DataStockCardItem"))
             .Create("ItemCreate", "PropertyCard")
             .Update("ItemUpdate", "PropertyCard")
             .Destroy("ItemDestroy", "PropertyCard")

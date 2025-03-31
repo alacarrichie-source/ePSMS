@@ -69,7 +69,8 @@ namespace iLgs.Services.CustodianReports
             if (!string.IsNullOrWhiteSpace(model.ItemSerialNo)) {
                 if (mode == Mode.ADD)
                 {
-                    var entity = _db.CustodianReportItems.FirstOrDefault(f => f.Fund == model.Fund && f.PsNo == model.PsNo && f.ItemSerialNo == model.ItemSerialNo);
+                    //string.Equals(f.Fund, model.Fund, StringComparison.OrdinalIgnoreCase)
+                    var entity = _db.CustodianReportItems.FirstOrDefault(f => f.Fund == model.Fund && f.DeptId == model.DeptId && f.ItemSerialNo == model.ItemSerialNo);
                     if (entity != null)
                     {
                         ex.UpsertDataList(_getDisplayName(nameof(model.SerialNo)), "Duplicate detected.");
@@ -77,7 +78,7 @@ namespace iLgs.Services.CustodianReports
                 }
                 else if (mode == Mode.EDIT)
                 {
-                    var entity = _db.CustodianReportItems.FirstOrDefault(f => f.Fund == model.Fund && f.PsNo == model.PsNo && f.ItemSerialNo == model.ItemSerialNo && f.Id != model.Id);
+                    var entity = _db.CustodianReportItems.FirstOrDefault(f => f.Fund == model.Fund && f.DeptId == model.DeptId && f.ItemSerialNo == model.ItemSerialNo && f.Id != model.Id);
                     if (entity != null)
                     {
                         ex.UpsertDataList(_getDisplayName(nameof(model.SerialNo)), "Duplicate detected.");

@@ -78,8 +78,6 @@ namespace iLgs.Models
         public virtual DbSet<ItemType> ItemTypes { get; set; }
         public virtual DbSet<ItemCode> ItemCodes { get; set; }
         public virtual DbSet<LocationBudget> LocationBudgets { get; set; }
-        public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
-        public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         public virtual DbSet<AIRItem> AIRItems { get; set; }
         public virtual DbSet<CustodianIirupItem> CustodianIirupItems { get; set; }
         public virtual DbSet<CustodianIIRUP> CustodianIIRUPs { get; set; }
@@ -112,5 +110,7 @@ namespace iLgs.Models
         public virtual DbSet<AIR> AIRs { get; set; }
         public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
+        public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
     }
 }

@@ -26,12 +26,13 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReportItem> UnPostAsync(Guid id, string user, DateTime date);
-        MemoryStream ProcessExcelFile(Guid id, string templateFilePath, int? accountGroup);
-        MemoryStream ProcessExcelFileAnnex(Guid id, string templateFilePath, int? accountGroup, string annex);
+        MemoryStream ProcessExcelFile(Guid? id, Guid? deptId, string templateFilePath, int? accountGroup);
+        MemoryStream ProcessExcelFile(Guid? id, Guid? deptId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf);
+        MemoryStream ProcessExcelFileAnnex(Guid? id, Guid? deptId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf);
     }
 
     public class CustodianReportItemService : ICustodianReportItemService
-    {        
+    {
         protected readonly AppManEntities _db;
         protected readonly IAllFieldService _allFieldService;
         private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
@@ -69,21 +70,21 @@ namespace iLgs.Services.CustodianReports
         _exceptionService.TryCatch(() =>
         {
             var data = _db.CustodianReportItems.AsNoTracking()
-                .Where(w => w.DeptId == deptId 
+                .Where(w => w.DeptId == deptId
                     && (w.Annex == "A" || w.Annex == "B")
                     && !w.CustodianDisposalItems.Any())
                 .AsQueryable();
-            
+
             return data;
         });
 
-        public virtual async ValueTask<CustodianReportItem> CreateAsync(CustodianReportItem model, string user, DateTime date) 
+        public virtual async ValueTask<CustodianReportItem> CreateAsync(CustodianReportItem model, string user, DateTime date)
         {
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.InsertedDt = date;
             model.UpdatedBy = user;
-            model.UpdatedDt = date;            
+            model.UpdatedDt = date;
 
             var custodianReport = await _db.CustodianReports.Where(w => w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
             if (custodianReport == null)
@@ -98,21 +99,21 @@ namespace iLgs.Services.CustodianReports
                 custodianReport.UpdatedBy = user;
                 custodianReport.UpdatedDt = date;
                 _db.CustodianReports.Add(custodianReport);
-                await _db.SaveChangesAsync();                
+                await _db.SaveChangesAsync();
             }
 
             model.ReportId = custodianReport.Id;
 
             var entity = new CustodianReportItem();
             MapModelToEntityFields(entity, model, Mode.ADD);
-            
+
             _db.CustodianReportItems.Add(entity);
             await _db.SaveChangesAsync();
 
             return model;
         }
 
-        public virtual async ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date) 
+        public virtual async ValueTask<CustodianReportItem> UpdateAsync(CustodianReportItem model, string user, DateTime date)
         {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -122,7 +123,7 @@ namespace iLgs.Services.CustodianReports
             ValidateIfPosted(entity);
             ValidateUser(entity, model);
 
-            MapModelToEntityFields(entity, model, Mode.EDIT);            
+            MapModelToEntityFields(entity, model, Mode.EDIT);
 
             _db.CustodianReportItems.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
@@ -131,7 +132,8 @@ namespace iLgs.Services.CustodianReports
             return model;
         }
 
-        public virtual async ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date)         {
+        public virtual async ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date)
+        {
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -158,7 +160,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportItems.FindAsync(id);
             ValidateRecord(entity);
             ValidateIfPosted(entity);
-            
+
             entity.PostedBy = user;
             entity.PostedDt = date;
             entity.UpdatedBy = user;
@@ -176,7 +178,7 @@ namespace iLgs.Services.CustodianReports
             var entity = await _db.CustodianReportItems.FindAsync(id);
             ValidateRecord(entity);
             ValidateIfNotPosted(entity);
-            
+
             entity.PostedBy = "";
             entity.PostedDt = null;
             entity.UpdatedBy = user;
@@ -236,7 +238,7 @@ namespace iLgs.Services.CustodianReports
             model.Color = model.AllField.Color;
             model.Weight = model.AllField.Weight;
 
-            model.PlateNo = model.AllField.PlateNo;           
+            model.PlateNo = model.AllField.PlateNo;
             ///
         }
 
@@ -337,6 +339,7 @@ namespace iLgs.Services.CustodianReports
             entity.SetLotAmount = model.SetLotAmount;
             entity.SetLotRemarks = model.SetLotRemarks;
             entity.PriceRate = model.PriceRate;
+            entity.ProRatedCost = model.ProRatedCost;
             entity.AddCost = model.AddCost;
             entity.TUnitCost = model.TUnitCost;
             entity.GTotalCost = model.GTotalCost;
@@ -345,7 +348,12 @@ namespace iLgs.Services.CustodianReports
             //entity.PostedDt = model.PostedDt;
         }
 
-        public MemoryStream ProcessExcelFile(Guid id, string templateFilePath, int? accountGroup)
+        public MemoryStream ProcessExcelFile(Guid? id, Guid? deptId, string templateFilePath, int? accountGroup)
+        {
+            return ProcessExcelFile(id, deptId, templateFilePath, accountGroup, "", null);
+        }
+
+        public MemoryStream ProcessExcelFile(Guid? id, Guid? deptId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -355,15 +363,15 @@ namespace iLgs.Services.CustodianReports
             }
             if (accountGroup == (int?)CustodianAccountGroup.STOCK)
             {
-                return ProcessExcelFileStockTemplate(id, templateFilePath);
+                return ProcessExcelFileStockTemplate(id, deptId, accountGroup, templateFilePath, mainAccount, asOf);
             }
             else if (accountGroup == (int?)CustodianAccountGroup.PPE)
             {
-                return ProcessExcelFilePpeTemplate(id, templateFilePath);
+                return ProcessExcelFilePpeTemplate(id, deptId, accountGroup, templateFilePath, mainAccount, asOf);
             }
             else
             {
-                return ProcessExcelFileVehicleTemplate(id, templateFilePath);
+                return ProcessExcelFileVehicleTemplate(id, deptId, accountGroup, templateFilePath, mainAccount, asOf);
             }
         }
 
@@ -372,11 +380,11 @@ namespace iLgs.Services.CustodianReports
             var data = _db.Database.SqlQuery<string>("Select dbo.fn_SubAccount({0})", itemCode).FirstOrDefault();
             return data;
         }
-        
+
         private void SetStockRowColValue(IXLWorksheet ws, CustodianReportItem reportItem, int row, bool isAnnex)
         {
             int col = 1;
-            ws.Row(row).InsertRowsBelow(1);
+            //ws.Row(row).InsertRowsBelow(1);
             ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
             ws.Row(row).Cell(++col).SetValue(reportItem.Codextn?.Code);
             ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
@@ -392,24 +400,14 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.Multipliers);
             ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
             ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.Dimension} / {reportItem.Size} / {reportItem.Weight} / {reportItem.Materials} / {reportItem.Capacity}");
+            ws.Row(row).Cell(++col).SetValue($"{reportItem.Dimension ?? ""} / {reportItem.Size ?? ""} / {reportItem.Weight ?? ""} / {reportItem.Materials ?? ""} / {reportItem.Capacity ?? ""}");
             ws.Row(row).Cell(++col).SetValue(reportItem.SerialNo);
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.Type} / {reportItem.Description} / {reportItem.GenericName} / {reportItem.DosageVolume} / {reportItem.DosageStrength} / {reportItem.DosageForm} / {reportItem.OtherDesc}");
+            ws.Row(row).Cell(++col).SetValue(reportItem.OtherDesc);
             ws.Row(row).Cell(++col).SetValue(reportItem.OtherQty);
             ws.Row(row).Cell(++col).SetValue(reportItem.Color);
             ws.Row(row).Cell(++col).SetValue(reportItem.OldPropNo);
             ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
             ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
-            ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-            ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
-            ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
-            ++col;
-            ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
-            ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
-            ++col;
-            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
-            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotAmount);
-            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotRemarks);
             if (reportItem.FromDonation == true)
             {
                 ws.Row(row).Cell(++col).SetValue("From Donation");
@@ -418,13 +416,44 @@ namespace iLgs.Services.CustodianReports
             {
                 ws.Row(row).Cell(++col).SetValue("Purchased");
             }
-            ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
-            ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
+            ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
+            ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
             ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
-            ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);            
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.ParNo} / {reportItem.AreNo} / {reportItem.MrNo}");
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.AccountableOfficer} / {reportItem.AreOfficer} / {reportItem.MrOfficer}");
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.ParIssuedTo} / {reportItem.AreIssuedTo} / {reportItem.MrIssuedTo}");
+            ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AddCost);
+            ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate).Style.DateFormat.Format = "MM/dd/yyyy";
+            ws.Row(row).Cell(++col).SetValue(reportItem.PriceRate);
+            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
+            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotAmount);
+            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotRemarks);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AirDate).Style.DateFormat.Format = "MM/dd/yyyy";
+            ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
+            //ws.Row(row).Cell(++col).SetValue($"{reportItem.ParNo ?? ""} / {reportItem.AreNo ?? ""} / {reportItem.MrNo ?? ""}");
+            //ws.Row(row).Cell(++col).SetValue($"{reportItem.AccountableOfficer ?? ""} / {reportItem.AreOfficer ?? ""} / {reportItem.MrOfficer ?? ""}");
+            //ws.Row(row).Cell(++col).SetValue($"{reportItem.ParIssuedTo ?? ""} / {reportItem.AreIssuedTo ?? ""} / {reportItem.MrIssuedTo ?? ""}");
+            var pars = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            var ares = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            var mrs = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParNo ?? "") + (string.IsNullOrWhiteSpace(pars) ? "" : "\r\n" + pars)} " +
+                $"/ {(reportItem.AreNo ?? "") + (string.IsNullOrWhiteSpace(ares) ? "" : "\r\n" + ares)} " +
+                $"/ {(reportItem.MrNo ?? "") + (string.IsNullOrWhiteSpace(mrs) ? "" : "\r\n" + mrs)}");
+
+            var parOfficers = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            var areOfficers = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            var mrOfficers = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            ws.Row(row).Cell(++col).SetValue($"{(reportItem.AccountableOfficer ?? "") + (string.IsNullOrWhiteSpace(parOfficers) ? "" : "\r\n" + parOfficers)} " +
+                $"/ {(reportItem.AreOfficer ?? "") + (string.IsNullOrWhiteSpace(areOfficers) ? "" : "\r\n" + areOfficers)} " +
+                $"/ {(reportItem.MrOfficer ?? "") + (string.IsNullOrWhiteSpace(mrOfficers) ? "" : "\r\n" + mrOfficers)}");
+
+            var parIssuedTo = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            var areIssuedTo = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            var mrIssuedTo = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParIssuedTo ?? "") + (string.IsNullOrWhiteSpace(parIssuedTo) ? "" : "\r\n" + parIssuedTo)} " +
+                $"/ {(reportItem.AreIssuedTo ?? "") + (string.IsNullOrWhiteSpace(areIssuedTo) ? "" : "\r\n" + areIssuedTo)} " +
+                $"/ {(reportItem.MrIssuedTo ?? "") + (string.IsNullOrWhiteSpace(mrIssuedTo) ? "" : "\r\n" + mrIssuedTo)}");
+
             ws.Row(row).Cell(++col).SetValue(reportItem.UpcomingPar);
             ws.Row(row).Cell(++col).SetValue(reportItem.Fund);
             ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
@@ -438,7 +467,7 @@ namespace iLgs.Services.CustodianReports
         private void SetPpeRowColValue(IXLWorksheet ws, CustodianReportItem reportItem, int row, bool isAnnex)
         {
             int col = 1;
-            ws.Row(row).InsertRowsBelow(1);
+            //ws.Row(row).InsertRowsBelow(1);
             ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
             ws.Row(row).Cell(++col).SetValue(reportItem.Codextn?.Code);
             ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
@@ -454,24 +483,14 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.Multipliers);
             ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
             ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.Dimension} / {reportItem.Size} / {reportItem.Weight} / {reportItem.Materials} / {reportItem.Capacity}");
+            ws.Row(row).Cell(++col).SetValue($"{reportItem.Dimension ?? ""} / {reportItem.Size ?? ""} / {reportItem.Weight ?? ""} / {reportItem.Materials ?? ""} / {reportItem.Capacity ?? ""}");
             ws.Row(row).Cell(++col).SetValue(reportItem.SerialNo);
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.Type} / {reportItem.Description} / {reportItem.GenericName} / {reportItem.DosageVolume} / {reportItem.DosageStrength} / {reportItem.DosageForm} / {reportItem.OtherDesc}");
+            ws.Row(row).Cell(++col).SetValue(reportItem.OtherDesc);
             ws.Row(row).Cell(++col).SetValue(reportItem.OtherQty);
             ws.Row(row).Cell(++col).SetValue(reportItem.Color);
             ws.Row(row).Cell(++col).SetValue(reportItem.OldPropNo);
             ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
             ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
-            ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-            ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
-            ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
-            ++col;
-            ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
-            ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
-            ++col;
-            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
-            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotAmount);
-            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotRemarks);
             if (reportItem.FromDonation == true)
             {
                 ws.Row(row).Cell(++col).SetValue("From Donation");
@@ -480,13 +499,43 @@ namespace iLgs.Services.CustodianReports
             {
                 ws.Row(row).Cell(++col).SetValue("Purchased");
             }
-            ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
-            ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
+            ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
+            ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
             ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
+            ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AddCost);
+            ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate).Style.DateFormat.Format = "MM/dd/yyyy";
+            ws.Row(row).Cell(++col).SetValue(reportItem.PriceRate);
+            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
+            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotAmount);
+            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotRemarks);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AirDate).Style.DateFormat.Format = "MM/dd/yyyy";
             ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.ParNo} / {reportItem.AreNo} / {reportItem.MrNo}");
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.AccountableOfficer} / {reportItem.AreOfficer} / {reportItem.MrOfficer}");
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.ParIssuedTo} / {reportItem.AreIssuedTo} / {reportItem.MrIssuedTo}");
+
+            var pars = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            var ares = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            var mrs = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            //ws.Cell(2, 1).Style.Alignment.WrapText = true; // Enable text wrapping
+            ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParNo ?? "") + (string.IsNullOrWhiteSpace(pars) ? "" : "\r\n" + pars)} " +
+                $"/ {(reportItem.AreNo ?? "") + (string.IsNullOrWhiteSpace(ares) ? "" : "\r\n" + ares)} " +
+                $"/ {(reportItem.MrNo ?? "") + (string.IsNullOrWhiteSpace(mrs) ? "" : "\r\n" + mrs)}");
+
+            var parOfficers = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            var areOfficers = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            var mrOfficers = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            ws.Row(row).Cell(++col).SetValue($"{(reportItem.AccountableOfficer ?? "") + (string.IsNullOrWhiteSpace(parOfficers) ? "" : "\r\n" + parOfficers)} " +
+                $"/ {(reportItem.AreOfficer ?? "") + (string.IsNullOrWhiteSpace(areOfficers) ? "" : "\r\n" + areOfficers)} " +
+                $"/ {(reportItem.MrOfficer ?? "") + (string.IsNullOrWhiteSpace(mrOfficers) ? "" : "\r\n" + mrOfficers)}");
+
+            var parIssuedTo = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            var areIssuedTo = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            var mrIssuedTo = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParIssuedTo ?? "") + (string.IsNullOrWhiteSpace(parIssuedTo) ? "" : "\r\n" + parIssuedTo)} " +
+                $"/ {(reportItem.AreIssuedTo ?? "") + (string.IsNullOrWhiteSpace(areIssuedTo) ? "" : "\r\n" + areIssuedTo)} " +
+                $"/ {(reportItem.MrIssuedTo ?? "") + (string.IsNullOrWhiteSpace(mrIssuedTo) ? "" : "\r\n" + mrIssuedTo)}");
+
             ws.Row(row).Cell(++col).SetValue(reportItem.UpcomingPar);
             ws.Row(row).Cell(++col).SetValue(reportItem.Fund);
             ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
@@ -500,7 +549,7 @@ namespace iLgs.Services.CustodianReports
         private void SetVehicleRowColValue(IXLWorksheet ws, CustodianReportItem reportItem, int row, bool isAnnex)
         {
             int col = 1;
-            ws.Row(row).InsertRowsBelow(1);
+            //ws.Row(row).InsertRowsBelow(1);
             ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
             ws.Row(row).Cell(++col).SetValue(reportItem.Codextn?.Code);
             ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
@@ -512,6 +561,7 @@ namespace iLgs.Services.CustodianReports
             else
             {
                 ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+
             }
             ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
             ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
@@ -523,25 +573,15 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.ChasisNo);
             ws.Row(row).Cell(++col).SetValue(reportItem.Color);
             ws.Row(row).Cell(++col).SetValue(reportItem.CRN);
-            ws.Row(row).Cell(++col).SetValue(reportItem.CRDate);
+            ws.Row(row).Cell(++col).SetValue(reportItem.CRDate).Style.DateFormat.Format = "MM/dd/yyyy";
             ws.Row(row).Cell(++col).SetValue(reportItem.MVFileNo);
             ws.Row(row).Cell(++col).SetValue(reportItem.Weight);
             ws.Row(row).Cell(++col).SetValue(reportItem.OrNo);
-            ws.Row(row).Cell(++col).SetValue(reportItem.OrDate);
+            ws.Row(row).Cell(++col).SetValue(reportItem.OrDate).Style.DateFormat.Format = "MM/dd/yyyy";
             ws.Row(row).Cell(++col).SetValue(reportItem.InsPolicyNo);
             ws.Row(row).Cell(++col).SetValue(reportItem.OldPropNo);
             ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
-            ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);            
-            ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-            ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
-            ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
-            ++col;
-            ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
-            ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
-            ++col;
-            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
-            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotAmount);
-            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotRemarks);
+            ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
             if (reportItem.FromDonation == true)
             {
                 ws.Row(row).Cell(++col).SetValue("From Donation");
@@ -550,13 +590,43 @@ namespace iLgs.Services.CustodianReports
             {
                 ws.Row(row).Cell(++col).SetValue("Purchased");
             }
-            ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
-            ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
+            ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
+            ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
             ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
+            ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AddCost);
+            ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate).Style.DateFormat.Format = "MM/dd/yyyy";
+            ws.Row(row).Cell(++col).SetValue(reportItem.PriceRate);
+            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
+            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotAmount);
+            ws.Row(row).Cell(++col).SetValue(reportItem.SetLotRemarks);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
+            ws.Row(row).Cell(++col).SetValue(reportItem.AirDate).Style.DateFormat.Format = "MM/dd/yyyy";
+
             ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.ParNo} / {reportItem.AreNo} / {reportItem.MrNo}");
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.AccountableOfficer} / {reportItem.AreOfficer} / {reportItem.MrOfficer}");
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.ParIssuedTo} / {reportItem.AreIssuedTo} / {reportItem.MrIssuedTo}");
+
+            var pars = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            var ares = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            var mrs = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.RefNo));
+            ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParNo ?? "") + (string.IsNullOrWhiteSpace(pars) ? "" : "\r\n" + pars)} " +
+                $"/ {(reportItem.AreNo ?? "") + (string.IsNullOrWhiteSpace(ares) ? "" : "\r\n" + ares)} " +
+                $"/ {(reportItem.MrNo ?? "") + (string.IsNullOrWhiteSpace(mrs) ? "" : "\r\n" + mrs)}");
+
+            var parOfficers = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            var areOfficers = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            var mrOfficers = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.AccountableOfficer));
+            ws.Row(row).Cell(++col).SetValue($"{(reportItem.AccountableOfficer ?? "") + (string.IsNullOrWhiteSpace(parOfficers) ? "" : "\r\n" + parOfficers)} " +
+                $"/ {(reportItem.AreOfficer ?? "") + (string.IsNullOrWhiteSpace(areOfficers) ? "" : "\r\n" + areOfficers)} " +
+                $"/ {(reportItem.MrOfficer ?? "") + (string.IsNullOrWhiteSpace(mrOfficers) ? "" : "\r\n" + mrOfficers)}");
+
+            var parIssuedTo = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "PAR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            var areIssuedTo = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "ARE").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            var mrIssuedTo = string.Join("\r\n", reportItem.CustodianReportItemIssuances.Where(w => w.RefType == "MR").OrderBy(o => o.RefNo).Select(s => s.IssuedTo));
+            ws.Row(row).Cell(++col).SetValue($"{(reportItem.ParIssuedTo ?? "") + (string.IsNullOrWhiteSpace(parIssuedTo) ? "" : "\r\n" + parIssuedTo)} " +
+                $"/ {(reportItem.AreIssuedTo ?? "") + (string.IsNullOrWhiteSpace(areIssuedTo) ? "" : "\r\n" + areIssuedTo)} " +
+                $"/ {(reportItem.MrIssuedTo ?? "") + (string.IsNullOrWhiteSpace(mrIssuedTo) ? "" : "\r\n" + mrIssuedTo)}");
+
             ws.Row(row).Cell(++col).SetValue(reportItem.UpcomingPar);
             ws.Row(row).Cell(++col).SetValue(reportItem.Fund);
             ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
@@ -567,121 +637,192 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private MemoryStream ProcessExcelFileStockTemplate(Guid id, string templateFilePath)
-        {            
-            int row = 11;
-            decimal? tAcqCost = 0;
+        private MemoryStream ProcessExcelFileStockTemplate(Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf)
+        {
+            return ProcessExcelFileStockTemplate(id, deptId, accountGroup, templateFilePath, "", "", mainAccount, asOf);
+        }
+
+        private MemoryStream ProcessExcelFileStockTemplate(Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf)
+        {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 int sw = 1;
+                int row = 14;
+                string setLotNo = "";
+                string account = "";
+                string department = "";
+                decimal? tAcqCost = 0;
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems
-                    .Include(i => i.ItemCode)
+                IQueryable<CustodianReportItem> reportItems;
+                reportItems = _db.CustodianReportItems
+                    .Include(i => i.ItemCode.ItemType)
                     .Include(i => i.CustodianReport.Codextn)
                     .Include(i => i.Codextn) // deptId
                     .Include(i => i.Codextn1) // LocationId
-                    .Where(w => w.ReportId == id).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
+                    .Include(i => i.CustodianReportItemIssuances)
+                    .Where(w => w.CustodianReport.AccountGroup == accountGroup)
+                    .AsNoTracking();
+
+                if (!string.IsNullOrWhiteSpace(mainAccount))
                 {
-                    if (sw == 1)
-                    {
-                        ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(6).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}");
-                        sw = 0;
-                    }
-                    row++;
-                    SetStockRowColValue(ws, reportItem, row, false);                    
-                    tAcqCost += (reportItem.TotalCost ?? 0);
+                    reportItems = reportItems.Where(w => w.ItemCode.ItemType.Description == mainAccount);
                 }
-                ws.Row(++row).Cell(21).SetValue("TOTAL");
-                ws.Row(row).Cell(22).SetValue(tAcqCost);
 
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }            
-        }
-
-        private MemoryStream ProcessExcelFileStockTemplateOld(Guid id, string templateFilePath)
-        {
-            int sw = 1;
-            int row = 9;
-            int col = 0;
-            decimal? tAcqCost = 0;
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.ItemCode).Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
+                if (asOf.HasValue)
                 {
-                    if (sw == 1)
+                    reportItems = reportItems.Where(w => w.AcqDate <= asOf);
+                }
+
+                if (!string.IsNullOrWhiteSpace(annex))
+                {
+                    reportItems = reportItems.Where(w => w.Annex == annex);
+                }
+
+                if (id != null)
+                {
+                    reportItems = reportItems.Where(w => w.ReportId == id).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
+                }
+                else
+                {
+                    if (deptId != null)
                     {
-                        ws.Row(2).Cell(1).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(4).Cell(2).SetValue(reportItem.CustodianReport.Department);
-                        sw = 0;
-                    }
-                    row++;
-                    col = 0;
-                    ws.Row(row).InsertRowsBelow(1);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Department);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    //var subAccount = GetSubAccount(reportItem.ItemCode.Code);
-                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
+                        reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
                     }
                     else
                     {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
+                        reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
                     }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Type);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.Dimension} / {reportItem.Size} / {reportItem.Weight} / {reportItem.Materials} / {reportItem.Capacity}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SerialNo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.Description} / {reportItem.OtherDesc}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OtherQty);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Color);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldPsNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PsNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
-                    if (reportItem.FromDonation == true)
+                }
+
+                foreach (var reportItem in reportItems)
+                {
+                    if (sw == 1)
                     {
-                        ws.Row(row).Cell(++col).SetValue("From Donation");
+                        account = reportItem.ItemCode.ItemType.Description;
+                        department = reportItem.CustodianReport.Department;
+                        if (!string.IsNullOrWhiteSpace(annex))
+                        {
+                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                            ws.Row(4).Cell(2).SetValue(hdg);
+                        }
+                        if (asOf.HasValue)
+                        {
+                            ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
+                        }
+                        else
+                        {
+                            ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        }
+                        ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+
+                        if (deptId == null || deptId == Guid.Empty)
+                        {
+                            ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        }
+
+                        ws.Row(10).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        sw = 0;
+                    }
+
+                    if (account != reportItem.ItemCode.ItemType.Description || department != reportItem.CustodianReport.Department)
+                    {
+                        account = reportItem.ItemCode.ItemType.Description;
+                        department = reportItem.CustodianReport.Department;
+                        row += 3;
+                        ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        row += 2;
+                        ws.Row(row).Cell(2).SetValue("Department:");
+                        if (deptId == null || deptId == Guid.Empty)
+                        {
+                            ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        }
+                        row += 2;
+                        ws.Row(row).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        row++;
+                        ws.Row(12).CopyTo(ws.Row(++row));
+                        ws.Row(13).CopyTo(ws.Row(++row));
+                        ws.Row(14).CopyTo(ws.Row(++row));
+                        ws.Range($"B{row - 2}:B{row}").Merge();
+                        ws.Range($"C{row - 1}:C{row}").Merge();
+                        ws.Range($"D{row - 1}:D{row}").Merge();
+                        ws.Range($"E{row - 2}:E{row}").Merge();
+                        ws.Range($"F{row - 2}:F{row}").Merge();
+                        ws.Range($"G{row - 1}:G{row}").Merge();
+                        ws.Range($"H{row - 1}:H{row}").Merge();
+                        ws.Range($"I{row - 1}:I{row}").Merge();
+                        ws.Range($"J{row - 1}:J{row}").Merge();
+                        ws.Range($"K{row - 1}:K{row}").Merge();
+                        ws.Range($"O{row - 2}:O{row}").Merge();
+                        ws.Range($"P{row - 2}:P{row}").Merge();
+                        ws.Range($"Q{row - 2}:Q{row}").Merge();
+                        ws.Range($"R{row - 2}:R{row}").Merge();
+                        ws.Range($"S{row - 2}:S{row}").Merge();
+                        ws.Range($"T{row - 2}:T{row}").Merge();
+                        ws.Range($"U{row - 2}:U{row}").Merge();
+                        ws.Range($"V{row - 2}:V{row}").Merge();
+                        ws.Range($"W{row - 2}:W{row}").Merge();
+                        ws.Range($"X{row - 2}:X{row}").Merge();
+                        ws.Range($"Y{row - 2}:Y{row}").Merge();
+                        ws.Range($"Z{row - 2}:Z{row}").Merge();
+                        ws.Range($"AA{row - 2}:AA{row}").Merge();
+                        ws.Range($"AB{row - 2}:AB{row}").Merge();
+                        ws.Range($"AC{row - 2}:AC{row}").Merge();
+                        ws.Range($"AD{row - 2}:AD{row}").Merge();
+                        ws.Range($"AE{row - 2}:AE{row}").Merge();
+                        ws.Range($"AF{row - 2}:AF{row}").Merge();
+                        ws.Range($"AG{row - 1}:AG{row}").Merge();
+                        ws.Range($"AH{row - 1}:AH{row}").Merge();
+                        ws.Range($"AI{row - 1}:AI{row}").Merge();
+                        ws.Range($"AJ{row - 2}:AJ{row}").Merge();
+                        ws.Range($"AK{row - 2}:AK{row}").Merge();
+                        ws.Range($"AL{row - 2}:AL{row}").Merge();
+                        ws.Range($"AM{row - 2}:AM{row}").Merge();
+                        ws.Range($"AN{row - 2}:AN{row}").Merge();
+                    }
+
+                    row++;
+                    if (!string.IsNullOrWhiteSpace(reportItem.SetLotNo))
+                    {
+                        if (setLotNo != reportItem.SetLotNo)
+                        {
+                            setLotNo = reportItem.SetLotNo;
+                            reportItem.TotalCost = reportItem.SetLotAmount;
+                        }
+                        else
+                        {
+                            reportItem.TotalCost = 0;
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(annex))
+                    {
+                        SetStockRowColValue(ws, reportItem, row, false);
+                        ws.Range($"B{row}:AN{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                     }
                     else
                     {
-                        ws.Row(row).Cell(++col).SetValue("Purchased");
+                        SetStockRowColValue(ws, reportItem, row, true);
+                        ws.Range($"B{row}:AM{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                     }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ParIssuedTo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.ParNo}/{reportItem.AreNo}/{reportItem.MrNo}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AccountableOfficer);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UpcomingPar);
-                    ws.Row(row).Cell(++col).SetValue("");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
 
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
                     tAcqCost += (reportItem.TotalCost ?? 0);
                 }
-                ws.Row(++row).Cell(16).SetValue("TOTAL");
-                ws.Row(row).Cell(17).SetValue(tAcqCost);
+                ws.Row(++row).Cell(23).SetValue("TOTAL");
+                ws.Row(row).Cell(24).SetValue(tAcqCost);
+
+                row += 4;
+                ws.Row(row).Cell(3).SetValue("Certified Correct by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(10).SetValue("Verified by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                row += 3;
+                ws.Row(row).Cell(4).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(11).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Range($"D{row}:G{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
+                ws.Range($"K{row}:L{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
+                row++;
+                ws.Row(row).Cell(4).SetValue("Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(11).SetValue("Assistant to the Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Range($"D{row}:G{row}").Merge();
+                ws.Range($"K{row}:L{row}").Merge();
 
                 // Create a MemoryStream to save the output
                 var memoryStream = new MemoryStream();
@@ -693,34 +834,193 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private MemoryStream ProcessExcelFilePpeTemplate(Guid id, string templateFilePath)
+        private MemoryStream ProcessExcelFilePpeTemplate(Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf)
         {
-            int sw = 1;
-            int row = 11;            
-            decimal? tAcqCost = 0;
+            return ProcessExcelFilePpeTemplate(id, deptId, accountGroup, templateFilePath, "", "", mainAccount, asOf);
+        }
+
+        private MemoryStream ProcessExcelFilePpeTemplate(Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf)
+        {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
+                int sw = 1;
+                int row = 14;
+                string setLotNo = "";
+                string account = "";
+                string department = "";
+                decimal? tAcqCost = 0;
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems
-                    .Include(i => i.ItemCode)
+                IQueryable<CustodianReportItem> reportItems;
+                reportItems = _db.CustodianReportItems
+                    .Include(i => i.ItemCode.ItemType)
                     .Include(i => i.CustodianReport.Codextn)
                     .Include(i => i.Codextn) // deptId
                     .Include(i => i.Codextn1) // LocationId
-                    .Where(w => w.ReportId == id).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
+                    .Include(i => i.CustodianReportItemIssuances)
+                    .Where(w => w.CustodianReport.AccountGroup == accountGroup)
+                    .AsNoTracking();
+
+                if (!string.IsNullOrWhiteSpace(mainAccount))
+                {
+                    reportItems = reportItems.Where(w => w.ItemCode.ItemType.Description == mainAccount);
+                }
+
+                if (asOf.HasValue)
+                {
+                    reportItems = reportItems.Where(w => w.AcqDate <= asOf);
+                }
+
+                if (!string.IsNullOrWhiteSpace(annex))
+                {
+                    reportItems = reportItems.Where(w => w.Annex == annex);
+                }
+
+                if (id != null)
+                {
+                    reportItems = reportItems.Where(w => w.ReportId == id).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
+                }
+                else
+                {
+                    if (deptId != null)
+                    {
+                        reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
+                    }
+                    else
+                    {
+                        reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
+                    }
+                }
+
+                foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
                     {
-                        ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(6).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}");
+                        account = reportItem.ItemCode.ItemType.Description;
+                        department = reportItem.CustodianReport.Department;
+                        if (!string.IsNullOrWhiteSpace(annex))
+                        {
+                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                            ws.Row(4).Cell(2).SetValue(hdg);
+                        }
+
+                        if (asOf.HasValue)
+                        {
+                            ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
+                        }
+                        else
+                        {
+                            ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        }
+
+                        ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+
+                        if (deptId == null || deptId == Guid.Empty)
+                        {
+                            ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        }
+
+                        ws.Row(10).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
                         sw = 0;
                     }
+
+                    if (account != reportItem.ItemCode.ItemType.Description || department != reportItem.CustodianReport.Department)
+                    {
+                        account = reportItem.ItemCode.ItemType.Description;
+                        department = reportItem.CustodianReport.Department;
+                        row += 3;
+                        ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        row += 2;
+                        ws.Row(row).Cell(2).SetValue("Department:");
+                        if (deptId == null || deptId == Guid.Empty)
+                        {
+                            ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        }
+                        row += 2;
+                        ws.Row(row).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        row++;
+                        ws.Row(12).CopyTo(ws.Row(++row));
+                        ws.Row(13).CopyTo(ws.Row(++row));
+                        ws.Row(14).CopyTo(ws.Row(++row));
+                        ws.Range($"B{row - 2}:B{row}").Merge();
+                        ws.Range($"C{row - 1}:C{row}").Merge();
+                        ws.Range($"D{row - 1}:D{row}").Merge();
+                        ws.Range($"E{row - 2}:E{row}").Merge();
+                        ws.Range($"F{row - 2}:F{row}").Merge();
+                        ws.Range($"G{row - 1}:G{row}").Merge();
+                        ws.Range($"H{row - 1}:H{row}").Merge();
+                        ws.Range($"I{row - 1}:I{row}").Merge();
+                        ws.Range($"J{row - 1}:J{row}").Merge();
+                        ws.Range($"K{row - 1}:K{row}").Merge();
+                        ws.Range($"O{row - 2}:O{row}").Merge();
+                        ws.Range($"P{row - 2}:P{row}").Merge();
+                        ws.Range($"Q{row - 2}:Q{row}").Merge();
+                        ws.Range($"R{row - 2}:R{row}").Merge();
+                        ws.Range($"S{row - 2}:S{row}").Merge();
+                        ws.Range($"T{row - 2}:T{row}").Merge();
+                        ws.Range($"U{row - 2}:U{row}").Merge();
+                        ws.Range($"V{row - 2}:V{row}").Merge();
+                        ws.Range($"W{row - 2}:W{row}").Merge();
+                        ws.Range($"X{row - 2}:X{row}").Merge();
+                        ws.Range($"Y{row - 2}:Y{row}").Merge();
+                        ws.Range($"Z{row - 2}:Z{row}").Merge();
+                        ws.Range($"AA{row - 2}:AA{row}").Merge();
+                        ws.Range($"AB{row - 2}:AB{row}").Merge();
+                        ws.Range($"AC{row - 2}:AC{row}").Merge();
+                        ws.Range($"AD{row - 2}:AD{row}").Merge();
+                        ws.Range($"AE{row - 2}:AE{row}").Merge();
+                        ws.Range($"AF{row - 2}:AF{row}").Merge();
+                        ws.Range($"AG{row - 1}:AG{row}").Merge();
+                        ws.Range($"AH{row - 1}:AH{row}").Merge();
+                        ws.Range($"AI{row - 1}:AI{row}").Merge();
+                        ws.Range($"AJ{row - 2}:AJ{row}").Merge();
+                        ws.Range($"AK{row - 2}:AK{row}").Merge();
+                        ws.Range($"AL{row - 2}:AL{row}").Merge();
+                        ws.Range($"AM{row - 2}:AM{row}").Merge();
+                        ws.Range($"AN{row - 2}:AN{row}").Merge();
+                    }
+
                     row++;
-                    SetPpeRowColValue(ws, reportItem, row, false);
+                    if (!string.IsNullOrWhiteSpace(reportItem.SetLotNo))
+                    {
+                        if (setLotNo != reportItem.SetLotNo)
+                        {
+                            setLotNo = reportItem.SetLotNo;
+                            reportItem.TotalCost = reportItem.SetLotAmount;
+                        }
+                        else
+                        {
+                            reportItem.TotalCost = 0;
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(annex))
+                    {
+                        SetPpeRowColValue(ws, reportItem, row, false);
+                        ws.Range($"B{row}:AN{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                    }
+                    else
+                    {
+                        SetPpeRowColValue(ws, reportItem, row, true);
+                        ws.Range($"B{row}:AM{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                    }
                     tAcqCost += (reportItem.TotalCost ?? 0);
                 }
-                ws.Row(++row).Cell(21).SetValue("TOTAL");
-                ws.Row(row).Cell(22).SetValue(tAcqCost);
+                ws.Row(++row).Cell(23).SetValue("TOTAL");
+                ws.Row(row).Cell(24).SetValue(tAcqCost);
+
+                row += 4;
+                ws.Row(row).Cell(3).SetValue("Certified Correct by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(10).SetValue("Verified by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                row += 3;
+                ws.Row(row).Cell(4).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(11).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Range($"D{row}:G{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
+                ws.Range($"K{row}:L{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
+                row++;
+                ws.Row(row).Cell(4).SetValue("Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(11).SetValue("Assistant to the Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Range($"D{row}:G{row}").Merge();
+                ws.Range($"K{row}:L{row}").Merge();
 
                 // Create a MemoryStream to save the output
                 var memoryStream = new MemoryStream();
@@ -732,121 +1032,200 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private MemoryStream ProcessExcelFilePpeTemplateOld(Guid id, string templateFilePath)
+        private MemoryStream ProcessExcelFileVehicleTemplate(Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf)
         {
-            int sw = 1;
-            int row = 9;
-            int col = 0;
-            decimal? tAcqCost = 0;
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
-                {
-                    if (sw == 1)
-                    {
-                        ws.Row(2).Cell(1).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(4).Cell(2).SetValue(reportItem.CustodianReport.Department);
-                        sw = 0;
-                    }
-                    row++;
-                    col = 0;
-                    ws.Row(row).InsertRowsBelow(1);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Department);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    //var subAccount = GetSubAccount(reportItem.ItemCode.Code);
-                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Type);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.Dimension} / {reportItem.Size} / {reportItem.Weight} / {reportItem.Materials} / {reportItem.Capacity}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SerialNo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.Description} / {reportItem.OtherDesc}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OtherQty);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Color);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldPsNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PsNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
-                    if (reportItem.FromDonation == true)
-                    {
-                        ws.Row(row).Cell(++col).SetValue("From Donation");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue("Purchased");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ParIssuedTo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.ParNo}/{reportItem.AreNo}/{reportItem.MrNo}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AccountableOfficer);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UpcomingPar);
-                    ws.Row(row).Cell(++col).SetValue("");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
-
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += (reportItem.TotalCost ?? 0);
-                }
-                ws.Row(++row).Cell(16).SetValue("TOTAL");
-                ws.Row(row).Cell(17).SetValue(tAcqCost);
-
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }
+            return ProcessExcelFileVehicleTemplate(id, deptId, accountGroup, templateFilePath, "", "", mainAccount, asOf);
         }
 
-        private MemoryStream ProcessExcelFileVehicleTemplate(Guid id, string templateFilePath)
+        private MemoryStream ProcessExcelFileVehicleTemplate(Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf)
         {
-            int sw = 1;
-            int row = 11;
-            decimal? tAcqCost = 0;
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
+                int sw = 1;
+                int row = 14;
+                string setLotNo = "";
+                string account = "";
+                string department = "";
+                decimal? tAcqCost = 0;
                 var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems
-                    .Include(i => i.ItemCode)
+                IQueryable<CustodianReportItem> reportItems;
+                reportItems = _db.CustodianReportItems
+                    .Include(i => i.ItemCode.ItemType)
                     .Include(i => i.CustodianReport.Codextn)
                     .Include(i => i.Codextn) // deptId
                     .Include(i => i.Codextn1) // LocationId
-                    .Where(w => w.ReportId == id).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
+                    .Include(i => i.CustodianReportItemIssuances)
+                    .Where(w => w.CustodianReport.AccountGroup == accountGroup)
+                    .AsNoTracking();
+
+                if (!string.IsNullOrWhiteSpace(mainAccount))
+                {
+                    reportItems = reportItems.Where(w => w.ItemCode.ItemType.Description == mainAccount);
+                }
+
+                if (asOf.HasValue)
+                {
+                    reportItems = reportItems.Where(w => w.AcqDate <= asOf);
+                }
+
+                if (!string.IsNullOrWhiteSpace(annex))
+                {
+                    reportItems = reportItems.Where(w => w.Annex == annex);
+                }
+
+                if (id != null)
+                {
+                    reportItems = reportItems.Where(w => w.ReportId == id).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
+                }
+                else
+                {
+                    if (deptId != null)
+                    {
+                        reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
+                    }
+                    else
+                    {
+                        reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
+                    }
+                }
+
+                foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
                     {
-                        ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(6).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}");
+                        account = reportItem.ItemCode.ItemType.Description;
+                        department = reportItem.CustodianReport.Department;
+                        if (!string.IsNullOrWhiteSpace(annex))
+                        {
+                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
+                            ws.Row(4).Cell(2).SetValue(hdg);
+                        }
+                        if (asOf.HasValue)
+                        {
+                            ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
+                        }
+                        else
+                        {
+                            ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
+                        }
+                        ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
+
+                        if (deptId == null || deptId == Guid.Empty)
+                        {
+                            ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        }
+
+                        ws.Row(10).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
                         sw = 0;
                     }
+
+                    if (account != reportItem.ItemCode.ItemType.Description || department != reportItem.CustodianReport.Department)
+                    {
+                        account = reportItem.ItemCode.ItemType.Description;
+                        department = reportItem.CustodianReport.Department;
+                        row += 3;
+                        ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        row += 2;
+                        ws.Row(row).Cell(2).SetValue("Department:");
+                        if (deptId == null || deptId == Guid.Empty)
+                        {
+                            ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        }
+                        row += 2;
+                        ws.Row(row).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        row++;
+                        ws.Row(12).CopyTo(ws.Row(++row));
+                        ws.Row(13).CopyTo(ws.Row(++row));
+                        ws.Row(14).CopyTo(ws.Row(++row));
+                        ws.Range($"B{row - 2}:B{row}").Merge();
+                        ws.Range($"C{row - 1}:C{row}").Merge();
+                        ws.Range($"D{row - 1}:D{row}").Merge();
+                        ws.Range($"E{row - 2}:E{row}").Merge();
+                        ws.Range($"F{row - 2}:F{row}").Merge();
+                        ws.Range($"G{row - 1}:G{row}").Merge();
+                        ws.Range($"H{row - 1}:H{row}").Merge();
+                        ws.Range($"I{row - 1}:I{row}").Merge();
+                        ws.Range($"J{row - 1}:J{row}").Merge();
+                        ws.Range($"K{row - 1}:K{row}").Merge();
+                        ws.Range($"L{row - 1}:L{row}").Merge();
+                        ws.Range($"M{row - 1}:M{row}").Merge();
+                        ws.Range($"N{row - 1}:N{row}").Merge();
+                        ws.Range($"O{row - 1}:O{row}").Merge();
+                        ws.Range($"P{row - 1}:P{row}").Merge();
+                        ws.Range($"Q{row - 1}:Q{row}").Merge();
+                        ws.Range($"R{row - 1}:R{row}").Merge();
+                        ws.Range($"S{row - 1}:S{row}").Merge();
+                        ws.Range($"W{row - 2}:W{row}").Merge();
+                        ws.Range($"X{row - 2}:X{row}").Merge();
+                        ws.Range($"Y{row - 2}:Y{row}").Merge();
+                        ws.Range($"Z{row - 2}:Z{row}").Merge();
+                        ws.Range($"AA{row - 2}:AA{row}").Merge();
+                        ws.Range($"AB{row - 2}:AB{row}").Merge();
+                        ws.Range($"AC{row - 2}:AC{row}").Merge();
+                        ws.Range($"AD{row - 2}:AD{row}").Merge();
+                        ws.Range($"AE{row - 2}:AE{row}").Merge();
+                        ws.Range($"AF{row - 2}:AF{row}").Merge();
+                        ws.Range($"AG{row - 2}:AG{row}").Merge();
+                        ws.Range($"AH{row - 2}:AH{row}").Merge();
+                        ws.Range($"AI{row - 2}:AI{row}").Merge();
+                        ws.Range($"AJ{row - 2}:AJ{row}").Merge();
+                        ws.Range($"AK{row - 2}:AK{row}").Merge();
+                        ws.Range($"AL{row - 2}:AL{row}").Merge();
+                        ws.Range($"AM{row - 2}:AM{row}").Merge();
+                        ws.Range($"AN{row - 2}:AN{row}").Merge();
+                        ws.Range($"AO{row - 1}:AO{row}").Merge();
+                        ws.Range($"AP{row - 1}:AP{row}").Merge();
+                        ws.Range($"AQ{row - 1}:AQ{row}").Merge();
+                        ws.Range($"AR{row - 2}:AR{row}").Merge();
+                        ws.Range($"AS{row - 2}:AS{row}").Merge();
+                        ws.Range($"AT{row - 2}:AT{row}").Merge();
+                        ws.Range($"AU{row - 2}:AU{row}").Merge();
+                        ws.Range($"AV{row - 2}:AV{row}").Merge();
+                    }
+
                     row++;
-                    SetVehicleRowColValue(ws, reportItem, row, false);                    
+                    if (!string.IsNullOrWhiteSpace(reportItem.SetLotNo))
+                    {
+                        if (setLotNo != reportItem.SetLotNo)
+                        {
+                            setLotNo = reportItem.SetLotNo;
+                            reportItem.TotalCost = reportItem.SetLotAmount;
+                        }
+                        else
+                        {
+                            reportItem.TotalCost = 0;
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(annex))
+                    {
+                        SetVehicleRowColValue(ws, reportItem, row, false);
+                        ws.Range($"B{row}:AV{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                    }
+                    else
+                    {
+                        SetVehicleRowColValue(ws, reportItem, row, true);
+                        ws.Range($"B{row}:AU{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                    }
+
                     tAcqCost += (reportItem.TotalCost ?? 0);
                 }
-                ws.Row(++row).Cell(29).SetValue("TOTAL");
-                ws.Row(row).Cell(30).SetValue(tAcqCost);
+                ws.Row(++row).Cell(31).SetValue("TOTAL");
+                ws.Row(row).Cell(32).SetValue(tAcqCost);
+
+                row += 4;
+                ws.Row(row).Cell(3).SetValue("Certified Correct by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(10).SetValue("Verified by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                row += 3;
+                ws.Row(row).Cell(4).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(11).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Range($"D{row}:G{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
+                ws.Range($"K{row}:L{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
+                row++;
+                ws.Row(row).Cell(4).SetValue("Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Row(row).Cell(11).SetValue("Assistant to the Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Range($"D{row}:G{row}").Merge();
+                ws.Range($"K{row}:L{row}").Merge();
 
                 // Create a MemoryStream to save the output
                 var memoryStream = new MemoryStream();
@@ -858,101 +1237,7 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private MemoryStream ProcessExcelFileVehicleTemplateOld(Guid id, string templateFilePath)
-        {
-            int sw = 1;
-            int row = 9;
-            int col = 0;
-            decimal? tAcqCost = 0;
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
-                {
-                    if (sw == 1)
-                    {
-                        ws.Row(2).Cell(1).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(4).Cell(2).SetValue(reportItem.CustodianReport.Department);
-                        sw = 0;
-                    }
-                    row++;
-                    col = 0;
-                    ws.Row(row).InsertRowsBelow(1);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Department);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    //var subAccount = GetSubAccount(reportItem.ItemCode.Code);
-                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.YearModel);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.PlateNo} / {reportItem.CustodianItemNo}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.BodyNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.EngineNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ChasisNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Color);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CRN);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CRDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.MVFileNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OrNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OrDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Weight);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.InsPolicyNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldPropNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
-                    if (reportItem.FromDonation == true)
-                    {
-                        ws.Row(row).Cell(++col).SetValue("From Donation");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue("Purchased");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ParIssuedTo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.ParNo} / {reportItem.AreNo} / {reportItem.MrNo}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AccountableOfficer);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UpcomingPar);
-                    ws.Row(row).Cell(++col).SetValue("");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
-
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += (reportItem.TotalCost ?? 0);
-                }
-                ws.Row(++row).Cell(19).SetValue("TOTAL");
-                ws.Row(row).Cell(20).SetValue(tAcqCost);
-
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }
-        }
-
-        public MemoryStream ProcessExcelFileAnnex(Guid id, string templateFilePath, int? accountGroup, string annex)
+        public MemoryStream ProcessExcelFileAnnex(Guid? id, Guid? deptId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -961,7 +1246,7 @@ namespace iLgs.Services.CustodianReports
                 throw new FileNotFoundException("The template file does not exist.", templateFilePath);
             }
             string hdg = "";
-           
+
             if (annex == "A")
             {
                 hdg = "(INVENTORY COUNT FORM)";
@@ -973,417 +1258,19 @@ namespace iLgs.Services.CustodianReports
             else if (annex == "C")
             {
                 hdg = "(LIST OF NON-EXISTING/MISSING PPEs)";
-            }            
+            }
 
             if (accountGroup == (int?)CustodianAccountGroup.STOCK)
             {
-                return ProcessExcelFileStockAnnexTemplate(id, templateFilePath, hdg, annex);
+                return ProcessExcelFileStockTemplate(id, deptId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf);
             }
             else if (accountGroup == (int?)CustodianAccountGroup.PPE)
             {
-                return ProcessExcelFilePpeAnnexTemplate(id, templateFilePath, hdg, annex);
+                return ProcessExcelFilePpeTemplate(id, deptId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf);
             }
             else
             {
-                return ProcessExcelFileVehicleAnnexTemplate(id, templateFilePath, hdg, annex);
-            }
-        }
-
-        private MemoryStream ProcessExcelFileStockAnnexTemplate(Guid id, string templateFilePath, string hdg, string annex)
-        {            
-            int row = 11;
-            decimal? tAcqCost = 0;
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                int sw = 1;
-                var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems
-                    .Include(i => i.ItemCode)
-                    .Include(i => i.CustodianReport.Codextn)
-                    .Include(i => i.Codextn) // deptId
-                    .Include(i => i.Codextn1) // LocationId
-                    .Where(w => w.ReportId == id && w.Annex == annex).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
-                {
-                    if (sw == 1)
-                    {
-                        ws.Row(2).Cell(2).SetValue($"ANNEX {annex}");
-                        ws.Row(4).Cell(2).SetValue(hdg);
-                        ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(6).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}");
-                        sw = 0;
-                    }
-                    row++;
-                    SetStockRowColValue(ws, reportItem, row, true);                    
-                    tAcqCost += (reportItem.TotalCost ?? 0);
-                }
-                ws.Row(++row).Cell(21).SetValue("TOTAL");
-                ws.Row(row).Cell(22).SetValue(tAcqCost);
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }            
-        }
-
-        private MemoryStream ProcessExcelFileStockAnnexTemplateOld(Guid id, string templateFilePath, string hdg, string annex)
-        {
-            int sw = 1;
-            int row = 10;
-            int col = 0;
-            decimal? tAcqCost = 0;
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
-                {
-                    if (sw == 1)
-                    {
-                        ws.Row(1).Cell(1).SetValue($"ANNEX {annex}");
-                        ws.Row(3).Cell(1).SetValue(hdg);
-                        ws.Row(4).Cell(1).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(5).Cell(2).SetValue(reportItem.CustodianReport.Department);
-                        sw = 0;
-                    }
-
-                    row++;
-                    col = 0;
-                    ws.Row(row).InsertRowsBelow(1);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Department);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
-                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Type);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.Dimension} / {reportItem.Size} / {reportItem.Weight} / {reportItem.Materials} / {reportItem.Capacity}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ItemSerialNo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.Description} / {reportItem.OtherDesc}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OtherQty);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Color);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldPsNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PsNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
-                    if (reportItem.FromDonation == true)
-                    {
-                        ws.Row(row).Cell(++col).SetValue("From Donation");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue("Purchased");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ParIssuedTo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.ParNo}/{reportItem.AreNo}/{reportItem.MrNo}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AccountableOfficer);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UpcomingPar);
-                    ws.Row(row).Cell(++col).SetValue("");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
-
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
-                    //ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += (reportItem.TotalCost ?? 0);
-                }
-                ws.Row(++row).Cell(16).SetValue("TOTAL");
-                ws.Row(row).Cell(17).SetValue(tAcqCost);
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }
-        }
-
-        private MemoryStream ProcessExcelFilePpeAnnexTemplate(Guid id, string templateFilePath, string hdg, string annex)
-        {
-            int sw = 1;
-            int row = 11;
-            decimal? tAcqCost = 0;
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems
-                    .Include(i => i.ItemCode)
-                    .Include(i => i.CustodianReport.Codextn)
-                    .Include(i => i.Codextn) // deptId
-                    .Include(i => i.Codextn1) // LocationId
-                    .Where(w => w.ReportId == id && w.Annex == annex).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
-                {
-                    if (sw == 1)
-                    {
-                        ws.Row(2).Cell(2).SetValue($"ANNEX {annex}");
-                        ws.Row(4).Cell(2).SetValue(hdg);
-                        ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(6).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}");
-                        sw = 0;
-                    }
-
-                    row++;
-                    SetPpeRowColValue(ws, reportItem, row, true);
-                    tAcqCost += (reportItem.TotalCost ?? 0);
-                }
-                ws.Row(++row).Cell(21).SetValue("TOTAL");
-                ws.Row(row).Cell(22).SetValue(tAcqCost);
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }
-        }
-
-        private MemoryStream ProcessExcelFilePpeAnnexTemplateOld(Guid id, string templateFilePath, string hdg, string annex)
-        {
-            int sw = 1;
-            int row = 10;
-            int col = 0;
-            decimal? tAcqCost = 0;
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
-                {
-                    if (sw == 1)
-                    {
-                        ws.Row(1).Cell(1).SetValue($"ANNEX {annex}");
-                        ws.Row(3).Cell(1).SetValue(hdg);
-                        ws.Row(4).Cell(1).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(5).Cell(2).SetValue(reportItem.CustodianReport.Department);
-                        sw = 0;
-                    }
-
-                    row++;
-                    col = 0;
-                    ws.Row(row).InsertRowsBelow(1);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Department);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
-                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Type);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.Dimension} / {reportItem.Size} / {reportItem.Weight} / {reportItem.Materials} / {reportItem.Capacity}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ItemSerialNo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.Description} / {reportItem.OtherDesc}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OtherQty);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Color);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldPsNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PsNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
-                    if (reportItem.FromDonation == true)
-                    {
-                        ws.Row(row).Cell(++col).SetValue("From Donation");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue("Purchased");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ParIssuedTo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.ParNo}/{reportItem.AreNo}/{reportItem.MrNo}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AccountableOfficer);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UpcomingPar);
-                    ws.Row(row).Cell(++col).SetValue("");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
-
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
-                    //ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += (reportItem.TotalCost ?? 0);
-                }
-                ws.Row(++row).Cell(16).SetValue("TOTAL");
-                ws.Row(row).Cell(17).SetValue(tAcqCost);
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }
-        }
-
-        private MemoryStream ProcessExcelFileVehicleAnnexTemplate(Guid id, string templateFilePath, string hdg, string annex)
-        {
-            int sw = 1;
-            int row = 11;
-            decimal? tAcqCost = 0;
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems
-                    .Include(i => i.ItemCode)
-                    .Include(i => i.CustodianReport.Codextn)
-                    .Include(i => i.Codextn) // deptId
-                    .Include(i => i.Codextn1) // LocationId
-                    .Where(w => w.ReportId == id && w.Annex == annex).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
-                {
-                    if (sw == 1)
-                    {
-                        ws.Row(2).Cell(2).SetValue($"ANNEX {annex}");
-                        ws.Row(4).Cell(2).SetValue(hdg);
-                        ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(6).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}");                        
-                        sw = 0;
-                    }
-
-                    row++;
-                    SetVehicleRowColValue(ws, reportItem, row, true);
-                    tAcqCost += (reportItem.TotalCost ?? 0);
-                }
-                ws.Row(++row).Cell(29).SetValue("TOTAL");
-                ws.Row(row).Cell(30).SetValue(tAcqCost);
-
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }
-        }
-
-        private MemoryStream ProcessExcelFileVehicleAnnexTemplateOld(Guid id, string templateFilePath, string hdg, string annex)
-        {
-            int sw = 1;
-            int row = 10;
-            int col = 0;
-            decimal? tAcqCost = 0;
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                var ws = wb.Worksheet(1);
-                var reportItemList = _db.CustodianReportItems.Include(i => i.CustodianReport.Codextn).Where(w => w.ReportId == id && w.Annex == annex).OrderBy(o => o.CustodianItemNo).ToList();
-                foreach (var reportItem in reportItemList)
-                {
-                    if (sw == 1)
-                    {
-                        ws.Row(1).Cell(1).SetValue($"ANNEX {annex}");
-                        ws.Row(3).Cell(1).SetValue(hdg);
-                        ws.Row(4).Cell(1).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        ws.Row(5).Cell(2).SetValue(reportItem.CustodianReport.Department);
-                        sw = 0;
-                    }
-
-                    row++;
-                    col = 0;
-                    ws.Row(row).InsertRowsBelow(1);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CustodianItemNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Department);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.LocationCode);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SeriesNo);
-                    //ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
-                    if (string.IsNullOrWhiteSpace(reportItem.SubAccount))
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.Article}");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Brand);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Model_);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.YearModel);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.PlateNo} / {reportItem.CustodianItemNo}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.BodyNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.EngineNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ChasisNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Color);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CRN);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.CRDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.MVFileNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OrNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OrDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Weight);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.InsPolicyNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldPropNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PropNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.TotalCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AcqDate);
-                    if (reportItem.FromDonation == true)
-                    {
-                        ws.Row(row).Cell(++col).SetValue("From Donation");
-                    }
-                    else
-                    {
-                        ws.Row(row).Cell(++col).SetValue("Purchased");
-                    }
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SubLocation);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.ParIssuedTo);
-                    ws.Row(row).Cell(++col).SetValue($"{reportItem.ParNo} / {reportItem.AreNo} / {reportItem.MrNo}");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AccountableOfficer);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UpcomingPar);
-                    ws.Row(row).Cell(++col).SetValue("");
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Condition);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Remarks);
-
-                    ws.Row(row).Cell(++col).SetValue(reportItem.PoNo);
-                    ws.Row(row).Cell(++col).SetValue(Utility.ExportDate(reportItem.PoDate));
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirNo);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.AirDate);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.UnitCost);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.Unit);
-                    ws.Row(row).Cell(++col).SetValue(reportItem.SetLotNo);
-                    //ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
-                    tAcqCost += (reportItem.TotalCost ?? 0);
-                }
-                ws.Row(++row).Cell(19).SetValue("TOTAL");
-                ws.Row(row).Cell(20).SetValue(tAcqCost);
-
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
+                return ProcessExcelFileVehicleTemplate(id, deptId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf);
             }
         }
 
@@ -1420,7 +1307,7 @@ namespace iLgs.Services.CustodianReports
             }
         }
 
-        private void ValidateUser(CustodianReportItem entity, CustodianReportItem model)        
+        private void ValidateUser(CustodianReportItem entity, CustodianReportItem model)
         {
             if (entity.InsertedBy != model.UpdatedBy)
             {
@@ -1430,6 +1317,6 @@ namespace iLgs.Services.CustodianReports
                     throw new RecordLockedException($"Record can only be updated by {entity.InsertedBy} or an Admin.");
                 }
             }
-        }        
+        }
     }
 }

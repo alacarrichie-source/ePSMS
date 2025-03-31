@@ -47,6 +47,15 @@ namespace iLgs.Controllers
             return View("Codextn", codeMast);
         }
 
+        public async Task<ActionResult> Series()
+        {
+            var code = "SERIES";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Last Series Numbers";
+            return View("Codextn", codeMast);
+        }
+
         public async Task<ActionResult> Unit()
         {
             var code = "Unit";

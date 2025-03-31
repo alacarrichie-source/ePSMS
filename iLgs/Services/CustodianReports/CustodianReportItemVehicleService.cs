@@ -60,6 +60,7 @@ namespace iLgs.Services.CustodianReports
             SetLotNo = s.SetLotNo,
             SetLotAmount = s.SetLotAmount,
             SetLotRemarks = s.SetLotRemarks,
+            PriceRate = s.PriceRate,
             DeptId = s.DeptId,
             Department = s.Department,
             LocationId = s.LocationId,
@@ -127,8 +128,10 @@ namespace iLgs.Services.CustodianReports
             InsertedDt = s.InsertedDt,
             PostedBy = s.PostedBy,
             PostedDt = s.PostedDt,
+            ProRatedCost = s.ProRatedCost,
             ItemType_Code = s.ItemCode.ItemType.Code,
-            Item_Code = s.ItemCode.Code
+            Item_Code = s.ItemCode.Code,
+            Category = s.ItemCode.ItemType.Category
         };
 
         public new ValueTask<CustodianReportItemVehicleVM> GetByIdAsync(Guid id) =>

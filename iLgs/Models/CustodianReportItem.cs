@@ -115,6 +115,7 @@ namespace iLgs.Models
         public Nullable<decimal> AddCost { get; set; }
         public Nullable<decimal> TUnitCost { get; set; }
         public Nullable<decimal> GTotalCost { get; set; }
+        public Nullable<decimal> ProRatedCost { get; set; }
     
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }

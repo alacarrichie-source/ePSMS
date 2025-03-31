@@ -2465,7 +2465,17 @@ namespace iLgs.Controllers
             return File(fileContents, contentType, fileName);
         }
 
-        public async Task<ActionResult> ExcelExport(Guid reportId, int? accountGroup)
+        public async Task<ActionResult> ExcelExportReport(Guid? reportId, int? accountGroup)
+        {
+            return await ExcelExport(reportId, null, accountGroup, "", null);
+        }
+
+        public async Task<ActionResult> ExcelExportAll(Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf)
+        {            
+            return await ExcelExport(null, deptId, accountGroup, mainAccount, asOf);
+        }
+
+        public async Task<ActionResult> ExcelExport(Guid? reportId, Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf)
         {
             try
             {
@@ -2478,22 +2488,21 @@ namespace iLgs.Controllers
                 }
 
                 string exportFileName = "";
-                var report = await _custodianReportService.GetByIdAsync(reportId);
-                if (report.AccountGroup == (int?)CustodianAccountGroup.STOCK)
+                if (accountGroup == (int?)CustodianAccountGroup.STOCK)
                 {
                     exportFileName = "CustodianSupplies";                    
                 }
-                else if (report.AccountGroup == (int?)CustodianAccountGroup.PPE)
+                else if (accountGroup == (int?)CustodianAccountGroup.PPE)
                 {
                     exportFileName = "CustodianEquipment";
                 }
-                else if (report.AccountGroup == (int?)CustodianAccountGroup.VEHICLE)
+                else if (accountGroup == (int?)CustodianAccountGroup.VEHICLE)
                 {
                     exportFileName = "CustodianVehicles";
                 }
 
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportItemService.ProcessExcelFile(reportId, templateFilePath, report.AccountGroup);
+                var stream = _custodianReportItemService.ProcessExcelFile(reportId, deptId, templateFilePath, accountGroup, mainAccount, asOf);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");                
             }
@@ -2503,27 +2512,36 @@ namespace iLgs.Controllers
             }
         }
 
-        public async Task<ActionResult> ExcelExportAnnex(Guid reportId, string annex)
+        public ActionResult ExcelExportAnnexAll(Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf)        
+        {
+            return ExcelExportAnnex(null, deptId, accountGroup, annex, mainAccount, asOf);
+        }
+
+        public ActionResult ExcelExportAnnexReport(Guid? reportId, int? accountGroup, string annex)
+        {
+            return ExcelExportAnnex(reportId, null, accountGroup, annex, "", null);
+        }
+
+        public ActionResult ExcelExportAnnex(Guid? reportId, Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf)
         {
             try
             {
                 string exportFileName = "";
-                var report = await _custodianReportService.GetByIdAsync(reportId);
-                if (report.AccountGroup == (int?)CustodianAccountGroup.STOCK)
+                if (accountGroup == (int?)CustodianAccountGroup.STOCK)
                 {
                     exportFileName = $"CustodianSuppliesAnnex";
                 }
-                else if (report.AccountGroup == (int?)CustodianAccountGroup.PPE)
+                else if (accountGroup == (int?)CustodianAccountGroup.PPE)
                 {
                     exportFileName = $"CustodianEquipmentAnnex";
                 }
-                else if (report.AccountGroup == (int?)CustodianAccountGroup.VEHICLE)
+                else if (accountGroup == (int?)CustodianAccountGroup.VEHICLE)
                 {
                     exportFileName = $"CustodianVehiclesAnnex";
                 }
 
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportItemService.ProcessExcelFileAnnex(reportId, templateFilePath, report.AccountGroup, annex);
+                var stream = _custodianReportItemService.ProcessExcelFileAnnex(reportId, deptId, templateFilePath, accountGroup, annex, mainAccount, asOf);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}-{annex}.xlsx");
             }
@@ -2532,6 +2550,36 @@ namespace iLgs.Controllers
                 return new HttpStatusCodeResult(500, ex.Message);
             }
         }
+
+
+        //public ActionResult ExcelExportAnnex(Guid? reportId, int? accountGroup, string annex)
+        //{
+        //    try
+        //    {
+        //        string exportFileName = "";
+        //        if (accountGroup == (int?)CustodianAccountGroup.STOCK)
+        //        {
+        //            exportFileName = $"CustodianSuppliesAnnex";
+        //        }
+        //        else if (accountGroup == (int?)CustodianAccountGroup.PPE)
+        //        {
+        //            exportFileName = $"CustodianEquipmentAnnex";
+        //        }
+        //        else if (accountGroup == (int?)CustodianAccountGroup.VEHICLE)
+        //        {
+        //            exportFileName = $"CustodianVehiclesAnnex";
+        //        }
+
+        //        var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
+        //        var stream = _custodianReportItemService.ProcessExcelFileAnnex(reportId, templateFilePath, accountGroup, annex, "", null);
+
+        //        return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}-{annex}.xlsx");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new HttpStatusCodeResult(500, ex.Message);
+        //    }
+        //}
 
         #region UPLOADS
         public ActionResult _Images(Guid? imageId)

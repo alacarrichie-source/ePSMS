@@ -442,6 +442,7 @@
           <Property Name="ProjectName" Type="varchar" MaxLength="200" />
           <Property Name="BuildingType" Type="varchar" MaxLength="200" />
           <Property Name="Area" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="AppraiseValue" Type="numeric" Precision="18" Scale="2" />
           <Property Name="TotalAmount" Type="numeric" Precision="18" Scale="2" />
           <Property Name="OldAmount" Type="numeric" Precision="18" Scale="2" />
           <Property Name="PsNo" Type="varchar" MaxLength="200" />
@@ -585,6 +586,7 @@
           <Property Name="SetLotAmount" Type="numeric" Precision="18" Scale="2" />
           <Property Name="SetLotRemarks" Type="varchar" MaxLength="2000" />
           <Property Name="PriceRate" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="ProRatedCost" Type="numeric" Precision="18" Scale="2" />
           <Property Name="AddCost" Type="numeric" Precision="18" Scale="2" />
           <Property Name="TUnitCost" Type="numeric" Precision="18" Scale="2" />
           <Property Name="GTotalCost" Type="numeric" Precision="18" Scale="2" />
@@ -614,7 +616,9 @@
           <Property Name="Address" Type="varchar" MaxLength="200" />
           <Property Name="LandMarks" Type="varchar" MaxLength="200" />
           <Property Name="Area" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="Unit" Type="varchar" MaxLength="50" />
           <Property Name="PricePerSqm" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="AreaXPrice" Type="numeric" Precision="18" Scale="2" />
           <Property Name="MarketValue" Type="numeric" Precision="18" Scale="2" />
           <Property Name="PsNo" Type="varchar" MaxLength="200" />
           <Property Name="PropNo" Type="varchar" MaxLength="200" />
@@ -4671,44 +4675,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="Codextn" EntitySet="Codextns" />
             <End Role="LocationBudget" EntitySet="LocationBudgets" />
           </AssociationSet>
-          <EntitySet Name="CustodianReportBldgItems" EntityType="AppManModel.CustodianReportBldgItem" />
-          <EntitySet Name="CustodianReportLandItems" EntityType="AppManModel.CustodianReportLandItem" />
-          <AssociationSet Name="FK_CustodianReportBldgItems_Codextn" Association="AppManModel.FK_CustodianReportBldgItems_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianReportBldgItems_Codextn1" Association="AppManModel.FK_CustodianReportBldgItems_Codextn1">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianReportLandItems_Codextn" Association="AppManModel.FK_CustodianReportLandItems_Codextn">
-            <End Role="Codextn" EntitySet="Codextns" />
-            <End Role="CustodianReportLandItem" EntitySet="CustodianReportLandItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianDisposalItems_CustodianReportBldgItems1" Association="AppManModel.FK_CustodianDisposalItems_CustodianReportBldgItems1">
-            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
-            <End Role="CustodianDisposalItem" EntitySet="CustodianDisposalItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianDisposalItems_CustodianReportLandItems1" Association="AppManModel.FK_CustodianDisposalItems_CustodianReportLandItems1">
-            <End Role="CustodianReportLandItem" EntitySet="CustodianReportLandItems" />
-            <End Role="CustodianDisposalItem" EntitySet="CustodianDisposalItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianReportBldgItems_CustodianReports" Association="AppManModel.FK_CustodianReportBldgItems_CustodianReports">
-            <End Role="CustodianReport" EntitySet="CustodianReports" />
-            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianReportBldgItems_ItemCodes" Association="AppManModel.FK_CustodianReportBldgItems_ItemCodes">
-            <End Role="ItemCode" EntitySet="ItemCodes" />
-            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianReportLandItems_CustodianReports" Association="AppManModel.FK_CustodianReportLandItems_CustodianReports">
-            <End Role="CustodianReport" EntitySet="CustodianReports" />
-            <End Role="CustodianReportLandItem" EntitySet="CustodianReportLandItems" />
-          </AssociationSet>
-          <AssociationSet Name="FK_CustodianReportLandItems_ItemCodes" Association="AppManModel.FK_CustodianReportLandItems_ItemCodes">
-            <End Role="ItemCode" EntitySet="ItemCodes" />
-            <End Role="CustodianReportLandItem" EntitySet="CustodianReportLandItems" />
-          </AssociationSet>
           <EntitySet Name="AIRItems" EntityType="AppManModel.AIRItem" />
           <EntitySet Name="CustodianIirupItems" EntityType="AppManModel.CustodianIirupItem" />
           <EntitySet Name="CustodianIIRUPs" EntityType="AppManModel.CustodianIIRUP" />
@@ -5040,6 +5006,44 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_PARs_Orders" Association="AppManModel.FK_PARs_Orders">
             <End Role="Order" EntitySet="Orders" />
             <End Role="PAR" EntitySet="PARs" />
+          </AssociationSet>
+          <EntitySet Name="CustodianReportBldgItems" EntityType="AppManModel.CustodianReportBldgItem" />
+          <AssociationSet Name="FK_CustodianReportBldgItems_Codextn" Association="AppManModel.FK_CustodianReportBldgItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReportBldgItems_Codextn1" Association="AppManModel.FK_CustodianReportBldgItems_Codextn1">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianDisposalItems_CustodianReportBldgItems1" Association="AppManModel.FK_CustodianDisposalItems_CustodianReportBldgItems1">
+            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
+            <End Role="CustodianDisposalItem" EntitySet="CustodianDisposalItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReportBldgItems_CustodianReports" Association="AppManModel.FK_CustodianReportBldgItems_CustodianReports">
+            <End Role="CustodianReport" EntitySet="CustodianReports" />
+            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReportBldgItems_ItemCodes" Association="AppManModel.FK_CustodianReportBldgItems_ItemCodes">
+            <End Role="ItemCode" EntitySet="ItemCodes" />
+            <End Role="CustodianReportBldgItem" EntitySet="CustodianReportBldgItems" />
+          </AssociationSet>
+          <EntitySet Name="CustodianReportLandItems" EntityType="AppManModel.CustodianReportLandItem" />
+          <AssociationSet Name="FK_CustodianReportLandItems_Codextn" Association="AppManModel.FK_CustodianReportLandItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="CustodianReportLandItem" EntitySet="CustodianReportLandItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianDisposalItems_CustodianReportLandItems1" Association="AppManModel.FK_CustodianDisposalItems_CustodianReportLandItems1">
+            <End Role="CustodianReportLandItem" EntitySet="CustodianReportLandItems" />
+            <End Role="CustodianDisposalItem" EntitySet="CustodianDisposalItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReportLandItems_CustodianReports" Association="AppManModel.FK_CustodianReportLandItems_CustodianReports">
+            <End Role="CustodianReport" EntitySet="CustodianReports" />
+            <End Role="CustodianReportLandItem" EntitySet="CustodianReportLandItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustodianReportLandItems_ItemCodes" Association="AppManModel.FK_CustodianReportLandItems_ItemCodes">
+            <End Role="ItemCode" EntitySet="ItemCodes" />
+            <End Role="CustodianReportLandItem" EntitySet="CustodianReportLandItems" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -5943,9 +5947,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="CustodianReports" Relationship="AppManModel.FK_CustodianReports_Codextn" FromRole="Codextn" ToRole="CustodianReport" />
           <NavigationProperty Name="LocationBudgets" Relationship="AppManModel.FK_LocationBudgets_Codextn" FromRole="Codextn" ToRole="LocationBudget" />
           <NavigationProperty Name="LocationBudgets1" Relationship="AppManModel.FK_LocationBudgets_Codextn1" FromRole="Codextn" ToRole="LocationBudget" />
-          <NavigationProperty Name="CustodianReportBldgItems" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn" FromRole="Codextn" ToRole="CustodianReportBldgItem" />
-          <NavigationProperty Name="CustodianReportBldgItems1" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn1" FromRole="Codextn" ToRole="CustodianReportBldgItem" />
-          <NavigationProperty Name="CustodianReportLandItems" Relationship="AppManModel.FK_CustodianReportLandItems_Codextn" FromRole="Codextn" ToRole="CustodianReportLandItem" />
           <NavigationProperty Name="RISses" Relationship="AppManModel.FK_RISs_Codextn" FromRole="Codextn" ToRole="RISs" />
           <NavigationProperty Name="ItemCodeRequests" Relationship="AppManModel.FK_ItemCodeRequests_Codextn" FromRole="Codextn" ToRole="ItemCodeRequest" />
           <NavigationProperty Name="PsCardItems" Relationship="AppManModel.FK_PsCardItems_Codextn" FromRole="Codextn" ToRole="PsCardItem" />
@@ -5957,6 +5958,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="RpcPpes" Relationship="AppManModel.FK_RpcPpes_Codextn" FromRole="Codextn" ToRole="RpcPpe" />
           <NavigationProperty Name="CustodianReportItems" Relationship="AppManModel.FK_CustodianReportItems_Codextn" FromRole="Codextn" ToRole="CustodianReportItem" />
           <NavigationProperty Name="CustodianReportItems1" Relationship="AppManModel.FK_CustodianReportItems_Codextn1" FromRole="Codextn" ToRole="CustodianReportItem" />
+          <NavigationProperty Name="CustodianReportBldgItems" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn" FromRole="Codextn" ToRole="CustodianReportBldgItem" />
+          <NavigationProperty Name="CustodianReportBldgItems1" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn1" FromRole="Codextn" ToRole="CustodianReportBldgItem" />
+          <NavigationProperty Name="CustodianReportLandItems" Relationship="AppManModel.FK_CustodianReportLandItems_Codextn" FromRole="Codextn" ToRole="CustodianReportLandItem" />
           </EntityType>
         <Association Name="FK_AccountableOfficers_Codextn">
           <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1">
@@ -6389,9 +6393,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReports_Codextn" FromRole="CustodianReport" ToRole="Codextn" />
+          <NavigationProperty Name="CustodianReportItems" Relationship="AppManModel.FK_CustodianReportItems_CustodianReports" FromRole="CustodianReport" ToRole="CustodianReportItem" />
           <NavigationProperty Name="CustodianReportBldgItems" Relationship="AppManModel.FK_CustodianReportBldgItems_CustodianReports" FromRole="CustodianReport" ToRole="CustodianReportBldgItem" />
           <NavigationProperty Name="CustodianReportLandItems" Relationship="AppManModel.FK_CustodianReportLandItems_CustodianReports" FromRole="CustodianReport" ToRole="CustodianReportLandItem" />
-          <NavigationProperty Name="CustodianReportItems" Relationship="AppManModel.FK_CustodianReportItems_CustodianReports" FromRole="CustodianReport" ToRole="CustodianReportItem" />
         </EntityType>
         <Association Name="FK_CustodianReports_Codextn">
           <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
@@ -6454,9 +6458,9 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="CustodianDisposal" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianDisposals" FromRole="CustodianDisposalItem" ToRole="CustodianDisposal" />
+          <NavigationProperty Name="CustodianReportItem" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianReportItems" FromRole="CustodianDisposalItem" ToRole="CustodianReportItem" />
           <NavigationProperty Name="CustodianReportBldgItem" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianReportBldgItems1" FromRole="CustodianDisposalItem" ToRole="CustodianReportBldgItem" />
           <NavigationProperty Name="CustodianReportLandItem" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianReportLandItems1" FromRole="CustodianDisposalItem" ToRole="CustodianReportLandItem" />
-          <NavigationProperty Name="CustodianReportItem" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianReportItems" FromRole="CustodianDisposalItem" ToRole="CustodianReportItem" />
         </EntityType>
         <Association Name="FK_CustodianDisposalItems_CustodianDisposals">
           <End Type="AppManModel.CustodianDisposal" Role="CustodianDisposal" Multiplicity="0..1">
@@ -6593,14 +6597,14 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="ItemType" Relationship="AppManModel.FK_ItemCodes_ItemTypes" FromRole="ItemCode" ToRole="ItemType" />
           <NavigationProperty Name="PsCards" Relationship="AppManModel.FK_PsCards_ItemCodes" FromRole="ItemCode" ToRole="PsCard" />
-          <NavigationProperty Name="CustodianReportBldgItems" Relationship="AppManModel.FK_CustodianReportBldgItems_ItemCodes" FromRole="ItemCode" ToRole="CustodianReportBldgItem" />
-          <NavigationProperty Name="CustodianReportLandItems" Relationship="AppManModel.FK_CustodianReportLandItems_ItemCodes" FromRole="ItemCode" ToRole="CustodianReportLandItem" />
           <NavigationProperty Name="OrderItems" Relationship="AppManModel.FK_OrderItems_ItemCodes" FromRole="ItemCode" ToRole="OrderItem" />
           <NavigationProperty Name="RisItems" Relationship="AppManModel.FK_RisItems_ItemCodes" FromRole="ItemCode" ToRole="RisItem" />
           <NavigationProperty Name="RSMIItems" Relationship="AppManModel.FK_RSMIItems_ItemCodes" FromRole="ItemCode" ToRole="RSMIItem" />
           <NavigationProperty Name="RPCIItems" Relationship="AppManModel.FK_RPCIItems_ItemCodes" FromRole="ItemCode" ToRole="RPCIItem" />
           <NavigationProperty Name="RpcPpeItems" Relationship="AppManModel.FK_RpcPpeItems_ItemCodes" FromRole="ItemCode" ToRole="RpcPpeItem" />
           <NavigationProperty Name="CustodianReportItems" Relationship="AppManModel.FK_CustodianReportItems_ItemCodes" FromRole="ItemCode" ToRole="CustodianReportItem" />
+          <NavigationProperty Name="CustodianReportBldgItems" Relationship="AppManModel.FK_CustodianReportBldgItems_ItemCodes" FromRole="ItemCode" ToRole="CustodianReportBldgItem" />
+          <NavigationProperty Name="CustodianReportLandItems" Relationship="AppManModel.FK_CustodianReportLandItems_ItemCodes" FromRole="ItemCode" ToRole="CustodianReportLandItem" />
         </EntityType>
         <Association Name="FK_ItemCodes_ItemTypes">
           <End Type="AppManModel.ItemType" Role="ItemType" Multiplicity="0..1" />
@@ -6661,267 +6665,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="LocationBudget">
               <PropertyRef Name="BudgetId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityType Name="CustodianReportBldgItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="ReportId" Type="Guid" />
-          <Property Name="Fund" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="CustodianItemNo" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="SeriesNo" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="FromDonation" Type="Boolean" />
-          <Property Name="Account" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="ItemCodeId" Type="Guid" />
-          <Property Name="SubAccount" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Article" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Description" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
-          <Property Name="BldgItem" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="PoNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="PoDate" Type="DateTime" Precision="0" />
-          <Property Name="AcqCost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="DeptId" Type="Guid" />
-          <Property Name="Department" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="LocationId" Type="Guid" />
-          <Property Name="LocationCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Location" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="SubLocation" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="AcqDate" Type="DateTime" Precision="0" />
-          <Property Name="AcqMonth" Type="Int32" />
-          <Property Name="AcqYear" Type="Int32" />
-          <Property Name="AcqDay" Type="Int32" />
-          <Property Name="Address" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="ProjectName" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="BuildingType" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Area" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="TotalAmount" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="OldAmount" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="PsNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="PropNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="PhaseNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="PhaseAmountMooe" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="PhaseAmountCo" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="StartYear" Type="Int32" />
-          <Property Name="StartMonth" Type="Int32" />
-          <Property Name="StartDay" Type="Int32" />
-          <Property Name="StartDate" Type="DateTime" Precision="0" />
-          <Property Name="TargetYear" Type="Int32" />
-          <Property Name="TargetMonth" Type="Int32" />
-          <Property Name="TargetDay" Type="Int32" />
-          <Property Name="TargetDate" Type="DateTime" Precision="0" />
-          <Property Name="PercentComplete" Type="Decimal" Precision="6" Scale="2" />
-          <Property Name="CompletionYear" Type="Int32" />
-          <Property Name="CompletionMonth" Type="Int32" />
-          <Property Name="CompletionDay" Type="Int32" />
-          <Property Name="CompletionDate" Type="DateTime" Precision="0" />
-          <Property Name="Status" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Condition" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Remarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
-          <Property Name="Annex" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="PostedDt" Type="DateTime" Precision="3" />
-          <Property Name="Latitude" Type="Double" />
-          <Property Name="Longitude" Type="Double" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn" FromRole="CustodianReportBldgItem" ToRole="Codextn" />
-          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn1" FromRole="CustodianReportBldgItem" ToRole="Codextn" />
-          <NavigationProperty Name="CustodianDisposalItems" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianReportBldgItems1" FromRole="CustodianReportBldgItem" ToRole="CustodianDisposalItem" />
-          <NavigationProperty Name="CustodianReport" Relationship="AppManModel.FK_CustodianReportBldgItems_CustodianReports" FromRole="CustodianReportBldgItem" ToRole="CustodianReport" />
-          <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_CustodianReportBldgItems_ItemCodes" FromRole="CustodianReportBldgItem" ToRole="ItemCode" />
-        </EntityType>
-        <EntityType Name="CustodianReportLandItem">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Guid" Nullable="false" />
-          <Property Name="ReportId" Type="Guid" />
-          <Property Name="Fund" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="CustodianItemNo" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="SeriesNo" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
-          <Property Name="FromDonation" Type="Boolean" />
-          <Property Name="Account" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="ItemCodeId" Type="Guid" />
-          <Property Name="SubAccount" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Article" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="LocationId" Type="Guid" />
-          <Property Name="LocationCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Location" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Type" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Condition" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Description" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
-          <Property Name="SubLocation" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="PIN" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Address" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="LandMarks" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Area" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="PricePerSqm" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="MarketValue" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="PsNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="PropNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="OldPropNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="OldAmount" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="AcqCost" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="AcqDate" Type="DateTime" Precision="0" />
-          <Property Name="Vendor" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Representative" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="TctNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="OldTctNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="DRPNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="DRPDate" Type="DateTime" Precision="0" />
-          <Property Name="OldDRPNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="OldDRPDate" Type="DateTime" Precision="0" />
-          <Property Name="Remarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
-          <Property Name="CGT" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="CGTTransferTax" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="CGTSurcharge" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="CGTInterest" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="CGTCompromise" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="DST" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="DSTTransferTax" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="DSTSurcharge" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="DSTInterest" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="DSTCompromise" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="TransferTax" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Surcharge" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Interest" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="ConfirmationFee" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="TransferRegsFee" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="RealPropertyFee" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="VAT" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="EstateFee" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Titling" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="CertificationFee" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Relocation" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="Surveying" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="IncidentalExpenses" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="CapitalOutlayOrExpense" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
-          <Property Name="Annex" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="PostedDt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportLandItems_Codextn" FromRole="CustodianReportLandItem" ToRole="Codextn" />
-          <NavigationProperty Name="CustodianDisposalItems" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianReportLandItems1" FromRole="CustodianReportLandItem" ToRole="CustodianDisposalItem" />
-          <NavigationProperty Name="CustodianReport" Relationship="AppManModel.FK_CustodianReportLandItems_CustodianReports" FromRole="CustodianReportLandItem" ToRole="CustodianReport" />
-          <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_CustodianReportLandItems_ItemCodes" FromRole="CustodianReportLandItem" ToRole="ItemCode" />
-        </EntityType>
-        <Association Name="FK_CustodianReportBldgItems_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportBldgItem">
-              <PropertyRef Name="DeptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianReportBldgItems_Codextn1">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportBldgItem">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianReportLandItems_Codextn">
-          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReportLandItem" Role="CustodianReportLandItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codextn">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportLandItem">
-              <PropertyRef Name="LocationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianDisposalItems_CustodianReportBldgItems1">
-          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianDisposalItem" Role="CustodianDisposalItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="CustodianReportBldgItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianDisposalItem">
-              <PropertyRef Name="CustodianReportBldgItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianDisposalItems_CustodianReportLandItems1">
-          <End Type="AppManModel.CustodianReportLandItem" Role="CustodianReportLandItem" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianDisposalItem" Role="CustodianDisposalItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="CustodianReportLandItem">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianDisposalItem">
-              <PropertyRef Name="CustodianReportLandItemId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianReportBldgItems_CustodianReports">
-          <End Type="AppManModel.CustodianReport" Role="CustodianReport" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="CustodianReport">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportBldgItem">
-              <PropertyRef Name="ReportId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianReportBldgItems_ItemCodes">
-          <End Type="AppManModel.ItemCode" Role="ItemCode" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ItemCode">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportBldgItem">
-              <PropertyRef Name="ItemCodeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianReportLandItems_CustodianReports">
-          <End Type="AppManModel.CustodianReport" Role="CustodianReport" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.CustodianReportLandItem" Role="CustodianReportLandItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="CustodianReport">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportLandItem">
-              <PropertyRef Name="ReportId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_CustodianReportLandItems_ItemCodes">
-          <End Type="AppManModel.ItemCode" Role="ItemCode" Multiplicity="0..1" />
-          <End Type="AppManModel.CustodianReportLandItem" Role="CustodianReportLandItem" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ItemCode">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="CustodianReportLandItem">
-              <PropertyRef Name="ItemCodeId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -8737,6 +8480,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="CustodianReportItemIssuances" Relationship="AppManModel.FK_CustodianReportItemIsuances_CustodianReportItems" FromRole="CustodianReportItem" ToRole="CustodianReportItemIssuance" />
           <NavigationProperty Name="CustodianReport" Relationship="AppManModel.FK_CustodianReportItems_CustodianReports" FromRole="CustodianReportItem" ToRole="CustodianReport" />
           <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_CustodianReportItems_ItemCodes" FromRole="CustodianReportItem" ToRole="ItemCode" />
+          <Property Name="ProRatedCost" Type="Decimal" Precision="18" Scale="2" />
         </EntityType>
         <Association Name="FK_CustodianReportItems_Codextn">
           <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
@@ -8913,6 +8657,270 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="PAR">
               <PropertyRef Name="OrderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="CustodianReportBldgItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ReportId" Type="Guid" />
+          <Property Name="Fund" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="CustodianItemNo" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="SeriesNo" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="FromDonation" Type="Boolean" />
+          <Property Name="Account" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="ItemCodeId" Type="Guid" />
+          <Property Name="SubAccount" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Article" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="BldgItem" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="PoNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PoDate" Type="DateTime" Precision="0" />
+          <Property Name="AcqCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DeptId" Type="Guid" />
+          <Property Name="Department" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="LocationId" Type="Guid" />
+          <Property Name="LocationCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Location" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="SubLocation" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="AcqDate" Type="DateTime" Precision="0" />
+          <Property Name="AcqMonth" Type="Int32" />
+          <Property Name="AcqYear" Type="Int32" />
+          <Property Name="AcqDay" Type="Int32" />
+          <Property Name="Address" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="ProjectName" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="BuildingType" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Area" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AppraiseValue" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="TotalAmount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="OldAmount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PsNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="PropNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="PhaseNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PhaseAmountMooe" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PhaseAmountCo" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="StartYear" Type="Int32" />
+          <Property Name="StartMonth" Type="Int32" />
+          <Property Name="StartDay" Type="Int32" />
+          <Property Name="StartDate" Type="DateTime" Precision="0" />
+          <Property Name="TargetYear" Type="Int32" />
+          <Property Name="TargetMonth" Type="Int32" />
+          <Property Name="TargetDay" Type="Int32" />
+          <Property Name="TargetDate" Type="DateTime" Precision="0" />
+          <Property Name="PercentComplete" Type="Decimal" Precision="6" Scale="2" />
+          <Property Name="CompletionYear" Type="Int32" />
+          <Property Name="CompletionMonth" Type="Int32" />
+          <Property Name="CompletionDay" Type="Int32" />
+          <Property Name="CompletionDate" Type="DateTime" Precision="0" />
+          <Property Name="Status" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Condition" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Remarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="Annex" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="PostedDt" Type="DateTime" Precision="3" />
+          <Property Name="Latitude" Type="Double" />
+          <Property Name="Longitude" Type="Double" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn" FromRole="CustodianReportBldgItem" ToRole="Codextn" />
+          <NavigationProperty Name="Codextn1" Relationship="AppManModel.FK_CustodianReportBldgItems_Codextn1" FromRole="CustodianReportBldgItem" ToRole="Codextn" />
+          <NavigationProperty Name="CustodianDisposalItems" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianReportBldgItems1" FromRole="CustodianReportBldgItem" ToRole="CustodianDisposalItem" />
+          <NavigationProperty Name="CustodianReport" Relationship="AppManModel.FK_CustodianReportBldgItems_CustodianReports" FromRole="CustodianReportBldgItem" ToRole="CustodianReport" />
+          <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_CustodianReportBldgItems_ItemCodes" FromRole="CustodianReportBldgItem" ToRole="ItemCode" />
+        </EntityType>
+        <Association Name="FK_CustodianReportBldgItems_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportBldgItem">
+              <PropertyRef Name="DeptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReportBldgItems_Codextn1">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportBldgItem">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianDisposalItems_CustodianReportBldgItems1">
+          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianDisposalItem" Role="CustodianDisposalItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CustodianReportBldgItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianDisposalItem">
+              <PropertyRef Name="CustodianReportBldgItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReportBldgItems_CustodianReports">
+          <End Type="AppManModel.CustodianReport" Role="CustodianReport" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CustodianReport">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportBldgItem">
+              <PropertyRef Name="ReportId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReportBldgItems_ItemCodes">
+          <End Type="AppManModel.ItemCode" Role="ItemCode" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReportBldgItem" Role="CustodianReportBldgItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ItemCode">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportBldgItem">
+              <PropertyRef Name="ItemCodeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="CustodianReportLandItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ReportId" Type="Guid" />
+          <Property Name="Fund" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="CustodianItemNo" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="SeriesNo" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="FromDonation" Type="Boolean" />
+          <Property Name="Account" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="ItemCodeId" Type="Guid" />
+          <Property Name="SubAccount" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Article" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="LocationId" Type="Guid" />
+          <Property Name="LocationCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Location" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Type" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Condition" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="SubLocation" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="PIN" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Address" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="LandMarks" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Area" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Unit" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PricePerSqm" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AreaXPrice" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="MarketValue" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="PsNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="PropNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="OldPropNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="OldAmount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AcqCost" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AcqDate" Type="DateTime" Precision="0" />
+          <Property Name="Vendor" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Representative" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="TctNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="OldTctNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="DRPNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DRPDate" Type="DateTime" Precision="0" />
+          <Property Name="OldDRPNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="OldDRPDate" Type="DateTime" Precision="0" />
+          <Property Name="Remarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="CGT" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CGTTransferTax" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CGTSurcharge" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CGTInterest" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CGTCompromise" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DST" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DSTTransferTax" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DSTSurcharge" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DSTInterest" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DSTCompromise" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="TransferTax" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Surcharge" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Interest" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="ConfirmationFee" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="TransferRegsFee" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="RealPropertyFee" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="VAT" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="EstateFee" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Titling" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CertificationFee" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Relocation" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Surveying" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="IncidentalExpenses" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="CapitalOutlayOrExpense" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
+          <Property Name="Annex" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <Property Name="PostedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="PostedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_CustodianReportLandItems_Codextn" FromRole="CustodianReportLandItem" ToRole="Codextn" />
+          <NavigationProperty Name="CustodianDisposalItems" Relationship="AppManModel.FK_CustodianDisposalItems_CustodianReportLandItems1" FromRole="CustodianReportLandItem" ToRole="CustodianDisposalItem" />
+          <NavigationProperty Name="CustodianReport" Relationship="AppManModel.FK_CustodianReportLandItems_CustodianReports" FromRole="CustodianReportLandItem" ToRole="CustodianReport" />
+          <NavigationProperty Name="ItemCode" Relationship="AppManModel.FK_CustodianReportLandItems_ItemCodes" FromRole="CustodianReportLandItem" ToRole="ItemCode" />
+        </EntityType>
+        <Association Name="FK_CustodianReportLandItems_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReportLandItem" Role="CustodianReportLandItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportLandItem">
+              <PropertyRef Name="LocationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianDisposalItems_CustodianReportLandItems1">
+          <End Type="AppManModel.CustodianReportLandItem" Role="CustodianReportLandItem" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianDisposalItem" Role="CustodianDisposalItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CustodianReportLandItem">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianDisposalItem">
+              <PropertyRef Name="CustodianReportLandItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReportLandItems_CustodianReports">
+          <End Type="AppManModel.CustodianReport" Role="CustodianReport" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.CustodianReportLandItem" Role="CustodianReportLandItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CustodianReport">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportLandItem">
+              <PropertyRef Name="ReportId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustodianReportLandItems_ItemCodes">
+          <End Type="AppManModel.ItemCode" Role="ItemCode" Multiplicity="0..1" />
+          <End Type="AppManModel.CustodianReportLandItem" Role="CustodianReportLandItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ItemCode">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CustodianReportLandItem">
+              <PropertyRef Name="ItemCodeId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -9952,148 +9960,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="CustodianReportBldgItems">
-            <EntityTypeMapping TypeName="AppManModel.CustodianReportBldgItem">
-              <MappingFragment StoreEntitySet="CustodianReportBldgItems">
-                <ScalarProperty Name="Longitude" ColumnName="Longitude" />
-                <ScalarProperty Name="Latitude" ColumnName="Latitude" />
-                <ScalarProperty Name="PostedDt" ColumnName="PostedDt" />
-                <ScalarProperty Name="PostedBy" ColumnName="PostedBy" />
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Annex" ColumnName="Annex" />
-                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
-                <ScalarProperty Name="Condition" ColumnName="Condition" />
-                <ScalarProperty Name="Status" ColumnName="Status" />
-                <ScalarProperty Name="CompletionDate" ColumnName="CompletionDate" />
-                <ScalarProperty Name="CompletionDay" ColumnName="CompletionDay" />
-                <ScalarProperty Name="CompletionMonth" ColumnName="CompletionMonth" />
-                <ScalarProperty Name="CompletionYear" ColumnName="CompletionYear" />
-                <ScalarProperty Name="PercentComplete" ColumnName="PercentComplete" />
-                <ScalarProperty Name="TargetDate" ColumnName="TargetDate" />
-                <ScalarProperty Name="TargetDay" ColumnName="TargetDay" />
-                <ScalarProperty Name="TargetMonth" ColumnName="TargetMonth" />
-                <ScalarProperty Name="TargetYear" ColumnName="TargetYear" />
-                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
-                <ScalarProperty Name="StartDay" ColumnName="StartDay" />
-                <ScalarProperty Name="StartMonth" ColumnName="StartMonth" />
-                <ScalarProperty Name="StartYear" ColumnName="StartYear" />
-                <ScalarProperty Name="PhaseAmountCo" ColumnName="PhaseAmountCo" />
-                <ScalarProperty Name="PhaseAmountMooe" ColumnName="PhaseAmountMooe" />
-                <ScalarProperty Name="PhaseNo" ColumnName="PhaseNo" />
-                <ScalarProperty Name="PropNo" ColumnName="PropNo" />
-                <ScalarProperty Name="PsNo" ColumnName="PsNo" />
-                <ScalarProperty Name="OldAmount" ColumnName="OldAmount" />
-                <ScalarProperty Name="TotalAmount" ColumnName="TotalAmount" />
-                <ScalarProperty Name="Area" ColumnName="Area" />
-                <ScalarProperty Name="BuildingType" ColumnName="BuildingType" />
-                <ScalarProperty Name="ProjectName" ColumnName="ProjectName" />
-                <ScalarProperty Name="Address" ColumnName="Address" />
-                <ScalarProperty Name="AcqDay" ColumnName="AcqDay" />
-                <ScalarProperty Name="AcqYear" ColumnName="AcqYear" />
-                <ScalarProperty Name="AcqMonth" ColumnName="AcqMonth" />
-                <ScalarProperty Name="AcqDate" ColumnName="AcqDate" />
-                <ScalarProperty Name="SubLocation" ColumnName="SubLocation" />
-                <ScalarProperty Name="Location" ColumnName="Location" />
-                <ScalarProperty Name="LocationCode" ColumnName="LocationCode" />
-                <ScalarProperty Name="LocationId" ColumnName="LocationId" />
-                <ScalarProperty Name="Department" ColumnName="Department" />
-                <ScalarProperty Name="DeptId" ColumnName="DeptId" />
-                <ScalarProperty Name="AcqCost" ColumnName="AcqCost" />
-                <ScalarProperty Name="PoDate" ColumnName="PoDate" />
-                <ScalarProperty Name="PoNo" ColumnName="PoNo" />
-                <ScalarProperty Name="BldgItem" ColumnName="BldgItem" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="Article" ColumnName="Article" />
-                <ScalarProperty Name="SubAccount" ColumnName="SubAccount" />
-                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
-                <ScalarProperty Name="Account" ColumnName="Account" />
-                <ScalarProperty Name="FromDonation" ColumnName="FromDonation" />
-                <ScalarProperty Name="SeriesNo" ColumnName="SeriesNo" />
-                <ScalarProperty Name="CustodianItemNo" ColumnName="CustodianItemNo" />
-                <ScalarProperty Name="Fund" ColumnName="Fund" />
-                <ScalarProperty Name="ReportId" ColumnName="ReportId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="CustodianReportLandItems">
-            <EntityTypeMapping TypeName="AppManModel.CustodianReportLandItem">
-              <MappingFragment StoreEntitySet="CustodianReportLandItems">
-                <ScalarProperty Name="PostedDt" ColumnName="PostedDt" />
-                <ScalarProperty Name="PostedBy" ColumnName="PostedBy" />
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Annex" ColumnName="Annex" />
-                <ScalarProperty Name="CapitalOutlayOrExpense" ColumnName="CapitalOutlayOrExpense" />
-                <ScalarProperty Name="IncidentalExpenses" ColumnName="IncidentalExpenses" />
-                <ScalarProperty Name="Surveying" ColumnName="Surveying" />
-                <ScalarProperty Name="Relocation" ColumnName="Relocation" />
-                <ScalarProperty Name="CertificationFee" ColumnName="CertificationFee" />
-                <ScalarProperty Name="Titling" ColumnName="Titling" />
-                <ScalarProperty Name="EstateFee" ColumnName="EstateFee" />
-                <ScalarProperty Name="VAT" ColumnName="VAT" />
-                <ScalarProperty Name="RealPropertyFee" ColumnName="RealPropertyFee" />
-                <ScalarProperty Name="TransferRegsFee" ColumnName="TransferRegsFee" />
-                <ScalarProperty Name="ConfirmationFee" ColumnName="ConfirmationFee" />
-                <ScalarProperty Name="Interest" ColumnName="Interest" />
-                <ScalarProperty Name="Surcharge" ColumnName="Surcharge" />
-                <ScalarProperty Name="TransferTax" ColumnName="TransferTax" />
-                <ScalarProperty Name="DSTCompromise" ColumnName="DSTCompromise" />
-                <ScalarProperty Name="DSTInterest" ColumnName="DSTInterest" />
-                <ScalarProperty Name="DSTSurcharge" ColumnName="DSTSurcharge" />
-                <ScalarProperty Name="DSTTransferTax" ColumnName="DSTTransferTax" />
-                <ScalarProperty Name="DST" ColumnName="DST" />
-                <ScalarProperty Name="CGTCompromise" ColumnName="CGTCompromise" />
-                <ScalarProperty Name="CGTInterest" ColumnName="CGTInterest" />
-                <ScalarProperty Name="CGTSurcharge" ColumnName="CGTSurcharge" />
-                <ScalarProperty Name="CGTTransferTax" ColumnName="CGTTransferTax" />
-                <ScalarProperty Name="CGT" ColumnName="CGT" />
-                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
-                <ScalarProperty Name="OldDRPDate" ColumnName="OldDRPDate" />
-                <ScalarProperty Name="OldDRPNo" ColumnName="OldDRPNo" />
-                <ScalarProperty Name="DRPDate" ColumnName="DRPDate" />
-                <ScalarProperty Name="DRPNo" ColumnName="DRPNo" />
-                <ScalarProperty Name="OldTctNo" ColumnName="OldTctNo" />
-                <ScalarProperty Name="TctNo" ColumnName="TctNo" />
-                <ScalarProperty Name="Representative" ColumnName="Representative" />
-                <ScalarProperty Name="Vendor" ColumnName="Vendor" />
-                <ScalarProperty Name="AcqDate" ColumnName="AcqDate" />
-                <ScalarProperty Name="AcqCost" ColumnName="AcqCost" />
-                <ScalarProperty Name="OldAmount" ColumnName="OldAmount" />
-                <ScalarProperty Name="OldPropNo" ColumnName="OldPropNo" />
-                <ScalarProperty Name="PropNo" ColumnName="PropNo" />
-                <ScalarProperty Name="PsNo" ColumnName="PsNo" />
-                <ScalarProperty Name="MarketValue" ColumnName="MarketValue" />
-                <ScalarProperty Name="PricePerSqm" ColumnName="PricePerSqm" />
-                <ScalarProperty Name="Area" ColumnName="Area" />
-                <ScalarProperty Name="LandMarks" ColumnName="LandMarks" />
-                <ScalarProperty Name="Address" ColumnName="Address" />
-                <ScalarProperty Name="PIN" ColumnName="PIN" />
-                <ScalarProperty Name="SubLocation" ColumnName="SubLocation" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="Condition" ColumnName="Condition" />
-                <ScalarProperty Name="Type" ColumnName="Type" />
-                <ScalarProperty Name="Location" ColumnName="Location" />
-                <ScalarProperty Name="LocationCode" ColumnName="LocationCode" />
-                <ScalarProperty Name="LocationId" ColumnName="LocationId" />
-                <ScalarProperty Name="Article" ColumnName="Article" />
-                <ScalarProperty Name="SubAccount" ColumnName="SubAccount" />
-                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
-                <ScalarProperty Name="Account" ColumnName="Account" />
-                <ScalarProperty Name="FromDonation" ColumnName="FromDonation" />
-                <ScalarProperty Name="SeriesNo" ColumnName="SeriesNo" />
-                <ScalarProperty Name="CustodianItemNo" ColumnName="CustodianItemNo" />
-                <ScalarProperty Name="Fund" ColumnName="Fund" />
-                <ScalarProperty Name="ReportId" ColumnName="ReportId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="AIRItems">
             <EntityTypeMapping TypeName="AppManModel.AIRItem">
               <MappingFragment StoreEntitySet="AIRItems">
@@ -10934,6 +10800,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySetMapping Name="CustodianReportItems">
             <EntityTypeMapping TypeName="AppManModel.CustodianReportItem">
               <MappingFragment StoreEntitySet="CustodianReportItems">
+                <ScalarProperty Name="ProRatedCost" ColumnName="ProRatedCost" />
                 <ScalarProperty Name="GTotalCost" ColumnName="GTotalCost" />
                 <ScalarProperty Name="TUnitCost" ColumnName="TUnitCost" />
                 <ScalarProperty Name="AddCost" ColumnName="AddCost" />
@@ -11063,6 +10930,151 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="SupBusiness" ColumnName="SupBusiness" />
                 <ScalarProperty Name="SupName" ColumnName="SupName" />
                 <ScalarProperty Name="SupplierId" ColumnName="SupplierId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CustodianReportBldgItems">
+            <EntityTypeMapping TypeName="AppManModel.CustodianReportBldgItem">
+              <MappingFragment StoreEntitySet="CustodianReportBldgItems">
+                <ScalarProperty Name="Longitude" ColumnName="Longitude" />
+                <ScalarProperty Name="Latitude" ColumnName="Latitude" />
+                <ScalarProperty Name="PostedDt" ColumnName="PostedDt" />
+                <ScalarProperty Name="PostedBy" ColumnName="PostedBy" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Annex" ColumnName="Annex" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="Condition" ColumnName="Condition" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="CompletionDate" ColumnName="CompletionDate" />
+                <ScalarProperty Name="CompletionDay" ColumnName="CompletionDay" />
+                <ScalarProperty Name="CompletionMonth" ColumnName="CompletionMonth" />
+                <ScalarProperty Name="CompletionYear" ColumnName="CompletionYear" />
+                <ScalarProperty Name="PercentComplete" ColumnName="PercentComplete" />
+                <ScalarProperty Name="TargetDate" ColumnName="TargetDate" />
+                <ScalarProperty Name="TargetDay" ColumnName="TargetDay" />
+                <ScalarProperty Name="TargetMonth" ColumnName="TargetMonth" />
+                <ScalarProperty Name="TargetYear" ColumnName="TargetYear" />
+                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
+                <ScalarProperty Name="StartDay" ColumnName="StartDay" />
+                <ScalarProperty Name="StartMonth" ColumnName="StartMonth" />
+                <ScalarProperty Name="StartYear" ColumnName="StartYear" />
+                <ScalarProperty Name="PhaseAmountCo" ColumnName="PhaseAmountCo" />
+                <ScalarProperty Name="PhaseAmountMooe" ColumnName="PhaseAmountMooe" />
+                <ScalarProperty Name="PhaseNo" ColumnName="PhaseNo" />
+                <ScalarProperty Name="PropNo" ColumnName="PropNo" />
+                <ScalarProperty Name="PsNo" ColumnName="PsNo" />
+                <ScalarProperty Name="OldAmount" ColumnName="OldAmount" />
+                <ScalarProperty Name="TotalAmount" ColumnName="TotalAmount" />
+                <ScalarProperty Name="AppraiseValue" ColumnName="AppraiseValue" />
+                <ScalarProperty Name="Area" ColumnName="Area" />
+                <ScalarProperty Name="BuildingType" ColumnName="BuildingType" />
+                <ScalarProperty Name="ProjectName" ColumnName="ProjectName" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="AcqDay" ColumnName="AcqDay" />
+                <ScalarProperty Name="AcqYear" ColumnName="AcqYear" />
+                <ScalarProperty Name="AcqMonth" ColumnName="AcqMonth" />
+                <ScalarProperty Name="AcqDate" ColumnName="AcqDate" />
+                <ScalarProperty Name="SubLocation" ColumnName="SubLocation" />
+                <ScalarProperty Name="Location" ColumnName="Location" />
+                <ScalarProperty Name="LocationCode" ColumnName="LocationCode" />
+                <ScalarProperty Name="LocationId" ColumnName="LocationId" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="DeptId" ColumnName="DeptId" />
+                <ScalarProperty Name="AcqCost" ColumnName="AcqCost" />
+                <ScalarProperty Name="PoDate" ColumnName="PoDate" />
+                <ScalarProperty Name="PoNo" ColumnName="PoNo" />
+                <ScalarProperty Name="BldgItem" ColumnName="BldgItem" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Article" ColumnName="Article" />
+                <ScalarProperty Name="SubAccount" ColumnName="SubAccount" />
+                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
+                <ScalarProperty Name="Account" ColumnName="Account" />
+                <ScalarProperty Name="FromDonation" ColumnName="FromDonation" />
+                <ScalarProperty Name="SeriesNo" ColumnName="SeriesNo" />
+                <ScalarProperty Name="CustodianItemNo" ColumnName="CustodianItemNo" />
+                <ScalarProperty Name="Fund" ColumnName="Fund" />
+                <ScalarProperty Name="ReportId" ColumnName="ReportId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CustodianReportLandItems">
+            <EntityTypeMapping TypeName="AppManModel.CustodianReportLandItem">
+              <MappingFragment StoreEntitySet="CustodianReportLandItems">
+                <ScalarProperty Name="PostedDt" ColumnName="PostedDt" />
+                <ScalarProperty Name="PostedBy" ColumnName="PostedBy" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Annex" ColumnName="Annex" />
+                <ScalarProperty Name="CapitalOutlayOrExpense" ColumnName="CapitalOutlayOrExpense" />
+                <ScalarProperty Name="IncidentalExpenses" ColumnName="IncidentalExpenses" />
+                <ScalarProperty Name="Surveying" ColumnName="Surveying" />
+                <ScalarProperty Name="Relocation" ColumnName="Relocation" />
+                <ScalarProperty Name="CertificationFee" ColumnName="CertificationFee" />
+                <ScalarProperty Name="Titling" ColumnName="Titling" />
+                <ScalarProperty Name="EstateFee" ColumnName="EstateFee" />
+                <ScalarProperty Name="VAT" ColumnName="VAT" />
+                <ScalarProperty Name="RealPropertyFee" ColumnName="RealPropertyFee" />
+                <ScalarProperty Name="TransferRegsFee" ColumnName="TransferRegsFee" />
+                <ScalarProperty Name="ConfirmationFee" ColumnName="ConfirmationFee" />
+                <ScalarProperty Name="Interest" ColumnName="Interest" />
+                <ScalarProperty Name="Surcharge" ColumnName="Surcharge" />
+                <ScalarProperty Name="TransferTax" ColumnName="TransferTax" />
+                <ScalarProperty Name="DSTCompromise" ColumnName="DSTCompromise" />
+                <ScalarProperty Name="DSTInterest" ColumnName="DSTInterest" />
+                <ScalarProperty Name="DSTSurcharge" ColumnName="DSTSurcharge" />
+                <ScalarProperty Name="DSTTransferTax" ColumnName="DSTTransferTax" />
+                <ScalarProperty Name="DST" ColumnName="DST" />
+                <ScalarProperty Name="CGTCompromise" ColumnName="CGTCompromise" />
+                <ScalarProperty Name="CGTInterest" ColumnName="CGTInterest" />
+                <ScalarProperty Name="CGTSurcharge" ColumnName="CGTSurcharge" />
+                <ScalarProperty Name="CGTTransferTax" ColumnName="CGTTransferTax" />
+                <ScalarProperty Name="CGT" ColumnName="CGT" />
+                <ScalarProperty Name="Remarks" ColumnName="Remarks" />
+                <ScalarProperty Name="OldDRPDate" ColumnName="OldDRPDate" />
+                <ScalarProperty Name="OldDRPNo" ColumnName="OldDRPNo" />
+                <ScalarProperty Name="DRPDate" ColumnName="DRPDate" />
+                <ScalarProperty Name="DRPNo" ColumnName="DRPNo" />
+                <ScalarProperty Name="OldTctNo" ColumnName="OldTctNo" />
+                <ScalarProperty Name="TctNo" ColumnName="TctNo" />
+                <ScalarProperty Name="Representative" ColumnName="Representative" />
+                <ScalarProperty Name="Vendor" ColumnName="Vendor" />
+                <ScalarProperty Name="AcqDate" ColumnName="AcqDate" />
+                <ScalarProperty Name="AcqCost" ColumnName="AcqCost" />
+                <ScalarProperty Name="OldAmount" ColumnName="OldAmount" />
+                <ScalarProperty Name="OldPropNo" ColumnName="OldPropNo" />
+                <ScalarProperty Name="PropNo" ColumnName="PropNo" />
+                <ScalarProperty Name="PsNo" ColumnName="PsNo" />
+                <ScalarProperty Name="MarketValue" ColumnName="MarketValue" />
+                <ScalarProperty Name="AreaXPrice" ColumnName="AreaXPrice" />
+                <ScalarProperty Name="PricePerSqm" ColumnName="PricePerSqm" />
+                <ScalarProperty Name="Unit" ColumnName="Unit" />
+                <ScalarProperty Name="Area" ColumnName="Area" />
+                <ScalarProperty Name="LandMarks" ColumnName="LandMarks" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="PIN" ColumnName="PIN" />
+                <ScalarProperty Name="SubLocation" ColumnName="SubLocation" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Condition" ColumnName="Condition" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="Location" ColumnName="Location" />
+                <ScalarProperty Name="LocationCode" ColumnName="LocationCode" />
+                <ScalarProperty Name="LocationId" ColumnName="LocationId" />
+                <ScalarProperty Name="Article" ColumnName="Article" />
+                <ScalarProperty Name="SubAccount" ColumnName="SubAccount" />
+                <ScalarProperty Name="ItemCodeId" ColumnName="ItemCodeId" />
+                <ScalarProperty Name="Account" ColumnName="Account" />
+                <ScalarProperty Name="FromDonation" ColumnName="FromDonation" />
+                <ScalarProperty Name="SeriesNo" ColumnName="SeriesNo" />
+                <ScalarProperty Name="CustodianItemNo" ColumnName="CustodianItemNo" />
+                <ScalarProperty Name="Fund" ColumnName="Fund" />
+                <ScalarProperty Name="ReportId" ColumnName="ReportId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

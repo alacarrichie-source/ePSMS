@@ -588,7 +588,12 @@ namespace iLgs.Controllers
             return Json(new { StockNo = stockNo }, JsonRequestBehavior.AllowGet);
         }
 
-        public async Task<ActionResult> ExcelExport(Guid reportId)
+        public async Task<ActionResult> ExcelExportAll(int? accountGroup)
+        {
+            return await ExcelExport(null, accountGroup);
+        }
+
+        public async Task<ActionResult> ExcelExport(Guid? reportId, int? accountGroup)
         {
             try
             {
@@ -596,9 +601,26 @@ namespace iLgs.Controllers
 
                 var report = await _custodianReportService.GetByIdAsync(reportId);
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportBldgItemService.ProcessExcelFile(reportId, templateFilePath);
+                var stream = _custodianReportBldgItemService.ProcessExcelFile(reportId, templateFilePath, accountGroup);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(500, ex.Message);
+            }
+        }
+
+        public ActionResult ExcelExportAnnexAll(int? accountGroup, string annex)
+        {
+            try
+            {
+                string exportFileName = $"CustodianStructureAnnex";
+
+                var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
+                var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(null, templateFilePath, accountGroup, annex);
+
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}-{annex}.xlsx");
             }
             catch (Exception ex)
             {
@@ -614,7 +636,7 @@ namespace iLgs.Controllers
 
                 var report = await _custodianReportService.GetByIdAsync(reportId);
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(reportId, templateFilePath, annex);
+                var stream = _custodianReportBldgItemService.ProcessExcelFileAnnex(reportId, templateFilePath, report.AccountGroup, annex);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}-{annex}.xlsx");
             }

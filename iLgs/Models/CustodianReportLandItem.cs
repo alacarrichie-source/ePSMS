@@ -41,7 +41,9 @@ namespace iLgs.Models
         public string Address { get; set; }
         public string LandMarks { get; set; }
         public Nullable<decimal> Area { get; set; }
+        public string Unit { get; set; }
         public Nullable<decimal> PricePerSqm { get; set; }
+        public Nullable<decimal> AreaXPrice { get; set; }
         public Nullable<decimal> MarketValue { get; set; }
         public string PsNo { get; set; }
         public string PropNo { get; set; }

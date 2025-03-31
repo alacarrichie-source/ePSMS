@@ -243,19 +243,13 @@
         <EntityTypeShape EntityType="AppManModel.AIR" Width="1.5" PointX="0.75" PointY="12.25" />
         <AssociationConnector Association="AppManModel.FK_AIRItems_AIRs" />
         </Diagram>
-      <Diagram DiagramId="612c7e6c53344422a811e5e97ae783b1" Name="Custodians" ZoomLevel="89" >
+      <Diagram DiagramId="612c7e6c53344422a811e5e97ae783b1" Name="Custodians" ZoomLevel="93" >
         <EntityTypeShape EntityType="AppManModel.CustodianDisposal" Width="1.5" PointX="3" PointY="55" />
         <EntityTypeShape EntityType="AppManModel.CustodianReport" Width="1.5" PointX="0.75" PointY="25.625" />
         <EntityTypeShape EntityType="AppManModel.CustodianDisposalItem" Width="1.5" PointX="5.25" PointY="22.875" />
         <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianDisposals" />
         <EntityTypeShape EntityType="AppManModel.DollarRate" Width="1.5" PointX="5.75" PointY="0.75" />
         <EntityTypeShape EntityType="AppManModel.CustodianReportItemIssuance" Width="1.5" PointX="5.25" PointY="52.5" />
-        <EntityTypeShape EntityType="AppManModel.CustodianReportBldgItem" Width="1.5" PointX="3" PointY="3.375" />
-        <EntityTypeShape EntityType="AppManModel.CustodianReportLandItem" Width="1.5" PointX="3" PointY="17.875" />
-        <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportBldgItems1" />
-        <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportLandItems1" />
-        <AssociationConnector Association="AppManModel.FK_CustodianReportBldgItems_CustodianReports" />
-        <AssociationConnector Association="AppManModel.FK_CustodianReportLandItems_CustodianReports" />
         <EntityTypeShape EntityType="AppManModel.CustodianIirupItem" Width="1.5" PointX="5.25" PointY="56.625" />
         <EntityTypeShape EntityType="AppManModel.CustodianIIRUP" Width="1.5" PointX="3" PointY="59.75" />
         <AssociationConnector Association="AppManModel.FK_CustodianIrrupItems_CustodianDisposals" />
@@ -264,6 +258,12 @@
         <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportItems" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportItemIsuances_CustodianReportItems" />
         <AssociationConnector Association="AppManModel.FK_CustodianReportItems_CustodianReports" />
+        <EntityTypeShape EntityType="AppManModel.CustodianReportBldgItem" Width="1.5" PointX="3" PointY="0.75" />
+        <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportBldgItems1" />
+        <AssociationConnector Association="AppManModel.FK_CustodianReportBldgItems_CustodianReports" />
+        <EntityTypeShape EntityType="AppManModel.CustodianReportLandItem" Width="1.5" PointX="3" PointY="17.25" />
+        <AssociationConnector Association="AppManModel.FK_CustodianDisposalItems_CustodianReportLandItems1" />
+        <AssociationConnector Association="AppManModel.FK_CustodianReportLandItems_CustodianReports" />
         </Diagram>
       <Diagram DiagramId="6ed46f20c55b4c3f89ae9de029a504b5" Name="Item Codes" >
         <EntityTypeShape EntityType="AppManModel.ItemTypeExclusion" Width="1.5" PointX="3" PointY="1.25" />
