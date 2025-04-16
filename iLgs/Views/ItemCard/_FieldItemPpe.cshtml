@@ -1,0 +1,23 @@
+﻿@model iLgs.Models.PsCardItemExtnPpeEntryVM
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.PsCarItemId)
+
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AcqMode, "Label")
+        </div>
+        <div class="item-value col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AcqMode).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))           
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AcqMode, "Label")
+        </div>
+        <div class="item-value col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AcqMode).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))           
+        </div>
+    </div>
+</div>

@@ -41,6 +41,7 @@
         .Name("grid")
         .Columns(col =>
         {
+            col.Bound(c => c.CustodianItemIndex).Hidden();
             col.Bound(c => c.CustodianItemNo).Width(70);
             col.Bound(c => c.Account).Width(70);
             col.Bound(c => c.SubAccount).Width(70);
@@ -51,10 +52,11 @@
             col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.LocationCode).Width(50);
-            col.Bound(c => c.Location).Width(70);
-            col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            col.Bound(c => c.Location).Width(70);            
+            col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.AcqDate).Width(50);
             col.Bound(c => c.PsNo).Width(70);
             col.Bound(c => c.Description).Width(150);
             col.Bound(c => c.Annex).Width(50);
@@ -126,7 +128,8 @@
             })
             .Sort(s =>
             {
-                s.Add(a => a.InsertedDt).Descending();
+                //s.Add(a => a.InsertedDt).Descending();
+                s.Add(a => a.CustodianItemIndex);
             })
             .Read(read => read.Action("_PpeItemRead", "CustodianReport").Data("DataGrid"))
             .Create(create => create.Action("_PpeItemCreate", "CustodianReport"))
@@ -156,6 +159,7 @@
             items.Add().Text("ICS").LoadContentFrom("_PpeIcsIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
             items.Add().Text("ARE").LoadContentFrom("_PpeAreIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
             items.Add().Text("MR").LoadContentFrom("_PpeMrIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
+            items.Add().Text("RPCPPE").LoadContentFrom("_PpeRpcPpeIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
         })
         .ToClientTemplate())
 </script>
@@ -1250,6 +1254,42 @@
         }
     }
     // END GRID MR ISSUANCE
+
+    // GRID RPCPPE ISSUANCE
+    var selectedGridRpcPpeIssuanceItem = null;
+    function onEditGridRpcPpeIssuance(e) {
+        e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("ReportItemId", '@ViewData["reportItemId"]');
+        } else {
+            selectedGridRpcPpeIssuanceItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridRpcPpeIssuanceItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridRpcPpeIssuance(e) {
+        if (selectedGridRpcPpeIssuanceItem) {
+            var dataItem = this.dataSource.get(selectedGridRpcPpeIssuanceItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+    // END GRID RPCPPE ISSUANCE
 
     function onChangeSetValues(e) {
         var setLotAmount = $("#SetLotAmount").data("kendoNumericTextBox").value();

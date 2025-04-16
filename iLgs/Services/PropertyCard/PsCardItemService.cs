@@ -378,8 +378,12 @@ namespace iLgs.Services.PropertyCard
                     //});
                     //await _db.SaveChangesAsync();
 
+                    var qtyBal = ((psCardItem.Qty ?? 0) + (psCardItem.TransferIn ?? 0)) - ((psCardItem.TransferOut ?? 0) + (psCardItem.QtyIss ?? 0));
+
                     psCardItem.TransferOut -= (psCardItemTransfer.Qty ?? 0);
-                    psCardItem.QtyBal = ((psCardItem.Qty ?? 0) + (psCardItem.TransferIn ?? 0)) - ((psCardItem.TransferOut ?? 0) + (psCardItem.QtyIss ?? 0));
+                    psCardItem.QtyBal = qtyBal;
+                    psCardItem.Amount = psCardItem.UnitCost * qtyBal;
+                    psCardItem.GTotalCost = psCardItem.TUnitCost * qtyBal;
                     psCardItem.UpdatedBy = user;
                     psCardItem.UpdatedDt = date;
 
@@ -473,7 +477,7 @@ namespace iLgs.Services.PropertyCard
             entity.PriceRate = model.PriceRate;
             entity.AddCost = model.AddCost;
             entity.TUnitCost = model.TUnitCost;
-            entity.GTotalCost = model.Amount + model.AddCost;
+            entity.GTotalCost = model.TUnitCost * model.QtyBal;
             entity.DeptId = model.DeptId;
             entity.LocationId = model.LocationId;
             entity.Description = model.Description;
@@ -495,6 +499,8 @@ namespace iLgs.Services.PropertyCard
             entity.PrevPsNo = model.PrevPsNo;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
+            entity.ProRatedCost = model.ProRatedCost;
+            entity.OtherQty = model.OtherQty;
         }
 
         public virtual ValueTask<PsCardItem> PostAsync(Guid id, string user, DateTime date) =>

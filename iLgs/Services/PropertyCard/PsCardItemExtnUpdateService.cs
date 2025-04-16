@@ -22,6 +22,11 @@ namespace iLgs.Services.PropertyCard
         IQueryable<PsCardItemExtn> GetCardItemExtnForEquipment();
         IQueryable<PsCardItemExtn> GetCardItemExtnForLand();
         IQueryable<PsCardItemExtn> GetCardItemExtnForStructures();
+
+        PsCardItemExtnLandEntryVM GetCardItemExtnLandEntry(Guid? id);
+        PsCardItemExtnStructuresEntryVM GetCardItemExtnStructuresEntry(Guid? id);
+        PsCardItemExtnVehicleEntryVM GetCardItemExtnVehicleEntry(Guid? id);
+        PsCardItemExtnPpeEntryVM GetCardItemExtnPpeEntry(Guid? id);        
     }
 
 
@@ -81,11 +86,34 @@ namespace iLgs.Services.PropertyCard
         {
             var data = _db.PsCardItemExtns.OfType<T>().AsNoTracking()
                         .Include(i => i.PsCardItem.PsCard.ItemCode.ItemType)
-                        .Include(i => i.IcsParItems)                        
+                        .Include(i => i.IcsParItems)
                         .AsQueryable();
             return data;
         }
+                                               
+        public PsCardItemExtnStructuresEntryVM GetCardItemExtnStructuresEntry(Guid? id)
+        {
+            var data = _db.Database.SqlQuery<PsCardItemExtnStructuresEntryVM>("Exec PsCardItemExtn_Structures_GetById {0}", id).FirstOrDefault();
+            return data;
+        }
 
+        public PsCardItemExtnLandEntryVM GetCardItemExtnLandEntry(Guid? id)
+        {
+            var data = _db.Database.SqlQuery<PsCardItemExtnLandEntryVM>("Exec PsCardItemExtn_Land_GetById {0}", id).FirstOrDefault();
+            return data;
+        }
+
+        public PsCardItemExtnVehicleEntryVM GetCardItemExtnVehicleEntry(Guid? id)
+        {
+            var data = _db.Database.SqlQuery<PsCardItemExtnVehicleEntryVM>("Exec PsCardItemExtn_Vehicle_GetById {0}", id).FirstOrDefault();
+            return data;
+        }
+
+        public PsCardItemExtnPpeEntryVM GetCardItemExtnPpeEntry(Guid? id)
+        {
+            var data = _db.Database.SqlQuery<PsCardItemExtnPpeEntryVM>("Exec PsCardItemExtn_PpeSupplies_GetById {0}", id).FirstOrDefault();
+            return data;
+        }
 
         public IQueryable<T> GetCardItemExtnForIcsPars<T>(Guid? psCardItemId) where T : PsCardItemExtn
         {
@@ -180,7 +208,7 @@ namespace iLgs.Services.PropertyCard
             }
         }
 
-        
+
         public async ValueTask<PsCardItemExtnParVm> GetCardItemExtnParAsync(Guid? psCardItemExtnId)
         {
             var data = await _db.PsCardItemExtns.AsNoTracking()
@@ -245,7 +273,7 @@ namespace iLgs.Services.PropertyCard
             return data;
         }
 
-        
+
 
         public string GetEndSeries(string startSeries, Guid? itemId)
         {

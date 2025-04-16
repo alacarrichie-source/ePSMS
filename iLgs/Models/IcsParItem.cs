@@ -32,11 +32,11 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         public Nullable<System.Guid> PrevItemId { get; set; }
     
-        public virtual PsCardItemExtn PsCardItemExtn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IcsParUnitGroupDescriptionItem> IcsParUnitGroupDescriptionItems { get; set; }
         public virtual IcsPar IcsPar { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
+        public virtual PsCardItemExtn PsCardItemExtn { get; set; }
     }
 }

@@ -1,0 +1,43 @@
+﻿@model iLgs.Models.PsCardItemExtnPpeEntryVM
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.PlateNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.PlateNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.PlateNo)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.BodyNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.BodyNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.BodyNo)
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.DisplayFor(m => m.AllField.MVFileNo, "Label")
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.MVFileNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.MVFileNo)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.Multipliers, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.Multipliers)
+        </div>
+    </div>
+</div>

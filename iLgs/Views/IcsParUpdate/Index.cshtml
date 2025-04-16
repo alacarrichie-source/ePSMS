@@ -37,7 +37,7 @@
         //           style='background-image: url(" + @Url.Content("~/ParIcsUpload/GridPreview?id=#:Id#") + ");" +
         //           "onclick='oClickImage(#:Id#)'></div></div>")
         //            .Width(70);
-        col.Bound(c => c.RefNo).Width(50);
+        col.Bound(c => c.RefNo).Width(70);
         col.Bound(c => c.RefDate).Width(50);
         col.Bound(c => c.UpdateCode).Width(30);
         col.Bound(c => c.LocationCode).Width(30);
@@ -46,15 +46,15 @@
         col.Bound(c => c.ReceivedDate).Width(50);
         col.Bound(c => c.PostedBy).Width(50);
         col.Bound(c => c.PostedDt).Width(70);
-        col.Bound(c => c.Status_).Width(50);
+        col.Bound(c => c.ActiveItems).Width(50);
         col.Command(command =>
         {
             command.Custom("Print").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrint");
-            command.Custom("Uploads").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
-            command.Custom("Transfer").IconClass("k-icon k-i-copy").Click("onClickTransfer").SendDataKeys(true).Visible("IsActive");
+            command.Custom("Uploads").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);            
             command.Custom("Delete").IconClass("k-icon k-i-close").SendDataKeys(true).Click("onClickDelete").Visible("IsNotPosted");
             command.Custom("Post").IconClass("k-icon k-i-lock").Click("onClickPost").SendDataKeys(true).Visible("IsNotPosted");
             command.Custom("Unpost").IconClass("k-icon k-i-unlock").Click("onClickUnpost").SendDataKeys(true).Visible("IsPosted");
+            command.Custom("Transfer").IconClass("k-icon k-i-copy").Click("onClickTransfer").SendDataKeys(true).Visible("IsActive");
         }).Width(250);
     })
     .ToolBar(t =>
@@ -85,7 +85,7 @@
     .Scrollable()
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .Sortable()
-    //.ClientDetailTemplateId("DetailTemplate")
+    .ClientDetailTemplateId("DetailTemplate")
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(30)
@@ -108,49 +108,64 @@
 )
 
 <script id="DetailTemplate" type="text/kendo-tmpl">
-    @(Html.Kendo().Grid<iLgs.Models.PsCardItemVM>()
-    .Name("gridItem_#=Id#")
-    .Columns(col =>
+    @(Html.Kendo().TabStrip()
+    .Name("tabStrip_#=Id#")
+    .TabPosition(TabStripTabPosition.Top)
+    .Animation(animation =>
     {
-        col.Bound(c => c.Account).Width(100).Title("Main Account");
-        col.Bound(c => c.StockNo).Width(100);
-        //col.Bound(c => c.Officer).Width(100);
-        col.Bound(c => c.Description).Width(150);
-        col.Bound(c => c.Unit).Width(150);
-        col.Bound(c => c.Qty).Width(30).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-                .ClientFooterTemplate("\\#=kendo.format('{0:n0}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_QtyTemplate");
-        col.Bound(c => c.Amount).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" }).EditorTemplateName("_AmountTemplate");
-        col.Bound(c => c.InsertedBy).Width(70);
-        col.Bound(c => c.InsertedDt).Width(100);
-        col.Bound(c => c.UpdatedBy).Width(70);
-        col.Bound(c => c.UpdatedDt).Width(100);
+        animation.Open(config =>
+        {
+            config.Fade(FadeDirection.In);
+        });
     })
-    .Sortable()
-    .NoRecords()
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .Events(events => events.Error("GridError"))
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
-        })
-        .Aggregates(a =>
-        {
-            a.Add(p => p.Qty).Sum();
-            a.Add(p => p.Amount).Sum();
-        })
-        .Read(read => read.Action("PoItemRead", "Query", new { poNo = "#=PoNo#", userName = "#=UserName#" }))
-    )
-    .Events(events => events
-        .Change("onChangeGridItems")
-        .DataBound("onDataBoundGridItems")
-    )
-    .Selectable(s => s.Mode(GridSelectionMode.Single))
-    .ToClientTemplate())
+    .SelectedIndex(0)
+    .Items(items =>
+    {
+        items.Add().Text("Items")
+            .Selected(true)
+            //.LoadContentFrom("_AIRItem", "AIRs", new { airId = "#=Id#" });        
+            .Content(@<text>
+                @(Html.Kendo().Grid<iLgs.Models.IcsParItemVM>()
+                .Name("gridItem_#=Id#")
+                .Columns(col =>
+                {
+                    col.Bound(c => c.PoNo).Width(40);
+                    col.Bound(c => c.SetLotNo).Width(40);
+                    col.Bound(c => c.SetLotQtyNo).Width(40);
+                    col.Bound(c => c.ItemNo).Width(40);
+                    col.Bound(c => c.RefNo).Width(150);
+                    col.Bound(c => c.Description).Width(100);
+                    col.Bound(c => c.TUnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                        .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                        .HeaderHtmlAttributes(new { style = "text-align:right;" });                    
+                    col.Bound(c => c.PrevIcsParNo).Width(70);
+                    col.Bound(c => c.CanByIcsParNo).Width(70);
+                })
+                .Sortable()
+                .NoRecords()
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Events(events => events.Error("GridError"))
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+                    })
+                    .Aggregates(a =>
+                    {
+                        a.Add(p => p.TUnitCost).Sum();
+                    })
+                    .Read(read => read.Action("ItemRead", "IcsParUpdate", new { refNo = "#=RefNo#", refType = "#=RefType#" }))
+                )
+                .Events(events => events
+                    .Change("onChangeGridItems")
+                    .DataBound("onDataBoundGridItems")
+                )
+                .Selectable(s => s.Mode(GridSelectionMode.Single))
+                .ToClientTemplate())
+    </text>);
+    }).ToClientTemplate())
+    
 </script>
 
 @(Html.Kendo().Notification()
@@ -454,7 +469,7 @@
     //////
 
     function IsActive(dataItem) {
-        return dataItem.Status_ == "Active" && dataItem.PostedDt != null;
+        return dataItem.ItemCountActive > 0 && dataItem.PostedDt != null;
     }
 
     function IsPosted(dataItem) {
@@ -676,8 +691,7 @@
         var refType = dataItem.RefType;
         var myTitle = "Transfer";
         var width = 1000;
-        var height = 650;
-
+        
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -695,8 +709,7 @@
                 }).data("kendoWindow");
         mywindow.setOptions({
             title: myTitle,
-            width: width
-            //height: height
+            width: width            
         });
         mywindow.refresh({
             url: '@Url.Action("_Transfer", "IcsParUpdate")',
@@ -711,9 +724,7 @@
                 mywindow.center();
             }
         });
-        //mywindow.center();
-        mywindow.open();
-        //resizeWindow();
+        mywindow.open();        
     }
 
     // TRANSFER TEMPLATE
@@ -879,6 +890,11 @@
     }
 
     // END GRID IMAGES
+
+    // GRID ITEMEXTNS
+    
+    // END GRID ITEMEXTNS
+
 </script>
 
 

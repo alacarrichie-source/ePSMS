@@ -96,17 +96,31 @@ namespace iLgs.Services.CustodianReports
             CGTInterest = s.CGTInterest,
             CGTSurcharge = s.CGTInterest,
             CGTTransferTax = s.CGTTransferTax,
+            CGTCompromiseCap = s.CGTCompromiseCap,
+            CGTInterestCap = s.CGTInterestCap,
+            CGTSurchargeCap = s.CGTSurchargeCap,
+            CGTTransferTaxCap = s.CGTTransferTaxCap,
             DST = s.DST,
             DSTCompromise = s.DSTCompromise,
             DSTInterest = s.DSTInterest,
             DSTSurcharge = s.DSTSurcharge,
             DSTTransferTax = s.DSTTransferTax,
+            DSTCompromiseCap = s.DSTCompromiseCap,
+            DSTInterestCap = s.DSTInterestCap,
+            DSTSurchargeCap = s.DSTSurchargeCap,
+            DSTTransferTaxCap = s.DSTTransferTaxCap,
             TransferTax = s.TransferTax,
             Surcharge = s.Surcharge,
             Interest = s.Interest,
+            TransferTaxCap = s.TransferTaxCap,
+            SurchargeCap = s.SurchargeCap,
+            InterestCap = s.InterestCap,
             ConfirmationFee = s.ConfirmationFee,
             TransferRegsFee = s.TransferRegsFee,
             RealPropertyFee = s.RealPropertyFee,
+            ConfirmationFeeCap = s.ConfirmationFeeCap,
+            TransferRegsFeeCap = s.TransferRegsFeeCap,
+            RealPropertyFeeCap = s.RealPropertyFeeCap,
             VAT = s.VAT,
             EstateFee = s.EstateFee,
             Titling = s.Titling,
@@ -114,6 +128,13 @@ namespace iLgs.Services.CustodianReports
             Relocation = s.Relocation,
             Surveying = s.Surveying,
             IncidentalExpenses = s.IncidentalExpenses,
+            VATCap = s.VATCap,
+            EstateFeeCap = s.EstateFeeCap,
+            TitlingCap = s.TitlingCap,
+            CertificationFeeCap = s.CertificationFeeCap,
+            RelocationCap = s.RelocationCap,
+            SurveyingCap = s.SurveyingCap,
+            IncidentalExpensesCap = s.IncidentalExpensesCap,
             Account = s.Account,
             ItemCodeId = s.ItemCodeId,
             SubAccount = s.SubAccount,
@@ -361,17 +382,31 @@ namespace iLgs.Services.CustodianReports
             entity.CGTSurcharge = model.CGTSurcharge;
             entity.CGTInterest = model.CGTInterest;
             entity.CGTCompromise = model.CGTCompromise;
+            entity.CGTTransferTaxCap = model.CGTTransferTaxCap;
+            entity.CGTSurchargeCap = model.CGTSurchargeCap;
+            entity.CGTInterestCap = model.CGTInterestCap;
+            entity.CGTCompromiseCap = model.CGTCompromiseCap;
             entity.DST = model.DST;
             entity.DSTTransferTax = model.DSTTransferTax;
             entity.DSTSurcharge = model.DSTSurcharge;
             entity.DSTInterest = model.DSTInterest;
             entity.DSTCompromise = model.DSTCompromise;
+            entity.DSTTransferTaxCap = model.DSTTransferTaxCap;
+            entity.DSTSurchargeCap = model.DSTSurchargeCap;
+            entity.DSTInterestCap = model.DSTInterestCap;
+            entity.DSTCompromiseCap = model.DSTCompromiseCap;
             entity.TransferTax = model.TransferTax;
             entity.Surcharge = model.Surcharge;
             entity.Interest = model.Interest;
+            entity.TransferTaxCap = model.TransferTaxCap;
+            entity.SurchargeCap = model.SurchargeCap;
+            entity.InterestCap = model.InterestCap;
             entity.ConfirmationFee = model.ConfirmationFee;
             entity.TransferRegsFee = model.TransferRegsFee;
             entity.RealPropertyFee = model.RealPropertyFee;
+            entity.ConfirmationFeeCap = model.ConfirmationFeeCap;
+            entity.TransferRegsFeeCap = model.TransferRegsFeeCap;
+            entity.RealPropertyFeeCap = model.RealPropertyFeeCap;
             entity.VAT = model.VAT;
             entity.EstateFee = model.EstateFee;
             entity.Titling = model.Titling;
@@ -379,6 +414,13 @@ namespace iLgs.Services.CustodianReports
             entity.Relocation = model.Relocation;
             entity.Surveying = model.Surveying;
             entity.IncidentalExpenses = model.IncidentalExpenses;
+            entity.VATCap = model.VATCap;
+            entity.EstateFeeCap = model.EstateFeeCap;
+            entity.TitlingCap = model.TitlingCap;
+            entity.CertificationFeeCap = model.CertificationFeeCap;
+            entity.RelocationCap = model.RelocationCap;
+            entity.SurveyingCap = model.SurveyingCap;
+            entity.IncidentalExpensesCap = model.IncidentalExpensesCap;
             entity.CapitalOutlayOrExpense = model.CapitalOutlayOrExpense;
             entity.Annex = model.Annex;
             entity.UpdatedBy = model.UpdatedBy;
@@ -444,48 +486,60 @@ namespace iLgs.Services.CustodianReports
                 ws.Row(row).Cell(++col).SetValue(reportItem.Annex);
             }
             col++;
-            ws.Row(row).Cell(++col).SetValue(reportItem.CGTTransferTax);
-            ws.Row(row).Cell(++col).SetValue(reportItem.CGTSurcharge);
-            ws.Row(row).Cell(++col).SetValue(reportItem.CGTInterest);
-            ws.Row(row).Cell(++col).SetValue(reportItem.CGTCompromise);
-            ws.Row(row).Cell(++col).SetValue(reportItem.DSTTransferTax);
-            ws.Row(row).Cell(++col).SetValue(reportItem.DSTSurcharge);
-            ws.Row(row).Cell(++col).SetValue(reportItem.DSTInterest);
-            ws.Row(row).Cell(++col).SetValue(reportItem.DSTCompromise);
-            ws.Row(row).Cell(++col).SetValue(reportItem.Surcharge);
-            ws.Row(row).Cell(++col).SetValue(reportItem.Interest);
-            ws.Row(row).Cell(++col).SetValue(reportItem.ConfirmationFee);
-            ws.Row(row).Cell(++col).SetValue(reportItem.TransferRegsFee);
-            ws.Row(row).Cell(++col).SetValue(reportItem.TransferTax);
-            ws.Row(row).Cell(++col).SetValue(reportItem.RealPropertyFee);
-            ws.Row(row).Cell(++col).SetValue(reportItem.VAT);
-            ws.Row(row).Cell(++col).SetValue(reportItem.EstateFee);
-            ws.Row(row).Cell(++col).SetValue(reportItem.Titling);
-            ws.Row(row).Cell(++col).SetValue(reportItem.CertificationFee);
-            ws.Row(row).Cell(++col).SetValue(reportItem.Relocation);
-            ws.Row(row).Cell(++col).SetValue(reportItem.Surveying);
-            ws.Row(row).Cell(++col).SetValue(reportItem.IncidentalExpenses);
-            ws.Row(row).Cell(++col).SetValue(reportItem.CGTTransferTax ?? 0 +
-                reportItem.CGTSurcharge ?? 0 +
-                reportItem.CGTInterest ?? 0 +
-                reportItem.CGTCompromise ?? 0 +
-                reportItem.DSTTransferTax ?? 0 +
-                reportItem.DSTSurcharge ?? 0 +
-                reportItem.DSTInterest ?? 0 +
-                reportItem.DSTCompromise ?? 0 +
-                reportItem.Surcharge ?? 0 +
-                reportItem.Interest ?? 0 +
-                reportItem.ConfirmationFee ?? 0 +
-                reportItem.TransferRegsFee ?? 0 +
-                reportItem.TransferTax ?? 0 +
-                reportItem.RealPropertyFee ?? 0 +
-                reportItem.VAT ?? 0 +
-                reportItem.EstateFee ?? 0 +
-                reportItem.Titling ?? 0 +
-                reportItem.CertificationFee ?? 0 +
-                reportItem.Relocation ?? 0 +
-                reportItem.Surveying ?? 0 +
-                reportItem.IncidentalExpenses ?? 0);
+            decimal? cgtTransferTax = 0, cgtSurcharge = 0, cgtInterest = 0, cgtCompromise = 0,
+                dstTransferTax = 0, dstSurcharge = 0, dstInterest = 0, dstCompromise = 0,
+                surcharge = 0, interest = 0, confirmationFee = 0, transferRegsFee = 0, transferTax = 0,
+                realPropertyFee = 0, vat = 0, estateFee = 0, titling = 0, certificationFee = 0, relocation = 0,
+                surveying = 0, incidentalExpenses = 0, total = 0;
+
+            cgtTransferTax = reportItem.CGTTransferTaxCap == true ? reportItem.CGTTransferTax : 0;
+            cgtSurcharge = reportItem.CGTSurchargeCap == true ? reportItem.CGTSurcharge : 0;
+            cgtInterest = reportItem.CGTInterestCap == true ? reportItem.CGTInterest : 0;
+            cgtCompromise = reportItem.CGTCompromiseCap == true ? reportItem.CGTCompromise : 0;
+            dstTransferTax = reportItem.DSTTransferTaxCap == true ? reportItem.DSTTransferTax : 0;
+            dstSurcharge = reportItem.DSTSurchargeCap == true ? reportItem.DSTSurcharge : 0;
+            dstInterest = reportItem.DSTInterestCap == true ? reportItem.DSTInterest : 0;
+            dstCompromise = reportItem.DSTCompromiseCap == true ? reportItem.DSTCompromise : 0;
+            surcharge = reportItem.SurchargeCap == true ? reportItem.Surcharge : 0;
+            interest = reportItem.InterestCap == true ? reportItem.Interest : 0;
+            confirmationFee = reportItem.ConfirmationFeeCap == true ? reportItem.ConfirmationFee : 0;
+            transferRegsFee = reportItem.TransferRegsFeeCap == true ? reportItem.TransferRegsFee : 0;
+            transferTax = reportItem.TransferTaxCap == true ? reportItem.TransferTax : 0;
+            realPropertyFee = reportItem.RealPropertyFeeCap == true ? reportItem.RealPropertyFee : 0;
+            vat = reportItem.VATCap == true ? reportItem.VAT : 0;
+            estateFee = reportItem.EstateFeeCap == true ? reportItem.EstateFee : 0;
+            titling = reportItem.TitlingCap == true ? reportItem.Titling : 0;
+            certificationFee = reportItem.CertificationFeeCap == true ? reportItem.CertificationFee : 0;
+            relocation = reportItem.RelocationCap == true ? reportItem.RealPropertyFee : 0;
+            surveying = reportItem.SurchargeCap == true ? reportItem.Surveying : 0;
+            incidentalExpenses = reportItem.IncidentalExpensesCap == true ? reportItem.IncidentalExpenses : 0;
+
+            total = cgtTransferTax + cgtSurcharge + cgtInterest + cgtCompromise + dstTransferTax + dstSurcharge + dstInterest + dstCompromise +
+                surcharge + interest + confirmationFee + transferRegsFee + transferTax + realPropertyFee + vat + estateFee + titling +
+                certificationFee + relocation + surveying + incidentalExpenses;
+
+            ws.Row(row).Cell(++col).SetValue(cgtTransferTax);
+            ws.Row(row).Cell(++col).SetValue(cgtSurcharge);
+            ws.Row(row).Cell(++col).SetValue(cgtInterest);
+            ws.Row(row).Cell(++col).SetValue(cgtCompromise);
+            ws.Row(row).Cell(++col).SetValue(dstTransferTax);
+            ws.Row(row).Cell(++col).SetValue(dstSurcharge);
+            ws.Row(row).Cell(++col).SetValue(dstInterest);
+            ws.Row(row).Cell(++col).SetValue(dstCompromise);
+            ws.Row(row).Cell(++col).SetValue(surcharge);
+            ws.Row(row).Cell(++col).SetValue(interest);
+            ws.Row(row).Cell(++col).SetValue(confirmationFee);
+            ws.Row(row).Cell(++col).SetValue(transferRegsFee);
+            ws.Row(row).Cell(++col).SetValue(transferTax);
+            ws.Row(row).Cell(++col).SetValue(realPropertyFee);
+            ws.Row(row).Cell(++col).SetValue(vat);
+            ws.Row(row).Cell(++col).SetValue(estateFee);
+            ws.Row(row).Cell(++col).SetValue(titling);
+            ws.Row(row).Cell(++col).SetValue(certificationFee);
+            ws.Row(row).Cell(++col).SetValue(relocation);
+            ws.Row(row).Cell(++col).SetValue(surveying);
+            ws.Row(row).Cell(++col).SetValue(incidentalExpenses);
+            ws.Row(row).Cell(++col).SetValue(total);
         }
 
         private MemoryStream ProcessExcelFileTemplate(Guid? id, int? accountGroup, string templateFilePath)
@@ -516,14 +570,27 @@ namespace iLgs.Services.CustodianReports
                     reportItems = reportItems.Where(w => w.Annex == annex);
                 }
 
+
+                //if (id != null)
+                //{
+                //    reportItems = reportItems.Where(w => w.ReportId == id).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
+                //}
+                //else
+                //{
+                //    reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
+                //}                
+
                 if (id != null)
                 {
-                    reportItems = reportItems.Where(w => w.ReportId == id).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
+                    reportItems = reportItems.Where(w => w.ReportId == id);
                 }
-                else
-                {
-                    reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
-                }
+                
+
+                reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description)
+                            .ThenBy(o => o.CustodianReport.Department)                            
+                            .ThenBy(o => o.LocationCode)
+                            .ThenBy(o => o.CustodianItemNo)
+                            .ThenBy(t => t.ItemCode.ItemNoIndex);
 
                 foreach (var reportItem in reportItems)
                 {

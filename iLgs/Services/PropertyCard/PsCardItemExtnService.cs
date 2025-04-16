@@ -25,7 +25,7 @@ namespace iLgs.Services.PropertyCard
         IQueryable<PsCardItemExtn> GetCardItemExtnForOtherIssuanceSelection(Guid? psCardItemId);
         IQueryable<PsCardItemExtn> GetCardItemExtnForVehicleIssuanceSelection(Guid? psCardItemId);
         IQueryable<PsCardItemExtn> GetCardItemExtnForLandIssuanceSelection(Guid? psCardItemId);
-        IQueryable<PsCardItemExtn> GetCardItemExtnForBldgIssuanceSelection(Guid? psCardItemId);
+        IQueryable<PsCardItemExtn> GetCardItemExtnForBldgIssuanceSelection(Guid? psCardItemId);        
 
         string GetEndSeries(string startSeries, Guid? itemId);
         string GetEndSeries(string startSeries, int qty);

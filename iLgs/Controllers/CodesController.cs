@@ -38,6 +38,15 @@ namespace iLgs.Controllers
             return View();
         }
 
+        public async Task<ActionResult> PriceCap()
+        {
+            var code = "PRICE-CAP";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Price Cap";
+            return View("Codextn", codeMast);
+        }
+
         public async Task<ActionResult> Issuance()
         {
             var code = "ISSUANCE-YEAR";

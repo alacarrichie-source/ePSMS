@@ -24,26 +24,33 @@ namespace iLgs.Models
         }
     
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> GroupId { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
         public Nullable<System.Guid> AIRItemExtnId { get; set; }
+        public Nullable<System.Guid> PsCardItemTransferItemId { get; set; }
+        public string SetLotNo { get; set; }
+        public Nullable<int> SetLotQtyNo { get; set; }
         public Nullable<int> ContentNo { get; set; }
+        public Nullable<int> TContentNo { get; set; }
         public Nullable<int> CustItemNo { get; set; }
+        public Nullable<bool> IsAutoGen { get; set; }
         public Nullable<System.Guid> LocationId { get; set; }
         public string PropNo { get; set; }
         public string PropYear { get; set; }
         public string PropSeq { get; set; }
         public string SeriesNo { get; set; }
         public string Remarks { get; set; }
+        public string Annex { get; set; }
+        public string OldPropNo { get; set; }
+        public string UpcomingOfficer { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        public string SetLotNo { get; set; }
-        public Nullable<int> SetLotQtyNo { get; set; }
-        public Nullable<bool> IsAutoGen { get; set; }
-        public Nullable<System.Guid> PsCardItemTransferItemId { get; set; }
-        public Nullable<System.Guid> GroupId { get; set; }
+        public string SubLocation { get; set; }
+        public string Condition { get; set; }
     
+        public virtual AIRItemExtn AIRItemExtn { get; set; }
         public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IcsParItem> IcsParItems { get; set; }
@@ -54,6 +61,5 @@ namespace iLgs.Models
         public virtual ICollection<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RpcPpeItem> RpcPpeItems { get; set; }
-        public virtual AIRItemExtn AIRItemExtn { get; set; }
     }
 }

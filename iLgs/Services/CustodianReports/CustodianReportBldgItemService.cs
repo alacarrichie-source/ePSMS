@@ -31,6 +31,8 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportBldgItem> UnPostAsync(Guid id, string user, DateTime date);
         MemoryStream ProcessExcelFile(Guid? id, string templateFilePath, int? accountGroup);
         MemoryStream ProcessExcelFileAnnex(Guid? id, string templateFilePath, int? accontGroup, string annex);
+
+        ICustodianReportBldgItemPhaseService CustodianReportBldgItemPhase { get; }
     }
 
     public class CustodianReportBldgItemService : BaseValidator, ICustodianReportBldgItemService
@@ -42,6 +44,7 @@ namespace iLgs.Services.CustodianReports
         private readonly IAllFieldService _allFieldService;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IUserService _userService;
+        private ICustodianReportBldgItemPhaseService _custodianReportBldgItemPhase;
 
         public CustodianReportBldgItemService(AppManEntities db)
         {
@@ -51,6 +54,8 @@ namespace iLgs.Services.CustodianReports
             _userService = new UserService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemVM>(propertyName);
         }
+
+        public ICustodianReportBldgItemPhaseService CustodianReportBldgItemPhase { get { return _custodianReportBldgItemPhase = _custodianReportBldgItemPhase ?? new CustodianReportBldgItemPhaseService(_db); } }
 
         private static Expression<Func<CustodianReportBldgItem, CustodianReportBldgItemVM>> CustodianReportBldgItemProjection
         = s => new CustodianReportBldgItemVM
@@ -482,6 +487,7 @@ namespace iLgs.Services.CustodianReports
             {
                 int sw = 1;
                 int row = 12;
+                string itemCode = "";
                 string account = "";
                 string department = "";
                 decimal? tAcqCost = 0;                
@@ -498,18 +504,34 @@ namespace iLgs.Services.CustodianReports
                     reportItems = reportItems.Where(w => w.Annex == annex);
                 }
 
+
+                //if (id != null)
+                //{
+                //    reportItems = reportItems.Where(w => w.ReportId == id).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
+                //}
+                //else
+                //{
+                //    reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
+                //}
+
                 if (id != null)
                 {
-                    reportItems = reportItems.Where(w => w.ReportId == id).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
+                    reportItems = reportItems.Where(w => w.ReportId == id);
+
                 }
-                else
-                {
-                    reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
-                }
+
+                reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Code)
+                            .ThenBy(t => t.ItemCode.ItemType.GroupCode)
+                            .ThenBy(t => t.ItemCode.ItemNoIndex)
+                            .ThenBy(o => o.CustodianReport.Department)
+                            .ThenBy(o => o.LocationCode)
+                            .ThenBy(o => o.CustodianItemNo);                            
+
                 foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
                     {
+                        itemCode = reportItem.ItemCode.ItemNoIndex;
                         account = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Description;
                         department = reportItem.CustodianReport.Department;
                         if (!string.IsNullOrWhiteSpace(annex))
@@ -531,8 +553,9 @@ namespace iLgs.Services.CustodianReports
                         sw = 0;
                     }
 
-                    if (reportItem.ItemCode != null && (account != reportItem.ItemCode.ItemType.Description || department != reportItem.CustodianReport.Department))
+                    if (reportItem.ItemCode != null && (itemCode != reportItem.ItemCode.ItemNoIndex || department != reportItem.CustodianReport.Department))
                     {
+                        itemCode = reportItem.ItemCode.ItemNoIndex;
                         account = reportItem.ItemCode.ItemType.Description;
                         department = reportItem.CustodianReport.Department;
                         row += 3;

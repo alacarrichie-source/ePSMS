@@ -22,6 +22,7 @@ namespace iLgs.Services.AllFields
         //string GetPartialField(string itemTypeCode, string itemCode);
         //string GetPartialItemField(string itemTypeCode, string itemCode);
         ValueTask<AllField> GetByIdAsync(Guid id);
+        ValueTask<AllField> GetByItemExtnIdAsync(Guid id);
         ValueTask<AllField> CreatePsCardFieldsAsync(PsCardVM model, string user, DateTime date);
         ValueTask<AllField> CreateRisFieldsAsync(RisItemEntryVM model, string user, DateTime date);
         ValueTask<AllField> UpdatePsCardFieldsAsync(PsCardVM model, string user, DateTime date);
@@ -80,6 +81,13 @@ namespace iLgs.Services.AllFields
         public ValueTask<AllField> GetByIdAsync(Guid id) => _exceptionService.TryCatch(async () =>
         {
             var data = await _db.AllFields.FindAsync(id);
+            return data;
+        });
+
+
+        public ValueTask<AllField> GetByItemExtnIdAsync(Guid id) => _exceptionService.TryCatch(async () =>
+        {
+            var data = await _db.AllFields.Where(w => w.PsCard.PsCardItems.Any(a => a.PsCardItemExtns.Any(b => b.Id == id))).FirstOrDefaultAsync();
             return data;
         });
 

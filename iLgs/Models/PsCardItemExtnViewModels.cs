@@ -323,4 +323,193 @@ namespace iLgs.Models
 
         public string Location { get; set; }
     }
+
+    public class PsCardItemExtnVehicleEntryVM : PsCardItemCommonEntryVM
+    {
+
+    }
+
+    public class PsCardItemExtnPpeEntryVM : PsCardItemCommonEntryVM
+    {
+
+    }
+
+    public class PsCardItemExtnSuppliesEntryVM : PsCardItemCommonEntryVM
+    {
+
+    }
+
+    public class PsCardItemExtnStructuresEntryVM : PsCardItemCommonEntryVM
+    {
+
+    }
+
+    public class PsCardItemExtnLandEntryVM : PsCardItemCommonEntryVM
+    {
+
+    }
+
+    public class PsCardItemCommonEntryVM
+    {
+        public PsCardItemCommonEntryVM()
+        {
+            this.AllField = new AllField() { Id = this.Id };
+        }
+
+        public AllField AllField { get; set; }
+
+        public System.Guid Id { get; set; }
+        public System.Guid PsCarItemId { get; set; }
+
+        [Display(Name = "Article")]
+        public Nullable<System.Guid> ItemCodeId { get; set; }
+
+        public string Category { get; set; }
+        public string Article { get; set; }
+
+        [Display(Name = "Sub-Accounts")]
+        public string SubAccount { get; set; }
+        public string Account { get; set; }
+
+        [Display(Name = "From Donation")]
+        public bool? FromDonation { get; set; }
+
+        public string Fund { get; set; }
+
+        [Display(Name = "Property Card No.")]
+        public string PsNo { get; set; }
+
+        [Display(Name = "Property No.")]
+        public string PropNo { get; set; }
+
+        [Display(Name = "Custodian Item No.")]
+        public string CustItemNo { get; set; }
+
+        [Display(Name = "Series No.")]
+        public string SeriesNo { get; set; }
+
+        public string Annex { get; set; }
+
+        [Display(Name = "Serial No.")]
+        public string SerialNo { get; set; }
+        
+
+        [Display(Name = "Location Code")]
+
+        public string LocationCode { get; set; }
+
+        public string Location { get; set; }
+
+        [Display(Name = "Sub-location")]
+        public string SubLocation { get; set; }
+
+        public string Condition { get; set; }
+
+
+        [Display(Name = "Acquisition Cost")]
+        public Nullable<decimal> AcqCost { get; set; }
+
+        [Display(Name = "Acquisition Date (mm/dd/yyyy)")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> AcqDate { get; set; }
+
+
+        [Display(Name = "Set/Lot No.")]
+        public string SetLotNo { get; set; }
+
+        [Display(Name = "Set/Lot Amount")]
+        public Nullable<decimal> SetLotAmount { get; set; }
+
+        [Display(Name = "Set Price Rate (%)")]
+        public Nullable<decimal> PriceRate { get; set; }
+
+        [Display(Name = "Pro-rated Set Cost")]
+        public Nullable<decimal> ProRatedCost { get; set; }
+
+        [Display(Name = "Set/Lot Remarks")]
+        public string SetLotRemarks { get; set; }
+
+        [Display(Name = "Old Amounts (in RPCPPE")]
+        public Nullable<decimal> OldAmount { get; set; }
+
+        [Display(Name = "Upcomming Accountable Officer")]
+        public string UpcomingOfficer { get; set; }
+
+        [Display(Name = "Originating PO No.")]
+        public string PoNo { get; set; }
+
+        [Display(Name = "Originating PO Date (mm/dd/yyyy)")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PoDate { get; set; }
+
+        [Display(Name = "Department Code")]
+        public string DeptCode { get; set; }
+
+        [Display(Name = "Originating PO Department")]
+        public string Department { get; set; }
+
+        [Display(Name = "Department Display")]
+        public string DeptDisplay{ get; set; }
+
+        [Display(Name = "AIR No.")]
+        public string AirNo { get; set; }
+
+        [Display(Name = "AIR Date (mm/dd/yyyy)")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> AirDate { get; set; }
+
+        [Display(Name = "PO Unit of Measurement")]
+        public string Unit { get; set; }
+
+        [Display(Name = "PO Unit Cost")]
+        public Nullable<decimal> UnitCost { get; set; }
+
+        [Display(Name = "Additional Cost")]
+        public Nullable<decimal> AddCost { get; set; }
+
+        [Display(Name = "Total Unit Cost")]
+        public Nullable<decimal> TUnitCost { get; set; }
+
+        [Display(Name = "Total Amount")]
+        public Nullable<decimal> GTAmount { get; set; }
+
+        [Display(Name = "PO Description")]
+        public string Description { get; set; }
+
+        [Display(Name = "Other Particulars")]
+        public string OtherDesc{ get; set; }
+
+        [Display(Name = "Other Particulars (Qty) *for monoblocks and books only")]
+        public Nullable<int> OtherQty { get; set; }
+
+        [Display(Name = "PO Qty")]
+        public Nullable<int> Qty { get; set; }
+
+        public string FPP { get; set; }
+
+        [Display(Name = "Created By")]
+        public string InsertedBy { get; set; }
+
+        [Display(Name = "Created Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+
+        [Display(Name = "Updated By")]
+        public string UpdatedBy { get; set; }
+
+        [Display(Name = "Updated Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
+
+        [Display(Name = "Posted By")]
+        public string PostedBy { get; set; }
+
+        [Display(Name = "Posted Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PostedDt { get; set; }
+
+        public string Remarks { get; set; }
+
+        public string OldPropNo { get; set; }
+    }
 }

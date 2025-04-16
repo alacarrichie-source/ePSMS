@@ -179,7 +179,7 @@
         <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
-                    @Html.DisplayFor(m => m.CustodianItemNo, "LabelDecimal")
+                    @Html.DisplayFor(m => m.CustodianItemNo, "Label")
                 </div>
                 <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.CustodianItemNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -571,6 +571,40 @@
                     </div>
                 </div>
 
+                <br />
+                <div class="row k-mb-2">
+                    <div class="col-md-6">
+                        <div class="col-md-4">
+                            @Html.DisplayFor(m => m.RpcPpeNo, "Label")
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Kendo().TextBoxFor(m => m.RpcPpeNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                            @Html.ValidationMessageFor(m => m.RpcPpeNo)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row k-mb-2">
+                    <div class="col-md-6">
+                        <div class="col-md-4">
+                            @Html.DisplayFor(m => m.RpcPpeIssuedTo, "Label")
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Kendo().TextBoxFor(m => m.RpcPpeIssuedTo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                            @Html.ValidationMessageFor(m => m.RpcPpeIssuedTo)
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="col-md-4">
+                            @Html.DisplayFor(m => m.RpcPpeOfficer, "Label")
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Kendo().TextBoxFor(m => m.RpcPpeOfficer).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                            @Html.ValidationMessageFor(m => m.RpcPpeOfficer)
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -775,6 +809,38 @@
                 <div class="col-md-8">
                     @(Html.Kendo().NumericTextBoxFor(m => m.OtherQty).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.OtherQty)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-6">
+                <div class="col-md-4">
+                    @Html.DisplayFor(m => m.InvDist, "Label")
+                </div>
+                <div class="col-md-8">
+                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.InvDist)
+                        .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Placeholder("Select..")
+                        .DataTextField("Description")
+                        .DataValueField("Code")
+                        .ValuePrimitive(true)
+                        .Filter(FilterType.Contains)
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetinvDistList", "Getters");
+                            })
+                            .ServerFiltering(true);
+                        })
+                        .Columns(c =>
+                        {
+                            c.Add().Field("Description").Title("Description").Width("100%");
+                        })
+                        .Suggest(true)
+                    )
+                    @Html.ValidationMessageFor(m => m.InvDist)
                 </div>
             </div>
         </div>

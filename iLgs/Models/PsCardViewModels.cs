@@ -195,9 +195,13 @@ namespace iLgs.Models
         [Display(Name = "Price Rate (%)")]
         public Nullable<decimal> PriceRate { get; set; }
 
+        [Display(Name = "Pro-rated Cost")]
+        public Nullable<decimal> ProRatedCost{ get; set; }
+
         [Display(Name = "Additional Cost")]
         public Nullable<decimal> AddCost { get; set; }
 
+        [Display(Name = "Total Unit Cost")]
         public Nullable<decimal> TUnitCost { get; set; }
 
         [Display(Name = "Total Cost")]
@@ -222,8 +226,11 @@ namespace iLgs.Models
         [Display(Name = "PO Description")]
         public string Description { get; set; }
 
-        [Display(Name = "Other Description")]
+        [Display(Name = "Other Particulars")]
         public string OtherDesc { get; set; }
+
+        [Display(Name = "Other Particulars Qty *for monoblocks and books only")]
+        public Nullable<int> OtherQty { get; set; }
 
         [Display(Name = "For ICS")]
         public Nullable<bool> IsForICS { get; set; }

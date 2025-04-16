@@ -39,6 +39,7 @@ namespace iLgs.Controllers
         private readonly ICustodianReportItemIssuanceIcsService _icsIssuanceService;
         private readonly ICustodianReportItemIssuanceAreService _areIssuanceService;
         private readonly ICustodianReportItemIssuanceMrService _mrIssuanceService;
+        private readonly ICustodianReportItemIssuanceRpcPpeService _rpcPpeIssuanceService;
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
         private readonly IAnnexDService _annexDService;
@@ -59,6 +60,7 @@ namespace iLgs.Controllers
             _icsIssuanceService = new CustodianReportItemIssuanceIcsService(_db);
             _areIssuanceService = new CustodianReportItemIssuanceAreService(_db);
             _mrIssuanceService = new CustodianReportItemIssuanceMrService(_db);
+            _rpcPpeIssuanceService = new CustodianReportItemIssuanceRpcPpeService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _userService = new UserService(_db);
             _annexDService = new AnnexDService(_db);
@@ -1230,6 +1232,137 @@ namespace iLgs.Controllers
         }
         #endregion
 
+        #region STOCK RPCPPE ISSUANCE
+        public ActionResult _StockRpcPpeIssuance(Guid? reportItemId)
+        {
+            ViewData["reportItemId"] = reportItemId;
+            return PartialView();
+        }
+
+        public ActionResult _StockRpcPpeIssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? reportItemId)
+        {
+            var data = _rpcPpeIssuanceService.GetAll(reportItemId);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _StockRpcPpeIssuanceCreate([DataSourceRequest] DataSourceRequest request, CustodianReportItemIssuanceRpcPpeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("AddError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _rpcPpeIssuanceService.CreateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("AddError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("AddError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("AddError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _StockRpcPpeIssuanceUpdate([DataSourceRequest] DataSourceRequest request, CustodianReportItemIssuanceRpcPpeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _rpcPpeIssuanceService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("UpdateError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> _StockRpcPpeIssuanceDestroy([DataSourceRequest]DataSourceRequest request, CustodianReportItemIssuanceRpcPpeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _rpcPpeIssuanceService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion
+
         #region PPE PAR ISSUANCE
         public ActionResult _PpeParIssuance(Guid? reportItemId)
         {
@@ -1739,6 +1872,137 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
                     model = await _mrIssuanceService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion
+
+        #region PPE RPCPPE ISSUANCE
+        public ActionResult _PpeRpcPpeIssuance(Guid? reportItemId)
+        {
+            ViewData["reportItemId"] = reportItemId;
+            return PartialView();
+        }
+
+        public ActionResult _PpeRpcPpeIssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? reportItemId)
+        {
+            var data = _rpcPpeIssuanceService.GetAll(reportItemId);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _PpeRpcPpeIssuanceCreate([DataSourceRequest] DataSourceRequest request, CustodianReportItemIssuanceRpcPpeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("AddError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _rpcPpeIssuanceService.CreateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("AddError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("AddError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("AddError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _PpeRpcPpeIssuanceUpdate([DataSourceRequest] DataSourceRequest request, CustodianReportItemIssuanceRpcPpeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _rpcPpeIssuanceService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("UpdateError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> _PpeRpcPpeIssuanceDestroy([DataSourceRequest]DataSourceRequest request, CustodianReportItemIssuanceRpcPpeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _rpcPpeIssuanceService.DeleteAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException)
@@ -2278,6 +2542,137 @@ namespace iLgs.Controllers
         }
         #endregion
 
+        #region VEHICLE RPCPPE ISSUANCE
+        public ActionResult _VehicleRpcPpeIssuance(Guid? reportItemId)
+        {
+            ViewData["reportItemId"] = reportItemId;
+            return PartialView();
+        }
+
+        public ActionResult _VehicleRpcPpeIssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? reportItemId)
+        {
+            var data = _rpcPpeIssuanceService.GetAll(reportItemId);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _VehicleRpcPpeIssuanceCreate([DataSourceRequest] DataSourceRequest request, CustodianReportItemIssuanceRpcPpeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("AddError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _rpcPpeIssuanceService.CreateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("AddError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("AddError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("AddError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _VehicleRpcPpeIssuanceUpdate([DataSourceRequest] DataSourceRequest request, CustodianReportItemIssuanceRpcPpeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _rpcPpeIssuanceService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("UpdateError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> _VehicleRpcPpeIssuanceDestroy([DataSourceRequest]DataSourceRequest request, CustodianReportItemIssuanceRpcPpeVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), _ppeId);
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _rpcPpeIssuanceService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion
+
         #region PRINTOUTS
         public async Task<ActionResult> StickerRpt(Guid? id, int? accountGroup)
         {
@@ -2465,27 +2860,29 @@ namespace iLgs.Controllers
             return File(fileContents, contentType, fileName);
         }
 
-        public async Task<ActionResult> ExcelExportReport(Guid? reportId, int? accountGroup)
+        public ActionResult ExcelExportReport(Guid? reportId, int? accountGroup)
         {
-            return await ExcelExport(reportId, null, accountGroup, "", null);
+            return ExcelExport(reportId, null, accountGroup, "", null, "", "", "", "");
         }
 
-        public async Task<ActionResult> ExcelExportAll(Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf)
+        public ActionResult ExcelExportAll(Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {            
-            return await ExcelExport(null, deptId, accountGroup, mainAccount, asOf);
+            return ExcelExport(null, deptId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
-        public async Task<ActionResult> ExcelExport(Guid? reportId, Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf)
+        public ActionResult ExcelExport(Guid? reportId, Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
             {
-                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
-                Access access = await accessTask;
-                if (!access.AllowDelete)
-                {
-                    return new HttpStatusCodeResult(401, "Access Denied");
-                }
+                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                //Access access = await accessTask;
+                //if (!access.AllowPrint)
+                //{
+                //    return new HttpStatusCodeResult(401, "Access Denied");
+                //}
 
                 string exportFileName = "";
                 if (accountGroup == (int?)CustodianAccountGroup.STOCK)
@@ -2502,7 +2899,8 @@ namespace iLgs.Controllers
                 }
 
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportItemService.ProcessExcelFile(reportId, deptId, templateFilePath, accountGroup, mainAccount, asOf);
+                var stream = _custodianReportItemService.ProcessExcelFile(reportId, deptId, templateFilePath, accountGroup, mainAccount, asOf
+                    , subAccount1, subAccount2, subAccount3, subAccount4);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");                
             }
@@ -2512,17 +2910,19 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult ExcelExportAnnexAll(Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf)        
+        public ActionResult ExcelExportAnnexAll(Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            return ExcelExportAnnex(null, deptId, accountGroup, annex, mainAccount, asOf);
+            return ExcelExportAnnex(null, deptId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
         public ActionResult ExcelExportAnnexReport(Guid? reportId, int? accountGroup, string annex)
         {
-            return ExcelExportAnnex(reportId, null, accountGroup, annex, "", null);
+            return ExcelExportAnnex(reportId, null, accountGroup, annex, "", null, "", "", "", "");
         }
 
-        public ActionResult ExcelExportAnnex(Guid? reportId, Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf)
+        public ActionResult ExcelExportAnnex(Guid? reportId, Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
             {
@@ -2541,7 +2941,8 @@ namespace iLgs.Controllers
                 }
 
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportItemService.ProcessExcelFileAnnex(reportId, deptId, templateFilePath, accountGroup, annex, mainAccount, asOf);
+                var stream = _custodianReportItemService.ProcessExcelFileAnnex(reportId, deptId, templateFilePath, accountGroup, annex, mainAccount, asOf
+                    , subAccount1, subAccount2, subAccount3, subAccount4);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}-{annex}.xlsx");
             }

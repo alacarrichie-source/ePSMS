@@ -62,7 +62,6 @@ namespace iLgs.Models
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<IcsParItem> IcsParItems { get; set; }
-        public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
@@ -101,16 +100,18 @@ namespace iLgs.Models
         public virtual DbSet<IcsParUpdate> IcsParUpdates { get; set; }
         public virtual DbSet<RSMIItem> RSMIItems { get; set; }
         public virtual DbSet<RPCIItem> RPCIItems { get; set; }
-        public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
         public virtual DbSet<PsCardItemIssuanceItem> PsCardItemIssuanceItems { get; set; }
         public virtual DbSet<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
         public virtual DbSet<RpcPpeItem> RpcPpeItems { get; set; }
         public virtual DbSet<RpcPpe> RpcPpes { get; set; }
         public virtual DbSet<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual DbSet<AIR> AIRs { get; set; }
-        public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
         public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
+        public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
+        public virtual DbSet<CustodianReportBldgItemPhas> CustodianReportBldgItemPhases { get; set; }
+        public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
     }
 }

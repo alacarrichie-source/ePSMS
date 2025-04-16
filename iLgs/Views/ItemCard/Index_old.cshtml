@@ -6,6 +6,7 @@
         .Name("grid")
         .Columns(col =>
         {
+            col.Bound(c => c.Fund).Width(30);
             col.Bound(c => c.PropNo).Width(150);
             col.Bound(c => c.Account).Width(70);
             col.Bound(c => c.SubAccount).Width(70);
@@ -20,25 +21,20 @@
             //    .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.DeptCode).Width(50);
             col.Bound(c => c.Department).Width(70);
-            col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                //.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.SetUnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                //.ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { style = "text-align:right;" })
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            //col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                //.HeaderHtmlAttributes(new { style = "text-align:right;" });
+            //col.Bound(c => c.SetUnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                //.HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.SetLotNo).Width(50);
             col.Bound(c => c.SetLotQtyNo).Width(50);
             col.Bound(c => c.ContentNo).Width(50);
-            col.Bound(c => c.IcsParCount).Width(50).Title("ICS Count");
+            col.Bound(c => c.IcsParCount).Width(70).Title("ICS/PAR Count");
             //col.Bound(c => c.GenericName).Hidden(true);
-            //col.Bound(c => c.InsertedDt).Width(70);
-            //col.Command(command =>
-            //{
-            //    command.Edit();
-            //    command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-            //    command.Custom("Sticker").IconClass("k-icon k-i-print").Click("onGridPrintClick");
-            //    //command.Destroy();
-            //}).Width(172);
+            //col.Bound(c => c.InsertedDt).Width(70);            
+            col.Command(command =>
+            {
+                command.Custom("Edit").IconClass("k-icon k-i-edit").Click("onGridEditClick").SendDataKeys(true);                
+            }).Width(70);
         })
         .ToolBar(t =>
         {
@@ -58,6 +54,7 @@
         })
         .Search(s =>
         {
+            s.Field(o => o.Fund, "contains");
             s.Field(o => o.Account, "contains");
             s.Field(o => o.SubAccount, "contains");
             s.Field(o => o.Article, "contains");
@@ -98,11 +95,12 @@
             //    a.Add(p => p.TransferIn).Sum();
             //    a.Add(p => p.QtyBalance).Sum();
             //})
-            //.Sort(s =>
-            //{
-            //    s.Add(a => a.InsertedDt).Descending();
-            //})
-            .Read(read => read.Action("_SuppliesRead", "ItemCard"))
+            .Sort(s =>
+            {
+                s.Add(a => a.Fund);
+                s.Add(a => a.PropNo);
+            })
+            .Read(read => read.Action("Read", "ItemCard", new { accountGroup = @ViewBag.AccountGroup }))
         )
         .Events(events => events
             .Change("onChangeGrid")
@@ -122,11 +120,13 @@
         .SelectedIndex(0)
         .Items(items =>
         {
-            //items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReport", new { imageId = "#=Id#" });
-            //items.Add().Text("PAR").LoadContentFrom("_StockParIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            items.Add().Text("ICS").LoadContentFrom("_Ics", "ItemCard", new { id = "#=Id#", propNo = "#=PropNo#" });
-            //items.Add().Text("ARE").LoadContentFrom("_StockAreIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
-            //items.Add().Text("MR").LoadContentFrom("_StockMrIssuance", "CustodianReport", new { reportItemId = "#=Id#" });
+            if (ViewBag.AccountGroup == 1)
+            {
+                items.Add().Text("Inventory Custodian Slips").LoadContentFrom("_ParIcs", "ItemCard", new { id = "#=Id#", propNo = "#=PropNo#", refType = @ViewBag.RefType });
+            } else
+            {
+                items.Add().Text("Property Acknowledgment Receipts").LoadContentFrom("_ParIcs", "ItemCard", new { id = "#=Id#", propNo = "#=PropNo#", refType = @ViewBag.RefType });
+            }            
         })
         .ToClientTemplate())
 </script>
@@ -201,6 +201,28 @@
     .custom-max-grid .k-grid-content {
         overflow-x: auto;
         height: calc(90vh - 120px) !important;
+    }
+
+    .upload-photo {
+        display: inline-block;
+        width: 70px;
+        height: 70px;
+        border-radius: 1%;
+        background-size: 70px 70px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 80px;
+        box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+        margin-left: 5px;
+    }
+
+    .file-name {
+        display: inline-block;
+        width: 150px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 32px;
+        padding-left: 3px;
     }
 </style>
 
@@ -744,7 +766,7 @@
 
         $("#LocationId").val(dataItem.Id).trigger("change");
     }
-    
+
     // end item template
 
     // GRID IMAGES
@@ -881,32 +903,9 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         selectedGridImagesItem = dataItem.Id;
 
-        var myUrl = '@Url.Action("PreviewUpload", "CustodianReport")?id=' + selectedGridImagesItem;
+        var myUrl = '@Url.Action("PreviewUpload", "ItemCard")?id=' + selectedGridImagesItem;
 
         window.open(myUrl, "_blank");
-
-        //var myTitle = "Preview";
-        //var width = 800;
-        //var height = 650;
-
-        //$("#windowcontainer").append("<div id='windowPreview'></div>");
-        //var mywindow = $("#windowPreview")
-        //        .kendoWindow({
-        //            actions: ["Minimize", "Maximize", "Close"],
-        //            resizable: true,
-        //            draggable: true,
-        //            modal: true,
-        //            visible: false,
-        //            iframe: true,
-        //            deactivate: function () {
-        //                this.destroy();
-        //            }
-        //        }).data("kendoWindow");
-
-        //mywindow.setOptions({ title: myTitle, width: width, height: height });
-        //mywindow.refresh({ url: myUrl });
-        //mywindow.center();
-        //mywindow.open();
     }
 
     function onClickDownload(e) {
@@ -1088,5 +1087,160 @@
         }
     }
     // END GRID MR ISSUANCE
+
+    function onClickBtnPrint(e) {
+        e.preventDefault();
+        // the current row for this detail
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+        var url = "";
+        var refType = '@ViewBag.RefType';
+
+        if (refType == "I") {
+            url = '@Url.Action("IcsSetRpt", "IcsParRpt")?icsNo=' + dataItem.RefNo;
+        } else {
+            url = '@Url.Action("ParSetRpt", "IcsParRpt")?parNo=' + dataItem.RefNo;
+        }
+
+        $("#windowcontainer").append("<div id='windowPrint'></div>");
+        var mywindow = $("#windowPrint")
+                .kendoWindow({
+                    actions: ["Maximize", "Minimize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    iframe: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: "Preview",
+            width: 1200,
+            height: 700
+        });
+        mywindow.refresh({
+            url: url
+        });
+        mywindow.center();
+        mywindow.open();
+    }
+
+    function onClickUploads(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //selectedId = dataItem.Id;
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        Uploads(dataItem.Id, dataItem.PostedBy);
+    }
+
+    function Uploads(imageId, postedBy) {
+        var myTitle = "Uploads";
+        var width = 1000;
+        var height = 650;
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+            //height: height
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_Images", "ItemCard")',
+            data: {
+                imageId: imageId,
+                postedBy: postedBy
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        //mywindow.center();
+        mywindow.open();
+        //resizeWindow();
+    }
+
+    function onDataBoundGridImages(e) {
+        if (selectedGridImagesItem) {
+            var dataItem = this.dataSource.get(selectedGridImagesItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+
+    function onGridEditClick(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var dataItem = selectedGrid.dataItem($(e.currentTarget).closest("tr"));
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var row = selectedGrid.tbody.find("tr[data-uid='" + rowitem.uid + "']");
+        selectedGrid.select(row);
+        selectedId = selectedGrid.dataItem(selectedGrid.select()).Id;
+        Entry("E", selectedId);
+    }
+
+    function Entry(mode, id) {
+        var myTitle = (mode == "A") ? "Item - ADD" : "Item - EDIT";
+        var width = "1000";
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    close: function () {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+        });
+
+        mywindow.refresh({
+            url: '@Url.Action("_ItemCardAddEdit", "ItemCard")',
+            data: {
+                psCardItemExtnId: id,
+                accountGroup: '@ViewBag.AccountGroup'
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        mywindow.open();
+    }
 </script>
 

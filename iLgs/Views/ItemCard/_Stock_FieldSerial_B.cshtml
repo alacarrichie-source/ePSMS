@@ -1,0 +1,35 @@
+﻿@model iLgs.Models.PsCardItemExtnSuppliesEntryVM
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.SerialNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.SerialNo)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.PropNo, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.PropNo)
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.Multipliers, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.Multipliers)
+        </div>
+    </div>
+</div>

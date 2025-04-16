@@ -510,6 +510,7 @@ namespace iLgs.Services.PoIssuance
             targetPsCardItem.QtyIss = null;
             targetPsCardItem.QtyBal = transOut;
             targetPsCardItem.Amount = transOut * targetPsCardItem.UnitCost;
+            targetPsCardItem.GTotalCost = transOut * targetPsCardItem.TUnitCost;
             targetPsCardItem.InsertedBy = user;
             targetPsCardItem.InsertedDt = date;
             targetPsCardItem.UpdatedBy = user;
@@ -524,6 +525,7 @@ namespace iLgs.Services.PoIssuance
             sourcePsCardItem.TransferOut = totalTransferOut;
             sourcePsCardItem.QtyBal = qtyBal;
             sourcePsCardItem.Amount = qtyBal * sourcePsCardItem.UnitCost;
+            sourcePsCardItem.GTotalCost = qtyBal * sourcePsCardItem.TUnitCost;
             sourcePsCardItem.UpdatedBy = user;
             sourcePsCardItem.UpdatedDt = date;
 

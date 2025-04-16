@@ -106,7 +106,7 @@ namespace iLgs.Models
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }
         public virtual ItemCode ItemCode { get; set; }
-        public virtual PsCardItemExtn PsCardItemExtn { get; set; }
         public virtual RpcPpe RpcPpe { get; set; }
+        public virtual PsCardItemExtn PsCardItemExtn { get; set; }
     }
 }

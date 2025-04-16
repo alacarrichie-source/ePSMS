@@ -24,7 +24,7 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> ReportId { get; set; }
         public string Fund { get; set; }
-        public Nullable<decimal> CustodianItemNo { get; set; }
+        public string CustodianItemNo { get; set; }
         public string SeriesNo { get; set; }
         public Nullable<bool> FromDonation { get; set; }
         public string InvDist { get; set; }
@@ -99,6 +99,9 @@ namespace iLgs.Models
         public string IcsNo { get; set; }
         public string IcsIssuedTo { get; set; }
         public string IcsOfficer { get; set; }
+        public string RpcPpeNo { get; set; }
+        public string RpcPpeIssuedTo { get; set; }
+        public string RpcPpeOfficer { get; set; }
         public string UpcomingPar { get; set; }
         public string UpcomingIcs { get; set; }
         public string Type { get; set; }
@@ -112,10 +115,10 @@ namespace iLgs.Models
         public Nullable<decimal> SetLotAmount { get; set; }
         public string SetLotRemarks { get; set; }
         public Nullable<decimal> PriceRate { get; set; }
+        public Nullable<decimal> ProRatedCost { get; set; }
         public Nullable<decimal> AddCost { get; set; }
         public Nullable<decimal> TUnitCost { get; set; }
         public Nullable<decimal> GTotalCost { get; set; }
-        public Nullable<decimal> ProRatedCost { get; set; }
     
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }

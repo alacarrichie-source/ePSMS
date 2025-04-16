@@ -408,6 +408,9 @@
     <Compile Include="Models\CustodianReportBldgItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\CustodianReportBldgItemPhas.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\CustodianReportItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -811,6 +814,8 @@
     <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\Codes\AnnexDService.cs" />
     <Compile Include="Services\Codes\BudgetService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportBldgItemPhaseService.cs" />
+    <Compile Include="Services\CustodianReports\CustodianReportItemIssuanceRpcPpeService.cs" />
     <Compile Include="Services\Items\ItemCodeRequestService.cs" />
     <Compile Include="Services\Codes\LocationBudgetService.cs" />
     <Compile Include="Services\Codes\LocationService.cs" />
@@ -4061,6 +4066,53 @@
     <Content Include="Views\AIRs\_Images.cshtml" />
     <Content Include="Views\AIRs\_ImagesAdd.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_ImagesTemplate.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardPpeEntry.cshtml" />
+    <Content Include="Views\CustodianReport\_VehicleRpcPpeIssuance.cshtml" />
+    <Content Include="Views\CustodianReport\_PpeRpcPpeIssuance.cshtml" />
+    <Content Include="Views\ItemCard\Index.cshtml" />
+    <Content Include="Views\ItemCard\_FieldItemPpe.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldAlcohol.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldBrand.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldBrand_A.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldBrand_B.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldDrugs.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldMultiple.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldMultiple_A.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldSerial.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldSerial_A.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldSerial_B.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldSerial_C.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldSerial_D.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldSerial_E.cshtml" />
+    <Content Include="Views\ItemCard\_Ppe_FieldSerial_F.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldAlcohol.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldBrand.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldBrand_A.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldBrand_B.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldDrugs.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldMultiple.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldMultiple_A.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldSerial.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldSerial_A.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldSerial_B.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldSerial_C.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldSerial_D.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldSerial_E.cshtml" />
+    <Content Include="Views\ItemCard\_Stock_FieldSerial_F.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldBrand.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldBrand_A.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldBrand_B.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldMultiple.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldMultiple_A.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldSerial.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldSerial_A.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldSerial_B.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldSerial_C.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldSerial_D.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldSerial_E.cshtml" />
+    <Content Include="Views\ItemCard\_Vehicle_FieldSerial_F.cshtml" />
+    <Content Include="Views\CustodianReportBldg\EditorTemplates\_CapitalOutlayTemplate.cshtml" />
+    <Content Include="Views\CustodianReportBldg\EditorTemplates\_MooeTemplate.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4390,9 +4442,8 @@
     <Content Include="Views\ParSet\_Upload.cshtml" />
     <Content Include="Views\ParSet\_Pars.cshtml" />
     <Content Include="Views\ParSet\_ParSet.cshtml" />
-    <Content Include="Views\ItemCard\Index.cshtml" />
-    <Content Include="Views\ItemCard\Supplies.cshtml" />
-    <Content Include="Views\ItemCard\_Items.cshtml" />
+    <Content Include="Views\ItemCard\Index_old.cshtml" />
+    <Content Include="Views\ItemCard\_ParIcs.cshtml" />
     <Content Include="Views\ItemCard\_Images.cshtml" />
     <Content Include="Views\PoIssuance\_Images.cshtml" />
     <Content Include="Views\PoIssuance\EditorTemplates\_ImagesTemplate.cshtml" />
@@ -4552,7 +4603,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

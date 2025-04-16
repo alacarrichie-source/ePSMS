@@ -183,15 +183,18 @@ namespace iLgs.Services.PropertyCard
             entity.OrDate = model.OrDate;
             entity.NetWeight = model.NetWeight;
             entity.InsPolicyNo = model.InsPolicyNo;
-            entity.ParReissuance = model.ParReissuance;
-            entity.Condition = model.Condition;
-            entity.SubLocation = model.SubLocation;
+            entity.ParReissuance = model.ParReissuance;            
             entity.ConductionNo = model.ConductionNo;
             entity.ContentNo = model.ContentNo;
             entity.CustItemNo = model.CustItemNo;
             entity.PsCardItemId = model.PsCardItemId;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
+            entity.Condition = model.Condition;
+            entity.SubLocation = model.SubLocation;
+            entity.Annex = model.Annex;
+            entity.OldPropNo = model.OldPropNo;
+            entity.UpcomingOfficer = model.UpcomingOfficer;
         }        
     }
 }

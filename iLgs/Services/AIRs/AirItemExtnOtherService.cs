@@ -79,6 +79,7 @@ namespace iLgs.Services.AIRs
             }
 
             var contentNo = _db.AIRItemExtns.Where(w => w.AIRItemId == model.AIRItemId).Max(m => m.ContentNo) ?? 0;
+            model.TContentNo = airItemQty;
             model.ContentNo = contentNo + 1;
             model.Id = Guid.NewGuid();
             model.InsertedBy = user;
@@ -93,6 +94,7 @@ namespace iLgs.Services.AIRs
                 Id = model.Id,
                 AIRItemId = model.AIRItemId,
                 ContentNo = model.ContentNo,
+                TContentNo = model.TContentNo,
                 CustItemNo = model.CustItemNo,
                 IsAutoGen = model.IsAutoGen,
                 SerialNo = model.SerialNo,
@@ -156,7 +158,7 @@ namespace iLgs.Services.AIRs
             var entity = await _db.AIRItemExtns.OfType<AIRItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
             entity.ContentNo = model.ContentNo;
-            entity.CustItemNo = model.CustItemNo;
+            entity.CustItemNo = model.CustItemNo;            
             entity.IsAutoGen = model.IsAutoGen;
             entity.SerialNo = model.SerialNo;
             entity.Condition = model.Condition;

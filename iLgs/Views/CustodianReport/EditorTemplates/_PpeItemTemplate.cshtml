@@ -174,7 +174,7 @@
         <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
-                    @Html.DisplayFor(m => m.CustodianItemNo, "LabelDecimal")
+                    @Html.DisplayFor(m => m.CustodianItemNo, "Label")
                 </div>
                 <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.CustodianItemNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -563,6 +563,40 @@
                     </div>
                 </div>
 
+                <br />
+                <div class="row k-mb-2">
+                    <div class="col-md-6">
+                        <div class="col-md-4">
+                            @Html.DisplayFor(m => m.RpcPpeNo, "Label")
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Kendo().TextBoxFor(m => m.RpcPpeNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                            @Html.ValidationMessageFor(m => m.RpcPpeNo)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row k-mb-2">
+                    <div class="col-md-6">
+                        <div class="col-md-4">
+                            @Html.DisplayFor(m => m.RpcPpeIssuedTo, "Label")
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Kendo().TextBoxFor(m => m.RpcPpeIssuedTo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                            @Html.ValidationMessageFor(m => m.RpcPpeIssuedTo)
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="col-md-4">
+                            @Html.DisplayFor(m => m.RpcPpeOfficer, "Label")
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Kendo().TextBoxFor(m => m.RpcPpeOfficer).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                            @Html.ValidationMessageFor(m => m.RpcPpeOfficer)
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 

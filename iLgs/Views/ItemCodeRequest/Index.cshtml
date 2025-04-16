@@ -69,6 +69,10 @@
             model.Field(p => p.IsForDistribution).DefaultValue(false).Editable(true);
             model.Field(p => p.IsIncorporated).DefaultValue(false).Editable(true);
         })
+        .Sort(s =>
+        {
+            s.Add(a => a.InsertedDt).Descending();            
+        })
         .Read(read => read.Action("Read", "ItemCodeRequest"))
         .Create(create => create.Action("Create", "ItemCodeRequest"))
         .Update(update => update.Action("Update", "ItemCodeRequest"))

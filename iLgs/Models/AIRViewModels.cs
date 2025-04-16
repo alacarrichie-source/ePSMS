@@ -185,6 +185,9 @@ namespace iLgs.Models
             [Display(Name = "Item Qty No.")]
             public Nullable<int> ContentNo { get; set; }
 
+            [Display(Name = "Total Qty")]
+            public Nullable<int> TContentNo { get; set; }
+
             [Display(Name = "Series No.")]
             public string SeriesNo { get; set; }
 
@@ -351,6 +354,9 @@ namespace iLgs.Models
 
             [Display(Name = "Item Qty No.")]
             public Nullable<int> ContentNo { get; set; }
+
+            [Display(Name = "Total Qty")]
+            public Nullable<int> TContentNo { get; set; }
 
             [Display(Name = "Serial No.")]
             public string SerialNo { get; set; }

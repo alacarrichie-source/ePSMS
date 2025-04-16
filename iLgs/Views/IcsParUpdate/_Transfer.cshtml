@@ -17,6 +17,7 @@
     @Html.HiddenFor(model => model.RefType)
     @Html.HiddenFor(model => model.LocationCode)
     @Html.HiddenFor(model => model.ReceivedBy)
+    @Html.HiddenFor(model => model.SelectedIds)
 
     <fieldset>
         <div class="row k-mb-2">
@@ -253,10 +254,16 @@
                     @Html.DisplayFor(m => m.Remarks, "Label")
                 </div>
                 <div class="col-md-10">
-                    @(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(3).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Remarks)
                 </div>
             </div>
+        </div>
+
+        <br />
+
+        <div class="row" style="padding-left:20px;padding-right:20px;">
+            @RenderGridSelections()
         </div>
 
         <br />
@@ -271,6 +278,49 @@
     </fieldset>
 }
 
+@helper RenderGridSelections()
+{
+    @(Html.Kendo().Grid<iLgs.Models.IcsParTransferItemVM>()
+        .Name("gridSelections")
+        .Columns(col =>
+        {
+            col.Select().Width(30);
+            col.Bound(c => c.PoNo).Width(40);
+            col.Bound(c => c.ItemNo).Width(40);
+            col.Bound(c => c.Description).Width(100);
+            col.Bound(c => c.RefNo).Width(150);
+            col.Bound(c => c.TUnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.SetLotNo).Width(40);
+            col.Bound(c => c.SetLotQtyNo).Width(40);
+        })
+        .NoRecords()
+        .Resizable(r => r.Columns(true))
+        .Selectable(s => s.Mode(GridSelectionMode.Multiple))
+        .Scrollable(s => s.Height(200))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            })
+            .Sort(s =>
+            {
+                s.Add(a => a.PoNo);
+                s.Add(a => a.SetLotNo);
+                s.Add(a => a.SetLotQtyNo);
+                s.Add(a => a.Description);
+                s.Add(a => a.ContentNo);
+            })
+            .Read(read => read.Action("_TransferSelectionSetRead", "IcsParUpdate", new { refNo = @ViewData["refNo"], refType = @ViewData["refType"] }))
+        )
+        //.Events(e => e.Change("onChangeGridItemExtns")) // No need to select by group. Individual selection is allowed during transfer
+        .AutoBind(true)
+    )
+}
+
 
 <script type="text/javascript">
     $("#btnSave").click(function (e) {
@@ -278,6 +328,23 @@
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+
+            // Get reference to Grid object
+            var grid = $("#gridSelections").data("kendoGrid");
+            // Get selected rows
+            //var selectedRows = $("input:checked", grid.tbody).closest("tr");
+            // Get data item for each
+
+            var selectedIds = grid.selectedKeyNames().join(",");
+
+            // Retrieve the dataItems of the selected rows
+            //var selectedIds = selectedRows.map(function () {
+            //    return grid.dataItem(this);
+            //}).get(); // Convert to an array
+
+            $("#SelectedIds").val(selectedIds);
+            //$("#SelectedIds").val(JSON.stringify(selectedIds));
+
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("TransferSave", "IcsParUpdate")',
@@ -289,6 +356,7 @@
                 success: function (result) {
                     window.kendo.ui.progress($("#form"), false);
                     if (result.Errors == "") {
+                        selectedId = result.Id;
                         $("#btnSave").closest(".k-window-content").data("kendoWindow").close();
                     }
                     else {

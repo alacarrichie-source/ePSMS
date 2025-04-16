@@ -1050,6 +1050,113 @@
 
     // END GRID IMAGES
 
+    // GRID AMOUNTS
+    function InlineGridAmountError(e) {
+        if (e.errors) {
+            let message = "Errors:\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
+                    });
+                }
+            });
+
+            alert(message); // You can replace this with any other UI method to display errors
+            $("#gridAmounts").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function onRequestEndGridAmount(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                $("#gridAmounts").data("kendoGrid").dataSource.read();
+            }
+        }
+    }
+
+    function DataGridAmount() {
+        return {
+            bldgItemId: $("#Id").val()  
+        };
+    }
+
+    function onEditGridAmount(e) {
+        e.preventDefault();
+        selectedGrid = e.sender;
+
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+
+        if (!validator.validate()) {
+
+            // Get all the invalid input elements.
+            var invalidInputs = validator.element.find(".k-invalid");
+
+            // Loop through each invalid input element and display its properties.
+            invalidInputs.each(function () {
+                var invalidInput = $(this);
+                var invalidInputId = invalidInput.attr("id");
+                var invalidInputName = invalidInput.attr("name");
+
+                console.log("Invalid input ID: " + invalidInputId);
+                console.log("Invalid input name: " + invalidInputName);
+
+                // You can also display more properties or perform other actions as needed.
+            });
+
+            selectedGrid.cancelRow();
+        }
+        else {
+            SaveRecords(e, false);
+        }
+    }
+    // END GRID INVOICE
+
+    function SaveRecords(e, closeWindow) {
+        var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("_Itemave", "CustodianReportBldg")',
+            data: $("#form").serialize(),
+            beforeSend: function () {
+                window.kendo.ui.progress($("#form"), true);
+            },
+            success: function (result) {
+                window.kendo.ui.progress($("#form"), false);
+                if (result.Errors == "") {
+                    $("#form input[name=Id]").val(result.Model.Id).trigger("change");
+                    if (closeWindow) {
+                        $(".k-window-content").data("kendoWindow").close();
+                    } else {
+                        if (e.model.isNew()) {
+                            selectedId = result.Model.Id;
+
+                            e.model.set("BldgItemId", selectedId);
+
+                            var row = e.sender.tbody.find("tr:first");
+                            if (row) {
+                                selectedGrid.select(row);
+                            }
+                        } else {
+                            selectedId = e.model.get("Id");
+                            var rowitem = selectedGrid.dataSource.get(selectedId);
+                            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+                        }
+                    }
+                    disabled.attr('disabled', 'disabled')
+                } else {
+                    alert(result.Errors);
+                }
+            },
+            error: function (req, status, errorObj) {
+                alert(req.responseText);
+            }
+        }).always(function () {
+            window.kendo.ui.progress($("#formAir"), false);
+        });
+    }
 </script>
 
 

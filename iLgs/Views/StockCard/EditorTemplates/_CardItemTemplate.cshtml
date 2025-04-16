@@ -11,9 +11,9 @@
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardId)
     @Html.HiddenFor(model => model.OrderItemId)
-    @Html.HiddenFor(model => model.AddCost)
+    @*@Html.HiddenFor(model => model.AddCost)
     @Html.HiddenFor(model => model.TUnitCost)
-    @Html.HiddenFor(model => model.GTotalCost)
+    @Html.HiddenFor(model => model.GTotalCost)*@
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
@@ -300,9 +300,45 @@
             </div>
         </div>
 
-        <br />
+        <hr />
         <div class="row k-mb-2">
             <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.AddCost, "LabelDecimal")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.AddCost).Decimals(2).Enable(true).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                        .Events(e => e.Change("UpdateBalance"))
+                    )
+                    @Html.ValidationMessageFor(m => m.AddCost)
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.TUnitCost, "LabelDecimal")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.TUnitCost).Decimals(2).Format("{0:n2}").Enable(false).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.TUnitCost)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.GTotalCost, "LabelDecimal")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.GTotalCost).Decimals(2).Enable(false).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.GTotalCost)
+                </div>
+            </div>            
+        </div>
+        <hr />
+        
+        <div class="row k-mb-2">
+            <div class="col-md-12">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.Description, "Label")
                 </div>
@@ -310,8 +346,10 @@
                     @(Html.Kendo().TextAreaFor(m => m.Description).Rows(5).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.Description)
                 </div>
-            </div>
+            </div>            
+        </div>
 
+        <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-3">
                     @Html.DisplayFor(m => m.OtherDesc, "Label")
@@ -319,6 +357,17 @@
                 <div class="col-md-9">
                     @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Rows(5).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.OtherDesc)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="col-md-3">
+                    @Html.DisplayFor(m => m.OtherQty, "LabelInt")
+                </div>
+                <div class="col-md-9">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.OtherQty).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })                     
+                    )
+                    @Html.ValidationMessageFor(m => m.OtherQty)
                 </div>
             </div>
         </div>

@@ -21,7 +21,7 @@ namespace iLgs.Models
         public string Remarks { get; set; }
 
         [Required]
-        [Display(Name = "Estimated Cost")]
+        [Display(Name = "Estimated UNIT Cost")]
         public Nullable<decimal> EstCost { get; set; }
 
         [Display(Name = "Consumable")]

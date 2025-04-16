@@ -15,6 +15,5 @@ namespace iLgs.Models
     public partial class PsCardItemExtnOther : PsCardItemExtn
     {
         public string SerialNo { get; set; }
-        public string Condition { get; set; }
     }
 }

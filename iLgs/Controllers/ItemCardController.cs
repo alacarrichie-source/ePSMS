@@ -1,44 +1,33 @@
-﻿using CrystalDecisions.CrystalReports.Engine;
-using iLgs.Exceptions;
-using iLgs.Exceptions.Service;
-using iLgs.Models;
-using iLgs.Services;
-using iLgs.Services.Codes;
-using iLgs.Services.CustodianReports;
-using iLgs.Services.CustodianUploads;
+﻿using iLgs.Models;
 using iLgs.Services.Items;
 using iLgs.Services.ParIcs;
 using iLgs.Services.PropertyCard;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
-using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Controllers
 {
-    [AppAuthorize("PROPNOUPDATE")]
+    [AppAuthorize("ITEMCARD")]
     public class ItemCardController : BaseController
     {
         private readonly AppManEntities _db;
-        private readonly IPsCardItemExtnService _psCardItemExtnService;
+        private readonly IPsCardService _psCardService;
         private readonly IParIcsUploadService _uploadService;
+        private readonly IItemCodeService _itemCodeService;
         //private readonly string _stockId, _ppeId, _transpoId;
 
         public ItemCardController()
         {
             _db = new AppManEntities();
-            _psCardItemExtnService = new PsCardItemExtnService(_db);
+            _psCardService = new PsCardService(_db);
             _uploadService = new ParIcsUploadService(_db);
+            _itemCodeService = new ItemCodeService(_db);
         }
 
         public ActionResult Supplies()
@@ -81,15 +70,27 @@ namespace iLgs.Controllers
             return View();
         }
 
-        #region SUPPLIES ITEM
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, int? accountGroup)
         {
-            var data = _psCardItemExtnService.PsCardItemExtnUpdate.GetAll(accountGroup);
+            var data = _psCardService.PsCardItemExtn.PsCardItemExtnUpdate.GetAll(accountGroup);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
-        #endregion
 
-        public ActionResult _items(Guid id, string propNo, string refType)
+        public ActionResult _ItemCardEntry(Guid? psCardItemExtnId, int? accountGroup)
+        {
+            ViewData["psCardItemExtnId"] = psCardItemExtnId;
+            if (accountGroup == (int?)AccountGroup.PPE || accountGroup == (int?)AccountGroup.SUPPLIES)
+            {
+                var model = _psCardService.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnPpeEntry(psCardItemExtnId);
+                return PartialView("_ItemCardPpeEntry", model);
+            }
+            else
+            {
+                return PartialView();
+            }
+        }
+
+        public ActionResult _ParIcs(Guid id, string propNo, string refType)
         {
             ViewData["Id"] = id;
             ViewData["PropNo"] = propNo;
@@ -98,9 +99,9 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public ActionResult _ItemsRead([DataSourceRequest] DataSourceRequest request, string propNo, string refType)
+        public ActionResult _ParIcsRead([DataSourceRequest] DataSourceRequest request, string propNo, string refType)
         {
-            var data = _psCardItemExtnService.IcsPar.GetAllByPropNo(propNo, refType);
+            var data = _psCardService.PsCardItemExtn.IcsPar.GetAllByPropNo(propNo, refType);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -142,6 +143,83 @@ namespace iLgs.Controllers
             {
                 return HttpNotFound("File not found"); // Handle not found case
             }
-        }       
+        }
+
+        #region AJAX CALLS
+        [HttpPost]
+        public ActionResult GetItemExtnTemplate(Guid? psCarItemExtnid)
+        {
+            string itemExtnName = _psCardService.GetItemExtnNameByItmExtnId(psCarItemExtnid);
+
+            return Json(new { Errors = "", ItemExtnName = itemExtnName }, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadPpeFields([System.Web.Http.FromBody] PsCardItemExtnPpeEntryVM model)
+        {
+            if (model.Id != Guid.Empty)
+            {
+                var allField = await _psCardService.AllField.GetByItemExtnIdAsync(model.Id);
+                if (allField != null)
+                {
+                    model.AllField = allField;
+                }
+            }
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            if (!string.IsNullOrWhiteSpace(partialView))
+            {
+                partialView = $"_Ppe{partialView}";
+            }
+
+            return PartialView(partialView, model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadSuppliesFields([System.Web.Http.FromBody] PsCardItemExtnSuppliesEntryVM model)
+        {
+            if (model.Id != Guid.Empty)
+            {
+                var allField = await _psCardService.AllField.GetByItemExtnIdAsync(model.Id);
+                if (allField != null)
+                {
+                    model.AllField = allField;
+                }
+            }
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            if (!string.IsNullOrWhiteSpace(partialView))
+            {
+                partialView = $"_Stock{partialView}";
+            }
+
+            return PartialView(partialView, model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadVehicleFields([System.Web.Http.FromBody] PsCardItemExtnVehicleEntryVM model)
+        {
+            if (model.Id != Guid.Empty)
+            {
+                var allField = await _psCardService.AllField.GetByItemExtnIdAsync(model.Id);
+                if (allField != null)
+                {
+                    model.AllField = allField;
+                }
+            }
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            if (!string.IsNullOrWhiteSpace(partialView))
+            {
+                partialView = $"_Vehicle{partialView}";
+            }
+
+            return PartialView(partialView, model);
+        }
+
+        #endregion
     }
 }

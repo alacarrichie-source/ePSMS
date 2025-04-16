@@ -1,0 +1,13 @@
+﻿@model iLgs.Models.PsCardItemExtnSuppliesEntryVM
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.Multipliers, "LabelInt")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.Multipliers)
+        </div>
+    </div>
+</div>

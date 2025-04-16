@@ -56,6 +56,8 @@ namespace iLgs.Models
         
         public string ItemType_Code { get; set; }
         public string Item_Code { get; set; }
+        public string ItemTypeIndex { get; set; }
+        public string ItemCodeIndex { get; set; }
 
         public AllField AllField { get; set; }
         public Guid? MainDeptId { get; set; }
@@ -64,7 +66,39 @@ namespace iLgs.Models
         public string MainDeptName { get; set; }
         public int? AccountGroup { get; set; }
 
-        
+        [Display(Name = "Department Code")]
+        public string DeptCode { get; set; }
+
+        [Display(Name = "Custodian Item Index")]
+        public decimal? CustodianItemIndex { get; set; }
+        //public string ItemIndex
+        //{
+        //    get
+        //    {
+        //        return !string.IsNullOrWhiteSpace(CustodianItemNo)
+        //            ? CustodianItemNo.ToString("000.000")  // Ensures 3-digit integer & 3-digit decimal part
+        //            : "000.000"; // Default value for null
+        //    }
+        //}
+
+        public string Par { get; set; }
+        public string Ics { get; set; }
+        public string Are { get; set; }
+        public string Mr { get; set; }
+        public string RpcPpe { get; set; }
+
+        public string ParOfficers { get; set; }
+        public string IcsOfficers { get; set; }
+        public string AreOfficers { get; set; }
+        public string MrOfficers { get; set; }
+        public string RpcPpeOfficers { get; set; }
+
+        public string ParIssuedsTo { get; set; }
+        public string IcsIssuedsTo { get; set; }
+        public string AreIssuedsTo { get; set; }
+        public string MrIssuedsTo { get; set; }
+        public string RpcPpeIssuedsTo { get; set; }
+
         internal sealed class Metadata
         {
             public System.Guid Id { get; set; }
@@ -74,12 +108,12 @@ namespace iLgs.Models
             public string Fund { get; set; }
 
             [Display(Name = "Custodian Item No.")]
-            public Nullable<decimal> CustodianItemNo { get; set; }
+            public string CustodianItemNo { get; set; }
 
             [Display(Name = "Series No.")]
             public string SeriesNo { get; set; }
 
-            [Display(Name = "From Donation")]
+            [Display(Name = "Donation (from Other Gov't Agencies & Private Entities)")]
             public Nullable<bool> FromDonation { get; set; }
 
             //[Required]
@@ -118,10 +152,10 @@ namespace iLgs.Models
             [Display(Name = "PO Unit Cost")]
             public Nullable<decimal> UnitCost { get; set; }
             
-            [Display(Name = "Set Price Rate (%)")]
+            [Display(Name = "Set/Lot Price Rate (%)")]
             public Nullable<decimal> PriceRate { get; set; }
 
-            [Display(Name = "Pro-rated Set Cost")]
+            [Display(Name = "Pro-rated Set/Lot Cost")]
             public Nullable<decimal> ProRatedCost { get; set; }
             //[Required]
             [Display(Name = "PO Unit of Measurement")]
@@ -133,6 +167,7 @@ namespace iLgs.Models
             //[Required]
             [Display(Name = "Originating PO Department")]
             public Nullable<System.Guid> DeptId { get; set; }
+            
 
             [Display(Name = "Department Display")]
             public string Department { get; set; }
@@ -275,6 +310,15 @@ namespace iLgs.Models
             [Display(Name = "ICS Accountable Officer")]
             public string IcsOfficer { get; set; }
 
+            [Display(Name = "RPCPPE Ref #")]
+            public string RpcPpeNo { get; set; }
+
+            [Display(Name = "RPCPPE Ref # Issued To")]
+            public string RpcPpeIssuedTo { get; set; }
+
+            [Display(Name = "RPCPPE Ref # Accountable Officer")]
+            public string RpcPpeOfficer { get; set; }
+
 
             [Display(Name = "Upcoming PAR Accountable Officer")]
             public string UpcomingPar { get; set; }
@@ -284,7 +328,7 @@ namespace iLgs.Models
 
             public string Type { get; set; }
 
-            //[Required]            
+            [Required]            
             public string Annex { get; set; }
 
             [Display(Name = "Inserted By")]
@@ -431,12 +475,12 @@ namespace iLgs.Models
             public string Fund { get; set; }
 
             [Display(Name = "Custodian Item No.")]
-            public Nullable<decimal> CustodianItemNo { get; set; }
+            public string CustodianItemNo { get; set; }
 
             [Display(Name = "Series No.")]
             public string SeriesNo { get; set; }
 
-            [Display(Name = "From Donation")]
+            [Display(Name = "Donation (from Other Gov't Agencies & Private Entities)")]
             public Nullable<bool> FromDonation { get; set; }
             public string Account { get; set; }
 
@@ -455,6 +499,8 @@ namespace iLgs.Models
             public string Location { get; set; }
             public string Type { get; set; }
             public string Condition { get; set; }
+
+            [Display(Name = "Type/Condition/Description")]
             public string Description { get; set; }
 
             [Display(Name = "Sub-Location")]
@@ -470,16 +516,18 @@ namespace iLgs.Models
             //[Required]
             [Display(Name = "Area (sqm)")]
             public Nullable<decimal> Area { get; set; }
+
+            [Display(Name = "Unit of Measurement (UM)")]
             public string Unit { get; set; }
 
-            [Display(Name = "Area X Price per UM")]
+            [Display(Name = "Area x Price per UM")]
             public Nullable<decimal> AreaXPrice { get; set; }
 
             //[Required]
-            [Display(Name = "Price per sqm.")]
+            [Display(Name = "Price per UM in the Deed of Sale")]
             public Nullable<decimal> PricePerSqm { get; set; }
 
-            [Display(Name = "Market Value")]
+            [Display(Name = "Market Value per Assessor's Office")]
             public Nullable<decimal> MarketValue { get; set; }
 
             [Display(Name = "Property Card No.")]
@@ -491,7 +539,7 @@ namespace iLgs.Models
             [Display(Name = "Old Property No.")]
             public string OldPropNo { get; set; }
 
-            [Display(Name = "Acquisition Cost")]
+            [Display(Name = "RPCPPE Acquisition Cost")]
             public Nullable<decimal> AcqCost { get; set; }
 
             [Display(Name = "Old Amounts (in RPCPPE)")]
@@ -500,20 +548,20 @@ namespace iLgs.Models
             [Display(Name = "Acquisition Date")]
             public Nullable<System.DateTime> AcqDate { get; set; }
 
-            [Display(Name = "Vendor/Donor")]
+            [Display(Name = "Vendor/Donor: Name of Owner")]
             public string Vendor { get; set; }
 
-            [Display(Name = "Representative")]
+            [Display(Name = "Representative/Atty-in-Fact")]
             public string Representative { get; set; }
 
-            [Display(Name = "TCT No.")]
+            [Display(Name = "Latest TCT No.")]
             public string TctNo { get; set; }
 
             //[Required]
             [Display(Name = "Old TCT No.")]
             public string OldTctNo { get; set; }
 
-            [Display(Name = "DRP No.")]
+            [Display(Name = "Latest DRP No.")]
             public string DRPNo { get; set; }
 
             [Display(Name = "Date Regs.")]
@@ -541,6 +589,11 @@ namespace iLgs.Models
             [Display(Name = "CGT Compromise")]
             public Nullable<decimal> CGTCompromise { get; set; }
 
+            public Nullable<bool> CGTTransferTaxCap { get; set; }
+            public Nullable<bool> CGTSurchargeCap { get; set; }
+            public Nullable<bool> CGTInterestCap { get; set; }
+            public Nullable<bool> CGTCompromiseCap { get; set; }
+
             [Display(Name = "Document Stamp Tax (DST)")]
             public Nullable<decimal> DST { get; set; }
 
@@ -556,6 +609,11 @@ namespace iLgs.Models
             [Display(Name = "DST Compromise")]
             public Nullable<decimal> DSTCompromise { get; set; }
 
+            public Nullable<bool> DSTTransferTaxCap { get; set; }
+            public Nullable<bool> DSTSurchargeCap { get; set; }
+            public Nullable<bool> DSTInterestCap { get; set; }
+            public Nullable<bool> DSTCompromiseCap { get; set; }
+
             [Display(Name = "Transfer Tax")]
             public Nullable<decimal> TransferTax { get; set; }
 
@@ -565,6 +623,10 @@ namespace iLgs.Models
             [Display(Name = "2% Interest")]
             public Nullable<decimal> Interest { get; set; }
 
+            public Nullable<bool> TransferTaxCap { get; set; }
+            public Nullable<bool> SurchargeCap { get; set; }
+            public Nullable<bool> InterestCap { get; set; }
+
             [Display(Name = "Confirmation Fee")]
             public Nullable<decimal> ConfirmationFee { get; set; }
 
@@ -573,6 +635,11 @@ namespace iLgs.Models
 
             [Display(Name = "Real Property Tax")]
             public Nullable<decimal> RealPropertyFee { get; set; }
+
+            public Nullable<bool> ConfirmationFeeCap { get; set; }
+            public Nullable<bool> TransferRegsFeeCap { get; set; }
+            public Nullable<bool> RealPropertyFeeCap { get; set; }
+
             public Nullable<decimal> VAT { get; set; }
 
             [Display(Name = "Estate Tax")]
@@ -586,6 +653,14 @@ namespace iLgs.Models
 
             [Display(Name = "Incidental Expense")]
             public Nullable<decimal> IncidentalExpenses { get; set; }
+
+            public Nullable<bool> VATCap { get; set; }
+            public Nullable<bool> EstateFeeCap { get; set; }
+            public Nullable<bool> TitlingCap { get; set; }
+            public Nullable<bool> CertificationFeeCap { get; set; }
+            public Nullable<bool> RelocationCap { get; set; }
+            public Nullable<bool> SurveyingCap { get; set; }
+            public Nullable<bool> IncidentalExpensesCap { get; set; }
 
             [Display(Name = "Capital Outlay or Expense")]
             public string CapitalOutlayOrExpense { get; set; }
@@ -641,12 +716,12 @@ namespace iLgs.Models
             public string Fund { get; set; }
 
             [Display(Name = "Custodian Item No.")]
-            public Nullable<decimal> CustodianItemNo { get; set; }
+            public string CustodianItemNo { get; set; }
 
             [Display(Name = "Series No.")]
             public string SeriesNo { get; set; }
 
-            [Display(Name = "From Donation")]
+            [Display(Name = "Donation (from Other Gov't Agencies & Private Entities)")]
             public Nullable<bool> FromDonation { get; set; }
             public string Account { get; set; }
 
@@ -706,7 +781,7 @@ namespace iLgs.Models
             [Display(Name = "Property Number")]
             public string PropNo { get; set; }
 
-            [Display(Name = "Old Amounts (Recorded in RPCPPE)")]
+            [Display(Name = "Old Amounts (in RPCPPE)")]
             public Nullable<decimal> OldAmount { get; set; }
 
             [Display(Name = "Construction Type")]
@@ -756,7 +831,7 @@ namespace iLgs.Models
             [Display(Name = "Target Date")]
             public Nullable<System.DateTime> TargetDate { get; set; }
 
-            [Display(Name = "Percent of Completion (%)")]
+            [Display(Name = "Percent (%) of Completion")]
             public Nullable<decimal> PercentComplete { get; set; }
 
             [Display(Name = "Completion Year")]
@@ -799,6 +874,31 @@ namespace iLgs.Models
     public class CustodianReportBldgItemVM : CustodianReportBldgItem
     {
 
+    }
+
+    [MetadataType(typeof(CustodianReportBldgItemPhas.Metadata))]
+    public partial class CustodianReportBldgItemPhas
+    {
+        internal sealed class Metadata
+        {
+            public System.Guid Id { get; set; }
+            public Nullable<System.Guid> BldgItemId { get; set; }
+
+            [Display(Name = "Phase No.")]
+            [Required]
+            public string PhaseNo { get; set; }
+
+            [Display(Name = "Phase Amount Capital Outlay")]
+            public Nullable<decimal> CapitalOutlay { get; set; }
+
+            [Display(Name = "Phase Amount MOOE")]
+            public Nullable<decimal> MOOE { get; set; }
+            public string InsertedBy { get; set; }
+            public Nullable<System.DateTime> InsertedDt { get; set; }
+            public string UpdatedBy { get; set; }
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
+        }
+        
     }
 
     public partial class CustodianReportItemIssuance
@@ -880,6 +980,24 @@ namespace iLgs.Models
         {
             [Required]
             [Display(Name = "ARE No.")]
+            public string RefNo { get; set; }
+
+            [Display(Name = "Issued To")]
+            public string IssuedTo { get; set; }
+
+            [Required]
+            [Display(Name = "Accountable Officer")]
+            public string AccountableOfficer { get; set; }
+        }
+    }
+
+    [MetadataType(typeof(CustodianReportItemIssuanceRpcPpeVM.Metadata))]
+    public class CustodianReportItemIssuanceRpcPpeVM : CustodianReportItemIssuance
+    {
+        internal sealed class Metadata
+        {
+            [Display(Name = "RPCPPE Ref #.")]
+            [Required]
             public string RefNo { get; set; }
 
             [Display(Name = "Issued To")]

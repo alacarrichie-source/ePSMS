@@ -9,9 +9,16 @@ namespace iLgs.Models
 
     public class IcsParVM : IcsPar
     {
+        public int? ItemCount { get; set; }
+        public int? ItemCountActive { get; set; }
+
+        [Display(Name = "Available Items")]
+        public string ActiveItems { get; set; }
+
         [Display(Name = "Status")]
         public string Status_ { get; set; }
 
+               
         [Display(Name = "Prev. Ref. No.")]
         public string PrevRefNo { get; set; }
 
@@ -25,6 +32,8 @@ namespace iLgs.Models
         [Display(Name = "Location Code")]
         [Required]
         new public Nullable<System.Guid> LocationId { get; set; }
+
+        public string SelectedIds { get; set; }
     }
 
 
@@ -571,5 +580,71 @@ namespace iLgs.Models
         public string Department { get; set; }
         public string Position { get; set; }
         public string Status { get; set; }        
+    }
+
+    public class IcsParTransferItemVM
+    {
+        public System.Guid Id { get; set; }
+
+        [Display(Name = "PO No.")]
+        public string PoNo { get; set; }
+
+        [Display(Name = "Group No.")]
+        public string SetLotNo { get; set; }
+
+        [Display(Name = "Set/Lot No.")]
+        public Nullable<int> SetLotQtyNo { get; set; }
+
+        [Display(Name = "Item Qty No.")]
+        public Nullable<int> ContentNo { get; set; }
+
+        [Display(Name = "Total Qty")]        
+        public Nullable<int> TContentNo { get; set; }
+
+        public string ItemNo { get { return this.ContentNo.ToString().Trim() + (this.TContentNo == null ? "" : "/" + this.TContentNo.ToString().Trim()); } }
+
+        [Display(Name = "Ref. No.")]
+        public string RefNo { get; set; }
+
+        public string Description { get; set; }
+
+        [Display(Name = "Total Cost")]
+        public Nullable<decimal> TUnitCost { get; set; }
+    }
+
+    public class IcsParItemVM
+    {
+        public System.Guid Id { get; set; }
+
+        [Display(Name = "PO No.")]
+        public string PoNo { get; set; }
+
+        [Display(Name = "Group No.")]
+        public string SetLotNo { get; set; }
+
+        [Display(Name = "Set/Lot No.")]
+        public Nullable<int> SetLotQtyNo { get; set; }
+
+        [Display(Name = "Item Qty No.")]
+        public Nullable<int> ContentNo { get; set; }
+
+        [Display(Name = "Total Qty")]
+        public Nullable<int> TContentNo { get; set; }
+
+        public string ItemNo { get { return this.ContentNo.ToString().Trim() + (this.TContentNo == null ? "" : "/" + this.TContentNo.ToString().Trim()); } }
+
+        [Display(Name = "Ref. No.")]
+        public string RefNo { get; set; }
+
+        public string Description { get; set; }
+
+        [Display(Name = "Total Cost")]
+        public Nullable<decimal> TUnitCost { get; set; }
+
+        [Display(Name = "Prev. ICS/PAR No.")]
+        public string PrevIcsParNo { get; set; }
+
+        [Display(Name = "Cancelled by ICS/PAR No.")]
+        public string CanByIcsParNo { get; set; }
     }
 }

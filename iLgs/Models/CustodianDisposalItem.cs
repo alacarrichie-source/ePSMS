@@ -60,8 +60,8 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual CustodianDisposal CustodianDisposal { get; set; }
-        public virtual CustodianReportItem CustodianReportItem { get; set; }
         public virtual CustodianReportBldgItem CustodianReportBldgItem { get; set; }
         public virtual CustodianReportLandItem CustodianReportLandItem { get; set; }
+        public virtual CustodianReportItem CustodianReportItem { get; set; }
     }
 }

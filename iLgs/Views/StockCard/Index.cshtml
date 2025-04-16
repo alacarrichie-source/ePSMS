@@ -2011,21 +2011,29 @@
         var transferIn = $("#TransferIn").data("kendoNumericTextBox").value();
         var transferOut = $("#TransferOut").data("kendoNumericTextBox").value();
         var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();
-
+        var addCost = $("#AddCost").data("kendoNumericTextBox").value();
+        
         qty = qty == null ? 0 : qty;
         qtyIss = qtyIss == null ? 0 : qtyIss;
         transferIn = transferIn == null ? 0 : transferIn;
         transferOut = transferOut == null ? 0 : transferOut;
         unitCost = unitCost == null ? 0 : unitCost;
-
+        addCost = addCost == null ? 0 : addCost;
+                
         var balance = (qty + transferIn) - (qtyIss + transferOut);
         var amount = (qty + transferIn) * unitCost;
+        var tUnitCost = unitCost + addCost;
+        var gTotalCost = (qty + transferIn) * tUnitCost;
 
-        $("#QtyBal").data("kendoNumericTextBox").value(balance);
-        $("#QtyBal").data("kendoNumericTextBox").trigger("change");
-
+        $("#QtyBal").data("kendoNumericTextBox").value(balance);        
         $("#Amount").data("kendoNumericTextBox").value(amount);
+        $("#TUnitCost").data("kendoNumericTextBox").value(tUnitCost);
+        $("#GTotalCost").data("kendoNumericTextBox").value(gTotalCost);
+
+        $("#QtyBal").data("kendoNumericTextBox").trigger("change");
         $("#Amount").data("kendoNumericTextBox").trigger("change");
+        $("#TUnitCost").data("kendoNumericTextBox").trigger("change");
+        $("#GTotalCost").data("kendoNumericTextBox").trigger("change");
     }
 
     function onSelectDeptId(e) {

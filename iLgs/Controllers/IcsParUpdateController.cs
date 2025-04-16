@@ -49,6 +49,19 @@ namespace iLgs.Controllers
             return result;
         }
 
+        public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, string refNo, string refType)
+        {
+            var data = _icsParService.GetAllItems(refNo, refType);
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+
+            return result;
+        }
+
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, IcsParVM model)
         {
@@ -92,7 +105,22 @@ namespace iLgs.Controllers
                 IssuedDate = date
             };
 
+            ViewData["refNo"] = refNo;
+            ViewData["refType"] = refType;
             return PartialView(model);
+        }
+
+        public ActionResult _TransferSelectionSetRead([DataSourceRequest] DataSourceRequest request, string refNo, string refType)
+        {
+            var data = _icsParService.GetAllItemsForTransfer(refNo, refType);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -112,7 +140,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _icsParService.TransferIcsPar(model, user, date);
+                    model = await _icsParService.TransferIcsPar(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -142,7 +170,7 @@ namespace iLgs.Controllers
                 return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
             }
 
-            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "", Id = model.Id}, JsonRequestBehavior.AllowGet);
         }
 
         [AcceptVerbs(HttpVerbs.Post)]

@@ -18,12 +18,13 @@ namespace iLgs.Models
         public CustodianReportBldgItem()
         {
             this.CustodianDisposalItems = new HashSet<CustodianDisposalItem>();
+            this.CustodianReportBldgItemPhases = new HashSet<CustodianReportBldgItemPhas>();
         }
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> ReportId { get; set; }
         public string Fund { get; set; }
-        public Nullable<decimal> CustodianItemNo { get; set; }
+        public string CustodianItemNo { get; set; }
         public string SeriesNo { get; set; }
         public Nullable<bool> FromDonation { get; set; }
         public string Account { get; set; }
@@ -89,5 +90,7 @@ namespace iLgs.Models
         public virtual ICollection<CustodianDisposalItem> CustodianDisposalItems { get; set; }
         public virtual CustodianReport CustodianReport { get; set; }
         public virtual ItemCode ItemCode { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CustodianReportBldgItemPhas> CustodianReportBldgItemPhases { get; set; }
     }
 }

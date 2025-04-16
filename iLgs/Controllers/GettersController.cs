@@ -904,16 +904,73 @@ namespace iLgs.Controllers
             }
 
             model = query
-                .GroupBy(g => g.ItemCode.ItemType.Description)
-                .Select(s => new CustodianAccountVM { MainAccount = s.Key })
+                .GroupBy(g => new { g.ItemCode.ItemType.Id, g.ItemCode.ItemType.Description })
+                .Select(s => new CustodianAccountVM { Id = s.Key.Id, MainAccount = s.Key.Description })
                 .OrderBy(o => o.MainAccount)
                 .ToList();
 
             // Insert "ALL" at the top
-            model.Insert(0, new CustodianAccountVM { MainAccount = "ALL" });
+            model.Insert(0, new CustodianAccountVM { Id = Guid.Empty, MainAccount = "ALL" });
 
             return Json(model, JsonRequestBehavior.AllowGet);
         }
+
+        public JsonResult GetCustodianSubAccount1(int? accountGroup, Guid? mainAccount, string text)
+        {
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select ItemTypeId, Code, Article from dbo.fn_SubAccount1({0})", accountGroup).AsQueryable();
+            
+            query = query.Where(w => w.ItemTypeId == mainAccount);
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
+            }
+         
+            return Json(query.Select(c => new { Code = c.Code, Description = c.Article }).OrderBy(o => o.Description), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetCustodianSubAccount2(int? accountGroup, string subAccountCode, string text)
+        {
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select Code, Article from dbo.fn_SubAccount2({0})", accountGroup).AsQueryable();
+
+            query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode));
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
+            }
+
+            return Json(query.Select(c => new { Code = c.Code, Description = c.Article }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetCustodianSubAccount3(int? accountGroup, string subAccountCode, string text)
+        {
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select Code, Article from dbo.fn_SubAccount3({0})", accountGroup).AsQueryable();
+
+            query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode));
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
+            }
+
+            return Json(query.Select(c => new { Code = c.Code, Description = c.Article }), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetCustodianSubAccount4(int? accountGroup, string subAccountCode, string text)
+        {
+            var query = _db.Database.SqlQuery<ItemCodeVM>("Select Code, Article from dbo.fn_SubAccount4({0})", accountGroup).AsQueryable();
+
+            query = query.Where(w => w.Code != subAccountCode && w.Code.StartsWith(subAccountCode));
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                query = query.Where(w => w.Code.Contains(text) || w.Article.Contains(text));
+            }
+
+            return Json(query.Select(c => new { Code = c.Code, Description = c.Article }), JsonRequestBehavior.AllowGet);
+        }
+
 
         public JsonResult GetCurrentDate()
         {
@@ -949,7 +1006,9 @@ namespace iLgs.Controllers
 
     public class CustodianAccountVM
     {
+        public Guid Id { get; set; }
         public string MainAccount { get; set; }
+        public string MainDesc { get; set; }
     }
 
     public class GetDepartmentVM

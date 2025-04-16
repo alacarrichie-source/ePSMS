@@ -23,13 +23,20 @@ namespace iLgs.Models
     
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
+        public Nullable<System.Guid> ParentId { get; set; }
         public Nullable<int> Qty { get; set; }
         public Nullable<System.DateTime> TransDate { get; set; }
+        public Nullable<System.Guid> LocationId { get; set; }
+        public Nullable<int> QtyIss { get; set; }
+        public Nullable<int> QtyBal { get; set; }
+        public Nullable<int> TransferIn { get; set; }
+        public Nullable<int> TransferOut { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
+        public virtual Codextn Codextn { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItem> PsCardItems { get; set; }
         public virtual PsCardItem PsCardItem { get; set; }

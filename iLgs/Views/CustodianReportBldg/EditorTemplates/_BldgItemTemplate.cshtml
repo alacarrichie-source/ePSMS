@@ -154,7 +154,7 @@
         <div class="row k-mb-2">
             <div class="col-md-6">
                 <div class="col-md-4">
-                    @Html.DisplayFor(m => m.CustodianItemNo, "LabelDecimal")
+                    @Html.DisplayFor(m => m.CustodianItemNo, "Label")
                 </div>
                 <div class="col-md-8">
                     @(Html.Kendo().TextBoxFor(m => m.CustodianItemNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -338,13 +338,22 @@
                 </div>
             </div>
 
-            <div class="col-md-6">
+            @*<div class="col-md-6">
                 <div class="col-md-4">
                     @Html.DisplayFor(m => m.AcqYear, "LabelInt")
                 </div>
                 <div class="col-md-8">
                     @(Html.Kendo().MaskedTextBoxFor(m => m.AcqYear).Mask("0000").PromptChar(" ").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.AcqYear)
+                </div>
+            </div>*@                        
+            <div class="col-md-6">
+                <div class="col-md-4">
+                    @Html.DisplayFor(m => m.AcqDate, "LabelDate")
+                </div>
+                <div class="col-md-8">
+                    @(Html.Kendo().DatePickerFor(m => m.AcqDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.AcqDate)
                 </div>
             </div>                        
         </div>
@@ -505,8 +514,107 @@
                 </div>
             </div>
         </div>        
+
+        @*<br />
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                @RenderTabstrip()
+            </div>
+        </div>*@
+
     </fieldset>
 }
+
+@helper RenderTabstrip()
+{
+    @(Html.Kendo().TabStrip()
+    .Name("tabstrip")
+    .TabPosition(TabStripTabPosition.Top)
+    .Animation(animation =>
+    {
+        animation.Open(config =>
+        {
+            config.Fade(FadeDirection.In);
+        });
+    })
+    .SelectedIndex(0)
+    .Items(items =>
+    {
+        items.Add().Text("Engineering Amounts")
+        .Selected(true)
+        .Content(@<text> @RenderGridItems() </text>);
+    })
+    )
+}
+
+@helper RenderGridItems()
+{
+    @(Html.Kendo().Grid<iLgs.Models.CustodianReportBldgItemPhas>()
+    .Name("gridAmounts")
+    .Columns(col =>
+    {
+        col.Bound(c => c.Id).Hidden();
+        col.Bound(c => c.PhaseNo).Width(100);
+        col.Bound(c => c.CapitalOutlay).Width(50).EditorTemplateName("_CapitalOutlayTemplate")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Bound(c => c.MOOE).Width(50).EditorTemplateName("_MooeTemplate")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        //col.Command(command =>
+        //{
+        //    command.Edit();
+        //    command.Destroy();
+        //}).Width(50);
+    })
+    .ToolBar(toolbar => toolbar.Create().Text("Add Items"))
+    .Editable(editable => editable.Mode(GridEditMode.InLine))
+    .Resizable(r => r.Columns(true))
+    .Sortable()
+    .NoRecords()
+    .Scrollable(s => s.Height(100))
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .PageSize(10000)
+    //.Events(events => events.Error("InlineGridAmountError")
+    //    .RequestEnd("onRequestEndGridAmount")
+    //    )
+    .Model(model =>
+    {
+        model.Id(p => p.Id);
+        model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+    })
+    .Aggregates(a =>
+    {
+        a.Add(p => p.CapitalOutlay).Sum();
+        a.Add(p => p.MOOE).Sum();
+    })
+    .Read(read => read.Action("_ItemPhaseRead", "CustodianReportBldg").Data("DataGridAmount"))
+    .Create(create => create.Action("_ItemPhaseCreate", "CustodianReportBldg"))
+    //.Update(update => update.Action("_ItemPhaseUpdate", "CustodianReportBldg"))
+    //.Destroy(destroy => destroy.Action("_ItemPhaseeDestroy", "CustodianReportBldg"))
+    )
+    //.AutoBind(false)
+    //.Events(e => e.Edit("onEditGridAmount")
+    //.Change("onChangeGridItems")
+    //.Save("onSaveGridItems")
+    //.DataBound("onDataBoundGridItems")
+    //)
+    )
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 

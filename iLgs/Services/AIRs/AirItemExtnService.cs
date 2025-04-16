@@ -71,7 +71,7 @@ namespace iLgs.Services.AIRs
                        .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
                        .Where(w => w.OrderItemId == orderItem.Id)
                        .FirstOrDefaultAsync();
-            var qty = orderItem.Qty;
+            var qty = (int?)orderItem.Qty;
             string category = orderItem.RequestItem.RisItem.ItemCode.ItemType.Code;
             string itemExtnName = _airItemService.GetItemExtnNameByCategory(category);
 
@@ -87,7 +87,7 @@ namespace iLgs.Services.AIRs
                         var airItemExtns = _db.AIRItemExtns.Where(w => w.AIRItemId == airItem.Id && w.SetLotNo == setLotNo && w.SetLotQtyNo == gQty && w.ContentNo == q);
                         if (!airItemExtns.Any())
                         {
-                            SetAirItmExtn(itemExtnName, setLotNo, gQty, q, airItem, user, date);
+                            SetAirItmExtn(itemExtnName, setLotNo, gQty, q, qty, airItem, user, date);
                         }
                     }
                 }
@@ -103,13 +103,13 @@ namespace iLgs.Services.AIRs
                             && w.ContentNo == q);
                     if (!airItemExtns.Any())
                     {
-                        SetAirItmExtn(itemExtnName, "", null, q, airItem, user, date);
+                        SetAirItmExtn(itemExtnName, "", null, q, qty, airItem, user, date);
                     }
                 }
             }
         }
 
-        private void SetAirItmExtn(string itemExtnName, string setLotNo, int? setLotQtyNo, int? contentNo, AIRItem airItem, string user, DateTime date)
+        private void SetAirItmExtn(string itemExtnName, string setLotNo, int? setLotQtyNo, int? contentNo, int? tContentNo, AIRItem airItem, string user, DateTime date)
         {
             if (itemExtnName == "ItemExtnLand")
             {
@@ -124,6 +124,7 @@ namespace iLgs.Services.AIRs
                     SetLotNo = setLotNo,
                     SetLotQtyNo = setLotQtyNo,
                     ContentNo = contentNo,
+                    TContentNo = tContentNo,
                     ConductionNo = "",
                     InsertedBy = user,
                     InsertedDt = date,
@@ -142,6 +143,7 @@ namespace iLgs.Services.AIRs
                     SetLotNo = setLotNo,
                     SetLotQtyNo = setLotQtyNo,
                     ContentNo = contentNo,
+                    TContentNo = tContentNo,
                     SerialNo = "",
                     InsertedBy = user,
                     InsertedDt = date,

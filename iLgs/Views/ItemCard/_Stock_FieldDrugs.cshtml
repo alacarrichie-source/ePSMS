@@ -1,0 +1,59 @@
+﻿@model iLgs.Models.PsCardItemExtnSuppliesEntryVM
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.GenericName, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.GenericName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.GenericName)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.DosageStrength, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.DosageStrength).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.DosageStrength)
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.DosageForm, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.DosageForm).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.DosageForm)
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.Multipliers, "LabelInt")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().MaskedTextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription"))
+                .Mask("999999999")  // Adjust the number of 0s to fit your requirement -->
+                .PromptChar(" "))
+            @Html.ValidationMessageFor(m => m.AllField.Multipliers)
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        <div class="item-label col-md-3">
+            @Html.DisplayFor(m => m.AllField.Brand, "Label")
+        </div>
+        <div class="col-md-9">
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.Brand)
+        </div>
+    </div>
+</div>

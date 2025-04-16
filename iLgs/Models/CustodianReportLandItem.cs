@@ -23,7 +23,7 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> ReportId { get; set; }
         public string Fund { get; set; }
-        public Nullable<decimal> CustodianItemNo { get; set; }
+        public string CustodianItemNo { get; set; }
         public string SeriesNo { get; set; }
         public Nullable<bool> FromDonation { get; set; }
         public string Account { get; set; }
@@ -65,17 +65,31 @@ namespace iLgs.Models
         public Nullable<decimal> CGTSurcharge { get; set; }
         public Nullable<decimal> CGTInterest { get; set; }
         public Nullable<decimal> CGTCompromise { get; set; }
+        public Nullable<bool> CGTTransferTaxCap { get; set; }
+        public Nullable<bool> CGTSurchargeCap { get; set; }
+        public Nullable<bool> CGTInterestCap { get; set; }
+        public Nullable<bool> CGTCompromiseCap { get; set; }
         public Nullable<decimal> DST { get; set; }
         public Nullable<decimal> DSTTransferTax { get; set; }
         public Nullable<decimal> DSTSurcharge { get; set; }
         public Nullable<decimal> DSTInterest { get; set; }
         public Nullable<decimal> DSTCompromise { get; set; }
+        public Nullable<bool> DSTTransferTaxCap { get; set; }
+        public Nullable<bool> DSTSurchargeCap { get; set; }
+        public Nullable<bool> DSTInterestCap { get; set; }
+        public Nullable<bool> DSTCompromiseCap { get; set; }
         public Nullable<decimal> TransferTax { get; set; }
         public Nullable<decimal> Surcharge { get; set; }
         public Nullable<decimal> Interest { get; set; }
+        public Nullable<bool> TransferTaxCap { get; set; }
+        public Nullable<bool> SurchargeCap { get; set; }
+        public Nullable<bool> InterestCap { get; set; }
         public Nullable<decimal> ConfirmationFee { get; set; }
         public Nullable<decimal> TransferRegsFee { get; set; }
         public Nullable<decimal> RealPropertyFee { get; set; }
+        public Nullable<bool> ConfirmationFeeCap { get; set; }
+        public Nullable<bool> TransferRegsFeeCap { get; set; }
+        public Nullable<bool> RealPropertyFeeCap { get; set; }
         public Nullable<decimal> VAT { get; set; }
         public Nullable<decimal> EstateFee { get; set; }
         public Nullable<decimal> Titling { get; set; }
@@ -83,6 +97,13 @@ namespace iLgs.Models
         public Nullable<decimal> Relocation { get; set; }
         public Nullable<decimal> Surveying { get; set; }
         public Nullable<decimal> IncidentalExpenses { get; set; }
+        public Nullable<bool> VATCap { get; set; }
+        public Nullable<bool> EstateFeeCap { get; set; }
+        public Nullable<bool> TitlingCap { get; set; }
+        public Nullable<bool> CertificationFeeCap { get; set; }
+        public Nullable<bool> RelocationCap { get; set; }
+        public Nullable<bool> SurveyingCap { get; set; }
+        public Nullable<bool> IncidentalExpensesCap { get; set; }
         public string CapitalOutlayOrExpense { get; set; }
         public string Annex { get; set; }
         public string InsertedBy { get; set; }

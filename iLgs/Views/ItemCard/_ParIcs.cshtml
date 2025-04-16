@@ -7,7 +7,7 @@
         //        @"<div class='upload-photo'
         //           style='background-image: url(" + @Url.Content("~/ParIcsUpload/GridPreview?id=#:Id#") + ");'></div></div>")
         //            .Width(70);
-        col.Bound(c => c.RefNo).Width(50);
+        col.Bound(c => c.RefNo).Width(70);
         col.Bound(c => c.RefDate).Width(50);
         col.Bound(c => c.UpdateCode).Width(30);
         col.Bound(c => c.LocationCode).Width(30);
@@ -16,12 +16,12 @@
         col.Bound(c => c.ReceivedDate).Width(50);
         col.Bound(c => c.PostedBy).Width(50);
         col.Bound(c => c.PostedDt).Width(70);
-        col.Bound(c => c.Status_).Width(50);
+        col.Bound(c => c.ActiveItems).Width(50);
         col.Command(command =>
         {
             command.Custom("Print").IconClass("k-icon k-i-print").SendDataKeys(true).Click("onClickBtnPrint");
             command.Custom("Uploads").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
-        }).Width(250);
+        }).Width(100);
     })
     .ToolBar(t =>
     {
@@ -64,7 +64,7 @@
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
         //.Sort(s => s.Add(a => a.RefNo).Descending())
-        .Read(read => read.Action("_ItemsRead", "ItemCard", new { propNo = @ViewData["PropNo"], refType = @ViewBag.RefType }))
+        .Read(read => read.Action("_ParIcsRead", "ItemCard", new { propNo = @ViewData["PropNo"], refType = @ViewBag.RefType }))
     //.Destroy(destroy => destroy.Action("Destroy", "IcsParUpdate"))
     )
 .Events(events => events

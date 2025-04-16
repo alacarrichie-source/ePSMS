@@ -135,8 +135,7 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
-
+        }        
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, CustodianReport model)
         {
@@ -387,6 +386,190 @@ namespace iLgs.Controllers
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemSave(CustodianReportBldgItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Access access = await accessTask;
+
+                var entity = await _custodianReportBldgItemService.GetByIdAsync(model.Id);
+                if (entity == null)
+                {
+                    if (!access.AllowAdd)
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+                else
+                {
+                    if (!access.AllowEdit)
+                    {
+                        ModelState.AddModelError("Access Error", "Access Denied!");
+                    }
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    if (entity == null)
+                    {
+                        model = await _custodianReportBldgItemService.CreateAsync(model, user, date);
+                    }
+                    else
+                    {
+                        model = await _custodianReportBldgItemService.UpdateAsync(model, user, date);
+                    }
+
+                    return Json(new { Errors = "", Model = model });
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
+        }
+
+        #region Phase Items
+        public ActionResult _ItemPhaseRead([DataSourceRequest] DataSourceRequest request, Guid? bldgItemId)
+        {
+            var data = _custodianReportBldgItemService.CustodianReportBldgItemPhase.GetByBldgItemId(bldgItemId);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemPhaseCreate([DataSourceRequest] DataSourceRequest request, CustodianReportBldgItemPhas model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("Access", "Access Denied!");
+                }
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _custodianReportBldgItemService.CustodianReportBldgItemPhase.CreateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemPhaseUpdate([DataSourceRequest] DataSourceRequest request, CustodianReportBldgItemPhas model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _custodianReportBldgItemService.CustodianReportBldgItemPhase.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemPhaseDestroy([DataSourceRequest]DataSourceRequest request, CustodianReportBldgItemPhas model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "custodian_report_bldg");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _custodianReportBldgItemService.CustodianReportBldgItemPhase.DeleteAsync(model, user, date);
+                    // TO DO: update stocks
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+        #endregion
+
 
         #region UPLOADS
         public ActionResult _Images(Guid? imageId)

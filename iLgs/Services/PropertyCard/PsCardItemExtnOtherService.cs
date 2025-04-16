@@ -6,6 +6,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
 {
@@ -111,22 +112,13 @@ namespace iLgs.Services.PropertyCard
             {
                 model.Id = Guid.NewGuid();
                 model.SerialNo = series;
+                model.InsertedBy = user;
+                model.UpdatedBy = user;
+                model.InsertedDt = date;
+                model.UpdatedDt = date;
 
-                var entity = new PsCardItemExtnOther()
-                {
-                    Id = model.Id,
-                    PsCardItemId = model.PsCardItemId,
-                    SetLotNo = model.SetLotNo,
-                    SetLotQtyNo = model.SetLotQtyNo,
-                    ContentNo = model.ContentNo,
-                    CustItemNo = model.CustItemNo,
-                    SerialNo = model.SerialNo,
-                    Condition = model.Condition,
-                    InsertedBy = model.InsertedBy,
-                    InsertedDt = model.InsertedDt,
-                    UpdatedBy = model.UpdatedBy,
-                    UpdatedDt = model.UpdatedDt
-                };
+                var entity = new PsCardItemExtnOther();                
+                MapModelToEntityFields(entity, model, Mode.ADD);
 
                 _db.PsCardItemExtns.Add(entity);
                 await _db.SaveChangesAsync();
@@ -141,6 +133,59 @@ namespace iLgs.Services.PropertyCard
 
             return model;
         });
+      
+        public ValueTask<PsCardItemExtnOther> UpdateAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        {
+            _psCardItemExtnValidator.ValidateOnUpdate(model);
+            //if (await IsPostedAsync(model.PsCardItemId))
+            //{
+            //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
+            //}
+            var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.Id).FirstOrDefaultAsync();
+
+            if (itemExtn != null)
+            {
+                throw new RecordAlreadyExistsException($"Serial No. {model.SerialNo} already exists!");
+            }
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
+            MapModelToEntityFields(entity, model, Mode.EDIT);
+
+            _db.PsCardItemExtns.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
+
+            return model;
+        });
+
+        public void MapModelToEntityFields(PsCardItemExtnOther entity, PsCardItemExtnOther model, Mode mode)
+        {
+            if (mode == Mode.ADD)
+            {
+                entity.Id = model.Id;
+                entity.InsertedBy = model.InsertedBy;
+                entity.InsertedDt = model.InsertedDt;
+            }
+
+            entity.SetLotNo = model.SetLotNo;
+            entity.SetLotQtyNo = model.SetLotQtyNo;
+            entity.ContentNo = model.ContentNo;
+            entity.CustItemNo = model.CustItemNo;
+            entity.SerialNo = model.SerialNo;
+            entity.Condition = model.Condition;
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+            entity.Condition = model.Condition;
+            entity.SubLocation = model.SubLocation;
+            entity.Annex = model.Annex;
+            entity.OldPropNo = model.OldPropNo;
+            entity.UpcomingOfficer = model.UpcomingOfficer;
+        }
 
         public ValueTask<PsCardItemExtnOther> DeleteAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
@@ -165,42 +210,6 @@ namespace iLgs.Services.PropertyCard
             return model;
         });
 
-        public ValueTask<PsCardItemExtnOther> UpdateAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
-        {
-            _psCardItemExtnValidator.ValidateOnUpdate(model);
-            //if (await IsPostedAsync(model.PsCardItemId))
-            //{
-            //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            //}
-            var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.Id).FirstOrDefaultAsync();
-
-            if (itemExtn != null)
-            {
-                throw new RecordAlreadyExistsException($"Serial No. {model.SerialNo} already exists!");
-            }
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
-
-            entity.SetLotNo = model.SetLotNo;
-            entity.SetLotQtyNo = model.SetLotQtyNo;
-            entity.ContentNo = model.ContentNo;
-            entity.CustItemNo = model.CustItemNo;
-            entity.SerialNo = model.SerialNo;
-            entity.Condition = model.Condition;
-            entity.UpdatedBy = user;
-            entity.UpdatedDt = date;
-
-            _db.PsCardItemExtns.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
-
-            return model;
-        });
 
         private async ValueTask<bool> IsPostedAsync(Guid? PsCardItemId)
         {

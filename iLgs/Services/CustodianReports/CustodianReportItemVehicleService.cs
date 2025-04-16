@@ -7,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianReports
 {
@@ -120,6 +121,9 @@ namespace iLgs.Services.CustodianReports
             MrNo = s.MrNo,
             MrIssuedTo = s.MrIssuedTo,
             MrOfficer = s.MrOfficer,
+            RpcPpeNo = s.RpcPpeNo,
+            RpcPpeIssuedTo = s.RpcPpeIssuedTo,
+            RpcPpeOfficer = s.RpcPpeOfficer,
             UpcomingPar = s.UpcomingPar,
             UpcomingIcs = s.UpcomingIcs,
             Type = s.Type,
@@ -172,21 +176,19 @@ namespace iLgs.Services.CustodianReports
             IQueryable<CustodianReportItemVehicleVM> data = null;
             if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
             {
-                data = _db.CustodianReportItems.AsNoTracking()
-                .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
-                .Select(CustodianReporVehicleItemProjection);
-                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_Vehicle {0}, {1}, {2}", null, deptId, accountGroup).AsQueryable();                
+                //data = _db.CustodianReportItems.AsNoTracking()
+                //.Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
+                //.Select(CustodianReporVehicleItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}", deptId, accountGroup, false).AsQueryable();
+                data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}", null, deptId, accountGroup, "", null, "", true).AsQueryable();
             }
             else
             {
-                data = _db.CustodianReportItems.AsNoTracking()
-                .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
-                .Select(CustodianReporVehicleItemProjection);
-                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_Vehicle {0}, {1}, {2}", null, deptId, accountGroup).AsQueryable();
-                //if (data.Any())
-                //{
-                //    data = data.Where(w => w.Annex != "D");
-                //}
+                //data = _db.CustodianReportItems.AsNoTracking()
+                //.Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
+                //.Select(CustodianReporVehicleItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}", deptId, accountGroup, false).AsQueryable();
+                data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}", null, deptId, accountGroup, "", null, "", false).AsQueryable();
             }
         
             return data;
@@ -194,24 +196,22 @@ namespace iLgs.Services.CustodianReports
 
         public IQueryable<CustodianReportItemVehicleVM> GetAllByAcctGroup(int? accountGroup, string userName)
         {
-            IQueryable<CustodianReportItemVehicleVM> data = null;
+            IQueryable<CustodianReportItemVehicleVM> data = null; 
             if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
             {
-                data = _db.CustodianReportItems.AsNoTracking()
-                .Where(w => w.CustodianReport.AccountGroup == accountGroup)
-                .Select(CustodianReporVehicleItemProjection);
-                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_Vehicle {0}, {1}, {2}", null, null, accountGroup).AsQueryable();
+                //data = _db.CustodianReportItems.AsNoTracking()
+                //.Where(w => w.CustodianReport.AccountGroup == accountGroup)
+                //.Select(CustodianReporVehicleItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}", null, accountGroup, true).AsQueryable();
+                data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}", null, null, accountGroup, "", null, "", true).AsQueryable();
             }
             else
             {
-                data = _db.CustodianReportItems.AsNoTracking()
-                .Where(w => w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
-                .Select(CustodianReporVehicleItemProjection);
-                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_Vehicle {0}, {1}, {2}", null, null, accountGroup).AsQueryable();
-                //if (data.Any())
-                //{
-                //    data = data.Where(w => w.Annex != "D");
-                //}
+                //data = _db.CustodianReportItems.AsNoTracking()
+                //.Where(w => w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
+                //.Select(CustodianReporVehicleItemProjection);
+                //data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}", null, accountGroup, false).AsQueryable();
+                data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}", null, null, accountGroup, "", null, "", false).AsQueryable();
             }
 
             return data;
