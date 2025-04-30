@@ -149,7 +149,7 @@
         .SelectedIndex(0)
         .Items(items =>
         {
-            items.Add().Text("Items")
+            items.Add().Text("Purchase Orders")
             .Selected(true)
             .LoadContentFrom("_PropertyCardItem", "PropertyCard", new { cardId = "#=Id#", category = "#=ItemTypeCode#" });
         })
@@ -222,24 +222,16 @@
 </script>
 
 <script id="ItemExtnVehicle" type="text/kendo-tmpl">
-    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicle>()
-    .Name("gridItemExtn_#=Id#")
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicleVM>()
+    .Name("gridItemExtn_#=TransferId#")
     .Columns(col =>
     {
-        col.Bound(c => c.YearModel).Width(100);
-        col.Bound(c => c.PlateNo).Width(100);
-        col.Bound(c => c.BodyNo).Width(50);
-        col.Bound(c => c.EngineNo).Width(50);
-        col.Bound(c => c.ChasisNo).Width(50);
-        col.Bound(c => c.Color).Width(50);
-        col.Bound(c => c.CRN).Width(50);
-        col.Bound(c => c.CRDate).Width(50).Format("{0:MM/dd/yyyy}");
-        col.Bound(c => c.MVFileNo).Width(50);
-        col.Bound(c => c.OrNo).Width(50);
-        col.Bound(c => c.OrDate).Width(50).Format("{0:MM/dd/yyyy}");
-        col.Bound(c => c.NetWeight).Width(50);
-        col.Bound(c => c.InsPolicyNo).Width(50);
-        col.Bound(c => c.SubLocation).Width(50);
+        col.Bound(c => c.ContentNo).Width(50);
+        col.Bound(c => c.PropNo).Width(100);
+        col.Bound(c => c.CustItemNo).Width(100);
+        col.Bound(c => c.SeriesNo).Width(50);
+        col.Bound(c => c.ConductionNo).Width(50);
+        col.Bound(c => c.PlateNo).Width(50);        
         col.Command(command =>
         {
             command.Edit();
@@ -251,10 +243,10 @@
     {
         t.Create();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnVehicleTemplate").Window(w => w.Width(500).Title("Item Details")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnVehicleTemplate").Window(w => w.Width(1000).Title("Item Details")))
     .Sortable()
     .NoRecords()
-    .ClientDetailTemplateId("UploadedFiles")
+    //.ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax()
         .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
@@ -264,7 +256,7 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
         })
-        .Read(read => read.Action("_ItemExtnVehicleRead", "PropertyCard", new { psCardItemId = "#=Id#" }))
+        .Read(read => read.Action("_ItemExtnVehicleRead", "PropertyCard", new { transferId = "#=TransferId#" }))
         .Create(create => create.Action("_ItemExtnVehicleCreate", "PropertyCard"))
         .Update(update => update.Action("_ItemExtnVehicleUpdate", "PropertyCard"))
         .Destroy(destroy => destroy.Action("_ItemExtnVehicleDestroy", "PropertyCard"))
@@ -280,10 +272,11 @@
 </script>
 
 <script id="ItemExtnOther" type="text/kendo-tmpl">
-    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnOther>()
-    .Name("gridItemExtn_#=Id#")
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnOtherVM>()
+    .Name("gridItemExtn_#=TransferId#")
     .Columns(col =>
     {
+        col.Bound(c => c.CustItemNo).Width(50);
         col.Bound(c => c.SerialNo).Width(100);
         //col.Bound(c => c.Condition).Width(100);
         col.Command(command =>
@@ -294,13 +287,13 @@
         }).Width(100);
     })
     .ToolBar(t =>
-    {
-        t.Create();
+    {        
+        t.Create();        
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnOtherTemplate").Window(w => w.Width(500).Title("Item Details")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnOtherTemplate").Window(w => w.Width(1000).Title("Item Details")))
     .Sortable()
     .NoRecords()
-    .ClientDetailTemplateId("UploadedFiles")
+    //.ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax()
         .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
@@ -310,7 +303,7 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
         })
-        .Read(read => read.Action("_ItemExtnOtherRead", "PropertyCard", new { psCardItemId = "#=Id#" }))
+        .Read(read => read.Action("_ItemExtnOtherRead", "PropertyCard", new { transferId = "#=TransferId#" }))
         .Create(create => create.Action("_ItemExtnOtherCreate", "PropertyCard"))
         .Update(update => update.Action("_ItemExtnOtherUpdate", "PropertyCard"))
         .Destroy(destroy => destroy.Action("_ItemExtnOtherDestroy", "PropertyCard"))
@@ -762,7 +755,8 @@
 
     var selectedGrid = null;
     var selectedId = null;
-    var selecteItemId = null;
+    var selectedItemId = null;
+    var selectedTransferId = null;
     var selectedStockNo = null;
 
     function onGridDeleteClick(e) {
@@ -932,7 +926,7 @@
         selectedId = selectedData.Id;
         selectedStockNo = selectedData.PsNo
         selectedItemId = null;
-
+        selectedTransferId = null;
         var grid = $("#grid");
         //if (postedBy) {
         //    $(".k-grid-btnUnpost", grid).show();
@@ -1023,6 +1017,7 @@
             this.select(row);
             selectedId = null;
             selectedItemId = null;
+            selectedTransferId = null;
             //e.model.set("PsId", selectedId);
         } else {
             selectedId = e.model.get("Id");
@@ -1326,7 +1321,7 @@
                     var template = kendo.template(templateHtml);
 
                     // Insert the rendered template into the detail cell
-                    e.detailRow.find(".k-detail-cell").html(template(dataItem));
+                    e.detailRow.find(".k-detail-cell").html(template(dataItem));                    
                 } else {
                     alert(result.Errors);
                     return false;
@@ -1352,6 +1347,7 @@
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedItemId = newRecord.Id;
+                selectedTransferId = newRecord.TransferId;
             }
         }
     }
@@ -1377,10 +1373,11 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedItemId = null;
+            selectedTransferId = null;
             e.model.set("PsCardId", parentModel.Id);
         } else {
             selectedItemId = e.model.get("Id");
-
+            selectedTransferId = e.model.get("TransferId");
             //console.log(e.sender);
             //console.log(e.container);
 
@@ -1416,6 +1413,7 @@
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
         selectedItemId = selectedData.Id;
+        selectedTransferId = selectedData.TransferId;
         selectedIssuedId = null;
     }
 
@@ -1481,7 +1479,7 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
@@ -1502,7 +1500,7 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
@@ -1551,7 +1549,7 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
@@ -1573,7 +1571,7 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
@@ -1662,7 +1660,7 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
@@ -2090,6 +2088,13 @@
     function onDataBoundGridItemExtn(e) {
         e.preventDefault();
 
+        var grid = e.sender;
+        var parentId = grid.element.closest("[data-parent-id]").data("parent-id");
+
+        if (parentId !== undefined && parentId !== null) {
+            grid.wrapper.find(".k-grid-add").hide();
+        }
+
         if (selectedItemExtnId) {
             var dataItem = this.dataSource.get(selectedItemExtnId);
             if (dataItem) {
@@ -2123,12 +2128,17 @@
             selectedItemExtnId = null;
             selectedItemExtnQty = parentModel.QtyBal;
             e.model.set("PsCardItemId", parentModel.Id);
-            $("#DIV_UPDATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
+            e.model.set("TransferId", parentModel.TransferId);
+            //e.model.set("PsCardItemExtnId", parentModel.PsCardItemExtnId);
+            e.model.set("LocationId", parentModel.LocationId);
+            e.model.set("Location", parentModel.Location);
+            e.model.set("TContentNo", parentModel.TContentNo);            
+            //$("#DIV_UPDATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
         } else {
             selectedItemExtnId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedItemExtnId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            $("#DIV_CREATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
+            //$("#DIV_CREATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
         }
     }
 

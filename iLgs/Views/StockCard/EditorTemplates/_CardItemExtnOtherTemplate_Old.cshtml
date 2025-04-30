@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.PsCardItemExtnOther
+﻿@*@model iLgs.Models.PsCardItemExtnOtherVM
 
 @using (Html.BeginForm())
 {
@@ -15,7 +15,7 @@
     @Html.HiddenFor(model => model.PsCardItemId)
     @Html.HiddenFor(model => model.SetLotNo)
     @Html.HiddenFor(model => model.SetLotQtyNo)
-    @Html.HiddenFor(model => model.ContentNo)
+    @Html.HiddenFor(model => model.ContentNo)    
 
     <fieldset>
 
@@ -45,19 +45,8 @@
                     @Html.ValidationMessageFor(model => model.SerialNo)
                 </div>
             </div>
-        </div>
-
-
-        @*<div class="row k-mb-2">
-                @Html.LabelFor(m => m.Condition, htmlAttributes: new { @class = "col-md-2" })
-                <div class="col-md-10">
-                    @(Html.Kendo().TextBoxFor(m => m.Condition).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(model => model.Condition)
-                </div>
-            </div>*@
-
+        </div>        
     </fieldset>
-}
-
+}*@
 
 

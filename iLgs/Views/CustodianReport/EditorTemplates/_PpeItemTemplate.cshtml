@@ -366,7 +366,7 @@
                     <label class="form-label">
                         <span class="required-marker">                            
                         </span>
-                            @Html.LabelFor(m => m.ProRatedCost, "Pro-rated Set Cost")
+                            @Html.LabelFor(m => m.ProRatedCost, "Pro-rated Set/Lot Cost")
                     </label>                    
                 </div>
                 <div class="col-md-8">
@@ -376,7 +376,7 @@
             </div>
         </div>
 
-        <div class="row k-mb-2">
+        @*<div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-12">
                     @Html.DisplayFor(m => m.SetLotRemarks, "Label")
@@ -385,17 +385,8 @@
                     @(Html.Kendo().TextAreaFor(m => m.SetLotRemarks).Rows(3).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.SetLotRemarks)
                 </div>
-            </div>
-            @*<div class="col-md-6">
-                    <div class="col-md-4">
-                        @Html.DisplayFor(m => m.Type, "Label")
-                    </div>
-                    <div class="col-md-8">
-                        @(Html.Kendo().TextBoxFor(m => m.Type).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(m => m.Type)
-                    </div>
-                </div>*@
-        </div>
+            </div>            
+        </div>*@
 
         <div class="row k-mb-2">
             <div class="col-md-6">

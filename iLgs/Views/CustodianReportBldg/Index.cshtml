@@ -139,13 +139,14 @@
 <script id="UploadedFiles" type="text/kendo-tmpl">
     @(Html.Kendo().TabStrip()
         .Name("tabStrip_#=Id#")
-        .HtmlAttributes(new { @class = "no-text-tabstrip" })
+        //.HtmlAttributes(new { @class = "no-text-tabstrip" })
         .TabPosition(TabStripTabPosition.Top)
         .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
         .SelectedIndex(0)
         .Items(items =>
         {
             items.Add().Text("Uploads").Selected(true).LoadContentFrom("_Images", "CustodianReportBldg", new { imageId = "#=Id#" });
+            items.Add().Text("Engineering Amounts").LoadContentFrom("_ItemPhase", "CustodianReportBldg", new { reportItemId = "#=Id#" });
         })
         .ToClientTemplate())
 </script>
@@ -1051,7 +1052,7 @@
     // END GRID IMAGES
 
     // GRID AMOUNTS
-    function InlineGridAmountError(e) {
+    function InlineGridError(e) {
         if (e.errors) {
             let message = "Errors:\n";
 
@@ -1064,7 +1065,6 @@
             });
 
             alert(message); // You can replace this with any other UI method to display errors
-            $("#gridAmounts").data("kendoGrid").dataSource.read();
         }
     }
 
@@ -1077,41 +1077,69 @@
         }
     }
 
-    function DataGridAmount() {
-        return {
-            bldgItemId: $("#Id").val()  
-        };
-    }
-
+    var selectedGridAmountItem = null;
     function onEditGridAmount(e) {
         e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        parentGrid.select(parentRow);
         selectedGrid = e.sender;
-
-        var validator = $("#form").kendoValidator().data("kendoValidator");
-
-        if (!validator.validate()) {
-
-            // Get all the invalid input elements.
-            var invalidInputs = validator.element.find(".k-invalid");
-
-            // Loop through each invalid input element and display its properties.
-            invalidInputs.each(function () {
-                var invalidInput = $(this);
-                var invalidInputId = invalidInput.attr("id");
-                var invalidInputName = invalidInput.attr("name");
-
-                console.log("Invalid input ID: " + invalidInputId);
-                console.log("Invalid input name: " + invalidInputName);
-
-                // You can also display more properties or perform other actions as needed.
-            });
-
-            selectedGrid.cancelRow();
-        }
-        else {
-            SaveRecords(e, false);
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("ReportItemId", '@ViewData["reportItemId"]');
+        } else {
+            selectedGridAmountItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridAmountItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
     }
+
+    function onDataBoundGridAmount(e) {
+        if (selectedGridAmountItem) {
+            var dataItem = this.dataSource.get(selectedGridAmountItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+    // END GRID AMOUNTS
+
+    //function onEditGridAmount(e) {
+    //    e.preventDefault();
+    //    selectedGrid = e.sender;
+
+    //    var validator = $("#form").kendoValidator().data("kendoValidator");
+
+    //    if (!validator.validate()) {
+
+    //        // Get all the invalid input elements.
+    //        var invalidInputs = validator.element.find(".k-invalid");
+
+    //        // Loop through each invalid input element and display its properties.
+    //        invalidInputs.each(function () {
+    //            var invalidInput = $(this);
+    //            var invalidInputId = invalidInput.attr("id");
+    //            var invalidInputName = invalidInput.attr("name");
+
+    //            console.log("Invalid input ID: " + invalidInputId);
+    //            console.log("Invalid input name: " + invalidInputName);
+
+    //            // You can also display more properties or perform other actions as needed.
+    //        });
+
+    //        selectedGrid.cancelRow();
+    //    }
+    //    else {
+    //        SaveRecords(e, false);
+    //    }
+    //}
     // END GRID INVOICE
 
     function SaveRecords(e, closeWindow) {

@@ -158,7 +158,7 @@
         .SelectedIndex(0)
         .Items(items =>
         {
-            items.Add().Text("Items")
+            items.Add().Text("PO Items")
             .Selected(true)
             .LoadContentFrom("_StockCardItem", "StockCard", new { cardId = "#=Id#", category = "#=ItemTypeCode#" });
         })
@@ -231,8 +231,8 @@
 </script>
 
 <script id="ItemExtnVehicle" type="text/kendo-tmpl">
-    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicle>()
-    .Name("gridItemExtn_#=Id#")
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicleVM>()
+    .Name("gridItemExtn_#=TransferId#")
     .Columns(col =>
     {
         col.Bound(c => c.YearModel).Width(100);
@@ -260,7 +260,7 @@
     {
         t.Create();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnVehicleTemplate").Window(w => w.Width(500).Title("Item Details")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnVehicleTemplate").Window(w => w.Width(1000).Title("Item Details")))
     .Sortable()
     .NoRecords()
     .ClientDetailTemplateId("UploadedFiles")
@@ -273,7 +273,7 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
         })
-        .Read(read => read.Action("_ItemExtnVehicleRead", "StockCard", new { psCardItemId = "#=Id#" }))
+        .Read(read => read.Action("_ItemExtnVehicleRead", "StockCard", new { transferId = "#=TransferId#" }))
         .Create(create => create.Action("_ItemExtnVehicleCreate", "StockCard"))
         .Update(update => update.Action("_ItemExtnVehicleUpdate", "StockCard"))
         .Destroy(destroy => destroy.Action("_ItemExtnVehicleDestroy", "StockCard"))
@@ -289,11 +289,12 @@
 </script>
 
 <script id="ItemExtnOther" type="text/kendo-tmpl">
-    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnOther>()
-    .Name("gridItemExtn_#=Id#")
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnOtherVM>()
+    .Name("gridItemExtn_#=TransferId#")
     .Columns(col =>
     {
-        col.Bound(c => c.SerialNo).Width(100);
+        col.Bound(c => c.CustItemNo).Width(50);
+        col.Bound(c => c.SerialNo).Width(100);        
         //col.Bound(c => c.Condition).Width(100);
         col.Command(command =>
         {
@@ -306,10 +307,10 @@
     {
         t.Create();
     })
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnOtherTemplate").Window(w => w.Width(500).Title("Item Details")))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnOtherTemplate").Window(w => w.Width(1000).Title("Item Details")))
     .Sortable()
     .NoRecords()
-    .ClientDetailTemplateId("UploadedFiles")
+    //.ClientDetailTemplateId("UploadedFiles")
     .DataSource(dataSource => dataSource
         .Ajax()
         .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
@@ -319,7 +320,7 @@
             model.Id(p => p.Id);
             model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
         })
-        .Read(read => read.Action("_ItemExtnOtherRead", "StockCard", new { psCardItemId = "#=Id#" }))
+        .Read(read => read.Action("_ItemExtnOtherRead", "StockCard", new { transferId = "#=TransferId#" }))
         .Create(create => create.Action("_ItemExtnOtherCreate", "StockCard"))
         .Update(update => update.Action("_ItemExtnOtherUpdate", "StockCard"))
         .Destroy(destroy => destroy.Action("_ItemExtnOtherDestroy", "StockCard"))
@@ -771,7 +772,8 @@
 
     var selectedGrid = null;
     var selectedId = null;
-    var selecteItemId = null;
+    var selectedItemId = null;
+    var selectedTransferId = null;
     var selectedStockNo = null;
 
     function onGridDeleteClick(e) {
@@ -940,6 +942,7 @@
         selectedId = selectedData.Id;
         selectedStockNo = selectedData.PsNo
         selectedItemId = null;
+        selectedTransferId = null;
         //postedBy = selectedData.PostedBy;
 
         var grid = $("#grid");
@@ -1032,6 +1035,7 @@
             this.select(row);
             selectedId = null;
             selectedItemId = null;
+            selectedTransferId = null;
             //e.model.set("PsId", selectedId);
         } else {
             selectedId = e.model.get("Id");
@@ -1369,6 +1373,7 @@
                 var responseData = e.response;
                 var newRecord = responseData.Data[0];
                 selectedItemId = newRecord.Id;
+                selectedTransferId = newRecord.TransferId;
             }
         }
     }
@@ -1394,10 +1399,11 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedItemId = null;
+            selectedTransferId = null;
             e.model.set("PsCardId", parentModel.Id);
         } else {
             selectedItemId = e.model.get("Id");
-
+            selectedTransferId = e.model.get("TransferId");
             //console.log(e.sender);
             //console.log(e.container);
 
@@ -1433,6 +1439,7 @@
     function onChangeGridItems(e) {
         var selectedData = this.dataItem(this.select());
         selectedItemId = selectedData.Id;
+        selectedTransferId = selectedData.TransferId;
         selectedIssuedId = null;
 
         //postedBy = selectedData.PostedBy;
@@ -1448,8 +1455,8 @@
     }
 
     function onDataBoundGridItems(e) {
-        if (selectedItemId) {
-            var dataItem = this.dataSource.get(selectedItemId);
+        if (selectedTransferId) {
+            var dataItem = this.dataSource.get(selectedTransferId);
             if (dataItem) {
                 this.select($('[data-uid=' + dataItem.uid + ']'));
             }
@@ -1510,12 +1517,12 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         selectedItemId = dataItem.Id;
-
+        selectedTransferId = dataItem.TransferId;
         PrintPo(1);
     }
 
@@ -1531,11 +1538,12 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         selectedItemId = dataItem.Id;
+        selectedTransferId = dataItem.TransferId;
         PrintPo(0);
     }
 
@@ -1580,12 +1588,12 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         selectedItemId = dataItem.Id;
-
+        selectedTransferId = dataItem.TransferId;
         postItem();
     }
 
@@ -1602,12 +1610,12 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         selectedItemId = dataItem.Id;
-
+        selectedTransferId = dataItem.TransferId;
         unpostItem();
     }
 
@@ -1690,7 +1698,7 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
@@ -1896,7 +1904,7 @@
                     // Additional actions to be performed after the read operation.
 
                     // Find the row with the specified Id.
-                    var dataItem = grid.dataSource.get(selectedItemId);
+                    var dataItem = grid.dataSource.get(selectedTransferId);
                     //console.log(selectedItemId);
                     //console.log(dataItem);
                     // If the row is found, expand it.
@@ -2151,12 +2159,18 @@
             selectedItemExtnId = null;
             selectedItemExtnQty = parentModel.QtyBal;
             e.model.set("PsCardItemId", parentModel.Id);
-            $("#DIV_UPDATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
+            e.model.set("TransferId", parentModel.TransferId);
+            //e.model.set("PsCardItemExtnId", parentModel.PsCardItemExtnId);
+            e.model.set("LocationId", parentModel.LocationId);
+            e.model.set("Location", parentModel.Location);
+            e.model.set("TContentNo", parentModel.TContentNo);            
+            //e.model.set("PsCardItemId", parentModel.Id);
+            //$("#DIV_UPDATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
         } else {
             selectedItemExtnId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedItemExtnId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-            $("#DIV_CREATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
+            //$("#DIV_CREATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
         }
     }
 
@@ -2199,7 +2213,7 @@
                     // Additional actions to be performed after the read operation.
 
                     // Find the row with the specified Id.
-                    var dataItem = grid.dataSource.get(selectedItemId);
+                    var dataItem = grid.dataSource.get(selectedTransferId);
                     // If the row is found, expand it.
                     if (dataItem) {
                         var row = grid.tbody.find("tr[data-uid='" + dataItem.uid + "']");

@@ -19,7 +19,7 @@ namespace iLgs.Services.PropertyCard
 
     public class PsCardItemValidator : BaseValidator, IPsCardItemValidator
     {
-        private delegate string GetDisplayNameDelegate(string propertyName);
+        //private delegate string GetDisplayNameDelegate(string propertyName);
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
@@ -55,47 +55,56 @@ namespace iLgs.Services.PropertyCard
             ValidateIfPosted(cardItem);
             ValidateIfPosted(cardItem.PsCardId);
 
-            if (_db.PsCardItems.Any(a => a.Id == cardItem.Id && a.PsCardItemTransfers.Any()))
+            
+            if (_db.PsCardItemTransfers.Any(a => a.ParentId == cardItem.TransferId))
             {
                 throw new RecordRelationshipException("Items of this record were transfered to other department/location, cannot delete!");
             }
 
-            if (_db.PsCardItems.Any(a => a.Id == cardItem.Id && a.PsCardItemExtns.Any(a2 => a2.IcsParItems.Any())))
+            if (_db.PsCardItemTransfers.Any(a => a.Id == cardItem.TransferId && a.PsCardItemTransferIssuances.Any()))
             {
-                throw new RecordRelationshipException("Items of this record already have PAR/ICS, cannot delete!");
+                throw new RecordRelationshipException("Items of this record were issued to other department/location, cannot delete!");
+            }
+
+            if (cardItem.ParentId == null) // main record
+            {
+                if (_db.PsCardItems.Any(a => a.Id == cardItem.Id && a.PsCardItemExtns.Any(a2 => a2.IcsParItems.Any())))
+                {
+                    throw new RecordRelationshipException("Items of this record already have PAR/ICS, cannot delete!");
+                }
             }
         }
 
-        public void ValidateFieldsOnCreateUpdate(PsCardItemVM cardItem, Mode mode)
+        public void ValidateFieldsOnCreateUpdate(PsCardItemVM model, Mode mode)
         {
             var ex = new InvalidModelException();
-            if (cardItem.DeptId == null)
+            if (model.DeptId == null)
             {
-                ex.UpsertDataList(_getDisplayName(nameof(cardItem.DeptId)), "Field is required.");
+                ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Field is required.");
             }
             else
             {
-                if (!_codextnService.IsValidMastCodeId("LOCATIONS", cardItem.DeptId))
+                if (!_codextnService.IsValidMastCodeId("LOCATIONS", model.DeptId))
                 {
-                    ex.UpsertDataList(_getDisplayName(nameof(cardItem.DeptId)), "Invalid value");
+                    ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Invalid value");
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(cardItem.Unit))
+            if (string.IsNullOrWhiteSpace(model.Unit))
             {
-                ex.UpsertDataList(_getDisplayName(nameof(cardItem.Unit)), "Field is required.");
+                ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Field is required.");
             }
             else
             {
-                if (!_codextnService.IsValidMastCodeCode("UNIT", cardItem.Unit))
+                if (!_codextnService.IsValidMastCodeCode("UNIT", model.Unit))
                 {
-                    ex.UpsertDataList(_getDisplayName(nameof(cardItem.Unit)), "Invalid value");
+                    ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid value");
                 }
             }
 
-            if (!cardItem.UnitCost.HasValue)
+            if (!model.UnitCost.HasValue)
             {
-                ex.UpsertDataList(_getDisplayName(nameof(cardItem.UnitCost)), "Field is required.");
+                ex.UpsertDataList(_getDisplayName(nameof(model.UnitCost)), "Field is required.");
             }
 
             //if (cardItem.DeptId != null)
@@ -116,63 +125,66 @@ namespace iLgs.Services.PropertyCard
             //    }
             //}
 
-            if (string.IsNullOrWhiteSpace(cardItem.Description))
+            if (string.IsNullOrWhiteSpace(model.Description))
             {
-                ex.UpsertDataList(_getDisplayName(nameof(cardItem.Description)), "Field is required.");
+                ex.UpsertDataList(_getDisplayName(nameof(model.Description)), "Field is required.");
             }
 
-            if (string.IsNullOrWhiteSpace(cardItem.InvDist))
+            if (string.IsNullOrWhiteSpace(model.InvDist))
             {
-                ex.UpsertDataList(_getDisplayName(nameof(cardItem.InvDist)), "Field is required.");
+                ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Field is required.");
             }
             else
             {
-                if (!_codextnService.IsValidMastCodeCode("PS-REMARKS", cardItem.InvDist))
+                if (!_codextnService.IsValidMastCodeCode("PS-REMARKS", model.InvDist))
                 {
-                    ex.UpsertDataList(_getDisplayName(nameof(cardItem.InvDist)), "Invalid value");
+                    ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Invalid value");
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(cardItem.PoNo))
+            if (string.IsNullOrWhiteSpace(model.PoNo))
             {
-                ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), "Field is required.");
+                ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Field is required.");
             }
             else
             {
-                var psCardItems = _db.PsCardItems.AsNoTracking().Where(w => w.PoNo == cardItem.PoNo);
+                var psCardItems = _db.PsCardItems.AsNoTracking().Where(w => w.PoNo == model.PoNo);
                 if (mode == Mode.ADD)
                 {                    
-                    //if (_db.PsCardItems.Where(w => w.PoNo == cardItem.PoNo && w.PsCardId == cardItem.PsCardId && w.InsertedBy != cardItem.InsertedBy).Any())
-                    if (psCardItems.Any(a => a.PsCardId == cardItem.PsCardId && a.InsertedBy != cardItem.InsertedBy))
+                    // check user
+                    if (psCardItems.Any(a => a.InsertedBy != model.InsertedBy))
                     {
-                        ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), $"Already exists under this Stock/Property No. created by other user.");
+                        ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already created by other user.");
                     }
-
-                    //var psCardItem = psCardItems.FirstOrDefault(f => f.PoDate != cardItem.PoDate);
-                    //if (psCardItem != null)
-                    //{
-                    //    ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), $"PO Number with a date of {cardItem.PoDate.Value.ToString("yyyy-MM-dd")} already exists.");
-                    //}
+                    else
+                    {
+                        if (psCardItems.Any(a => a.PsCardId == model.PsCardId && a.Description == model.Description)) // check description
+                        {
+                            ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already exists with same description");
+                        }
+                    }
+                                      
                 }
-                //else
-                //{
-                //    if (psCardItems.Any(a => a.PsCardId == cardItem.PsCardId && a.Id != cardItem.Id))
-                //    {
-                //        ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), "Already exists under this Stock/Property No.");
-                //    }
-
-                //    var psCardItem = psCardItems.FirstOrDefault(f => f.Id != cardItem.Id && f.PoDate != cardItem.PoDate);
-                //    if (psCardItem != null)
-                //    {
-                //        ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoNo)), $"PO Number with a date of {cardItem.PoDate.Value.ToString("yyyy-MM-dd")} already exists.");
-                //    }
-                //}
+                else
+                {
+                    if (psCardItems.Any(a => a.InsertedBy != model.UpdatedBy))
+                    {
+                        ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Can only be modified by it's creator or an admin.");
+                    }
+                    else
+                    {
+                        if (psCardItems.Any(a => a.PsCardId == model.PsCardId && a.Description == model.Description && a.Id != model.Id)) // check description
+                        {
+                            ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already exists with same description");
+                        }
+                    }
+                }                
             }
 
 
-            if (!cardItem.PoDate.HasValue)
+            if (!model.PoDate.HasValue)
             {
-                ex.UpsertDataList(_getDisplayName(nameof(cardItem.PoDate)), "Field is required.");
+                ex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), "Field is required.");
             }
 
             ex.ThrowIfContainsErrors();

@@ -181,21 +181,14 @@ namespace iLgs.Services.ParIcs
         }
         public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _db.PsCardItems.Include(i => i.PsCard.ItemCode)
+            var data = _db.PsCardItems.Include(i => i.PsCard.ItemCode)                
                 .AsNoTracking()
-                .Where(w => w.TransferRefId == null
-                    && w.PoNo == (string.IsNullOrEmpty(poNo) ? w.PoNo : poNo)
+                .Where(w => 
+                    w.PoNo == (string.IsNullOrEmpty(poNo) ? w.PoNo : poNo)
                     && w.PoDate == (poDate == null ? w.PoDate : poDate)
                     && w.DeptId == (deptId == null ? w.DeptId : deptId)
-                    && w.UnitCost >= _parPrice 
-                    && !w.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == w.Id)
-                    //&& w.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == w.Id) // not in set
-                    //&& !w.OrderItem.OrderItemUnitGroupDescriptionItems
-                    //    .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-                //&& (w.UnitCost >= _parPrice
-                //    || w.OrderItem.OrderItemUnitGroupDescriptionItems
-                //        .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-                //)
+                    && w.TUnitCost >= _parPrice 
+                    && !w.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == w.Id)                    
                 )
                 .Select(s => new ParIcsItemVm
                 {
@@ -212,15 +205,14 @@ namespace iLgs.Services.ParIcs
                     Description = s.Description,
                     StockNo = s.PsCard.PsNo,
                     IsForICS = s.IsForICS,
-                    GeneratedItems = (_db.IcsParItems.Where(w => !w.IcsPar.IcsParUpdates.Any() && w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    //GeneratedItems = (_db.IcsParItems.Where(w => !w.IcsPar.IcsParUpdates.Any() && w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    GeneratedItems = (_db.IcsParItems.Where(w => !w.IcsPar.IcsParUpdates.Any() && w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
                     InsertedDt = s.InsertedDt,
                     IsConsumableSetup = s.PsCard.ItemCode.IsConsumable,
                     IsIncorporatedSetup = s.PsCard.ItemCode.IsIncorporated,
                     ForDistributionSetup = s.PsCard.ItemCode.ForDistribution,
                     ParPostedBy = s.ParPostedBy,
-                    ParPostedDt = s.ParPostedDt
-                    //SetLotNo = _db.OrderItemUnitGroups.Where(w => w.OrderItemUnitGroupDescriptions.Any(a => a.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId))).FirstOrDefault().SetLotNo ?? "",
-                    //SetLotDesc = _db.OrderItemUnitGroupDescriptions.Where(w => w.OrderItemUnitGroupDescriptionItems.Any(b => b.OrderItemId == s.OrderItemId)).FirstOrDefault().Description ?? ""
+                    ParPostedDt = s.ParPostedDt                    
                 }).AsQueryable();
             return data;
         }
@@ -234,8 +226,7 @@ namespace iLgs.Services.ParIcs
         {
             var data = _db.PsCardItemUnitGroups.AsNoTracking()
                 .Where(w => w.PsCardItemUnitGroupDescriptions.Any(a => a.PsCardItemUnitGroupDescriptionItems
-                    .Any(b => b.PsCardItem.TransferRefId == null
-                        && b.PsCardItem.PoNo == (string.IsNullOrEmpty(poNo) ? b.PsCardItem.PoNo : poNo)
+                    .Any(b => b.PsCardItem.PoNo == (string.IsNullOrEmpty(poNo) ? b.PsCardItem.PoNo : poNo)
                         && b.PsCardItem.PoDate == (poDate == null ? b.PsCardItem.PoDate : poDate)
                         && b.PsCardItem.DeptId == (deptId == null ? b.PsCardItem.DeptId : deptId)
                         ))

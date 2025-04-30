@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.PsCardItemVM
+﻿@model iLgs.Models.PsCardItemTransferVM
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
@@ -6,18 +6,19 @@
 
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
-    @Html.HiddenFor(model => model.PsCardId)
-    @Html.HiddenFor(model => model.OrderItemId)
-    @Html.HiddenFor(model => model.Description)
-    @Html.HiddenFor(model => model.Remarks)
-    @Html.HiddenFor(model => model.AirNo)
-    @Html.HiddenFor(model => model.AirDate)
-    @Html.HiddenFor(model => model.Qty)
-    @Html.HiddenFor(model => model.TransferIn)
-    @Html.HiddenFor(model => model.QtyIss)
-    @Html.HiddenFor(model => model.InvDist)
+    @Html.HiddenFor(model => model.PsCardItemId)
+    @*@Html.HiddenFor(model => model.PsCardId)
+        @Html.HiddenFor(model => model.OrderItemId)
+        @Html.HiddenFor(model => model.Description)
+        @Html.HiddenFor(model => model.Remarks)
+        @Html.HiddenFor(model => model.AirNo)
+        @Html.HiddenFor(model => model.AirDate)
+        @Html.HiddenFor(model => model.Qty)
+        @Html.HiddenFor(model => model.TransferIn)
+        @Html.HiddenFor(model => model.QtyIss)
+        @Html.HiddenFor(model => model.InvDist)*@
     @Html.HiddenFor(model => model.IsWithItemExtn)
-    @Html.HiddenFor(model => model.GroupId)
+    @*@Html.HiddenFor(model => model.GroupId)*@
     @Html.HiddenFor(model => model.SelectedIds)
 
     <div id="ErrorContent" class="hidden x-bootstrap-content">
@@ -28,50 +29,23 @@
 
     <fieldset>
         <div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.PoNo, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.PoNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                    @Html.ValidationMessageFor(m => m.PoNo)
-                </div>
+            @Html.LabelFor(m => m.PoNo, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-4">
+                @(Html.Kendo().TextBoxFor(m => m.PoNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
+                @Html.ValidationMessageFor(m => m.PoNo)
+            </div>
+
+            @Html.LabelFor(m => m.PoDate, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-4">
+                @(Html.Kendo().DatePickerFor(m => m.PoDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
+                @Html.ValidationMessageFor(m => m.PoDate)
             </div>
         </div>
 
         <div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.PoDate, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(m => m.PoDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                    @Html.ValidationMessageFor(m => m.PoDate)
-                </div>
-            </div>
-        </div>
-
-        @*<div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.AirNo, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.AirNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                    @Html.ValidationMessageFor(m => m.AirNo)
-                </div>
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.AirDate, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(m => m.AirDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                    @Html.ValidationMessageFor(m => m.AirDate)
-                </div>
-            </div>
-        </div>*@
-
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(model => model.DeptId, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
+            @Html.LabelFor(model => model.DeptId, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-4">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Office")
                             .DataTextField("Description")
@@ -95,47 +69,29 @@
                             .Events(e => e.Select("onSelectDeptId"))
                             .Suggest(true)
                             .Enable(false)
-                    )
-                    @Html.ValidationMessageFor(model => model.DeptId)
-                </div>
+                )
+                @Html.ValidationMessageFor(model => model.DeptId)
             </div>
-        </div>
 
-        <div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.DeptDisplay, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().TextBoxFor(m => m.DeptDisplay).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                    @Html.ValidationMessageFor(m => m.DeptDisplay)
-                </div>
+            @Html.LabelFor(m => m.DeptDisplay, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-4">
+                @(Html.Kendo().TextBoxFor(m => m.DeptDisplay).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
+                @Html.ValidationMessageFor(m => m.DeptDisplay)
             </div>
         </div>
         <br />
         <div class="row k-mb-2">
-            <div class="col-md-12">
-                @Html.LabelFor(m => m.TransDate, htmlAttributes: new { @class = "col-md-12" })
-                <div class="col-md-12">
-                    @(Html.Kendo().DatePickerFor(m => m.TransDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    @Html.ValidationMessageFor(m => m.TransDate)
-                </div>
+            @Html.LabelFor(m => m.TransDate, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-4">
+                @(Html.Kendo().DatePickerFor(m => m.TransDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.TransDate)
             </div>
         </div>
-        
-        
 
-        @if (Model.IsWithItemExtn == true)
-        {
-            @Html.HiddenFor(model => model.Unit)
-            @Html.HiddenFor(model => model.UnitCost)
-            @RenderGridSelections();
-        }
-        else
-        {
-            <div class="row k-mb-2">
-                <div class="col-md-12">
-                    @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-3">
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+        <div class="row k-mb-2">
+            @Html.LabelFor(model => model.LocationId, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-4">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                             .Placeholder("Select Location")
                             .DataTextField("Code")
@@ -158,20 +114,18 @@
                             })
                             .Events(e => e.Select("onSelectLocationId"))
                     //.Suggest(true)
-                        )
-                        @Html.ValidationMessageFor(model => model.LocationId)
-                    </div>
-                    <div class="col-md-9">
-                        @(Html.Kendo().TextBoxFor(m => m.Location).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                    </div>
-                </div>
+                )
+                @Html.ValidationMessageFor(model => model.LocationId)
             </div>
+            <div class="col-md-6">
+                @(Html.Kendo().TextBoxFor(m => m.Location).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            </div>
+        </div>
 
-            <div class="row k-mb-2">
-                <div class="col-md-12">
-                    @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().MultiColumnComboBoxFor(m => m.Unit)
+        <div class="row k-mb-2">
+            @Html.LabelFor(m => m.Unit, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-4">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.Unit)
                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Placeholder("Select unit")
                         .DataTextField("Description")
@@ -193,51 +147,59 @@
                         })
                         .Suggest(true)
                         .Enable(false)
-                        )
-                        @Html.ValidationMessageFor(m => m.Unit)
-                    </div>
+                )
+                @Html.ValidationMessageFor(m => m.Unit)
+            </div>
+
+            @Html.LabelFor(m => m.UnitCost, htmlAttributes: new { @class = "col-md-2" })
+            <div class="col-md-4">
+                @(Html.Kendo().NumericTextBoxFor(m => m.UnitCost).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
+                @Html.ValidationMessageFor(m => m.UnitCost)
+            </div>
+        </div>
+
+
+        @if (Model.IsWithItemExtn == true)
+        {
+            @*@Html.HiddenFor(model => model.Unit)
+                @Html.HiddenFor(model => model.UnitCost)*@
+            @(Html.Kendo().TabStrip()
+                .Name("tabStrip_Item")
+                //.HtmlAttributes(new { @class = "no-text-tabstrip" })
+                .TabPosition(TabStripTabPosition.Top)
+                .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                .SelectedIndex(0)
+                .Items(items =>
+                {
+                    items.Add().Text("Items").Selected(true)
+                    .Content(@<text>@RenderGridSelections();</text>);
+                }))                            
+        }
+        else
+        {
+            <div class="row k-mb-2">
+                @Html.LabelFor(m => m.QtyBal, "Balance", htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-4">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.QtyBal).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
+                    @Html.ValidationMessageFor(m => m.QtyBal)
                 </div>
             </div>
 
             <div class="row k-mb-2">
-                <div class="col-md-12">
-                    @Html.LabelFor(m => m.UnitCost, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().NumericTextBoxFor(m => m.UnitCost).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                        @Html.ValidationMessageFor(m => m.UnitCost)
-                    </div>
-                </div>
-            </div>
-
-            <div class="row k-mb-2">
-                <div class="col-md-12">
-                    @Html.LabelFor(m => m.QtyBal, "Balance", htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().NumericTextBoxFor(m => m.QtyBal).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                        @Html.ValidationMessageFor(m => m.QtyBal)
-                    </div>
-                </div>
-            </div>
-
-            <div class="row k-mb-2">
-                <div class="col-md-12">
-                    @Html.LabelFor(m => m.TransferOut, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().NumericTextBoxFor(m => m.TransferOut).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                @Html.LabelFor(m => m.TransferOut, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-4">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.TransferOut).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Events(e => e.Change("UpdateBalance"))
-                        )
-                        @Html.ValidationMessageFor(m => m.TransferOut)
-                    </div>
+                    )
+                    @Html.ValidationMessageFor(m => m.TransferOut)
                 </div>
             </div>
 
             <div class="row k-mb-2">
-                <div class="col-md-12">
-                    @Html.LabelFor(m => m.RemBalance, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().NumericTextBoxFor(m => m.RemBalance).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
-                        @Html.ValidationMessageFor(m => m.RemBalance)
-                    </div>
+                @Html.LabelFor(m => m.RemBalance, htmlAttributes: new { @class = "col-md-2" })
+                <div class="col-md-4">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.RemBalance).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Enable(false))
+                    @Html.ValidationMessageFor(m => m.RemBalance)
                 </div>
             </div>
         }
@@ -247,8 +209,8 @@
         <div class="row k-mb-2">
             <div class="col-md-12">
                 <span id="span_">
-                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave_" + @ViewData["GroupId"]))
-                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel_" + @ViewData["GroupId"]))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave_" + @ViewData["TransferId"]))
+                    @(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel_" + @ViewData["TransferId"]))
                 </span>
             </div>
         </div>
@@ -289,92 +251,16 @@
                 s.Add(a => a.SetLotQtyNo);
                 s.Add(a => a.ContentNo);
             })
-            .Read(read => read.Action("_TransferSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"], groupId = @ViewData["GroupId"] }))
+            .Read(read => read.Action("_TransferSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"], transferId = @ViewData["TransferId"] }))
         )
         //.Events(e => e.Change("onChangeGridItemExtns"))
         .AutoBind(true)
     )
 }
 
-@helper RenderGridSelections_Old()
-{
-if (@ViewBag.ItemExtnName == "ItemExtnOther")
-{
-        @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnOther>()
-            .Name("gridSelections")
-            .Columns(col =>
-            {
-                col.Select().Width(30);
-                col.Bound(c => c.SerialNo).Width(100);
-            })
-            .Filterable()
-            .NoRecords()
-            .Resizable(r => r.Columns(true))
-            .Selectable(s => s.Mode(GridSelectionMode.Multiple))
-            .Sortable()
-            .Scrollable(s => s.Height(200))
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .Events(events => events.Error("GridError"))
-                .Model(model =>
-                {
-                    model.Id(p => p.Id);
-                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-                })
-                .Sort(s =>
-                {
-                    s.Add(a => a.SerialNo);
-                })
-                .Read(read => read.Action("_TransferSelectionRead", "PoIssuance", new { cardItemId = @ViewData["GroupId"] }))
-            )
-            .AutoBind(true)
-        )
-}
-else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
-{
-        @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicle>()
-            .Name("gridSelections")
-            .Columns(col =>
-            {
-                col.Select().Width(30);
-                col.Bound(c => c.YearModel).Width(50);
-                col.Bound(c => c.PlateNo).Width(50);
-                col.Bound(c => c.BodyNo).Width(70);
-                col.Bound(c => c.EngineNo).Width(70);
-                col.Bound(c => c.ChasisNo).Width(70);
-                col.Bound(c => c.Color).Width(50);
-                col.Bound(c => c.CRN).Width(70);
-                col.Bound(c => c.CRDate).Width(50);
-                col.Bound(c => c.MVFileNo).Width(70);
-            })
-            .Filterable()
-            .NoRecords()
-            .Resizable(r => r.Columns(true))
-            .Selectable(s => s.Mode(GridSelectionMode.Multiple))
-            .Sortable()
-            .Scrollable(s => s.Height(200))
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .Events(events => events.Error("GridError"))
-                .Model(model =>
-                {
-                    model.Id(p => p.Id);
-                    model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
-                })
-                .Sort(s =>
-                {
-                    s.Add(a => a.PlateNo);
-                })
-                .Read(read => read.Action("_TransferSelectionRead", "PoIssuance", new { cardItemId = @ViewData["GroupId"] }))
-            )
-            .AutoBind(true)
-        )
-}
-}
-
 
 <script type="text/javascript">
-    $("#btnSave_" + '@ViewData["GroupId"]').click(function (e) {
+    $("#btnSave_" + '@ViewData["TransferId"]').click(function (e) {
         e.preventDefault();
 
         var validator = $("#form").kendoValidator().data("kendoValidator");
@@ -393,9 +279,9 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
                 }).get(); // Convert to an array
 
                 //$("#SelectedIds").val(selectedIds);
-                $("#SelectedIds").val(JSON.stringify(selectedIds));                
+                $("#SelectedIds").val(JSON.stringify(selectedIds));
             }
-            
+
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("_TransferSave", "PoIssuance")',
@@ -406,7 +292,7 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
                 success: function (result) {
                     window.kendo.ui.progress($("#form"), false);
                     if (result.Errors == "") {
-                        $("#btnSave_" + '@ViewData["GroupId"]').closest(".k-window-content").data("kendoWindow").close();
+                        $("#btnSave_" + '@ViewData["TransferId"]').closest(".k-window-content").data("kendoWindow").close();
                     }
                     else {
                         var $errorList = $("#ErrorContent .errors");
@@ -429,10 +315,10 @@ else if (@ViewBag.ItemExtnName == "ItemExtnVehicle")
         }
     });
 
-    $("#btnCancel_" +  '@ViewData["GroupId"]').click(function (e) {
+    $("#btnCancel_" +  '@ViewData["TransferId"]').click(function (e) {
         e.preventDefault();
-        $("#btnCancel_" + '@ViewData["GroupId"]').closest(".k-window-content").data("kendoWindow").close();
+        $("#btnCancel_" + '@ViewData["TransferId"]').closest(".k-window-content").data("kendoWindow").close();
     });
 
-    
+
 </script>

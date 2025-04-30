@@ -1103,18 +1103,36 @@ namespace iLgs.Services.CustodianReports
                         account = reportItem.Account;
                         department = reportItem.Department;
                         row += 3;
-                        ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
-                        row += 2;
-                        ws.Row(row).Cell(2).SetValue("Department:");
-                        if (id == null)
+                        var accountCell = ws.Row(row).Cell(2);
+                        accountCell.SetValue(account);
+                        accountCell.Style.Font.Bold = true;
+                        accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        accountCell.Style.Alignment.WrapText = false;
+                        if (accountCell.IsMerged())
                         {
-                            if (deptId == null || deptId == Guid.Empty)
-                            {
-                                ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                            }
+                            accountCell.MergedRange().Unmerge();
                         }
+                        //ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        //row += 2;
+                        //ws.Row(row).Cell(2).SetValue("Department:");
+                        //if (id == null)
+                        //{
+                        //    if (deptId == null || deptId == Guid.Empty)
+                        //    {
+                        //        ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        //    }
+                        //}
                         row += 2;
-                        ws.Row(row).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
+                        var deptCell = ws.Row(row).Cell(2);
+                        deptCell.SetValue($"{reportItem.DeptCode} {reportItem.Department}");
+                        deptCell.Style.Font.Bold = true;
+                        deptCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        deptCell.Style.Alignment.WrapText = false;
+                        if (deptCell.IsMerged())
+                        {
+                            deptCell.MergedRange().Unmerge();
+                        }
+                        //ws.Row(row).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
                         row++;
                         ws.Row(12).CopyTo(ws.Row(++row));
                         ws.Row(13).CopyTo(ws.Row(++row));
@@ -1265,20 +1283,38 @@ namespace iLgs.Services.CustodianReports
                         account = reportItem.Account;
                         department = reportItem.Department;
                         row += 3;
-                        ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
-                        row += 2;
-                        ws.Row(row).Cell(2).SetValue("Department:");
-
-                        if (id == null)
+                        var accountCell = ws.Row(row).Cell(2);
+                        accountCell.SetValue(account);
+                        accountCell.Style.Font.Bold = true;
+                        accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        accountCell.Style.Alignment.WrapText = false;
+                        if (accountCell.IsMerged())
                         {
-                            if (deptId == null || deptId == Guid.Empty)
-                            {
-                                ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                            }
+                            accountCell.MergedRange().Unmerge();
                         }
+                        //ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        //row += 2;
+                        //ws.Row(row).Cell(2).SetValue("Department:");
+
+                        //if (id == null)
+                        //{
+                        //    if (deptId == null || deptId == Guid.Empty)
+                        //    {
+                        //        ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        //    }
+                        //}
 
                         row += 2;
-                        ws.Row(row).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
+                        var deptCell = ws.Row(row).Cell(2);
+                        deptCell.SetValue($"{reportItem.DeptCode} {reportItem.Department}");
+                        deptCell.Style.Font.Bold = true;
+                        deptCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        deptCell.Style.Alignment.WrapText = false;
+                        if (deptCell.IsMerged())
+                        {
+                            deptCell.MergedRange().Unmerge();
+                        }
+                        //ws.Row(row).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
                         row++;
                         ws.Row(12).CopyTo(ws.Row(++row));
                         ws.Row(13).CopyTo(ws.Row(++row));
@@ -1426,18 +1462,36 @@ namespace iLgs.Services.CustodianReports
                         account = reportItem.Account;
                         department = reportItem.Department;
                         row += 3;
-                        ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
-                        row += 2;
-                        ws.Row(row).Cell(2).SetValue("Department:");
-                        if (id == null)
+                        var accountCell = ws.Row(row).Cell(2);
+                        accountCell.SetValue(account);
+                        accountCell.Style.Font.Bold = true;
+                        accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        accountCell.Style.Alignment.WrapText = false;
+                        if (accountCell.IsMerged())
                         {
-                            if (deptId == null || deptId == Guid.Empty)
-                            {
-                                ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                            }
+                            accountCell.MergedRange().Unmerge();
                         }
+                        //ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        //row += 2;
+                        //ws.Row(row).Cell(2).SetValue("Department:");
+                        //if (id == null)
+                        //{
+                        //    if (deptId == null || deptId == Guid.Empty)
+                        //    {
+                        //        ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
+                        //    }
+                        //}
                         row += 2;
-                        ws.Row(row).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
+                        var deptCell = ws.Row(row).Cell(2);
+                        deptCell.SetValue($"{reportItem.DeptCode} {reportItem.Department}");
+                        deptCell.Style.Font.Bold = true;
+                        deptCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        deptCell.Style.Alignment.WrapText = false;
+                        if (deptCell.IsMerged())
+                        {
+                            deptCell.MergedRange().Unmerge();
+                        }
+                        //ws.Row(row).Cell(2).SetValue($"{reportItem.DeptCode} {reportItem.Department}").Style.Font.Bold = true;
                         row++;
                         ws.Row(12).CopyTo(ws.Row(++row));
                         ws.Row(13).CopyTo(ws.Row(++row));
@@ -1547,633 +1601,7 @@ namespace iLgs.Services.CustodianReports
         {
             return ProcessExcelFileVehicleTemplate(id, deptId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
-
-        private MemoryStream ProcessExcelFileStockTemplateOld(Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf)
-        {
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                int sw = 1;
-                int row = 14;
-                string setLotNo = "";
-                string account = "";
-                string department = "";
-                decimal? tAcqCost = 0;
-                var ws = wb.Worksheet(1);
-                IQueryable<CustodianReportItem> reportItems;
-                reportItems = _db.CustodianReportItems
-                    .Include(i => i.ItemCode.ItemType)
-                    .Include(i => i.CustodianReport.Codextn)
-                    .Include(i => i.Codextn) // deptId
-                    .Include(i => i.Codextn1) // LocationId
-                    .Include(i => i.CustodianReportItemIssuances)
-                    .Where(w => w.CustodianReport.AccountGroup == accountGroup)
-                    .AsNoTracking();
-
-                if (!string.IsNullOrWhiteSpace(mainAccount) && mainAccount != "ALL")
-                {
-                    reportItems = reportItems.Where(w => w.ItemCode.ItemType.Description == mainAccount);
-                }
-
-                if (asOf.HasValue)
-                {
-                    reportItems = reportItems.Where(w => w.AcqDate <= asOf || w.AcqDate == null);
-                }
-
-                if (!string.IsNullOrWhiteSpace(annex))
-                {
-                    reportItems = reportItems.Where(w => w.Annex == annex);
-                }
-
-                if (id != null)
-                {
-                    reportItems = reportItems.Where(w => w.ReportId == id);
-                        
-                }
-                else
-                {
-                    if (deptId != null && deptId != Guid.Empty)
-                    {
-                        reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId);                            
-                    }                    
-                }
-
-                reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description)
-                            .ThenBy(o => o.CustodianReport.Department)
-                            .ThenBy(o => o.LocationCode)
-                            .ThenBy(t => t.SetLotNo)
-                            .ThenBy(t => t.SetLotRemarks)
-                            .ThenBy(o => o.CustodianItemNo)
-                            .ThenBy(t => t.ItemCode.ItemNoIndex);
-
-                foreach (var reportItem in reportItems)
-                {
-                    if (sw == 1)
-                    {
-                        account = reportItem.ItemCode.ItemType.Description;
-                        department = reportItem.CustodianReport.Department;
-                        if (!string.IsNullOrWhiteSpace(annex))
-                        {
-                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                            ws.Row(4).Cell(2).SetValue(hdg);
-                        }
-                        if (asOf.HasValue)
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
-                        }
-                        else
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        }
-                        ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
-
-                        if (id == null)
-                        {
-                            if (deptId == null || deptId == Guid.Empty)
-                            {
-                                ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                            }
-                        }
-
-                        ws.Row(10).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        sw = 0;
-                    }
-
-                    if (account != reportItem.ItemCode.ItemType.Description || department != reportItem.CustodianReport.Department)
-                    {
-                        account = reportItem.ItemCode.ItemType.Description;
-                        department = reportItem.CustodianReport.Department;
-                        row += 3;
-                        ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
-                        row += 2;
-                        ws.Row(row).Cell(2).SetValue("Department:");
-                        if (deptId == null || deptId == Guid.Empty)
-                        {
-                            ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                        }
-                        row += 2;
-                        ws.Row(row).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        row++;
-                        ws.Row(12).CopyTo(ws.Row(++row));
-                        ws.Row(13).CopyTo(ws.Row(++row));
-                        ws.Row(14).CopyTo(ws.Row(++row));
-                        ws.Range($"B{row - 2}:B{row}").Merge();
-                        ws.Range($"C{row - 1}:C{row}").Merge();
-                        ws.Range($"D{row - 1}:D{row}").Merge();
-                        ws.Range($"E{row - 2}:E{row}").Merge();
-                        ws.Range($"F{row - 2}:F{row}").Merge();
-                        ws.Range($"G{row - 1}:G{row}").Merge();
-                        ws.Range($"H{row - 1}:H{row}").Merge();
-                        ws.Range($"I{row - 1}:I{row}").Merge();
-                        ws.Range($"J{row - 1}:J{row}").Merge();
-                        ws.Range($"K{row - 1}:K{row}").Merge();
-                        ws.Range($"O{row - 2}:O{row}").Merge();
-                        ws.Range($"P{row - 2}:P{row}").Merge();
-                        ws.Range($"Q{row - 2}:Q{row}").Merge();
-                        ws.Range($"R{row - 2}:R{row}").Merge();
-                        ws.Range($"S{row - 2}:S{row}").Merge();
-                        ws.Range($"T{row - 2}:T{row}").Merge();
-                        ws.Range($"U{row - 2}:U{row}").Merge();
-                        ws.Range($"V{row - 2}:V{row}").Merge();
-                        ws.Range($"W{row - 2}:W{row}").Merge();
-                        ws.Range($"X{row - 2}:X{row}").Merge();
-                        ws.Range($"Y{row - 2}:Y{row}").Merge();
-                        ws.Range($"Z{row - 2}:Z{row}").Merge();
-                        ws.Range($"AA{row - 2}:AA{row}").Merge();
-                        ws.Range($"AB{row - 2}:AB{row}").Merge();
-                        ws.Range($"AC{row - 2}:AC{row}").Merge();
-                        ws.Range($"AD{row - 2}:AD{row}").Merge();
-                        ws.Range($"AE{row - 2}:AE{row}").Merge();
-                        ws.Range($"AF{row - 2}:AF{row}").Merge();
-                        ws.Range($"AG{row - 1}:AG{row}").Merge();
-                        ws.Range($"AH{row - 1}:AH{row}").Merge();
-                        ws.Range($"AI{row - 1}:AI{row}").Merge();
-                        ws.Range($"AJ{row - 2}:AJ{row}").Merge();
-                        ws.Range($"AK{row - 2}:AK{row}").Merge();
-                        ws.Range($"AL{row - 2}:AL{row}").Merge();
-                        ws.Range($"AM{row - 2}:AM{row}").Merge();
-                        ws.Range($"AN{row - 2}:AN{row}").Merge();
-                    }
-
-                    row++;
-                    if (!string.IsNullOrWhiteSpace(reportItem.SetLotNo))
-                    {
-                        if (setLotNo != reportItem.SetLotNo)
-                        {
-                            setLotNo = reportItem.SetLotNo;
-                            reportItem.TotalCost = reportItem.SetLotAmount;
-                        }
-                        else
-                        {
-                            reportItem.TotalCost = 0;
-                        }
-                    }
-
-                    if (string.IsNullOrWhiteSpace(annex))
-                    {
-                        SetStockRowColValue(ws, reportItem, row, false);
-                        ws.Range($"B{row}:AN{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    }
-                    else
-                    {
-                        SetStockRowColValue(ws, reportItem, row, true);
-                        ws.Range($"B{row}:AM{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    }
-
-                    tAcqCost += (reportItem.TotalCost ?? 0);
-                }
-                ws.Row(++row).Cell(23).SetValue("TOTAL");
-                ws.Row(row).Cell(24).SetValue(tAcqCost);
-
-                row += 4;
-                ws.Row(row).Cell(3).SetValue("Certified Correct by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(10).SetValue("Verified by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                row += 3;
-                ws.Row(row).Cell(4).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(11).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Range($"D{row}:G{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
-                ws.Range($"K{row}:L{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
-                row++;
-                ws.Row(row).Cell(4).SetValue("Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(11).SetValue("Assistant to the Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Range($"D{row}:G{row}").Merge();
-                ws.Range($"K{row}:L{row}").Merge();
-
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }
-        }
-       
-        private MemoryStream ProcessExcelFilePpeTemplateOld(Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf)
-        {
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                int sw = 1;
-                int row = 14;
-                string setLotNo = "";
-                string account = "";
-                string department = "";
-                decimal? tAcqCost = 0;
-                var ws = wb.Worksheet(1);
-                IQueryable<CustodianReportItem> reportItems;
-                reportItems = _db.CustodianReportItems
-                    .Include(i => i.ItemCode.ItemType)
-                    .Include(i => i.CustodianReport.Codextn)
-                    .Include(i => i.Codextn) // deptId
-                    .Include(i => i.Codextn1) // LocationId
-                    .Include(i => i.CustodianReportItemIssuances)
-                    .Where(w => w.CustodianReport.AccountGroup == accountGroup)
-                    .AsNoTracking();
-
-                if (!string.IsNullOrWhiteSpace(mainAccount) && mainAccount != "ALL")
-                {
-                    reportItems = reportItems.Where(w => w.ItemCode.ItemType.Description == mainAccount);
-                }
-
-                if (asOf.HasValue)
-                {
-                    reportItems = reportItems.Where(w => w.AcqDate <= asOf || w.AcqDate == null) ;
-                }
-
-                if (!string.IsNullOrWhiteSpace(annex))
-                {
-                    reportItems = reportItems.Where(w => w.Annex == annex);
-                }                
-
-                if (id != null)
-                {
-                    reportItems = reportItems.Where(w => w.ReportId == id);
-
-                }
-                else
-                {
-                    if (deptId != null && deptId != Guid.Empty)
-                    {
-                        reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId);
-                    }
-                }
-
-                reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description)
-                            .ThenBy(o => o.CustodianReport.Department)
-                            .ThenBy(o => o.LocationCode)
-                            .ThenBy(t => t.SetLotNo)
-                            .ThenBy(t => t.SetLotRemarks)
-                            .ThenBy(o => o.CustodianItemNo)
-                            .ThenBy(t => t.ItemCode.ItemNoIndex);
-
-                foreach (var reportItem in reportItems)
-                {
-                    if (sw == 1)
-                    {
-                        account = reportItem.ItemCode.ItemType.Description;
-                        department = reportItem.CustodianReport.Department;
-                        if (!string.IsNullOrWhiteSpace(annex))
-                        {
-                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                            ws.Row(4).Cell(2).SetValue(hdg);
-                        }
-
-                        if (asOf.HasValue)
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
-                        }
-                        else
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        }
-
-                        ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
-
-                        if (id == null)
-                        {
-                            if (deptId == null || deptId == Guid.Empty)
-                            {
-                                ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                            }
-                        }
-
-                        ws.Row(10).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        sw = 0;
-                    }
-
-                    if (account != reportItem.ItemCode.ItemType.Description || department != reportItem.CustodianReport.Department)
-                    {
-                        account = reportItem.ItemCode.ItemType.Description;
-                        department = reportItem.CustodianReport.Department;
-                        row += 3;
-                        ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
-                        row += 2;
-                        ws.Row(row).Cell(2).SetValue("Department:");
-                        if (deptId == null || deptId == Guid.Empty)
-                        {
-                            ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                        }
-                        row += 2;
-                        ws.Row(row).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        row++;
-                        ws.Row(12).CopyTo(ws.Row(++row));
-                        ws.Row(13).CopyTo(ws.Row(++row));
-                        ws.Row(14).CopyTo(ws.Row(++row));
-                        ws.Range($"B{row - 2}:B{row}").Merge();
-                        ws.Range($"C{row - 1}:C{row}").Merge();
-                        ws.Range($"D{row - 1}:D{row}").Merge();
-                        ws.Range($"E{row - 2}:E{row}").Merge();
-                        ws.Range($"F{row - 2}:F{row}").Merge();
-                        ws.Range($"G{row - 1}:G{row}").Merge();
-                        ws.Range($"H{row - 1}:H{row}").Merge();
-                        ws.Range($"I{row - 1}:I{row}").Merge();
-                        ws.Range($"J{row - 1}:J{row}").Merge();
-                        ws.Range($"K{row - 1}:K{row}").Merge();
-                        ws.Range($"O{row - 2}:O{row}").Merge();
-                        ws.Range($"P{row - 2}:P{row}").Merge();
-                        ws.Range($"Q{row - 2}:Q{row}").Merge();
-                        ws.Range($"R{row - 2}:R{row}").Merge();
-                        ws.Range($"S{row - 2}:S{row}").Merge();
-                        ws.Range($"T{row - 2}:T{row}").Merge();
-                        ws.Range($"U{row - 2}:U{row}").Merge();
-                        ws.Range($"V{row - 2}:V{row}").Merge();
-                        ws.Range($"W{row - 2}:W{row}").Merge();
-                        ws.Range($"X{row - 2}:X{row}").Merge();
-                        ws.Range($"Y{row - 2}:Y{row}").Merge();
-                        ws.Range($"Z{row - 2}:Z{row}").Merge();
-                        ws.Range($"AA{row - 2}:AA{row}").Merge();
-                        ws.Range($"AB{row - 2}:AB{row}").Merge();
-                        ws.Range($"AC{row - 2}:AC{row}").Merge();
-                        ws.Range($"AD{row - 2}:AD{row}").Merge();
-                        ws.Range($"AE{row - 2}:AE{row}").Merge();
-                        ws.Range($"AF{row - 2}:AF{row}").Merge();
-                        ws.Range($"AG{row - 1}:AG{row}").Merge();
-                        ws.Range($"AH{row - 1}:AH{row}").Merge();
-                        ws.Range($"AI{row - 1}:AI{row}").Merge();
-                        ws.Range($"AJ{row - 2}:AJ{row}").Merge();
-                        ws.Range($"AK{row - 2}:AK{row}").Merge();
-                        ws.Range($"AL{row - 2}:AL{row}").Merge();
-                        ws.Range($"AM{row - 2}:AM{row}").Merge();
-                        ws.Range($"AN{row - 2}:AN{row}").Merge();
-                    }
-
-                    row++;
-                    if (!string.IsNullOrWhiteSpace(reportItem.SetLotNo))
-                    {
-                        if (setLotNo != reportItem.SetLotNo)
-                        {
-                            setLotNo = reportItem.SetLotNo;
-                            reportItem.TotalCost = reportItem.SetLotAmount;
-                        }
-                        else
-                        {
-                            reportItem.TotalCost = 0;
-                        }
-                    }
-
-                    if (string.IsNullOrWhiteSpace(annex))
-                    {
-                        SetPpeRowColValue(ws, reportItem, row, false);
-                        ws.Range($"B{row}:AN{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    }
-                    else
-                    {
-                        SetPpeRowColValue(ws, reportItem, row, true);
-                        ws.Range($"B{row}:AM{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    }
-                    tAcqCost += (reportItem.TotalCost ?? 0);
-                }
-                ws.Row(++row).Cell(23).SetValue("TOTAL");
-                ws.Row(row).Cell(24).SetValue(tAcqCost);
-
-                row += 4;
-                ws.Row(row).Cell(3).SetValue("Certified Correct by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(10).SetValue("Verified by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                row += 3;
-                ws.Row(row).Cell(4).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(11).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Range($"D{row}:G{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
-                ws.Range($"K{row}:L{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
-                row++;
-                ws.Row(row).Cell(4).SetValue("Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(11).SetValue("Assistant to the Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Range($"D{row}:G{row}").Merge();
-                ws.Range($"K{row}:L{row}").Merge();
-
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }
-        }       
-
-        private MemoryStream ProcessExcelFileVehicleTemplateOld(Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf)
-        {
-            using (XLWorkbook wb = new XLWorkbook(templateFilePath))
-            {
-                int sw = 1;
-                int row = 14;
-                string setLotNo = "";
-                string account = "";
-                string department = "";
-                decimal? tAcqCost = 0;
-                var ws = wb.Worksheet(1);
-                IQueryable<CustodianReportItem> reportItems;
-                reportItems = _db.CustodianReportItems
-                    .Include(i => i.ItemCode.ItemType)
-                    .Include(i => i.CustodianReport.Codextn)
-                    .Include(i => i.Codextn) // deptId
-                    .Include(i => i.Codextn1) // LocationId
-                    .Include(i => i.CustodianReportItemIssuances)
-                    .Where(w => w.CustodianReport.AccountGroup == accountGroup)
-                    .AsNoTracking();
-
-                if (!string.IsNullOrWhiteSpace(mainAccount) && mainAccount != "ALL")
-                {
-                    reportItems = reportItems.Where(w => w.ItemCode.ItemType.Description == mainAccount);
-                }
-
-                if (asOf.HasValue)
-                {
-                    reportItems = reportItems.Where(w => w.AcqDate <= asOf || w.AcqDate == null);
-                }
-
-                if (!string.IsNullOrWhiteSpace(annex))
-                {
-                    reportItems = reportItems.Where(w => w.Annex == annex);
-                }
-
-                //if (id != null)
-                //{
-                //    reportItems = reportItems.Where(w => w.ReportId == id).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
-                //}
-                //else
-                //{
-                //    if (deptId != null && deptId != Guid.Empty)
-                //    {
-                //        reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
-                //    }
-                //    else
-                //    {
-                //        reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.SetLotNo).ThenBy(t => t.SetLotRemarks).ThenBy(t => t.ItemCode.ItemNoIndex);
-                //    }
-                //}
-
-                if (id != null)
-                {
-                    reportItems = reportItems.Where(w => w.ReportId == id);
-
-                }
-                else
-                {
-                    if (deptId != null && deptId != Guid.Empty)
-                    {
-                        reportItems = reportItems.Where(w => w.CustodianReport.DeptId == deptId);
-                    }
-                }
-
-                reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description)
-                            .ThenBy(o => o.CustodianReport.Department)
-                            .ThenBy(o => o.LocationCode)
-                            .ThenBy(t => t.SetLotNo)
-                            .ThenBy(t => t.SetLotRemarks)
-                            .ThenBy(o => o.CustodianItemNo)
-                            .ThenBy(t => t.ItemCode.ItemNoIndex);
-
-                foreach (var reportItem in reportItems)
-                {
-                    if (sw == 1)
-                    {
-                        account = reportItem.ItemCode.ItemType.Description;
-                        department = reportItem.CustodianReport.Department;
-                        if (!string.IsNullOrWhiteSpace(annex))
-                        {
-                            ws.Row(2).Cell(2).SetValue($"Annex {annex}");
-                            ws.Row(4).Cell(2).SetValue(hdg);
-                        }
-                        if (asOf.HasValue)
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {asOf.Value.ToShortDateString()}");
-                        }
-                        else
-                        {
-                            ws.Row(5).Cell(2).SetValue($"As of {DateTime.Now.ToShortDateString()}");
-                        }
-                        ws.Row(6).Cell(2).SetValue(account).Style.Font.Bold = true;
-
-                        if (id == null)
-                        {
-                            if (deptId == null || deptId == Guid.Empty)
-                            {
-                                ws.Row(8).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                            }
-
-                        }
-
-                        ws.Row(10).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        sw = 0;
-                    }
-
-                    if (account != reportItem.ItemCode.ItemType.Description || department != reportItem.CustodianReport.Department)
-                    {
-                        account = reportItem.ItemCode.ItemType.Description;
-                        department = reportItem.CustodianReport.Department;
-                        row += 3;
-                        ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
-                        row += 2;
-                        ws.Row(row).Cell(2).SetValue("Department:");
-                        if (deptId == null || deptId == Guid.Empty)
-                        {
-                            ws.Row(row).Cell(3).SetValue("ALL").Style.Font.Bold = true;
-                        }
-                        row += 2;
-                        ws.Row(row).Cell(2).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
-                        row++;
-                        ws.Row(12).CopyTo(ws.Row(++row));
-                        ws.Row(13).CopyTo(ws.Row(++row));
-                        ws.Row(14).CopyTo(ws.Row(++row));
-                        ws.Range($"B{row - 2}:B{row}").Merge();
-                        ws.Range($"C{row - 1}:C{row}").Merge();
-                        ws.Range($"D{row - 1}:D{row}").Merge();
-                        ws.Range($"E{row - 2}:E{row}").Merge();
-                        ws.Range($"F{row - 2}:F{row}").Merge();
-                        ws.Range($"G{row - 1}:G{row}").Merge();
-                        ws.Range($"H{row - 1}:H{row}").Merge();
-                        ws.Range($"I{row - 1}:I{row}").Merge();
-                        ws.Range($"J{row - 1}:J{row}").Merge();
-                        ws.Range($"K{row - 1}:K{row}").Merge();
-                        ws.Range($"L{row - 1}:L{row}").Merge();
-                        ws.Range($"M{row - 1}:M{row}").Merge();
-                        ws.Range($"N{row - 1}:N{row}").Merge();
-                        ws.Range($"O{row - 1}:O{row}").Merge();
-                        ws.Range($"P{row - 1}:P{row}").Merge();
-                        ws.Range($"Q{row - 1}:Q{row}").Merge();
-                        ws.Range($"R{row - 1}:R{row}").Merge();
-                        ws.Range($"S{row - 1}:S{row}").Merge();
-                        ws.Range($"W{row - 2}:W{row}").Merge();
-                        ws.Range($"X{row - 2}:X{row}").Merge();
-                        ws.Range($"Y{row - 2}:Y{row}").Merge();
-                        ws.Range($"Z{row - 2}:Z{row}").Merge();
-                        ws.Range($"AA{row - 2}:AA{row}").Merge();
-                        ws.Range($"AB{row - 2}:AB{row}").Merge();
-                        ws.Range($"AC{row - 2}:AC{row}").Merge();
-                        ws.Range($"AD{row - 2}:AD{row}").Merge();
-                        ws.Range($"AE{row - 2}:AE{row}").Merge();
-                        ws.Range($"AF{row - 2}:AF{row}").Merge();
-                        ws.Range($"AG{row - 2}:AG{row}").Merge();
-                        ws.Range($"AH{row - 2}:AH{row}").Merge();
-                        ws.Range($"AI{row - 2}:AI{row}").Merge();
-                        ws.Range($"AJ{row - 2}:AJ{row}").Merge();
-                        ws.Range($"AK{row - 2}:AK{row}").Merge();
-                        ws.Range($"AL{row - 2}:AL{row}").Merge();
-                        ws.Range($"AM{row - 2}:AM{row}").Merge();
-                        ws.Range($"AN{row - 2}:AN{row}").Merge();
-                        ws.Range($"AO{row - 1}:AO{row}").Merge();
-                        ws.Range($"AP{row - 1}:AP{row}").Merge();
-                        ws.Range($"AQ{row - 1}:AQ{row}").Merge();
-                        ws.Range($"AR{row - 2}:AR{row}").Merge();
-                        ws.Range($"AS{row - 2}:AS{row}").Merge();
-                        ws.Range($"AT{row - 2}:AT{row}").Merge();
-                        ws.Range($"AU{row - 2}:AU{row}").Merge();
-                        ws.Range($"AV{row - 2}:AV{row}").Merge();
-                    }
-
-                    row++;
-                    if (!string.IsNullOrWhiteSpace(reportItem.SetLotNo))
-                    {
-                        if (setLotNo != reportItem.SetLotNo)
-                        {
-                            setLotNo = reportItem.SetLotNo;
-                            reportItem.TotalCost = reportItem.SetLotAmount;
-                        }
-                        else
-                        {
-                            reportItem.TotalCost = 0;
-                        }
-                    }
-
-                    if (string.IsNullOrWhiteSpace(annex))
-                    {
-                        SetVehicleRowColValue(ws, reportItem, row, false);
-                        ws.Range($"B{row}:AV{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    }
-                    else
-                    {
-                        SetVehicleRowColValue(ws, reportItem, row, true);
-                        ws.Range($"B{row}:AU{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
-                    }
-
-                    tAcqCost += (reportItem.TotalCost ?? 0);
-                }
-                ws.Row(++row).Cell(31).SetValue("TOTAL");
-                ws.Row(row).Cell(32).SetValue(tAcqCost);
-
-                row += 4;
-                ws.Row(row).Cell(3).SetValue("Certified Correct by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(10).SetValue("Verified by:").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                row += 3;
-                ws.Row(row).Cell(4).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(11).SetValue("Signature over Printed Name").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Range($"D{row}:G{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
-                ws.Range($"K{row}:L{row}").Merge().Style.Border.TopBorder = XLBorderStyleValues.Medium;
-                row++;
-                ws.Row(row).Cell(4).SetValue("Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Row(row).Cell(11).SetValue("Assistant to the Custodian").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-                ws.Range($"D{row}:G{row}").Merge();
-                ws.Range($"K{row}:L{row}").Merge();
-
-                // Create a MemoryStream to save the output
-                var memoryStream = new MemoryStream();
-                wb.SaveAs(memoryStream);
-
-                // Reset the stream position to the beginning before returning
-                memoryStream.Position = 0;
-                return memoryStream;
-            }
-        }
-
+        
         public MemoryStream ProcessExcelFileAnnex(Guid? id, Guid? deptId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {

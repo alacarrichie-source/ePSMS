@@ -19,8 +19,8 @@ namespace iLgs.Models
         {
             this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
             this.PsCardItemUnitGroupDescriptionItems = new HashSet<PsCardItemUnitGroupDescriptionItem>();
-            this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
             this.PsCardItemTransfers = new HashSet<PsCardItemTransfer>();
+            this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
         }
     
         public System.Guid Id { get; set; }
@@ -92,10 +92,10 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
         public virtual OrderItem OrderItem { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual PsCardItemTransfer PsCardItemTransfer { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransfer> PsCardItemTransfers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
     }
 }

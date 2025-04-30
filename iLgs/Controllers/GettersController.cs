@@ -975,7 +975,7 @@ namespace iLgs.Controllers
         public JsonResult GetCurrentDate()
         {
             
-            return Json(new { Date = DateTime.Now }, JsonRequestBehavior.AllowGet);
+            return Json(new { Date = DateTime.Now.ToShortDateString() }, JsonRequestBehavior.AllowGet);
         }
     }
     

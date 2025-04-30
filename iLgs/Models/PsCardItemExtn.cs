@@ -27,12 +27,10 @@ namespace iLgs.Models
         public Nullable<System.Guid> GroupId { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
         public Nullable<System.Guid> AIRItemExtnId { get; set; }
-        public Nullable<System.Guid> PsCardItemTransferItemId { get; set; }
         public string SetLotNo { get; set; }
         public Nullable<int> SetLotQtyNo { get; set; }
         public Nullable<int> ContentNo { get; set; }
-        public Nullable<int> TContentNo { get; set; }
-        public Nullable<int> CustItemNo { get; set; }
+        public string CustItemNo { get; set; }
         public Nullable<bool> IsAutoGen { get; set; }
         public Nullable<System.Guid> LocationId { get; set; }
         public string PropNo { get; set; }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
@@ -12,37 +13,74 @@ namespace iLgs.Services.PropertyCard
 {
     public interface IPsCardItemExtnOtherService
     {
-        IQueryable<PsCardItemExtnOther> GetByPsCardItemId(Guid? psCardItemId);
-        ValueTask<PsCardItemExtnOther> GetByIdAsync(Guid? id);
+        IQueryable<PsCardItemExtnOtherVM> GetByPsCardItemId(Guid? psCardItemId);
+        IQueryable<PsCardItemExtnOtherVM> GetByPsCardItemIdWithTransferId(Guid? psCardItemId, Guid? trasferId);
+        ValueTask<PsCardItemExtnOtherVM> GetByIdAsync(Guid? id);
 
-        ValueTask<PsCardItemExtnOther> CreateAsync(PsCardItemExtnOther model, string user, DateTime date);
-        ValueTask<PsCardItemExtnOther> UpdateAsync(PsCardItemExtnOther model, string user, DateTime date);
-        ValueTask<PsCardItemExtnOther> DeleteAsync(PsCardItemExtnOther model, string user, DateTime date);
+        ValueTask<PsCardItemExtnOtherVM> CreateAsync(PsCardItemExtnOtherVM model, string user, DateTime date);
+        ValueTask<PsCardItemExtnOtherVM> UpdateAsync(PsCardItemExtnOtherVM model, string user, DateTime date);
+        ValueTask<PsCardItemExtnOtherVM> DeleteAsync(PsCardItemExtnOtherVM model, string user, DateTime date);
     }
 
     public class PsCardItemExtnOtherService : IPsCardItemExtnOtherService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<PsCardItemExtnOther> _exceptionService = new ExceptionService<PsCardItemExtnOther>();
+        private readonly IExceptionService<PsCardItemExtnOtherVM> _exceptionService = new ExceptionService<PsCardItemExtnOtherVM>();
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
-        private readonly IPsCardItemExtnValidator _psCardItemExtnValidator;
+        private readonly IPsCardItemExtnOtherValidator _psCardItemExtnOtherValidator;
 
         public PsCardItemExtnOtherService(AppManEntities db)
         {
             _db = db;
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _psCardItemExtnValidator = new PsCardItemExtnValidator(_db);
+            _psCardItemExtnOtherValidator = new PsCardItemExtnOtherValidator(_db);
         }
 
-        public IQueryable<PsCardItemExtnOther> GetByPsCardItemId(Guid? psCardItemId)
+        private Expression<Func<PsCardItemExtnOther, PsCardItemExtnOtherVM>> GetProjection()
         {
-            var data = _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().Where(w => w.PsCardItemId == psCardItemId);
+            return s => new PsCardItemExtnOtherVM
+            {
+                Location = s.Codextn.Description,
+                Id = s.Id,
+                PsCardItemId = s.PsCardItemId,
+                AIRItemExtnId = s.AIRItemExtnId,
+                SetLotNo = s.SetLotNo,
+                SetLotQtyNo = s.SetLotQtyNo,
+                ContentNo = s.ContentNo,
+                LocationId = s.LocationId,
+                PropNo = s.PropNo,
+                PropYear = s.PropYear,
+                PropSeq = s.PropSeq,
+                SeriesNo = s.SeriesNo,
+                SerialNo = s.SerialNo,
+                Remarks = s.Remarks,
+                InsertedBy = s.InsertedBy,
+                InsertedDt = s.InsertedDt
+            };
+        }
+
+        public IQueryable<PsCardItemExtnOtherVM> GetByPsCardItemId(Guid? psCardItemId)
+        {
+            var data = _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().AsNoTracking()
+                .Where(w => w.PsCardItemId == psCardItemId)
+                .Select(GetProjection());
             return data;
         }
 
-        public ValueTask<PsCardItemExtnOther> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
+        public IQueryable<PsCardItemExtnOtherVM> GetByPsCardItemIdWithTransferId(Guid? psCardItemId, Guid? transferId)
         {
-            var data = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().Where(w => w.Id == id).FirstOrDefaultAsync();
+            var data = _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().AsNoTracking()
+                .Where(w => w.PsCardItemId == psCardItemId && w.PsCardItemTransferItems.Any(a => a.PsCardItemTransferId == transferId))
+                .Select(GetProjection());
+            return data;
+        }
+
+        public ValueTask<PsCardItemExtnOtherVM> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
+        {
+            var data = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().AsNoTracking()
+                .Where(w => w.Id == id)
+                .Select(GetProjection())
+                .FirstOrDefaultAsync();
             return data;
         });
 
@@ -76,16 +114,16 @@ namespace iLgs.Services.PropertyCard
             return result;
         }
 
-        public ValueTask<PsCardItemExtnOther> CreateAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemExtnOtherVM> CreateAsync(PsCardItemExtnOtherVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             //if (await IsPostedAsync(model.PsCardItemId))
             //{
             //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             //}
-            _psCardItemExtnValidator.ValidateOnCreate(model);
+            _psCardItemExtnOtherValidator.ValidateOnCreate(model);
 
             var psCardItem = await _db.PsCardItems.FirstOrDefaultAsync(f => f.Id == model.PsCardItemId);
-            var itemQty = (int)(psCardItem.Qty ?? 0) + (int)(psCardItem.TransferIn ?? 0);
+            var itemQty = (int)(psCardItem.Qty ?? 0); // + (int)(psCardItem.TransferIn ?? 0);
             var itemExtns = _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().Where(w => w.PsCardItemId == model.PsCardItemId);
             var itemExtnCount = itemExtns.Count();
 
@@ -99,44 +137,58 @@ namespace iLgs.Services.PropertyCard
                 throw new RecordAlreadyExistsException($"Serial No. {model.SerialNo} already exists!");
             }
 
+            model.Id = Guid.NewGuid();
             model.InsertedBy = user;
             model.UpdatedBy = user;
             model.InsertedDt = date;
             model.UpdatedDt = date;
 
-            // Generate the series
-            List<string> seriesList = GenerateSeries(model.BegSerial, model.EndSerial);
+            var entity = new PsCardItemExtnOther();
+            MapModelToEntityFields(entity, model, Mode.ADD);
 
-            // Output the series
-            foreach (var series in seriesList)
-            {
-                model.Id = Guid.NewGuid();
-                model.SerialNo = series;
-                model.InsertedBy = user;
-                model.UpdatedBy = user;
-                model.InsertedDt = date;
-                model.UpdatedDt = date;
+            _db.PsCardItemExtns.Add(entity);
+            await _db.SaveChangesAsync();
 
-                var entity = new PsCardItemExtnOther();                
-                MapModelToEntityFields(entity, model, Mode.ADD);
+            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
 
-                _db.PsCardItemExtns.Add(entity);
-                await _db.SaveChangesAsync();
+            //model.InsertedBy = user;
+            //model.UpdatedBy = user;
+            //model.InsertedDt = date;
+            //model.UpdatedDt = date;
 
-                await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
+            //// Generate the series
+            //List<string> seriesList = GenerateSeries(model.BegSerial, model.EndSerial);
 
-                if (++itemExtnCount >= itemQty)
-                {
-                    break;
-                }
-            }
+            //// Output the series
+            //foreach (var series in seriesList)
+            //{
+            //    model.Id = Guid.NewGuid();
+            //    model.SerialNo = series;
+            //    model.InsertedBy = user;
+            //    model.UpdatedBy = user;
+            //    model.InsertedDt = date;
+            //    model.UpdatedDt = date;
+
+            //    var entity = new PsCardItemExtnOther();
+            //    MapModelToEntityFields(entity, model, Mode.ADD);
+
+            //    _db.PsCardItemExtns.Add(entity);
+            //    await _db.SaveChangesAsync();
+
+            //    await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
+
+            //    if (++itemExtnCount >= itemQty)
+            //    {
+            //        break;
+            //    }
+            //}
 
             return model;
         });
-      
-        public ValueTask<PsCardItemExtnOther> UpdateAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+
+        public ValueTask<PsCardItemExtnOtherVM> UpdateAsync(PsCardItemExtnOtherVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            _psCardItemExtnValidator.ValidateOnUpdate(model);
+            _psCardItemExtnOtherValidator.ValidateOnUpdate(model);
             //if (await IsPostedAsync(model.PsCardItemId))
             //{
             //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
@@ -163,7 +215,7 @@ namespace iLgs.Services.PropertyCard
             return model;
         });
 
-        public void MapModelToEntityFields(PsCardItemExtnOther entity, PsCardItemExtnOther model, Mode mode)
+        public void MapModelToEntityFields(PsCardItemExtnOther entity, PsCardItemExtnOtherVM model, Mode mode)
         {
             if (mode == Mode.ADD)
             {
@@ -171,6 +223,7 @@ namespace iLgs.Services.PropertyCard
                 entity.InsertedBy = model.InsertedBy;
                 entity.InsertedDt = model.InsertedDt;
             }
+            entity.PsCardItemId = model.PsCardItemId;
 
             entity.SetLotNo = model.SetLotNo;
             entity.SetLotQtyNo = model.SetLotQtyNo;
@@ -187,9 +240,9 @@ namespace iLgs.Services.PropertyCard
             entity.UpcomingOfficer = model.UpcomingOfficer;
         }
 
-        public ValueTask<PsCardItemExtnOther> DeleteAsync(PsCardItemExtnOther model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemExtnOtherVM> DeleteAsync(PsCardItemExtnOtherVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            _psCardItemExtnValidator.ValidateOnDelete(model);
+            _psCardItemExtnOtherValidator.ValidateOnDelete(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -215,6 +268,6 @@ namespace iLgs.Services.PropertyCard
         {
             var entity = await _db.AIRs.Where(w => w.AIRItems.Any(a => a.Id == PsCardItemId)).FirstOrDefaultAsync();
             return !string.IsNullOrWhiteSpace(entity.PostedBy);
-        }        
+        }
     }
 }

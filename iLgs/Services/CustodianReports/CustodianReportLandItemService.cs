@@ -622,14 +622,27 @@ namespace iLgs.Services.CustodianReports
                         //account = reportItem.ItemCode.ItemType.Description;
                         department = reportItem.CustodianReport.Department;
                         row += 3;
-                        ws.Row(row).Cell(2).SetValue("Custodian:");
+                        var custCell = ws.Row(row).Cell(2);
+                        custCell.SetValue("Custodian:").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        custCell.Style.Alignment.WrapText = false;
+                        if (custCell.IsMerged())
+                        {
+                            custCell.MergedRange().Unmerge();
+                        }                                               
+
+                        var custCellVal = ws.Row(row).Cell(3);
+                        custCellVal.Style.Alignment.WrapText = false;
                         if (id == null)
                         {
-                            ws.Row(row).Cell(3).SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                            custCellVal.SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
                         }
                         else
                         {
-                            ws.Row(row).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                            custCellVal.SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                        }
+                        if (custCellVal.IsMerged())
+                        {
+                            custCellVal.MergedRange().Unmerge();
                         }
                         row += 2;
                         ws.Row(8).CopyTo(ws.Row(++row));

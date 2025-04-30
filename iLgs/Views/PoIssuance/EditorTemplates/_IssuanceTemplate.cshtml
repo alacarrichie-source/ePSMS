@@ -1,4 +1,4 @@
-﻿@model iLgs.Models.PsCardItemIssuanceVM
+﻿@model iLgs.Models.PsCardItemTransferIssuanceVM
 @{
     ViewBag.Mode = Model.Id == Guid.Empty ? "ADD" : "EDIT";
 }
@@ -9,7 +9,7 @@
 
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
-    @Html.HiddenFor(model => model.PsCardItemId)
+    @Html.HiddenFor(model => model.PsCardItemTransferId)
     @Html.HiddenFor(model => model.UnitCost)
     @Html.HiddenFor(model => model.IssuedToCode)
     @Html.HiddenFor(model => model.IssuedToDescription)
@@ -31,103 +31,7 @@
                 </div>
             </div>
         </div>
-
-        @*<div class="row k-mb-2">
-                <div class="col-md-12">
-                    @Html.LabelFor(m => m.IssuedTo, htmlAttributes: new { @class = "col-md-12" })
-                    <div class="col-md-12">
-                        @(Html.Kendo().ComboBoxFor(m => m.IssuedTo)
-                                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                                .Placeholder("Select Issued To")
-                                .DataTextField("Description")
-                                .DataValueField("Description")
-                                .ValuePrimitive(true)
-                                .Filter(FilterType.Contains)
-                                .DataSource(source =>
-                                {
-                                    source.Read(read =>
-                                    {
-                                        read.Action("GetIssuedTo", "Getters");
-                                    })
-                                    .ServerFiltering(true);
-                                })
-                                .Events(e => e.Select("onSelectIssuedTo").DataBound("onDataBoundIssuedTo"))
-                                .Suggest(true)
-                        )
-                        @Html.ValidationMessageFor(model => model.IssuedTo)
-                    </div>
-                </div>
-            </div>
-
-            <div id="DIV_DEPARTMENT" class="hidden">
-                <div class="row k-mb-2">
-                    <div class="col-md-12">
-                        @Html.LabelFor(m => m.DeptId, htmlAttributes: new { @class = "col-md-12" })
-                        <div class="col-md-12">
-                            @(Html.Kendo().MultiColumnComboBoxFor(m => m.DeptId)
-                                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                                .Placeholder("Select Department")
-                                .DataTextField("Description")
-                                .DataValueField("Id")
-                                .ValuePrimitive(true)
-                                .Filter(FilterType.Contains)
-                                .DataSource(source =>
-                                {
-                                    source.Read(read =>
-                                    {
-                                        //read.Action("GetCodeList", "Getters", new { mastCode = "DEPARTMENTS", addAll = false });
-                                        read.Action("GetDepartments", "Getters");
-                                    })
-                                    .ServerFiltering(true);
-                                })
-                                .Columns(c =>
-                                {
-                                    c.Add().Field("Code").Title("Code").Width("30%");
-                                    c.Add().Field("Description").Title("Description").Width("70%");
-                                })
-                                .Events(e => e.Select("onSelectDeptIdIssuance"))
-                                .Enable(false)
-                            )
-                            @Html.ValidationMessageFor(model => model.DeptId)
-                        </div>
-                    </div>
-                </div>
-            </div>*@
-
-        @*<div id="DIV_LOCATION" class="hidden">
-                <div class="row k-mb-2">
-                    <div class="col-md-12">
-                        @Html.LabelFor(m => m.LocationId, htmlAttributes: new { @class = "col-md-12" })
-                        <div class="col-md-12">
-                            @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
-                                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                                .Placeholder("Select Location")
-                                .DataTextField("Description")
-                                .DataValueField("Id")
-                                .ValuePrimitive(true)
-                                .Filter(FilterType.Contains)
-                                .DataSource(source =>
-                                {
-                                    source.Read(read =>
-                                    {
-                                        read.Action("GetCodeList", "Getters", new { mastCode = "LOCATIONS", addAll = false });
-                                    })
-                                    .ServerFiltering(true);
-                                })
-                                .Columns(c =>
-                                {
-                                    c.Add().Field("Code").Title("Code").Width("30%");
-                                    c.Add().Field("Description").Title("Description").Width("70%");
-                                })
-                                .Events(e => e.Select("onSelectLocationIdIssuance"))
-                                .Suggest(true)
-                            )
-                            @Html.ValidationMessageFor(model => model.LocationId)
-                        </div>
-                    </div>
-                </div>
-            </div>*@
-
+        
         <div class="row k-mb-2">
             <div class="col-md-12">
                 @Html.LabelFor(m => m.LocationId, htmlAttributes: new { @class = "col-md-12" })
@@ -153,7 +57,7 @@
                                 c.Add().Field("Desc3").Title("Main-Location").Width("50%").Template("#= columnTemplate(data.Desc3) #");
                                 c.Add().Field("Desc2").Title("Location").Width("40%").Template("#= columnTemplate(data.Desc2) #");
                             })
-                            .Events(e => e.Select("onSelectLocationIdIssuance"))
+                            .Events(e => e.Select("onSelectLocationIdIssuance").DataBound("onDataBoundLocationIdIssuance"))
                             .Suggest(false)
                     )
                     @Html.ValidationMessageFor(model => model.LocationId)
@@ -197,8 +101,18 @@
 
         @if ((bool)@ViewData["IsWithItemExtn"] == true)
         {
-            @RenderGridSelections();
-        }
+            @(Html.Kendo().TabStrip()
+                .Name("tabStrip_Item")
+                //.HtmlAttributes(new { @class = "no-text-tabstrip" })
+                .TabPosition(TabStripTabPosition.Top)
+                .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                .SelectedIndex(0)
+                .Items(items =>
+                {
+                items.Add().Text("Items").Selected(true)
+                    .Content(@<text>@RenderGridSelections();</text>);
+                }))
+}
 
     </fieldset>
 }
@@ -235,7 +149,7 @@ if ((string)@ViewData["ItemExtnName"] == "ItemExtnOther")
                     {
                         s.Add(a => a.SerialNo);
                     })
-                    .Read(read => read.Action("_ItemExtnOtherSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"] }))
+                    .Read(read => read.Action("_ItemExtnOtherSelectionRead", "PoIssuance", new { transferId = @ViewData["TransferId"] }))
                 )
                 .Events(e => e.Change("onChangeGridSelection").DataBound("onDataBoundGridSelection"))
                 .AutoBind(true)
@@ -280,7 +194,7 @@ else if ((string)@ViewData["ItemExtnName"] == "ItemExtnVehicle")
                 {
                     s.Add(a => a.PlateNo);
                 })
-                .Read(read => read.Action("_ItemExtnVehicleSelectionRead", "PoIssuance", new { cardItemId = @ViewData["CardItemId"] }))
+                .Read(read => read.Action("_ItemExtnVehicleSelectionRead", "PoIssuance", new { transferId = @ViewData["TransferId"] }))
             )
             .Events(e => e.Change("onChangeGridSelection").DataBound("onDataBoundGridSelection"))
             .AutoBind(true)

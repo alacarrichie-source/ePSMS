@@ -130,6 +130,8 @@ namespace iLgs.Models
         public Nullable<System.Guid> PsCardId { get; set; }
         public Nullable<System.Guid> OrderItemId { get; set; }
         public Nullable<System.Guid> TransferRefId { get; set; }
+        public Nullable<System.Guid> TransferId { get; set; }
+        public Nullable<System.Guid> ParentId { get; set; }
 
         [Required]
         [Display(Name = "PO/Cut-off Date (mm/dd/yyyy)")]

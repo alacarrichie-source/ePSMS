@@ -11,6 +11,7 @@ namespace iLgs.Services.PropertyCard
     public interface IPsCardItemExtnVehicleService
     {
         IQueryable<PsCardItemExtnVehicle> GetByPsCardItemId(Guid? psCardItemId);
+        IQueryable<PsCardItemExtnVehicle> GetByPsCardItemIdWithTransferId(Guid? psCardItemId, Guid? transferId);
         ValueTask<PsCardItemExtnVehicle> GetByIdAsync(Guid? id);
 
         ValueTask<PsCardItemExtnVehicle> CreateAsync(PsCardItemExtnVehicle model, string user, DateTime date);
@@ -36,13 +37,22 @@ namespace iLgs.Services.PropertyCard
 
         public IQueryable<PsCardItemExtnVehicle> GetByPsCardItemId(Guid? psCardItemId)
         {
-            var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == psCardItemId);
+            var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
+                .Where(w => w.PsCardItemId == psCardItemId);
+            return data;
+        }
+
+        public IQueryable<PsCardItemExtnVehicle> GetByPsCardItemIdWithTransferId(Guid? psCardItemId, Guid? transferId)
+        {
+            var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
+                .Where(w => w.PsCardItemId == psCardItemId && w.PsCardItemTransferItems.Any(a => a.PsCardItemTransferId == transferId));
             return data;
         }
 
         public ValueTask<PsCardItemExtnVehicle> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
         {
-            var data = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.Id == id).FirstOrDefaultAsync();
+            var data = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
+                .Where(w => w.Id == id).FirstOrDefaultAsync();
             return data;
         });
 

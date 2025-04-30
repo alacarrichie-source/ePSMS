@@ -236,42 +236,42 @@ namespace iLgs.Services.PropertyCard
             return data;
         }
 
-        public IQueryable<PsCardItemExtnVehicleVm> GetCardItemExtnForVehicleIssuanceSelection(Guid? psCardItemId)
-        {
-            var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
-                        .Include(i => i.IcsParItems)
-                        .Where(w => w.PsCardItemId == psCardItemId
-                        //&& !w.PsCardItemTransactions.Any(a => a.Remarks == "ISSUANCE")
-                        )
-                        .Select(s => new PsCardItemExtnVehicleVm
-                        {
-                            Id = s.Id,
-                            YearModel = s.YearModel,
-                            PlateNo = s.PlateNo,
-                            BodyNo = s.BodyNo,
-                            EngineNo = s.EngineNo,
-                            ChasisNo = s.ChasisNo,
-                            Color = s.Color,
-                            CRN = s.CRN,
-                            CRDate = s.CRDate,
-                            MVFileNo = s.MVFileNo,
-                            OrNo = s.OrNo,
-                            OrDate = s.OrDate,
-                            NetWeight = s.NetWeight,
-                            InsPolicyNo = s.InsPolicyNo,
-                            ParReissuance = s.ParReissuance,
-                            Condition = s.Condition,
-                            SubLocation = s.SubLocation,
-                            ConductionNo = s.ConductionNo,
-                            LocationId = s.IcsParItems.FirstOrDefault() == null ? null : s.IcsParItems.FirstOrDefault().IcsPar.LocationId,
-                            Location = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.Location,
-                            LocationCode = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.LocationCode,
-                            ParIcsNo = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.RefNo,
-                            ParIcsDate = s.IcsParItems.FirstOrDefault() == null ? null : s.IcsParItems.FirstOrDefault().IcsPar.RefDate
-                        })
-                        .AsQueryable();
-            return data;
-        }
+        //public IQueryable<PsCardItemExtnVehicleVM> GetCardItemExtnForVehicleIssuanceSelection(Guid? psCardItemId)
+        //{
+        //    var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
+        //                .Include(i => i.IcsParItems)
+        //                .Where(w => w.PsCardItemId == psCardItemId
+        //                //&& !w.PsCardItemTransactions.Any(a => a.Remarks == "ISSUANCE")
+        //                )
+        //                .Select(s => new PsCardItemExtnVehicleVM
+        //                {
+        //                    Id = s.Id,
+        //                    YearModel = s.YearModel,
+        //                    PlateNo = s.PlateNo,
+        //                    BodyNo = s.BodyNo,
+        //                    EngineNo = s.EngineNo,
+        //                    ChasisNo = s.ChasisNo,
+        //                    Color = s.Color,
+        //                    CRN = s.CRN,
+        //                    CRDate = s.CRDate,
+        //                    MVFileNo = s.MVFileNo,
+        //                    OrNo = s.OrNo,
+        //                    OrDate = s.OrDate,
+        //                    NetWeight = s.NetWeight,
+        //                    InsPolicyNo = s.InsPolicyNo,
+        //                    ParReissuance = s.ParReissuance,
+        //                    Condition = s.Condition,
+        //                    SubLocation = s.SubLocation,
+        //                    ConductionNo = s.ConductionNo,
+        //                    LocationId = s.IcsParItems.FirstOrDefault() == null ? null : s.IcsParItems.FirstOrDefault().IcsPar.LocationId,
+        //                    Location = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.Location,
+        //                    LocationCode = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.LocationCode,
+        //                    ParIcsNo = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.RefNo,
+        //                    ParIcsDate = s.IcsParItems.FirstOrDefault() == null ? null : s.IcsParItems.FirstOrDefault().IcsPar.RefDate
+        //                })
+        //                .AsQueryable();
+        //    return data;
+        //}
 
 
 

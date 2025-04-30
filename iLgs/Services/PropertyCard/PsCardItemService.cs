@@ -14,9 +14,11 @@ namespace iLgs.Services.PropertyCard
     public interface IPsCardItemService
     {
         IQueryable<PsCardItemVM> GetByCardId(Guid? cardId, string userName);
+        IQueryable<PsCardItemVM> GetTransitByCardId(Guid? cardId, string userName);
         IQueryable<PsCardItemVM> GetAllStocks();
         IQueryable<PsCardItemVM> GetAllProperties();
         ValueTask<PsCardItemVM> GetByIdAsync(Guid? id);
+        ValueTask<PsCardItemVM> GetByTransferIdAsync(Guid? id);
         ValueTask<PsCardItemVM> GetByGroupIdAsync(Guid? groupId);
         ValueTask<string> GetCategoryAsync(Guid? psCardItemId);
 
@@ -34,6 +36,7 @@ namespace iLgs.Services.PropertyCard
         Task UnpostBatchAsync(string userName, string postedBy, DateTime date);
 
         IPsCardItemExtnService PsCardItemExtn { get; }
+        IPsCardItemTransferService PsCardItemTransfer { get; }
     }
 
     public class PsCardItemService : IPsCardItemService
@@ -46,17 +49,20 @@ namespace iLgs.Services.PropertyCard
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
         private IPsCardItemExtnService _psCardItemExtnService;
+        private IPsCardItemTransferService _psCardItemTransferService;
 
         public PsCardItemService(AppManEntities db)
         {
             _db = db;
             _psCardItemExtnService = new PsCardItemExtnService(_db);
+            _psCardItemTransferService = new PsCardItemTransferService(_db);
             _psCardItemValidator = new PsCardItemValidator(_db);
             _itemCodeService = new ItemCodeService(_db);
             _userService = new UserService(_db);
         }
 
         public IPsCardItemExtnService PsCardItemExtn { get { return _psCardItemExtnService = _psCardItemExtnService ?? new PsCardItemExtnService(_db); } }
+        public IPsCardItemTransferService PsCardItemTransfer { get { return _psCardItemTransferService = _psCardItemTransferService ?? new PsCardItemTransferService(_db); } }
 
         private Expression<Func<PsCardItem, PsCardItemVM>> GetPsCardItemProjection()
         {
@@ -72,26 +78,28 @@ namespace iLgs.Services.PropertyCard
                 AirDate = s.AirDate,
                 AirNo = s.AirNo,
                 AirIssueDate = s.AirIssueDate,
-                Qty = s.Qty,
-                QtyIss = s.QtyIss,
-                QtyBal = s.QtyBal,
-                TransferIn = s.TransferIn,
-                TransferOut = s.TransferOut,
-                TranType = s.TranType,
+                TransferId = s.PsCardItemTransfer.Id,
+                ParentId = s.PsCardItemTransfer.ParentId,
+                Qty = s.PsCardItemTransfer.Qty,
+                QtyIss = s.PsCardItemTransfer.QtyIss,
+                QtyBal = s.PsCardItemTransfer.QtyBal,
+                TransferIn = s.PsCardItemTransfer.TransferIn,
+                TransferOut = s.PsCardItemTransfer.TransferOut,
+                TranType = s.PsCardItemTransfer.TranType,
                 Days = s.Days,
                 Unit = s.Unit,
                 UnitCost = s.UnitCost,
                 //Amount = s.Amount,
-                Amount = s.UnitCost * s.Qty,
+                Amount = s.UnitCost * s.PsCardItemTransfer.Qty,
                 IssueAmount = (s.PsCardItemIssuances.Sum(sum => sum.Qty) ?? 0) * s.UnitCost,
-                BalanceAmount = (s.UnitCost * s.Qty) - ((s.PsCardItemIssuances.Sum(sum => sum.Qty) ?? 0) * s.UnitCost),
+                BalanceAmount = (s.UnitCost * s.PsCardItemTransfer.Qty) - ((s.PsCardItemIssuances.Sum(sum => sum.Qty) ?? 0) * s.UnitCost),
                 PriceRate = s.PriceRate,
                 AddCost = s.AddCost,
                 TUnitCost = s.TUnitCost,
                 GTotalCost = s.GTotalCost,
                 Remarks = s.Remarks,
                 DeptId = s.DeptId,
-                LocationId = s.LocationId,
+                LocationId = s.PsCardItemTransfer.LocationId,
                 DeptDisplay = s.DeptDisplay,
                 Description = s.Description,
                 OtherDesc = s.OtherDesc,
@@ -113,16 +121,16 @@ namespace iLgs.Services.PropertyCard
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt,
                 Department = s.Codextn.Description,
-                Location = s.Codextn1.Description,
-                LocCode = s.Codextn1.Code,
+                Location = s.PsCardItemTransfer.Codextn.Description,
+                LocCode = s.PsCardItemTransfer.Codextn.Code,
                 PrevPsNo = s.PrevPsNo,
                 SetLotNo = s.SetLotNo,
                 SetLotAmount = s.SetLotAmount,
                 SetLotRemarks = s.SetLotRemarks,
                 PostedBy = s.PostedBy,
                 PostedDt = s.PostedDt,
-                //IsWithItemExtn = s.PsCardItemExtns.Any(a => a.Id == s.GroupId)
-                IsWithItemExtn = (_db.PsCardItemExtns.Any(a => a.PsCardItemId == s.GroupId))
+                //IsWithItemExtn = (_db.PsCardItemExtns.Any(a => a.PsCardItemId == s.GroupId))
+                IsWithItemExtn = s.PsCardItemExtns.Any()
             };
         }
 
@@ -132,7 +140,20 @@ namespace iLgs.Services.PropertyCard
                 .Include(i => i.Codextn) // Department
                 .Include(i => i.Codextn1) // Location
                 .Include(i => i.PsCardItemExtns)
+                .Include(i => i.PsCardItemTransfers)
                 .Where(w => w.Id == id)
+                .Select(GetPsCardItemProjection()).FirstOrDefaultAsync();
+            return data;
+        }
+
+        public async ValueTask<PsCardItemVM> GetByTransferIdAsync(Guid? id)
+        {
+            var data = await _db.PsCardItems
+                .Include(i => i.Codextn) // Department
+                .Include(i => i.Codextn1) // Location
+                .Include(i => i.PsCardItemExtns)
+                .Include(i => i.PsCardItemTransfers)
+                .Where(w => w.PsCardItemTransfers.Any(a => a.Id == id))
                 .Select(GetPsCardItemProjection()).FirstOrDefaultAsync();
             return data;
         }
@@ -143,6 +164,7 @@ namespace iLgs.Services.PropertyCard
                 .Include(i => i.Codextn) // Department
                 .Include(i => i.Codextn1) // Location
                 .Include(i => i.PsCardItemExtns)
+                .Include(i => i.PsCardItemTransfers)
                 .Where(w => w.GroupId == groupId)
                 .Select(GetPsCardItemProjection()).FirstOrDefaultAsync();
             return data;
@@ -156,6 +178,7 @@ namespace iLgs.Services.PropertyCard
                 data = _db.PsCardItems
                     .Include(i => i.Codextn) // Department
                     .Include(i => i.Codextn1) // Location
+                    .Include(i => i.PsCardItemTransfers)
                     .Where(w => w.PsCardId == cardId).AsNoTracking()
                     .Select(GetPsCardItemProjection());
             }
@@ -164,8 +187,104 @@ namespace iLgs.Services.PropertyCard
                 data = _db.PsCardItems
                     .Include(i => i.Codextn) // Department
                     .Include(i => i.Codextn1) // Location
+                    .Include(i => i.PsCardItemTransfers)
                     .Where(w => w.PsCardId == cardId && w.InsertedBy == userName).AsNoTracking()
                     .Select(GetPsCardItemProjection());
+            }
+            return data;
+        });
+
+        private Expression<Func<PsCardItemTransfer, PsCardItemVM>> GetPsCardItemTransferProjection()
+        {
+            return s => new PsCardItemVM
+            {
+                Id = s.PsCardItem.Id,
+                GroupId = s.PsCardItem.GroupId,
+                PsCardId = s.PsCardItem.PsCardId,
+                OrderItemId = s.PsCardItem.OrderItemId,
+                TransferRefId = s.PsCardItem.TransferRefId,
+                PoDate = s.PsCardItem.PoDate,
+                PoNo = s.PsCardItem.PoNo,
+                AirDate = s.PsCardItem.AirDate,
+                AirNo = s.PsCardItem.AirNo,
+                AirIssueDate = s.PsCardItem.AirIssueDate,
+                TransferId = s.Id == null ? Guid.NewGuid() : s.Id,
+                ParentId = s.ParentId,
+                Qty = s.Qty,
+                QtyIss = s.QtyIss,
+                QtyBal = s.QtyBal,
+                TransferIn = s.TransferIn,
+                TransferOut = s.TransferOut,
+                TranType = s.TranType,
+                TransDate = s.TransDate,
+                Days = s.PsCardItem.Days,
+                Unit = s.PsCardItem.Unit,
+                UnitCost = s.PsCardItem.UnitCost,
+                //Amount = s.PsCardItem.UnitCost * s.Qty,
+                Amount = s.PsCardItem.UnitCost * s.QtyBal,
+                IssueAmount = (s.PsCardItemTransferIssuances.Sum(sum => sum.Qty) ?? 0) * s.PsCardItem.UnitCost,
+                BalanceAmount = (s.PsCardItem.UnitCost * s.Qty) - ((s.PsCardItemTransferIssuances.Sum(sum => sum.Qty) ?? 0) * s.PsCardItem.UnitCost),
+                PriceRate = s.PsCardItem.PriceRate,
+                AddCost = s.PsCardItem.AddCost,
+                TUnitCost = s.PsCardItem.TUnitCost,
+                GTotalCost = s.PsCardItem.GTotalCost,
+                Remarks = s.PsCardItem.Remarks,
+                DeptId = s.PsCardItem.DeptId,
+                LocationId = s.LocationId,
+                DeptDisplay = s.PsCardItem.DeptDisplay,
+                Description = s.PsCardItem.Description,
+                OtherDesc = s.PsCardItem.OtherDesc,
+                IsForICS = s.PsCardItem.IsForICS,
+                IsConsumable = s.PsCardItem.IsConsumable,
+                IsIncorporated = s.PsCardItem.IsIncorporated,
+                IsOthers = s.PsCardItem.IsOthers,
+                OtherRemarks = s.PsCardItem.OtherRemarks,
+                Type = s.PsCardItem.Type,
+                InvDist = s.PsCardItem.InvDist,
+                AcqMode = s.PsCardItem.AcqMode,
+                AcqDate = s.PsCardItem.AcqDate,
+                AreaSoldDonated = s.PsCardItem.AreaSoldDonated,
+                ConstructionYear = s.PsCardItem.ConstructionYear,
+                Vendor = s.PsCardItem.Vendor,
+                OldAmount = s.PsCardItem.OldAmount,
+                PhaseNo = s.PsCardItem.PhaseNo,
+                PhaseAmount = s.PsCardItem.PhaseAmount,
+                InsertedBy = s.PsCardItem.InsertedBy,
+                InsertedDt = s.PsCardItem.InsertedDt,
+                Department = s.PsCardItem.Codextn.Description,
+                Location = s.Codextn.Description,
+                LocCode = s.Codextn.Code,
+                PrevPsNo = s.PsCardItem.PrevPsNo,
+                SetLotNo = s.PsCardItem.SetLotNo,
+                SetLotAmount = s.PsCardItem.SetLotAmount,
+                SetLotRemarks = s.PsCardItem.SetLotRemarks,
+                PostedBy = s.PsCardItem.PostedBy,
+                PostedDt = s.PsCardItem.PostedDt,
+                //IsWithItemExtn = (_db.PsCardItemExtns.Any(a => a.PsCardItemId == s.GroupId))
+                IsWithItemExtn = s.PsCardItem.PsCardItemExtns.Any()
+            };
+        }
+
+        public IQueryable<PsCardItemVM> GetTransitByCardId(Guid? cardId, string userName) => _vmExceptionService.TryCatch(() =>
+        {
+            IQueryable<PsCardItemVM> data = null;
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                data = _db.PsCardItemTransfers
+                    .Include(i => i.Codextn) // Location
+                    .Include(i => i.PsCardItem.Codextn) // Department
+                    .Include(i => i.PsCardItemTransferIssuances)
+                    .Where(w => w.PsCardItem.PsCardId == cardId).AsNoTracking()
+                    .Select(GetPsCardItemTransferProjection());
+            }
+            else
+            {
+                data = _db.PsCardItemTransfers
+                    .Include(i => i.Codextn) // Location
+                    .Include(i => i.PsCardItem.Codextn) // Department
+                    .Include(i => i.PsCardItemTransferIssuances)
+                    .Where(w => w.PsCardItem.PsCardId == cardId && w.PsCardItem.InsertedBy == userName).AsNoTracking()
+                    .Select(GetPsCardItemTransferProjection());
             }
             return data;
         });
@@ -181,7 +300,7 @@ namespace iLgs.Services.PropertyCard
         });
 
         private IQueryable<PsCardItemVM> GetAll(string category)
-        {            
+        {
             var data = _db.Database.SqlQuery<PsCardItemVM>("Exec Card_GetQueryRecords {0}", category).AsQueryable();
             return data;
         }
@@ -189,7 +308,7 @@ namespace iLgs.Services.PropertyCard
         public async ValueTask<string> GetCategoryAsync(Guid? psCardItemId)
         {
             return await _db.PsCardItems.Where(w => w.Id == psCardItemId).Select(s => s.PsCard.ItemCode.ItemType.Code).FirstOrDefaultAsync();
-        }
+        }        
 
         public ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
@@ -201,7 +320,8 @@ namespace iLgs.Services.PropertyCard
             _psCardItemValidator.ValidateOnCreate(model);
 
             model.Id = Guid.NewGuid();
-            
+            model.TransferId = Guid.NewGuid();
+
             var entity = new PsCardItem();
             MapModelToEntityFields(entity, model, Mode.ADD);
 
@@ -217,23 +337,166 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedDt = date;
 
             _psCardItemValidator.ValidateOnUpdate(model);
+
+            var psCardItemEntity = await _db.PsCardItems.FindAsync(model.Id);
+
+            ValidateUser(psCardItemEntity, model);
             
-            var entity = await _db.PsCardItems.FindAsync(model.Id);
+            var entity = await _db.PsCardItemTransfers.Include(i => i.PsCardItem)
+                .FirstOrDefaultAsync(f => f.Id == model.TransferId);
+            if (entity == null)
+            {
+                model.TransferId = Guid.NewGuid();
+                var psCardItemTransfer = new PsCardItemTransfer()
+                {
+                    Id = (Guid)model.TransferId,
+                    PsCardItemId = model.Id,
+                    Qty = model.Qty,
+                    TransDate = model.TransDate,
+                    QtyIss = model.QtyIss,
+                    QtyBal = model.QtyBal,
+                    TransferIn = model.TransferIn,
+                    TransferOut = model.TransferOut,
+                    Amount = model.TUnitCost * model.QtyBal,
+                    LocationId = model.LocationId,
+                    TranType = model.TranType,
+                    InsertedBy = model.InsertedBy,
+                    InsertedDt = model.InsertedDt,
+                    UpdatedBy = model.UpdatedBy,
+                    UpdatedDt = model.UpdatedDt
+                };
 
-            ValidateUser(entity, model);
-            //ValidateRelationship(model);
-            MapModelToEntityFields(entity, model, Mode.EDIT);
+                psCardItemEntity.PoDate = model.PoDate;
+                psCardItemEntity.PoNo = model.PoNo.Trim();
+                psCardItemEntity.AirDate = model.AirDate;
+                psCardItemEntity.AirNo = model.AirNo;
+                psCardItemEntity.AirIssueDate = model.AirIssueDate;
+                psCardItemEntity.Days = model.Days;
+                psCardItemEntity.Unit = model.Unit;
+                psCardItemEntity.Remarks = model.Remarks;
+                psCardItemEntity.DeptId = model.DeptId;
+                psCardItemEntity.Description = model.Description;
+                psCardItemEntity.OtherDesc = model.OtherDesc;
+                psCardItemEntity.DeptDisplay = model.DeptDisplay;
+                psCardItemEntity.Type = model.Type;
+                psCardItemEntity.InvDist = model.InvDist;
+                psCardItemEntity.AcqDate = model.AcqDate;
+                psCardItemEntity.AcqMode = model.AcqMode;
+                psCardItemEntity.AreaSoldDonated = model.AreaSoldDonated;
+                psCardItemEntity.ConstructionYear = model.ConstructionYear;
+                psCardItemEntity.Vendor = model.Vendor;
+                psCardItemEntity.OldAmount = model.OldAmount;
+                psCardItemEntity.PhaseNo = model.PhaseNo;
+                psCardItemEntity.PhaseAmount = model.PhaseAmount;
+                psCardItemEntity.SetLotNo = model.SetLotNo;
+                psCardItemEntity.SetLotAmount = model.SetLotAmount;
+                psCardItemEntity.SetLotRemarks = model.SetLotRemarks;
+                psCardItemEntity.PrevPsNo = model.PrevPsNo;
+                psCardItemEntity.UpdatedBy = model.UpdatedBy;
+                psCardItemEntity.UpdatedDt = model.UpdatedDt;
+                psCardItemEntity.ProRatedCost = model.ProRatedCost;
+                psCardItemEntity.OtherQty = model.OtherQty;
+                psCardItemEntity.UnitCost = model.UnitCost;
+                psCardItemEntity.AddCost = model.AddCost;
+                psCardItemEntity.TUnitCost = model.TUnitCost;
+                psCardItemEntity.PriceRate = model.PriceRate;
+                psCardItemEntity.FPP = model.FPP;
 
-            _db.PsCardItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                psCardItemEntity.Qty = model.Qty;
+                psCardItemEntity.QtyIss = model.QtyIss;
+                psCardItemEntity.QtyBal = model.QtyBal;
+                psCardItemEntity.TransferIn = model.TransferIn;
+                psCardItemEntity.TransferOut = model.TransferOut;
+                psCardItemEntity.Amount = model.UnitCost * model.QtyBal;
+                psCardItemEntity.GTotalCost = model.TUnitCost * model.QtyBal;
+
+                psCardItemEntity.PsCardItemTransfers.Add(psCardItemTransfer);
+                _db.PsCardItems.Attach(psCardItemEntity);
+                _db.Entry(psCardItemEntity).State = EntityState.Modified;
+
+                await _db.SaveChangesAsync();
+
+                //model = await GetByTransferIdAsync((Guid?)psCardItemTransfer.Id);
+            }
+            else
+            {
+                entity.PsCardItem.PoDate = model.PoDate;
+                entity.PsCardItem.PoNo = model.PoNo.Trim();
+                entity.PsCardItem.AirDate = model.AirDate;
+                entity.PsCardItem.AirNo = model.AirNo;
+                entity.PsCardItem.AirIssueDate = model.AirIssueDate;
+                entity.PsCardItem.Days = model.Days;
+                entity.PsCardItem.Unit = model.Unit;
+                entity.PsCardItem.Remarks = model.Remarks;
+                entity.PsCardItem.DeptId = model.DeptId;
+                entity.PsCardItem.Description = model.Description;
+                entity.PsCardItem.OtherDesc = model.OtherDesc;
+                entity.PsCardItem.DeptDisplay = model.DeptDisplay;
+                entity.PsCardItem.Type = model.Type;
+                entity.PsCardItem.InvDist = model.InvDist;
+                entity.PsCardItem.AcqDate = model.AcqDate;
+                entity.PsCardItem.AcqMode = model.AcqMode;
+                entity.PsCardItem.AreaSoldDonated = model.AreaSoldDonated;
+                entity.PsCardItem.ConstructionYear = model.ConstructionYear;
+                entity.PsCardItem.Vendor = model.Vendor;
+                entity.PsCardItem.OldAmount = model.OldAmount;
+                entity.PsCardItem.PhaseNo = model.PhaseNo;
+                entity.PsCardItem.PhaseAmount = model.PhaseAmount;
+                entity.PsCardItem.SetLotNo = model.SetLotNo;
+                entity.PsCardItem.SetLotAmount = model.SetLotAmount;
+                entity.PsCardItem.SetLotRemarks = model.SetLotRemarks;
+                entity.PsCardItem.PrevPsNo = model.PrevPsNo;
+                entity.PsCardItem.UpdatedBy = model.UpdatedBy;
+                entity.PsCardItem.UpdatedDt = model.UpdatedDt;
+                entity.PsCardItem.ProRatedCost = model.ProRatedCost;
+                entity.PsCardItem.OtherQty = model.OtherQty;
+                entity.PsCardItem.UnitCost = model.UnitCost;
+                entity.PsCardItem.AddCost = model.AddCost;
+                entity.PsCardItem.TUnitCost = model.TUnitCost;
+                entity.PsCardItem.PriceRate = model.PriceRate;
+                entity.PsCardItem.FPP = model.FPP;
+
+                if (model.ParentId == null) // original record
+                {
+                    entity.PsCardItem.Qty = model.Qty;
+                    entity.PsCardItem.QtyIss = model.QtyIss;
+                    entity.PsCardItem.QtyBal = model.QtyBal;
+                    entity.PsCardItem.TransferIn = model.TransferIn;
+                    entity.PsCardItem.TransferOut = model.TransferOut;
+                    entity.PsCardItem.Amount = model.UnitCost * model.QtyBal;
+                    entity.PsCardItem.GTotalCost = model.TUnitCost * model.QtyBal;
+                }
+                else
+                {
+                    entity.PsCardItem.Qty = 0;
+                }
+
+                entity.Qty = model.Qty;
+                entity.QtyIss = model.QtyIss;
+                entity.QtyBal = model.QtyBal;
+                entity.TransferIn = model.TransferIn;
+                entity.TransferOut = model.TransferOut;
+                entity.Amount = model.TUnitCost * model.QtyBal;
+                entity.LocationId = model.LocationId;
+                entity.TranType = model.TranType;
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
+
+                _db.PsCardItemTransfers.Attach(entity);
+                _db.Entry(entity).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
+
+                await _psCardItemTransferService.UpdatePsCardItemTransfer(model.TransferId, user, date);
+
+                //model = await GetByTransferIdAsync((Guid?)entity.Id);
+            }            
 
             return model;
         });
 
         public ValueTask<ParIcsItemVm> UpdateIsForICSAsync(ParIcsItemVm model, string user, DateTime date) => _parIcsItemExceptionService.TryCatch(async () =>
         {
-            var entity = await _db.PsCardItems.FindAsync(model.Id);
+            var entity = await _db.PsCardItems.Include(i => i.PsCardItemTransfers).FirstOrDefaultAsync(f => f.Id == model.Id);
             if (entity == null)
             {
                 throw new RecordNotFoundException(model.Id);
@@ -266,13 +529,18 @@ namespace iLgs.Services.PropertyCard
 
             var addCost = model.AddCost ?? 0;
             var tUnitCost = addCost + model.UnitCost;
-            var gTotalCost = model.Qty * tUnitCost;
+            //var gTotalCost = model.Qty * tUnitCost;
             entity.AddCost = addCost;
             entity.TUnitCost = tUnitCost;
-            entity.GTotalCost = gTotalCost;
+            //entity.GTotalCost = gTotalCost;
             entity.IsForICS = model.IsForICS;
             entity.UpdatedBy = user;
             entity.UpdatedDt = date;
+
+            foreach (var psCardItemTransfer in entity.PsCardItemTransfers)
+            {
+                psCardItemTransfer.Amount = psCardItemTransfer.QtyBal * tUnitCost;
+            }
 
             _db.PsCardItems.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
@@ -342,11 +610,6 @@ namespace iLgs.Services.PropertyCard
         {
             _psCardItemValidator.ValidateOnDelete(model);
 
-            //using (var transaction = _db.Database.BeginTransaction())
-            //{
-            //    try
-            //    {
-
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
@@ -354,82 +617,26 @@ namespace iLgs.Services.PropertyCard
             ValidateUser(entity, model);
             ValidateRelationship(model);
 
-            // Get transfer record if any
-            PsCardItemTransfer psCardItemTransfer = null;
-            if (entity.TransferRefId != null)
-            {
-                psCardItemTransfer = await _db.PsCardItemTransfers.FindAsync(entity.TransferRefId);
-            }
-
-            // put back transferred items
-            if (psCardItemTransfer != null)
-            {
-                var psCardItem = await _db.PsCardItems.FindAsync(psCardItemTransfer.PsCardItemId);
-                if (psCardItem != null)
-                {
-                    //// transfer itemextn if any
-                    //var psCardItemId = psCardItemTransfer.PsCardItemId;
-                    //var psCardItemExtn = _db.PsCardItemExtns.Where(w => w.PsCardItemId == model.Id);
-                    //await psCardItemExtn.ForEachAsync(f =>
-                    //{
-                    //    f.PsCardItemId = psCardItemId;
-                    //    f.UpdatedBy = user;
-                    //    f.UpdatedDt = date;
-                    //});
-                    //await _db.SaveChangesAsync();
-
-                    var qtyBal = ((psCardItem.Qty ?? 0) + (psCardItem.TransferIn ?? 0)) - ((psCardItem.TransferOut ?? 0) + (psCardItem.QtyIss ?? 0));
-
-                    psCardItem.TransferOut -= (psCardItemTransfer.Qty ?? 0);
-                    psCardItem.QtyBal = qtyBal;
-                    psCardItem.Amount = psCardItem.UnitCost * qtyBal;
-                    psCardItem.GTotalCost = psCardItem.TUnitCost * qtyBal;
-                    psCardItem.UpdatedBy = user;
-                    psCardItem.UpdatedDt = date;
-
-                    _db.PsCardItems.Attach(psCardItem);
-                    _db.Entry(psCardItem).State = EntityState.Modified;
-                    await _db.SaveChangesAsync();
-
-                    // delete transfer record
-                    psCardItemTransfer.UpdatedBy = user;
-                    psCardItemTransfer.UpdatedDt = date;
-                    _db.PsCardItemTransfers.Attach(psCardItemTransfer);
-                    _db.Entry(psCardItemTransfer).State = EntityState.Modified;
-                    await _db.SaveChangesAsync();
-
-                    _db.PsCardItemTransfers.Remove(psCardItemTransfer);
-                    _db.Entry(psCardItemTransfer).State = EntityState.Deleted;
-                    await _db.SaveChangesAsync();
-                }
-            }
+            await _psCardItemTransferService.DeleteAsync(model.TransferId, user, date);
 
             // manually remove transaction log
-            var psCardItemTransactions = _db.PsCardItemTransactions.Where(w => w.PsCardItemId == entity.Id);
-            _db.PsCardItemTransactions.RemoveRange(psCardItemTransactions);
-            await _db.SaveChangesAsync();
+            //var psCardItemTransactions = _db.PsCardItemTransactions.Where(w => w.PsCardItemId == entity.Id);
+            //_db.PsCardItemTransactions.RemoveRange(psCardItemTransactions);
+            //await _db.SaveChangesAsync();
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+            if (model.ParentId == null && model.OrderItemId == null) // manual records
+            {
+                entity.UpdatedBy = model.UpdatedBy;
+                entity.UpdatedDt = model.UpdatedDt;
 
-            _db.PsCardItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+                _db.PsCardItems.Attach(entity);
+                _db.Entry(entity).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
 
-            _db.PsCardItems.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();
-
-            //    // Commit the transaction if all operations succeed
-            //    transaction.Commit();
-            //}
-            //catch (Exception)
-            //{
-            //    // Rollback the transaction if any operation fails
-            //    transaction.Rollback();
-            //    throw;
-            //}
-            //}
+                _db.PsCardItems.Remove(entity);
+                _db.Entry(entity).State = EntityState.Deleted;
+                await _db.SaveChangesAsync();
+            }
 
             return model;
         });
@@ -463,23 +670,12 @@ namespace iLgs.Services.PropertyCard
             entity.AirDate = model.AirDate;
             entity.AirNo = model.AirNo;
             entity.AirIssueDate = model.AirIssueDate;
-            entity.Qty = model.Qty;
-            entity.QtyIss = model.QtyIss;
-            entity.QtyBal = model.QtyBal;
-            entity.TransferIn = model.TransferIn;
-            entity.TransferOut = model.TransferOut;
             entity.Days = model.Days;
             entity.TranType = model.TranType;
             entity.Unit = model.Unit;
             entity.UnitCost = model.UnitCost;
             entity.Remarks = model.Remarks;
-            entity.Amount = model.Amount;
-            entity.PriceRate = model.PriceRate;
-            entity.AddCost = model.AddCost;
-            entity.TUnitCost = model.TUnitCost;
-            entity.GTotalCost = model.TUnitCost * model.QtyBal;
             entity.DeptId = model.DeptId;
-            entity.LocationId = model.LocationId;
             entity.Description = model.Description;
             entity.OtherDesc = model.OtherDesc;
             entity.DeptDisplay = model.DeptDisplay;
@@ -501,6 +697,37 @@ namespace iLgs.Services.PropertyCard
             entity.UpdatedDt = model.UpdatedDt;
             entity.ProRatedCost = model.ProRatedCost;
             entity.OtherQty = model.OtherQty;
+
+            entity.Qty = model.Qty;
+            entity.QtyIss = model.QtyIss;
+            entity.QtyBal = model.QtyBal;
+            entity.TransferIn = model.TransferIn;
+            entity.TransferOut = model.TransferOut;
+            entity.Amount = model.Amount;
+            entity.PriceRate = model.PriceRate;
+            entity.AddCost = model.AddCost;
+            entity.TUnitCost = model.TUnitCost;
+            entity.GTotalCost = model.TUnitCost * model.QtyBal;
+            //entity.LocationId = model.LocationId;
+
+            var psCardItemTransfer = new PsCardItemTransfer()
+            {
+                Id = (Guid)model.TransferId,
+                PsCardItemId = model.Id,
+                Qty = model.Qty,
+                QtyIss = model.QtyIss,
+                QtyBal = model.QtyBal,
+                TransDate = model.PoDate, // original entry, use PO Date (No transit yet)
+                TransferIn = model.TransferIn,
+                TransferOut = model.TransferOut,
+                Amount = model.TUnitCost * model.QtyBal,
+                InsertedBy = model.InsertedBy,
+                InsertedDt = model.InsertedDt,
+                UpdatedBy = model.UpdatedBy,
+                UpdatedDt = model.UpdatedDt
+            };
+
+            entity.PsCardItemTransfers.Add(psCardItemTransfer);
         }
 
         public virtual ValueTask<PsCardItem> PostAsync(Guid id, string user, DateTime date) =>
@@ -622,17 +849,27 @@ namespace iLgs.Services.PropertyCard
 
         private void ValidateRelationship(PsCardItemVM model)
         {
-            if (model.OrderItemId != null && model.TransferRefId == null)
+            if (model.OrderItemId != null && model.ParentId == null)
             {
                 throw new RecordRelationshipException("Record is from AIR, cannot delete here!");
             }
 
-            if (_db.PsCardItemIssuances.Any(a => a.PsCardItemId == model.Id))
+            //if (_db.PsCardItemIssuances.Any(a => a.PsCardItemId == model.Id))
+            //{
+            //    throw new RecordRelationshipException("Issuance already exists, cannot delete!");
+            //}
+
+            if (_db.PsCardItemTransferIssuances.Any(a => a.PsCardItemTransferId == model.TransferId))
             {
                 throw new RecordRelationshipException("Issuance already exists, cannot delete!");
             }
 
-            if (_db.PsCardItemTransfers.Any(a => a.PsCardItemId == model.Id))
+            //if (_db.PsCardItemTransfers.Any(a => a.PsCardItemId == model.Id))
+            //{
+            //    throw new RecordRelationshipException("Transit already exists, cannot delete!");
+            //}
+
+            if (_db.PsCardItemTransfers.Any(a => a.ParentId == model.TransferId))
             {
                 throw new RecordRelationshipException("Transit already exists, cannot delete!");
             }

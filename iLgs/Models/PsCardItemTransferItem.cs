@@ -14,6 +14,12 @@ namespace iLgs.Models
     
     public partial class PsCardItemTransferItem
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public PsCardItemTransferItem()
+        {
+            this.PsCardItemTransferIssuanceItems = new HashSet<PsCardItemTransferIssuanceItem>();
+        }
+    
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemTransferId { get; set; }
         public Nullable<System.Guid> PsCardItemExtnId { get; set; }
@@ -24,7 +30,9 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
         public virtual IcsParItem IcsParItem { get; set; }
-        public virtual PsCardItemExtn PsCardItemExtn { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemTransferIssuanceItem> PsCardItemTransferIssuanceItems { get; set; }
         public virtual PsCardItemTransfer PsCardItemTransfer { get; set; }
+        public virtual PsCardItemExtn PsCardItemExtn { get; set; }
     }
 }

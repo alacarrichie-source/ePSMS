@@ -55,19 +55,16 @@ namespace iLgs.Models
         public virtual DbSet<RPCEFFOPPE> RPCEFFOPPEs { get; set; }
         public virtual DbSet<PARItem> PARItems { get; set; }
         public virtual DbSet<RequestItem> RequestItems { get; set; }
-        public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
         public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<RSMI> RSMIs { get; set; }
         public virtual DbSet<PsCard> PsCards { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<IcsParItem> IcsParItems { get; set; }
-        public virtual DbSet<PropertyCardItem> PropertyCardItems { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
         public virtual DbSet<Upload> Uploads { get; set; }
-        public virtual DbSet<CardItemExtn> CardItemExtns { get; set; }
         public virtual DbSet<CustodianDisposal> CustodianDisposals { get; set; }
         public virtual DbSet<CustodianReport> CustodianReports { get; set; }
         public virtual DbSet<CustodianDisposalItem> CustodianDisposalItems { get; set; }
@@ -84,7 +81,6 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItemTransaction> PsCardItemTransactions { get; set; }
         public virtual DbSet<RISs> RISses { get; set; }
         public virtual DbSet<RisItemUnitGroup> RisItemUnitGroups { get; set; }
-        public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<AllField> AllFields { get; set; }
         public virtual DbSet<OrderItemUnitGroupDescription> OrderItemUnitGroupDescriptions { get; set; }
@@ -107,11 +103,15 @@ namespace iLgs.Models
         public virtual DbSet<AIRItemExtn> AIRItemExtns { get; set; }
         public virtual DbSet<AIR> AIRs { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
-        public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
         public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
         public virtual DbSet<CustodianReportBldgItemPhas> CustodianReportBldgItemPhases { get; set; }
+        public virtual DbSet<PsCardItemTransferIssuanceItem> PsCardItemTransferIssuanceItems { get; set; }
+        public virtual DbSet<PsCardItemTransferIssuance> PsCardItemTransferIssuances { get; set; }
         public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
+        public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
+        public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
+        public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
     }
 }

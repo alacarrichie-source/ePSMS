@@ -494,8 +494,10 @@ namespace iLgs.Models
             [Display(Name = "Location")]
             public Nullable<System.Guid> LocationId { get; set; }
 
-            [Display(Name = "Location")]
+            [Display(Name = "Location Code")]
             public string LocationCode { get; set; }
+
+            [Display(Name = "Location (Barangay)")]
             public string Location { get; set; }
             public string Type { get; set; }
             public string Condition { get; set; }
@@ -503,18 +505,18 @@ namespace iLgs.Models
             [Display(Name = "Type/Condition/Description")]
             public string Description { get; set; }
 
-            [Display(Name = "Sub-Location")]
+            [Display(Name = "Sub-Location (Address)")]
             public string SubLocation { get; set; }
 
             [Display(Name = "Land ID Number")]
             public string PIN { get; set; }
             public string Address { get; set; }
 
-            [Display(Name = "Landmarks")]
+            [Display(Name = "Corner Streets")]
             public string LandMarks { get; set; }
 
             //[Required]
-            [Display(Name = "Area (sqm)")]
+            [Display(Name = "Area")]
             public Nullable<decimal> Area { get; set; }
 
             [Display(Name = "Unit of Measurement (UM)")]
@@ -545,7 +547,7 @@ namespace iLgs.Models
             [Display(Name = "Old Amounts (in RPCPPE)")]
             public Nullable<decimal> OldAmount { get; set; }
 
-            [Display(Name = "Acquisition Date")]
+            [Display(Name = "Year of Sale/Donation")]
             public Nullable<System.DateTime> AcqDate { get; set; }
 
             [Display(Name = "Vendor/Donor: Name of Owner")]
@@ -564,13 +566,13 @@ namespace iLgs.Models
             [Display(Name = "Latest DRP No.")]
             public string DRPNo { get; set; }
 
-            [Display(Name = "Date Regs.")]
+            [Display(Name = "Date Registered")]
             public Nullable<System.DateTime> DRPDate { get; set; }
 
             [Display(Name = "Old DRP No.")]
             public string OldDRPNo { get; set; }
 
-            [Display(Name = "Date Regs.")]
+            [Display(Name = "Date Registered")]
             public Nullable<System.DateTime> OldDRPDate { get; set; }
             public string Remarks { get; set; }
 
@@ -597,7 +599,7 @@ namespace iLgs.Models
             [Display(Name = "Document Stamp Tax (DST)")]
             public Nullable<decimal> DST { get; set; }
 
-            [Display(Name = "DST Transfer TAx")]
+            [Display(Name = "DST Transfer Tax")]
             public Nullable<decimal> DSTTransferTax { get; set; }
 
             [Display(Name = "DST Surcharge")]
@@ -630,7 +632,7 @@ namespace iLgs.Models
             [Display(Name = "Confirmation Fee")]
             public Nullable<decimal> ConfirmationFee { get; set; }
 
-            [Display(Name = "Transfer & Regs. Fee")]
+            [Display(Name = "Transfer & LRA Reg Fee")]
             public Nullable<decimal> TransferRegsFee { get; set; }
 
             [Display(Name = "Real Property Tax")]
@@ -646,12 +648,12 @@ namespace iLgs.Models
             public Nullable<decimal> EstateFee { get; set; }
             public Nullable<decimal> Titling { get; set; }
 
-            [Display(Name = "Certificattion Fee")]
+            [Display(Name = "Certification Fee")]
             public Nullable<decimal> CertificationFee { get; set; }
             public Nullable<decimal> Relocation { get; set; }
             public Nullable<decimal> Surveying { get; set; }
 
-            [Display(Name = "Incidental Expense")]
+            [Display(Name = "Incidental Expenses")]
             public Nullable<decimal> IncidentalExpenses { get; set; }
 
             public Nullable<bool> VATCap { get; set; }
@@ -666,6 +668,7 @@ namespace iLgs.Models
             public string CapitalOutlayOrExpense { get; set; }
 
             [MaxLength(1)]
+            [Required]
             public string Annex { get; set; }
 
             [Display(Name = "Inserted By")]
@@ -741,7 +744,7 @@ namespace iLgs.Models
             [Display(Name = "PO Date (mm/dd/yyyy)")]
             public Nullable<System.DateTime> PoDate { get; set; }
 
-            [Display(Name = "Acquisition Cost")]
+            [Display(Name = "RPCPPE Acquisition Cost")]
             public Nullable<decimal> AcqCost { get; set; }
 
             [Display(Name = "Department")]
@@ -775,7 +778,7 @@ namespace iLgs.Models
             [Display(Name = "Acquisition Day")]
             public Nullable<int> AcqDay { get; set; }
 
-            [Display(Name = "Date Acquisition/Construction")]
+            [Display(Name = "RPCPPE Year of Construction")]
             public Nullable<System.DateTime> AcqDate { get; set; }
 
             [Display(Name = "Property Number")]
@@ -816,7 +819,7 @@ namespace iLgs.Models
             [Display(Name = "Start Day")]
             public Nullable<int> StartDay { get; set; }
 
-            [Display(Name = "Start Date")]
+            [Display(Name = "Year of Construction")]
             public Nullable<System.DateTime> StartDate { get; set; }
 
             [Display(Name = "Target Year")]
@@ -828,10 +831,10 @@ namespace iLgs.Models
             [Display(Name = "Target Day")]
             public Nullable<int> TargetDay { get; set; }
 
-            [Display(Name = "Target Date")]
+            [Display(Name = "Target Year & Month")]
             public Nullable<System.DateTime> TargetDate { get; set; }
 
-            [Display(Name = "Percent (%) of Completion")]
+            [Display(Name = "Percentage (%) of Completion")]
             public Nullable<decimal> PercentComplete { get; set; }
 
             [Display(Name = "Completion Year")]
@@ -849,6 +852,8 @@ namespace iLgs.Models
             public string Status { get; set; }
             public string Condition { get; set; }
             public string Remarks { get; set; }
+
+            [Required]
             public string Annex { get; set; }
 
             [Display(Name = "Inserted By")]

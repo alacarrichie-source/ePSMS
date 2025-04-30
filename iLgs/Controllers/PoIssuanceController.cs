@@ -1,9 +1,6 @@
 ﻿using iLgs.Exceptions;
-using iLgs.Exceptions.PARs;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
-using iLgs.Services.Interfaces;
 using iLgs.Services.ParIcs;
 using iLgs.Services.PoIssuance;
 using iLgs.Services.PropertyCard;
@@ -29,7 +26,6 @@ namespace iLgs.Controllers
         private readonly IPoIssuanceService _poIssuanceService;
         private readonly IPsCardService _psCardService;
         private readonly IPsCardItemService _psCardItemService;
-        private readonly IPsCardItemIssuanceService _psCardItemIssuanceService;
         private readonly IIcsParItemService _icsParItemService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPoIssuanceUploadService _uploadService;
@@ -40,7 +36,6 @@ namespace iLgs.Controllers
             _poIssuanceService = new PoIssuanceService(_db);
             _psCardService = new PsCardService(_db);
             _psCardItemService = new PsCardItemService(_db);
-            _psCardItemIssuanceService = new PsCardItemIssuanceService(_db);
             _icsParItemService = new IcsParItemService(_db);
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
             _uploadService = new PoIssuanceUploadService(_db);
@@ -66,11 +61,12 @@ namespace iLgs.Controllers
             return result;
         }
         
-        public async Task<ActionResult> _Issuance(Guid? cardItemId, decimal? unitCost, Guid? deptId)
+        public async Task<ActionResult> _Issuance(Guid? cardItemId, Guid? transferId, decimal? unitCost, Guid? deptId)
         {
-            var model = await _psCardItemService.GetByIdAsync(cardItemId);
+            var model = await _psCardItemService.GetByTransferIdAsync(transferId);
 
             ViewData["CardItemId"] = cardItemId;
+            ViewData["TransferId"] = transferId;
             ViewData["UnitCost"] = unitCost;
             ViewData["DeptId"] = deptId;
             ViewData["IsWithItemExtn"] = model.IsWithItemExtn;
@@ -79,9 +75,9 @@ namespace iLgs.Controllers
             return PartialView();
         }
         
-        public ActionResult _IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        public ActionResult _IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
         {
-            var data = _psCardItemIssuanceService.GetByCardItemId(cardItemId);
+            var data = _psCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferIssuance.GetByTransferId(transferId);
 
             var result = new JsonNetResult
             {
@@ -93,7 +89,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _IssuanceCreate([DataSourceRequest] DataSourceRequest request, PsCardItemIssuanceVM model)
+        public async Task<ActionResult> _IssuanceCreate([DataSourceRequest] DataSourceRequest request, PsCardItemTransferIssuanceVM model)
         {
             try
             {
@@ -109,7 +105,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardItemIssuanceService.CreateAsync(model, user, date);
+                    model = await _psCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferIssuance.CreateAsync(model, user, date);                    
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -133,7 +129,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _IssuanceUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemIssuanceVM model)
+        public async Task<ActionResult> _IssuanceUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemTransferIssuanceVM model)
         {
             try
             {
@@ -149,7 +145,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardItemIssuanceService.UpdateAsync(model, user, date);
+                    model = await _psCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferIssuance.UpdateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -173,7 +169,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _IssuanceDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemIssuanceVM model)
+        public async Task<ActionResult> _IssuanceDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemTransferIssuanceVM model)
         {
             try
             {
@@ -188,7 +184,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardItemIssuanceService.DeleteAsync(model, user, date);
+                    model = await _psCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferIssuance.DeleteAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException)
@@ -204,29 +200,32 @@ namespace iLgs.Controllers
         }
 
         #region ITEMEXTN
-        public ActionResult _getItemExtn(Guid? cardItemId)
+        public ActionResult _getItemExtn(Guid? cardItemId, Guid? transferId)
         {
             ViewData["CardItemId"] = cardItemId;
+            ViewData["TransferId"] = transferId;
             var itemExtnName = _psCardService.GetItemExtnName(cardItemId);
 
             return PartialView($"_{itemExtnName}");
         }
 
-        public ActionResult _ItemExtnOtherRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        public ActionResult _ItemExtnOtherRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
         {
-            var data = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.GetByPsCardItemId(cardItemId);
+            //var data = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.GetByPsCardItemId(transferId);
+            var data = _psCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferIssuance.GetCardItemExtnForIssuanceByType(transferId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
-        public ActionResult _ItemExtnVehicleRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        public ActionResult _ItemExtnVehicleRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
         {
-            var data = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.GetByPsCardItemId(cardItemId);
+            //var data = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.GetByPsCardItemId(cardItemId);
+            var data = _psCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferIssuance.GetCardItemExtnForIssuanceByType(transferId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
         
-        public ActionResult _ItemExtnVehicleSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        public ActionResult _ItemExtnVehicleSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
         {
-            var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnForVehicleIssuanceSelection(cardItemId);
+            var data = _psCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferIssuance.GetCardItemExtnForVehicleIssuanceSelection(transferId);
 
             var result = new JsonNetResult
             {
@@ -237,9 +236,9 @@ namespace iLgs.Controllers
             return result;
         }
 
-        public ActionResult _ItemExtnOtherSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        public ActionResult _ItemExtnOtherSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
         {
-            var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnForOtherIssuanceSelection(cardItemId);
+            var data = _psCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferIssuance.GetCardItemExtnForOtherIssuanceSelection(transferId);
 
             var result = new JsonNetResult
             {
@@ -253,21 +252,35 @@ namespace iLgs.Controllers
         #endregion
 
         #region TRANSFER
-        public async Task<ActionResult> _Transfer(Guid? cardItemId, Guid? groupId)
-        {            
-            var model =  await _psCardItemService.GetByIdAsync(cardItemId);
+        //public async Task<ActionResult> _Transfer(Guid? cardItemId, Guid? groupId)
+        //{            
+        //    var model =  await _psCardItemService.GetByTransferIdAsync(transferId);
 
+        //    ViewData["CardItemId"] = cardItemId;
+        //    ViewData["TransferId"] = transferId;
+        //    ViewData["GroupId"] = groupId;
+        //    ViewBag.ItemExtnName = _psCardService.GetItemExtnName(cardItemId);
+
+        //    return PartialView(model);
+        //}
+
+        public async Task<ActionResult> _Transfer(Guid? cardItemId, Guid? transferId)
+        {
+            var model = await _psCardItemService.PsCardItemTransfer.GetByIdAsync(transferId);
+            model.TransferOut = null;
+            model.TransDate = DateTime.Now;
+            model.LocationId = null;
             ViewData["CardItemId"] = cardItemId;
-            ViewData["GroupId"] = groupId;
+            ViewData["TransferId"] = transferId;
             ViewBag.ItemExtnName = _psCardService.GetItemExtnName(cardItemId);
 
             return PartialView(model);
         }
 
-        public ActionResult _TransferSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId, Guid? groupId)
+        public ActionResult _TransferSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId, Guid? transferId)
         {
             //var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnForIssuanceByType(cardItemId);
-            var data = _poIssuanceService.GetCardItemExtnForTransit(cardItemId, groupId);
+            var data = _poIssuanceService.GetCardItemExtnForTransit(cardItemId, transferId);
 
             var result = new JsonNetResult
             {
@@ -279,7 +292,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _TransferSave(PsCardItemVM model)
+        public async Task<ActionResult> _TransferSave(PsCardItemTransferVM model)
         {
             try
             {

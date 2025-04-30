@@ -150,7 +150,7 @@ namespace iLgs.Services.StockCards
 
             var entity = await _db.PsCards.FindAsync(model.Id);
 
-            ValidateUser(entity, model);
+            ValidateUser(entity, model); 
 
             model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);            
             entity.ItemCodeId = model.ItemCodeId;

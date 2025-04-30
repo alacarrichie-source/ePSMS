@@ -80,25 +80,41 @@ namespace iLgs.Services.AIRs
             {
                 var setLotNo = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
                 var groupQty = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
+                var tQty = 0; // qty * groupQty;
                 for (int gQty = 1; gQty <= groupQty; gQty++)
-                {
+                {                    
                     for (int q = 1; q <= qty; q++)
                     {
+                        tQty++;
                         var airItemExtns = _db.AIRItemExtns.Where(w => w.AIRItemId == airItem.Id && w.SetLotNo == setLotNo && w.SetLotQtyNo == gQty && w.ContentNo == q);
                         if (!airItemExtns.Any())
                         {
-                            SetAirItmExtn(itemExtnName, setLotNo, gQty, q, qty, airItem, user, date);
+                            //SetAirItmExtn(itemExtnName, setLotNo, gQty, q, qty, airItem, user, date);
+                            SetAirItmExtn(itemExtnName, setLotNo, gQty, tQty, qty, airItem, user, date);
                         }
                     }
                 }
+                //qty = qty * groupQty;
+                //for (int q = 1; q <= qty; q++)
+                //{
+                //    for (int gQty = 1; gQty <= groupQty; gQty++)
+                //    {
+
+                //        var airItemExtns = _db.AIRItemExtns.Where(w => w.AIRItemId == airItem.Id && w.SetLotNo == setLotNo && w.SetLotQtyNo == gQty && w.ContentNo == q);
+                //        if (!airItemExtns.Any())
+                //        {
+                //            SetAirItmExtn(itemExtnName, setLotNo, gQty, q, qty, airItem, user, date);
+                //        }
+                //    }
+                //}
             }
             else
             {
                 for (int q = 1; q <= qty; q++)
                 {
                     var airItemExtns = _db.AIRItemExtns
-                        .Where(w => w.AIRItemId == airItem.Id 
-                            && (w.SetLotNo == ""  || w.SetLotNo == null) 
+                        .Where(w => w.AIRItemId == airItem.Id
+                            && (w.SetLotNo == "" || w.SetLotNo == null)
                             && w.SetLotQtyNo == null
                             && w.ContentNo == q);
                     if (!airItemExtns.Any())

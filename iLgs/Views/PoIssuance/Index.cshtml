@@ -124,8 +124,8 @@
         .Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
         .Model(model =>
         {
-            model.Id(p => p.Id);
-            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+            model.Id(p => p.TransferId);
+            //model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
         })
         .Aggregates(a =>
         {
@@ -141,6 +141,7 @@
             s.Add(a => a.StockNo);
             s.Add(a => a.InsertedDt);
         })
+        .ServerOperation(true)
         .Read(read => read.Action("IssuanceRead", "PoIssuance"))
     )
     .Events(events => events
@@ -152,29 +153,29 @@
 
 <script id="Details" type="text/kendo-tmpl">
     @(Html.Kendo().TabStrip()
-            .Name("tabStrip_#=Id#")
-            //.HtmlAttributes(new { @class = "no-text-tabstrip" })
-            .TabPosition(TabStripTabPosition.Top)
-            .Animation(animation =>
+        .Name("tabStrip_#=TransferId#")
+        //.HtmlAttributes(new { @class = "no-text-tabstrip" })
+        .TabPosition(TabStripTabPosition.Top)
+        .Animation(animation =>
+        {
+            animation.Open(config =>
             {
-                animation.Open(config =>
-                {
-                    config.Fade(FadeDirection.In);
-                });
-            })
-            .SelectedIndex(0)
-            .Items(items =>
-            {
-                items.Add().Text("Issuances")
+                config.Fade(FadeDirection.In);
+            });
+        })
+        .SelectedIndex(0)
+        .Items(items =>
+        {
+            items.Add().Text("Issuances")
                     .Selected(true)
-                    .LoadContentFrom("_Issuance", "PoIssuance", new { cardItemId = "#=Id#", unitCost = "#=UnitCost#", deptId = "#=DeptId#" });
-                items.Add().Text("Items")
-                    .LoadContentFrom("_getItemExtn", "PoIssuance", new { cardItemId = "#=Id#" });
-                //items.Add().Text("PARs")
-                //    .LoadContentFrom("_Pars", "PoIssuance", new { cardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
-                //items.Add().Text("ICS")
-                //    .LoadContentFrom("_Ics", "PoIssuance", new { cardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
-            }).ToClientTemplate())
+                    .LoadContentFrom("_Issuance", "PoIssuance", new { cardItemId  = "#=Id#", transferId = "#=TransferId#", unitCost = "#=UnitCost#", deptId = "#=DeptId#" });
+            //items.Add().Text("Items")
+            //    .LoadContentFrom("_getItemExtn", "PoIssuance", new { cardItemId = "#=Id#", transferId = "#=TransferId#" });
+            //items.Add().Text("PARs")
+            //    .LoadContentFrom("_Pars", "PoIssuance", new { cardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
+            //items.Add().Text("ICS")
+            //    .LoadContentFrom("_Ics", "PoIssuance", new { cardItemId = "#=Id#", UnitCost = "#=UnitCost#" });
+        }).ToClientTemplate())
 </script>
 
 @(Html.Kendo().Notification()
@@ -300,6 +301,7 @@
 
     var selectedGrid = null;
     var selectedId = null;
+    var selectedTransferId = null;
     var selectedGroupId = null;
     var selectedItemId = null;
     var selectedUnitCost = null;
@@ -310,6 +312,7 @@
         var grid = $("#grid");
 
         selectedId = selectedData.Id;
+        selectedTransferId = selectedData.TransferId;
         selectedGroupId = selectedData.GroupId;
         selectedUnitCost = selectedData.UnitCost;
         selectedItemId = null;
@@ -412,8 +415,9 @@
         mywindow.refresh({
            url: '@Url.Action("_Transfer", "PoIssuance")',
            data: {
-                cardItemId: selectedId,
-                groupId: selectedGroupId
+               cardItemId: selectedId,
+               transferId: selectedTransferId,
+               groupId: selectedGroupId
             },
             //// Specify a callback function to execute after content is loaded
             complete: function () {
@@ -451,8 +455,8 @@
 
     function onGridItemClickAdd(e) {
         e.preventDefault();
-        var cardItemId = $(e.sender.element).data("carditemid");
-        selectedGrid = $("#gridIssuedItems_" + cardItemId).data("kendoGrid");
+        var transferId = $(e.sender.element).data("transferid");
+        selectedGrid = $("#gridIssuedItems_" + transferId).data("kendoGrid");
         if (selectedGrid) {
             selectedGrid.addRow();
         }
@@ -571,23 +575,23 @@
             this.select(row);
         }
 
-        // the master row for this detail
-        var parentRow = this.wrapper.closest("tr").prev();
-        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
-        var parentModel = parentGrid.dataItem(parentRow);
-        var cardItemId = parentModel.Id;
+        //// the master row for this detail
+        //var parentRow = this.wrapper.closest("tr").prev();
+        //var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        //var parentModel = parentGrid.dataItem(parentRow);
+        //var cardItemId = parentModel.Id;
 
-        //if (parentModel.IsProperty)  {
-        //    $("#btnAddItem_" + cardItemId).show();
-        //} else {
-        //    $("#btnAddItem_" + cardItemId).hide();
-        //}
+        ////if (parentModel.IsProperty)  {
+        ////    $("#btnAddItem_" + cardItemId).show();
+        ////} else {
+        ////    $("#btnAddItem_" + cardItemId).hide();
+        ////}
 
-        //var grid = $("#gridIssuedItems_" + cardItemId);
-        //if (this.dataSource.data().length == 0) {
-        //    $("#btnUnpost_" + cardItemId).hide();
-        //    $("#btnPost_" + cardItemId).hide();
-        //}
+        ////var grid = $("#gridIssuedItems_" + cardItemId);
+        ////if (this.dataSource.data().length == 0) {
+        ////    $("#btnUnpost_" + cardItemId).hide();
+        ////    $("#btnPost_" + cardItemId).hide();
+        ////}
     }
 
     function onEditGridItems(e) {
@@ -597,7 +601,7 @@
         var parentRow = this.wrapper.closest("tr").prev();
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
         var parentModel = parentGrid.dataItem(parentRow);
-        var IsProperty = parentModel.IsProperty;
+        //var IsProperty = parentModel.IsProperty;
 
         parentGrid.select(parentRow);
         selectedGrid = e.sender;
@@ -606,10 +610,10 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedItemId = null;
-            e.model.set("PsCardItemId", parentModel.Id);
+            //e.model.set("PsCardItemTransferId", parentModel.TransferId);
         } else {
             selectedItemId = e.model.get("Id");
-            e.model.set("UnitCost", parentModel.UnitCost);
+            //e.model.set("UnitCost", parentModel.UnitCost);
             var rowitem = selectedGrid.dataSource.get(selectedItemId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
         }
@@ -1116,6 +1120,16 @@
         $("#IssuedToDescription").val(dataItem.Description).trigger("change");
     }
 
+    function onDataBoundLocationIdIssuance(e) {
+        var comboBox = this;
+        var dataItem = comboBox.dataItem(); // Gets the currently selected item, if any
+
+        if (dataItem) {
+            $("#IssuedToCode").val(dataItem.Code).trigger("change");
+            $("#IssuedToDescription").val(dataItem.Description).trigger("change");
+        }
+    }
+
     function onChangeGridSelection(e) {
         // Get the Kendo grid instance
         var grid = $("#gridSelections").data("kendoGrid");
@@ -1276,7 +1290,7 @@
         var button = e.sender.element; // Use the sender's element;
         // Retrieve the grid name from the data attribute
         //selectedGrid =  $("#gridImages_" + selectedItemId).data("kendoGrid");
-        var imageId = $(button).data("imageid"); 
+        var imageId = $(button).data("imageid");
         var myUrl = '@Url.Action("_ImagesAdd", "PoIssuance")?imageId=' + imageId;
         var myTitle = "Upload Images/Documents";
         var width = 800;
@@ -1289,7 +1303,7 @@
                     resizable: true,
                     draggable: true,
                     modal: true,
-                    visible: false,                    
+                    visible: false,
                     deactivate: function () {
                         this.destroy();
                     }

@@ -378,9 +378,6 @@
     <Compile Include="Models\AspNetUsers_View.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\CardItemExtn.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\CategoryDictionary.cs" />
     <Compile Include="Models\CodeMast.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -501,9 +498,6 @@
     <Compile Include="Models\PARItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\PropertyCardItem.cs">
-      <DependentUpon>AppManModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\PropertyCardViewModels.cs" />
     <Compile Include="Models\PropertyViewModels.cs" />
     <Compile Include="Models\PsCard.cs">
@@ -534,16 +528,23 @@
     <Compile Include="Models\PsCardItemIssuanceItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\PsCardItemTransactionViewModels.cs" />
     <Compile Include="Models\PsCardItemTransaction.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PsCardItemTransactionViewModels.cs" />
     <Compile Include="Models\PsCardItemTransfer.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemTransferIssuance.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemTransferIssuanceItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardItemTransferItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PsCardItemTransferViewModels.cs" />
     <Compile Include="Models\PsCardItemUnitGroup.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -855,7 +856,18 @@
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\LoggingService.cs" />
     <Compile Include="Services\PoIssuance\PoIssuanceUploadService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemTransferItemBldgService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnBldgValidator.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnLandValidator.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnOtherValidator.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnUpdateService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnVehicleValidator.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemTransferIssuanceService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemTransferItemLand.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemTransferItemOtherService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemTransferItemService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemTransferItemVehicleService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItramTransferService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupService.cs" />
@@ -1085,7 +1097,7 @@
     <Compile Include="Services\Validators\ParSetValidator.cs" />
     <Compile Include="Services\PropertyCard\PropertyCardValidator.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnValidator.cs" />
-    <Compile Include="Services\PropertyCard\PsCardItemExtnVehicleValidator.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnVehicleValidatorOld.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemValidator.cs" />
     <Compile Include="Services\Validators\RisItemValidator.cs" />
     <Compile Include="Services\Validators\RisItemUnitGroupValidator.cs" />
@@ -4113,6 +4125,7 @@
     <Content Include="Views\ItemCard\_Vehicle_FieldSerial_F.cshtml" />
     <Content Include="Views\CustodianReportBldg\EditorTemplates\_CapitalOutlayTemplate.cshtml" />
     <Content Include="Views\CustodianReportBldg\EditorTemplates\_MooeTemplate.cshtml" />
+    <Content Include="Views\CustodianReportBldg\_ItemPhase.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4251,8 +4264,8 @@
     <Content Include="Views\IcsSet\EditorTemplates\_ItemTemplate.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AirItemExtnVehicleTemplate.cshtml" />
     <Content Include="Views\AIRs\EditorTemplates\_AirItemExtnOtherTemplate.cshtml" />
-    <Content Include="Views\StockCard\EditorTemplates\_CardItemExtnOtherTemplate.cshtml" />
-    <Content Include="Views\StockCard\EditorTemplates\_CardItemExtnVehicleTemplate.cshtml" />
+    <Content Include="Views\StockCard\EditorTemplates\_CardItemExtnOtherTemplate_Old.cshtml" />
+    <Content Include="Views\StockCard\EditorTemplates\_CardItemExtnVehicleTemplate_Old.cshtml" />
     <Content Include="Views\Items\ItemCodePreview.cshtml" />
     <Content Include="Views\Shared\DisplayTemplates\Label.cshtml" />
     <Content Include="Views\ParIcsUpload\_Images.cshtml" />
@@ -4266,8 +4279,8 @@
     <Content Include="Views\PropertyCard\_ItemFieldDrugs.cshtml" />
     <Content Include="Views\PropertyCard\_ItemFieldLand.cshtml" />
     <Content Include="Views\PropertyCard\_ItemFieldSerial.cshtml" />
-    <Content Include="Views\PropertyCard\EditorTemplates\_CardItemExtnOtherTemplate.cshtml" />
-    <Content Include="Views\PropertyCard\EditorTemplates\_CardItemExtnVehicleTemplate.cshtml" />
+    <Content Include="Views\PropertyCard\EditorTemplates\_CardItemExtnOtherTemplate_old.cshtml" />
+    <Content Include="Views\PropertyCard\EditorTemplates\_CardItemExtnVehicleTemplate_Old.cshtml" />
     <Content Include="Views\Shared\DisplayTemplates\LabelDate.cshtml" />
     <Content Include="Views\CardUpload\_Images.cshtml" />
     <Content Include="Views\CardUpload\_ImagesAdd.cshtml" />
@@ -4451,6 +4464,8 @@
     <Content Include="Views\RSMI\_PrintSum.cshtml" />
     <Content Include="Views\Rpci\_PrintSum.cshtml" />
     <Content Include="Views\PropertyCard\ItemQuery.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_CardItemExtnOtherTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_CardItemExtnVehicleTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

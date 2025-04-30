@@ -2,13 +2,14 @@
         .Name("gridItems_" + @ViewData["cardId"])
         .Columns(columns =>
         {
+            columns.Bound(f => f.ParentId).Hidden();
             columns.Group(group => group.Title("Reference")
                 .Columns(info =>
                 {
                     info.Bound(f => f.PoNo).Width(50);
                     info.Bound(f => f.PoDate).Width(50);
-                    info.Bound(f => f.AirNo).Width(50);
-                    info.Bound(f => f.AirDate).Width(50);
+                    //info.Bound(f => f.AirNo).Width(50);
+                    //info.Bound(f => f.AirDate).Width(50);
                 }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
             );
             columns.Bound(f => f.UnitCost).Width(50).Title("PO<br>Unit Cost")
@@ -91,7 +92,7 @@
         //.ToolBar(t =>
         //{
         //    t.Create();
-        //})        
+        //})
         .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemTemplate").Window(w => w.Width(1000).Title("Property Card Item")))
         .Selectable()
         .Navigatable()
@@ -103,8 +104,9 @@
             .Ajax()
             .Model(model =>
             {
-                model.Id(p => p.Id);
+                model.Id(p => p.TransferId);
                 model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(true);
+                model.Field(p => p.TransferId).DefaultValue(Guid.Empty).Editable(true);
                 //model.Field(p => p.Qty).DefaultValue(0);
                 //model.Field(p => p.QtyIss).DefaultValue(0);
                 //model.Field(p => p.QtyBal).DefaultValue(0);

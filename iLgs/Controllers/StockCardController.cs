@@ -397,7 +397,7 @@ namespace iLgs.Controllers
 
         public ActionResult ItemRead([DataSourceRequest] DataSourceRequest request, Guid? cardId, string userName)
         {
-            var data = _stockCardService.PsCardItem.GetByCardId(cardId, userName);
+            var data = _stockCardService.PsCardItem.GetTransitByCardId(cardId, userName);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -648,6 +648,11 @@ namespace iLgs.Controllers
                     model.AllField = allField;
                 }
             }
+            else
+            {
+                model.AllField.Multipliers = 0;
+            }
+
             //string partialView = AllFieldsUtil.GetPartialField(model.ItemTypeCode, model.ItemCode);
             var itemCode = _itemCodeService.GetById(model.ItemCodeId);
             string partialView = AllFieldsUtil.GetPartialView(itemCode);
@@ -758,14 +763,14 @@ namespace iLgs.Controllers
         #endregion
 
         #region ITEMEXTN VEHICLES
-        public ActionResult _ItemExtnVehicleRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
+        public ActionResult _ItemExtnVehicleRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
         {
-            var data = _stockCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.GetByPsCardItemId(psCardItemId);
+            var data = _stockCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferItem.PsCardItemTransferItemVehicle.GetCardItemExtns(transferId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtnVehicleCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnVehicle model)
+        public async Task<ActionResult> _ItemExtnVehicleCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnVehicleVM model)
         {
             try
             {
@@ -781,7 +786,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _stockCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.CreateAsync(model, user, date);
+                    model = await _stockCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferItem.PsCardItemTransferItemVehicle.CreateAsync(model, user, date);
 
                     // TO DO: save to stock card
                 }
@@ -807,7 +812,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtnVehicleUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnVehicle model)
+        public async Task<ActionResult> _ItemExtnVehicleUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnVehicleVM model)
         {
             try
             {
@@ -823,7 +828,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _stockCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.UpdateAsync(model, user, date);
+                    model = await _stockCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferItem.PsCardItemTransferItemVehicle.UpdateAsync(model, user, date);
 
                     // TO DO: update stock card
                 }
@@ -849,7 +854,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtnVehicleDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnVehicle model)
+        public async Task<ActionResult> _ItemExtnVehicleDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnVehicleVM model)
         {
             try
             {
@@ -864,7 +869,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _stockCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.DeleteAsync(model, user, date);
+                    model = await _stockCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferItem.PsCardItemTransferItemVehicle.DeleteAsync(model, user, date);
                     // TO DO: update stocks
                 }
             }
@@ -883,14 +888,14 @@ namespace iLgs.Controllers
 
 
         #region ITEMEXTN OTHERS
-        public ActionResult _ItemExtnOtherRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
+        public ActionResult _ItemExtnOtherRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
         {
-            var data = _stockCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.GetByPsCardItemId(psCardItemId);
+            var data = _stockCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferItem.PsCardItemTransferItemOther.GetCardItemExtns(transferId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtnOtherCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnOther model)
+        public async Task<ActionResult> _ItemExtnOtherCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnOtherVM model, Guid? psCardItemId)
         {
             try
             {
@@ -932,7 +937,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtnOtherUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnOther model)
+        public async Task<ActionResult> _ItemExtnOtherUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnOtherVM model)
         {
             try
             {
@@ -974,7 +979,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtnOtherDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnOther model)
+        public async Task<ActionResult> _ItemExtnOtherDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnOtherVM model)
         {
             try
             {

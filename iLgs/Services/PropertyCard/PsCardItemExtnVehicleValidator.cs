@@ -1,44 +1,179 @@
-﻿using FluentValidation;
+﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Validators;
+using iLgs.Utilities;
+using System;
+using System.Data.Entity;
+using System.Linq;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
 {
-    public class PsCardItemExtnVehicleValidator : AbstractValidator<PsCardItemExtnVehicle>
+    public interface IPsCardItemExtnVehicleValidator
     {
-        private readonly IPsCardItemExtnVehicleService _psCardItemExtnVehicleService;
-        public PsCardItemExtnVehicleValidator(IPsCardItemExtnVehicleService psCardItemExtnVehicleService)
+        void ValidateOnCreate(PsCardItemExtnVehicleVM model);
+        void ValidateOnUpdate(PsCardItemExtnVehicleVM model);
+        void ValidateOnDelete(PsCardItemExtnVehicleVM model);
+    }
+
+    public class PsCardItemExtnVehicleValidator : BaseValidator, IPsCardItemExtnVehicleValidator
+    {
+        private readonly AppManEntities _db;
+        private readonly GetDisplayNameDelegate _getDisplayName;
+
+        public PsCardItemExtnVehicleValidator(AppManEntities db)
         {
-            _psCardItemExtnVehicleService = psCardItemExtnVehicleService;
+            _db = db;
+            _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleVM>(propertyName);
+        }
 
-            //RuleFor(m => m.AIRItemId)
-            //    .MustAsync(async (airItemId, cancellation) =>
-            //        !await _airItemExtnVehicleService.IsPostedAsync(airItemId))
-            //    .WithMessage("Record already posted, cannot update!");
+        public void ValidateOnCreate(PsCardItemExtnVehicleVM model)
+        {
+            ValidateIfNull(model);
+            ValidateIfPosted(model);
+            ValidateFieldsOnCreateUpdate(model, Mode.ADD);
+        }
 
-            //RuleFor(m => m.YearModel)
-            //    .NotEmpty().WithMessage("Year Model is required.");
+        public void ValidateOnUpdate(PsCardItemExtnVehicleVM model)
+        {
+            ValidateIfNull(model);
+            ValidateRecord((Guid)model.PsCardItemExtnId);
+            ValidateIfPosted(model);
+            ValidateFieldsOnCreateUpdate(model, Mode.EDIT);
+        }
 
-            ////RuleFor(m => m.SeriesNo)
-            ////    .NotEmpty().WithMessage("Series No. is required.");
+        public void ValidateOnDelete(PsCardItemExtnVehicleVM model)
+        {
+            ValidateIfNull(model);
+            ValidateRecord((Guid)model.PsCardItemExtnId);
+            ValidateIfPosted(model);
 
-            //RuleFor(m => m)
-            //    .MustAsync(async (entity, cancellation) =>
-            //       await _airItemExtnVehicleService.IsValidItemQty(entity.AIRItemId))
-            //   .WithMessage("Number of Items must not exceed the Quantity.");
+            // check in Par/Ics
+            if (_db.IcsParItems.Any(a => a.PsCardItemExtnId == model.PsCardItemId))
+            {
+                throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
+            }
 
-            //RuleSet("Create", () => {
-            //    RuleFor(x => x.PlateNo)
-            //   .MustAsync(async (entity, plateNo, cancellation) =>
-            //       await _airItemExtnVehicleService.IsUniquePlateNoAddAsync(entity.AIRItemId, plateNo))
-            //   .WithMessage("The Plate No must be unique.");
-            //});
+            //var transactions = _db.PsCardItemTransactions.Where(a => a.PsCardItemExtnId == a.Id && a.Remarks != "CARD")
+            //    .GroupBy(g => g.Remarks)
+            //    .Select(s => s.Key);
+            //if (transactions.Any())
+            //{
+            //    string remarks = string.Join("/", transactions);
+            //    throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
+            //}
 
-            //RuleSet("Update", () => {
-            //    RuleFor(x => x.PlateNo)
-            //   .MustAsync(async (entity, plateNo, cancellation) =>
-            //       await _airItemExtnVehicleService.IsUniquePlateNoUpdateAsync(entity.Id, entity.AIRItemId, plateNo))
-            //   .WithMessage("The Plate No must be unique.");
-            //});
+            var psCardItemExtn = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
+                .Include(i => i.PsCardItemTransferItems)
+                .Include(i => i.PsCardItemIssuanceItems)
+                .FirstOrDefault(f => f.Id == model.PsCardItemExtnId);
+            if (psCardItemExtn.PsCardItemIssuanceItems.Any())
+            {
+                throw new RecordAlreadyExistsException("Items were already Issued this record, cannot delete!");
+            }
+
+            if (psCardItemExtn.PsCardItemTransferItems.Any())
+            {
+                throw new RecordAlreadyExistsException("Items were already Transferred this record, cannot delete!");
+            }
+        }
+
+        public void ValidateFieldsOnCreateUpdate(PsCardItemExtnVehicleVM model, Mode mode)
+        {
+            var ex = new InvalidModelException();
+
+            if (!string.IsNullOrWhiteSpace(model.ConductionNo))
+            {
+                var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().FirstOrDefault(f => f.ConductionNo == model.ConductionNo);
+                if (data != null) {
+                    if (mode == Mode.ADD)
+                    {
+                        ex.UpsertDataList(_getDisplayName(nameof(model.ConductionNo)), "Already exists.");
+                    }
+                    else
+                    {
+                        if (data.Id != model.PsCardItemExtnId)
+                        {
+                            ex.UpsertDataList(_getDisplayName(nameof(model.ConductionNo)), "Already exists.");
+                        }
+                    }
+                }
+            }
+
+            //if (model.DeptId == null)
+            //{
+            //    ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Field is required.");
+            //}
+            //else
+            //{
+            //    if (!_codextnService.IsValidMastCodeId("DEPARTMENTS", model.DeptId))
+            //    {
+            //        ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Invalid value");
+            //    }
+            //}
+
+            //if (string.IsNullOrWhiteSpace(model.Unit))
+            //{
+            //    ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Field is required.");
+            //}
+            //else
+            //{
+            //    if (!_codextnService.IsValidMastCodeCode("UNIT", model.Unit))
+            //    {
+            //        ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid value");
+            //    }
+            //}
+
+            //if (!model.UnitCost.HasValue)
+            //{
+            //    ex.UpsertDataList(_getDisplayName(nameof(model.UnitCost)), "Field is required.");
+            //}
+
+            //if (string.IsNullOrWhiteSpace(model.Description))
+            //{
+            //    ex.UpsertDataList(_getDisplayName(nameof(model.Description)), "Field is required.");
+            //}
+
+            //if (string.IsNullOrWhiteSpace(model.InvDist))
+            //{
+            //    ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Field is required.");
+            //}
+            //else
+            //{
+            //    if (!_codextnService.IsValidMastCodeCode("PS-REMARKS", model.InvDist))
+            //    {
+            //        ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Invalid value");
+            //    }
+            //}
+
+            ex.ThrowIfContainsErrors();
+        }
+
+        private void ValidateRecord(Guid id)
+        {
+            if (!_db.PsCardItemExtns.Any(a => a.Id == id))
+            {
+                throw new NotFoundException(id);
+            }
+        }
+
+        private static void ValidateIfNull(PsCardItemExtnVehicleVM model)
+        {
+            if (model is null)
+            {
+                throw new NullException();
+            }
+        }
+
+        private void ValidateIfPosted(PsCardItemExtnVehicleVM model)
+        {
+            var entity = _db.PsCards.Where(w => w.PsCardItems.Any(a => a.Id == model.PsCardItemId)).FirstOrDefault();
+            if (entity != null && entity.PostedDt != null)
+            {
+                var msg = $"Record already posted by {entity.PostedBy} on {entity.PostedDt}, cannot update!";
+                throw new RecordAlreadyPostedException(msg);
+            }
         }
     }
 }

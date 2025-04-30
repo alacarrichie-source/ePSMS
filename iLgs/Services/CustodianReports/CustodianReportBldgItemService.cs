@@ -443,7 +443,7 @@ namespace iLgs.Services.CustodianReports
             //{
             //    ws.Row(row).Cell(++col).SetValue($"{reportItem.SubAccount} / {reportItem.Article}");
             //}            
-           
+
             if (reportItem.FromDonation == true)
             {
                 ws.Row(row).Cell(++col).SetValue("From Donation");
@@ -458,12 +458,27 @@ namespace iLgs.Services.CustodianReports
             ws.Row(row).Cell(++col).SetValue(reportItem.AppraiseValue);
             ws.Row(row).Cell(++col).SetValue(reportItem.OldAmount);
             ws.Row(row).Cell(++col).SetValue(reportItem.AcqCost);
-            ws.Row(row).Cell(++col).SetValue(reportItem.PhaseNo);
-            ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountCo);
-            ws.Row(row).Cell(++col).SetValue(reportItem.TotalAmount);
-            ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountMooe);
-            ws.Row(row).Cell(++col).SetValue(reportItem.StartDate).Style.DateFormat.Format = "MM/dd/yyyy"; 
-            ws.Row(row).Cell(++col).SetValue($"{reportItem.TargetMonth}/{reportItem.TargetYear}");
+            if (reportItem.CustodianReportBldgItemPhases.Any())
+            {
+                var engAmt = reportItem.CustodianReportBldgItemPhases.OrderBy(o => o.InsertedDt).FirstOrDefault();
+                ws.Row(row).Cell(++col).SetValue(engAmt.PhaseNo);
+                ws.Row(row).Cell(++col).SetValue(engAmt.CapitalOutlay);
+                ws.Row(row).Cell(++col).SetValue(reportItem.CustodianReportBldgItemPhases.Sum(s => s.CapitalOutlay));
+                ws.Row(row).Cell(++col).SetValue(engAmt.MOOE);
+            }
+            else
+            {
+                ws.Row(row).Cell(++col).SetValue("");
+                ws.Row(row).Cell(++col).SetValue(0);
+                ws.Row(row).Cell(++col).SetValue(0);
+                ws.Row(row).Cell(++col).SetValue(0);
+            }
+            //ws.Row(row).Cell(++col).SetValue(reportItem.PhaseNo);
+            //ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountCo);
+            //ws.Row(row).Cell(++col).SetValue(reportItem.TotalAmount);
+            //ws.Row(row).Cell(++col).SetValue(reportItem.PhaseAmountMooe);
+            ws.Row(row).Cell(++col).SetValue(reportItem.StartDate).Style.DateFormat.Format = "MM/dd/yyyy";
+            ws.Row(row).Cell(++col).SetValue(reportItem.TargetDate.HasValue ? $"{reportItem.TargetDate.Value.Month}/{reportItem.TargetDate.Value.Year}" : "");
             ws.Row(row).Cell(++col).SetValue(reportItem.PercentComplete);
             ws.Row(row).Cell(++col).SetValue(reportItem.CompletionDate).Style.DateFormat.Format = "MM/dd/yyyy";
             ws.Row(row).Cell(++col).SetValue(reportItem.Status);
@@ -482,7 +497,7 @@ namespace iLgs.Services.CustodianReports
         }
 
         private MemoryStream ProcessExcelFileTemplate(Guid? id, int? accountGroup, string templateFilePath, string hdg, string annex)
-        {            
+        {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
                 int sw = 1;
@@ -490,12 +505,13 @@ namespace iLgs.Services.CustodianReports
                 string itemCode = "";
                 string account = "";
                 string department = "";
-                decimal? tAcqCost = 0;                
+                decimal? tAcqCost = 0;
                 var ws = wb.Worksheet(1);
                 var reportItems = _db.CustodianReportBldgItems
                     .Include(i => i.ItemCode.ItemType)
                     .Include(i => i.CustodianReport.Codextn)
                     .Include(i => i.Codextn) // deptId
+                    .Include(i => i.CustodianReportBldgItemPhases)
                     .Where(w => w.CustodianReport.AccountGroup == accountGroup)
                     .AsNoTracking();
 
@@ -503,17 +519,7 @@ namespace iLgs.Services.CustodianReports
                 {
                     reportItems = reportItems.Where(w => w.Annex == annex);
                 }
-
-
-                //if (id != null)
-                //{
-                //    reportItems = reportItems.Where(w => w.ReportId == id).OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
-                //}
-                //else
-                //{
-                //    reportItems = reportItems.OrderBy(t => t.ItemCode.ItemType.Description).ThenBy(o => o.CustodianReport.Department).ThenBy(o => o.CustodianItemNo).ThenBy(t => t.ItemCode.ItemNoIndex);
-                //}
-
+                
                 if (id != null)
                 {
                     reportItems = reportItems.Where(w => w.ReportId == id);
@@ -525,13 +531,13 @@ namespace iLgs.Services.CustodianReports
                             .ThenBy(t => t.ItemCode.ItemNoIndex)
                             .ThenBy(o => o.CustodianReport.Department)
                             .ThenBy(o => o.LocationCode)
-                            .ThenBy(o => o.CustodianItemNo);                            
+                            .ThenBy(o => o.CustodianItemNo);
 
                 foreach (var reportItem in reportItems)
                 {
                     if (sw == 1)
                     {
-                        itemCode = reportItem.ItemCode.ItemNoIndex;
+                        itemCode = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemNoIndex;
                         account = reportItem.ItemCode == null ? "" : reportItem.ItemCode.ItemType.Description;
                         department = reportItem.CustodianReport.Department;
                         if (!string.IsNullOrWhiteSpace(annex))
@@ -559,18 +565,45 @@ namespace iLgs.Services.CustodianReports
                         account = reportItem.ItemCode.ItemType.Description;
                         department = reportItem.CustodianReport.Department;
                         row += 3;
-                        ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        //ws.Row(row).Cell(2).SetValue(account).Style.Font.Bold = true;
+                        var accountCell = ws.Row(row).Cell(2);
+                        accountCell.SetValue(account);
+                        accountCell.Style.Font.Bold = true;
+                        accountCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        accountCell.Style.Alignment.WrapText = false;
+                        if (accountCell.IsMerged())
+                        {
+                            accountCell.MergedRange().Unmerge();
+                        }
+
                         row += 2;
-                        ws.Row(row).Cell(2).SetValue("Custodian:");
+                        var custCell = ws.Row(row).Cell(2);
+                        custCell.SetValue("Custodian:").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        custCell.Style.Font.Bold = false;
+                        custCell.Style.Alignment.WrapText = false;
+                        if (custCell.IsMerged())
+                        {
+                            custCell.MergedRange().Unmerge();
+                        }
+
+                        var custCellVal = ws.Row(row).Cell(3);
+                        custCellVal.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        custCellVal.Style.Font.Bold = true;
+                        custCellVal.Style.Alignment.WrapText = false;
                         if (id == null)
                         {
-                            ws.Row(row).Cell(3).SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                            custCellVal.SetValue($"ALL : {reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}");
                         }
                         else
                         {
-                            ws.Row(row).Cell(3).SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}").Style.Font.Bold = true;
+                            custCellVal.SetValue($"{reportItem.CustodianReport.Codextn.Code} {reportItem.CustodianReport.Department}");
                         }
-                        row += 2;                        
+                        if (custCellVal.IsMerged())
+                        {
+                            custCellVal.MergedRange().Unmerge();
+                        }
+
+                        row += 2;
                         ws.Row(10).CopyTo(ws.Row(++row));
                         ws.Row(11).CopyTo(ws.Row(++row));
                         ws.Row(12).CopyTo(ws.Row(++row));
@@ -584,6 +617,9 @@ namespace iLgs.Services.CustodianReports
                         ws.Range($"I{row - 2}:I{row}").Merge();
                         ws.Range($"J{row - 2}:J{row}").Merge();
                         ws.Range($"K{row - 2}:K{row}").Merge();
+                        ws.Range($"L{row - 2}:L{row}").Merge();
+                        ws.Range($"M{row - 2}:M{row}").Merge();
+                        ws.Range($"N{row - 2}:N{row}").Merge();
                         ws.Range($"O{row - 2}:O{row}").Merge();
                         ws.Range($"P{row - 2}:P{row}").Merge();
                         ws.Range($"Q{row - 2}:Q{row}").Merge();
@@ -597,7 +633,7 @@ namespace iLgs.Services.CustodianReports
                         ws.Range($"AC{row - 2}:AC{row}").Merge();
                         ws.Range($"AD{row - 2}:AD{row}").Merge();
                         ws.Range($"AE{row - 2}:AE{row}").Merge();
-                        ws.Range($"AF{row - 2}:AF{row}").Merge();                                                
+                        ws.Range($"AF{row - 2}:AF{row}").Merge();
                     }
 
                     row++;
@@ -611,7 +647,33 @@ namespace iLgs.Services.CustodianReports
                         SetRowColValue(ws, reportItem, row, true);
                         ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
                     }
-                                                          
+
+                    if (reportItem.CustodianReportBldgItemPhases.Any())
+                    {
+                        var otherEngAmounts = reportItem.CustodianReportBldgItemPhases
+                        .OrderBy(o => o.InsertedDt)
+                        .Skip(1)
+                        .ToList();
+                        if (otherEngAmounts.Any())
+                        {
+                            foreach (var otherEngAmount in otherEngAmounts)
+                            {
+                                row++;
+                                ws.Row(row).Cell(20).SetValue(otherEngAmount.PhaseNo);
+                                ws.Row(row).Cell(21).SetValue(otherEngAmount.CapitalOutlay);
+                                ws.Row(row).Cell(23).SetValue(otherEngAmount.MOOE);
+                                if (string.IsNullOrWhiteSpace(annex))
+                                {
+                                    ws.Range($"B{row}:AF{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                                }
+                                else
+                                {
+                                    ws.Range($"B{row}:AE{row}").Style.Border.BottomBorder = XLBorderStyleValues.Dotted;
+                                }
+                            }
+                        }
+                    }
+
                     tAcqCost += (reportItem.TotalAmount ?? 0);
                 }
                 //ws.Row(++row).Cell(14).SetValue("TOTAL");
@@ -665,7 +727,7 @@ namespace iLgs.Services.CustodianReports
             }
 
             return ProcessExcelFileTemplate(id, accountGroup, templateFilePath, hdg, annex);
-        }        
+        }
 
         private void ValidateRecord(CustodianReportBldgItem entity)
         {

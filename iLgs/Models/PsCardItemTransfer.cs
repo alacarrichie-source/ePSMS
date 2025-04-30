@@ -18,6 +18,7 @@ namespace iLgs.Models
         public PsCardItemTransfer()
         {
             this.PsCardItems = new HashSet<PsCardItem>();
+            this.PsCardItemTransferIssuances = new HashSet<PsCardItemTransferIssuance>();
             this.PsCardItemTransferItems = new HashSet<PsCardItemTransferItem>();
         }
     
@@ -31,6 +32,8 @@ namespace iLgs.Models
         public Nullable<int> QtyBal { get; set; }
         public Nullable<int> TransferIn { get; set; }
         public Nullable<int> TransferOut { get; set; }
+        public string TranType { get; set; }
+        public Nullable<decimal> Amount { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
@@ -40,6 +43,8 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItem> PsCardItems { get; set; }
         public virtual PsCardItem PsCardItem { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemTransferIssuance> PsCardItemTransferIssuances { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
     }

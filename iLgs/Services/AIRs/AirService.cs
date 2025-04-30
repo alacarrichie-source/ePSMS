@@ -703,14 +703,14 @@ namespace iLgs.Services.AIRs
                             PoNo = orderItem.Order.PoNo,
                             AirDate = entity.AIRDate,
                             AirNo = entity.AIRNo,
+                            //Original Qty and Amount / Transit Data
                             Qty = (int)orderItem.Qty * setQty,
                             QtyIss = 0,
                             QtyBal = (int)orderItem.Qty * setQty,
-                            TranType = "I",
-                            //Unit = orderItem.RequestItem.RisItem.Unit,
-                            Unit = orderItem.Unit,
-                            UnitCost = orderItem.UnitCost,
                             Amount = orderItem.Amount,
+                            //TranType = "I",
+                            Unit = orderItem.Unit,
+                            UnitCost = orderItem.UnitCost,                            
                             PriceRate = orderItem.PriceRate,
                             AddCost = 0,
                             TUnitCost = 0,
@@ -718,7 +718,6 @@ namespace iLgs.Services.AIRs
                             DeptId = deptId,
                             DeptDisplay = office,
                             Description = oig.Description,
-                            //OtherDesc = orderItem.RequestItem.RisItem.OtherDesc,
                             OtherDesc = orderItem.OtherDesc,
                             Type = oAf.Type,
                             InvDist = oig.InvDist,
@@ -733,6 +732,22 @@ namespace iLgs.Services.AIRs
                             PostedBy = user,
                             PostedDt = date
                         };
+
+                        var psCardItemTransfer = new PsCardItemTransfer()
+                        {
+                            Id = Guid.NewGuid(),
+                            PsCardItemId = psCardItem.Id,
+                            Qty = (int)orderItem.Qty * setQty,
+                            QtyIss = 0,
+                            QtyBal = (int)orderItem.Qty * setQty,
+                            Amount = orderItem.Amount,
+                            TranType = "I",
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+                        
 
                         // include ItemExtns
                         var airItemExtnOthers = _airItemService.AirItemExtn.GetAirItemExtnByOrderItemId<AIRItemExtnOther>(orderItem.Id);
@@ -805,8 +820,23 @@ namespace iLgs.Services.AIRs
                             }
                         }
 
+                        foreach(var psCardItemExtn in psCardItem.PsCardItemExtns)
+                        {
+                            var psCardItemTransferItem = new PsCardItemTransferItem()
+                            {
+                                Id = Guid.NewGuid(),
+                                PsCardItemTransferId = psCardItemTransfer.Id,
+                                PsCardItemExtnId = psCardItemExtn.Id,
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date
+                            };
+                            psCardItemTransfer.PsCardItemTransferItems.Add(psCardItemTransferItem);
+                        }
+                        psCardItem.PsCardItemTransfers.Add(psCardItemTransfer);
                         psCard.PsCardItems.Add(psCardItem);
-                    }
+                    }                    
 
                     if (isNew == true)
                     {
@@ -859,7 +889,6 @@ namespace iLgs.Services.AIRs
                                 {
                                     Id = Guid.NewGuid(),
                                     UnitGroupId = psCardItemUnitGroup.Id,
-                                    //Description = orderItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionItem.RisItemUnitGroupDescriptionItem.RisItemUnitGroupDescription.Description,
                                     Description = orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescription.Description,
                                     InsertedBy = user,
                                     InsertedDt = date,
@@ -972,19 +1001,36 @@ namespace iLgs.Services.AIRs
 
             if (await _db.PsCardItemIssuances.AsNoTracking().AnyAsync(a => a.PsCardItem.OrderItemId == entity.OrderId))
             {
-                throw new RecordRelationshipException("Items were already issued cannot unpost!");
+                throw new RecordRelationshipException("Items were already issued, cannot unpost!");
             }
 
+            /*
+             * Check if in transit or issued
+             */
+
+            var psCardItemTransfers = _db.PsCardItemTransfers.Where(w => w.PsCardItem.OrderItemId == entity.OrderId);
+            if (await psCardItemTransfers.AnyAsync(a => a.ParentId != null))
+            {
+                throw new RecordRelationshipException("Items were already transitted/transferred, cannot unpost!");
+            }
+
+            if (await psCardItemTransfers.AnyAsync(a => a.PsCardItemTransferIssuances.Any()))
+            {
+                throw new RecordRelationshipException("Items were already issued, cannot unpost!");
+            }
+
+            
             if (await _db.IcsParItems.Include(i => i.PsCardItemExtn.PsCardItem).AsNoTracking().AnyAsync(a => a.PsCardItemExtn.PsCardItem.OrderItemId == entity.OrderId))
             {
-                throw new RecordRelationshipException("PAR/ICS already issued cannot unpost!");
+                throw new RecordRelationshipException("PAR/ICS already issued, cannot unpost!");
             }
 
+            // recheck
             if (await _db.AIRItems.AnyAsync(a => a.AirId == entity.Id && a.AIRItemExtns
                 .Any(b => b.PsCardItemExtns
                     .Any(c => c.IcsParItems.Any()))))
             {
-                throw new RecordRelationshipException("PAR/ICS already issued cannot unpost!");
+                throw new RecordRelationshipException("PAR/ICS already issued, cannot unpost!");
             }
 
             /*
@@ -1000,7 +1046,10 @@ namespace iLgs.Services.AIRs
 
             foreach (var orderItem in orderItems)
             {
-                var psCardItems = _db.PsCardItems.Include(i => i.PsCardItemExtns).Where(w => w.OrderItemId == orderItem.Id).ToList();
+                var psCardItems = _db.PsCardItems
+                    .Include(i => i.PsCardItemExtns)
+                    .Include(i => i.PsCardItemTransfers)
+                    .Where(w => w.OrderItemId == orderItem.Id).ToList();
                 Guid? psCardId = psCardItems?.FirstOrDefault()?.PsCardId;
 
                 foreach (var psCardItem in psCardItems)
@@ -1025,6 +1074,12 @@ namespace iLgs.Services.AIRs
                     if (unitGroups.Any())
                     {
                         _db.PsCardItemUnitGroups.RemoveRange(unitGroups);
+                        await _db.SaveChangesAsync();
+                    }
+                    
+                    if (psCardItem.PsCardItemTransfers.Any())
+                    {
+                        _db.PsCardItemTransfers.RemoveRange(psCardItem.PsCardItemTransfers);
                         await _db.SaveChangesAsync();
                     }
 

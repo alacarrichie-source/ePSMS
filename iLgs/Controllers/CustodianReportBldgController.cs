@@ -449,9 +449,15 @@ namespace iLgs.Controllers
         }
 
         #region Phase Items
-        public ActionResult _ItemPhaseRead([DataSourceRequest] DataSourceRequest request, Guid? bldgItemId)
+        public ActionResult _ItemPhase(Guid? reportItemId)
         {
-            var data = _custodianReportBldgItemService.CustodianReportBldgItemPhase.GetByBldgItemId(bldgItemId);
+            ViewData["reportItemId"] = reportItemId;
+            return PartialView();
+        }
+
+        public ActionResult _ItemPhaseRead([DataSourceRequest] DataSourceRequest request, Guid? reportItemId)
+        {
+            var data = _custodianReportBldgItemService.CustodianReportBldgItemPhase.GetByBldgItemId(reportItemId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
