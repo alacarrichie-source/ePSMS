@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Models
 {
@@ -34,6 +35,12 @@ namespace iLgs.Models
         new public Nullable<System.Guid> LocationId { get; set; }
 
         public string SelectedIds { get; set; }
+
+        [Display(Name = "Issued To")]
+        public string IssuedTo { get; set; }
+
+        [Display(Name = "Position")]
+        public string Designation { get; set; }
     }
 
 
@@ -143,6 +150,12 @@ namespace iLgs.Models
         }
     }
 
+    public class IcsValueVM
+    {
+        public Guid Id { get; set; }
+        public IcsValue IcsValue { get; set; }
+    }
+
     public class GenerateIcsParVM
     {
         [Display(Name = "PO No.")]
@@ -174,6 +187,12 @@ namespace iLgs.Models
 
         public string SelectedIds { get; set; }
         public string IndSet { get; set; } // I-Individual; S-Set
+
+        [Display(Name = "Issued To")]
+        public string IssuedTo { get; set; }
+
+        [Display(Name = "Position")]
+        public string Designation { get; set; }
     }
 
     public class ParVM
@@ -399,8 +418,7 @@ namespace iLgs.Models
         public int? IcsBalance { get; set; } = 0;
         public string StockNo { get; set; }
         [Display(Name = "Remaining Balance")]
-        public Nullable<int> RemBalance { get; set; }
-
+        public Nullable<int> RemBalance { get; set; }        
         public OrderItemUnitGroupDescriptionItem OrderItemUnitGroupDescriptionItem { get; set; }
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
@@ -615,6 +633,7 @@ namespace iLgs.Models
     public class IcsParItemVM
     {
         public System.Guid Id { get; set; }
+        public Nullable<System.Guid> PsCardItemExtnId { get; set; }
 
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
@@ -631,6 +650,7 @@ namespace iLgs.Models
         [Display(Name = "Total Qty")]
         public Nullable<int> TContentNo { get; set; }
 
+        [Display(Name = "Item No.")]
         public string ItemNo { get { return this.ContentNo.ToString().Trim() + (this.TContentNo == null ? "" : "/" + this.TContentNo.ToString().Trim()); } }
 
         [Display(Name = "Ref. No.")]
@@ -646,5 +666,14 @@ namespace iLgs.Models
 
         [Display(Name = "Cancelled by ICS/PAR No.")]
         public string CanByIcsParNo { get; set; }
+
+        [Display(Name = "Prop. No.")]
+        public string PropNo { get; set; }
+
+        [Display(Name = "Issued To")]
+        public string IssuedTo { get; set; }
+
+        [Display(Name = "Designation")]
+        public string Designation { get; set; }
     }
 }

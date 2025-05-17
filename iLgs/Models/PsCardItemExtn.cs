@@ -17,10 +17,10 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public PsCardItemExtn()
         {
-            this.IcsParItems = new HashSet<IcsParItem>();
             this.PsCardItemIssuanceItems = new HashSet<PsCardItemIssuanceItem>();
             this.PsCardItemTransferItems = new HashSet<PsCardItemTransferItem>();
             this.RpcPpeItems = new HashSet<RpcPpeItem>();
+            this.IcsParItems = new HashSet<IcsParItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -47,11 +47,11 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
         public string SubLocation { get; set; }
         public string Condition { get; set; }
+        public Nullable<decimal> AddCost { get; set; }
+        public Nullable<decimal> AcqCost { get; set; }
     
         public virtual AIRItemExtn AIRItemExtn { get; set; }
         public virtual Codextn Codextn { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<IcsParItem> IcsParItems { get; set; }
         public virtual PsCardItem PsCardItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemIssuanceItem> PsCardItemIssuanceItems { get; set; }
@@ -59,5 +59,7 @@ namespace iLgs.Models
         public virtual ICollection<PsCardItemTransferItem> PsCardItemTransferItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RpcPpeItem> RpcPpeItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<IcsParItem> IcsParItems { get; set; }
     }
 }

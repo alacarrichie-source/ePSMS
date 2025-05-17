@@ -29,18 +29,20 @@ namespace iLgs.Controllers
             _uploadService = new ParIcsUploadService(_db);            
         }
 
-        public ActionResult _Images(Guid? imageId, string postedBy)
+        public ActionResult _Images(Guid? imageId, string postedBy, string description)
         {
             ViewData["imageId"] = imageId;
             ViewData["postedBy"] = postedBy;
+            ViewData["description"] = description;
             return PartialView();
         }
 
-        public ActionResult _ImagesAdd(Guid? imageId)
+        public ActionResult _ImagesAdd(Guid? imageId, string description)
         {
             var model = new Models.Upload()
             {
-                ImageId = imageId
+                ImageId = imageId,
+                Description = description
             };
             ViewData["imageId"] = imageId;
             ViewData["fileSize"] = model.FileSize;

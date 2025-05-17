@@ -199,7 +199,7 @@ namespace iLgs.Services.Items
             //    .Where(w => w.Id != id && w.Code.StartsWith(code))
             //    .Select(s => s.Description));
 
-            var data = _db.Database.SqlQuery<string>($"select STRING_AGG(Description, '/') from ItemCodes where Id != '{id}' and '{code}' like code + '%'").FirstOrDefault();
+            var data = _db.Database.SqlQuery<string>($"select STRING_AGG(Description, '/') from ItemCodes where Id != '{id}' and '{code}' like code + '.%'").FirstOrDefault();
 
             return data;
         }

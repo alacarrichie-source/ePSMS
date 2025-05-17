@@ -37,7 +37,7 @@
         //           style='background-image: url(" + @Url.Content("~/ParIcsUpload/GridPreview?id=#:Id#") + ");" +
         //           "onclick='oClickImage(#:Id#)'></div></div>")
         //            .Width(70);
-        col.Bound(c => c.RefNo).Width(70);
+        col.Bound(c => c.RefNo).Width(100);
         col.Bound(c => c.RefDate).Width(50);
         //col.Bound(c => c.UpdateCode).Width(30);
         col.Bound(c => c.LocationCode).Width(30);
@@ -129,11 +129,12 @@
                 .Name("gridItem_#=Id#")
                 .Columns(col =>
                 {
-                    col.Bound(c => c.PoNo).Width(40);
+                    col.Bound(c => c.PoNo).Width(70);
                     col.Bound(c => c.SetLotNo).Width(40);
                     col.Bound(c => c.SetLotQtyNo).Width(40);
                     col.Bound(c => c.ItemNo).Width(40);
-                    col.Bound(c => c.RefNo).Width(150);
+                    col.Bound(c => c.PropNo).Width(150);
+                    col.Bound(c => c.RefNo).Width(100);
                     col.Bound(c => c.Description).Width(100);
                     col.Bound(c => c.TUnitCost).Width(50).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                         .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })

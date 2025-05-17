@@ -243,6 +243,7 @@ namespace iLgs.Controllers
             {
                 model.Mode = "A";
                 model.Id = Guid.NewGuid();
+                model.AIRDate = DateTime.Now;
             }
             ViewData["airId"] = airId;
             return PartialView(model);
@@ -1426,7 +1427,8 @@ namespace iLgs.Controllers
         {
             var model = new Models.Upload()
             {
-                ImageId = imageId
+                ImageId = imageId,
+                Description = "AIR"
             };
             ViewData["imageId"] = imageId;
             ViewData["fileSize"] = model.FileSize;

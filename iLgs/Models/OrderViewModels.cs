@@ -309,7 +309,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> UpdatedDt { get; set; }
 
         // transients
-        [Display(Name = "Qty")]
+        [Display(Name = "Set/Lot Qty")]
         public int? Qty { get; set; }
 
         [Display(Name = "Unit of Measurement")]

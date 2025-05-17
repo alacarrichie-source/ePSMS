@@ -5,6 +5,7 @@ using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
 using iLgs.Services.ParIcs;
+using iLgs.Services.PropertyCard;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -23,12 +24,14 @@ namespace iLgs.Controllers
     public class IcsSetController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
-        private IIcsService _icsService;
+        private IPsCardService _psCardService;
+        private IIcsParService _icsParService;
         private ICodextnService _codextnService;
         
         public IcsSetController()
         {
-            _icsService = new IcsService(_db);
+            _psCardService = new PsCardService(_db);
+            _icsParService = new IcsParService(_db);
             _codextnService = new CodextnService(_db);
         }
 
@@ -40,7 +43,7 @@ namespace iLgs.Controllers
 
         public ActionResult Read([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _icsService.GetAllPo();
+            var data = _icsParService.IcsService.GetAllPo();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -51,7 +54,6 @@ namespace iLgs.Controllers
             return result;
         }                
 
-
         #region PO ITEMS
         public ActionResult _PoItems(string poNo)
         {
@@ -61,7 +63,7 @@ namespace iLgs.Controllers
 
         public ActionResult _PoItemsRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _icsService.GetItemsByPoNo(poNo, poDate, deptId);
+            var data = _icsParService.IcsService.GetItemsByPoNo(poNo, poDate, deptId);
 
             var result = new JsonNetResult
             {
@@ -89,7 +91,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _icsService.PsCardItem.UpdateNoICSAsync(model, user, date);
+                    model = await _psCardService.PsCardItem.UpdateNoICSAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -114,7 +116,7 @@ namespace iLgs.Controllers
 
         public ActionResult _PoItemSetRead([DataSourceRequest] DataSourceRequest request, string poNo, DateTime? poDate, Guid? deptId)
         {
-            var data = _icsService.GetItemSetsByPoNo(poNo, poDate, deptId);
+            var data = _icsParService.IcsService.GetItemSetsByPoNo(poNo, poDate, deptId);
 
             var result = new JsonNetResult
             {
@@ -127,7 +129,7 @@ namespace iLgs.Controllers
 
         public ActionResult _PoItemSetDescriptionRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
         {
-            var data = _icsService.GetItemSetDescriptionsByUnitGroupId(unitGroupId);
+            var data = _icsParService.IcsService.GetItemSetDescriptionsByUnitGroupId(unitGroupId);
 
             var result = new JsonNetResult
             {
@@ -140,7 +142,7 @@ namespace iLgs.Controllers
 
         public ActionResult _PoItemSetDescriptionItemRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupDescriptionId)
         {
-            var data = _icsService.GetItemSetDescriptionItemsByUnitGroupDescriptionId(unitGroupDescriptionId);
+            var data = _icsParService.IcsService.GetItemSetDescriptionItemsByUnitGroupDescriptionId(unitGroupDescriptionId);
 
             var result = new JsonNetResult
             {
@@ -168,7 +170,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _icsService.UpdateNoICSAsync(model, user, date);
+                    model = await _icsParService.IcsService.UpdateNoICSAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -208,7 +210,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _icsService.PostAsync(icsNo, user, date);
+                    await _icsParService.IcsService.PostAsync(icsNo, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -258,7 +260,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _icsService.UnPostAsync(icsNo, user, date);
+                    await _icsParService.IcsService.UnPostAsync(icsNo, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -303,7 +305,7 @@ namespace iLgs.Controllers
 
         public ActionResult _IcsRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemGroupId)
         {
-            var data = _icsService.IcsParItem.GetAllIcsItems(cardItemGroupId);
+            var data = _icsParService.IcsParItem.GetAllIcsItems(cardItemGroupId);
 
             var result = new JsonNetResult
             {
@@ -331,7 +333,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _icsService.IcsParItem.UpdateAsync(model, user, date);                    
+                    model = await _icsParService.IcsParItem.UpdateAsync(model, user, date);                    
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -370,7 +372,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _icsService.IcsParItem.DeleteAsync(model, user, date);
+                    model = await _icsParService.IcsParItem.DeleteAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -391,7 +393,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _IcsItemEdit(Guid? parItemId)
         {
-            var data = await _icsService.IcsParItem.GetByIdAsync(parItemId);
+            var data = await _icsParService.IcsParItem.GetByIdAsync(parItemId);
 
             return PartialView(data);
         }
@@ -413,7 +415,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _icsService.IcsParItem.UpdateAsync(model, user, date);
+                    model = await _icsParService.IcsParItem.UpdateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -447,33 +449,35 @@ namespace iLgs.Controllers
         }
 
         public async Task<ActionResult> _GenerateIcs(Guid? psCardItemId, string refType)
-        {                        
-            var psCardItem = await _icsService.GetByIdAsync(psCardItemId);
+        {
+            var date = DateTime.Now;
+            var psCardItem = await _icsParService.IcsService.GetByIdAsync(psCardItemId);
             var model = new GenerateIcsParVM()
             {
                 PsCardItemId = psCardItemId,
                 Qty = psCardItem.IcsBalance,
-                Date = DateTime.Now,
+                Date = date,
                 RefType = refType,
-                IcsPar = new IcsPar(),
+                IcsPar = new IcsPar() { ReceivedDate = date, IssuedDate = date },
                 IndSet = "I"
             };
 
             model.IcsPar.RefDate = model.Date;
             ViewData["psCardItemId"] = psCardItemId;
-            ViewBag.ItemExtnName = _icsService.PsCard.GetItemExtnName(psCardItemId);
+            ViewBag.ItemExtnName = _psCardService.GetItemExtnName(psCardItemId);
 
             return PartialView(model);
         }
 
         public ActionResult _GenerateIcsSet(Guid? unitGroupId, string refType)
         {
+            var date = DateTime.Now;
             var model = new GenerateIcsParVM()
             {
                 UnitGroupId = unitGroupId,
-                Date = DateTime.Now,
+                Date = date,
                 RefType = refType,
-                IcsPar = new IcsPar(),
+                IcsPar = new IcsPar() { ReceivedDate = date, IssuedDate = date },
                 IndSet = "S"
             };
 
@@ -502,11 +506,11 @@ namespace iLgs.Controllers
 
                     if (model.IndSet == "I")
                     {
-                        await _icsService.GenerateIcs(model, user, date);
+                        await _icsParService.IcsService.GenerateIcs(model, user, date);
                     }
                     else
                     {
-                        await _icsService.GenerateIcsSet(model, user, date);
+                        await _icsParService.IcsService.GenerateIcsSet(model, user, date);
                     }
                 }
             }
@@ -542,7 +546,7 @@ namespace iLgs.Controllers
 
         public ActionResult _GenerateIcsSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
         {
-            var data = _icsService.PsCardItemExtn.GetCardItemExtnForIcsParsByType(psCardItemId);
+            var data = _psCardService.PsCardItemExtn.GetCardItemExtnForIcsParsByType(psCardItemId);
 
             var result = new JsonNetResult
             {
@@ -555,7 +559,7 @@ namespace iLgs.Controllers
 
         public ActionResult _GenerateIcsSelectionSetRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
         {
-            var data = _icsService.PsCardItemExtn.GetCardItemExtnSetForIcsParByUnitGroupId(unitGroupId);
+            var data = _psCardService.PsCardItemExtn.GetCardItemExtnSetForIcsParByUnitGroupId(unitGroupId);
 
             var result = new JsonNetResult
             {
@@ -568,14 +572,15 @@ namespace iLgs.Controllers
 
         public ActionResult _GenerateIcsBatch(string poNo, DateTime? poDate, Guid? deptId)
         {
+            var date = DateTime.Now;
             var model = new GenerateIcsParVM()
             {
                 PoNo = poNo,
                 PoDate = poDate,
                 DeptId = deptId,
-                Date = DateTime.Now,
+                Date = date,                
                 RefType = "I",
-                IcsPar = new IcsPar()                
+                IcsPar = new IcsPar() { ReceivedDate = date, IssuedDate = date}
             };
 
             return PartialView(model);
@@ -598,7 +603,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    await _icsService.GenerateIcsBatch(model, user, date);
+                    await _icsParService.IcsService.GenerateIcsBatch(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -642,7 +647,7 @@ namespace iLgs.Controllers
 
         public ActionResult _IcsSetRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemGroupId)
         {
-            var data = _icsService.IcsPar.GetAllIcs(cardItemGroupId);
+            var data = _icsParService.GetAllIcs(cardItemGroupId);
 
             var result = new JsonNetResult
             {
@@ -669,7 +674,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await _icsService.IcsPar.DeleteAsync(model, user, date);
+                    var result = await _icsParService.DeleteAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException)
@@ -686,7 +691,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _IcsSetItemEdit(Guid? parItemId)
         {
-            var data = await _icsService.IcsParItem.GetByIdAsync(parItemId);
+            var data = await _icsParService.IcsParItem.GetByIdAsync(parItemId);
 
             return PartialView(data);
         }
@@ -708,7 +713,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _icsService.IcsParItem.UpdateAsync(model, user, date);
+                    model = await _icsParService.IcsParItem.UpdateAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
@@ -751,7 +756,7 @@ namespace iLgs.Controllers
 
         public ActionResult _IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
         {
-            var data = _icsService.PsCardItemIssaunce.GetByCardItemId(cardItemId);
+            var data = _psCardService.PsCardItemIssuance.GetByCardItemId(cardItemId);
 
             var result = new JsonNetResult
             {
@@ -764,6 +769,61 @@ namespace iLgs.Controllers
         #endregion
 
 
+        #region ICS/PAR Item Issuance
+        public ActionResult _IcsParItemIssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? icsParId)
+        {
+            var data = _icsParService.IcsParItem.GetIssuance(icsParId);
+
+            var result = new JsonNetResult
+            {
+                Data = data.ToDataSourceResult(request),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+            };
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _IcsParItemIssuanceUpdate([DataSourceRequest] DataSourceRequest request, IcsParItemVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "ics");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _icsParService.IcsParItem.UpdateIssuanceAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        #endregion
         public ActionResult GetAllPo(string text)
         {
 
@@ -771,12 +831,12 @@ namespace iLgs.Controllers
 
             if (string.IsNullOrEmpty(text))
             {
-                model = _icsService.GetAllPoCombo().AsQueryable<ParIcsPOGroupVM>();
+                model = _icsParService.IcsService.GetAllPoCombo().AsQueryable<ParIcsPOGroupVM>();
             }
             else
             {
                 text = text.Trim();
-                model = _icsService.GetAllPoCombo(text).AsQueryable<ParIcsPOGroupVM>();
+                model = _icsParService.IcsService.GetAllPoCombo(text).AsQueryable<ParIcsPOGroupVM>();
             }
 
             //return Json(formattedModel, JsonRequestBehavior.AllowGet);

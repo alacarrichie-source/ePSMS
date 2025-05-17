@@ -1,5 +1,4 @@
-﻿@{
-    ViewBag.Title = "Report on the Physical Count of Inventories (RPCI)";
+﻿@{    
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
@@ -78,12 +77,12 @@
             model.Field(p => p.FromDonation).DefaultValue(false);
         })
         .Aggregates(a =>
-            {
-                a.Add(p => p.QtyBalance).Sum();
-                a.Add(p => p.AcqCost).Sum();
-            })
+        {
+            a.Add(p => p.QtyBalance).Sum();
+            a.Add(p => p.AcqCost).Sum();
+        })
         .Sort(s => s.Add(a => a.AsOf).Descending())
-        .Read(read => read.Action("RpciRead", "Rpci"))
+        .Read(read => read.Action("RpciRead", "Rpci", new { isPosted = @ViewData["IsPosted"] }))
         .Create(create => create.Action("RpciCreate", "Rpci"))
         .Update(update => update.Action("RpciUpdate", "Rpci"))
         .Destroy(destroy => destroy.Action("RpciDestroy", "Rpci"))
@@ -342,6 +341,7 @@
             selectedId = null;
             selectedAsOf = null;
             e.container.find("[id=EditDiv]").toggle(false);
+            e.model.set("IsPosted", '@ViewData["IsPosted"]');
 
             //var popupWindow = e.container.data("kendoWindow");
             //// Change the width of the pop-up window when entering edit mode

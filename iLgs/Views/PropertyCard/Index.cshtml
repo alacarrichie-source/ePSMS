@@ -1091,12 +1091,29 @@
                         var duplicate = $("#IsDuplicateStockNo").val();
                         if (duplicate == "true") {
                             var psNo = $("#PsNo").val();
+                            var fund = $("#Fund").val();
                             var grid = $("#grid").data("kendoGrid");
 
+                            //grid.dataSource.filter({
+                            //    field: "PsNo",         // The column field name
+                            //    operator: "eq", // The filtering operator (e.g., "eq", "contains")
+                            //    value: psNo        // The value to filter by
+                            //});
+
                             grid.dataSource.filter({
-                                field: "PsNo",         // The column field name
-                                operator: "eq", // The filtering operator (e.g., "eq", "contains")
-                                value: psNo        // The value to filter by
+                                logic: "and",
+                                filters: [
+                                    {
+                                        field: "PsNo",
+                                        operator: "eq",
+                                        value: psNo
+                                    },
+                                    {
+                                        field: "Fund",
+                                        operator: "eq",
+                                        value: fund
+                                    }
+                                ]
                             });
 
                             // Wait for filtering to complete
@@ -1321,7 +1338,7 @@
                     var template = kendo.template(templateHtml);
 
                     // Insert the rendered template into the detail cell
-                    e.detailRow.find(".k-detail-cell").html(template(dataItem));                    
+                    e.detailRow.find(".k-detail-cell").html(template(dataItem));
                 } else {
                     alert(result.Errors);
                     return false;
@@ -1717,7 +1734,7 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
@@ -2132,7 +2149,7 @@
             //e.model.set("PsCardItemExtnId", parentModel.PsCardItemExtnId);
             e.model.set("LocationId", parentModel.LocationId);
             e.model.set("Location", parentModel.Location);
-            e.model.set("TContentNo", parentModel.TContentNo);            
+            e.model.set("TContentNo", parentModel.TContentNo);
             //$("#DIV_UPDATE").hide(); // Or disable it: $("#DIV2").prop('disabled', true);
         } else {
             selectedItemExtnId = e.model.get("Id");

@@ -205,28 +205,28 @@
         <AssociationConnector Association="AppManModel.FK_RisItemUnitGroupDescriptionItems_RisItems" />
         </Diagram>
       <Diagram DiagramId="fbc3eecf83604e868f53056709be554c" Name="ICS-PAR" ZoomLevel="86" >
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnLand" Width="1.5" PointX="19" PointY="8.5" />
-        <EntityTypeShape EntityType="AppManModel.IcsParItem" Width="1.5" PointX="13.625" PointY="8.5" />
-        <EntityTypeShape EntityType="AppManModel.IcsPartUnitGroupDescription" Width="1.5" PointX="5.25" PointY="17" />
-        <EntityTypeShape EntityType="AppManModel.IcsParUnitGroupDescriptionItem" Width="1.5" PointX="15.875" PointY="12.75" />
-        <AssociationConnector Association="AppManModel.FK_IcsParUnitGroupDescriptionItems_IcsParItems" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnLand" Width="1.5" PointX="25.25" PointY="8.875" />
+        <EntityTypeShape EntityType="AppManModel.IcsPartUnitGroupDescription" Width="1.5" PointX="15.875" PointY="16.5" />
+        <EntityTypeShape EntityType="AppManModel.IcsParUnitGroupDescriptionItem" Width="1.5" PointX="18.125" PointY="9.5" />
         <AssociationConnector Association="AppManModel.FK_IcsParUnitGroupDescriptionItems_IcsPartUnitGroupDescriptions" />
-        <EntityTypeShape EntityType="AppManModel.IcsParUnitGroup" Width="1.5" PointX="3" PointY="16.375" />
+        <EntityTypeShape EntityType="AppManModel.IcsParUnitGroup" Width="1.5" PointX="13.625" PointY="15.875" />
         <AssociationConnector Association="AppManModel.FK_IcsPartUnitGroupDescriptions_IcsParUnitGroups" />
-        <EntityTypeShape EntityType="AppManModel.IcsPar" Width="1.5" PointX="0.75" PointY="8.75" />
-        <AssociationConnector Association="AppManModel.FK_IcsParItems_IcsPars" />
+        <EntityTypeShape EntityType="AppManModel.IcsPar" Width="1.5" PointX="13.625" PointY="7.625" />
         <AssociationConnector Association="AppManModel.FK_IcsParUnitGroups_IcsPars" />
-        <EntityTypeShape EntityType="AppManModel.IcsParUpdate" Width="1.5" PointX="3" PointY="12.625" />
+        <EntityTypeShape EntityType="AppManModel.IcsParUpdate" Width="1.5" PointX="15.875" PointY="20.5" />
         <AssociationConnector Association="AppManModel.FK_IcsParUpdates_IcsPars" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnOther" Width="1.5" PointX="16.75" PointY="8.5" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtn" Width="1.5" PointX="13.625" PointY="0.75" />
-        <AssociationConnector Association="AppManModel.FK_IcsParItems_PsCardItemExtns" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnOther" Width="1.5" PointX="23" PointY="8.875" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtn" Width="1.5" PointX="15.875" PointY="0.75" />
         <InheritanceConnector EntityType="AppManModel.PsCardItemExtnLand" />
         <InheritanceConnector EntityType="AppManModel.PsCardItemExtnOther" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnBuilding" Width="1.5" PointX="10.25" PointY="8.5" />
-        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnVehicle" Width="1.5" PointX="7.5" PointY="8.5" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnBuilding" Width="1.5" PointX="20.75" PointY="8.875" />
+        <EntityTypeShape EntityType="AppManModel.PsCardItemExtnVehicle" Width="1.5" PointX="10.5" PointY="8.875" />
         <InheritanceConnector EntityType="AppManModel.PsCardItemExtnVehicle" />
         <InheritanceConnector EntityType="AppManModel.PsCardItemExtnBuilding" />
+        <EntityTypeShape EntityType="AppManModel.IcsParItem" Width="1.5" PointX="15.875" PointY="8.875" />
+        <AssociationConnector Association="AppManModel.FK_IcsParItems_IcsPars" />
+        <AssociationConnector Association="AppManModel.FK_IcsParItems_PsCardItemExtns" />
+        <AssociationConnector Association="AppManModel.FK_IcsParUnitGroupDescriptionItems_IcsParItems" />
         </Diagram>
       <Diagram DiagramId="5281ca684b7a4764922ab420d0687839" Name="AIR" ZoomLevel="85" >
         <EntityTypeShape EntityType="AppManModel.AIRItem" Width="1.5" PointX="3" PointY="13.125" />

@@ -3,6 +3,7 @@ using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Interfaces;
 using iLgs.Services.ParIcs;
+using iLgs.Services.PropertyCard;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -20,14 +21,14 @@ namespace iLgs.Controllers
     public class ParItemsController : BaseController
     {
         private readonly AppManEntities _db;
+        private readonly IIcsParService _icsParService;
         private readonly IParService _parService;
-        private readonly IParItemService _parItemService;
 
         public ParItemsController()
         {
             _db = new AppManEntities();
+            _icsParService = new IcsParService(_db);
             _parService = new ParService(_db);
-            _parItemService = new ParItemService(_db);
         }
 
         public ActionResult _Item(Guid parId)
@@ -38,7 +39,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> _ItemAddEdit(Guid parId, Guid? parItemId)
         {
-            var data = await _parItemService.GetVmByIdAsync(parItemId);
+            var data = await _parService.ParItem.GetVmByIdAsync(parItemId);
             if (data == null)
             {
                 data = new PARItemVM()
@@ -53,7 +54,7 @@ namespace iLgs.Controllers
         
         public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid? parId)
         {
-            var data = _parItemService.GetAll(parId);
+            var data = _parService.ParItem.GetAll(parId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -75,7 +76,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _parItemService.DeleteAsync(model, user, date);
+                    model = await _parService.ParItem.DeleteAsync(model, user, date);
                 }
 
             }

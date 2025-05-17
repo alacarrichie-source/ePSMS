@@ -40,7 +40,7 @@ namespace iLgs.Services.AIRs
 
         public IQueryable<T> GetAirItemExtnByItemId<T>(Guid? airItemId) where T : AIRItemExtn
         {
-            var data = _db.AIRItemExtns.OfType<T>().AsNoTracking()
+            var data = _db.AIRItemExtns.Include(i => i.AIRItem.OrderItem).OfType<T>().AsNoTracking()
                         .Where(w => w.AIRItemId == airItemId)
                         .AsQueryable();
             return data;
@@ -48,7 +48,7 @@ namespace iLgs.Services.AIRs
 
         public IQueryable<T> GetAirItemExtnByOrderItemId<T>(Guid? orderItemId) where T : AIRItemExtn
         {
-            var data = _db.AIRItemExtns.OfType<T>().AsNoTracking()
+            var data = _db.AIRItemExtns.Include(i => i.AIRItem.OrderItem).OfType<T>().AsNoTracking()
                         .Where(w => w.AIRItem.OrderItemId == orderItemId)
                         .AsQueryable();
             return data;

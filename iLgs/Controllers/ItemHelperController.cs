@@ -241,7 +241,7 @@ namespace iLgs.Controllers
             }).ToList();
 
             // Add "ALL" item
-            retModel.Insert(0, new ItemTypeVM { Id = Guid.Empty, Code = "ALL", Description = "ALL", Category = "", GroupCode = "" });
+            retModel.Insert(0, new ItemTypeVM { Id = null, Code = "ALL", Description = "ALL", Category = "", GroupCode = "" });
             return Json(retModel, JsonRequestBehavior.AllowGet);
         }
 

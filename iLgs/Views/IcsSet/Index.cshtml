@@ -4,79 +4,6 @@
     ViewBag.Title = "Inventory Custodian Slip";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
-@*<br />
-<fieldset>
-    @Html.HiddenFor(m => m.DeptId)
-    <div class=" col-md-6">
-        <div class="row k-mb-2">
-            @Html.Label("PO No", htmlAttributes: new { @class = "col-md-3" })
-            <div class="col-md-9">
-                @(Html.Kendo().MultiColumnComboBoxFor(m => m.PoNo)
-                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                .Placeholder("Select PO Number")
-                .DataTextField("PoNo")
-                .DataValueField("PoNo")
-                .ValuePrimitive(true)
-                .Filter(FilterType.Contains)
-                .DataSource(source =>
-                {
-                    source.Read(read =>
-                    {
-                        read.Action("GetAllPo", "IcsSet");
-                    })
-                    .ServerFiltering(true);
-                })
-                .Columns(c =>
-                {
-                    c.Add().Field("PoNo").Title("PO No.").Width("25%");
-                    c.Add().Field("PoDate").Title("Date").Width("25%").Template("#= kendo.toString(PoDate, 'yyyy-MM-dd') #"); ;
-                    //c.Add().Field("AirNo").Title("AIR No.").Width("15%");
-                    //c.Add().Field("AirDate").Title("Date").Width("15%");
-                    c.Add().Field("Department").Title("Department").Width("50%");
-                })
-                .Suggest(true)
-                .Events(e => { e.Select("onSelectPoNo"); })
-                )
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            @Html.Label("PO Date", htmlAttributes: new { @class = "col-md-3" })
-            <div class="col-md-9">
-                @(Html.Kendo().DatePickerFor(m => m.PoDate)
-                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                )                
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            @Html.Label("AIR No", htmlAttributes: new { @class = "col-md-3" })
-            <div class="col-md-9">
-                @(Html.Kendo().TextBoxFor(m => m.AirNo).Enable(false)
-                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                )
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            @Html.Label("AIR Date", htmlAttributes: new { @class = "col-md-3" })
-            <div class="col-md-9">
-                @(Html.Kendo().DatePickerFor(m => m.AirDate).Enable(false).Format("{0:MM/dd/yyyy}")
-                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                )
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            @Html.Label("Originating Department", htmlAttributes: new { @class = "col-md-3" })
-            <div class="col-md-9">
-                @(Html.Kendo().TextBoxFor(m => m.Department).Enable(false)
-                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
-                )
-            </div>
-        </div>
-    </div>
-</fieldset>*@
 
 @(Html.Kendo().PanelBar()
     .Name("panelbar")
@@ -433,7 +360,7 @@
                 </script>
 
 <script id="item-set-description-template" type="text/x-kendo-template">
-                    @(Html.Kendo().Grid<iLgs.Models.PsCardItemUnitGroupDescription>()
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemUnitGroupDescription>()
         .Name("gridItemSetDescription_#=Id#")
         .Columns(col =>
         {
@@ -546,8 +473,8 @@
                 </script>
 
 
-                <script id="item-set-description-item-template-xx" type="text/x-kendo-template">
-                    @(Html.Kendo().Grid<iLgs.Models.PsCardItemUnitGroupDescriptionItem>()
+<script id="item-set-description-item-template-xx" type="text/x-kendo-template">
+            @(Html.Kendo().Grid<iLgs.Models.PsCardItemUnitGroupDescriptionItem>()
         .Name("gridItemSetDescriptionItem_#=Id#")
         .Columns(col =>
         {
@@ -558,24 +485,10 @@
             col.Bound(c => c.PsCardItem.Amount).Width(50);
             col.Bound(c => c.PsCardItem.PsCard.ItemCode.Description).Width(50);
             col.Bound(c => c.PsCardItem.Description).Width(50);
-            //col.Group(group => group.Title("No ICS")
-            //    .Columns(info =>
-            //    {
-            //        info.Bound(f => f.PsCardItem.IsConsumable).ClientTemplate("#= IsConsumable ? 'Y' : 'N' #").EditorTemplateName("_IsConsumableTemplate")
-            //            .Width(70).Title("Consumable");
-            //        info.Bound(f => f.PsCardItem.IsIncorporated).ClientTemplate("#= IsIncorporated ? 'Y' : 'N' #").EditorTemplateName("_IsIncorporatedTemplate")
-            //            .Width(70).Title("Incorporated");
-            //        info.Bound(f => f.PsCardItem.IsOthers).ClientTemplate("#= IsOthers ? 'Y' : 'N' #").EditorTemplateName("_IsOthersTemplate")
-            //            .Width(70).Title("Others");
-            //        info.Bound(f => f.PsCardItem.OtherRemarks)
-            //            .Width(40).Title("Remarks");
-            //    }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
-            //);
             col.Command(command =>
             {
                 command.Edit();
-            }).Width(100);
-            //col.Bound(c => c.PsCardItem.IcsParItems.Count(cnt => cnt.PsCardItemId == c.PsCardItem.Id)).Width(50).Title("Generated<br>Items");
+            }).Width(100);            
         })
         //.ClientDetailTemplateId("item-set-description-template")
         .Sortable()
@@ -603,7 +516,47 @@
                     )
     </script>
 
-
+<script id="IcsParItemsTemplate" type="text/x-kendo-template">
+    @(Html.Kendo().Grid<iLgs.Models.IcsParItemVM>()
+        .Name("gridIcsPartItem_#=Id#")
+        .Columns(col =>
+        {
+            col.Bound(c => c.ItemNo).Width(50);
+            col.Bound(c => c.RefNo).Width(100);
+            col.Bound(c => c.PropNo).Width(100);
+            col.Bound(c => c.IssuedTo).Width(100);
+            col.Bound(c => c.Designation).Width(100);
+            col.Command(command =>
+            {
+                command.Edit();
+            }).Width(120);
+        })
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ItemIssuanceTemplate").Window(w => w.Width(800)))
+        .NoRecords()
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("GridError")
+            )
+            .Sort(s => s.Add(a => a.ContentNo))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+                //model.Field(p => p.ItemNo).Editable(false);
+                //model.Field(p => p.RefNo).Editable(false);
+            })
+            .Read(read => read.Action("_IcsParItemIssuanceRead", "IcsSet", new { icsParId = "#=Id#" }))
+            .Update(update => update.Action("_IcsParItemIssuanceUpdate", "IcsSet"))
+        )
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .Events(e => e
+            .Edit("onEditGridIcsParItem")
+            .Change("onChangeGridIcsParItem")
+            .DataBound("onDataBoundGridIcsParItem")
+        )
+        .ToClientTemplate()
+    )
+</script>
 
 
 
@@ -801,7 +754,7 @@
     //        otherElements.each(function () {
     //            otherElementsHeight += $(this).outerHeight();
     //        });
-    //    dataArea.height(gridHeight - otherElementsHeight);
+    //    dataArea.height(gridHeight i- otherElementsHeight);
     //});
 
     function GridError(args) {
@@ -2175,7 +2128,8 @@
         var button = e.sender.element; // Use the sender's element;
         // Retrieve the grid name from the data attribute
         var imageId = $(button).data("imageid");
-        var myUrl = '@Url.Action("_ImagesAdd", "ParIcsUpload")?imageId=' + imageId;
+        var description = $(button).data("description");
+        var myUrl = '@Url.Action("_ImagesAdd", "ParIcsUpload")?imageId=' + imageId + '&description=' + description;
         var myTitle = "Upload Images/Documents";
         var width = 800;
         var height = 650;
@@ -2466,7 +2420,8 @@
             url: '@Url.Action("_Images", "ParIcsUpload")',
             data: {
                 imageId: imageId,
-                postedBy: postedBy
+                postedBy: postedBy,
+                description: "ICS"
             },
             // Specify a callback function to execute after content is loaded
             complete: function () {
@@ -2577,6 +2532,51 @@
         mywindow.center();
         mywindow.open();
     }
+
+
+    // grid item Issuance
+    var selectedIcsParItemId = null;
+    function onEditGridIcsParItem(e) {
+        e.preventDefault();
+
+        // the master row for this detail
+        var parentRow = this.wrapper.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        var parentModel = parentGrid.dataItem(parentRow);
+        var IsProperty = parentModel.IsProperty;
+
+        parentGrid.select(parentRow);
+        selectedGrid = e.sender;
+
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("PsCardItemExtnId", parentModel.Id);
+        } else {
+            selectedIcsParItemId = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedIcsParItemId);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onChangeGridIcsParItem(e) {
+        var selectedData = this.dataItem(this.select());
+
+        selectedIcsParItemId = selectedData.Id;
+    }
+
+    function onDataBoundGridIcsParItem(e) {
+        if (selectedIcsParItemId) {
+            var dataItem = this.dataSource.get(selectedIcsParItemId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+    // end grid item issuance
 </script>
 
 

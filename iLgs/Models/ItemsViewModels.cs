@@ -121,7 +121,7 @@ namespace iLgs.Models
 
     public class ItemTypeVM
     {     
-        public System.Guid Id { get; set; }
+        public Nullable<System.Guid> Id { get; set; }
         [Display(Name = "Type Code")]
         public string Code { get; set; }
         public string Description { get; set; }

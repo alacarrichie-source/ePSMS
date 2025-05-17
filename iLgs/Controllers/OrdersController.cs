@@ -855,7 +855,7 @@ namespace iLgs.Controllers
         public ActionResult _Images(Guid? imageId, string postedBy)
         {
             ViewData["imageId"] = imageId;
-            ViewData["postedBy"] = postedBy;
+            ViewData["postedBy"] = postedBy;            
             return PartialView();
         }
 
@@ -864,7 +864,8 @@ namespace iLgs.Controllers
         {
             var model = new Models.Upload()
             {
-                ImageId = imageId
+                ImageId = imageId,
+                Description = "PO"
             };
             ViewData["imageId"] = imageId;
             ViewData["fileSize"] = model.FileSize;
@@ -1053,7 +1054,8 @@ namespace iLgs.Controllers
         {
             var model = new Models.Upload()
             {
-                ImageId = imageId
+                ImageId = imageId,
+                Description = "CAFOA"
             };
             ViewData["imageId"] = imageId;
             ViewData["fileSize"] = model.FileSize;

@@ -22,12 +22,16 @@ namespace iLgs.Controllers
     {
         private AppManEntities _db = new AppManEntities();
         private IIcsParService _icsParService;
-        private ICodextnService _codextnService;
+        //private IIcsService _icsService;
+        //private IParService _ParService;
+        //private ICodextnService _codextnService;
 
         public IcsParUpdateController()
         {
             _icsParService = new IcsParService(_db);
-            _codextnService = new CodextnService(_db);
+            //_icsService = new IcsService(_db);
+            //_ParService = new ParService(_db);
+            //_codextnService = new CodextnService(_db);
         }
 
         // GET: IcsParUpdate
@@ -78,7 +82,7 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    var result = await _icsParService.DeleteAsync(model, user, date);
+                    var result = await _icsParService.DeleteUpdatesAsync(model, user, date);
                 }
             }
             catch (ValidationException validationException)
@@ -170,7 +174,7 @@ namespace iLgs.Controllers
                 return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
             }
 
-            return Json(new { Errors = "", Id = model.Id}, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "", Id = model.Id }, JsonRequestBehavior.AllowGet);
         }
 
         [AcceptVerbs(HttpVerbs.Post)]

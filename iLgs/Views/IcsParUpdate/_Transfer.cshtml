@@ -179,6 +179,31 @@
         <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-2">
+                    @Html.DisplayFor(m => m.IssuedTo, "Label")
+                </div>
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.IssuedTo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.IssuedTo)
+                </div>
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.Designation, "Label")
+                </div>
+                <div class="col-md-10">
+                    @(Html.Kendo().TextBoxFor(m => m.Designation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.Designation)
+                </div>
+            </div>
+        </div>
+
+        <br />
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
                     @Html.DisplayFor(m => m.IssuedBy, "Label")
                 </div>
                 <div class="col-md-10">

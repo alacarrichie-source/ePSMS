@@ -7,6 +7,11 @@ namespace iLgs.Models
 {
     public static class Enums
     {
+        public enum IcsValue
+        {
+            SPLV = 1,
+            SPHV = 2
+        }
 
         public enum CustodianAccountGroup
         {

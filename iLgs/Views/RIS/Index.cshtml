@@ -423,7 +423,9 @@
                 url: '@Url.Action("GetCurrentDate", "Getters")',
                 success: function (result) {
                     var date = kendo.toString(kendo.parseDate(result.Date), 'MM/dd/yyyy');
-                    $("#RisDate").val(date).trigger("change");
+                    var datePicker = $("#RisDate").data("kendoDatePicker");
+                    datePicker.value(date); 
+                    datePicker.trigger("change");
                     disabled.attr('disabled', 'disabled')
                 },
                 error: function (req, status, errorObj) {

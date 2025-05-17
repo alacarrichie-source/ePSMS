@@ -25,7 +25,7 @@ namespace iLgs.Models
         [Display(Name = "Inventory / For Distribution")]
         public string InvDist { get; set; }
 
-        [Required]
+        //[Required]
         [Display(Name = "Account")]
         public Nullable<System.Guid> ItemTypeId { get; set; }
         public string Account { get; set; }
@@ -56,8 +56,10 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> PostedDt { get; set; }
 
+        public bool? IsPosted { get; set; } = true;
+
         // Transients
-        
+
         [Display(Name = "Inventory/For distribution")]
         //public string InvDistDesc { get { return this.InvDist == "I" ? "Inventory" : this.InvDist == "D" ? "For Distribution" : ""; } }
         public string InvDistDesc { get; set; }

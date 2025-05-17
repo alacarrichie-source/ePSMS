@@ -6,6 +6,14 @@ using System.Web;
 
 namespace iLgs.Models
 {
+    public class PoQueryVM
+    {
+        public string UserName { get; set; }
+
+        [Display(Name = "PO Status")]
+        public Nullable<int> PoStatus { get; set; }
+    }
+
     public class QueryOrderItemsVM
     {
         public Guid Id { get; set; }

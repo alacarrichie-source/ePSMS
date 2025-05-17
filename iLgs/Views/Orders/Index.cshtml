@@ -347,7 +347,10 @@
                 type: "POST",
                 url: '@Url.Action("GetCurrentDate", "Getters")',                
                 success: function (result) {
-                    $("#PoDate").val(result.Date).trigger("change");
+                    var date = kendo.toString(kendo.parseDate(result.Date), 'MM/dd/yyyy');
+                    var datePicker = $("#PoDate").data("kendoDatePicker");
+                    datePicker.value(date);
+                    datePicker.trigger("change");
                     disabled.attr('disabled', 'disabled')
                 },
                 error: function (req, status, errorObj) {
@@ -1184,7 +1187,7 @@
             url: '@Url.Action("_Images", "Orders")',
             data: {
                 imageId: imageId,
-                postedBy: postedBy
+                postedBy: postedBy                
             },
             // Specify a callback function to execute after content is loaded
             complete: function () {

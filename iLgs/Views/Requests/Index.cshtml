@@ -282,7 +282,7 @@
         }
 
         var grid = $("#grid");
-        if (this.dataSource.data().length == 0) {            
+        if (this.dataSource.data().length == 0) {
             $(".k-grid-btnPrintPR", grid).hide();
             $(".k-grid-btnSubmitPR", grid).hide();
             $(".k-grid-btnUnpostPR", grid).hide();
@@ -299,6 +299,22 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedId = null;
+
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetCurrentDate", "Getters")',
+                success: function (result) {
+                    var date = kendo.toString(kendo.parseDate(result.Date), 'MM/dd/yyyy');
+                    var datePicker = $("#PrDate").data("kendoDatePicker");
+                    datePicker.value(date);
+                    datePicker.trigger("change");
+                    disabled.attr('disabled', 'disabled')
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
         } else {
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
@@ -486,7 +502,7 @@
         var model = $("#grid").data().kendoGrid.editable.options.model;
         model.set('AvaialbilityDesig', $('#AvaialbilityDesig').val());
     }
-    
+
     function DataApprovedBy() {
         var text = $("#ApprovedBy").data("kendoMultiColumnComboBox").text();
         return {
@@ -877,16 +893,16 @@
                 }
             });
 
-            alert(message); // You can replace this with any other UI method to display errors                        
+            alert(message); // You can replace this with any other UI method to display errors
             $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();
         }
     }
-             
+
     function onGridItemUnitGroupsRequestEnd(e) {
         e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();                
+                $("#gridItemUnitGroups_" + selectedId).data("kendoGrid").dataSource.read();
             }
         }
     }
@@ -966,7 +982,7 @@
                 }
             });
 
-            alert(message); // You can replace this with any other UI method to display errors                        
+            alert(message); // You can replace this with any other UI method to display errors
             $("#gridItemUnitGroupDescriptions_" + selectedUnitGroupId).data("kendoGrid").dataSource.read();
         }
     }
@@ -1047,7 +1063,7 @@
                 }
             });
 
-            alert(message); // You can replace this with any other UI method to display errors                        
+            alert(message); // You can replace this with any other UI method to display errors
             $("#gridItemUnitGroupDescriptionItems_" + selectedUnitGroupDescriptionId).data("kendoGrid").dataSource.read();
         }
     }

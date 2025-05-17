@@ -60,7 +60,6 @@ namespace iLgs.Models
         public virtual DbSet<PsCard> PsCards { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
-        public virtual DbSet<IcsParItem> IcsParItems { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
         public virtual DbSet<PsCardItemIssuance> PsCardItemIssuances { get; set; }
         public virtual DbSet<RPCIDepLoc> RPCIDepLocs { get; set; }
@@ -113,5 +112,6 @@ namespace iLgs.Models
         public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
         public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
+        public virtual DbSet<IcsParItem> IcsParItems { get; set; }
     }
 }

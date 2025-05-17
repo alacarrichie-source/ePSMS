@@ -1107,14 +1107,32 @@
                     close: function () {
                         $("#grid").data("kendoGrid").dataSource.read();
                         var duplicate = $("#IsDuplicateStockNo").val();
+                        
                         if (duplicate == "true") {
                             var psNo = $("#PsNo").val();
+                            var fund = $("#Fund").val();
                             var grid = $("#grid").data("kendoGrid");
 
+                            //grid.dataSource.filter({
+                            //    field: "PsNo",         // The column field name
+                            //    operator: "eq", // The filtering operator (e.g., "eq", "contains")
+                            //    value: psNo        // The value to filter by
+                            //});
+
                             grid.dataSource.filter({
-                                field: "PsNo",         // The column field name
-                                operator: "eq", // The filtering operator (e.g., "eq", "contains")
-                                value: psNo        // The value to filter by
+                                logic: "and",
+                                filters: [
+                                    {
+                                        field: "PsNo",
+                                        operator: "eq",
+                                        value: psNo
+                                    },
+                                    {
+                                        field: "Fund",
+                                        operator: "eq",
+                                        value: fund
+                                    }
+                                ]
                             });
 
                             // Wait for filtering to complete
@@ -1755,7 +1773,7 @@
         selectedGrid = this;
         var tr = $(e.currentTarget).closest("tr");
         var dataItem = selectedGrid.dataItem(tr);
-        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        var rowitem = selectedGrid.dataSource.get(dataItem.TransferId);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));

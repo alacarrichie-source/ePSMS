@@ -14,6 +14,7 @@ namespace iLgs.Services.RPC
     public interface IRpciService
     {
         IQueryable<RPCI_VM> GetAll();
+        IQueryable<RPCI_VM> GetAll(bool? isPosted);
         IQueryable<RPCIItem> GetRpciXls(DateTime? asOf, Guid? id);
         ValueTask<RPCI> GetByIdAsync(Guid? id);
         ValueTask<RPCI_VM> GetByAsOfAsync(DateTime? AsOf);
@@ -106,9 +107,17 @@ namespace iLgs.Services.RPC
                     InvDistDesc = s.InvDist == "I" ? "Inventory" : s.InvDist == "D" ? "For Distribution" : "",
                     AcqMode = s.FromDonation == true ? "From Donation" : "Purchase",
                     QtyBalance = s.RPCIItems.Sum(x => x.TotalBalance),
-                    AcqCost = s.RPCIItems.Sum(x => x.AcqCost)
+                    AcqCost = s.RPCIItems.Sum(x => x.AcqCost),
+                    IsPosted = s.IsPosted
                 });
             return data;
+        });
+
+        public IQueryable<RPCI_VM> GetAll(bool? isPosted) =>
+        _vmExceptionService.TryCatch(() =>
+        {
+            var data = GetAll();
+            return data.Where(w => w.IsPosted == isPosted);
         });
 
         public ValueTask<RPCI_VM> GenerateAsync(RPCI_VM model, string user, DateTime date) =>
@@ -120,16 +129,22 @@ namespace iLgs.Services.RPC
             }
 
             //if (model.DeptId != null) {                 
+            //&& a.Account == model.Account 
             if (await _db.RPCIs.AnyAsync(a => a.AsOf == model.AsOf && a.Fund == model.Fund && a.FromDonation == model.FromDonation
-                 && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId
-                 && a.Account == model.Account && a.DeptId == model.DeptId))
+                 && a.InvDist == model.InvDist && a.ItemTypeId == model.ItemTypeId                 
+                 && a.DeptId == model.DeptId && a.IsPosted == model.IsPosted))
             {
                 throw new RecordAlreadyExistsException();
             }
             //}
 
-            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}",
-                model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, model.DeptId, user);
+            if (model.ItemTypeId == null)
+            {
+                model.Account = "ALL";
+            }
+
+            await _db.Database.ExecuteSqlCommandAsync("Exec RPCI_Generate {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}",
+                model.AsOf, model.Fund, model.FromDonation, model.InvDist, model.ItemTypeId, model.Account, model.DeptId, user, model.IsPosted);
             model = await GetByAsOfAsync(model.AsOf);
             return model;
         });

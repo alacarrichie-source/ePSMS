@@ -160,7 +160,7 @@ namespace iLgs.Models
             [Display(Name = "Group No.")]
             public string SetLotNo { get; set; }
 
-            [Display(Name = "Qty")]
+            [Display(Name = "Set/Lot Qty")]
             public Nullable<int> Qty { get; set; }
 
             [Display(Name = "Unit of Measurement")]

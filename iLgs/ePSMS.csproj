@@ -4126,6 +4126,7 @@
     <Content Include="Views\CustodianReportBldg\EditorTemplates\_CapitalOutlayTemplate.cshtml" />
     <Content Include="Views\CustodianReportBldg\EditorTemplates\_MooeTemplate.cshtml" />
     <Content Include="Views\CustodianReportBldg\_ItemPhase.cshtml" />
+    <Content Include="Views\IcsSet\EditorTemplates\_ItemIssuanceTemplate.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />

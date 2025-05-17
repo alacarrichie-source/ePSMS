@@ -36,15 +36,26 @@ namespace iLgs.Controllers
             _codextnService = new CodextnService(_db);
         }
 
+        public ActionResult NotPosted()
+        {
+            ViewData["IsPosted"] = false;
+            ViewBag.Title = "Report on the Physical Count of Inventories (RPCI) - Not Posted Records";
+            
+            return View("Index");
+        }
+
+
         // GET: Rpci
         public ActionResult Index()
         {
+            ViewData["IsPosted"] = true;
+            ViewBag.Title = "Report on the Physical Count of Inventories (RPCI) - Posted Records";
             return View();
         }
 
-        public ActionResult RpciRead([DataSourceRequest] DataSourceRequest request)
+        public ActionResult RpciRead([DataSourceRequest] DataSourceRequest request, bool? isPosted)
         {
-            var data = _rpciService.GetAll();
+            var data = _rpciService.GetAll(isPosted);
 
             var result = new JsonNetResult
             {

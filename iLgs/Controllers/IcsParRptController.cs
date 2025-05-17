@@ -19,12 +19,10 @@ namespace iLgs.Controllers
     public class IcsParRptController : BaseController
     {
         private AppManEntities _db = new AppManEntities();
-        private IIcsService _icsService;
         private ICodextnService _codextnService;
 
         public IcsParRptController()
         {
-            _icsService = new IcsService(_db);
             _codextnService = new CodextnService(_db);
         }
 

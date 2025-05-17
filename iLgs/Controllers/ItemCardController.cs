@@ -17,6 +17,7 @@ namespace iLgs.Controllers
     public class ItemCardController : BaseController
     {
         private readonly AppManEntities _db;
+        private readonly IIcsParService _icsParService;
         private readonly IPsCardService _psCardService;
         private readonly IParIcsUploadService _uploadService;
         private readonly IItemCodeService _itemCodeService;
@@ -25,6 +26,7 @@ namespace iLgs.Controllers
         public ItemCardController()
         {
             _db = new AppManEntities();
+            _icsParService = new IcsParService(_db);
             _psCardService = new PsCardService(_db);
             _uploadService = new ParIcsUploadService(_db);
             _itemCodeService = new ItemCodeService(_db);
@@ -101,7 +103,7 @@ namespace iLgs.Controllers
 
         public ActionResult _ParIcsRead([DataSourceRequest] DataSourceRequest request, string propNo, string refType)
         {
-            var data = _psCardService.PsCardItemExtn.IcsPar.GetAllByPropNo(propNo, refType);
+            var data = _icsParService.GetAllByPropNo(propNo, refType);
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

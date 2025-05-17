@@ -2,6 +2,8 @@
     ViewBag.Title = "Stock Card PO Printout";
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
+@model iLgs.Models.PoQueryVM
+
 <br />
 <div class="row">
     <div class="col-md-6">
@@ -9,8 +11,8 @@
             @Html.Label("User Name:")
         </div>
         <div class="col-md-12">
-            @(Html.Kendo().MultiColumnComboBox()
-                .Name("UserName")
+            @(Html.Kendo().MultiColumnComboBoxFor(m => m.UserName)
+                //.Name("UserName")
                 .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                 .Placeholder("Select encoder")
                 .DataTextField("NameFull")
@@ -35,9 +37,19 @@
             )
         </div>
     </div>
+
+    <div class="col-md-6">
+        <div class="col-md-12">
+            @Html.Label("PO status:")
+        </div>
+        <div class="col-md-12">
+            @(Html.Kendo().RadioButtonFor(m => m.PoStatus).Label("Posted").Value(1).Events(e => e.Change("onChangePoStatus"))) &nbsp;
+            @(Html.Kendo().RadioButtonFor(m => m.PoStatus).Label("Not Posted").Value(2).Events(e => e.Change("onChangePoStatus"))) &nbsp;
+            @(Html.Kendo().RadioButtonFor(m => m.PoStatus).Label("All").Value(3).Events(e => e.Change("onChangePoStatus")))
+        </div>
+    </div>
 </div>
 <br />
-
 
 @(Html.Kendo().Grid<iLgs.Models.QueryPoVM>()
     .HtmlAttributes(new { @class = "max-grid-2" })
@@ -94,65 +106,7 @@
                     .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
             }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
-        );
-        //col.Group(group =>
-        //{
-        //    group.Title("Issuances").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-        //    .Columns(c =>
-        //    {
-        //        c.Group(g =>
-        //        {
-        //            g.Title("Past").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-        //            .Columns(info =>
-        //            {
-        //                info.Bound(f => f.PastQty)
-        //                  .Width(50).Title("Qty")
-        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-        //                  .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        //                info.Bound(f => f.PastAmount)
-        //                  .Width(50).Title("Amount")
-        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-        //                  .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        //            });
-        //        });
-        //        c.Group(g =>
-        //        {
-        //            g.Title("Current").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-        //            .Columns(info =>
-        //            {
-        //                info.Bound(f => f.CurQty)
-        //                  .Width(50).Title("Qty")
-        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-        //                  .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        //                info.Bound(f => f.CurAmount)
-        //                  .Width(50).Title("Amount")
-        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-        //                  .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        //            });
-        //        });
-        //        c.Group(g =>
-        //        {
-        //            g.Title("Future").HeaderHtmlAttributes(new { Style = "text-align:center;" })
-        //            .Columns(info =>
-        //            {
-        //                info.Bound(f => f.FutureQty)
-        //                  .Width(50).Title("Qty")
-        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
-        //                  .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        //                info.Bound(f => f.FutureAmount)
-        //                  .Width(50).Title("Amount")
-        //                  .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-        //                  .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
-        //                  .HeaderHtmlAttributes(new { style = "text-align:right;" });
-        //            });
-        //        });
-        //    });
-        //});
+        );        
     })
     .ToolBar(t =>
     {
@@ -451,10 +405,16 @@
         }
     }
 
+    function onChangePoStatus(e) {
+        $("#grid").data("kendoGrid").dataSource.read();
+    }
+
     function DataStockCard() {
         var userName = $("#UserName").data("kendoMultiColumnComboBox").value();
+        var poStatus = $('input[name="PoStatus"]:checked').val();
         return {
-            userName: userName
+            userName: userName,
+            poStatus: poStatus
         };
     }
 
@@ -467,7 +427,8 @@
 
         if (dataItem) {
             var userName = dataItem.UserName;
-            $("#grid").data("kendoGrid").dataSource.read({userName: userName});
+            var poStatus = $('input[name="PoStatus"]:checked').val();
+            $("#grid").data("kendoGrid").dataSource.read({userName: userName, poStatus: poStatus});
         }
     }
 
@@ -477,7 +438,8 @@
 
         if (!value) {
             var userName = "";
-            $("#grid").data("kendoGrid").dataSource.read({ userName: userName });
+            var poStatus = $('input[name="PoStatus"]:checked').val();
+            $("#grid").data("kendoGrid").dataSource.read({ userName: userName, poStatus: poStatus });
         }
     }
 

@@ -3,6 +3,7 @@ using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Items;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
@@ -17,6 +18,7 @@ namespace iLgs.Services.PropertyCard
         IQueryable<PsCardItemVM> GetTransitByCardId(Guid? cardId, string userName);
         IQueryable<PsCardItemVM> GetAllStocks();
         IQueryable<PsCardItemVM> GetAllProperties();
+        ValueTask<List<PsCardItemVM>> GetAllWithExtnsAsync();
         ValueTask<PsCardItemVM> GetByIdAsync(Guid? id);
         ValueTask<PsCardItemVM> GetByTransferIdAsync(Guid? id);
         ValueTask<PsCardItemVM> GetByGroupIdAsync(Guid? groupId);
@@ -302,6 +304,12 @@ namespace iLgs.Services.PropertyCard
         private IQueryable<PsCardItemVM> GetAll(string category)
         {
             var data = _db.Database.SqlQuery<PsCardItemVM>("Exec Card_GetQueryRecords {0}", category).AsQueryable();
+            return data;
+        }
+
+        public async ValueTask<List<PsCardItemVM>> GetAllWithExtnsAsync()
+        {
+            var data = await _db.Database.SqlQuery<PsCardItemVM>("Exec Card_GetAllWithExtns").ToListAsync();
             return data;
         }
 

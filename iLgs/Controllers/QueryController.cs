@@ -28,16 +28,20 @@ namespace iLgs.Controllers
         {
             _db = new AppManEntities();
             _codextnService = new CodextnService(_db);
-        }
+        }        
 
         public ActionResult Po()
         {
-            return View();
+            var data = new PoQueryVM()
+            {
+                PoStatus = 3
+            };
+            return View(data);
         }
 
-        public ActionResult PoRead([DataSourceRequest] DataSourceRequest request, string userName)
+        public ActionResult PoRead([DataSourceRequest] DataSourceRequest request, string userName, int? poStatus)
         {
-            var data = _db.Database.SqlQuery<QueryPoVM>("Exec Card_GetPoNumbers {0}", userName).AsQueryable();
+            var data = _db.Database.SqlQuery<QueryPoVM>("Exec Card_GetPoNumbers {0}, {1}", userName, poStatus).ToList();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

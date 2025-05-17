@@ -533,7 +533,7 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
         public Nullable<System.Guid> AIRItemExtnId { get; set; }
-        //public Nullable<System.Guid> PsCardItemTransferItemId { get; set; }
+        public Nullable<System.Guid> UnitGroupId { get; set; }
 
         [Display(Name = "Group No.")]
         public string SetLotNo { get; set; }
@@ -549,6 +549,19 @@ namespace iLgs.Models
         public string Description { get; set; }
 
         public string PoNo { get; set; }
+        public int? IcsValue { get; set; }
+
+        [Display(Name = "Total Set/Lot Cost")] // Per Set (Group Total cost, with Additional cost)
+        public Nullable<decimal> GTotalCost { get; set; }
+
+        [Display(Name = "Additional Set/Lot Cost")] // Per Set (Group Additional cost)
+        public Nullable<decimal> GAddCost { get; set; }
+
+        [Display(Name = "Acquisition Cost")] // Per item
+        public Nullable<decimal> AcqCost { get; set; }
+
+        [Display(Name = "Additional Cost")] // Per item
+        public Nullable<decimal> AddCost { get; set; }
     }
 
     public class SelectedIds

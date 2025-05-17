@@ -85,7 +85,7 @@ namespace iLgs.Services
 
             ItemType entity = new ItemType()
             {
-                Id = model.Id,
+                Id = (Guid)model.Id,
                 Code = model.Code,
                 Description = model.Description,
                 PartialPage = model.PartialPage,
@@ -135,7 +135,7 @@ namespace iLgs.Services
 
             ItemType entity = await _db.ItemTypes.Include(i => i.ItemCodes).FirstOrDefaultAsync(f => f.Id == model.Id);
 
-            ValidateRecord(entity, model.Id);
+            ValidateRecord(entity, (Guid)model.Id);
             ValidateRelationship(entity);
 
             entity.Code = model.Code;
@@ -160,7 +160,7 @@ namespace iLgs.Services
 
             ItemType entity = await _db.ItemTypes.FindAsync(model.Id);
 
-            ValidateRecord(entity, model.Id);
+            ValidateRecord(entity, (Guid)model.Id);
             ValidateRelationship(entity);
 
             entity.UpdatedBy = model.UpdatedBy;

@@ -34,6 +34,7 @@
         .Navigatable()
         .Scrollable(s => s.Height(250))
         .NoRecords()
+        //.ClientDetailTemplateId("IcsParItemsTemplate")
         .DataSource(dataSource => dataSource
             .Ajax()
             .Events(events => events.Error("InlineGridError").RequestEnd("onRequestEndGridParItems")

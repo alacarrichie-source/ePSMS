@@ -32,11 +32,16 @@ namespace iLgs.Services.ParIcs
         ValueTask<IcsPar> CreateAsync(IcsPar model, string user, DateTime date);
         ValueTask<IcsPar> UpdateAsync(IcsPar model, string user, DateTime date);
         ValueTask<IcsPar> DeleteAsync(IcsPar model, string user, DateTime date);
+        ValueTask<IcsPar> DeleteUpdatesAsync(IcsPar model, string user, DateTime date);
 
         ValueTask<IcsParVM> TransferIcsPar(IcsParVM model, string user, DateTime date);
 
         ValueTask<IcsPar> PostAsync(string refNo, string refType, string user, DateTime date);
         ValueTask<IcsPar> UnPostAsync(string refNo, string refType, string user, DateTime date);
+
+        IIcsService IcsService { get; }
+        IParService ParService { get; }
+        IIcsParItemService IcsParItem { get; }
     }
 
     public class IcsParService : BaseValidator, IIcsParService
@@ -46,6 +51,9 @@ namespace iLgs.Services.ParIcs
         private readonly IExceptionService<IcsPar> _exceptionService;
         private readonly IExceptionService<IcsParVM> _vmExceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
+        private IIcsService _icsService;
+        private IParService _parService;
+        private IIcsParItemService _icsParItemService;
 
         public IcsParService(AppManEntities db)
         {
@@ -53,7 +61,14 @@ namespace iLgs.Services.ParIcs
             _getDisplayName = propertyName => Utility.GetDisplayName<IcsParVM>(propertyName);
             _exceptionService = new ExceptionService<IcsPar>();
             _vmExceptionService = new ExceptionService<IcsParVM>();
+            _icsService = new IcsService(_db);
+            _parService = new ParService(_db);
+            _icsParItemService = new IcsParItemService(_db);
         }
+
+        public IIcsService IcsService { get { return _icsService = _icsService ?? new IcsService(_db); } }
+        public IParService ParService { get { return _parService = _parService ?? new ParService(_db); } }
+        public IIcsParItemService IcsParItem { get { return _icsParItemService = _icsParItemService ?? new IcsParItemService(_db); } }
 
         public IQueryable<IcsParVM> GetAll() =>
         _vmExceptionService.TryCatch(() =>
@@ -160,6 +175,64 @@ namespace iLgs.Services.ParIcs
             return model;
         });
 
+        public ValueTask<IcsPar> DeleteUpdatesAsync(IcsPar model, string user, DateTime date) =>
+        _exceptionService.TryCatch(async () =>
+        {
+            IcsPar entity = await _db.IcsPars
+                .Include(i => i.IcsParItems)
+                .Include(i => i.IcsParUpdates)
+                .Include(i => i.IcsParUnitGroups)
+                .FirstOrDefaultAsync(f => f.Id == model.Id);
+
+            if (entity == null)
+            {
+                throw new NotFoundException(model.Id);
+            }
+
+            if (entity.UpdateCode == "N")
+            {
+                throw new RecordRelationshipException("This record was made via ICS/PAR module, cannot delete.");
+            }
+
+            ValidateIfPosted(entity);
+            ValidateUpdates(model.RefNo, model.RefType);
+
+            foreach (var unitGroup in entity.IcsParUnitGroups)
+            {
+                var unitGroupDescriptions = _db.IcsPartUnitGroupDescriptions.Include(i => i.IcsParUnitGroupDescriptionItems).Where(w => w.UnitGroupId == unitGroup.Id);
+                _db.IcsPartUnitGroupDescriptions.RemoveRange(unitGroupDescriptions);
+            }
+
+            // Don't update PsCardItemExtn
+            //foreach (var icsParItem in entity.IcsParItems)
+            //{
+            //    var psCardItemExtn = _db.PsCardItemExtns.Where(w => w.Id == icsParItem.PsCardItemExtnId).FirstOrDefault();
+            //    psCardItemExtn.LocationId = null;
+            //    psCardItemExtn.PropNo = null;
+            //    psCardItemExtn.PropSeq = null;
+            //    psCardItemExtn.PropYear = null;
+            //    psCardItemExtn.UpdatedBy = user;
+            //    psCardItemExtn.UpdatedDt = date;
+            //    _db.PsCardItemExtns.Attach(psCardItemExtn);
+            //    _db.Entry(psCardItemExtn).State = EntityState.Modified;
+            //}
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            entity.UpdatedBy = model.UpdatedBy;
+            entity.UpdatedDt = model.UpdatedDt;
+
+            _db.IcsPars.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            _db.IcsPars.Remove(entity);
+            _db.Entry(entity).State = EntityState.Deleted;
+            await _db.SaveChangesAsync();
+            return model;
+        });
+
         public ValueTask<IcsPar> DeleteAsync(IcsPar model, string user, DateTime date) =>
         _exceptionService.TryCatch(async () =>
         {
@@ -177,7 +250,7 @@ namespace iLgs.Services.ParIcs
             ValidateIfPosted(entity);
             ValidateUpdates(model.RefNo, model.RefType);
 
-            foreach(var unitGroup in entity.IcsParUnitGroups)
+            foreach (var unitGroup in entity.IcsParUnitGroups)
             {
                 var unitGroupDescriptions = _db.IcsPartUnitGroupDescriptions.Include(i => i.IcsParUnitGroupDescriptionItems).Where(w => w.UnitGroupId == unitGroup.Id);
                 _db.IcsPartUnitGroupDescriptions.RemoveRange(unitGroupDescriptions);
@@ -243,7 +316,21 @@ namespace iLgs.Services.ParIcs
                 throw new NotFoundException($"ICS/PAR No. {model.PrevRefNo} does not exists, please verify.");
             }
 
-            var refNo = await NextRefNoAsync(model.RefDate, model.RefType);
+            if (model.RefType == "P")
+            {
+                model = await TransferParAsync(prevIcsPar, model, user, date);
+            }
+            else
+            {
+                model = await TransferIcsAsync(prevIcsPar, model, user, date);
+            }
+
+            return model;
+        });
+
+        private async ValueTask<IcsParVM> TransferParAsync(IcsPar prevIcsPar, IcsParVM model, string user, DateTime date)
+        {
+            var refNo = await _parService.NextRefNoAsync((DateTime)model.RefDate, model.RefType);
             model.Id = Guid.NewGuid();
             model.RefNo = refNo;
             var icsPar = new IcsPar()
@@ -307,6 +394,8 @@ namespace iLgs.Services.ParIcs
                     PsCardItemExtnId = prevIcsParItem.PsCardItemExtnId,
                     Qty = prevIcsParItem.Qty,
                     Amount = prevIcsParItem.Amount,
+                    IssuedTo = model.IssuedTo,
+                    Designation = model.Designation,
                     InsertedBy = user,
                     InsertedDt = date,
                     UpdatedBy = user,
@@ -320,8 +409,8 @@ namespace iLgs.Services.ParIcs
             _db.Entry(icsPar).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            var prevUnitGroups =_db.IcsParUnitGroups.Include(i => i.IcsPartUnitGroupDescriptions).Where(w => w.IcsParId == prevIcsPar.Id).AsNoTracking();
-            foreach(var prevUnitGroup in prevUnitGroups)
+            var prevUnitGroups = _db.IcsParUnitGroups.Include(i => i.IcsPartUnitGroupDescriptions).Where(w => w.IcsParId == prevIcsPar.Id).AsNoTracking();
+            foreach (var prevUnitGroup in prevUnitGroups)
             {
                 var icsParUnitGroup = new IcsParUnitGroup()
                 {
@@ -341,7 +430,7 @@ namespace iLgs.Services.ParIcs
                     UpdatedDt = date
                 };
 
-                foreach(var prevUnitGroupDescription in prevUnitGroup.IcsPartUnitGroupDescriptions)
+                foreach (var prevUnitGroupDescription in prevUnitGroup.IcsPartUnitGroupDescriptions)
                 {
                     var icsParUnitGroupDesc = new IcsPartUnitGroupDescription()
                     {
@@ -354,10 +443,10 @@ namespace iLgs.Services.ParIcs
                         UpdatedDt = date
                     };
 
-                    var prevUnitGroupDescriptionItems =_db.IcsParUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == prevUnitGroupDescription.Id).AsNoTracking();
-                    foreach(var prevUnitGroupDescriptionItem in prevUnitGroupDescriptionItems)
+                    var prevUnitGroupDescriptionItems = _db.IcsParUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == prevUnitGroupDescription.Id).AsNoTracking();
+                    foreach (var prevUnitGroupDescriptionItem in prevUnitGroupDescriptionItems)
                     {
-                        foreach(var selectedId in selectedIds)
+                        foreach (var selectedId in selectedIds)
                         {
                             var gSelectedId = Guid.Parse(selectedId);
                             if (gSelectedId == prevUnitGroupDescriptionItem.IcsParItemId)
@@ -375,12 +464,12 @@ namespace iLgs.Services.ParIcs
                                 };
                                 icsParUnitGroupDesc.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescItem);
                                 break;
-                            }                            
-                        }                        
+                            }
+                        }
                     }
-                    icsParUnitGroup.IcsPartUnitGroupDescriptions.Add(icsParUnitGroupDesc);                    
+                    icsParUnitGroup.IcsPartUnitGroupDescriptions.Add(icsParUnitGroupDesc);
                 }
-                icsPar.IcsParUnitGroups.Add(icsParUnitGroup);                
+                icsPar.IcsParUnitGroups.Add(icsParUnitGroup);
             }
 
             _db.IcsPars.Attach(icsPar);
@@ -388,7 +477,607 @@ namespace iLgs.Services.ParIcs
             _db.SaveChanges();
 
             return model;
-        });
+        }
+
+        private async ValueTask<bool> IsCompleteGroupItemAsync(string[] selectedItemIds, string poNo)
+        {
+            var psCardUnitGroupDescriptionItems = await _db.PsCardItemUnitGroupDescriptionItems
+                .AsNoTracking()
+                .Where(w => w.PsCardItemUnitGroupDescription.PsCardItemUnitGroup.PoNo == poNo).ToListAsync();
+            foreach (var psCardUnitGroupDescriptionItem in psCardUnitGroupDescriptionItems)
+            {
+                // check each psCardUnitGroupDescriptionItem.PsCardItemId if in seelectedItemId
+                var icsParItems = await _db.IcsParItems
+                    .AsNoTracking()
+                    .Where(w => w.PsCardItemExtn.PsCardItemId == psCardUnitGroupDescriptionItem.PsCardItemId)
+                    .ToListAsync();
+                if (!icsParItems.Any())
+                {
+                    return false;
+                }
+
+                // check if all Group Items in IcsParItems were selected
+                foreach (var icsParItem in icsParItems)
+                {
+                    if (!selectedItemIds.Any(a => a.Equals(icsParItem.Id.ToString())))
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private async ValueTask<IcsParVM> TransferIcsAsync(IcsPar prevIcsPar, IcsParVM model, string user, DateTime date)
+        {
+            var prevIcsParItems = prevIcsPar.IcsParItems;
+            var selectedItemIds = model.SelectedIds.Split(','); // items to transfer                        
+
+            for (int icsValue = 1; icsValue <= 2; icsValue++)
+            {
+                var transferItemList = new List<IcsParItem>();
+                foreach (var selectedItemId in selectedItemIds)
+                {
+                    var gSelectedItemId = Guid.Parse(selectedItemId);
+                    IcsParItem individualItem = null;
+                    IcsParItem groupItem1 = null;
+                    IcsParItem groupItem2 = null;
+                    /*
+                     * TO DO: Include Additional Cost, if any
+                     */
+
+                    if (icsValue == (int)IcsValue.SPLV)
+                    {
+                        /*
+                         LV:
+                            1. Individual Items < 5K and not member of Set
+                            2. Group Items Unit Value < 5K, no need to check if set is complete bec. each item is below the Set Unit Cost
+                            3. Group Items Unit Value >= 5K and Item UV < 5k, where set is not complete.                            
+                         */
+                        individualItem = await _db.IcsParItems
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(f => f.Id == gSelectedItemId && f.PsCardItemExtn.AcqCost < 5000
+                                && !_db.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == f.PsCardItemExtn.PsCardItemId));
+
+                        if (individualItem != null)
+                        {
+                            transferItemList.Add(individualItem);
+                        }
+                        else
+                        {
+                            groupItem1 = await _db.IcsParItems
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(f => f.Id == gSelectedItemId
+                                    && _db.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == f.PsCardItemExtn.PsCardItemId
+                                        && a.PsCardItemUnitGroupDescription.PsCardItemUnitGroup.UnitCost < 5000));
+
+                            if (groupItem1 != null)
+                            {
+                                transferItemList.Add(groupItem1);
+                            }
+                            else
+                            {
+                                // check if member of HV, but set is not complete, assign also to LV.
+                                groupItem2 = await _db.IcsParItems
+                                    .Include(i => i.PsCardItemExtn.PsCardItem)
+                                    .AsNoTracking()
+                                    .FirstOrDefaultAsync(f => f.Id == gSelectedItemId && f.PsCardItemExtn.AcqCost < 5000
+                                        && _db.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == f.PsCardItemExtn.PsCardItemId
+                                            && a.PsCardItemUnitGroupDescription.PsCardItemUnitGroup.UnitCost >= 5000));
+
+                                if (groupItem2 != null)
+                                {
+                                    // check if all group items are in selectedIds
+                                    var poNo = groupItem2.PsCardItemExtn.PsCardItem.PoNo;
+                                    if (!string.IsNullOrWhiteSpace(poNo))
+                                    {
+                                        var isComplete = await IsCompleteGroupItemAsync(selectedItemIds, poNo);
+                                        if (!isComplete)
+                                        {
+                                            transferItemList.Add(groupItem2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        /*                      
+                         HV:
+                            1. Individual Item >= 5k and not member of Set
+                            2. Group Items Unit Value >= 5k
+                                a. where set is complete.
+                                b. Set is not complete, but Item UV >= 5k
+                            
+                        */
+                        individualItem = await _db.IcsParItems
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(f => f.Id == gSelectedItemId && f.PsCardItemExtn.AcqCost >= 5000
+                                    && !_db.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == f.PsCardItemExtn.PsCardItemId));
+
+                        if (individualItem != null)
+                        {
+                            transferItemList.Add(individualItem);
+                        }
+                        else
+                        {
+                            groupItem1 = await _db.IcsParItems
+                                .Include(i => i.PsCardItemExtn.PsCardItem)
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(f => f.Id == gSelectedItemId
+                                    && _db.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == f.PsCardItemExtn.PsCardItemId
+                                        && a.PsCardItemUnitGroupDescription.PsCardItemUnitGroup.UnitCost >= 5000));
+
+                            // check if group item is still complete
+                            if (groupItem1 != null)
+                            {
+                                // check if all group items are in selectedIds
+                                var poNo = groupItem1.PsCardItemExtn.PsCardItem.PoNo;
+                                if (!string.IsNullOrWhiteSpace(poNo))
+                                {
+                                    var isComplete = await IsCompleteGroupItemAsync(selectedItemIds, poNo);
+                                    if (isComplete)
+                                    {
+                                        transferItemList.Add(groupItem1);
+                                    }
+                                    else
+                                    {
+                                        if (groupItem1.PsCardItemExtn.AcqCost >= 5000)
+                                        {
+                                            transferItemList.Add(groupItem1);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (transferItemList.Any())
+                {
+                    var refNo = await _icsService.NextRefNoAsync((DateTime)model.RefDate, model.RefType, (IcsValue)icsValue);
+                    model.Id = Guid.NewGuid();
+                    model.RefNo = refNo;
+                    var icsPar = new IcsPar()
+                    {
+                        Id = model.Id,
+                        UpdateCode = "T",
+                        LocationId = model.LocationId,
+                        LocationCode = model.LocationCode,
+                        Location = model.Location,
+                        RefNo = refNo,
+                        RefDate = model.RefDate,
+                        RefType = model.RefType,
+                        ReceivedById = model.ReceivedById,
+                        ReceivedBy = model.ReceivedBy.Trim(),
+                        ReceivedByTitle = model.ReceivedByTitle?.Trim(),
+                        ReceivedByTitle2 = model.ReceivedByTitle2?.Trim(),
+                        ReceivedByPosition = model.ReceivedByPosition?.Trim(),
+                        ReceivedDate = model.ReceivedDate,
+                        ReceivedDept = model.ReceivedDept.Trim(),
+                        IssuedBy = model.IssuedBy.Trim(),
+                        IssuedByPosition = model.IssuedByPosition.Trim(),
+                        IssuedDate = model.IssuedDate,
+                        IssuedDept = model.IssuedDept.Trim(),
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+
+                    var icsParUpdate = new IcsParUpdate()
+                    {
+                        Id = Guid.NewGuid(),
+                        IcsParId = icsPar.Id,
+                        RefType = model.RefType,
+                        PrevRefNo = model.PrevRefNo,
+                        Remarks = model.Remarks,
+                        InsertedBy = user,
+                        InsertedDt = date,
+                        UpdatedBy = user,
+                        UpdatedDt = date
+                    };
+
+                    icsPar.IcsParUpdates.Add(icsParUpdate);
+
+                    foreach (var prevIcsParItem in transferItemList)
+                    {
+                        var icsParItem = new IcsParItem()
+                        {
+                            Id = Guid.NewGuid(),
+                            IcsParId = icsPar.Id,
+                            PrevItemId = prevIcsParItem.Id,
+                            PsCardItemExtnId = prevIcsParItem.PsCardItemExtnId,
+                            Qty = prevIcsParItem.Qty,
+                            Amount = prevIcsParItem.Amount, // include additional cost in the future
+                            IssuedTo = model.IssuedTo,
+                            Designation = model.Designation,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+
+                        icsPar.IcsParItems.Add(icsParItem);
+                    }
+
+                    _db.IcsPars.Add(icsPar);
+                    _db.Entry(icsPar).State = EntityState.Added;
+                    await _db.SaveChangesAsync();
+
+                    // Get generated icsParItems
+                    var icsParItems = _db.IcsParItems.Include(i => i.PsCardItemExtn)
+                        .AsNoTracking().Where(w => w.IcsParId == icsPar.Id);
+
+                    // unit groups with icsParItems, use IcsParUnitGroup structure for Transfer, not the PsCardUnitGroup. Bec. PsCardUnitGroup is by Qty (whole), while icParUnitGroup is by Item                    
+                    var unitGroups = await _db.IcsParUnitGroups
+                        .Include(i => i.IcsPartUnitGroupDescriptions)
+                        .AsNoTracking()
+                        .Where(w => w.IcsPartUnitGroupDescriptions
+                            .Any(a => a.IcsParUnitGroupDescriptionItems
+                                .Any(b => icsParItems.Any(c => c.PsCardItemExtn.PsCardItemId == b.IcsParItem.PsCardItemExtn.PsCardItemId)))).ToListAsync();
+
+                    foreach (var unitGroup in unitGroups)
+                    {
+                        var icsParUnitGroup = new IcsParUnitGroup()
+                        {
+                            Id = Guid.NewGuid(),
+                            IcsParId = icsPar.Id,
+                            SetLotNo = unitGroup.SetLotNo,
+                            Qty = 1,
+                            Unit = unitGroup.Unit,
+                            //UnitCost = unitGroup.UnitCost,
+                            //TotalCost = unitGroup.TotalCost,
+                            //AddCost = unitGroup.AddCost,
+                            //TUnitCost = unitGroup.TUnitCost,
+                            //GTotalCost = unitGroup.GTotalCost,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            Updatedby = user,
+                            UpdatedDt = date
+                        };
+
+                        // value can change if part of the icsParItem was transfered
+                        decimal? unitCost = 0; // will be based on the total unit cost of all transfered items (as a group unit cost)
+                        decimal? totalCost = 0;
+                        decimal? addCost = 0;
+                        decimal? tUnitCost = 0;
+                        decimal? gTotalCost = 0;
+
+                        foreach (var unitGroupDescription in unitGroup.IcsPartUnitGroupDescriptions)
+                        {
+                            var icsParUnitGroupDesc = new IcsPartUnitGroupDescription()
+                            {
+                                Id = Guid.NewGuid(),
+                                UnitGroupId = icsParUnitGroup.Id,
+                                Description = unitGroupDescription.Description,
+                                InsertedBy = user,
+                                InsertedDt = date,
+                                UpdatedBy = user,
+                                UpdatedDt = date
+                            };
+
+                            //var unitGroupDescriptionItems = await _db.PsCardItemUnitGroupDescriptionItems
+                            //    .Include(i => i.PsCardItem)
+                            //    .AsNoTracking()
+                            //    .Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id
+                            //        && icsParItems.Any(a => a.PsCardItemExtn.PsCardItemId == w.PsCardItemId)).ToListAsync();
+                            var unitGroupDescriptionItems = await _db.IcsParUnitGroupDescriptionItems
+                                .Include(i => i.IcsParItem.PsCardItemExtn.PsCardItem)
+                                .AsNoTracking()
+                                .Where(w => w.IcsPartUnitGroupDescription.IcsParUnitGroup.IcsParId == prevIcsPar.Id
+                                    && w.UnitGroupDescriptionId == unitGroupDescription.Id
+                                    && icsParItems.Any(a => a.PsCardItemExtn.Id == w.IcsParItem.PsCardItemExtnId)).ToListAsync();
+
+                            //&& icsParItems.Any(a => a.PsCardItemExtn.PsCardItemId == w.IcsParItem.PsCardItemExtn.PsCardItemId)).ToListAsync();
+
+                            foreach (var unitGroupDescriptionItem in unitGroupDescriptionItems) // per itemId
+                            {
+                                unitCost = unitCost + unitGroupDescriptionItem.IcsParItem.PsCardItemExtn.PsCardItem.UnitCost;
+                                //var newIcsParUnitGroupDescriptionItems = icsParItems.Where(w => w.PsCardItemExtn.PsCardItemId == unitGroupDescriptionItem.IcsParItem.PsCardItemExtn.PsCardItemId).ToList();
+                                //foreach (var newIcsParUnitGroupDescriptionItem in newIcsParUnitGroupDescriptionItems) // contents of itemId -> ItemExtnId
+                                //{
+                                //    var icsParUnitGroupDescItem = new IcsParUnitGroupDescriptionItem()
+                                //    {
+                                //        Id = Guid.NewGuid(),
+                                //        UnitGroupDescriptionId = icsParUnitGroupDesc.Id,
+                                //        IcsParItemId = newIcsParUnitGroupDescriptionItem.Id,
+                                //        InsertedBy = user,
+                                //        InsertedDt = date,
+                                //        UpdatedBy = user,
+                                //        UpdatedDt = date
+                                //    };
+                                //    icsParUnitGroupDesc.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescItem);
+                                //    addCost = addCost + newIcsParUnitGroupDescriptionItem.PsCardItemExtn.AddCost;
+                                //}
+                                foreach (var selectedItemId in selectedItemIds)
+                                {
+                                    var gSelectedId = Guid.Parse(selectedItemId);
+                                    if (gSelectedId == unitGroupDescriptionItem.IcsParItemId)
+                                    {
+                                        var newIcsParItem = _db.IcsParItems.Include(i => i.PsCardItemExtn).AsNoTracking().SingleOrDefault(s => s.PrevItemId == gSelectedId);
+                                        var icsParUnitGroupDescItem = new IcsParUnitGroupDescriptionItem()
+                                        {
+                                            Id = Guid.NewGuid(),
+                                            UnitGroupDescriptionId = icsParUnitGroupDesc.Id,
+                                            IcsParItemId = newIcsParItem.Id,
+                                            InsertedBy = user,
+                                            InsertedDt = date,
+                                            UpdatedBy = user,
+                                            UpdatedDt = date
+                                        };
+                                        icsParUnitGroupDesc.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescItem);
+                                        addCost = addCost + newIcsParItem.PsCardItemExtn.AddCost;
+                                        break;
+                                    }
+                                }
+                            }
+                            icsParUnitGroup.IcsPartUnitGroupDescriptions.Add(icsParUnitGroupDesc);
+                        }
+
+                        icsParUnitGroup.UnitCost = unitCost;
+                        icsParUnitGroup.TotalCost = unitCost;
+                        icsParUnitGroup.AddCost = addCost;
+                        icsParUnitGroup.TUnitCost = unitCost + addCost;
+                        icsParUnitGroup.GTotalCost = unitCost + addCost;
+
+                        icsPar.IcsParUnitGroups.Add(icsParUnitGroup);
+                    }
+
+                    //var prevUnitGroups = await _db.IcsParUnitGroups.Include(i => i.IcsPartUnitGroupDescriptions)
+                    //    .AsNoTracking()
+                    //    .Where(w => w.IcsPartUnitGroupDescriptions
+                    //        .Any(a => a.IcsParUnitGroupDescriptionItems
+                    //            .Any(b => icsParItems.Any(c => c.Id == b.IcsParItemId)))).ToListAsync();
+                    //foreach (var prevUnitGroup in prevUnitGroups)
+                    //{
+                    //    var icsParUnitGroup = new IcsParUnitGroup()
+                    //    {
+                    //        Id = Guid.NewGuid(),
+                    //        IcsParId = icsPar.Id,
+                    //        SetLotNo = prevUnitGroup.SetLotNo,
+                    //        Qty = prevUnitGroup.Qty,
+                    //        Unit = prevUnitGroup.Unit,
+                    //        UnitCost = prevUnitGroup.UnitCost,
+                    //        TotalCost = prevUnitGroup.TotalCost,
+                    //        AddCost = prevUnitGroup.AddCost,
+                    //        TUnitCost = prevUnitGroup.TUnitCost,
+                    //        GTotalCost = prevUnitGroup.GTotalCost,
+                    //        InsertedBy = user,
+                    //        InsertedDt = date,
+                    //        Updatedby = user,
+                    //        UpdatedDt = date
+                    //    };
+
+                    //    foreach (var prevUnitGroupDescription in prevUnitGroup.IcsPartUnitGroupDescriptions)
+                    //    {
+                    //        var icsParUnitGroupDesc = new IcsPartUnitGroupDescription()
+                    //        {
+                    //            Id = Guid.NewGuid(),
+                    //            UnitGroupId = icsParUnitGroup.Id,
+                    //            Description = prevUnitGroupDescription.Description,
+                    //            InsertedBy = user,
+                    //            InsertedDt = date,
+                    //            UpdatedBy = user,
+                    //            UpdatedDt = date
+                    //        };
+
+                    //        var prevUnitGroupDescriptionItems = _db.IcsParUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == prevUnitGroupDescription.Id).AsNoTracking();
+                    //        foreach (var prevUnitGroupDescriptionItem in prevUnitGroupDescriptionItems)
+                    //        {
+                    //            foreach (var selectedItemId in selectedItemIds)
+                    //            {
+                    //                var gSelectedId = Guid.Parse(selectedItemId);
+                    //                if (gSelectedId == prevUnitGroupDescriptionItem.IcsParItemId)
+                    //                {
+                    //                    var newIcsParItem = _db.IcsParItems.AsNoTracking().SingleOrDefault(s => s.PrevItemId == gSelectedId);
+                    //                    var icsParUnitGroupDescItem = new IcsParUnitGroupDescriptionItem()
+                    //                    {
+                    //                        Id = Guid.NewGuid(),
+                    //                        UnitGroupDescriptionId = icsParUnitGroupDesc.Id,
+                    //                        IcsParItemId = newIcsParItem.Id,
+                    //                        InsertedBy = user,
+                    //                        InsertedDt = date,
+                    //                        UpdatedBy = user,
+                    //                        UpdatedDt = date
+                    //                    };
+                    //                    icsParUnitGroupDesc.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescItem);
+                    //                    break;
+                    //                }
+                    //            }
+                    //        }
+                    //        icsParUnitGroup.IcsPartUnitGroupDescriptions.Add(icsParUnitGroupDesc);
+                    //    }
+                    //    icsPar.IcsParUnitGroups.Add(icsParUnitGroup);
+                    //}
+
+                    _db.IcsPars.Attach(icsPar);
+                    _db.Entry(icsPar).State = EntityState.Modified;
+                    _db.SaveChanges();
+                }
+            }
+
+            return model;
+        }
+
+
+        //public ValueTask<IcsParVM> TransferIcsParOld(IcsParVM model, string user, DateTime date) =>
+        //_vmExceptionService.TryCatch(async () =>
+        //{
+        //    if (model == null)
+        //    {
+        //        throw new InvalidValueException("Model is null!");
+        //    }
+
+        //    if (model.LocationId == null || model.LocationId == Guid.Empty)
+        //    {
+        //        throw new InvalidValueException("Field Location is required!");
+        //    }
+
+        //    if (model.SelectedIds == null)
+        //    {
+        //        throw new InvalidValueException("No selected items, cannot proceed.");
+        //    }
+
+        //    ValidateTransferFields(model);
+
+        //    var prevIcsPar = await _db.IcsPars
+        //        .Include(i => i.IcsParItems)
+        //        .Include(i => i.IcsParUnitGroups)
+        //        .FirstOrDefaultAsync(f => f.RefNo == model.PrevRefNo && f.RefType == model.RefType);
+
+        //    if (prevIcsPar == null)
+        //    {
+        //        throw new NotFoundException($"ICS/PAR No. {model.PrevRefNo} does not exists, please verify.");
+        //    }
+
+        //    var refNo = await NextRefNoAsync(model.RefDate, model.RefType);
+        //    model.Id = Guid.NewGuid();
+        //    model.RefNo = refNo;
+        //    var icsPar = new IcsPar()
+        //    {
+        //        Id = model.Id,
+        //        UpdateCode = "T",
+        //        LocationId = model.LocationId,
+        //        LocationCode = model.LocationCode,
+        //        Location = model.Location,
+        //        RefNo = refNo,
+        //        RefDate = model.RefDate,
+        //        RefType = model.RefType,
+        //        ReceivedById = model.ReceivedById,
+        //        ReceivedBy = model.ReceivedBy.Trim(),
+        //        ReceivedByTitle = model.ReceivedByTitle?.Trim(),
+        //        ReceivedByTitle2 = model.ReceivedByTitle2?.Trim(),
+        //        ReceivedByPosition = model.ReceivedByPosition?.Trim(),
+        //        ReceivedDate = model.ReceivedDate,
+        //        ReceivedDept = model.ReceivedDept.Trim(),
+        //        IssuedBy = model.IssuedBy.Trim(),
+        //        IssuedByPosition = model.IssuedByPosition.Trim(),
+        //        IssuedDate = model.IssuedDate,
+        //        IssuedDept = model.IssuedDept.Trim(),
+        //        InsertedBy = user,
+        //        InsertedDt = date,
+        //        UpdatedBy = user,
+        //        UpdatedDt = date
+        //    };
+
+        //    var icsParUpdate = new IcsParUpdate()
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        IcsParId = icsPar.Id,
+        //        RefType = model.RefType,
+        //        PrevRefNo = model.PrevRefNo,
+        //        Remarks = model.Remarks,
+        //        InsertedBy = user,
+        //        InsertedDt = date,
+        //        UpdatedBy = user,
+        //        UpdatedDt = date
+        //    };
+
+        //    icsPar.IcsParUpdates.Add(icsParUpdate);
+
+        //    _db.IcsPars.Add(icsPar);
+        //    _db.Entry(icsPar).State = EntityState.Added;
+        //    await _db.SaveChangesAsync();
+
+        //    var prevIcsParItems = prevIcsPar.IcsParItems;
+        //    var selectedIds = model.SelectedIds.Split(',');
+
+        //    foreach (var selectedId in selectedIds)
+        //    {
+        //        var gSelectedId = Guid.Parse(selectedId);
+        //        var prevIcsParItem = prevIcsParItems.SingleOrDefault(f => f.Id == gSelectedId);
+        //        var icsParItem = new IcsParItem()
+        //        {
+        //            Id = Guid.NewGuid(),
+        //            IcsParId = icsPar.Id,
+        //            PrevItemId = prevIcsParItem.Id,
+        //            PsCardItemExtnId = prevIcsParItem.PsCardItemExtnId,
+        //            Qty = prevIcsParItem.Qty,
+        //            Amount = prevIcsParItem.Amount,
+        //            InsertedBy = user,
+        //            InsertedDt = date,
+        //            UpdatedBy = user,
+        //            UpdatedDt = date
+        //        };
+
+        //        icsPar.IcsParItems.Add(icsParItem);
+        //    }
+
+        //    _db.IcsPars.Attach(icsPar);
+        //    _db.Entry(icsPar).State = EntityState.Modified;
+        //    await _db.SaveChangesAsync();
+
+        //    var prevUnitGroups = _db.IcsParUnitGroups.Include(i => i.IcsPartUnitGroupDescriptions).Where(w => w.IcsParId == prevIcsPar.Id).AsNoTracking();
+        //    foreach (var prevUnitGroup in prevUnitGroups)
+        //    {
+        //        var icsParUnitGroup = new IcsParUnitGroup()
+        //        {
+        //            Id = Guid.NewGuid(),
+        //            IcsParId = icsPar.Id,
+        //            SetLotNo = prevUnitGroup.SetLotNo,
+        //            Qty = prevUnitGroup.Qty,
+        //            Unit = prevUnitGroup.Unit,
+        //            UnitCost = prevUnitGroup.UnitCost,
+        //            TotalCost = prevUnitGroup.TotalCost,
+        //            AddCost = prevUnitGroup.AddCost,
+        //            TUnitCost = prevUnitGroup.TUnitCost,
+        //            GTotalCost = prevUnitGroup.GTotalCost,
+        //            InsertedBy = user,
+        //            InsertedDt = date,
+        //            Updatedby = user,
+        //            UpdatedDt = date
+        //        };
+
+        //        foreach (var prevUnitGroupDescription in prevUnitGroup.IcsPartUnitGroupDescriptions)
+        //        {
+        //            var icsParUnitGroupDesc = new IcsPartUnitGroupDescription()
+        //            {
+        //                Id = Guid.NewGuid(),
+        //                UnitGroupId = icsParUnitGroup.Id,
+        //                Description = prevUnitGroupDescription.Description,
+        //                InsertedBy = user,
+        //                InsertedDt = date,
+        //                UpdatedBy = user,
+        //                UpdatedDt = date
+        //            };
+
+        //            var prevUnitGroupDescriptionItems = _db.IcsParUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == prevUnitGroupDescription.Id).AsNoTracking();
+        //            foreach (var prevUnitGroupDescriptionItem in prevUnitGroupDescriptionItems)
+        //            {
+        //                foreach (var selectedId in selectedIds)
+        //                {
+        //                    var gSelectedId = Guid.Parse(selectedId);
+        //                    if (gSelectedId == prevUnitGroupDescriptionItem.IcsParItemId)
+        //                    {
+        //                        var newIcsParItem = _db.IcsParItems.AsNoTracking().SingleOrDefault(s => s.PrevItemId == gSelectedId);
+        //                        var icsParUnitGroupDescItem = new IcsParUnitGroupDescriptionItem()
+        //                        {
+        //                            Id = Guid.NewGuid(),
+        //                            UnitGroupDescriptionId = icsParUnitGroupDesc.Id,
+        //                            IcsParItemId = newIcsParItem.Id,
+        //                            InsertedBy = user,
+        //                            InsertedDt = date,
+        //                            UpdatedBy = user,
+        //                            UpdatedDt = date
+        //                        };
+        //                        icsParUnitGroupDesc.IcsParUnitGroupDescriptionItems.Add(icsParUnitGroupDescItem);
+        //                        break;
+        //                    }
+        //                }
+        //            }
+        //            icsParUnitGroup.IcsPartUnitGroupDescriptions.Add(icsParUnitGroupDesc);
+        //        }
+        //        icsPar.IcsParUnitGroups.Add(icsParUnitGroup);
+        //    }
+
+        //    _db.IcsPars.Attach(icsPar);
+        //    _db.Entry(icsPar).State = EntityState.Modified;
+        //    _db.SaveChanges();
+
+        //    return model;
+        //});
 
         private void ValidateTransferFields(IcsParVM model)
         {
@@ -405,7 +1094,30 @@ namespace iLgs.Services.ParIcs
             _imex.ThrowIfContainsErrors();
         }
 
-        private async ValueTask<string> NextRefNoAsync(DateTime? refDate, string refType)
+        private async ValueTask<string> NextParRefNoAsync(DateTime? refDate, string refType)
+        {
+            string yyyy = refDate.Value.Year.ToString().Trim();
+            string mm = refDate.Value.Month.ToString().Trim();
+
+            mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
+
+            string keyName = yyyy + "-" + mm;
+            // yyyy-mm-9999
+            // 123456789012
+
+            var data = await _db.IcsPars.Where(w => w.RefType == refType && w.RefDate.Value.Year == refDate.Value.Year).OrderByDescending(o => o.RefNo).FirstOrDefaultAsync();
+            if (data == null)
+            {
+                return keyName + "-" + "00001";
+            }
+            else
+            {
+                var sequence = (int.Parse(data.RefNo.Split('-')[2]) + 1).ToString();
+                return keyName + "-" + sequence.PadLeft(5, '0');
+            }
+        }
+
+        private async ValueTask<string> NextIcsRefNoAsync(DateTime? refDate, string refType, int? icvValue)
         {
             string yyyy = refDate.Value.Year.ToString().Trim();
             string mm = refDate.Value.Month.ToString().Trim();
@@ -502,7 +1214,7 @@ namespace iLgs.Services.ParIcs
             }
 
             ValidateIfPosted(entity); ;
-            await ValidateUploadAsync(entity.Id, entity.RefNo);
+            await ValidateUploadAsync(entity.Id, entity.RefNo, refType);
 
             entity.PostedBy = user;
             entity.PostedDt = date;
@@ -543,13 +1255,20 @@ namespace iLgs.Services.ParIcs
             return result;
         }
 
-        private async Task ValidateUploadAsync(Guid? icsParId, string parNo)
+        private async Task ValidateUploadAsync(Guid? icsParId, string parNo, string refType)
         {
             if (!await IsWwithUploadAsync(icsParId))
             {
-                throw new InvalidValueException($"No uploaded files found PAR No. {parNo}, cannot post!");
+                throw new InvalidValueException($"No uploaded files found, cannot post!");
+                //if (refType == "I")
+                //{
+                //    throw new InvalidValueException($"No uploaded files found for ICS No. {parNo}, cannot post!");
+                //}
+                //else
+                //{
+                //    throw new InvalidValueException($"No uploaded files found for PAR No. {parNo}, cannot post!");
+                //}
             }
         }
-
     }
 }

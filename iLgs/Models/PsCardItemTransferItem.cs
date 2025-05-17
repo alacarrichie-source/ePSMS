@@ -29,10 +29,10 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual IcsParItem IcsParItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransferIssuanceItem> PsCardItemTransferIssuanceItems { get; set; }
         public virtual PsCardItemTransfer PsCardItemTransfer { get; set; }
         public virtual PsCardItemExtn PsCardItemExtn { get; set; }
+        public virtual IcsParItem IcsParItem { get; set; }
     }
 }
