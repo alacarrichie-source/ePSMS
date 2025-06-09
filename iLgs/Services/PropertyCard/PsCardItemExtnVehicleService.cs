@@ -19,6 +19,8 @@ namespace iLgs.Services.PropertyCard
         ValueTask<PsCardItemExtnVehicle> DeleteAsync(PsCardItemExtnVehicle model, string user, DateTime date);
 
         void ValidateItemExtnVechiles(Guid? psCardItemId);
+
+        IPsCardItemExtnVehicleRepairService PsCardItemExtnVehicleRepair { get; }
     }
 
     public class PsCardItemExtnVehicleService : IPsCardItemExtnVehicleService
@@ -27,6 +29,7 @@ namespace iLgs.Services.PropertyCard
         private readonly IExceptionService<PsCardItemExtnVehicle> _exceptionService = new ExceptionService<PsCardItemExtnVehicle>();
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnValidator _psCardItemExtnValidator;
+        private IPsCardItemExtnVehicleRepairService _psCardItemExtnVehicleRepairService;
 
         public PsCardItemExtnVehicleService(AppManEntities db)
         {
@@ -34,6 +37,8 @@ namespace iLgs.Services.PropertyCard
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
             _psCardItemExtnValidator = new PsCardItemExtnValidator(_db);
         }
+
+        public IPsCardItemExtnVehicleRepairService PsCardItemExtnVehicleRepair { get { return _psCardItemExtnVehicleRepairService = _psCardItemExtnVehicleRepairService ?? new PsCardItemExtnVehicleRepairService(_db); } }
 
         public IQueryable<PsCardItemExtnVehicle> GetByPsCardItemId(Guid? psCardItemId)
         {
@@ -106,8 +111,7 @@ namespace iLgs.Services.PropertyCard
             await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
 
             return model;
-        });
-
+        });        
 
         public ValueTask<PsCardItemExtnVehicle> UpdateAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
@@ -203,6 +207,7 @@ namespace iLgs.Services.PropertyCard
             entity.Condition = model.Condition;
             entity.SubLocation = model.SubLocation;
             entity.Annex = model.Annex;
+            entity.OldAmount = model.OldAmount;
             entity.OldPropNo = model.OldPropNo;
             entity.UpcomingOfficer = model.UpcomingOfficer;
         }        

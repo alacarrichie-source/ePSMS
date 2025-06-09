@@ -157,6 +157,8 @@ namespace iLgs.Models
 
     public class RsmiPrintVM : IValidatableObject
     {
+        public System.Guid Id { get; set; }
+        public bool IsPosted { get; set; }
 
         [Display(Name = "Period From")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]

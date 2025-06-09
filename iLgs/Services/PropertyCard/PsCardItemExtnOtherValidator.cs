@@ -63,18 +63,18 @@ namespace iLgs.Services.PropertyCard
             //    throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
             //}
 
-            var psCardItemExtn = _db.PsCardItemExtns.OfType<PsCardItemExtnOther>()
-                .Include(i => i.PsCardItemTransferItems)
-                .Include(i => i.PsCardItemIssuanceItems)
-                .FirstOrDefault(f => f.Id == model.PsCardItemExtnId);
-            if (psCardItemExtn.PsCardItemIssuanceItems.Any())
+            var transfer = _db.PsCardItemTransferItems.AsNoTracking()
+                    .Where(w => w.PsCardItemTransfer.ParentId != null && w.PsCardItemExtnId == model.PsCardItemExtnId);
+            if (transfer.Any())
             {
-                throw new RecordAlreadyExistsException("Items were already Issued this record, cannot delete!");
+                throw new RecordAlreadyExistsException("Item was already Transferred, cannot delete!");
             }
 
-            if (psCardItemExtn.PsCardItemTransferItems.Any())
+            var issuance = _db.PsCardItemTransferItems.AsNoTracking()
+                    .Where(w => w.PsCardItemExtnId == model.PsCardItemExtnId && w.PsCardItemTransferIssuanceItems.Any());
+            if (issuance.Any())
             {
-                throw new RecordAlreadyExistsException("Items were already Transferred this record, cannot delete!");
+                throw new RecordAlreadyExistsException("Item was already Issued, cannot delete!");
             }
         }
 

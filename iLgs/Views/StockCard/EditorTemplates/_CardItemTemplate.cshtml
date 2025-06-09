@@ -12,7 +12,7 @@
     @Html.HiddenFor(model => model.TransferId)
     @Html.HiddenFor(model => model.PsCardId)
     @Html.HiddenFor(model => model.OrderItemId)
-    @Html.HiddenFor(model => model.TransDate)
+    @Html.HiddenFor(model => model.ParentId)
     @*@Html.HiddenFor(model => model.AddCost)
     @Html.HiddenFor(model => model.TUnitCost)
     @Html.HiddenFor(model => model.GTotalCost)*@
@@ -30,7 +30,10 @@
                     @Html.DisplayFor(m => m.PoNo, "Label")
                 </div>
                 <div class="col-md-4">
-                    @(Html.Kendo().TextBoxFor(m => m.PoNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @*@(Html.Kendo().TextBoxFor(m => m.PoNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))*@
+                    @(Html.Kendo().MaskedTextBoxFor(model => model.PoNo).Mask("0000-00-0000")
+                                .PromptChar(" ")
+                                .Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.PoNo)
                 </div>
             
@@ -182,6 +185,19 @@
             </div>
         </div>
 
+        <br />
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    @Html.DisplayFor(m => m.TransDate, "LabelDate")
+                </div>
+                <div class="col-md-4">
+                    @(Html.Kendo().DatePickerFor(m => m.TransDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                    @Html.ValidationMessageFor(m => m.TransDate)
+                </div>
+            </div>
+        </div>
+        
         <br />
         <div class="row k-mb-2">
             <div class="col-md-12">
@@ -447,11 +463,11 @@
             </div>
         </div>
 
-        <br />
+        @*<br />
 
         @if (!string.IsNullOrEmpty(partialViewName))
         {
             @Html.Partial(partialViewName)
-        }
+        }*@
     </fieldset>
 }

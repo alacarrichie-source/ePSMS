@@ -2,6 +2,7 @@
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
 {
+    @Html.HiddenFor(m => m.IsPosted)
     @Html.HiddenFor(m => m.SavePrints)
     <br />
     <div class="row k-mb-2">

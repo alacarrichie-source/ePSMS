@@ -546,7 +546,7 @@ namespace iLgs.Controllers
 
         public ActionResult _GenerateIcsSelectionRead([DataSourceRequest] DataSourceRequest request, Guid? psCardItemId)
         {
-            var data = _psCardService.PsCardItemExtn.GetCardItemExtnForIcsParsByType(psCardItemId);
+            var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnForIcsParsByType(psCardItemId);
 
             var result = new JsonNetResult
             {
@@ -559,7 +559,7 @@ namespace iLgs.Controllers
 
         public ActionResult _GenerateIcsSelectionSetRead([DataSourceRequest] DataSourceRequest request, Guid? unitGroupId)
         {
-            var data = _psCardService.PsCardItemExtn.GetCardItemExtnSetForIcsParByUnitGroupId(unitGroupId);
+            var data = _psCardService.PsCardItem.PsCardItemExtn.GetCardItemExtnSetForIcsParByUnitGroupId(unitGroupId);
 
             var result = new JsonNetResult
             {

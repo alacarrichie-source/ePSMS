@@ -318,6 +318,54 @@
     .ToClientTemplate())
 </script>
 
+<script id="ItemExtnLand" type="text/kendo-tmpl">
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnLandVM>()
+    .Name("gridItemExtn_#=TransferId#")
+    .Columns(col =>
+    {
+        col.Bound(c => c.CustItemNo).Width(50);
+        col.Bound(c => c.TctNo).Width(100);
+        col.Bound(c => c.DRPNo).Width(100);
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();            
+        }).Width(100);
+    })
+    .ToolBar(t =>
+    {
+        t.Create();
+    })
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnLandTemplate").Window(w => w.Width(1000).Title("Item Details")))
+    .Sortable()
+    .NoRecords()
+    //.ClientDetailTemplateId("UploadedFiles")
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
+        )
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        })
+        .Read(read => read.Action("_ItemExtnLandRead", "PropertyCard", new { transferId = "#=TransferId#" }))
+        .Create(create => create.Action("_ItemExtnLandCreate", "PropertyCard"))
+        .Update(update => update.Action("_ItemExtnLandUpdate", "PropertyCard"))
+        .Destroy(destroy => destroy.Action("_ItemExtnLandDestroy", "PropertyCard"))
+    )
+    .Events(events => events
+        .Change("onChangeGridItemExtn")
+        .Edit("onEditGridItemExtn")
+        .DataBound("onDataBoundGridItemExtn")
+        .Remove("onRemoveGridItemExtn")
+    )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .ToClientTemplate())
+</script>
+
+
+
 <script id="UploadedFiles" type="text/kendo-tmpl">
     @(Html.Kendo().TabStrip()
         .Name("tabStrip_#=Id#")
@@ -352,6 +400,31 @@
 
     .k-floating-label-container {
         width: 100%;
+    }
+
+    .numeric-wrapper {
+        position: relative;
+    }
+
+    .numeric-wrapper .k-numerictextbox {
+        width: 100%;
+    }
+
+    .numeric-wrapper .custom-icon-btn {
+        position: absolute;
+        right: 0.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0 8px;
+    }
+    
+    .numeric-wrapper .custom-icon-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
     .container {
@@ -1089,16 +1162,11 @@
                     close: function () {
                         $("#grid").data("kendoGrid").dataSource.read();
                         var duplicate = $("#IsDuplicateStockNo").val();
+
                         if (duplicate == "true") {
                             var psNo = $("#PsNo").val();
                             var fund = $("#Fund").val();
                             var grid = $("#grid").data("kendoGrid");
-
-                            //grid.dataSource.filter({
-                            //    field: "PsNo",         // The column field name
-                            //    operator: "eq", // The filtering operator (e.g., "eq", "contains")
-                            //    value: psNo        // The value to filter by
-                            //});
 
                             grid.dataSource.filter({
                                 logic: "and",
@@ -2029,10 +2097,38 @@
         $("#DeptDisplay").val(dataItem.Description).trigger("change");
     }
 
+    //function onSelectLocationId(e) {
+    //    var dataItem = this.dataItem(e.item.index());
+
+    //    $("#Location").val(dataItem.Description).trigger("change");
+    //}
+
     function onSelectLocationId(e) {
         var dataItem = this.dataItem(e.item.index());
 
-        $("#Location").val(dataItem.Description).trigger("change");
+        $("#LocationCode").val(dataItem.Code).trigger("change");
+        if (dataItem.Desc3 == dataItem.Desc2) {
+            $("#Location").val(dataItem.Desc2).trigger("change");
+        }
+        else {
+            $("#Location").val(dataItem.Desc3 + "/" + dataItem.Desc2).trigger("change");
+        }
+    }
+
+    function onDataBoundLocationId(e) {
+        var comboBox = this;
+        var dataItem = comboBox.dataItem();
+
+        if (!dataItem) return; // No item selected, skip
+
+        // Mimic the same logic as in the select event
+        $("#LocationCode").val(dataItem.Code).trigger("change");
+
+        if (dataItem.Desc3 == dataItem.Desc2) {
+            $("#Location").val(dataItem.Desc2).trigger("change");
+        } else {
+            $("#Location").val(dataItem.Desc3 + "/" + dataItem.Desc2).trigger("change");
+        }
     }
 
     function onChangeOpt(e) {
@@ -2146,7 +2242,6 @@
             selectedItemExtnQty = parentModel.QtyBal;
             e.model.set("PsCardItemId", parentModel.Id);
             e.model.set("TransferId", parentModel.TransferId);
-            //e.model.set("PsCardItemExtnId", parentModel.PsCardItemExtnId);
             e.model.set("LocationId", parentModel.LocationId);
             e.model.set("Location", parentModel.Location);
             e.model.set("TContentNo", parentModel.TContentNo);
@@ -2426,6 +2521,121 @@
     }
 
     // END GRID IMAGES
+
+    // additional cost
+    function InlineGridError(e) {
+        if (e.errors) {
+            let message = "Errors:\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
+                    });
+                }
+            });
+
+            alert(message); // You can replace this with any other UI method to display errors
+        }
+    }
+
+    function onClickAddCost() {
+        var myTitle = "Additional Cost";
+        var width = 1000;
+        var psCardItemExtnId = $("#PsCardItemExtnId").val();
+        var unitCost = parseFloat($("#UnitCost").val()) || 0;
+
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    close: function () {
+                        GetAddCost(psCardItemExtnId, unitCost);
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_AddCost", "ItemCard")',
+            data: {
+                psCardItemExtnId: psCardItemExtnId
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        mywindow.open();
+    }
+
+    function GetAddCost(psCardItemExtnId, unitCost) {
+        var url = '@Url.Action("GetAddCost", "ItemCard")';
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {psCardItemExtnId: psCardItemExtnId},
+            success: function (data) {
+                var totalAddCost = parseFloat(data.TotalAddCost) || 0;
+                var acqCost = totalAddCost + unitCost;
+                $("#AddCost").data("kendoNumericTextBox").value(totalAddCost);
+                $("#AddCost").data("kendoNumericTextBox").trigger("change");
+
+                $("#AcqCost").data("kendoNumericTextBox").value(acqCost);
+                $("#AcqCost").data("kendoNumericTextBox").trigger("change");
+            }
+        });
+    }
+
+    var selectedGridAddCostItem = null;
+    function onEditGridAddCost(e) {
+        e.preventDefault();
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);            
+        } else {
+            selectedGridAddCostItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridAddCostItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridAddCost(e) {
+        if (selectedGridAddCostItem) {
+            var dataItem = this.dataSource.get(selectedGridAddCostItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onRequestEndGridAddCost(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                var grid = $("#gridAddCost").data("kendoGrid");
+
+                grid.dataSource.read();
+            }
+        }
+    }
+    // end additional cost
 </script>
 
 

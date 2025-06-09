@@ -1,13 +1,9 @@
 ﻿using FluentValidation;
 using iLgs.Models;
-using iLgs.Services.AIRs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using iLgs.Services.AIRs_;
 
 namespace iLgs.Services.Validators
-{    
+{
     public class AirItemValidator : AbstractValidator<AIRItemVM>
     {
         private readonly IAirItemService _service;

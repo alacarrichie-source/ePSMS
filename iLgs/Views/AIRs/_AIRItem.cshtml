@@ -12,12 +12,13 @@
             .HeaderHtmlAttributes(new { style = "text-align:right;" });
         col.Bound(c => c.InvDistDesc).Width(70);
         col.Bound(c => c.SetLotNo).Width(50);
-        col.Command(command =>
+        if (ViewBag.AirGroup != 3) // serial
         {
-            command.Edit();
-            //command.Custom("Edit").IconClass("k-icon k-i-edit").SendDataKeys(true).Click("onClickBtnEditItem");
-            //command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-        }).Width(100);
+            col.Command(command =>
+            {
+                command.Edit();
+            }).Width(100);
+        }
     })
     //.ToolBar(t =>
     //{

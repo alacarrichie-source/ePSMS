@@ -715,7 +715,7 @@ namespace iLgs.Services.AllFields
             string stockNo = "";
             if (partialView == "_FieldLand")
             {
-                stockNo += ((af.Area != null) ? $"/{af.Area}sqm" : "");
+                stockNo += ((af.Area != null) ? $"/{af.Area:N2}sqm" : "");
             }
             else if (partialView == "_FieldDrugs" || partialView == "_FieldAlcohol")
             {
@@ -1021,7 +1021,7 @@ namespace iLgs.Services.AllFields
             var group = AllFieldsUtil.GetCategoryGroup(itemTypeCode, itemCode);
             if (group == CategoryGroup.LAND)
             {
-                stockNo += ((af.Area != null) ? $"/{af.Area}sqm" : "");
+                stockNo += ((af.Area != null) ? $"/{af.Area:N2}sqm" : "");
             }
             else if (group == CategoryGroup.DRUGS)
             {

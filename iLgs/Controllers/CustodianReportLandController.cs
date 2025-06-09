@@ -23,6 +23,7 @@ using static iLgs.Models.Enums;
 
 namespace iLgs.Controllers
 {
+    [AppAuthorize("CUSTODIANREPORTLAND")]
     public class CustodianReportLandController : BaseController
     {
         private readonly AppManEntities _db;

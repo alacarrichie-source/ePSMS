@@ -330,7 +330,6 @@ namespace iLgs.Controllers
                     PsCardId = cardId
                 };
             }
-
             ViewData["cardItemId"] = cardItemId;
             return PartialView(data);
         }

@@ -185,6 +185,7 @@ namespace iLgs.Controllers
                     CardCategory = _cardCategory
                 };
             }
+            
             data.Mode = mode;
 
             return PartialView(data);
@@ -974,14 +975,14 @@ namespace iLgs.Controllers
         #endregion
 
         #region ITEMEXTN BUILDINGS
-        public ActionResult _ItemExtBldgRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
+        public ActionResult _ItemExtnBldgRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
         {
             var data = _propertyCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferItem.PsCardItemTransferItemBldg.GetCardItemExtns(transferId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtBldgCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnBldgVM model)
+        public async Task<ActionResult> _ItemExtnBldgCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnBldgVM model)
         {
             try
             {
@@ -1023,7 +1024,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtBldgUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnBldgVM model)
+        public async Task<ActionResult> _ItemExtnBldgUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnBldgVM model)
         {
             try
             {
@@ -1065,7 +1066,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtBldgDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnBldgVM model)
+        public async Task<ActionResult> _ItemExtnBldgDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnBldgVM model)
         {
             try
             {
@@ -1098,14 +1099,14 @@ namespace iLgs.Controllers
         #endregion
 
         #region ITEMEXTN LAND
-        public ActionResult _ItemExtLandRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
+        public ActionResult _ItemExtnLandRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
         {
             var data = _propertyCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferItem.PsCardItemTransferItemLand.GetCardItemExtns(transferId);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtLandCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnLandVM model)
+        public async Task<ActionResult> _ItemExtnLandCreate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnLandVM model)
         {
             try
             {
@@ -1147,7 +1148,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtLandUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnLandVM model)
+        public async Task<ActionResult> _ItemExtnLandUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemExtnLandVM model)
         {
             try
             {
@@ -1189,7 +1190,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemExtLandDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnLandVM model)
+        public async Task<ActionResult> _ItemExtnLandDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemExtnLandVM model)
         {
             try
             {

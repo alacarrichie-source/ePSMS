@@ -1,0 +1,105 @@
+﻿@model iLgs.Models.PsCardItemExtnVehicleEntryVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form-account", id = "form-account" }))
+{
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.ItemCodeId, "LabelGuid")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().MultiColumnComboBoxFor(m => m.ItemCodeId)
+            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+            .Placeholder("Select Item")
+            .DataTextField("Article")
+            .DataValueField("Id")
+            .ValuePrimitive(true)
+            .Filter(FilterType.Contains)
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetCustodianItemPpe", "ItemHelper");
+                })
+                .ServerFiltering(true);
+            })
+            .Columns(c =>
+            {
+                c.Add().Field("Category").Title("Category").Width("10%").Template("#= columnTemplate(data.Category) #");
+                c.Add().Field("Code").Title("Code").Width("10%").Template("#= columnTemplate(data.Code) #");
+                c.Add().Field("TypeDesc").Title("Account").Width("15%").Template("#= columnTemplate(data.TypeDesc) #");
+                c.Add().Field("SubAccount1").Title("Sub-Account1").Width("15%").Template("#= columnTemplate(data.SubAccount1) #");
+                c.Add().Field("SubAccount2").Title("Sub-Account2").Width("15%").Template("#= columnTemplate(data.SubAccount2) #");
+                c.Add().Field("SubAccount3").Title("Sub-Account3").Width("10%").Template("#= columnTemplate(data.SubAccount3) #");
+                c.Add().Field("SubAccount4").Title("Sub-Account4").Width("10%").Template("#= columnTemplate(data.SubAccount4) #");
+                c.Add().Field("Article").Title("Article").Width("15%").Template("#= columnTemplate(data.Article) #");
+            })
+            .Height(300)
+            //.Suggest(true)
+            .Events(e =>
+            {
+                e
+                //.Select("onSelectItemCodeId")
+                .DataBound("onDataBoundItemCodeId");
+            })
+            )
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.Category, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.Category).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.Account, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.Account).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+        </div>
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.SubAccount, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.SubAccount).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+        </div>
+    </div>
+
+    <br />
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            &nbsp;;
+            @*@Html.DisplayFor(m => m.FromDonation, "LabelBool")*@
+        </div>
+        <div class="item-label col-md-4">
+            @*@(Html.Kendo().SwitchFor(m => m.FromDonation).Enabled(false).Messages(c => c.Checked("YES").Unchecked("NO")))*@
+            @(Html.Kendo().CheckBoxFor(m => m.FromDonation).Enable(false))
+        </div>
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.Fund, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.Fund).Readonly(true)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+            )
+        </div>
+    </div>
+
+    <br />
+    <div id="DIV_ALLFIELDS" class="hidden">
+    </div>
+
+    <hr />
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.PsNo, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.PsNo).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+        </div>
+    </div>
+}

@@ -27,13 +27,15 @@ namespace iLgs.Services.PropertyCard
         private readonly IExceptionService<PsCardItemExtnVehicleVM> _exceptionService = new ExceptionService<PsCardItemExtnVehicleVM>();
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnVehicleValidator _psCardItemExtnVehicleValidator;
+        private readonly IPsCardItemTransferItemService _psCardItemTransferItemService;
 
-        public PsCardItemTransferItemVehicleService(AppManEntities db)
+        public PsCardItemTransferItemVehicleService(AppManEntities db, IPsCardItemTransferItemService psCardItemTransferItemService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleVM>(propertyName);
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
             _psCardItemExtnVehicleValidator = new PsCardItemExtnVehicleValidator(_db);
+            _psCardItemTransferItemService = psCardItemTransferItemService;
         }
 
         public List<PsCardItemExtnVehicleVM> GetCardItemExtns(Guid? psCardTransferId)
@@ -46,6 +48,7 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemExtnVehicleVM> CreateAsync(PsCardItemExtnVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnVehicleValidator.ValidateOnCreate(model);
+            _psCardItemTransferItemService.ValidateIfTransit(model.TransferId);
 
             var itemExtns = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == model.PsCardItemId);
 
@@ -85,8 +88,9 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemExtnVehicleVM> UpdateAsync(PsCardItemExtnVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnVehicleValidator.ValidateOnUpdate(model);
-            var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.PsCardItemExtnId && w.ConductionNo == model.ConductionNo).FirstOrDefaultAsync();
+            _psCardItemTransferItemService.ValidateIfTransit(model.TransferId);
 
+            var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.PsCardItemExtnId && w.ConductionNo == model.ConductionNo).FirstOrDefaultAsync();
             if (itemExtn != null)
             {
                 throw new RecordAlreadyExistsException($"Conduction Sticker No. {model.ConductionNo} already exists!");
@@ -116,30 +120,27 @@ namespace iLgs.Services.PropertyCard
 
         public void MapModelToEntityFields(PsCardItemExtnVehicle entity, PsCardItemExtnVehicleVM model, Mode mode)
         {
+            _psCardItemTransferItemService.MapModelToEntityFields(entity, model, mode);
 
-            if (mode == Mode.ADD)
-            {
-                entity.Id = (Guid)model.PsCardItemExtnId;
-                entity.InsertedBy = model.InsertedBy;
-                entity.InsertedDt = model.InsertedDt;
-            }
-            entity.PsCardItemId = model.PsCardItemId;
-            entity.SetLotNo = model.SetLotNo;
-            entity.SetLotQtyNo = model.SetLotQtyNo;
-            entity.ContentNo = model.ContentNo;
-            entity.Condition = model.Condition;
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-            entity.Condition = model.Condition;
-            entity.SubLocation = model.SubLocation;
-            entity.Annex = model.Annex;
-            entity.OldPropNo = model.OldPropNo;
-            entity.UpcomingOfficer = model.UpcomingOfficer;
+            entity.PlateNo = model.PlateNo;
+            entity.ConductionNo = model.ConductionNo;
+            entity.EngineNo = model.EngineNo;
+            entity.PlateNo = model.PlateNo;
+            entity.ChasisNo = model.ChasisNo;
+            entity.BodyNo = model.BodyNo;
+            entity.YearModel = model.YearModel;
+            entity.OrNo = model.OrNo;
+            entity.OrDate = model.OrDate;
+            entity.CRN = model.CRN;
+            entity.CRDate = model.CRDate;
+            entity.MVFileNo = model.MVFileNo;
+            entity.InsPolicyNo = model.InsPolicyNo;
         }
 
         public ValueTask<PsCardItemExtnVehicleVM> DeleteAsync(PsCardItemExtnVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnVehicleValidator.ValidateOnDelete(model);
+            _psCardItemTransferItemService.ValidateIfTransit(model.TransferId);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;

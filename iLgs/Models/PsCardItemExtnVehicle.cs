@@ -14,6 +14,12 @@ namespace iLgs.Models
     
     public partial class PsCardItemExtnVehicle : PsCardItemExtn
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public PsCardItemExtnVehicle()
+        {
+            this.PsCardItemExtnVehicleRepairs = new HashSet<PsCardItemExtnVehicleRepair>();
+        }
+    
         public Nullable<int> YearModel { get; set; }
         public string PlateNo { get; set; }
         public string BodyNo { get; set; }
@@ -29,5 +35,8 @@ namespace iLgs.Models
         public string InsPolicyNo { get; set; }
         public string ParReissuance { get; set; }
         public string ConductionNo { get; set; }
+    
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemExtnVehicleRepair> PsCardItemExtnVehicleRepairs { get; set; }
     }
 }

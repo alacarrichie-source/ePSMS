@@ -24,6 +24,7 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportBldgItemVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportBldgItemVM> GetAll(Guid? reportId);
         IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup);
+        IQueryable<CustodianReportBldgItemVM> GetAllByAcctGroup(int? accountGroup, string userName);
         ValueTask<CustodianReportBldgItemVM> CreateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> UpdateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date);
@@ -154,6 +155,16 @@ namespace iLgs.Services.CustodianReports
             var data = _db.CustodianReportBldgItems
                 .AsNoTracking()
                 .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
+                .Select(CustodianReportBldgItemProjection);
+
+            return data;
+        }
+
+        public IQueryable<CustodianReportBldgItemVM> GetAllByAcctGroup(int? accountGroup, string userName)
+        {
+            var data = _db.CustodianReportBldgItems
+                .AsNoTracking()
+                .Where(w => w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReportBldgItemProjection);
 
             return data;

@@ -21,6 +21,7 @@ namespace iLgs.Models
             this.PsCardItemTransferItems = new HashSet<PsCardItemTransferItem>();
             this.RpcPpeItems = new HashSet<RpcPpeItem>();
             this.IcsParItems = new HashSet<IcsParItem>();
+            this.PsCardItemExtnAddCosts = new HashSet<PsCardItemExtnAddCost>();
         }
     
         public System.Guid Id { get; set; }
@@ -49,6 +50,7 @@ namespace iLgs.Models
         public string Condition { get; set; }
         public Nullable<decimal> AddCost { get; set; }
         public Nullable<decimal> AcqCost { get; set; }
+        public Nullable<decimal> OldAmount { get; set; }
     
         public virtual AIRItemExtn AIRItemExtn { get; set; }
         public virtual Codextn Codextn { get; set; }
@@ -61,5 +63,7 @@ namespace iLgs.Models
         public virtual ICollection<RpcPpeItem> RpcPpeItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IcsParItem> IcsParItems { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemExtnAddCost> PsCardItemExtnAddCosts { get; set; }
     }
 }

@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 using System.Web;
 using static iLgs.Models.Enums;
 
-namespace iLgs.Services.AIRs
+namespace iLgs.Services.AIRs_
 {
     public interface IAirItemExtnVehicleService
     {

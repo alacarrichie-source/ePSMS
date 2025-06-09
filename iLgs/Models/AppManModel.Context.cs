@@ -57,7 +57,6 @@ namespace iLgs.Models
         public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<RisItemUnitGroupDescriptionItem> RisItemUnitGroupDescriptionItems { get; set; }
         public virtual DbSet<RSMI> RSMIs { get; set; }
-        public virtual DbSet<PsCard> PsCards { get; set; }
         public virtual DbSet<Codextn> Codextns { get; set; }
         public virtual DbSet<PsCardItemUnitGroupDescription> PsCardItemUnitGroupDescriptions { get; set; }
         public virtual DbSet<RPCI> RPCIs { get; set; }
@@ -113,5 +112,8 @@ namespace iLgs.Models
         public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
         public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
         public virtual DbSet<IcsParItem> IcsParItems { get; set; }
+        public virtual DbSet<PsCardItemExtnAddCost> PsCardItemExtnAddCosts { get; set; }
+        public virtual DbSet<PsCard> PsCards { get; set; }
+        public virtual DbSet<PsCardItemExtnVehicleRepair> PsCardItemExtnVehicleRepairs { get; set; }
     }
 }

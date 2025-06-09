@@ -1,28 +1,26 @@
-﻿using iLgs.Models;
-using Kendo.Mvc.UI;
+﻿using CrystalDecisions.CrystalReports.Engine;
+using CrystalDecisions.Shared;
+using iLgs.Agents.Services;
+using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
+using iLgs.Models;
+using iLgs.Services.AIRs_;
+using iLgs.Services.Codes;
+using iLgs.Services.PurchaseOrder;
+using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using System.Data.Entity;
-using Microsoft.AspNet.Identity;
-using iLgs.Utilities;
-using Newtonsoft.Json;
-using CrystalDecisions.CrystalReports.Engine;
-using CrystalDecisions.Shared;
-using System.Data.SqlClient;
-using iLgs.Services.Interfaces;
-using iLgs.Services;
-using System.IO;
-using iLgs.Agents.Services;
-using iLgs.Exceptions;
-using iLgs.Exceptions.Service;
-using iLgs.Services.Codes;
-using iLgs.Services.AIRs;
-using iLgs.Services.PurchaseOrder;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Controllers
 {
@@ -54,15 +52,50 @@ namespace iLgs.Controllers
             _uploadService = new AirUploadService(_db);
         }
 
+        public ActionResult Admin()
+        {
+            TempData["AllowIndexAccess"] = true;
+            ViewBag.AirGroup = (int)AirGroup.ADMIN;
+            return View("Index");
+        }
+
+        public ActionResult Serial()
+        {
+            TempData["AllowIndexAccess"] = true;
+            ViewBag.AirGroup = (int)AirGroup.SERIAL;
+            return View("Index");
+        }
+
+        public ActionResult Acceptance()
+        {
+            TempData["AllowIndexAccess"] = true;
+            ViewBag.AirGroup = (int)AirGroup.ACCEPTANCE;
+            return View("Index");
+        }
+
+        public ActionResult Inspection()
+        {
+            TempData["AllowIndexAccess"] = true; 
+            ViewBag.AirGroup = (int)AirGroup.INSPECTION;
+            return View("Index");
+        }
+
         // GET: 
         public ActionResult Index()
         {
+            if (TempData["AllowIndexAccess"] == null || !(bool)TempData["AllowIndexAccess"])
+            {
+                ViewBag.Error = "Access Denied!";
+                return View("Error"); // Or some other handling
+            }
             return View();
         }
 
-        public ActionResult AIRRead([DataSourceRequest] DataSourceRequest request)
+        public async Task<ActionResult> AIRRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = _airService.GetAll();
+            var userId = User.Identity.GetUserId();
+            var data = await _airService.GetAllAsync(userId);
+            
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
@@ -231,7 +264,7 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public async Task<ActionResult> _AIRAddEdit(Guid? airId)
+        public async Task<ActionResult> _AIRAddEdit(Guid? airId, int airGroup)
         {
             var model = new AIR_VM();
             if (airId != null)
@@ -246,6 +279,7 @@ namespace iLgs.Controllers
                 model.AIRDate = DateTime.Now;
             }
             ViewData["airId"] = airId;
+            ViewBag.AirGroup = airGroup;
             return PartialView(model);
         }
 
@@ -427,9 +461,10 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public ActionResult _AIRItem(Guid airId)
+        public ActionResult _AIRItem(Guid airId, int airGroup)
         {
             ViewData["airId"] = airId;
+            ViewBag.AirGroup = airGroup;
             return PartialView();
         }
 
@@ -1295,9 +1330,10 @@ namespace iLgs.Controllers
         }
 
         #region UNIT GROUP
-        public ActionResult _UnitGroup(Guid orderId)
+        public ActionResult _UnitGroup(Guid orderId, int airGroup)
         {
             ViewData["orderId"] = orderId;
+            ViewBag.AirGroup = airGroup;
             return PartialView();
         }
 

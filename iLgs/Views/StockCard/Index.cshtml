@@ -1112,13 +1112,7 @@
                             var psNo = $("#PsNo").val();
                             var fund = $("#Fund").val();
                             var grid = $("#grid").data("kendoGrid");
-
-                            //grid.dataSource.filter({
-                            //    field: "PsNo",         // The column field name
-                            //    operator: "eq", // The filtering operator (e.g., "eq", "contains")
-                            //    value: psNo        // The value to filter by
-                            //});
-
+                            
                             grid.dataSource.filter({
                                 logic: "and",
                                 filters: [
@@ -1422,12 +1416,18 @@
         } else {
             selectedItemId = e.model.get("Id");
             selectedTransferId = e.model.get("TransferId");
+            var parentId = e.model.get("ParentId");
             //console.log(e.sender);
             //console.log(e.container);
 
             // Selecting the row in the subgrid using e.model
             var row = e.sender.tbody.find("tr[data-uid='" + e.model.uid + "']");
             e.sender.select(row);
+
+            var textbox = e.container.find("input[name='TransDate']").data("kendoDatePicker");
+            if (textbox) {
+                textbox.enable(parentId); // Enables the Kendo TextBox
+            }
         }
 
         var popupWindow = e.container.data("kendoWindow");

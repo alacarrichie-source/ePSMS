@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace iLgs.Services.AIRs
+namespace iLgs.Services.AIRs_
 {
     public interface IAirInvoiceService
     {

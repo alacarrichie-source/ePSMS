@@ -22,6 +22,7 @@ using static iLgs.Models.Enums;
 
 namespace iLgs.Controllers
 {
+    [AppAuthorize("CUSTODIANREPORTBLDG")]
     public class CustodianReportBldgController : BaseController
     {
         private readonly AppManEntities _db;
@@ -35,6 +36,13 @@ namespace iLgs.Controllers
             _custodianReportService = new CustodianReportService(_db);
             _custodianReportBldgItemService = new CustodianReportBldgItemService(_db);
             _uploadService = new CustodianBldgUploadService(_db);        
+        }
+
+        public ActionResult BldgQuery()
+        {
+            ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
+            ViewBag.Title = "Custodian Report - Structure - Query";
+            return View();
         }
 
         public ActionResult Index()
@@ -270,6 +278,14 @@ namespace iLgs.Controllers
         public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
         {
             var data = _custodianReportBldgItemService.GetAllByDeptAcctGroup(deptId, accountGroup);
+
+            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        }
+
+        public ActionResult _ItemReadAll([DataSourceRequest] DataSourceRequest request, int? accountGroup)
+        {
+            string user = ControllerContext.HttpContext.User.Identity.Name;
+            var data = _custodianReportBldgItemService.GetAllByAcctGroup(accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }

@@ -42,6 +42,7 @@
         {
             info.Bound(f => f.LocCode).Width(50).Title("Code");
             info.Bound(f => f.Location).Width(50).Title("Location");
+            //info.Bound(f => f.TransDate).Width(50);
             info.Bound(f => f.TransferIn)
                 .Width(50).Title("Transit-In")
                 .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")

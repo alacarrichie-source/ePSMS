@@ -32,7 +32,7 @@ namespace iLgs.Services.PropertyCard
         IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get; }
         IPsCardItemExtnOtherService PsCardItemExtnOther { get; }
         IPsCardItemExtnUpdateService PsCardItemExtnUpdate { get; }
-        //IIcsParService IcsPar { get; }
+        IPsCardItemExtnAddCostService PsCardItemExtnAddCost{ get; }       
     }
 
 
@@ -42,21 +42,21 @@ namespace iLgs.Services.PropertyCard
         private IPsCardItemExtnVehicleService _psCardItemExtnVehicleService;
         private IPsCardItemExtnOtherService _psCardItemExtnOtherService;
         private IPsCardItemExtnUpdateService _psCardItemExtnUpdateService;
-        //private IIcsParService _icsParService;
+        private IPsCardItemExtnAddCostService _psCardItemExtnAddCostService;
 
         public PsCardItemExtnService(AppManEntities db)
         {
             _db = db;
-            _psCardItemExtnVehicleService = new PsCardItemExtnVehicleService(_db);
-            _psCardItemExtnOtherService = new PsCardItemExtnOtherService(_db);
-            _psCardItemExtnUpdateService = new PsCardItemExtnUpdateService(_db);
-            //_icsParService = new IcsParService(_db);
+            //_psCardItemExtnVehicleService = new PsCardItemExtnVehicleService(_db);
+            //_psCardItemExtnOtherService = new PsCardItemExtnOtherService(_db);
+            //_psCardItemExtnUpdateService = new PsCardItemExtnUpdateService(_db);
+            
         }
 
         public IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get { return _psCardItemExtnVehicleService = _psCardItemExtnVehicleService ?? new PsCardItemExtnVehicleService(_db); } }
         public IPsCardItemExtnOtherService PsCardItemExtnOther { get { return _psCardItemExtnOtherService = _psCardItemExtnOtherService ?? new PsCardItemExtnOtherService(_db); } }
         public IPsCardItemExtnUpdateService PsCardItemExtnUpdate { get { return _psCardItemExtnUpdateService = _psCardItemExtnUpdateService ?? new PsCardItemExtnUpdateService(_db); } }
-        //public IIcsParService IcsPar { get { return _icsParService = _icsParService ?? new IcsParService(_db); } }
+        public IPsCardItemExtnAddCostService PsCardItemExtnAddCost { get { return _psCardItemExtnAddCostService = _psCardItemExtnAddCostService ?? new PsCardItemExtnAddCostService(_db); } }
 
         public IQueryable<T> GetCardItemExtnForIcsPars<T>(Guid? psCardItemId) where T : PsCardItemExtn
         {        

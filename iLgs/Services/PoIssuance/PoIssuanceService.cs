@@ -14,10 +14,9 @@ namespace iLgs.Services.PoIssuance
 {
     public interface IPoIssuanceService
     {
-        ValueTask<List<PsCardItemVM>> GetAllAsync(string userId);
-        ValueTask<PsCardItemVM> GetByIdAsync(Guid? id);
+        ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId);
+        IQueryable<PsCardItemVM> GetById(Guid? id);
         IQueryable<PsCardItemVM> GetSummary();
-        //IQueryable<PsCardItemExtnTransitVM> GetCardItemExtnForTransit(Guid? psCardItemId, Guid? groupId);
         IQueryable<PsCardItemExtnTransitVM> GetCardItemExtnForTransit(Guid? psCardItemId, Guid? transferId);
         ValueTask PostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
         ValueTask UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date);
@@ -87,22 +86,28 @@ namespace iLgs.Services.PoIssuance
             };
         }
 
-        public async ValueTask<List<PsCardItemVM>> GetAllAsync(string userId)
+        public async ValueTask<IQueryable<PsCardItemVM>> GetAllAsync(string userId)
         {
             var IsAdmin = await _userService.IsAdminAsync(userId);
-            var data = await _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_GetRecords {0}, {1}", IsAdmin, userId).ToListAsync();
+            var data = _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_GetRecords {0}, {1}", IsAdmin, userId).AsQueryable();
             return data;
         }
 
-        public async ValueTask<PsCardItemVM> GetByIdAsync(Guid? id)
+        public IQueryable<PsCardItemVM> GetById(Guid? id)
         {
-            var data = await _db.PsCardItems
-                .Include(i => i.Codextn)
-                .Include(i => i.Codextn1)
-                .Where(w => w.Id == id)
-                .Select(GetPsCardItemProjection(_db)).FirstOrDefaultAsync();
+            var data = _db.Database.SqlQuery<PsCardItemVM>("Exec PoIssuance_GetByPsCardItemId {0}", id).AsQueryable();
             return data;
         }
+
+        //public async ValueTask<PsCardItemVM> GetByIdAsync(Guid? id)
+        //{
+        //    var data = await _db.PsCardItems
+        //        .Include(i => i.Codextn)
+        //        .Include(i => i.Codextn1)
+        //        .Where(w => w.Id == id)
+        //        .Select(GetPsCardItemProjection(_db)).FirstOrDefaultAsync();
+        //    return data;
+        //}
 
         public IQueryable<PsCardItemVM> GetSummary()
         {

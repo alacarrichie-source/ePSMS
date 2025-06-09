@@ -710,7 +710,10 @@ namespace iLgs.Models
 
         [Display(Name = "Custodian Department")]
         public string MainDeptName { get; set; }
-        public int? AccountGroup { get; set; }        
+        public int? AccountGroup { get; set; }
+
+        [Display(Name = "Custodian Item Index")]
+        public decimal? CustodianItemIndex { get; set; }
 
         internal sealed class Metadata
         {

@@ -21,6 +21,9 @@ namespace iLgs.Models
         [Required]
         public Nullable<System.Guid> LocationId { get; set; }
 
+        [Display(Name = "Location Code")]
+        public string LocationCode { get; set; }
+
         public string Location { get; set; }
 
         [Display(Name = "Qty Issued")]

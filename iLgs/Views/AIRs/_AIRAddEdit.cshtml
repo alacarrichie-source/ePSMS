@@ -13,7 +13,6 @@
 
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.Mode)
-
     <fieldset>
         <div class="row k-mb-2">
             <div class="col-md-6">
@@ -105,21 +104,21 @@
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.AcceptedDate, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
-                                    @(Html.Kendo().DatePickerFor(m => m.AcceptedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                    @(Html.Kendo().DatePickerFor(m => m.AcceptedDate).Enable(ViewBag.AirGroup == 2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
                             </div>
                         </div>
                         <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
-                                    @(Html.Kendo().CheckBoxFor(m => m.IsComplete).Label("Complete"))
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsComplete).Enable(ViewBag.AirGroup == 2).Label("Complete"))
                                 </div>
                             </div>
                         </div>
                         <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
-                                    @(Html.Kendo().CheckBoxFor(m => m.IsPartial).Label("Partial (pls. specify)"))
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsPartial).Enable(ViewBag.AirGroup == 2).Label("Partial (pls. specify)"))
                                 </div>
                             </div>
                         </div>
@@ -129,7 +128,7 @@
                                     &nbsp;
                                 </div>
                                 <div class="col-md-9">
-                                    @(Html.Kendo().TextBoxFor(m => m.Remarks).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                    @(Html.Kendo().TextBoxFor(m => m.Remarks).Enable(ViewBag.AirGroup == 2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
                             </div>
                         </div>
@@ -157,6 +156,7 @@
                                             c.Add().Field("Description").Title("Name").Width("60%");
                                             c.Add().Field("Desc2").Title("Designation").Width("40%");
                                         })
+                                        .Enable(ViewBag.AirGroup == 2)
                                         .Suggest(true)
                                     )
                                     @Html.ValidationMessageFor(model => model.Custodian)
@@ -174,14 +174,14 @@
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.InspectedDate, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
-                                    @(Html.Kendo().DatePickerFor(m => m.InspectedDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                    @(Html.Kendo().DatePickerFor(m => m.InspectedDate).Enable(ViewBag.AirGroup == 1).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
                             </div>
                         </div>
                         <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
-                                    @(Html.Kendo().CheckBoxFor(m => m.IsInspected).Label("Inspected, verified and found in order as to quality and specifications."))
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsInspected).Enable(ViewBag.AirGroup == 1).Label("Inspected, verified and found in order as to quality and specifications."))
                                 </div>
                             </div>
                         </div>
@@ -190,7 +190,7 @@
                             <div class="col-md-12">
                                 @Html.LabelFor(model => model.Officer, htmlAttributes: new { @class = "col-md-3" })
                                 <div class="col-md-9">
-                                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Officer)
+                                    @(Html.Kendo().MultiColumnComboBoxFor(m => m.Officer)                                        
                                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                                         .Placeholder("Select Officer")
                                         .DataTextField("Description")
@@ -210,6 +210,7 @@
                                             c.Add().Field("Desc2").Title("Designation").Width("40%");
                                         })
                                         .Suggest(true)
+                                        .Enable(ViewBag.AirGroup == 1)
                                     )
                                     @Html.ValidationMessageFor(model => model.Officer)
                                 </div>

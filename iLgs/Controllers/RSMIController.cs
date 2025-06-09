@@ -88,30 +88,51 @@ namespace iLgs.Controllers
                     DateTime date = System.DateTime.Now;
 
 
-                    var rsmiItemList = _db.PsCardItemIssuances.AsNoTracking()
+                    //var rsmiItemList = _db.PsCardItemIssuances.AsNoTracking()
+                    //    .Where(w => w.IssuedDate >= model.DateFrom && w.IssuedDate <= model.DateTo)
+                    //    .Select(s => new RSMIItemVM
+                    //    {
+                    //        ItemCodeId = s.PsCardItem.PsCard.ItemCodeId,
+                    //        RisNo = s.PsCardItem.OrderItem.RequestItem.RisItem.RISs.RisNo,
+                    //        Date = s.IssuedDate,
+                    //        Fund = s.PsCardItem.PsCard.Fund,
+                    //        RCC = s.PsCardItem.FPP,
+                    //        PoNo = s.PsCardItem.PoNo,
+                    //        Department = s.PsCardItem.DeptDisplay,
+                    //        LocationCode = s.Codextn1.Code,
+                    //        Location = s.Codextn1.Description,
+                    //        ItemCode = s.PsCardItem.PsCard.ItemCode.Code,
+                    //        StockNo = s.PsCardItem.PsCard.PsNo,
+                    //        ItemName = s.PsCardItem.Description,
+                    //        Unit = s.PsCardItem.Unit,
+                    //        UnitCost = s.PsCardItem.UnitCost,
+                    //        Qty = s.Qty,
+                    //        Amount = s.Amount,
+                    //        AccountCode = s.PsCardItem.PsCard.ItemCode.AccountCode
+                    //    }).ToList();
+
+                    var rsmiItemList = await _db.PsCardItemTransferIssuances.AsNoTracking()
                         .Where(w => w.IssuedDate >= model.DateFrom && w.IssuedDate <= model.DateTo)
                         .Select(s => new RSMIItemVM
                         {
-                            ItemCodeId = s.PsCardItem.PsCard.ItemCodeId,
-                            RisNo = s.PsCardItem.OrderItem.RequestItem.RisItem.RISs.RisNo,
+                            ItemCodeId = s.PsCardItemTransfer.PsCardItem.PsCard.ItemCodeId,
+                            RisNo = s.PsCardItemTransfer.PsCardItem.OrderItem.RequestItem.RisItem.RISs.RisNo,
                             Date = s.IssuedDate,
-                            Fund = s.PsCardItem.PsCard.Fund,
-                            RCC = s.PsCardItem.FPP,
-                            PoNo = s.PsCardItem.PoNo,
-                            Department = s.PsCardItem.DeptDisplay,
+                            Fund = s.PsCardItemTransfer.PsCardItem.PsCard.Fund,
+                            RCC = s.PsCardItemTransfer.PsCardItem.FPP,
+                            PoNo = s.PsCardItemTransfer.PsCardItem.PoNo,
+                            Department = s.PsCardItemTransfer.PsCardItem.DeptDisplay,
                             LocationCode = s.Codextn1.Code,
                             Location = s.Codextn1.Description,
-                            //RCC = s.PsCardItem.Codextn.Code,
-                            //s.PsCardItem.Codextn.Description,
-                            ItemCode = s.PsCardItem.PsCard.ItemCode.Code,
-                            StockNo = s.PsCardItem.PsCard.PsNo,
-                            ItemName = s.PsCardItem.Description,
-                            Unit = s.PsCardItem.Unit,
-                            UnitCost = s.PsCardItem.UnitCost,
+                            ItemCode = s.PsCardItemTransfer.PsCardItem.PsCard.ItemCode.Code,
+                            StockNo = s.PsCardItemTransfer.PsCardItem.PsCard.PsNo,
+                            ItemName = s.PsCardItemTransfer.PsCardItem.Description,
+                            Unit = s.PsCardItemTransfer.PsCardItem.Unit,
+                            UnitCost = s.PsCardItemTransfer.PsCardItem.UnitCost,
                             Qty = s.Qty,
                             Amount = s.Amount,
-                            AccountCode = s.PsCardItem.PsCard.ItemCode.AccountCode
-                        }).ToList();
+                            AccountCode = s.PsCardItemTransfer.PsCardItem.PsCard.ItemCode.AccountCode
+                        }).ToListAsync();
 
                     if (!rsmiItemList.Any())
                     {

@@ -13,10 +13,13 @@
 
     @Html.HiddenFor(model => model.Id)
     @Html.HiddenFor(model => model.PsCardItemId)
+    @Html.HiddenFor(model => model.AIRItemExtnId)
     @Html.HiddenFor(model => model.TransferId)
     @Html.HiddenFor(model => model.PsCardItemExtnId)
     @Html.HiddenFor(model => model.SetLotNo)
-    @Html.HiddenFor(model => model.SetLotQtyNo)    
+    @Html.HiddenFor(model => model.SetLotQtyNo)
+    @Html.HiddenFor(model => model.ContentNo)
+    @Html.HiddenFor(model => model.UnitCost)
 
     <fieldset>
         <div class="row k-mb-2">
@@ -83,7 +86,7 @@
                                 c.Add().Field("Desc3").Title("Main-Location").Width("300");
                                 c.Add().Field("Desc2").Title("Location").Width("300");
                             })
-                            .Events(e => e.Select("onSelectLocationId"))
+                            .Events(e => e.Select("onSelectLocationId").DataBound("onDataBoundLocationId"))
                 //.Suggest(true)
                 )
                 @Html.ValidationMessageFor(model => model.LocationId)
@@ -117,6 +120,7 @@
                                 .DataTextField("Description")
                                 .DataValueField("Description")
                                 .Filter(FilterType.Contains)
+                                .ValuePrimitive(true)
                                 .DataSource(source =>
                                 {
                                     source.Read(read =>
@@ -135,21 +139,59 @@
             </div>
         </div>
 
-        <hr />
+        <br />
         <div class="row k-mb-2">
             <div class="col-md-2">
-                @Html.DisplayFor(m => m.ContentNo, "LabelInt")
+                @Html.DisplayFor(m => m.AddCost, "LabelDecimal")
             </div>
             <div class="col-md-4">
-                @(Html.Kendo().TextBoxFor(m => m.ContentNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(model => model.ContentNo)
+                <div class="numeric-wrapper">
+                    @(Html.Kendo().NumericTextBoxFor(m => m.AddCost)
+                .Decimals(2)
+                .Format("{0:n2}")
+                .Spinners(false)
+                .HtmlAttributes(new
+                {
+                    style = "width: 100%; padding-right: 2rem;" // space for icon
+                })
+                    )
+
+                    <button type="button"
+                            class="custom-icon-btn"
+                            onclick="onClickAddCost()">
+                        <span class="k-icon k-i-calculator"></span>
+                    </button>
+                </div>
+                @Html.ValidationMessageFor(m => m.AddCost)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.AcqCost, "LabelDecimal")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().NumericTextBoxFor(m => m.AcqCost).Decimals(2).Format("{0:n2}").Spinners(false)
+                    .HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(model => model.AcqCost)
+            </div>            
+        </div>
+
+        <hr />        
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.OldAmount, "LabelDecimal")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().NumericTextBoxFor(m => m.OldAmount).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.OldAmount)
             </div>
             <div class="col-md-2">
-                @Html.DisplayFor(m => m.TContentNo, "LabelInt")
+                @Html.DisplayFor(m => m.OldPropNo, "Label")
             </div>
             <div class="col-md-4">
-                @(Html.Kendo().TextBoxFor(m => m.TContentNo).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(model => model.TContentNo)
+                @(Html.Kendo().TextBoxFor(m => m.OldPropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.OldPropNo)
             </div>
         </div>
 

@@ -22,16 +22,10 @@ namespace iLgs.Controllers
     {
         private AppManEntities _db = new AppManEntities();
         private IIcsParService _icsParService;
-        //private IIcsService _icsService;
-        //private IParService _ParService;
-        //private ICodextnService _codextnService;
 
         public IcsParUpdateController()
         {
             _icsParService = new IcsParService(_db);
-            //_icsService = new IcsService(_db);
-            //_ParService = new ParService(_db);
-            //_codextnService = new CodextnService(_db);
         }
 
         // GET: IcsParUpdate

@@ -1,123 +1,306 @@
 ﻿@{
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
-<div class="main-section-content row" style="">
-    <div id="item-list" class="col col-xs-3">
-        <h3>ITEMS</h3>
-        @*@Html.TextBox("searchBox", "", new { @class = "k-textbox", placeholder = "Search..." })*@
-        @*<div class="k-toolbar k-grid-toolbar" >*@
-        <span class="k-searchbox k-input k-input-md k-rounded-md k-input-solid" style="width: 100%;">
-            <span class="k-input-icon k-icon k-i-search"></span>
-            <input id="searchBox" autocomplete="off" class="k-input-inner" placeholder="Search..." title="Search..." type="text">
-        </span>
-        @*</div>*@
 
-        @(Html.Kendo().ListView<iLgs.Models.PsCardItemExtnVM>()
-            .HtmlAttributes(new { @class = "max-grid-2" })
-            .Name("itemList")
-            .TagName("div")
-            .Events(e => e.DataBound("onListDataBound")
-                .Change("onItemChange")
-            )
-            .ClientTemplateId("itemTemplate")
-            .DataSource(dataSource =>
-            {
-                dataSource.Read(read => read.Action("Read", "ItemCard", new { accountGroup = @ViewBag.AccountGroup }));
-                dataSource.PageSize(9);
-            })
-            .Pageable()
-            .Selectable(s => s.Mode(ListViewSelectionMode.Single))
-        )
-    </div>
-    <div id="item-details-wrapper" class="col col-xs-9">
-        <div id="item-details">
-            <div id="item-about" class="col-xs-12 placeholder">
-                <div class="row">
-                    <div id="itemBio" class="col-xs-12 col-sm-6">
-                    </div>
-                </div>                
-                <hr />
-                <div class="row">
-                    <div id="itemEntry" class="col-xs-12 col-sm-6 col-md-12" style="padding-left: 0;">
-                    </div>
+@(Html.Kendo().PanelBar()
+    .Name("panelbar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text("Items")
+            .Expanded(true)
+            .Selected(true)
+            .Content(@<text>
+                <div class="div-render">
+                    @RenderItems()
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
+            </text>);
+        panelbar.Add().Text("Account")
+            .Expanded(true)
+            .Content(@<text>
+                <div id="div-account" class="div-render">
+                </div>
+            </text>);
+        panelbar.Add().Text("Purchase Order")
+            .Expanded(true)
+            .Content(@<text>                
+                <div id="div-order" class="div-render">
+                </div>
+            </text>);
+        panelbar.Add().Text("PAR/ICS/MR/ARE")
+            .Expanded(true)
+            .Content(@<text>
+                <div id="div-par-ics" class="div-render">
+                </div>
+            </text>);
+        panelbar.Add().Text("Item Description")
+            .Expanded(true)
+            .Content(@<text>
+                <div id="div-description" class="div-render">
+                </div>
+            </text>);
+        if (ViewBag.AccountGroup == 3)
+        {
+            panelbar.Add().Text("Vehicle Repair")
+                .Expanded(true)
+                .Content(@<text>
+                <div id="div-repair" class="div-render">
+                </div>
+            </text>);
+        }
+    })
+)
 
-<script type="text/x-kendo-tmpl" id="itemTemplate">
-    <div class="item">
-        <div class="item-wrapper">
-            @*<img src="@(Url.Content("~/content/employees/"))#:EmployeeID#-t.png" class="img-responsive employee-list-image" />*@
-            <dl class="item-list-details">
-                <dt class="name">#:PropNo#</dt>
-                <dd class="title">#:Account#</dd>
-            </dl>
-        </div>
-    </div>
-</script>
 
-<script type="text/x-kendo-tmpl" id="itemBioTemplate">
-    <div>
-        @*<h3>ABOUT</h3>*@
-        @*<img src="@(Url.Content("~/content/employees/"))#:EmployeeID#.png" class="img-responsive employee-details-image" />*@
-        @*<dl class="item-bio-details">
-            <dt class="name">Property No: #:PropNo#</dt>
-            <dd class="title">#:Account#</dd>
-            <dd class="title">#:SubAccount#</dd>
-            <dd class="title">#:Article#</dd>
-            <dd class="phone"><span class="icon icon-mobile"></span>#:HomePhone#</dd>
-            <dd><a href='\\#' class='bioTooltip'> >>FULL BIO <span style='display:none;'>#:Notes#</span></a></dd>
-        </dl>*@
-        <div class="row">
-            <div class="item-label col-md-3">
-                @Html.Label("Property No")
-            </div>
-            <div class="name col-md-9">
-                @Html.Label("#:PropNo#")
-            </div>
-        </div>
-        @*<div class="row">
-            <div class="item-label col-md-3">
-                @Html.Label("Account")
-            </div>
-            <div class="item-value col-md-9">
-                @Html.Label("#:Account#")
-            </div>
-        </div>
-        <div class="row">
-            <div class="item-label col-md-3">
-                @Html.Label("Sub-Account")
-            </div>
-            <div class="item-value col-md-9">
-                @Html.Label("#:SubAccount#")
-            </div>
-        </div>
-        <div class="row">
-            <div class="item-label col-md-3">
-                @Html.Label("Article")
-            </div>
-            <div class="item-value col-md-9">
-                @Html.Label("#:Article#")
-            </div>
-        </div>
+@helper  RenderItems()
+{
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVM>()
+            .Name("grid")
+            .Columns(columns =>
+            {
+                columns.Bound(f => f.PoNo).Width(50);
+                columns.Bound(f => f.PsNo).Width(70);
+                columns.Bound(f => f.RefNo).Width(70);
+                columns.Bound(f => f.Description).Width(100);
+                columns.Bound(f => f.PropNo).Width(70);
+            })
+            .ToolBar(t =>
+            {
+                t.Search();
+            })
+            .Search(s =>
+            {
+                s.Field(o => o.PsNo, "contains");
+                s.Field(o => o.PropNo, "contains");
+                s.Field(o => o.RefNo, "contains");
+                s.Field(o => o.Description, "contains");
+                s.Field(o => o.PoNo, "contains");
+            })
+            .Pageable(pager => pager
+                .Input(false)
+                .Numeric(true)
+                .Info(true)
+                .PreviousNext(true)
+                .Refresh(true)
+                .PageSizes(true)
+                .ButtonCount(5)
+            )
+            .Filterable()
+            .NoRecords()
+            .Resizable(r => r.Columns(true))
+            .Scrollable(scr => scr.Height("auto"))
+            .Selectable(s => s.Mode(GridSelectionMode.Single))
+            .Sortable()
+            //.ClientDetailTemplateId("Details")
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(5)
+                //.Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                })
+                .Sort(s =>
+                {
+                    s.Add(a => a.PsNo);
+                })
+                //.ServerOperation(true)
+                .Read(read => read.Action("Read", "ItemCard", new { accountGroup = @ViewBag.AccountGroup }))
+            )
+            .Events(events => events
+                .Change("onChangeGrid")
+                .DataBound("onDataBoundGrid")
+            )
+    )
+}
 
-        <div class="row">
-            <div class="item-label col-md-3">
-                @Html.Label("Description")
-            </div>
-            <div class="item-value col-md-9">
-                @Html.Label("#:Description#")
-            </div>
-        </div>
+@(Html.Kendo().Notification()
+        .Name("popupNotification")
+        .Events(e => e.Show("onShowNotification"))
+)
 
-        <br />*@
-               
-    </div>
-</script>
+
+<div id="windowcontainer"></div>
+
+<style>
+    .numeric-wrapper {
+        position: relative;
+    }
+
+        .numeric-wrapper .k-numerictextbox {
+            width: 100%;
+        }
+
+        .numeric-wrapper .custom-icon-btn {
+            position: absolute;
+            right: 0.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0 8px;
+        }
+
+    .no-text-tabstrip .k-item .k-link {
+        padding: 0; /* Remove padding */
+        text-indent: -9999px; /* Move the text outside the visible area */
+        overflow: hidden; /* Hide any overflow */
+    }
+
+    .numeric-wrapper .custom-icon-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .card-body {
+        flex: 1 1 auto;
+        padding: 1rem 1rem;
+        min-height: 100px;
+    }
+
+    .card-header {
+        padding: 0.5rem 1rem;
+        margin-bottom: 0;
+        background-color: rgba(13, 110, 253, .25);
+        border-bottom: 1px solid rgba(0,0,0,.255);
+        /*border-bottom: 1px solid black;*/
+    }
+
+        .card-header.hovered {
+            opacity: 1;
+        }
+
+    .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        word-wrap: break-word;
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid rgba(0,0,0,.255);
+        /*border: 1px solid black;*/
+        border-radius: 0.25rem;
+    }
+
+    .clearfix::after {
+        display: block;
+        clear: both;
+        content: "";
+    }
+
+    /*#form {
+        padding-right: 20px;
+    }*/
+
+    .div-render {
+        padding: 10px 10px 10px;
+    }
+
+    .disabled-row {
+        background-color: #f0f0f0; /* Light gray background */
+        /*color: #a0a0a0;*/ /* Gray text */
+        /*color: red;*/
+        opacity: 0.5;
+        /*pointer-events: none;*/ /* Prevent clicking */
+    }
+
+    /* Default style for PanelBar header */
+    #panelbar .k-link {
+        background-color: #f8f9fa; /* Default color for header */
+        color: #333; /* Default text color for header */
+    }
+
+    /* Style for the PanelBar header when hovered */
+    #panelbar .k-item:hover > .k-link {
+        background-color: #0056b3 !important; /* Desired hover color for the header */
+        color: white !important; /* Text color change for header */
+    }
+
+    /* Active state style for selected PanelBar item */
+    #panelbar > .k-item.k-state-active > .k-link {
+        background-color: rgba(13, 110, 253, .25); /* Active color for header */
+        color: black;
+    }
+
+    /* Prevent hover color from affecting div-render content */
+    .div-render {
+        background-color: transparent; /* Ensure no background color for content */
+    }
+
+    /* Kendo Grid styles should not change */
+    .k-grid, .k-grid-header, .k-grid-content {
+        background-color: inherit !important; /* Ensure grid background remains unaffected */
+        color: inherit !important; /* Ensure grid text color remains unaffected */
+    }
+
+        /* Specific styles for Kendo Grid headers to avoid hover interference */
+        .k-grid-header th {
+            background-color: inherit !important; /* Ensure header background remains unaffected */
+            color: inherit !important; /* Ensure text color remains unaffected */
+        }
+</style>
 
 <script type="text/javascript">
+    $(document).ready(function () {
+        // When mouse enters the content area
+        $('#panelbar .div-render').on('mouseenter', function (event) {
+            // Add hover class to the closest PanelBar item (header)
+            $(this).closest('.k-item').addClass('hover-panel');
+            event.stopPropagation(); // Prevent the event from bubbling up
+        });
+
+        // When mouse leaves the content area
+        $('#panelbar .div-render').on('mouseleave', function (event) {
+            // Remove hover class from the closest PanelBar item (header)
+            $(this).closest('.k-item').removeClass('hover-panel');
+            event.stopPropagation(); // Prevent the event from bubbling up
+        });
+
+        // Optional: Keep hover style on click
+        $('#panelbar .div-render').on('click', function (event) {
+            // Remove hover from all panels
+            $('#panelbar .k-item').removeClass('hover-panel');
+            // Add hover style to the clicked panel
+            $(this).closest('.k-item').addClass('hover-panel');
+            event.stopPropagation(); // Prevent the event from bubbling up
+        });
+    });
+
+    function onShowNotification(e) {
+        if (e.sender.getNotifications().length == 1) {
+            e.element.parent().css({ zIndex: 22222 });
+        }
+    }
+
+    function GridError(args) {
+        if (args.errors) {
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
+            }
+        }
+    }
+
     function columnTemplate(data) {
         return '<div style="white-space: normal; word-wrap: break-word;">' + data + '</div>';
     }
@@ -133,21 +316,120 @@
         }
     }
 
-    $(document).ready(function () {
-        $("#searchBox").on("input", function () {
-            var value = $(this).val().toLowerCase();
-            var listView = $("#itemList").data("kendoListView");
-            var ds = listView.dataSource;
+    var selectedId = null;
+    function onChangeGrid(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedId = selectedData.Id;
 
-            ds.filter({
-                logic: "or",
-                filters: [
-                    { field: "PropNo", operator: "contains", value: value },
-                    { field: "Account", operator: "contains", value: value }
-                ]
-            });
+        selectedTransitId = null
+
+        ReloadTab(selectedId);
+    }
+
+    function ReloadTab(psCardItemExtnId)
+    {
+        @*setTimeout(function () {
+            var ts = $("#tabStrip").data("kendoTabStrip");
+            ts.contentHolder(0).load("../ItemCard/_ItemCardEntry?psCardItemExtnId=" + psCardItemExtnId + "&accountGroup=" + '@ViewBag.AccountGroup');
+        }, 500);*@
+
+
+        var divAccount = $('#div-account');
+        divAccount.empty(); // Clear existing content
+        $.ajax({
+            url: '@Url.Action("_ItemAccount", "ItemCard")',
+            type: 'POST',
+            data: { psCardItemExtnId: psCardItemExtnId, accountGroup: '@ViewBag.AccountGroup'},
+            success: function(data) {
+                divAccount.html(data);
+            }
         });
-    });
+
+        var divOrder = $('#div-order');
+        divOrder.empty(); // Clear existing content
+        $.ajax({
+            url: '@Url.Action("_ItemOrder", "ItemCard")',
+            type: 'POST',
+            data: { psCardItemExtnId: psCardItemExtnId, accountGroup: '@ViewBag.AccountGroup'},
+            success: function(data) {
+                divOrder.html(data);
+            }
+        });
+
+        var divParIcs = $('#div-par-ics');
+        divParIcs.empty(); // Clear existing content
+        $.ajax({
+            url: '@Url.Action("_ParIcs", "ItemCard")',
+            type: 'POST',
+            data: { psCardItemExtnId: psCardItemExtnId },
+            success: function(data) {
+                divParIcs.html(data);
+            }
+        });
+
+        var divDescription = $('#div-description');
+        divDescription.empty(); // Clear existing content
+        $.ajax({
+            url: '@Url.Action("_ItemCardEntry", "ItemCard")',
+            type: 'POST',
+            data: { psCardItemExtnId: psCardItemExtnId, accountGroup: '@ViewBag.AccountGroup'},
+            success: function(data) {
+                divDescription.html(data);
+            }
+        });
+
+        if ('@ViewBag.AccountGroup' == 3) {
+            var divRepair = $('#div-repair');
+            divRepair.empty(); // Clear existing content
+            $.ajax({
+                url: '@Url.Action("_VehicleRepair", "ItemCard")',
+                type: 'POST',
+                data: { psCardItemExtnVehicleId: psCardItemExtnId, accountGroup: '@ViewBag.AccountGroup'},
+                success: function(data) {
+                    divRepair.html(data);
+                }
+            });
+        }
+    }
+
+    function onDataBoundGrid(e) {
+        if (selectedId) {
+            var dataItem = this.dataSource.get(selectedId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+
+            var defaultItem = this.dataItem(row);
+            if (defaultItem) {
+                selectedId = defaultItem.Id;
+            }
+        }
+
+        //if (this.dataSource.total() == 0) {
+        //   // to do: disable item add button
+        //}
+    }
+
+
+    //$(document).ready(function () {
+    //    $("#searchBox").on("input", function () {
+    //        var value = $(this).val().toLowerCase();
+    //        var listView = $("#itemList").data("kendoListView");
+    //        var ds = listView.dataSource;
+
+    //        ds.filter({
+    //            logic: "or",
+    //            filters: [
+    //                { field: "PropNo", operator: "contains", value: value },
+    //                { field: "RefNo", operator: "contains", value: value },
+    //                { field: "PoNo", operator: "contains", value: value }
+    //            ]
+    //        });
+    //    });
+    //});
 
     function onListDataBound(e) {
         this.select($(".item:first"));
@@ -156,38 +438,17 @@
     function onItemChange() {
         var itemList = $("#itemList").data("kendoListView"),
             item = itemList.dataSource.getByUid(itemList.select().attr("data-uid")),
-            //employeeQuarterSales = $("#EmployeeQuarterSales").data("kendoChart"),
-            //employeeAverageSales = $("#EmployeeAverageSales").data("kendoChart"),
-            //teamSales = $("#TeamSales").data("kendoChart"),
-            //employeeSales = $("#EmployeeSales").data("kendoScheduler"),
-            //startDate = $("#StartDate").data("kendoDatePicker"),
-            //endDate = $("#EndDate").data("kendoDatePicker"),
             filter = { ItemID: item.Id },
             template = kendo.template($("#itemBioTemplate").html());
 
         $("#itemBio").html(template(item));
 
-        //employeeSales.dataSource.filter({ field: "EmployeeID", operator: "eq", value: employee.EmployeeID });
-
-        //teamSales.dataSource.read(filter);
-
-        //employeeQuarterSales.dataSource.read(filter);
-        //employeeAverageSales.dataSource.read(filter);
-        var fieldsContainer = $('#itemEntry');
-        //fieldsContainer.empty(); // Clear existing content
-
-        var url = '@Url.Action("_ItemCardEntry", "ItemCard")';
-
-        $.ajax({
-            url: url,
-            type: 'POST',
-            data: {psCardItemExtnId: item.Id, accountGroup: '@ViewBag.AccountGroup'},
-            success: function(data) {
-                fieldsContainer.html(data);
-            }
-        });
+       setTimeout(function () {
+            var ts = $("#tabStrip").data("kendoTabStrip");
+            ts.contentHolder(0).load("../ItemCard/_ItemCardEntry?psCardItemExtnId=" + item.Id + "&accountGroup=" + '@ViewBag.AccountGroup');
+        }, 500);
     }
-    
+
     function UpdateDescription()
     {
         return "";
@@ -196,10 +457,10 @@
     function RefreshDivs(dataItem) {
         var fieldsContainer = $('#DIV_ALLFIELDS');
         fieldsContainer.removeClass('hidden');
-        //fieldsContainer.empty(); // Clear existing content
+        fieldsContainer.empty(); // Clear existing content
 
         var url = "";
-        var data = $("#form").serialize();
+        var data = $("#form-account").serialize();
 
         if ('@ViewBag.AccountGroup' == 1) {
             url = '@Url.Action("LoadSuppliesFields", "ItemCard")';
@@ -222,37 +483,252 @@
                 setTimeout(function () {
                     // Disable all Kendo UI Inputs (TextBox, ComboBox, NumericTextBox, etc.)
                     fieldsContainer.find("input").each(function () {
-                        var textbox = $(this).data("kendoTextBox");
-                        var combobox = $(this).data("kendoComboBox");
-                        var numericTextBox = $(this).data("kendoNumericTextBox");
+                        //var textbox = $(this).data("kendoTextBox");
+                        //var combobox = $(this).data("kendoComboBox");
+                        //var numericTextBox = $(this).data("kendoNumericTextBox");
 
-                        if (textbox) {
-                            textbox.enable(false); // Disable Kendo TextBox
-                        }
-                        if (combobox) {
-                            combobox.enable(false); // Disable Kendo ComboBox
-                        }
-                        if (numericTextBox) {
-                            numericTextBox.enable(false); // Disable Kendo NumericTextBox
-                        }
+                        //if (textbox) {
+                        //    textbox.enable(false); // Disable Kendo TextBox
+                        //}
+                        //if (combobox) {
+                        //    combobox.enable(false); // Disable Kendo ComboBox
+                        //}
+                        //if (numericTextBox) {
+                        //    numericTextBox.enable(false); // Disable Kendo NumericTextBox
+                        //}
                     });
 
                     // Disable all regular <input>, <select>, and <textarea>
-                    fieldsContainer.find("input, select, textarea").prop("disabled", true);
+                    //fieldsContainer.find("input, select, textarea").prop("disabled", true);
                 }, 100); // Delay to ensure Kendo widgets are initialized
             }
-        });        
+        });
     }
 
     function onDataBoundItemCodeId(e) {
-        var comboBox = this;
+        var comboBox = this; // this is the widget
+
         var selectedValue = comboBox.value();
 
-        if (selectedValue !== null && selectedValue !== undefined && selectedValue != "") {
+        if (selectedValue) {
             var dataItem = comboBox.dataItem();
             RefreshDivs(dataItem);
         }
-        comboBox.enable(false);
+
+        comboBox.readonly(true);
+    }
+
+    function InlineGridError(e) {
+        if (e.errors) {
+            let message = "Errors:\n";
+
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += (key ? key + ": " : "") + value.errors.join("\n") + "\n";
+                    });
+                }
+            });
+
+            alert(message); // You can replace this with any other UI method to display errors
+        }
+    }
+
+    function onClickAddCost() {
+        var myTitle = "Additional Cost";
+        var width = 1000;
+        var psCardItemExtnId = $("#Id").val();
+        var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();
+
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    close: function () {
+                        GetAddCost(psCardItemExtnId, unitCost);
+                    },
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_AddCost", "ItemCard")',
+            data: {
+                psCardItemExtnId: psCardItemExtnId
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        mywindow.open();
+    }
+
+    function GetAddCost(psCardItemExtnId, unitCost) {
+        var url = '@Url.Action("GetAddCost", "ItemCard")';
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {psCardItemExtnId: psCardItemExtnId},
+            success: function (data) {
+                var acqCost = data.TotalAddCost + unitCost;
+                $("#AddCost").data("kendoNumericTextBox").value(data.TotalAddCost);
+                $("#AddCost").data("kendoNumericTextBox").trigger("change");
+
+                $("#AcqCost").data("kendoNumericTextBox").value(acqCost);
+                $("#AcqCost").data("kendoNumericTextBox").trigger("change");
+            }
+        });
+    }
+
+    var selectedGridAddCostItem = null;
+    function onEditGridAddCost(e) {
+        e.preventDefault();
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            //e.model.set("PsCardItemExtnId", '@ViewData["psCardItemExtnId"]'); not working for inline.
+        } else {
+            selectedGridAddCostItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridAddCostItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridAddCost(e) {
+        if (selectedGridAddCostItem) {
+            var dataItem = this.dataSource.get(selectedGridAddCostItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onRequestEndGridAddCost(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                var grid = $("#gridAddCost").data("kendoGrid");
+
+                grid.dataSource.read();
+            }
+        }
+    }
+
+    var selectedGridVehicleRepairItem = null;
+    function onEditGridVehicleRepair(e) {
+        e.preventDefault();
+
+        selectedGrid = e.sender;
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            
+        } else {
+            selectedGridVehicleRepairItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridVehicleRepairItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridVehicleRepair(e) {
+        if (selectedGridVehicleRepairItem) {
+            var dataItem = this.dataSource.get(selectedGridVehicleRepairItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+    }
+
+    function onRequestEndGridVehicleRepair(e) {
+        e.preventDefault();
+        if (!e.response.Errors) {
+            if (e.type == "destroy" || e.type == "create" || e.type == "update") {
+                var grid = $("#gridVehicleRepair").data("kendoGrid");
+
+                grid.dataSource.read();
+            }
+        }
+    }
+
+    var selectedTransitId = null
+    function onChangeGridTransit(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedTransitId = selectedData.Id;
+
+        setTimeout(function () {
+            var grid = $("#gridIssuance").data("kendoGrid");
+            grid.dataSource.read();
+        }, 500);
+    }
+
+    function onDataBoundGridTransit(e) {
+        if (selectedTransitId) {
+            var dataItem = this.dataSource.get(selectedTransitId);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+
+            var defaultItem = this.dataItem(row);
+            if (defaultItem) {
+                selectedTransitId = defaultItem.Id;
+            }
+        }
+    }
+
+    function DataGridIssuance() {
+        return {
+            transferId: selectedTransitId
+        };
+    }
+
+    function onSelectLocationId(e) {
+        var dataItem = this.dataItem(e.item.index());
+
+        //$("#LocationCode").val(dataItem.Code).trigger("change");
+        if (dataItem.Desc3 == dataItem.Desc2) {
+            $("#Location").val(dataItem.Desc2).trigger("change");
+        }
+        else {
+            $("#Location").val(dataItem.Desc3 + "/" + dataItem.Desc2).trigger("change");
+        }
+    }
+
+    function onDataBoundLocationId(e) {
+        var comboBox = this;
+        var dataItem = comboBox.dataItem();
+
+        if (!dataItem) return; // No item selected, skip
+
+        // Mimic the same logic as in the select event
+        //$("#LocationCode").val(dataItem.Code).trigger("change");
+
+        if (dataItem.Desc3 == dataItem.Desc2) {
+            $("#Location").val(dataItem.Desc2).trigger("change");
+        } else {
+            $("#Location").val(dataItem.Desc3 + "/" + dataItem.Desc2).trigger("change");
+        }
     }
 
 </script>

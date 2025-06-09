@@ -195,7 +195,7 @@ namespace iLgs.Services.PropertyCard
             }
             return data;
         });
-
+        
         private Expression<Func<PsCardItemTransfer, PsCardItemVM>> GetPsCardItemTransferProjection()
         {
             return s => new PsCardItemVM
@@ -204,7 +204,7 @@ namespace iLgs.Services.PropertyCard
                 GroupId = s.PsCardItem.GroupId,
                 PsCardId = s.PsCardItem.PsCardId,
                 OrderItemId = s.PsCardItem.OrderItemId,
-                TransferRefId = s.PsCardItem.TransferRefId,
+                TransferRefId = s.PsCardItem.TransferRefId, // retained, but not used anymore.
                 PoDate = s.PsCardItem.PoDate,
                 PoNo = s.PsCardItem.PoNo,
                 AirDate = s.PsCardItem.AirDate,
@@ -222,7 +222,6 @@ namespace iLgs.Services.PropertyCard
                 Days = s.PsCardItem.Days,
                 Unit = s.PsCardItem.Unit,
                 UnitCost = s.PsCardItem.UnitCost,
-                //Amount = s.PsCardItem.UnitCost * s.Qty,
                 Amount = s.PsCardItem.UnitCost * s.QtyBal,
                 IssueAmount = (s.PsCardItemTransferIssuances.Sum(sum => sum.Qty) ?? 0) * s.PsCardItem.UnitCost,
                 BalanceAmount = (s.PsCardItem.UnitCost * s.Qty) - ((s.PsCardItemTransferIssuances.Sum(sum => sum.Qty) ?? 0) * s.PsCardItem.UnitCost),
@@ -262,7 +261,6 @@ namespace iLgs.Services.PropertyCard
                 SetLotRemarks = s.PsCardItem.SetLotRemarks,
                 PostedBy = s.PsCardItem.PostedBy,
                 PostedDt = s.PsCardItem.PostedDt,
-                //IsWithItemExtn = (_db.PsCardItemExtns.Any(a => a.PsCardItemId == s.GroupId))
                 IsWithItemExtn = s.PsCardItem.PsCardItemExtns.Any()
             };
         }
@@ -420,9 +418,7 @@ namespace iLgs.Services.PropertyCard
 
                 psCardItemEntity.PsCardItemTransfers.Add(psCardItemTransfer);
                 _db.PsCardItems.Attach(psCardItemEntity);
-                _db.Entry(psCardItemEntity).State = EntityState.Modified;
-
-                await _db.SaveChangesAsync();
+                _db.Entry(psCardItemEntity).State = EntityState.Modified;                
 
                 //model = await GetByTransferIdAsync((Guid?)psCardItemTransfer.Id);
             }
@@ -478,6 +474,19 @@ namespace iLgs.Services.PropertyCard
                 {
                     entity.PsCardItem.Qty = 0;
                 }
+
+                // for orginal record
+                //if (model.LocationId != null && model.TransDate != model.PoDate)
+                //{
+                //    entity.TransDate = model.PoDate;
+                //}
+                //else
+                //{
+                //    entity.TransDate = model.TransDate;
+                //}
+
+                entity.TransDate = model.TransDate;
+
 
                 entity.Qty = model.Qty;
                 entity.QtyIss = model.QtyIss;

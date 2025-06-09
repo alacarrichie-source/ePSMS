@@ -639,7 +639,7 @@
         });
 
         mywindow.refresh({
-            url: '@Url.Action("_PrintSum", "Rpci")'
+            url: '@Url.Action("_PrintSum", "Rpci")?isPosted=' + '@ViewData["IsPosted"]'
         });
         mywindow.center().open();
     });

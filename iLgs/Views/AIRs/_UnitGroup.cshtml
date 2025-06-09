@@ -69,10 +69,13 @@
         col.Bound(c => c.Description).Width(100);
         col.Bound(c => c.OtherParticulars).Width(100).EditorTemplateName("_OtherParticularsTemplate");
         col.Bound(c => c.InsertedDt).Width(100);
-        col.Command(command =>
+        if (ViewBag.AirGroup != 3) // serial
         {
-            command.Edit();
-        }).Width(100);
+            col.Command(command =>
+            {
+                command.Edit();
+            }).Width(100);
+        }
     })
     .Sortable()
     .NoRecords()

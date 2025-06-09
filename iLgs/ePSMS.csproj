@@ -509,6 +509,9 @@
     <Compile Include="Models\PsCardItemExtn.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\PsCardItemExtnAddCost.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PsCardItemExtnBuilding.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -519,6 +522,9 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardItemExtnVehicle.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PsCardItemExtnVehicleRepair.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PsCardItemExtnViewModels.cs" />
@@ -711,10 +717,10 @@
       <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Reports\RpciAcctSum.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
       <DependentUpon>RpciAcctSum.rpt</DependentUpon>
       <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Reports\RpciLeft.cs">
       <DependentUpon>RpciLeft.rpt</DependentUpon>
@@ -807,10 +813,10 @@
       <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Services\AccountableOfficerService.cs" />
-    <Compile Include="Services\AIRs\AirItemExtnOtherService.cs" />
-    <Compile Include="Services\AIRs\AirItemExtnService.cs" />
-    <Compile Include="Services\AIRs\AirItemExtnVehicleService.cs" />
-    <Compile Include="Services\AIRs\AirUploadService.cs" />
+    <Compile Include="Services\AIRs_\AirItemExtnOtherService.cs" />
+    <Compile Include="Services\AIRs_\AirItemExtnService.cs" />
+    <Compile Include="Services\AIRs_\AirItemExtnVehicleService.cs" />
+    <Compile Include="Services\AIRs_\AirUploadService.cs" />
     <Compile Include="Services\AllFields\AllFieldService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\Codes\AnnexDService.cs" />
@@ -856,6 +862,8 @@
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\LoggingService.cs" />
     <Compile Include="Services\PoIssuance\PoIssuanceUploadService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnAddCostService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnVehicleRepairService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemTransferItemBldgService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnBldgValidator.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnLandValidator.cs" />
@@ -863,7 +871,7 @@
     <Compile Include="Services\PropertyCard\PsCardItemExtnUpdateService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnVehicleValidator.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemTransferIssuanceService.cs" />
-    <Compile Include="Services\PropertyCard\PsCardItemTransferItemLand.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemTransferItemLandService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemTransferItemOtherService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemTransferItemService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemTransferItemVehicleService.cs" />
@@ -1044,9 +1052,9 @@
       <DependentUpon>UserRoles.rpt</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Services\AIRs\AirInvoiceService.cs" />
-    <Compile Include="Services\AIRs\AirItemService.cs" />
-    <Compile Include="Services\AIRs\AirService.cs" />
+    <Compile Include="Services\AIRs_\AirInvoiceService.cs" />
+    <Compile Include="Services\AIRs_\AirItemService.cs" />
+    <Compile Include="Services\AIRs_\AirService.cs" />
     <Compile Include="Services\Codes\CodextnService.cs" />
     <Compile Include="Services\DirectoryService.cs" />
     <Compile Include="Services\ExceptionService.cs" />
@@ -1693,6 +1701,10 @@
     <Content Include="Reports\Rpci.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>Rpci.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\RpciAcctSum.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RpciAcctSum.cs</LastGenOutput>
     </Content>
     <Content Include="Reports\RpciLeft.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
@@ -4127,6 +4139,20 @@
     <Content Include="Views\CustodianReportBldg\EditorTemplates\_MooeTemplate.cshtml" />
     <Content Include="Views\CustodianReportBldg\_ItemPhase.cshtml" />
     <Content Include="Views\IcsSet\EditorTemplates\_ItemIssuanceTemplate.cshtml" />
+    <Content Include="Views\ItemCard\_AddCost.cshtml" />
+    <Content Include="Views\ItemCard\_TransitIssuance.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardPpeAccount.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardPpeOrder.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardVehicleEntry.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardVehicleAccount.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardLandAccount.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardStructureAccount.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardVehicleOrder.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardLandOrder.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardStructureOrder.cshtml" />
+    <Content Include="Views\ItemCard\_VehicleRepair.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardLandEntry.cshtml" />
+    <Content Include="Views\CustodianReportBldg\BldgQuery.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4467,6 +4493,9 @@
     <Content Include="Views\PropertyCard\ItemQuery.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_CardItemExtnOtherTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_CardItemExtnVehicleTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_EffectivityTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_RepairDateTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_CardItemExtnLandTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4569,10 +4598,6 @@
     <Content Include="Reports\RpciPoSum.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RpciPoSum.cs</LastGenOutput>
-    </Content>
-    <Content Include="Reports\RpciAcctSum.rpt">
-      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
-      <LastGenOutput>RpciAcctSum.cs</LastGenOutput>
     </Content>
     <Content Include="Reports\RpciRight.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>

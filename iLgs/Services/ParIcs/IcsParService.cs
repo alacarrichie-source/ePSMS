@@ -20,6 +20,7 @@ namespace iLgs.Services.ParIcs
     {
         IQueryable<IcsParVM> GetAll();
         IQueryable<IcsParVM> GetAll(string refNo, string refType);
+        IQueryable<IcsParVM> GetByPsCardItemExtnId(Guid? psCardItemExtnId);
         IQueryable<IcsPar> GetAllPars(Guid? psCardItemGroupId);
         IQueryable<IcsPar> GetAllIcs(Guid? psCardItemGroupId);
         IQueryable<IcsParVM> GetAllByPropNo(string propNo, string refType);
@@ -106,6 +107,25 @@ namespace iLgs.Services.ParIcs
         {
             var data = _db.IcsPars.Where(w => w.RefType == refType
                 && w.IcsParItems.Any(a => a.PsCardItemExtn.PsCardItem.Id == psCardItemGroupId)).AsNoTracking().AsQueryable();
+            return data;
+        }
+
+
+        public IQueryable<IcsParVM> GetByPsCardItemExtnId(Guid? psCardItemExtnId)
+        {
+            var data = _db.IcsParItems.Where(w => w.PsCardItemExtnId == psCardItemExtnId).AsNoTracking()
+                .Select(s => new IcsParVM {
+                    Id = s.Id,
+                    UpdateCode = s.IcsPar.UpdateCode,
+                    RefNo = s.IcsPar.RefNo,
+                    RefDate = s.IcsPar.RefDate,
+                    RefType = s.IcsPar.RefType,
+                    LocationCode = s.IcsPar.LocationCode,
+                    Location= s.IcsPar.Location,
+                    ReceivedBy = s.IcsPar.ReceivedBy,
+                    IssuedBy = s.IcsPar.IssuedBy,
+                    IssuedTo = s.IssuedTo
+                }).AsQueryable();
             return data;
         }
 

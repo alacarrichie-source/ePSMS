@@ -61,7 +61,7 @@ namespace iLgs.Controllers
             return result;
         }
         
-        public async Task<ActionResult> _Issuance(Guid? cardItemId, Guid? transferId, decimal? unitCost, Guid? deptId)
+        public async Task<ActionResult> _Issuance(Guid? cardItemId, Guid? transferId, decimal? unitCost, Guid? deptId, Guid? locationId)
         {
             var model = await _psCardItemService.GetByTransferIdAsync(transferId);
 
@@ -71,7 +71,7 @@ namespace iLgs.Controllers
             ViewData["DeptId"] = deptId;
             ViewData["IsWithItemExtn"] = model.IsWithItemExtn;
             ViewData["ItemExtnName"] = _psCardService.GetItemExtnName(cardItemId);
-
+            ViewData["DefaultLocation"] = locationId ?? deptId;
             return PartialView();
         }
         

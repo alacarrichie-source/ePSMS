@@ -29,7 +29,10 @@
                 @Html.DisplayFor(m => m.PoNo, "Label")
             </div>
             <div class="col-md-4">
-                @(Html.Kendo().TextBoxFor(m => m.PoNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @*@(Html.Kendo().TextBoxFor(m => m.PoNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))*@
+                @(Html.Kendo().MaskedTextBoxFor(model => model.PoNo).Mask("0000-00-0000")
+                                .PromptChar(" ")
+                                .Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.PoNo)
             </div>
             <div class="col-md-2">
@@ -401,12 +404,12 @@
             </div>
         </div>
 
-        <br />
+        @*<br />
 
         @if (!string.IsNullOrEmpty(partialViewName))
         {
             @Html.Partial(partialViewName)
-        }
+        }*@
 
     </fieldset>
 }

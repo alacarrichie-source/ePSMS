@@ -87,6 +87,26 @@
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
             }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
         );
+        col.Group(group => group.Title("Transit")
+            .Columns(info =>
+            {
+                info.Bound(f => f.PastTransAmount).Width(70).Title("Past<br>Year/s")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                    .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                info.Bound(f => f.CurTransAmount).Width(70).Title("Current<br>Year")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                    .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                info.Bound(f => f.FutureTransAmount).Width(70).Title("Future<br>Year/s")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                    .ClientGroupFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #")
+                    .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        );
         col.Group(group => group.Title("Issuance")
             .Columns(info =>
             {
@@ -106,7 +126,7 @@
                     .ClientFooterTemplate("#= sum != null ? kendo.format('{0:n2}', sum) : '' #").FooterHtmlAttributes(new { Style = "text-align:right;" })
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
             }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
-        );        
+        );
     })
     .ToolBar(t =>
     {
@@ -152,12 +172,12 @@
             a.Add(p => p.Amount).Sum();
             a.Add(p => p.BalanceAmount).Sum();
             a.Add(p => p.IssueAmount).Sum();
-            //a.Add(p => p.PastQty).Sum();
             a.Add(p => p.PastAmount).Sum();
-            //a.Add(p => p.CurQty).Sum();
             a.Add(p => p.CurAmount).Sum();
-            //a.Add(p => p.FutureQty).Sum();
             a.Add(p => p.FutureAmount).Sum();
+            a.Add(p => p.PastTransAmount).Sum();
+            a.Add(p => p.CurTransAmount).Sum();
+            a.Add(p => p.FutureTransAmount).Sum();
         })
         .Sort(s => s.Add(a => a.PoNo).Descending())
         .Read(read => read.Action("PoRead", "Query").Data("DataStockCard"))

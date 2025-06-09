@@ -14,7 +14,6 @@ namespace iLgs.Models
     
     public partial class PsCardItemExtnBuilding : PsCardItemExtn
     {
-        public Nullable<System.DateTime> AcqDate { get; set; }
         public string Address { get; set; }
         public string ProjectName { get; set; }
         public string BuildingType { get; set; }
@@ -29,5 +28,8 @@ namespace iLgs.Models
         public string Status { get; set; }
         public Nullable<double> Latitude { get; set; }
         public Nullable<double> Longitude { get; set; }
+        public string BuildingItem { get; set; }
+        public string PhaseNo { get; set; }
+        public Nullable<decimal> PhaseAmountCo { get; set; }
     }
 }

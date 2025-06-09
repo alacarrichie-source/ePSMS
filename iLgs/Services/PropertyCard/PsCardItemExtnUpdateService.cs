@@ -1,4 +1,8 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Exceptions.Service;
+using iLgs.Models;
+using iLgs.Services.Validators;
+using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -26,21 +30,30 @@ namespace iLgs.Services.PropertyCard
         PsCardItemExtnLandEntryVM GetCardItemExtnLandEntry(Guid? id);
         PsCardItemExtnStructuresEntryVM GetCardItemExtnStructuresEntry(Guid? id);
         PsCardItemExtnVehicleEntryVM GetCardItemExtnVehicleEntry(Guid? id);
-        PsCardItemExtnPpeEntryVM GetCardItemExtnPpeEntry(Guid? id);        
+        PsCardItemExtnPpeEntryVM GetCardItemExtnPpeEntry(Guid? id);
+
+        ValueTask<PsCardItemExtnPpeEntryVM> UpdatePpeAsync(PsCardItemExtnPpeEntryVM model, string user, DateTime date);
+        ValueTask<PsCardItemExtnVehicleEntryVM> UpdateVehicleAsync(PsCardItemExtnVehicleEntryVM model, string user, DateTime date);
     }
 
 
-    public class PsCardItemExtnUpdateService : IPsCardItemExtnUpdateService
+    public class PsCardItemExtnUpdateService : BaseValidator, IPsCardItemExtnUpdateService
     {
         private readonly AppManEntities _db;
         private IPsCardItemExtnVehicleService _psCardItemExtnVehicleService;
         private IPsCardItemExtnOtherService _psCardItemExtnOtherService;
+        private readonly GetDisplayNameDelegate _getPpeDisplayName;
+        private readonly GetDisplayNameDelegate _getVehicleDisplayName;
+        private readonly IExceptionService<PsCardItemExtnPpeEntryVM> _ppeExceptionService = new ExceptionService<PsCardItemExtnPpeEntryVM>();
+        private readonly IExceptionService<PsCardItemExtnVehicleEntryVM> _vehicleExceptionService = new ExceptionService<PsCardItemExtnVehicleEntryVM>();
 
         public PsCardItemExtnUpdateService(AppManEntities db)
         {
             _db = db;
-            _psCardItemExtnVehicleService = new PsCardItemExtnVehicleService(_db);
-            _psCardItemExtnOtherService = new PsCardItemExtnOtherService(_db);
+            //_psCardItemExtnVehicleService = new PsCardItemExtnVehicleService(_db);
+            //_psCardItemExtnOtherService = new PsCardItemExtnOtherService(_db);
+            _getPpeDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnPpeEntryVM>(propertyName);
+            _getVehicleDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleEntryVM>(propertyName);
         }
 
         public IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get { return _psCardItemExtnVehicleService = _psCardItemExtnVehicleService ?? new PsCardItemExtnVehicleService(_db); } }
@@ -236,44 +249,97 @@ namespace iLgs.Services.PropertyCard
             return data;
         }
 
-        //public IQueryable<PsCardItemExtnVehicleVM> GetCardItemExtnForVehicleIssuanceSelection(Guid? psCardItemId)
-        //{
-        //    var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
-        //                .Include(i => i.IcsParItems)
-        //                .Where(w => w.PsCardItemId == psCardItemId
-        //                //&& !w.PsCardItemTransactions.Any(a => a.Remarks == "ISSUANCE")
-        //                )
-        //                .Select(s => new PsCardItemExtnVehicleVM
-        //                {
-        //                    Id = s.Id,
-        //                    YearModel = s.YearModel,
-        //                    PlateNo = s.PlateNo,
-        //                    BodyNo = s.BodyNo,
-        //                    EngineNo = s.EngineNo,
-        //                    ChasisNo = s.ChasisNo,
-        //                    Color = s.Color,
-        //                    CRN = s.CRN,
-        //                    CRDate = s.CRDate,
-        //                    MVFileNo = s.MVFileNo,
-        //                    OrNo = s.OrNo,
-        //                    OrDate = s.OrDate,
-        //                    NetWeight = s.NetWeight,
-        //                    InsPolicyNo = s.InsPolicyNo,
-        //                    ParReissuance = s.ParReissuance,
-        //                    Condition = s.Condition,
-        //                    SubLocation = s.SubLocation,
-        //                    ConductionNo = s.ConductionNo,
-        //                    LocationId = s.IcsParItems.FirstOrDefault() == null ? null : s.IcsParItems.FirstOrDefault().IcsPar.LocationId,
-        //                    Location = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.Location,
-        //                    LocationCode = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.LocationCode,
-        //                    ParIcsNo = s.IcsParItems.FirstOrDefault() == null ? "" : s.IcsParItems.FirstOrDefault().IcsPar.RefNo,
-        //                    ParIcsDate = s.IcsParItems.FirstOrDefault() == null ? null : s.IcsParItems.FirstOrDefault().IcsPar.RefDate
-        //                })
-        //                .AsQueryable();
-        //    return data;
-        //}
+        
+        public ValueTask<PsCardItemExtnPpeEntryVM> UpdatePpeAsync(PsCardItemExtnPpeEntryVM model, string user, DateTime date) => _ppeExceptionService.TryCatch(async () =>
+        {
+            if (model == null)
+            {
+                throw new NullException();
+            }
 
 
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            var entity = await _db.PsCardItemExtns.Include(i => i.PsCardItem).OfType<PsCardItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
+
+            if (entity == null)
+            {
+                throw new NotFoundException(model.Id);
+            }
+
+            entity.CustItemNo = model.CustItemNo;
+            entity.Annex = model.Annex;
+            entity.SeriesNo = model.SeriesNo;            
+            entity.SubLocation = model.SubLocation;
+            entity.Condition = model.Condition;
+            entity.AddCost = model.AddCost;
+            entity.AcqCost = entity.PsCardItem.UnitCost + model.AddCost;
+            entity.Remarks = model.Remarks;
+            entity.OldPropNo = model.OldPropNo;
+            entity.OldAmount = model.OldAmount;
+            entity.UpcomingOfficer = model.UpcomingOfficer;
+
+            entity.SerialNo = model.SerialNo;
+
+            _db.PsCardItemExtns.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            return model;
+        });
+
+        public ValueTask<PsCardItemExtnVehicleEntryVM> UpdateVehicleAsync(PsCardItemExtnVehicleEntryVM model, string user, DateTime date) => _vehicleExceptionService.TryCatch(async () =>
+        {
+            if (model == null)
+            {
+                throw new NullException();
+            }
+
+
+            model.UpdatedBy = user;
+            model.UpdatedDt = date;
+
+            var entity = await _db.PsCardItemExtns.Include(i => i.PsCardItem).OfType<PsCardItemExtnVehicle>().FirstOrDefaultAsync(f => f.Id == model.Id);
+
+            if (entity == null)
+            {
+                throw new NotFoundException(model.Id);
+            }
+
+            entity.CustItemNo = model.CustItemNo;
+            entity.Annex = model.Annex;
+            entity.SeriesNo = model.SeriesNo;
+            entity.SubLocation = model.SubLocation;
+            entity.Condition = model.Condition;
+            entity.AddCost = model.AddCost;
+            entity.AcqCost = entity.PsCardItem.UnitCost + model.AddCost;
+            entity.Remarks = model.Remarks;
+            entity.OldPropNo = model.OldPropNo;
+            entity.OldAmount = model.OldAmount;
+            entity.UpcomingOfficer = model.UpcomingOfficer;
+
+            entity.YearModel = model.YearModel;
+            entity.PlateNo = model.PlateNo;
+            entity.BodyNo = model.BodyNo;
+            entity.EngineNo = model.EngineNo;
+            entity.ChasisNo = model.ChasisNo;
+            entity.Color = model.Color;
+            entity.CRN = model.CRN;
+            entity.CRDate = model.CRDate;
+            entity.MVFileNo = model.MVFileNo;
+            entity.OrNo = model.OrNo;
+            entity.OrDate = model.OrDate;
+            entity.NetWeight = model.NetWeight;
+            entity.InsPolicyNo = model.InsPolicyNo;
+            entity.ConductionNo = model.ConductionNo;
+
+            _db.PsCardItemExtns.Attach(entity);
+            _db.Entry(entity).State = EntityState.Modified;
+            await _db.SaveChangesAsync();
+
+            return model;
+        });
 
         public string GetEndSeries(string startSeries, Guid? itemId)
         {

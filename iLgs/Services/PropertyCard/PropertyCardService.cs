@@ -171,7 +171,7 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCards.FindAsync(model.Id);
+            var entity = await _db.PsCards.Include(i => i.AllField).FirstOrDefaultAsync(f => f.Id == model.Id);
 
             ValidateUser(entity, model);
             model.AllField = _allFieldService.ChangeAllFieldCase(model.AllField);            

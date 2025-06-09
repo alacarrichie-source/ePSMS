@@ -19,7 +19,6 @@ namespace iLgs.Models
         public string LandMarks { get; set; }
         public Nullable<decimal> MarketValue { get; set; }
         public Nullable<decimal> PricePerSqm { get; set; }
-        public Nullable<decimal> OldAmounts { get; set; }
         public string TctNo { get; set; }
         public string OldTctNo { get; set; }
         public string DRPNo { get; set; }
@@ -50,5 +49,29 @@ namespace iLgs.Models
         public Nullable<decimal> Surveying { get; set; }
         public Nullable<decimal> IncidentalExpenses { get; set; }
         public string CapitalOutlayOrExpense { get; set; }
+        public Nullable<decimal> AreaXPrice { get; set; }
+        public string Vendor { get; set; }
+        public string Representative { get; set; }
+        public Nullable<bool> CGTTransferTaxCap { get; set; }
+        public Nullable<bool> CGTSurchargeCap { get; set; }
+        public Nullable<bool> CGTInterestCap { get; set; }
+        public Nullable<bool> CGTCompromiseCap { get; set; }
+        public Nullable<bool> DSTTransferTaxCap { get; set; }
+        public Nullable<bool> DSTSurchargeCap { get; set; }
+        public Nullable<bool> DSTInterestCap { get; set; }
+        public Nullable<bool> DSTCompromiseCap { get; set; }
+        public Nullable<bool> TransferTaxCap { get; set; }
+        public Nullable<bool> SurchargeCap { get; set; }
+        public Nullable<bool> InterestCap { get; set; }
+        public Nullable<bool> ConfirmationFeeCap { get; set; }
+        public Nullable<bool> TransferRegsFeeCap { get; set; }
+        public Nullable<bool> RealPropertyTaxCap { get; set; }
+        public Nullable<bool> VATCap { get; set; }
+        public Nullable<bool> EstateTaxCap { get; set; }
+        public Nullable<bool> TitlingCap { get; set; }
+        public Nullable<bool> CertificationFeeCap { get; set; }
+        public Nullable<bool> RelocationCap { get; set; }
+        public Nullable<bool> SurveyingCap { get; set; }
+        public Nullable<bool> IncidentalExpensesCap { get; set; }
     }
 }

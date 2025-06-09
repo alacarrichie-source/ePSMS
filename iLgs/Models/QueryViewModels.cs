@@ -89,5 +89,23 @@ namespace iLgs.Models
 
         [Display(Name = "Future Amount")]
         public Nullable<decimal> FutureAmount { get; set; }
+
+        [Display(Name = "Past Transit Qty")]
+        public int? PastTransQty { get; set; }
+
+        [Display(Name = "Past Transit Amount")]
+        public Nullable<decimal> PastTransAmount { get; set; }
+
+        [Display(Name = "Current Transit Qty")]
+        public int? CurTransQty { get; set; }
+
+        [Display(Name = "Current Transit Amount")]
+        public Nullable<decimal> CurTransAmount { get; set; }
+
+        [Display(Name = "Future Transit Qty")]
+        public int? FutureTransQty { get; set; }
+
+        [Display(Name = "Future Transit Amount")]
+        public Nullable<decimal> FutureTransAmount { get; set; }
     }
 }

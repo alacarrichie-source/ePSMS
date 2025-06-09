@@ -6,6 +6,7 @@ using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
@@ -23,11 +24,13 @@ namespace iLgs.Services.PropertyCard
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
+        private readonly IUserService _userService;
         public PsCardItemValidator(AppManEntities db)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemVM>(propertyName);
             _codextnService = new CodextnService(_db);
+            _userService = new UserService(_db);
         }
 
         public void ValidateOnCreate(PsCardItemVM cardItem)
@@ -106,25 +109,7 @@ namespace iLgs.Services.PropertyCard
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.UnitCost)), "Field is required.");
             }
-
-            //if (cardItem.DeptId != null)
-            //{
-            //    if (cardItem.LocationId != null)
-            //    {
-            //        if (!cardItem.TransferIn.HasValue)
-            //        {
-            //            ex.UpsertDataList(_getDisplayName(nameof(cardItem.TransferIn)), "Field is required.");
-            //        }
-            //    }
-            //    else
-            //    {
-            //        if (!cardItem.Qty.HasValue)
-            //        {
-            //            ex.UpsertDataList(_getDisplayName(nameof(cardItem.Qty)), "Field is required.");
-            //        }
-            //    }
-            //}
-
+            
             if (string.IsNullOrWhiteSpace(model.Description))
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.Description)), "Field is required.");
@@ -142,19 +127,28 @@ namespace iLgs.Services.PropertyCard
                 }
             }
 
+            if (!model.PoDate.HasValue)
+            {
+                ex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), "Field is required.");
+            }
+
             if (string.IsNullOrWhiteSpace(model.PoNo))
             {
                 ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Field is required.");
             }
             else
-            {
+            {                
                 var psCardItems = _db.PsCardItems.AsNoTracking().Where(w => w.PoNo == model.PoNo);
                 if (mode == Mode.ADD)
                 {                    
                     // check user
                     if (psCardItems.Any(a => a.InsertedBy != model.InsertedBy))
                     {
-                        ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already created by other user.");
+                        var isAdmin = _userService.IsUserNameAdmin(model.InsertedBy);
+                        if (!isAdmin)
+                        {
+                            ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already created by other user.");
+                        }
                     }
                     else
                     {
@@ -163,13 +157,22 @@ namespace iLgs.Services.PropertyCard
                             ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Already exists with same description");
                         }
                     }
-                                      
+
+                    // check po date
+                    if (psCardItems.Any(a => a.PoDate != model.PoDate))
+                    {
+                        ex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), $"PO NNo. already exists with different date.");
+                    }                                      
                 }
                 else
-                {
+                {                    
                     if (psCardItems.Any(a => a.InsertedBy != model.UpdatedBy))
                     {
-                        ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Can only be modified by it's creator or an admin.");
+                        var isAdmin = _userService.IsUserNameAdmin(model.UpdatedBy);
+                        if (!isAdmin)
+                        {
+                            ex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Can only be modified by it's creator or an admin.");
+                        }
                     }
                     else
                     {
@@ -179,12 +182,54 @@ namespace iLgs.Services.PropertyCard
                         }
                     }
                 }                
+            }            
+
+            if (model.TransDate.HasValue)
+            {
+                if (model.TransDate.Value < model.PoDate)
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.TransDate)), $"Must be on or after the PO Date.");
+                }
             }
 
 
-            if (!model.PoDate.HasValue)
+            if (mode == Mode.EDIT && model.ParentId != null)
             {
-                ex.UpsertDataList(_getDisplayName(nameof(model.PoDate)), "Field is required.");
+                if (!model.TransDate.HasValue)
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.TransDate)), $"Field is Required.");
+                }
+                else
+                {
+                    var issuanceYears = _codextnService.GetIssuanceYears();
+                    if (issuanceYears.Any())
+                    {
+                        var minYear = int.Parse(issuanceYears.Min(m => m.Description));
+                        var maxYear = int.Parse(issuanceYears.Max(m => m.Description));
+
+                        if (model.TransDate.Value.Year < minYear)
+                        {
+                            if (minYear == maxYear)
+                            {
+                                ex.UpsertDataList(_getDisplayName(nameof(model.TransDate)), $"Year of date transit must be for year {minYear}.");
+                            }
+                            else
+                            {
+                                ex.UpsertDataList(_getDisplayName(nameof(model.TransDate)), $"Year of date transit must be from {minYear} to {maxYear}.");
+                            }
+                        }
+
+                        var year = model.TransDate.Value.Year.ToString().Trim();
+                        if (!issuanceYears.Any(a => a.Description == year))
+                        {
+                            ex.UpsertDataList(_getDisplayName(nameof(model.TransDate)), $"transit for this year is not allowed.");
+                        }
+                    }
+                    else
+                    {
+                        ex.UpsertDataList(_getDisplayName(nameof(model.TransDate)), $"transit year setup is not a available.");
+                    }
+                }
             }
 
             ex.ThrowIfContainsErrors();

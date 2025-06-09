@@ -1,0 +1,428 @@
+﻿@model iLgs.Models.PsCardItemExtnStructuresEntryVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form-order", id = "form-order" }))
+{
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.PoNo, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.PoNo).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.PoNo)
+        </div>
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.PoDate, "LabelDate")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().DatePickerFor(m => m.PoDate).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.PoDate)
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.DeptCode, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.DeptCode).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.DeptCode)
+        </div>
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.Department, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.Department).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.Department)
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.DeptDisplay, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.DeptDisplay).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.DeptDisplay)
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.AirNo, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.AirNo).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.AirNo)
+        </div>
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.AirDate, "LabelDate")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().DatePickerFor(m => m.AirDate).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.AirDate)
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.Unit, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.Unit).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.Unit)
+        </div>
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.UnitCost, "LabelDecimal")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().NumericTextBoxFor(m => m.UnitCost).Decimals(2).Format("{0:n2}").Spinners(false)
+                .HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" })
+            )
+            @Html.ValidationMessageFor(m => m.UnitCost)
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.Description, "Label")
+        </div>
+        <div class="col-md-10">
+            @(Html.Kendo().TextAreaFor(m => m.Description).Readonly(true).Rows(5).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.Description)
+        </div>
+    </div>
+
+    <br />
+
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.OtherDesc, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextAreaFor(m => m.OtherDesc).Readonly(true).Rows(5).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.OtherDesc)
+        </div>
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.OtherQty, "LabelInt")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().NumericTextBoxFor(m => m.OtherQty).Decimals(0).Format("{0:n0}").Spinners(false)
+            .HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.OtherQty)
+        </div>
+    </div>
+
+    <br />
+    <div class="row k-mb-2">
+        <div class="col-md-6">
+            @*@(Html.Kendo().TabStrip()
+                    .Name("tabStripTransit")
+                    .TabPosition(TabStripTabPosition.Top)
+                    .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                    .SelectedIndex(0)
+                    .Items(items =>
+                    {
+                        items.Add().Text("Transit").Selected(true)
+                        .Content(@<text>@RenderTransit()</text>);
+                    })
+                )*@
+
+            <section id="item-transit" class="card ra-section">
+                <div class="card-header">Transit</div>
+                <div class="card-body">
+                    @RenderTransit()
+                </div>
+            </section>
+        </div>
+        <div class="col-md-6">
+            @*@(Html.Kendo().TabStrip()
+                                .Name("tabStripIssuance")
+                                .TabPosition(TabStripTabPosition.Top)
+                                .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+                                .SelectedIndex(0)
+                                .Items(items =>
+                                {
+                                    items.Add().Text("Issuance").Selected(true)
+                                    .Content(@<text>@RenderIssuance()</text>);
+                                })
+                )*@
+            <section id="item-issuance" class="card ra-section">
+                <div class="card-header">Issuance</div>
+                <div class="card-body">
+                    @RenderIssuance()
+                </div>
+            </section>
+        </div>
+    </div>
+    <br />
+
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.SetLotNo, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextBoxFor(m => m.SetLotNo).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.SetLotNo)
+        </div>
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.SetLotAmount, "LabelDecimal")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().NumericTextBoxFor(m => m.SetLotAmount).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" })
+            //.Events(e => e.Change("onChangeSetValues"))
+            )
+            @Html.ValidationMessageFor(m => m.SetLotAmount)
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.PriceRate, "LabelDecimal")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().NumericTextBoxFor(m => m.PriceRate).Decimals(2).Format("{0:n2}").Spinners(false)
+                .HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" })
+            //.Events(e => e.Change("onChangeSetValues"))
+            )
+            @Html.ValidationMessageFor(m => m.PriceRate)
+        </div>
+        <div class="item-label col-md-2">
+            <label class="form-label">
+                <span class="required-marker">
+                </span>
+                @Html.LabelFor(m => m.ProRatedCost, "Pro-rated Set Cost")
+            </label>
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().NumericTextBoxFor(m => m.ProRatedCost).Decimals(2).Format("{0:n2}").Spinners(false)
+            .HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.ProRatedCost)
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="item-label col-md-2">
+            @Html.DisplayFor(m => m.SetLotRemarks, "Label")
+        </div>
+        <div class="col-md-4">
+            @(Html.Kendo().TextAreaFor(m => m.SetLotRemarks).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(m => m.SetLotRemarks)
+        </div>
+    </div>
+}
+
+@helper RenderTransit()
+{
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemVM>()
+    .Name("gridTransit")
+    .Columns(columns =>
+    {
+        columns.Bound(f => f.TransDate).Width(50).Title("Date");
+        columns.Group(group =>
+        {
+            group.Title("Receipt Quantity").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+            .Columns(col =>
+            {
+                col.Group(g =>
+                {
+                    g.Title("Originating Department").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                    .Columns(info =>
+                    {
+                        info.Bound(f => f.DeptCode).Width(50).Title("Code");
+                        info.Bound(f => f.Department).Width(70).Title("PO Owner");
+                        info.Bound(f => f.Qty)
+                          .Width(50).Title("In")
+                          .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                          .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                          .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    });
+                });
+                col.Group(g =>
+                {
+                    g.Title("Intermediary").HeaderHtmlAttributes(new { Style = "text-align:center;" })
+                    .Columns(info =>
+                    {
+                        info.Bound(f => f.LocCode).Width(50).Title("Code");
+                        info.Bound(f => f.Location).Width(50).Title("Location");
+                        info.Bound(f => f.TransferIn)
+                            .Width(50).Title("Transit<br>In")
+                            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                            .ClientFooterTemplate("#=kendo.format('{0:n0}',sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                    });
+                });
+            });
+        });
+        columns.Group(group => group.Title("Released Quantity")
+            .Columns(info =>
+            {
+                info.Bound(f => f.TransferOut)
+                    .Width(50).Title("Transit<br>Out")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+                info.Bound(f => f.QtyIss)
+                    .Width(50).Title("Issued")
+                    .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                    .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            }).HeaderHtmlAttributes(new { Style = "text-align:center;" })
+        );
+        columns.Bound(f => f.QtyBal).Width(50).Title("Balance<br>Quantity")
+            .HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+            .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+            .HeaderHtmlAttributes(new { style = "text-align:right;" });
+    })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+    )
+    //.Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    .Scrollable()
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Sortable()
+    //.ClientDetailTemplateId("Details")
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        //.Events(events => events.Error("GridError").RequestEnd("onRequestEnd"))
+        .Model(model =>
+        {
+            model.Id(p => p.TransferId);
+        })
+        .Aggregates(a =>
+        {
+            a.Add(p => p.Qty).Sum();
+            a.Add(p => p.QtyIss).Sum();
+            a.Add(p => p.TransferIn).Sum();
+            a.Add(p => p.TransferOut).Sum();
+            a.Add(p => p.QtyBal).Sum();
+        })
+        .Sort(s =>
+        {
+            s.Add(a => a.InsertedDt);
+        })
+        //.ServerOperation(true)
+        .Read(read => read.Action("_TransitRead", "ItemCard", new { psCardItemId = ViewData["psCardItemId"] }))
+    )
+    .Events(events => events
+        .Change("onChangeGridTransit")
+        .DataBound("onDataBoundGridTransit")
+        )
+    )
+}
+
+
+@helper RenderIssuance()
+{
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemTransferIssuanceVM>()
+    .Name("gridIssuance")
+    .Columns(col =>
+    {
+        col.Bound(c => c.IssuedDate).Width(40);
+        col.Bound(c => c.IssuedToDescription).Width(50);
+        col.Bound(c => c.Qty).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
+                .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Bound(c => c.Amount).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+    })
+    .ToolBar(t =>
+    {
+    t.Template(@<text>
+            <br /><br /><br /><br />
+    </text>);
+    })
+    .Pageable(pager => pager
+        .Input(false)
+        .Numeric(true)
+        .Info(true)
+        .PreviousNext(true)
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5)
+    )
+    //.Filterable()
+    .NoRecords()
+    .Resizable(r => r.Columns(true))
+    .Scrollable()
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .Sortable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        //.Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItems"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        })
+        .Aggregates(a =>
+        {
+            a.Add(p => p.Qty).Sum();
+            a.Add(p => p.Amount).Sum();
+        })
+        .Sort(s => s.Add(a => a.IssuedDate))
+        .Read(read => read.Action("_IssuanceRead", "ItemCard").Data("DataGridIssuance"))
+    )
+    .AutoBind(false)
+.Selectable(s => s.Mode(GridSelectionMode.Single))
+    //.Events(e => e
+    //    .Edit("onEditGridItems")
+    //    .Change("onChangeGridItems")
+    //    .DataBound("onDataBoundGridItems")
+    //    )
+    )
+}
+
+
+
+
+<script type="text/javascript">
+    $("#btnSave").click(function (e) {
+        e.preventDefault();
+        var popupNotification = $("#popupNotification").data("kendoNotification");
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_ItemCardPpeSave", "ItemCard")',
+                data: $("#form").serialize(),
+                beforeSend: function () {
+                    window.kendo.ui.progress($("#form"), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($("#form"), false);
+                    if (result.Errors == "") {
+                        popupNotification.show("Data Saved...", "info");
+                        //$("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                    }
+                    else {
+                        alert(result.Errors);
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+            disabled.attr('disabled', 'disabled');
+        }
+    });
+
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+</script>
+
+
+

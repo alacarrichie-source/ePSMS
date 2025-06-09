@@ -17,25 +17,33 @@
         col.Bound(c => c.InvoiceNo).Width(50);
         col.Bound(c => c.InvoiceDate).Width(50);
         col.Bound(c => c.PostedBy).Width(50);
-        col.Command(command =>
+        if (ViewBag.AirGroup != 3) // serial
         {
-            //command.Edit();
-            command.Custom("Edit").IconClass("k-icon k-i-edit").Click("onGridEditClick").SendDataKeys(true);
-            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-            command.Custom("Attachments").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
-            command.Custom("Print RIS").IconClass("k-icon k-i-print").Click("onGridPrintRisClick").SendDataKeys(true);
-            //command.Destroy();
-        }).Width(200);
+            col.Command(command =>
+            {
+
+                command.Custom("Edit").IconClass("k-icon k-i-edit").Click("onGridEditClick").SendDataKeys(true);
+                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+                command.Custom("Attachments").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
+                command.Custom("Print RIS").IconClass("k-icon k-i-print").Click("onGridPrintRisClick").SendDataKeys(true);
+            }).Width(200);
+        }
     })
     .ToolBar(t =>
     {
     //t.Create().Text("Add Record");
     @*@(Html.Kendo().Button().Name("btnAdd").Icon("k-icon k-i-add").Content("Issue Order")
         .Events(e => e.Click("onClickBtnAdd"))*@
-        t.Custom().Text("Add Record").IconClass("k-icon k-i-add").Name("btnAddAir_").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrint_").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost_").HtmlAttributes(new { @class = "k-button", href = "" });
-        t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost_").HtmlAttributes(new { @class = "k-button", href = "" });
+        if (ViewBag.AirGroup != 3) // serial
+        {
+            t.Custom().Text("Add Record").IconClass("k-icon k-i-add").Name("btnAddAir_").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrint_").HtmlAttributes(new { @class = "k-button", href = "" });
+        }
+        if (ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4)
+        {
+            t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost_").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost_").HtmlAttributes(new { @class = "k-button", href = "" });
+        }
         t.Search();
     })
     //.Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AIRTemplate").Window(w => w.Width(800).Title("Acceptance and Inspection")))
@@ -102,9 +110,9 @@
     {
         items.Add().Text("Items")
             .Selected(true)
-            .LoadContentFrom("_AIRItem", "AIRs", new { airId = "#=Id#" });
+            .LoadContentFrom("_AIRItem", "AIRs", new { airId = "#=Id#", airGroup = ViewBag.AirGroup });
         items.Add().Text("Groups")
-                    .LoadContentFrom("_UnitGroup", "AIRs", new { orderId = "#=OrderId#" });
+                    .LoadContentFrom("_UnitGroup", "AIRs", new { orderId = "#=OrderId#", airGroup = ViewBag.AirGroup });
     }).ToClientTemplate())
 </script>
 
@@ -441,12 +449,14 @@
         postedBy = selectedData.PostedBy;
         selectedAirNo = selectedData.AIRNo;
 
-        if (postedBy) {
-            $(".k-grid-btnUnpost_", grid).show();
-            $(".k-grid-btnPost_", grid).hide();
-        } else {
-            $(".k-grid-btnUnpost_", grid).hide();
-            $(".k-grid-btnPost_", grid).show();
+        if ('@ViewBag.AirGroup' == 2 || '@ViewBag.AirGroup' == 4) {
+            if (postedBy) {
+                $(".k-grid-btnUnpost_", grid).show();
+                $(".k-grid-btnPost_", grid).hide();
+            } else {
+                $(".k-grid-btnUnpost_", grid).hide();
+                $(".k-grid-btnPost_", grid).show();
+            }
         }
     }
 
@@ -473,8 +483,10 @@
         var grid = $("#grid");
         if (this.dataSource.data().length == 0) {
             $(".k-grid-btnPrint_", grid).hide();
-            $(".k-grid-btnPost_", grid).hide();
-            $(".k-grid-btnUnpost_", grid).hide();
+            if ('@ViewBag.AirGroup' == 2 || '@ViewBag.AirGroup' == 4) {
+                $(".k-grid-btnPost_", grid).hide();
+                $(".k-grid-btnUnpost_", grid).hide();
+            }
         }
         else {
             $(".k-grid-btnPrint_", grid).show();
@@ -600,7 +612,8 @@
         mywindow.refresh({
             url: '@Url.Action("_AIRAddEdit", "AIRs")',
             data: {
-                airId: airId
+                airId: airId,
+                airGroup: '@ViewBag.AirGroup'
             },
             // Specify a callback function to execute after content is loaded
             complete: function () {
@@ -1562,7 +1575,7 @@
         //mywindow.center();
         mywindow.open();
         //resizeWindow();
-    }    
+    }
 
     function onDataBoundGridImages(e) {
         if (selectedGridImagesItem) {
@@ -1630,7 +1643,7 @@
         mywindow.center();
         mywindow.open();
     }
-    
+
     function UploadPara(e) {
         var data = JSON.stringify({ model: $("#formUpload").serialize() });
         //alert(additional);
@@ -1674,7 +1687,7 @@
         } else {
             alert("Please select a row to export.");
         }
-    }    
+    }
 
     function onError(e) {
         // invalid because the responseText is a raw string, not JSON

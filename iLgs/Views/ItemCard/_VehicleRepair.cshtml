@@ -1,0 +1,66 @@
+﻿@(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnVehicleRepair>()
+    .Name("gridVehicleRepair")
+    .Columns(col =>
+    {
+        col.Bound(p => p.RepairDate).Width(70)
+            .ClientTemplate("#= kendo.toString(kendo.parseDate(RepairDate), 'MM/dd/yyyy') #")
+            .EditorTemplateName("_RepairDateTemplate");
+        col.Bound(p => p.InvoiceNo).Width(70);
+        col.Bound(p => p.Nature).Width(100);
+        col.Bound(p => p.Amount).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" })
+                .EditorTemplateName("_AmountTemplate");
+        col.Bound(p => p.AccTotal).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                //.ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Bound(p => p.AccPercent).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+                //.ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
+                .HeaderHtmlAttributes(new { style = "text-align:right;" });
+        col.Command(command =>
+        {
+            if (string.IsNullOrEmpty((string)ViewData["postedBy"]))
+            {
+                command.Edit();
+                command.Destroy();
+            }
+        }).Width(100);
+
+    })
+    .ToolBar(toolbar =>
+    {
+        toolbar.Create();
+    })
+    .Editable(e => e.Mode(GridEditMode.InLine))
+    .Pageable(pageable => pageable.Refresh(true).PageSizes(true).ButtonCount(5))
+    .Sortable(sortable => sortable
+        .AllowUnsort(false)
+        .SortMode(GridSortMode.MultipleColumn))
+    .Filterable()
+    .Scrollable()
+    .NoRecords()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Events(events => events.Error("InlineGridError").RequestEnd("onRequestEndGridVehicleRepair"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+            model.Field(p => p.PsCardItemExtnVehicleId).DefaultValue(ViewData["psCardItemExtnVehicleId"]);
+            model.Field(p => p.AccTotal).Editable(false);
+            model.Field(p => p.AccPercent).Editable(false);
+        })
+        .Sort(s => { s.Add(a => a.RepairDate); s.Add(a => a.InsertedDt); })
+        .Aggregates(a => { a.Add(x => x.Amount).Sum(); })
+        .Read(read => read.Action("_VehicleRepairRead", "ItemCard", new { psCardItemExtnVehicleId = ViewData["psCardItemExtnVehicleId"] }))
+        .Create(create => create.Action("_VehicleRepairCreate", "ItemCard"))
+        .Update(update => update.Action("_VehicleRepairUpdate", "ItemCard"))
+        .Destroy(destroy => destroy.Action("_VehicleRepairDestroy", "ItemCard"))
+        )
+        .Selectable(s => s.Mode(GridSelectionMode.Single))
+        .AutoBind(true)
+            .Events(events => events.Edit("onEditGridVehicleRepair")
+            .DataBound("onDataBoundGridVehicleRepair")
+        )
+)

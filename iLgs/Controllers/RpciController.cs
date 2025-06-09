@@ -475,11 +475,12 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult _PrintSum()
+        public ActionResult _PrintSum(bool isPosted)
         {
             var date = DateTime.Now;
             var model = new RsmiPrintVM()
             {
+                IsPosted = isPosted,
                 DateFrom = date,
                 DateTo = date
             };
@@ -562,7 +563,8 @@ namespace iLgs.Controllers
 
             crReportDocument.SetParameterValue("LGU", lgu);
             crReportDocument.SetParameterValue("@cFund", model.Fund);
-            crReportDocument.SetParameterValue("@dAsOfDate", model.DateFrom);            
+            crReportDocument.SetParameterValue("@dAsOfDate", model.DateFrom);
+            crReportDocument.SetParameterValue("@bIsPosted", model.IsPosted);
 
             if (model.SavePrints)
             {

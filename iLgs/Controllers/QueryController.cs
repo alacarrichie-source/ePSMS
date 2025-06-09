@@ -41,7 +41,7 @@ namespace iLgs.Controllers
 
         public ActionResult PoRead([DataSourceRequest] DataSourceRequest request, string userName, int? poStatus)
         {
-            var data = _db.Database.SqlQuery<QueryPoVM>("Exec Card_GetPoNumbers {0}, {1}", userName, poStatus).ToList();
+            var data = _db.Database.SqlQuery<QueryPoVM>("Exec Card_GetPoNumbers {0}, {1}", userName, poStatus).AsQueryable();
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),

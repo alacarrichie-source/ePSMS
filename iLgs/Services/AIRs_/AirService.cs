@@ -8,15 +8,17 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Web;
 using static iLgs.Models.Enums;
 
-namespace iLgs.Services.AIRs
+namespace iLgs.Services.AIRs_
 {
     public interface IAirService
     {
         IQueryable<AIR_VM> GetAll();
+        ValueTask<IQueryable<AIR_VM>> GetAllAsync(string userId);
         ValueTask<AIR> GetByIdAsync(Guid id);
         ValueTask<AIR_VM> GetVmByIdAsync(Guid id);
         ValueTask<AIR> GetByAirNoAsync(string airNo);
@@ -43,6 +45,7 @@ namespace iLgs.Services.AIRs
         private readonly IItemCodeService _itemCodeService;
         private readonly IAirUploadService _uploadService;
         private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly IUserService _userService;
 
         public AirService(AppManEntities db)
         {
@@ -50,43 +53,69 @@ namespace iLgs.Services.AIRs
             _airItemService = new AirItemService(_db);
             _itemCodeService = new ItemCodeService(_db);
             _uploadService = new AirUploadService(_db);
+            _userService = new UserService(_db);
             _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
         }
 
-        public IQueryable<AIR_VM> GetAll() => _VmExceptionService.TryCatch(() =>
+        private static Expression<Func<AIR, AIR_VM>> Projection
+        = s => new AIR_VM
+        {
+            Id = s.Id,
+            Fund = s.Order.Request.RISs.Fund,
+            OrderId = s.OrderId,
+            PoNo = s.Order.PoNo,
+            Supplier = s.Order.SupName,
+            PoDate = s.Order.PoDate,
+            Department = s.Order.DeliveryPlace,
+            AIRNo = s.AIRNo,
+            AIRDate = s.AIRDate,
+            InvoiceNo = s.InvoiceNo,
+            InvoiceDate = s.InvoiceDate,
+            AcceptedDate = s.AcceptedDate,
+            IsComplete = s.IsComplete,
+            IsPartial = s.IsPartial,
+            Custodian = s.Custodian,
+            InspectedDate = s.InspectedDate,
+            IsInspected = s.IsInspected,
+            Officer = s.Officer,
+            InvDist = s.InvDist,
+            Remarks = s.Remarks,
+            PostedBy = s.PostedBy,
+            PostedDt = s.PostedDt,
+            AIRInvoices = s.AIRInvoices,
+            InsertedDt = s.InsertedDt
+        };
+
+        public IQueryable<AIR_VM> GetAll()
         {
             var data = _db.AIRs
                 .Include(i => i.AIRInvoices)
                 .AsNoTracking()
-                .Select(s => new AIR_VM
-                {
-                    Id = s.Id,
-                    Fund = s.Order.Request.RISs.Fund,
-                    OrderId = s.OrderId,
-                    PoNo = s.Order.PoNo,
-                    Supplier = s.Order.SupName,
-                    PoDate = s.Order.PoDate,
-                    Department = s.Order.DeliveryPlace,
-                    AIRNo = s.AIRNo,
-                    AIRDate = s.AIRDate,
-                    InvoiceNo = s.InvoiceNo,
-                    InvoiceDate = s.InvoiceDate,
-                    AcceptedDate = s.AcceptedDate,
-                    IsComplete = s.IsComplete,
-                    IsPartial = s.IsPartial,
-                    Custodian = s.Custodian,
-                    InspectedDate = s.InspectedDate,
-                    IsInspected = s.IsInspected,
-                    Officer = s.Officer,
-                    InvDist = s.InvDist,
-                    Remarks = s.Remarks,
-                    PostedBy = s.PostedBy,
-                    PostedDt = s.PostedDt,
-                    AIRInvoices = s.AIRInvoices,
-                    InsertedDt = s.InsertedDt
-                });
+                .Select(Projection);
+
             return data;
-        });
+        }
+
+        public async ValueTask<IQueryable<AIR_VM>> GetAllAsync(string userId)
+        {
+            IQueryable<AIR_VM> data = null;
+            if (await _userService.IsAdminAsync(userId))
+            {
+                data = _db.AIRs
+                    .Include(i => i.AIRInvoices)
+                    .AsNoTracking()
+                    .Select(Projection);
+            }
+            else
+            {
+                data = _db.AIRs
+                    .Include(i => i.AIRInvoices)
+                    .AsNoTracking()
+                    .Where(w => w.Order.Request.RISs.Codextn.DepartmentUsers.Any(a => a.UserId == userId))
+                    .Select(Projection);
+            }
+            return data;
+        }
 
         public async ValueTask<bool> GetAnyAirNoAsync(Guid airId, string airNo)
         {
@@ -103,32 +132,7 @@ namespace iLgs.Services.AIRs
             var data = await _db.AIRs
                 .Include(i => i.AIRInvoices)
                 .Where(w => w.Id == id)
-                .Select(s => new AIR_VM
-                {
-                    Id = s.Id,
-                    OrderId = s.OrderId,
-                    PoNo = s.Order.PoNo,
-                    Supplier = s.Order.SupName,
-                    PoDate = s.Order.PoDate,
-                    Department = s.Order.DeliveryPlace,
-                    Fund = s.Order.Request.RISs.Fund,
-                    AIRNo = s.AIRNo,
-                    AIRDate = s.AIRDate,
-                    InvoiceNo = s.InvoiceNo,
-                    InvoiceDate = s.InvoiceDate,
-                    AcceptedDate = s.AcceptedDate,
-                    IsComplete = s.IsComplete,
-                    IsPartial = s.IsPartial,
-                    Custodian = s.Custodian,
-                    InspectedDate = s.InspectedDate,
-                    IsInspected = s.IsInspected,
-                    Officer = s.Officer,
-                    Remarks = s.Remarks,
-                    InvDist = s.InvDist,
-                    PostedBy = s.PostedBy,
-                    PostedDt = s.PostedDt,
-                    AIRInvoices = s.AIRInvoices
-                }).FirstOrDefaultAsync();
+                .Select(Projection).FirstOrDefaultAsync();
             return data;
         });
 
@@ -209,7 +213,7 @@ namespace iLgs.Services.AIRs
             if (!entity.AcceptedDate.HasValue)
             {
                 throw new InvalidValueException("Date received is required.");
-            }            
+            }
 
             if (!entity.IsComplete == true && !entity.IsPartial == true)
             {
@@ -710,7 +714,7 @@ namespace iLgs.Services.AIRs
                             Amount = orderItem.Amount,
                             //TranType = "I",
                             Unit = orderItem.Unit,
-                            UnitCost = orderItem.UnitCost,                            
+                            UnitCost = orderItem.UnitCost,
                             PriceRate = orderItem.PriceRate,
                             AddCost = 0,
                             TUnitCost = orderItem.UnitCost,
@@ -747,7 +751,7 @@ namespace iLgs.Services.AIRs
                             UpdatedBy = user,
                             UpdatedDt = date
                         };
-                        
+
 
                         // include ItemExtns
                         var airItemExtnOthers = _airItemService.AirItemExtn.GetAirItemExtnByOrderItemId<AIRItemExtnOther>(orderItem.Id);
@@ -824,7 +828,7 @@ namespace iLgs.Services.AIRs
                             }
                         }
 
-                        foreach(var psCardItemExtn in psCardItem.PsCardItemExtns)
+                        foreach (var psCardItemExtn in psCardItem.PsCardItemExtns)
                         {
                             var psCardItemTransferItem = new PsCardItemTransferItem()
                             {
@@ -840,7 +844,7 @@ namespace iLgs.Services.AIRs
                         }
                         psCardItem.PsCardItemTransfers.Add(psCardItemTransfer);
                         psCard.PsCardItems.Add(psCardItem);
-                    }                    
+                    }
 
                     if (isNew == true)
                     {
@@ -981,13 +985,13 @@ namespace iLgs.Services.AIRs
             var result = await _uploadService.GetAllByImageId(id).AnyAsync();
             return result;
         }
-        
+
         private async Task ValidateUploadAsync(Guid? id, string airNo)
         {
             if (!await IsWwithUploadAsync(id))
             {
                 throw new InvalidValueException($"No attachments found for AIR No. {airNo}, cannot post!");
-            }            
+            }
         }
 
         public ValueTask<AIR> UnpostAsync(Guid airId, string user, DateTime date) => _ExceptionService.TryCatch(async () =>
@@ -1023,7 +1027,7 @@ namespace iLgs.Services.AIRs
                 throw new RecordRelationshipException("Items were already issued, cannot unpost!");
             }
 
-            
+
             if (await _db.IcsParItems.Include(i => i.PsCardItemExtn.PsCardItem).AsNoTracking().AnyAsync(a => a.PsCardItemExtn.PsCardItem.OrderItemId == entity.OrderId))
             {
                 throw new RecordRelationshipException("PAR/ICS already issued, cannot unpost!");
@@ -1080,7 +1084,7 @@ namespace iLgs.Services.AIRs
                         _db.PsCardItemUnitGroups.RemoveRange(unitGroups);
                         await _db.SaveChangesAsync();
                     }
-                    
+
                     if (psCardItem.PsCardItemTransfers.Any())
                     {
                         _db.PsCardItemTransfers.RemoveRange(psCardItem.PsCardItemTransfers);
@@ -1266,7 +1270,7 @@ namespace iLgs.Services.AIRs
                     UpdatedBy = user,
                     UpdatedDt = insertedDt
                 };
-                
+
                 await _airItemService.AirItemExtn.CreateAirItemExtnAsync(airItem, orderItem, user, date);
                 entity.AIRItems.Add(airItem);
             }
@@ -1398,7 +1402,7 @@ namespace iLgs.Services.AIRs
             if (await _db.AIRs.AnyAsync(a => a.AIRNo == model.AIRNo))
             {
                 throw new RecordAlreadyExistsException(string.Format("AIR Number {0} already exists", model.AIRNo));
-            }            
+            }
         }
 
         private async ValueTask ValidateOnCreateUpdate(AIR_VM model, Mode mode)

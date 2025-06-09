@@ -54,6 +54,8 @@ namespace iLgs.Services.PropertyCard
                 SeriesNo = s.SeriesNo,
                 SerialNo = s.SerialNo,
                 Remarks = s.Remarks,
+                OldAmount = s.OldAmount,
+                OldPropNo  = s.OldPropNo,
                 InsertedBy = s.InsertedBy,
                 InsertedDt = s.InsertedDt
             };
@@ -237,6 +239,7 @@ namespace iLgs.Services.PropertyCard
             entity.SubLocation = model.SubLocation;
             entity.Annex = model.Annex;
             entity.OldPropNo = model.OldPropNo;
+            entity.OldAmount = model.OldAmount;
             entity.UpcomingOfficer = model.UpcomingOfficer;
         }
 

@@ -1,8 +1,6 @@
 ﻿using iLgs.Models;
-using iLgs.Services;
-using iLgs.Services.AIRs;
+using iLgs.Services.AIRs_;
 using iLgs.Services.Codes;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Requisition;
 
 namespace iLgs.Agents.Services

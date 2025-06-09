@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace iLgs.Services.AIRs
+namespace iLgs.Services.AIRs_
 {
     public interface IAirItemExtnOtherService
     {
@@ -72,7 +72,7 @@ namespace iLgs.Services.AIRs
 
             if (!string.IsNullOrWhiteSpace(model.SerialNo))
             {
-                if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.SerialNo == model.SerialNo))
+                if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.AIRItemId == model.AIRItemId && f.SerialNo == model.SerialNo))
                 {
                     throw new RecordAlreadyExistsException("Serial No. already exists!");
                 }
@@ -146,7 +146,7 @@ namespace iLgs.Services.AIRs
 
             if (!string.IsNullOrWhiteSpace(model.SerialNo))
             {
-                if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.SerialNo == model.SerialNo && f.Id != model.Id))
+                if (await _db.AIRItemExtns.OfType<AIRItemExtnOther>().AnyAsync(f => f.AIRItemId == model.AIRItemId && f.SerialNo == model.SerialNo && f.Id != model.Id))
                 {
                     throw new RecordAlreadyExistsException("Serial No.", "Serial No. already exists!");
                 }

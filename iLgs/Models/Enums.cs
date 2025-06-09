@@ -7,6 +7,14 @@ namespace iLgs.Models
 {
     public static class Enums
     {
+        public enum AirGroup
+        {
+            INSPECTION = 1,
+            ACCEPTANCE = 2,
+            SERIAL = 3,
+            ADMIN = 4
+        }
+
         public enum IcsValue
         {
             SPLV = 1,
