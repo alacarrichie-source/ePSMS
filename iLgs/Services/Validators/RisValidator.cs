@@ -5,6 +5,7 @@ using iLgs.Services.Codes;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using static iLgs.Models.Enums;
@@ -90,6 +91,37 @@ namespace iLgs.Services.Validators
         public void ValidateFieldsOnCreateUpdate(RIS_VM model, Mode mode)
         {
             var ex = new InvalidModelException();
+
+            if (!string.IsNullOrWhiteSpace(model.RisNo))
+            {
+                if (model.RisNo.Trim().Length != 12)
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.RisNo)), "Invalid value.");
+                }
+                else
+                {
+                    var refNoParts = model.RisNo.Split('-');
+                    var refNoYear = int.Parse(refNoParts[0]);
+                    var refNoMonth = int.Parse(refNoParts[1]);
+                    if (refNoYear != model.RisDate.Value.Year || refNoMonth != model.RisDate.Value.Month)
+                    {
+                        ex.UpsertDataList(_getDisplayName(nameof(model.RisNo)), "Series Year and month must be same as the year and month of the RIS date.");
+                    }
+                    else
+                    {
+                        var maxNo = _db.RISses.Where(w => DbFunctions.TruncateTime(w.RisDate) < DbFunctions.TruncateTime(model.RisDate)).Max(m => m.RisNo);                        
+                        if (!string.IsNullOrWhiteSpace(maxNo))
+                        {
+                            var refNoSeq = int.Parse(refNoParts[2]);
+                            var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                            if (refNoSeq <= maxSeq)
+                            {
+                                ex.UpsertDataList(_getDisplayName(nameof(model.RisNo)), $"Serial No. must be greater than {maxSeq}");
+                            }
+                        }
+                    }
+                }
+            }
 
             if (mode == Mode.ADD) {
                 if (model.RisDate.Value.Date > DateTime.Now.Date)

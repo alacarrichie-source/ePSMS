@@ -28,12 +28,14 @@ namespace iLgs.Services.PropertyCard
         private readonly IExceptionService<PsCardItemExtnOtherVM> _exceptionService = new ExceptionService<PsCardItemExtnOtherVM>();
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnOtherValidator _psCardItemExtnOtherValidator;
+        private readonly IPsCardItemExtnService _psCardItemExtnService;
 
-        public PsCardItemExtnOtherService(AppManEntities db)
+        public PsCardItemExtnOtherService(AppManEntities db, IPsCardItemExtnService psCardItemExtnService)
         {
             _db = db;
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
             _psCardItemExtnOtherValidator = new PsCardItemExtnOtherValidator(_db);
+            _psCardItemExtnService = psCardItemExtnService;
         }
 
         private Expression<Func<PsCardItemExtnOther, PsCardItemExtnOtherVM>> GetProjection()
@@ -42,22 +44,33 @@ namespace iLgs.Services.PropertyCard
             {
                 Location = s.Codextn.Description,
                 Id = s.Id,
+                PsCardItemExtnId = s.Id,
                 PsCardItemId = s.PsCardItemId,
                 AIRItemExtnId = s.AIRItemExtnId,
                 SetLotNo = s.SetLotNo,
                 SetLotQtyNo = s.SetLotQtyNo,
                 ContentNo = s.ContentNo,
+                CustItemNo = s.CustItemNo,
+                IsAutoGen = s.IsAutoGen,
                 LocationId = s.LocationId,
                 PropNo = s.PropNo,
                 PropYear = s.PropYear,
                 PropSeq = s.PropSeq,
                 SeriesNo = s.SeriesNo,
-                SerialNo = s.SerialNo,
                 Remarks = s.Remarks,
+                Annex = s.Annex,
                 OldAmount = s.OldAmount,
-                OldPropNo  = s.OldPropNo,
+                OldPropNo = s.OldPropNo,
+                UpcomingOfficer = s.UpcomingOfficer,
+                SubLocation = s.SubLocation,
+                Condition = s.Condition,
+                AddCost = s.AddCost,
+                AcqCost = s.AcqCost,
+                AcqDate = s.AcqDate,
                 InsertedBy = s.InsertedBy,
-                InsertedDt = s.InsertedDt
+                InsertedDt = s.InsertedDt,
+                // Extn
+                SerialNo = s.SerialNo
             };
         }
 
@@ -219,28 +232,10 @@ namespace iLgs.Services.PropertyCard
 
         public void MapModelToEntityFields(PsCardItemExtnOther entity, PsCardItemExtnOtherVM model, Mode mode)
         {
-            if (mode == Mode.ADD)
-            {
-                entity.Id = model.Id;
-                entity.InsertedBy = model.InsertedBy;
-                entity.InsertedDt = model.InsertedDt;
-            }
-            entity.PsCardItemId = model.PsCardItemId;
-
-            entity.SetLotNo = model.SetLotNo;
-            entity.SetLotQtyNo = model.SetLotQtyNo;
-            entity.ContentNo = model.ContentNo;
-            entity.CustItemNo = model.CustItemNo;
-            entity.SerialNo = model.SerialNo;
-            entity.Condition = model.Condition;
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-            entity.Condition = model.Condition;
-            entity.SubLocation = model.SubLocation;
-            entity.Annex = model.Annex;
-            entity.OldPropNo = model.OldPropNo;
-            entity.OldAmount = model.OldAmount;
-            entity.UpcomingOfficer = model.UpcomingOfficer;
+            _psCardItemExtnService.MapModelToEntityFields(entity, model, mode);
+            
+            // extn
+            entity.SerialNo = model.SerialNo;            
         }
 
         public ValueTask<PsCardItemExtnOtherVM> DeleteAsync(PsCardItemExtnOtherVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>

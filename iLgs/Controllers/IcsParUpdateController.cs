@@ -10,6 +10,7 @@ using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -93,6 +94,7 @@ namespace iLgs.Controllers
 
         public ActionResult _Transfer(string refNo, string refType)
         {
+            var issued = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-BY").AsNoTracking().OrderByDescending(o => o.Code).FirstOrDefault();
             var date = DateTime.Now;
             var model = new IcsParVM()
             {
@@ -100,7 +102,10 @@ namespace iLgs.Controllers
                 RefType = refType,
                 RefDate = date,
                 ReceivedDate = date,
-                IssuedDate = date
+                IssuedDate = date,
+                IssuedBy = issued?.Description,
+                IssuedByPosition = issued?.Desc2,
+                IssuedDept = issued?.Desc3
             };
 
             ViewData["refNo"] = refNo;

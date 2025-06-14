@@ -89,8 +89,7 @@ namespace iLgs.Services.PropertyCard
             _psCardItemExtnBldgValidator.ValidateOnUpdate(model);
             _psCardItemTransferItemService.ValidateIfTransit(model.TransferId);
 
-            var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.PsCardItemExtnId).FirstOrDefaultAsync();
-
+            //var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.PsCardItemExtnId).FirstOrDefaultAsync();
             //if (itemExtn != null)
             //{
             //    throw new RecordAlreadyExistsException($"Serial No. {model.SerialNo} already exists!");
@@ -122,22 +121,23 @@ namespace iLgs.Services.PropertyCard
         {
             _psCardItemTransferItemService.MapModelToEntityFields(entity, model, mode);
 
-            entity.Longitude = model.Longitude;
-            entity.Latitude = model.Latitude;
             entity.Address = model.Address;
             entity.BuildingItem = model.BuildingItem;
+            entity.ProjectName = model.ProjectName;
             entity.BuildingType = model.BuildingType;
-            entity.StartDate = model.StartDate;
-            entity.TargetDate = model.TargetDate;
-            entity.CompletionDate = model.CompletionDate;
-            entity.PercentComplete = model.PercentComplete;
             entity.Area = model.Area;
             entity.AppraisedValue = model.AppraisedValue;
-            entity.ProjectName = model.ProjectName;
+            entity.TotalAmount = model.TotalAmount;
             entity.PhaseNo = model.PhaseNo;
             entity.PhaseAmountCo = model.PhaseAmountCo;
             entity.PhaseAmountMooe = model.PhaseAmountMooe;
+            entity.StartDate = model.StartDate;
+            entity.TargetDate = model.TargetDate;            
+            entity.PercentComplete = model.PercentComplete;
+            entity.CompletionDate = model.CompletionDate;
             entity.Status = model.Status;
+            entity.Longitude = model.Longitude;
+            entity.Latitude = model.Latitude;            
         }
 
         public ValueTask<PsCardItemExtnBldgVM> DeleteAsync(PsCardItemExtnBldgVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
@@ -148,7 +148,16 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().FirstOrDefault(f => f.Id == model.Id);
+            var entity = await _db.PsCardItemExtns.Include(i => i.PsCardItemTransferItems).OfType<PsCardItemExtnBuilding>().FirstOrDefaultAsync(f => f.Id == model.PsCardItemExtnId);
+
+            //// Remove each item from the DbContext
+            //foreach (var item in entity.PsCardItemTransferItems.ToList())
+            //{
+            //    _db.PsCardItemTransferItems.Remove(item);
+            //}
+
+            //entity.PsCardItemTransferItems.Clear();
+            //await _db.SaveChangesAsync();
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;

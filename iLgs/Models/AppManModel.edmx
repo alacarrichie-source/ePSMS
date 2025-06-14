@@ -1274,6 +1274,7 @@
           <Property Name="AddCost" Type="numeric" Precision="18" Scale="2" />
           <Property Name="AcqCost" Type="numeric" Precision="18" Scale="2" />
           <Property Name="OldAmount" Type="numeric" Precision="18" Scale="2" />
+          <Property Name="AcqDate" Type="datetime" />
         </EntityType>
         <EntityType Name="PsCardItemExtnVehicleRepairs">
           <Key>
@@ -9080,6 +9081,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="IcsParItems" Relationship="AppManModel.FK_IcsParItems_PsCardItemExtns" FromRole="PsCardItemExtn" ToRole="IcsParItem" />
           <NavigationProperty Name="PsCardItemExtnAddCosts" Relationship="AppManModel.FK_PsCardItemExtnAddCosts_PsCardItemExtns" FromRole="PsCardItemExtn" ToRole="PsCardItemExtnAddCost" />
           <Property Name="OldAmount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AcqDate" Type="DateTime" Precision="3" />
         </EntityType>
         <Association Name="FK_PsCardItemExtns_AIRItemExtns">
           <End Type="AppManModel.AIRItemExtn" Role="AIRItemExtn" Multiplicity="0..1">
@@ -11457,6 +11459,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySetMapping Name="PsCardItemExtns">
             <EntityTypeMapping TypeName="IsTypeOf(AppManModel.PsCardItemExtn)">
               <MappingFragment StoreEntitySet="PsCardItemExtns">
+                <ScalarProperty Name="AcqDate" ColumnName="AcqDate" />
                 <ScalarProperty Name="OldAmount" ColumnName="OldAmount" />
                 <ScalarProperty Name="AcqCost" ColumnName="AcqCost" />
                 <ScalarProperty Name="AddCost" ColumnName="AddCost" />

@@ -6,7 +6,7 @@
             @Html.DisplayFor(m => m.AllField.SerialNo, "Label")
         </div>
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.SerialNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @(Html.Kendo().TextBoxFor(m => m.AllField.SerialNo).HtmlAttributes(new { @readonly = "readonly",  style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.SerialNo)
         </div>
     </div>
@@ -16,7 +16,7 @@
             @Html.DisplayFor(m => m.AllField.PropNo, "Label")
         </div>
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @(Html.Kendo().TextBoxFor(m => m.AllField.PropNo).HtmlAttributes(new { @readonly = "readonly",  style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.PropNo)
         </div>
     </div>

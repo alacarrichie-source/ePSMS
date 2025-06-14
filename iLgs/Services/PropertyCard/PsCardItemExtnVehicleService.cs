@@ -3,6 +3,7 @@ using iLgs.Models;
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
@@ -10,13 +11,13 @@ namespace iLgs.Services.PropertyCard
 {
     public interface IPsCardItemExtnVehicleService
     {
-        IQueryable<PsCardItemExtnVehicle> GetByPsCardItemId(Guid? psCardItemId);
-        IQueryable<PsCardItemExtnVehicle> GetByPsCardItemIdWithTransferId(Guid? psCardItemId, Guid? transferId);
-        ValueTask<PsCardItemExtnVehicle> GetByIdAsync(Guid? id);
+        IQueryable<PsCardItemExtnVehicleVM> GetByPsCardItemId(Guid? psCardItemId);
+        IQueryable<PsCardItemExtnVehicleVM> GetByPsCardItemIdWithTransferId(Guid? psCardItemId, Guid? transferId);
+        ValueTask<PsCardItemExtnVehicleVM> GetByIdAsync(Guid? id);
 
-        ValueTask<PsCardItemExtnVehicle> CreateAsync(PsCardItemExtnVehicle model, string user, DateTime date);
-        ValueTask<PsCardItemExtnVehicle> UpdateAsync(PsCardItemExtnVehicle model, string user, DateTime date);
-        ValueTask<PsCardItemExtnVehicle> DeleteAsync(PsCardItemExtnVehicle model, string user, DateTime date);
+        ValueTask<PsCardItemExtnVehicleVM> CreateAsync(PsCardItemExtnVehicleVM model, string user, DateTime date);
+        ValueTask<PsCardItemExtnVehicleVM> UpdateAsync(PsCardItemExtnVehicleVM model, string user, DateTime date);
+        ValueTask<PsCardItemExtnVehicleVM> DeleteAsync(PsCardItemExtnVehicleVM model, string user, DateTime date);
 
         void ValidateItemExtnVechiles(Guid? psCardItemId);
 
@@ -26,38 +27,93 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnVehicleService : IPsCardItemExtnVehicleService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<PsCardItemExtnVehicle> _exceptionService = new ExceptionService<PsCardItemExtnVehicle>();
+        private readonly IExceptionService<PsCardItemExtnVehicleVM> _exceptionService = new ExceptionService<PsCardItemExtnVehicleVM>();
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
-        private readonly IPsCardItemExtnValidator _psCardItemExtnValidator;
-        private IPsCardItemExtnVehicleRepairService _psCardItemExtnVehicleRepairService;
+        private readonly IPsCardItemExtnVehicleValidator _psCardItemExtnValidator;
+        private readonly IPsCardItemExtnService _psCardItemExtnService;
+        private IPsCardItemExtnVehicleRepairService _psCardItemExtnVehicleRepairService;        
 
-        public PsCardItemExtnVehicleService(AppManEntities db)
+        public PsCardItemExtnVehicleService(AppManEntities db, IPsCardItemExtnService psCardItemExtnService)
         {
             _db = db;
             _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _psCardItemExtnValidator = new PsCardItemExtnValidator(_db);
+            _psCardItemExtnValidator = new PsCardItemExtnVehicleValidator(_db);
+            _psCardItemExtnService = psCardItemExtnService;
         }
 
         public IPsCardItemExtnVehicleRepairService PsCardItemExtnVehicleRepair { get { return _psCardItemExtnVehicleRepairService = _psCardItemExtnVehicleRepairService ?? new PsCardItemExtnVehicleRepairService(_db); } }
 
-        public IQueryable<PsCardItemExtnVehicle> GetByPsCardItemId(Guid? psCardItemId)
+        private Expression<Func<PsCardItemExtnVehicle, PsCardItemExtnVehicleVM>> GetProjection()
+        {
+            return s => new PsCardItemExtnVehicleVM
+            {
+                Location = s.Codextn.Description,
+                Id = s.Id,
+                PsCardItemExtnId = s.Id,
+                PsCardItemId = s.PsCardItemId,
+                AIRItemExtnId = s.AIRItemExtnId,
+                SetLotNo = s.SetLotNo,
+                SetLotQtyNo = s.SetLotQtyNo,
+                ContentNo = s.ContentNo,
+                CustItemNo = s.CustItemNo,
+                IsAutoGen = s.IsAutoGen,
+                LocationId = s.LocationId,
+                PropNo = s.PropNo,
+                PropYear = s.PropYear,
+                PropSeq = s.PropSeq,
+                SeriesNo = s.SeriesNo,
+                Remarks = s.Remarks,
+                Annex = s.Annex,
+                OldAmount = s.OldAmount,
+                OldPropNo = s.OldPropNo,
+                UpcomingOfficer = s.UpcomingOfficer,
+                SubLocation = s.SubLocation,
+                Condition = s.Condition,
+                AddCost = s.AddCost,
+                AcqCost = s.AcqCost,
+                AcqDate = s.AcqDate,
+                InsertedBy = s.InsertedBy,
+                InsertedDt = s.InsertedDt,
+                //Extension                
+                YearModel = s.YearModel,
+                PlateNo = s.PlateNo,
+                BodyNo = s.BodyNo,
+                EngineNo = s.EngineNo,
+                ChasisNo = s.ChasisNo,
+                Color = s.Color,
+                CRN = s.CRN,
+                CRDate = s.CRDate,
+                MVFileNo = s.MVFileNo,
+                OrNo = s.OrNo,
+                OrDate = s.OrDate,
+                NetWeight = s.NetWeight,
+                InsPolicyNo = s.InsPolicyNo,
+                ConductionNo = s.ConductionNo
+            };
+        }
+
+        public IQueryable<PsCardItemExtnVehicleVM> GetByPsCardItemId(Guid? psCardItemId)
         {
             var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
-                .Where(w => w.PsCardItemId == psCardItemId);
+                .Where(w => w.PsCardItemId == psCardItemId)
+                .Select(GetProjection());
             return data;
         }
 
-        public IQueryable<PsCardItemExtnVehicle> GetByPsCardItemIdWithTransferId(Guid? psCardItemId, Guid? transferId)
+        public IQueryable<PsCardItemExtnVehicleVM> GetByPsCardItemIdWithTransferId(Guid? psCardItemId, Guid? transferId)
         {
             var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
-                .Where(w => w.PsCardItemId == psCardItemId && w.PsCardItemTransferItems.Any(a => a.PsCardItemTransferId == transferId));
+                .Where(w => w.PsCardItemId == psCardItemId && w.PsCardItemTransferItems.Any(a => a.PsCardItemTransferId == transferId))
+                .Select(GetProjection());
             return data;
         }
 
-        public ValueTask<PsCardItemExtnVehicle> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemExtnVehicleVM> GetByIdAsync(Guid? id) => _exceptionService.TryCatch(async () =>
         {
             var data = await _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().AsNoTracking()
-                .Where(w => w.Id == id).FirstOrDefaultAsync();
+                .Where(w => w.Id == id)
+                .Select(GetProjection())
+                .FirstOrDefaultAsync();
             return data;
         });
 
@@ -81,7 +137,7 @@ namespace iLgs.Services.PropertyCard
             }
         }
 
-        public ValueTask<PsCardItemExtnVehicle> CreateAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemExtnVehicleVM> CreateAsync(PsCardItemExtnVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             //ValidatorService.ValidateModel<PsCardItemExtn>(model);
 
@@ -113,7 +169,7 @@ namespace iLgs.Services.PropertyCard
             return model;
         });        
 
-        public ValueTask<PsCardItemExtnVehicle> UpdateAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemExtnVehicleVM> UpdateAsync(PsCardItemExtnVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnValidator.ValidateOnUpdate(model);
 
@@ -132,7 +188,7 @@ namespace iLgs.Services.PropertyCard
             return model;
         });
 
-        public ValueTask<PsCardItemExtnVehicle> DeleteAsync(PsCardItemExtnVehicle model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemExtnVehicleVM> DeleteAsync(PsCardItemExtnVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {            
             _psCardItemExtnValidator.ValidateOnDelete(model);
 
@@ -174,7 +230,7 @@ namespace iLgs.Services.PropertyCard
             return model;
         });
 
-        public void MapModelToEntityFields(PsCardItemExtnVehicle entity, PsCardItemExtnVehicle model, Mode mode)
+        public void MapModelToEntityFields(PsCardItemExtnVehicle entity, PsCardItemExtnVehicleVM model, Mode mode)
         {
             if (mode == Mode.ADD)
             {
@@ -197,7 +253,6 @@ namespace iLgs.Services.PropertyCard
             entity.OrDate = model.OrDate;
             entity.NetWeight = model.NetWeight;
             entity.InsPolicyNo = model.InsPolicyNo;
-            entity.ParReissuance = model.ParReissuance;            
             entity.ConductionNo = model.ConductionNo;
             entity.ContentNo = model.ContentNo;
             entity.CustItemNo = model.CustItemNo;

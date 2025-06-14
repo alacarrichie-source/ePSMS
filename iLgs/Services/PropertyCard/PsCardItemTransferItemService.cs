@@ -196,6 +196,7 @@ namespace iLgs.Services.PropertyCard
             entity.Annex = model.Annex;
             entity.AddCost = model.AddCost;
             entity.AcqCost = model.AcqCost;
+            entity.AcqDate = model.AcqDate;
             entity.LocationId = model.LocationId;
             entity.PropNo = model.PropNo;
             entity.OldPropNo = model.OldPropNo;

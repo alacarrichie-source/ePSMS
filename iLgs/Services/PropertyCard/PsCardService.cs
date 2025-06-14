@@ -322,6 +322,10 @@ namespace iLgs.Services.PropertyCard
                 {
                     itemExtnName = "ItemExtnLand";
                 }
+                else if (c == CatBuildingsProp())
+                {
+                    itemExtnName = "ItemExtnBldg";
+                }
                 else if (c == CatTransportationProp())
                 {
                     itemExtnName = "ItemExtnVehicle";

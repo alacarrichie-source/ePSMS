@@ -863,6 +863,8 @@
     <Compile Include="Services\LoggingService.cs" />
     <Compile Include="Services\PoIssuance\PoIssuanceUploadService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnAddCostService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnBldgService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnLandService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnVehicleRepairService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemTransferItemBldgService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnBldgValidator.cs" />
@@ -4153,6 +4155,7 @@
     <Content Include="Views\ItemCard\_VehicleRepair.cshtml" />
     <Content Include="Views\ItemCard\_ItemCardLandEntry.cshtml" />
     <Content Include="Views\CustodianReportBldg\BldgQuery.cshtml" />
+    <Content Include="Views\ItemCard\_Land_FieldLand.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4496,6 +4499,7 @@
     <Content Include="Views\Shared\EditorTemplates\_EffectivityTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_RepairDateTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_CardItemExtnLandTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_CardItemExtnBldgTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />

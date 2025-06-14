@@ -6,7 +6,7 @@
             @Html.DisplayFor(m => m.AllField.Brand, "Label")
         </div>
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Brand).HtmlAttributes(new { @readonly = "readonly",  style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.Brand)
         </div>
     </div>
@@ -16,7 +16,7 @@
             @Html.DisplayFor(m => m.AllField.Model_, "Label")
         </div>
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Model_).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Model_).HtmlAttributes(new { @readonly = "readonly",  style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.Model_)
         </div>
     </div>
@@ -43,7 +43,7 @@
             @Html.DisplayFor(m => m.AllField.Weight, "Label")
         </div>
         <div class="col-md-8">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Weight).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Weight).HtmlAttributes(new { @readonly = "readonly",  style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.Weight)
         </div>
     </div>
@@ -56,7 +56,7 @@
             @Html.DisplayFor(m => m.AllField.Color, "Label")
         </div>
         <div class="col-md-8">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Color).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Color).HtmlAttributes(new { @readonly = "readonly",  style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.Color)
         </div>
     </div>

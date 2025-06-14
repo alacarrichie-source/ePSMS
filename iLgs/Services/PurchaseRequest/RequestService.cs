@@ -9,6 +9,9 @@ using System.Data.Entity;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using System.Linq.Expressions;
+using static iLgs.Models.Enums;
+using iLgs.Services.Validators;
+using iLgs.Utilities;
 
 namespace iLgs.Services.PurchaseRequest
 {
@@ -31,23 +34,26 @@ namespace iLgs.Services.PurchaseRequest
         Task<bool> IsPoPostedAsync(Guid? requestId);
         Task<bool> IsWithInvalidUnitCostAsync(Guid? requestId);
 
-        Task<RequestVM> CreateAsync(RequestVM model, string user, DateTime date);
-        Task<RequestVM> UpdateAsync(RequestVM model, string user, DateTime date);
-        Task<RequestVM> DeleteAsync(RequestVM model, string user, DateTime date);
-        Task PostAsync(Guid requestId, string user, DateTime date);
-        Task UnpostAsync(Guid requestId, string user, DateTime date);
+        ValueTask<RequestVM> CreateAsync(RequestVM model, string user, DateTime date);
+        ValueTask<RequestVM> UpdateAsync(RequestVM model, string user, DateTime date);
+        ValueTask<RequestVM> DeleteAsync(RequestVM model, string user, DateTime date);
+        ValueTask PostAsync(Guid requestId, string user, DateTime date);
+        ValueTask UnpostAsync(Guid requestId, string user, DateTime date);
     }
 
-    public class RequestService : IRequestService
+    public class RequestService : BaseValidator, IRequestService
     {
         private readonly AppManEntities _db;
         private readonly IUserService _userService;
         private readonly decimal _priceCap = 50000;
+        private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly IExceptionService<RequestVM> _vmExceptionService = new ExceptionService<RequestVM>();
 
         public RequestService(AppManEntities db)
         {
             _db = db;
             _userService = new UserService(_db);
+            _getDisplayName = propertyName => Utility.GetDisplayName<RequestVM>(propertyName);
         }
 
         private static Expression<Func<Request, RequestVM>> Projection
@@ -191,7 +197,8 @@ namespace iLgs.Services.PurchaseRequest
             return await _db.RequestItems.AnyAsync(a => a.PrId == requestId && (a.UnitCost == null || a.UnitCost == 0));
         }
 
-        public async Task<RequestVM> CreateAsync(RequestVM model, string user, DateTime date)
+        public ValueTask<RequestVM> CreateAsync(RequestVM model, string user, DateTime date) =>
+        _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             model.Id = Guid.NewGuid();
@@ -205,6 +212,7 @@ namespace iLgs.Services.PurchaseRequest
             model.UpdatedDt = date;
 
             ValidateOnCreate(model);
+            ValidateOnCreateUpdate(model, Mode.ADD);
 
             var entity = new Request()
             {
@@ -272,7 +280,7 @@ namespace iLgs.Services.PurchaseRequest
 
             // Unit Groups
             var unitGroups = await _db.RisItemUnitGroups.Include(i => i.RisItemUnitGroupDescriptions).Where(w => w.RisId == model.RisId).OrderBy(o => o.InsertedDt).ToListAsync();
-            foreach(var unitGroup in unitGroups)
+            foreach (var unitGroup in unitGroups)
             {
                 var unitGroupDt = DateTime.Now;
                 var requestItemUnitGroup = new RequestItemUnitGroup()
@@ -286,7 +294,7 @@ namespace iLgs.Services.PurchaseRequest
                     UpdatedDt = unitGroupDt
                 };
 
-                foreach(var unitGroupDescription in unitGroup.RisItemUnitGroupDescriptions.OrderBy(o => o.InsertedDt).ToList())
+                foreach (var unitGroupDescription in unitGroup.RisItemUnitGroupDescriptions.OrderBy(o => o.InsertedDt).ToList())
                 {
                     var groupDescriptionDt = DateTime.Now;
                     var requestItemUnitGroupDescription = new RequestItemUnitGroupDescription()
@@ -301,12 +309,12 @@ namespace iLgs.Services.PurchaseRequest
                     };
 
                     var risItemUnitGroupDescriptionItems = await _db.RisItemUnitGroupDescriptionItems.Where(w => w.UnitGroupDescriptionId == unitGroupDescription.Id).OrderBy(o => o.InsertedDt).ToListAsync();
-                    foreach(var unitGroupDescriptionItem in risItemUnitGroupDescriptionItems)
+                    foreach (var unitGroupDescriptionItem in risItemUnitGroupDescriptionItems)
                     {
                         var groupDescriptionItemDt = DateTime.Now;
                         var requsetItemUnitGroupDescriptionItem = new RequestItemUnitGroupDescriptionItem()
                         {
-                            Id = Guid.NewGuid(),                            
+                            Id = Guid.NewGuid(),
                             RisItemUnitGroupDescriptionItemId = unitGroupDescriptionItem.Id,
                             RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescription.Id,
                             RequestItemId = entity.RequestItems.FirstOrDefault(f => f.RisItemId == unitGroupDescriptionItem.RisItemId).Id,
@@ -326,9 +334,10 @@ namespace iLgs.Services.PurchaseRequest
             await _db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        public async Task<RequestVM> UpdateAsync(RequestVM model, string user, DateTime date)
+        public ValueTask<RequestVM> UpdateAsync(RequestVM model, string user, DateTime date) =>
+        _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             model.UpdatedBy = user;
@@ -338,12 +347,14 @@ namespace iLgs.Services.PurchaseRequest
             ValidateRecord(entity, model.Id);
             ValidateIfPosted(entity);
             ValidateOnUpdate(entity, model);
+            ValidateOnCreateUpdate(model, Mode.EDIT);
 
             // if there's a change of requisition item
             if (entity.RisId != model.RisId)
             {
                 var requestItems = _db.RequestItems.Where(w => w.PrId == model.Id);
-                await requestItems.ForEachAsync(f => {
+                await requestItems.ForEachAsync(f =>
+                {
                     f.UpdatedBy = model.UpdatedBy;
                     f.UpdatedDt = model.UpdatedDt;
                 });
@@ -351,7 +362,7 @@ namespace iLgs.Services.PurchaseRequest
 
                 _db.RequestItems.RemoveRange(requestItems);
                 await _db.SaveChangesAsync();
-                
+
                 // include items during add
                 var risItems = _db.RisItems.Where(w => w.RisId == model.RisId).ToList();
                 foreach (var risItem in risItems)
@@ -398,15 +409,16 @@ namespace iLgs.Services.PurchaseRequest
             entity.ApprovedDesig = model.ApprovedDesig ?? "";
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
-            
+
             _db.Requests.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
-        public async Task<RequestVM> DeleteAsync(RequestVM model, string user, DateTime date)
+        public ValueTask<RequestVM> DeleteAsync(RequestVM model, string user, DateTime date) =>
+        _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             model.UpdatedBy = user;
@@ -429,10 +441,10 @@ namespace iLgs.Services.PurchaseRequest
             await _db.SaveChangesAsync();
 
             return model;
-        }
+        });
 
 
-        public async Task PostAsync(Guid requestId, string user, DateTime date)
+        public async ValueTask PostAsync(Guid requestId, string user, DateTime date)
         {
             var entity = await _db.Requests.FindAsync(requestId);
             if (entity != null)
@@ -523,7 +535,7 @@ namespace iLgs.Services.PurchaseRequest
             }
         }
 
-        public async Task UnpostAsync(Guid requestId, string user, DateTime date)
+        public async ValueTask UnpostAsync(Guid requestId, string user, DateTime date)
         {
             var entity = await _db.Requests.FindAsync(requestId);
             if (entity != null)
@@ -579,10 +591,46 @@ namespace iLgs.Services.PurchaseRequest
                 {
                     if (ris.RisDate > model.PrDate)
                     {
-                        throw new InvalidValueException("PR Date must be greater than or equal to RIS date!");
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), "PR Date must be greater than or equal to RIS date.");
                     }
                 }
             }
+            _imex.ThrowIfContainsErrors();
+        }
+
+        private void ValidateOnCreateUpdate(RequestVM model, Mode mode)
+        {
+            if (!string.IsNullOrWhiteSpace(model.PrNo))
+            {
+                if (model.PrNo.Trim().Length != 12)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Invalid value.");
+                }
+                else
+                {
+                    var refNoParts = model.PrNo.Split('-');
+                    var refNoYear = int.Parse(refNoParts[0]);
+                    var refNoMonth = int.Parse(refNoParts[1]);
+                    if (refNoYear != model.PrDate.Value.Year || refNoMonth != model.PrDate.Value.Month)
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), "Series Year and month must be same as the year and month of the PR date.");
+                    }
+                    else
+                    {
+                        var maxNo = _db.Requests.Where(w => DbFunctions.TruncateTime(w.PrDate) < DbFunctions.TruncateTime(model.PrDate)).Max(m => m.PrNo);
+                        if (!string.IsNullOrWhiteSpace(maxNo))
+                        {
+                            var refNoSeq = int.Parse(refNoParts[2]);
+                            var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                            if (refNoSeq <= maxSeq)
+                            {
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.PrNo)), $"Serial No. must be greater than {maxSeq}");
+                            }
+                        }
+                    }
+                }
+            }
+            _imex.ThrowIfContainsErrors();
         }
 
         private void ValidateOnUpdate(Request entity, RequestVM model)
@@ -602,11 +650,11 @@ namespace iLgs.Services.PurchaseRequest
             {
                 throw new RecordRelationshipException(string.Format("RIS Number {0} does exists!", model.RisNo));
             }
-
             else if (ris.RisDate > model.PrDate)
             {
-                throw new InvalidValueException("PR date must be greather than or equal to RIS date!");
+                _imex.UpsertDataList(_getDisplayName(nameof(model.PrDate)), "PR Date must be greater than or equal to RIS date.");                
             }
+            _imex.ThrowIfContainsErrors();
         }
 
         //private async ValueTask ValidateOnDestroy(RequestVM model)

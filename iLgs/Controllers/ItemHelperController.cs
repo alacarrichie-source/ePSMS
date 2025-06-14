@@ -103,6 +103,31 @@ namespace iLgs.Controllers
             }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetCustodianItemAll(string text)
+        {
+            var model = _itemCodeService.GetCustodianItemAll(text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
+            return Json(model.Select(c => new
+            {
+                Id = c.Id,
+                ItemNoIndex = c.ItemNoIndex,
+                Code = c.Code,
+                Description = c.Description,
+                Type = c.ItemType,
+                TypeDesc = c.Account,
+                ItemNo = c.ItemNo,
+                MainDesc = c.MainDesc,
+                Account = c.Account,
+                SubAccount1 = c.SubAccount1,
+                SubAccount2 = c.SubAccount2,
+                SubAccount3 = c.SubAccount3,
+                SubAccount4 = c.SubAccount4,
+                Article = c.Article,
+                SubArticle = c.SubArticle,
+                MainDescCode = c.MainDescCode,
+                Category = c.Category
+            }), JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetCustodianItemPpe(string text)
         {
             var model = _itemCodeService.GetCustodianItemPpe(text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);

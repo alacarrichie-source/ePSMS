@@ -1,106 +1,106 @@
 ﻿@model iLgs.Models.PsCardItemExtnPpeEntryVM
 
 <div class="row k-mb-2">
-        <div class="item-label col-md-3">
-            @Html.DisplayFor(m => m.AllField.Multipliers, "LabelInt")
-        </div>
-        <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.AllField.Multipliers)
-        </div>    
+    <div class="item-label col-md-3">
+        @Html.DisplayFor(m => m.AllField.Multipliers, "LabelInt")
+    </div>
+    <div class="col-md-9">
+        @(Html.Kendo().TextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+        @Html.ValidationMessageFor(m => m.AllField.Multipliers)
+    </div>
 </div>
 
 <div class="row k-mb-2">
-        <div class="item-label col-md-3">
-            @Html.DisplayFor(m => m.AllField.Brand, "Label")
-        </div>
-        <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.AllField.Brand)
-        </div>
-        <div class="item-label col-md-3">
-            @Html.DisplayFor(m => m.AllField.Model_, "Label")
-        </div>
-        <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Model_).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.AllField.Model_)
-        </div>    
+    <div class="item-label col-md-3">
+        @Html.DisplayFor(m => m.AllField.Brand, "Label")
+    </div>
+    <div class="col-md-9">
+        @(Html.Kendo().TextBoxFor(m => m.AllField.Brand).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+        @Html.ValidationMessageFor(m => m.AllField.Brand)
+    </div>
+    <div class="item-label col-md-3">
+        @Html.DisplayFor(m => m.AllField.Model_, "Label")
+    </div>
+    <div class="col-md-9">
+        @(Html.Kendo().TextBoxFor(m => m.AllField.Model_).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+        @Html.ValidationMessageFor(m => m.AllField.Model_)
+    </div>
 </div>
 
 <div class="row k-mb-2">
-            <div class="item-label col-md-3">
-                <span class="required-marker">
-                </span>
-                @Html.Label("Alternative to Model:")
-            </div>        
+    <div class="item-label col-md-3">
+        <span class="required-marker">
+        </span>
+        @Html.Label("Alternative to Model:")
+    </div>
 </div>
 
 
 <div class="row k-mb-2">
-       <div class="col-md-1">
-            &nbsp;
-        </div>
-        <div class="item-label col-md-3">
-            @Html.DisplayFor(m => m.AllField.Dimension, "Label")
-        </div>
-        <div class="col-md-8">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Dimension).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.AllField.Dimension)
-        </div>
-        <div class="col-md-1">
-            &nbsp;
-        </div>
-        <div class="item-label col-md-3">
-            @Html.DisplayFor(m => m.AllField.Size, "Label")
-        </div>
-        <div class="col-md-8">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Size).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.AllField.Size)
-        </div>    
+    <div class="col-md-1">
+        &nbsp;
+    </div>
+    <div class="item-label col-md-3">
+        @Html.DisplayFor(m => m.AllField.Dimension, "Label")
+    </div>
+    <div class="col-md-8">
+        @(Html.Kendo().TextBoxFor(m => m.AllField.Dimension).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+        @Html.ValidationMessageFor(m => m.AllField.Dimension)
+    </div>
+    <div class="col-md-1">
+        &nbsp;
+    </div>
+    <div class="item-label col-md-3">
+        @Html.DisplayFor(m => m.AllField.Size, "Label")
+    </div>
+    <div class="col-md-8">
+        @(Html.Kendo().TextBoxFor(m => m.AllField.Size).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+        @Html.ValidationMessageFor(m => m.AllField.Size)
+    </div>
 </div>
 
 <div class="row k-mb-2">
-        <div class="col-md-1">
-            &nbsp;
-        </div>
-        <div class="item-label col-md-3">
-            @Html.DisplayFor(m => m.AllField.Weight, "Label")
-        </div>
-        <div class="col-md-8">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Weight).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.AllField.Weight)
-        </div>
-        <div class="col-md-1">
-            &nbsp;
-        </div>
-        <div class="item-label col-md-3">
-            @Html.DisplayFor(m => m.AllField.Materials, "Label")
-        </div>
-        <div class="col-md-8">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Materials).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.AllField.Materials)
-        </div>
+    <div class="col-md-1">
+        &nbsp;
+    </div>
+    <div class="item-label col-md-3">
+        @Html.DisplayFor(m => m.AllField.Weight, "Label")
+    </div>
+    <div class="col-md-8">
+        @(Html.Kendo().TextBoxFor(m => m.AllField.Weight).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+        @Html.ValidationMessageFor(m => m.AllField.Weight)
+    </div>
+    <div class="col-md-1">
+        &nbsp;
+    </div>
+    <div class="item-label col-md-3">
+        @Html.DisplayFor(m => m.AllField.Materials, "Label")
+    </div>
+    <div class="col-md-8">
+        @(Html.Kendo().TextBoxFor(m => m.AllField.Materials).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+        @Html.ValidationMessageFor(m => m.AllField.Materials)
+    </div>
 </div>
 
 <div class="row k-mb-2">
-        <div class="col-md-1">
-            &nbsp;
-        </div>
-        <div class="item-label col-md-3">
-            @Html.DisplayFor(m => m.AllField.Capacity, "Label")
-        </div>
-        <div class="col-md-8">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Capacity).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.AllField.Capacity)
-        </div>
-        <div class="col-md-1">
-            &nbsp;
-        </div>
-        <div class="item-label col-md-3">
-            @Html.DisplayFor(m => m.AllField.Color, "Label")
-        </div>
-        <div class="col-md-8">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Color).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
-            @Html.ValidationMessageFor(m => m.AllField.Color)
-        </div>    
+    <div class="col-md-1">
+        &nbsp;
+    </div>
+    <div class="item-label col-md-3">
+        @Html.DisplayFor(m => m.AllField.Capacity, "Label")
+    </div>
+    <div class="col-md-8">
+        @(Html.Kendo().TextBoxFor(m => m.AllField.Capacity).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+        @Html.ValidationMessageFor(m => m.AllField.Capacity)
+    </div>
+    <div class="col-md-1">
+        &nbsp;
+    </div>
+    <div class="item-label col-md-3">
+        @Html.DisplayFor(m => m.AllField.Color, "Label")
+    </div>
+    <div class="col-md-8">
+        @(Html.Kendo().TextBoxFor(m => m.AllField.Color).HtmlAttributes(new { @readonly = "readonly", style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+        @Html.ValidationMessageFor(m => m.AllField.Color)
+    </div>
 </div>

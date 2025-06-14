@@ -469,9 +469,9 @@
         } else if ('@ViewBag.AccountGroup' == 3) {
             url = '@Url.Action("LoadVehicleFields", "ItemCard")';
         } else if ('@ViewBag.AccountGroup' == 4) {
-            url = '@Url.Action("LoadStructuresFields", "ItemCard")';
-        } else if ('@ViewBag.AccountGroup' == 5) {
             url = '@Url.Action("LoadLandFields", "ItemCard")';
+        } else if ('@ViewBag.AccountGroup' == 5) {
+            url = '@Url.Action("LoadStructuresFields", "ItemCard")';
         }
 
         $.ajax({
@@ -638,7 +638,7 @@
         if (e.model.isNew()) {
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
-            
+
         } else {
             selectedGridVehicleRepairItem = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedGridVehicleRepairItem);

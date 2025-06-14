@@ -12,6 +12,7 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -572,6 +573,7 @@ namespace iLgs.Controllers
 
         public ActionResult _GenerateIcsBatch(string poNo, DateTime? poDate, Guid? deptId)
         {
+            var issued = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-BY").AsNoTracking().OrderByDescending(o => o.Code).FirstOrDefault();
             var date = DateTime.Now;
             var model = new GenerateIcsParVM()
             {
@@ -580,7 +582,7 @@ namespace iLgs.Controllers
                 DeptId = deptId,
                 Date = date,                
                 RefType = "I",
-                IcsPar = new IcsPar() { ReceivedDate = date, IssuedDate = date}
+                IcsPar = new IcsPar() { ReceivedDate = date, IssuedDate = date, IssuedBy = issued?.Description, IssuedByPosition = issued?.Desc2, IssuedDept = issued?.Desc3},                
             };
 
             return PartialView(model);

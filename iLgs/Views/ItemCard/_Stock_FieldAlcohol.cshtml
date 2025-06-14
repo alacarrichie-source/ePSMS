@@ -6,7 +6,7 @@
             @Html.DisplayFor(m => m.AllField.GenericName, "Label")
         </div>
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.GenericName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @(Html.Kendo().TextBoxFor(m => m.AllField.GenericName).HtmlAttributes(new { @readonly = "readonly",  style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.GenericName)
         </div>
     </div>
@@ -16,7 +16,7 @@
             @Html.DisplayFor(m => m.AllField.DosageVolume, "Label")
         </div>
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.DosageVolume).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @(Html.Kendo().TextBoxFor(m => m.AllField.DosageVolume).HtmlAttributes(new { @readonly = "readonly",  style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.DosageVolume)
         </div>
     </div>
@@ -28,7 +28,7 @@
             @Html.DisplayFor(m => m.AllField.Multipliers, "LabelInt")
         </div>
         <div class="col-md-9">
-            @(Html.Kendo().MaskedTextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription"))
+            @(Html.Kendo().MaskedTextBoxFor(m => m.AllField.Multipliers).HtmlAttributes(new { @readonly = "readonly",  style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription"))
                 .Mask("999999999")  // Adjust the number of 0s to fit your requirement -->
                 .PromptChar(" "))
             @Html.ValidationMessageFor(m => m.AllField.Multipliers)
@@ -40,7 +40,7 @@
             @Html.DisplayFor(m => m.AllField.Brand, "Label")
         </div>
         <div class="col-md-9">
-            @(Html.Kendo().TextBoxFor(m => m.AllField.Brand).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @(Html.Kendo().TextBoxFor(m => m.AllField.Brand).HtmlAttributes(new { @readonly = "readonly",  style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
             @Html.ValidationMessageFor(m => m.AllField.Brand)
         </div>
     </div>

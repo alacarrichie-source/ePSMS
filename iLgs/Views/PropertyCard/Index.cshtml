@@ -364,7 +364,51 @@
     .ToClientTemplate())
 </script>
 
-
+<script id="ItemExtnBldg" type="text/kendo-tmpl">
+    @(Html.Kendo().Grid<iLgs.Models.PsCardItemExtnBldgVM>()
+    .Name("gridItemExtn_#=TransferId#")
+    .Columns(col =>
+    {
+        col.Bound(c => c.CustItemNo).Width(50);
+        col.Bound(c => c.BuildingItem).Width(100);
+        col.Bound(c => c.BuildingType).Width(100);
+        col.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+        }).Width(100);
+    })
+    .ToolBar(t =>
+    {
+        t.Create();
+    })
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_CardItemExtnBldgTemplate").Window(w => w.Width(1000).Title("Item Details")))
+    .Sortable()
+    .NoRecords()
+    //.ClientDetailTemplateId("UploadedFiles")
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Events(events => events.Error("GridError").RequestEnd("onRequestEndGridItemExtn")
+        )
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).DefaultValue(Guid.Empty).Editable(false);
+        })
+        .Read(read => read.Action("_ItemExtnBldgRead", "PropertyCard", new { transferId = "#=TransferId#" }))
+        .Create(create => create.Action("_ItemExtnBldgCreate", "PropertyCard"))
+        .Update(update => update.Action("_ItemExtnBldgUpdate", "PropertyCard"))
+        .Destroy(destroy => destroy.Action("_ItemExtnBldgDestroy", "PropertyCard"))
+    )
+    .Events(events => events
+        .Change("onChangeGridItemExtn")
+        .Edit("onEditGridItemExtn")
+        .DataBound("onDataBoundGridItemExtn")
+        .Remove("onRemoveGridItemExtn")
+    )
+    .Selectable(s => s.Mode(GridSelectionMode.Single))
+    .ToClientTemplate())
+</script>
 
 <script id="UploadedFiles" type="text/kendo-tmpl">
     @(Html.Kendo().TabStrip()

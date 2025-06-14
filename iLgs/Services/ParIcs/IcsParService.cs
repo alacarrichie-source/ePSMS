@@ -1210,10 +1210,10 @@ namespace iLgs.Services.ParIcs
 
         public void ValidateUpdates(string refNo, string refType)
         {
-            var icsParUpdates = _db.IcsParUpdates.Where(a => a.PrevRefNo == refNo && a.RefType == refType).ToList();
+            var icsParUpdates = _db.IcsParUpdates.Include(i => i.IcsPar).Where(a => a.PrevRefNo == refNo && a.RefType == refType).ToList();
             if (icsParUpdates.Any())
             {
-                var cancelledBy = string.Join("/", icsParUpdates.Select(s => s.PrevRefNo));
+                var cancelledBy = string.Join("/", icsParUpdates.Select(s => s.IcsPar.RefNo));
                 if (refType == "I")
                 {
                     throw new RecordRelationshipException($"ICS No. {refNo} was already cancelled by ICS No. {cancelledBy}, cannot proceed.");

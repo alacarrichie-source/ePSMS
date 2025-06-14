@@ -1209,6 +1209,7 @@ namespace iLgs.Services.AIRs_
         {
             await ValidateOnCreate(model);
             await ValidateOnCreateUpdate(model, Mode.ADD);
+            ValidateAirNo(model);
 
             model.Id = (model.Id == Guid.Empty || model.Id == null) ? Guid.NewGuid() : model.Id;
             if (string.IsNullOrWhiteSpace(model.AIRNo))
@@ -1285,6 +1286,7 @@ namespace iLgs.Services.AIRs_
         {
             await ValidateOnUpdate(model);
             await ValidateOnCreateUpdate(model, Mode.EDIT);
+            ValidateAirNo(model);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -1443,6 +1445,44 @@ namespace iLgs.Services.AIRs_
                 }
             }
 
+            //_imex.ThrowIfContainsErrors();
+        }
+
+        private void ValidateAirNo(AIR_VM model)
+        {
+            if (!string.IsNullOrWhiteSpace(model.AIRNo))
+            {
+                if (model.AIRNo.Trim().Length != 12)
+                {
+                    //_imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Invalid value.");
+                    throw new InvalidValueException("Invalid AIR No.");
+                }
+                else
+                {
+                    var refNoParts = model.AIRNo.Split('-');
+                    var refNoYear = int.Parse(refNoParts[0]);
+                    var refNoMonth = int.Parse(refNoParts[1]);
+                    if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.AIRDate.Value.Month)
+                    {
+                        //_imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), "Series Year and month must be same as the year and month of the PO date.");
+                        throw new InvalidValueException("Series Year and month of AIR No. must be same as the year and month of the AIR date.");
+                    }
+                    else
+                    {
+                        var maxNo = _db.AIRs.Where(w => DbFunctions.TruncateTime(w.AIRDate) < DbFunctions.TruncateTime(model.AIRDate)).Max(m => m.AIRNo);
+                        if (!string.IsNullOrWhiteSpace(maxNo))
+                        {
+                            var refNoSeq = int.Parse(refNoParts[2]);
+                            var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                            if (refNoSeq <= maxSeq)
+                            {
+                                //_imex.UpsertDataList(_getDisplayName(nameof(model.AIRNo)), $"Serial No. must be greater than {maxSeq}");
+                                throw new InvalidValueException($"Serial No. of AIR No. must be greater than {maxSeq}");
+                            }
+                        }
+                    }
+                }
+            }
             //_imex.ThrowIfContainsErrors();
         }
 

@@ -49,20 +49,11 @@ namespace iLgs.Services.PropertyCard
             ValidateIfPosted(model);
 
             // check in Par/Ics
-            if (_db.IcsParItems.Any(a => a.PsCardItemExtnId == model.PsCardItemId))
+            if (_db.IcsParItems.Any(a => a.PsCardItemExtnId == model.PsCardItemExtnId))
             {
                 throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
             }
-
-            //var transactions = _db.PsCardItemTransactions.Where(a => a.PsCardItemExtnId == a.Id && a.Remarks != "CARD")
-            //    .GroupBy(g => g.Remarks)
-            //    .Select(s => s.Key);
-            //if (transactions.Any())
-            //{
-            //    string remarks = string.Join("/", transactions);
-            //    throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
-            //}
-
+            
             var transfer = _db.PsCardItemTransferItems.AsNoTracking()
                     .Where(w => w.PsCardItemTransfer.ParentId != null && w.PsCardItemExtnId == model.PsCardItemExtnId);                    
             if (transfer.Any())

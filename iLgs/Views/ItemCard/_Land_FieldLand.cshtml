@@ -1,0 +1,13 @@
+﻿@model iLgs.Models.PsCardItemExtnLandEntryVM
+@*@Html.HiddenFor(model => model.AllField.Id)*@
+
+<div class="row k-mb-2">
+    <div class="col-md-12">
+        @Html.LabelFor(m => m.AllField.Area, htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().NumericTextBoxFor(m => m.AllField.Area).Decimals(2).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateDescription")))
+            @Html.ValidationMessageFor(m => m.AllField.Area)
+        </div>
+    </div>
+</div>
+

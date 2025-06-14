@@ -47,6 +47,7 @@ namespace iLgs.Models
         [Display(Name = "PO No.")]
         public string PoNo { get; set; }
 
+        [Required]
         [Display(Name = "PR No.")]
         public Nullable<System.Guid> PrId { get; set; }
 

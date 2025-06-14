@@ -11,7 +11,8 @@ namespace iLgs.Models
     {        
         public System.Guid Id { get; set; }
 
-        [Display(Name = "RIS No.")]
+        [Required]
+        [Display(Name = "RIS No.")]        
         public Nullable<System.Guid> RisId { get; set; }        
         
         [Display(Name = "PR No.")]
@@ -51,6 +52,7 @@ namespace iLgs.Models
         // TRANSIENTS 
         // From RIS
 
+        [Required]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [Display(Name = "RIS Date")]
         public Nullable<System.DateTime> RisDate { get; set; }

@@ -971,7 +971,6 @@ namespace iLgs.Controllers
             return Json(query.Select(c => new { Code = c.Code, Description = c.Article }), JsonRequestBehavior.AllowGet);
         }
 
-
         public JsonResult GetCurrentDate()
         {
             

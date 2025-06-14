@@ -12,6 +12,7 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -693,5 +694,22 @@ namespace iLgs.Controllers
             return File(stream, "application/pdf");
         }
         #endregion
+
+        public JsonResult GetModelDefault()
+        {
+            var approved = _db.Codextns.Where(w => w.CodeMast.Code == "APPROVED-BY").AsNoTracking().OrderByDescending(o => o.Code).FirstOrDefault();
+            var availability = _db.Codextns.Where(w => w.CodeMast.Code == "CASH-AVAILABLE").AsNoTracking().OrderByDescending(o => o.Code).FirstOrDefault();
+
+            var model = new RequestVM()
+            {
+                PrDate = DateTime.Now,
+                ApprovedBy = approved?.Description,
+                ApprovedDesig = approved?.Desc2,
+                Availability = availability?.Description,
+                AvaialbilityDesig = availability?.Desc2                
+            };
+
+            return Json(new { model }, JsonRequestBehavior.AllowGet);
+        }
     }
 }

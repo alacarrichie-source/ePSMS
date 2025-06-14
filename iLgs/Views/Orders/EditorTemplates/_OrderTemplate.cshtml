@@ -22,7 +22,7 @@
     <fieldset>
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.PoNo, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.PoNo, "Label")
                 <div class="col-md-12">
                     @*@(Html.Kendo().TextBoxFor(model => model.PoNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))*@
                     @(Html.Kendo().MaskedTextBoxFor(model => model.PoNo).Mask("0000-00-0000")
@@ -32,14 +32,14 @@
                 </div>
             </div>
             <div class="col-md-6">
-                @Html.LabelFor(model => model.PoDate, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.PoDate, "LabelDate")
                 <div class="col-md-12">
                     @(Html.Kendo().DatePickerFor(model => model.PoDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.PoDate)
                 </div>
             </div>
             @*<div class="col-md-6">
-                    @Html.LabelFor(model => model.Section, htmlAttributes: new { @class = "col-md-12" })
+                    @Html.DisplayFor(model => model.Section, "Label")
                     <div class="col-md-12">
                         @(Html.Kendo().TextBoxFor(model => model.Section).HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))
                         @Html.ValidationMessageFor(model => model.Section)
@@ -49,7 +49,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.PrId, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.PrId, "LabelGuid")
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.PrId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -80,7 +80,7 @@
             </div>
 
             <div class="col-md-6">
-                @Html.LabelFor(model => model.PrDate, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.PrDate, "LabelDate")
                 <div class="col-md-12">
                     @(Html.Kendo().DatePickerFor(model => model.PrDate).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.PrDate)
@@ -90,7 +90,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.PoMode, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.PoMode, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.PoMode)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -121,7 +121,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.SupplierId, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.SupplierId, "LabelGuid")
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.SupplierId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;", data_value_primitive = "true" })
@@ -156,7 +156,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.SupAddress, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.SupAddress, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.SupAddress)
                         //.Readonly(true)
@@ -164,7 +164,7 @@
                 </div>
             </div>
             <div class="col-md-6">
-                @Html.LabelFor(model => model.SupTIN, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.SupTIN, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.SupTIN)
                         //.Readonly(true)
@@ -175,14 +175,14 @@
 
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.DeliveryPlace, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.DeliveryPlace, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(model => model.DeliveryPlace).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.DeliveryPlace)
                 </div>
             </div>
             <div class="col-md-6">
-                @Html.LabelFor(model => model.DeliveryDate, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.DeliveryDate, "LabelDate")
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(model => model.DeliveryDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.DeliveryDate)
@@ -192,7 +192,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.TermDelivery, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.TermDelivery, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.TermDelivery)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -220,7 +220,7 @@
                 </div>
             </div>
             <div class="col-md-6">
-                @Html.LabelFor(model => model.TermPayment, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.TermPayment, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.TermPayment)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -250,14 +250,14 @@
 
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.SignedBySuppName, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.SignedBySuppName, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.SignedBySuppName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.SignedBySuppName)
                 </div>
             </div>
             <div class="col-md-6">
-                @Html.LabelFor(model => model.SignedBySuppDate, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.SignedBySuppDate, "LabelDate")
                 <div class="col-md-12">
                     @(Html.Kendo().DatePickerFor(m => m.SignedBySuppDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.SignedBySuppDate)
@@ -267,14 +267,14 @@
 
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.SignedByAuthName, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.SignedByAuthName, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.SignedByAuthName).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.SignedByAuthName)
                 </div>
             </div>
             <div class="col-md-6">
-                @Html.LabelFor(model => model.SignedByAuthDesignation, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.SignedByAuthDesignation, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.SignedByAuthDesignation).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.SignedByAuthDesignation)
@@ -284,7 +284,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.ResoNo, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.ResoNo, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.ResoNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.ResoNo)
@@ -294,14 +294,14 @@
 
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.CertifiedCorrectBy, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.CertifiedCorrectBy, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.CertifiedCorrectBy).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.CertifiedCorrectBy)
                 </div>
             </div>
             <div class="col-md-6">
-                @Html.LabelFor(model => model.CertifiedCorrectDate, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.CertifiedCorrectDate, "LabelDate")
                 <div class="col-md-12">
                     @(Html.Kendo().DatePickerFor(m => m.CertifiedCorrectDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(m => m.CertifiedCorrectDate)

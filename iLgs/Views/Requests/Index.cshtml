@@ -299,16 +299,27 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedId = null;
-
+            
             var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("GetCurrentDate", "Getters")',
+                url: '@Url.Action("GetModelDefault", "Requests")',
                 success: function (result) {
-                    var date = kendo.toString(kendo.parseDate(result.Date), 'MM/dd/yyyy');
+                    var date = kendo.toString(kendo.parseDate(result.model.PrDate), 'MM/dd/yyyy');
                     var datePicker = $("#PrDate").data("kendoDatePicker");
                     datePicker.value(date);
                     datePicker.trigger("change");
+
+                    $("#Availability").data("kendoMultiColumnComboBox").value(result.model.Availability);
+                    $("#Availability").data("kendoMultiColumnComboBox").trigger("change");
+                    $("#AvaialbilityDesig").val(result.model.AvaialbilityDesig);
+                    $("#AvaialbilityDesig").trigger("change");
+
+                    $("#ApprovedBy").data("kendoMultiColumnComboBox").value(result.model.ApprovedBy);
+                    $("#ApprovedBy").data("kendoMultiColumnComboBox").trigger("change");
+                    $("#ApprovedDesig").val(result.model.ApprovedDesig);
+                    $("#ApprovedDesig").trigger("change");
+
                     disabled.attr('disabled', 'disabled')
                 },
                 error: function (req, status, errorObj) {

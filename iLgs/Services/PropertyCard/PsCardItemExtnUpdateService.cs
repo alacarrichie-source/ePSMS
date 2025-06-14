@@ -14,8 +14,8 @@ namespace iLgs.Services.PropertyCard
 {
     public interface IPsCardItemExtnUpdateService
     {
-        IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get; }
-        IPsCardItemExtnOtherService PsCardItemExtnOther { get; }
+        //IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get; }
+        //IPsCardItemExtnOtherService PsCardItemExtnOther { get; }
 
         IQueryable<PsCardItemExtnVM> GetAll();
 
@@ -34,18 +34,21 @@ namespace iLgs.Services.PropertyCard
 
         ValueTask<PsCardItemExtnPpeEntryVM> UpdatePpeAsync(PsCardItemExtnPpeEntryVM model, string user, DateTime date);
         ValueTask<PsCardItemExtnVehicleEntryVM> UpdateVehicleAsync(PsCardItemExtnVehicleEntryVM model, string user, DateTime date);
+        //ValueTask<PsCardItemExtnLandEntryVM> UpdateLandAsync(PsCardItemExtnLandEntryVM model, string user, DateTime date);
     }
 
 
     public class PsCardItemExtnUpdateService : BaseValidator, IPsCardItemExtnUpdateService
     {
         private readonly AppManEntities _db;
-        private IPsCardItemExtnVehicleService _psCardItemExtnVehicleService;
-        private IPsCardItemExtnOtherService _psCardItemExtnOtherService;
+        //private IPsCardItemExtnVehicleService _psCardItemExtnVehicleService;
+        //private IPsCardItemExtnOtherService _psCardItemExtnOtherService;
+        //private IPsCardItemExtnLandService _psCardItemExtnLandService;
         private readonly GetDisplayNameDelegate _getPpeDisplayName;
         private readonly GetDisplayNameDelegate _getVehicleDisplayName;
         private readonly IExceptionService<PsCardItemExtnPpeEntryVM> _ppeExceptionService = new ExceptionService<PsCardItemExtnPpeEntryVM>();
         private readonly IExceptionService<PsCardItemExtnVehicleEntryVM> _vehicleExceptionService = new ExceptionService<PsCardItemExtnVehicleEntryVM>();
+        private readonly IExceptionService<PsCardItemExtnLandEntryVM> _landExceptionService = new ExceptionService<PsCardItemExtnLandEntryVM>();
 
         public PsCardItemExtnUpdateService(AppManEntities db)
         {
@@ -56,8 +59,9 @@ namespace iLgs.Services.PropertyCard
             _getVehicleDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleEntryVM>(propertyName);
         }
 
-        public IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get { return _psCardItemExtnVehicleService = _psCardItemExtnVehicleService ?? new PsCardItemExtnVehicleService(_db); } }
-        public IPsCardItemExtnOtherService PsCardItemExtnOther { get { return _psCardItemExtnOtherService = _psCardItemExtnOtherService ?? new PsCardItemExtnOtherService(_db); } }
+        //public IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get { return _psCardItemExtnVehicleService = _psCardItemExtnVehicleService ?? new PsCardItemExtnVehicleService(_db); } }
+        //public IPsCardItemExtnOtherService PsCardItemExtnOther { get { return _psCardItemExtnOtherService = _psCardItemExtnOtherService ?? new PsCardItemExtnOtherService(_db); } }
+        //public IPsCardItemExtnLandService PsCardItemExtnLand { get { return _psCardItemExtnLandService = _psCardItemExtnLandService ?? new PsCardItemExtnLandService(_db); } }
 
         public IQueryable<PsCardItemExtnVM> GetAll()
         {
@@ -106,7 +110,7 @@ namespace iLgs.Services.PropertyCard
                                                
         public PsCardItemExtnStructuresEntryVM GetCardItemExtnStructuresEntry(Guid? id)
         {
-            var data = _db.Database.SqlQuery<PsCardItemExtnStructuresEntryVM>("Exec PsCardItemExtn_Structures_GetById {0}", id).FirstOrDefault();
+            var data = _db.Database.SqlQuery<PsCardItemExtnStructuresEntryVM>("Exec PsCardItemExtn_Building_GetById {0}", id).FirstOrDefault();
             return data;
         }
 
@@ -339,7 +343,7 @@ namespace iLgs.Services.PropertyCard
             await _db.SaveChangesAsync();
 
             return model;
-        });
+        });        
 
         public string GetEndSeries(string startSeries, Guid? itemId)
         {

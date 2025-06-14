@@ -26,7 +26,7 @@ namespace iLgs.Models
             public string InsertedBy { get; set; }
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }
-            public Nullable<System.DateTime> UpdatedDt { get; set; }         
+            public Nullable<System.DateTime> UpdatedDt { get; set; }
         }
     }
 
@@ -126,6 +126,9 @@ namespace iLgs.Models
         [Display(Name = "Item Qty No.")]
         public Nullable<int> ContentNo { get; set; }
 
+        [Display(Name = "Auto Generated")]
+        public Nullable<bool> IsAutoGen { get; set; }
+
         public Nullable<int> TContentNo { get; set; } // based on PsCardItem Qty && SetLotQty of UnitGroup
 
         [Display(Name = "Custodian Item No.")]
@@ -155,6 +158,9 @@ namespace iLgs.Models
         [Display(Name = "Acquisition Cost")]
         public Nullable<decimal> AcqCost { get; set; }
 
+        [Display(Name = "RPCPPE Acquisition Date")]
+        public Nullable<System.DateTime> AcqDate { get; set; }
+
         [Display(Name = "Sub-Location")]
         public string SubLocation { get; set; }
         public string Annex { get; set; }
@@ -172,7 +178,7 @@ namespace iLgs.Models
 
         public Guid? TransferId { get; set; }
         public Guid? PsCardItemExtnId { get; set; }
-        
+
         [Display(Name = "Location")]
         public string Location { get; set; }
 
@@ -262,11 +268,11 @@ namespace iLgs.Models
     }
 
     public class PsCardItemExtnBldgVM : PsCardItemExtnCommonVM
-    {
+    {    
         [Display(Name = "RPCPPE Acquisition Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public Nullable<System.DateTime> AcqDate { get; set; }
-
+        public new Nullable<System.DateTime> AcqDate { get => base.AcqDate; set => base.AcqDate = value; }
+        
         [Display(Name = "Construction Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public Nullable<System.DateTime> StartDate { get; set; }
@@ -310,7 +316,7 @@ namespace iLgs.Models
 
 
         [Display(Name = "Percent Complete")]
-        public Nullable<decimal> PercentComplete { get; set; }        
+        public Nullable<decimal> PercentComplete { get; set; }
 
         public string Status { get; set; }
 
@@ -321,7 +327,7 @@ namespace iLgs.Models
 
         [Display(Name = "Year of Acquisition")]
         public Nullable<int> AcqYear { get; set; }
-        
+
         [Display(Name = "Year of Construction")]
         public Nullable<int> StartYear { get; set; }
 
@@ -347,13 +353,13 @@ namespace iLgs.Models
 
         [Display(Name = "Market Value per Assessor's Office")]
         public Nullable<decimal> MarketValue { get; set; }
-        
+
         [Display(Name = "Price per UM in the Deed of Sale")]
         public Nullable<decimal> PricePerSqm { get; set; }
 
         [Display(Name = "Area x Price per UM")]
         public Nullable<decimal> AreaXPrice { get; set; }
-        
+
         [Display(Name = "Vendor/Donor: Name of Owner")]
         public string Vendor { get; set; }
 
@@ -444,7 +450,8 @@ namespace iLgs.Models
         [Display(Name = "Incidental Expenses")]
         public Nullable<decimal> IncidentalExpenses { get; set; }
 
-        public Nullable<decimal> CapitalOutlayOrExpense { get; set; }
+        [Display(Name = "Capital Outlay or Expense")]
+        public string CapitalOutlayOrExpense { get; set; }
 
         public Nullable<bool> CGTTransferTaxCap { get; set; }
         public Nullable<bool> CGTSurchargeCap { get; set; }
@@ -545,11 +552,11 @@ namespace iLgs.Models
 
             [Required]
             [Display(Name = "Date of Repair")]
-            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]            
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> RepairDate { get; set; }
 
             [Required]
-            [Display(Name = "Reference Invoice")]            
+            [Display(Name = "Reference Invoice")]
             public string InvoiceNo { get; set; }
 
             [Required]
@@ -822,7 +829,7 @@ namespace iLgs.Models
         public Nullable<decimal> Area { get; set; }
 
         [Display(Name = "Unit of Measurement (UM)")]
-        public string Unit { get; set; }
+        public new string Unit { get => base.Unit; set => base.Unit = value; }
 
         [Display(Name = "Area x Price per UM")]
         public Nullable<decimal> AreaXPrice { get; set; }
@@ -835,7 +842,7 @@ namespace iLgs.Models
         public Nullable<decimal> MarketValue { get; set; }
 
         [Display(Name = "Year of Sale/Donation")]
-        public Nullable<System.DateTime> AcqDate { get; set; }
+        public new Nullable<System.DateTime> AcqDate {get => base.AcqDate; set => base.AcqDate = value; }
 
         [Display(Name = "Vendor/Donor: Name of Owner")]
         public string Vendor { get; set; }
@@ -861,7 +868,7 @@ namespace iLgs.Models
 
         [Display(Name = "Date Registered")]
         public Nullable<System.DateTime> OldDRPDate { get; set; }
-        
+
         [Display(Name = "Capital Gains Tax (CGT)")]
         public Nullable<decimal> CGT { get; set; }
 

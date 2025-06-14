@@ -49,7 +49,7 @@ namespace iLgs.Services.PropertyCard
             ValidateIfPosted(model);
 
             // check in Par/Ics
-            if (_db.IcsParItems.Any(a => a.PsCardItemExtnId == model.PsCardItemId))
+            if (_db.IcsParItems.Any(a => a.PsCardItemExtnId == model.PsCardItemExtnId))
             {
                 throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
             }

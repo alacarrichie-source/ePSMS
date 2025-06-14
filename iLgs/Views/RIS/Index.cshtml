@@ -417,15 +417,21 @@
             this.select(row);
             selectedId = null;
 
-            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');            
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("GetCurrentDate", "Getters")',
+                url: '@Url.Action("GetModelDefault", "RIS")',
                 success: function (result) {
-                    var date = kendo.toString(kendo.parseDate(result.Date), 'MM/dd/yyyy');
+                    var date = kendo.toString(kendo.parseDate(result.model.RisDate), 'MM/dd/yyyy');
                     var datePicker = $("#RisDate").data("kendoDatePicker");
-                    datePicker.value(date); 
+                    datePicker.value(date);
                     datePicker.trigger("change");
+
+                    $("#IssuedBy").data("kendoMultiColumnComboBox").value(result.model.IssuedBy);
+                    $("#IssuedBy").data("kendoMultiColumnComboBox").trigger("change");
+                    $("#IssuedByDesignation").val(result.model.IssuedByDesignation);
+                    $("#IssuedByDesignation").trigger("change");
+
                     disabled.attr('disabled', 'disabled')
                 },
                 error: function (req, status, errorObj) {

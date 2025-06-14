@@ -51,6 +51,7 @@ namespace iLgs.Models
         public Nullable<decimal> AddCost { get; set; }
         public Nullable<decimal> AcqCost { get; set; }
         public Nullable<decimal> OldAmount { get; set; }
+        public Nullable<System.DateTime> AcqDate { get; set; }
     
         public virtual AIRItemExtn AIRItemExtn { get; set; }
         public virtual Codextn Codextn { get; set; }

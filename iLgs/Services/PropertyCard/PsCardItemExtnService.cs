@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
 {
@@ -29,8 +30,11 @@ namespace iLgs.Services.PropertyCard
         string GetEndSeries(string startSeries, Guid? itemId);
         string GetEndSeries(string startSeries, int qty);
 
+        void MapModelToEntityFields(PsCardItemExtn entity, PsCardItemExtnCommonVM model, Mode mode);
+
         IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get; }
         IPsCardItemExtnOtherService PsCardItemExtnOther { get; }
+        IPsCardItemExtnLandService PsCardItemExtnLand { get; }
         IPsCardItemExtnUpdateService PsCardItemExtnUpdate { get; }
         IPsCardItemExtnAddCostService PsCardItemExtnAddCost{ get; }       
     }
@@ -41,20 +45,18 @@ namespace iLgs.Services.PropertyCard
         private readonly AppManEntities _db;        
         private IPsCardItemExtnVehicleService _psCardItemExtnVehicleService;
         private IPsCardItemExtnOtherService _psCardItemExtnOtherService;
+        private IPsCardItemExtnLandService _psCardItemExtnLandService;
         private IPsCardItemExtnUpdateService _psCardItemExtnUpdateService;
         private IPsCardItemExtnAddCostService _psCardItemExtnAddCostService;
 
         public PsCardItemExtnService(AppManEntities db)
         {
-            _db = db;
-            //_psCardItemExtnVehicleService = new PsCardItemExtnVehicleService(_db);
-            //_psCardItemExtnOtherService = new PsCardItemExtnOtherService(_db);
-            //_psCardItemExtnUpdateService = new PsCardItemExtnUpdateService(_db);
-            
+            _db = db;                        
         }
 
-        public IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get { return _psCardItemExtnVehicleService = _psCardItemExtnVehicleService ?? new PsCardItemExtnVehicleService(_db); } }
-        public IPsCardItemExtnOtherService PsCardItemExtnOther { get { return _psCardItemExtnOtherService = _psCardItemExtnOtherService ?? new PsCardItemExtnOtherService(_db); } }
+        public IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get { return _psCardItemExtnVehicleService = _psCardItemExtnVehicleService ?? new PsCardItemExtnVehicleService(_db, this); } }
+        public IPsCardItemExtnLandService PsCardItemExtnLand { get { return _psCardItemExtnLandService = _psCardItemExtnLandService ?? new PsCardItemExtnLandService(_db, this); } }
+        public IPsCardItemExtnOtherService PsCardItemExtnOther { get { return _psCardItemExtnOtherService = _psCardItemExtnOtherService ?? new PsCardItemExtnOtherService(_db, this); } }
         public IPsCardItemExtnUpdateService PsCardItemExtnUpdate { get { return _psCardItemExtnUpdateService = _psCardItemExtnUpdateService ?? new PsCardItemExtnUpdateService(_db); } }
         public IPsCardItemExtnAddCostService PsCardItemExtnAddCost { get { return _psCardItemExtnAddCostService = _psCardItemExtnAddCostService ?? new PsCardItemExtnAddCostService(_db); } }
 
@@ -240,6 +242,36 @@ namespace iLgs.Services.PropertyCard
 
             // If no match is found, return the start series as it is
             return startSeries;
+        }
+
+        public void MapModelToEntityFields(PsCardItemExtn entity, PsCardItemExtnCommonVM model, Mode mode)
+        {
+
+            if (mode == Mode.ADD)
+            {
+                entity.Id = model.Id;
+                entity.InsertedBy = model.InsertedBy;
+                entity.InsertedDt = model.InsertedDt;
+            }
+            entity.PsCardItemId = model.PsCardItemId;
+            entity.CustItemNo = model.CustItemNo;
+            entity.SeriesNo = model.SeriesNo;
+            entity.SetLotNo = model.SetLotNo;
+            entity.SetLotQtyNo = model.SetLotQtyNo;
+            entity.ContentNo = model.ContentNo;
+            entity.Condition = model.Condition;
+            entity.Condition = model.Condition;
+            entity.SubLocation = model.SubLocation;
+            entity.Annex = model.Annex;
+            entity.AddCost = model.AddCost;
+            entity.AcqCost = model.AcqCost;
+            entity.AcqDate = model.AcqDate;
+            entity.LocationId = model.LocationId;
+            entity.PropNo = model.PropNo;
+            entity.OldPropNo = model.OldPropNo;
+            entity.OldAmount = model.OldAmount;
+            entity.UpcomingOfficer = model.UpcomingOfficer;
+            entity.Remarks = model.Remarks;
         }
     }
 }

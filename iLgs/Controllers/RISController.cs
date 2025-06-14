@@ -14,6 +14,7 @@ using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -1069,6 +1070,20 @@ namespace iLgs.Controllers
             var description = _risItemService.GetDescription(entry);
 
             return Json(new { Description = description }, JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult GetModelDefault()
+        {
+            var code = _db.Codextns.Where(w => w.CodeMast.Code == "ISSUED-BY").AsNoTracking().OrderByDescending(o => o.Code).FirstOrDefault();
+            
+            var model = new RIS_VM()
+            {
+                RisDate = DateTime.Now,
+                IssuedBy = code?.Description,
+                IssuedByDesignation = code?.Desc2
+            };
+
+            return Json(new { model }, JsonRequestBehavior.AllowGet);
         }
     }
 }

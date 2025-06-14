@@ -243,6 +243,7 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<OrderVM> CreateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch(async () =>
         {
             ValidateOnCreate(model);
+            ValidateOnCreateUpdate(model, Mode.ADD);
 
             model.Id = Guid.NewGuid();
             if (string.IsNullOrWhiteSpace(model.PoNo))
@@ -395,6 +396,7 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<OrderVM> UpdateAsync(OrderVM model, string user, DateTime date) => _orderVmExceptionService.TryCatch(async () =>
         {
             ValidateOnUpdate(model);
+            ValidateOnCreateUpdate(model, Mode.EDIT);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;
@@ -652,6 +654,41 @@ namespace iLgs.Services.PurchaseOrder
                     }
                 }
             }
+        }
+
+        private void ValidateOnCreateUpdate(OrderVM model, Mode mode)
+        {
+            if (!string.IsNullOrWhiteSpace(model.PoNo))
+            {
+                if (model.PoNo.Trim().Length != 12)
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Invalid value.");
+                }
+                else
+                {
+                    var refNoParts = model.PoNo.Split('-');
+                    var refNoYear = int.Parse(refNoParts[0]);
+                    var refNoMonth = int.Parse(refNoParts[1]);
+                    if (refNoYear != model.PoDate.Value.Year || refNoMonth != model.PoDate.Value.Month)
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "Series Year and month must be same as the year and month of the PO date.");
+                    }
+                    else
+                    {
+                        var maxNo = _db.Orders.Where(w => DbFunctions.TruncateTime(w.PoDate) < DbFunctions.TruncateTime(model.PoDate)).Max(m => m.PoNo);
+                        if (!string.IsNullOrWhiteSpace(maxNo))
+                        {
+                            var refNoSeq = int.Parse(refNoParts[2]);
+                            var maxSeq = int.Parse(maxNo.Split('-')[2]);
+                            if (refNoSeq <= maxSeq)
+                            {
+                                _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), $"Serial No. must be greater than {maxSeq}");
+                            }
+                        }
+                    }
+                }
+            }
+            _imex.ThrowIfContainsErrors();
         }
 
         private void ValidateOnUpdate(OrderVM model)

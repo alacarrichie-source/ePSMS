@@ -29,6 +29,8 @@ namespace iLgs.Services.Items
         IQueryable<ItemCodeVM> GetItemsByTypeCode(string typeCode, string item);
         IQueryable<ItemCodePreviewVM> GetItemCodePreview(string category);
         IQueryable<ItemCodePreviewVM> GetItemCodePreviewByUser(string category, string userId);
+
+        IQueryable<ItemCodeVM> GetCustodianItemAll(string item);
         IQueryable<ItemCodeVM> GetCustodianItemPpe(string item);
         IQueryable<ItemCodeVM> GetCustodianItemStocks(string item);
         IQueryable<ItemCodeVM> GetCustodianItemVehicle(string item);
@@ -121,6 +123,12 @@ namespace iLgs.Services.Items
         public IQueryable<ItemCodeVM> GetItems(string item) => _VmExceptionService.TryCatch(() =>
         {
             var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetItems {0}", item).AsQueryable().AsNoTracking();
+            return data;
+        });
+
+        public IQueryable<ItemCodeVM> GetCustodianItemAll(string item) => _VmExceptionService.TryCatch(() =>
+        {
+            var data = _db.Database.SqlQuery<ItemCodeVM>("Exec ItemCodes_GetCustodianAccount {0}, {1}", 0, item).AsQueryable().AsNoTracking();
             return data;
         });
 

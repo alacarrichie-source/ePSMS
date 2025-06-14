@@ -170,7 +170,7 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult _ItemCardEntry(Guid? psCardItemExtnId, int? accountGroup)
+        public async Task<ActionResult> _ItemCardEntry(Guid? psCardItemExtnId, int? accountGroup)
         {
             ViewData["psCardItemExtnId"] = psCardItemExtnId;
             if (accountGroup == (int?)AccountGroup.PPE || accountGroup == (int?)AccountGroup.SUPPLIES)
@@ -187,7 +187,8 @@ namespace iLgs.Controllers
             }
             if (accountGroup == (int?)AccountGroup.LAND)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnLandEntry(psCardItemExtnId);
+                //var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnLandEntry(psCardItemExtnId);
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnLand.GetByIdAsync(psCardItemExtnId);
                 ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
                 return PartialView("_ItemCardLandEntry", model);
             }
@@ -204,7 +205,7 @@ namespace iLgs.Controllers
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemCardPpeSave(PsCardItemExtnPpeEntryVM model)
+        public async Task<ActionResult> _ItemCardPpeSave(PsCardItemExtnOtherVM model)
         {
             try
             {
@@ -221,7 +222,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.UpdatePpeAsync(model, user, date);                    
+                    //model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.UpdatePpeAsync(model, user, date);                    
+                    model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.UpdateAsync(model, user, date);
 
                     return Json(new { Errors = "", Model = model });
                 }
@@ -246,9 +248,8 @@ namespace iLgs.Controllers
             return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
         }
 
-
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> _ItemCardVehicleSave(PsCardItemExtnVehicleEntryVM model)
+        public async Task<ActionResult> _ItemCardVehicleSave(PsCardItemExtnVehicleVM model)
         {
             try
             {
@@ -265,7 +266,8 @@ namespace iLgs.Controllers
                     string user = ControllerContext.HttpContext.User.Identity.Name;
                     DateTime date = System.DateTime.Now;
 
-                    model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.UpdateVehicleAsync(model, user, date);
+                    //model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.UpdateVehicleAsync(model, user, date);
+                    model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.UpdateAsync(model, user, date);
 
                     return Json(new { Errors = "", Model = model });
                 }
@@ -289,6 +291,51 @@ namespace iLgs.Controllers
 
             return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
         }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemCardLandSave(PsCardItemExtnLandVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "item_card");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("Access Error", "Access Denied!");
+                }
+
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    //model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.UpdateLandAsync(model, user, date);
+                    model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnLand.UpdateAsync(model, user, date);
+
+                    return Json(new { Errors = "", Model = model });
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
+        }
+
 
         public ActionResult _VehicleRepair(Guid? psCardItemExtnVehicleId)
         {
@@ -718,6 +765,50 @@ namespace iLgs.Controllers
             if (!string.IsNullOrWhiteSpace(partialView))
             {
                 partialView = $"_Vehicle{partialView}";
+            }
+
+            return PartialView(partialView, model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadLandFields([System.Web.Http.FromBody] PsCardItemExtnLandEntryVM model)
+        {
+            if (model.Id != Guid.Empty)
+            {
+                var allField = await _psCardService.AllField.GetByItemExtnIdAsync(model.Id);
+                if (allField != null)
+                {
+                    model.AllField = allField;
+                }
+            }
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            if (!string.IsNullOrWhiteSpace(partialView))
+            {
+                partialView = $"_Land{partialView}";
+            }
+
+            return PartialView(partialView, model);
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> LoadStructuresFields([System.Web.Http.FromBody] PsCardItemExtnStructuresEntryVM model)
+        {
+            if (model.Id != Guid.Empty)
+            {
+                var allField = await _psCardService.AllField.GetByItemExtnIdAsync(model.Id);
+                if (allField != null)
+                {
+                    model.AllField = allField;
+                }
+            }
+            var itemCode = _itemCodeService.GetById(model.ItemCodeId);
+            string partialView = AllFieldsUtil.GetPartialView(itemCode);
+
+            if (!string.IsNullOrWhiteSpace(partialView))
+            {
+                partialView = $"_Structure{partialView}";
             }
 
             return PartialView(partialView, model);
