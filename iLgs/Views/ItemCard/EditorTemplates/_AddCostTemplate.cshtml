@@ -1,0 +1,65 @@
+﻿@model iLgs.Models.PsCardItemExtnAddCost
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "formAddCost", id = "formAddCost" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-2">
+            @Html.DisplayFor(model => model.PoNo, "Label")            
+        </div>
+        <div class="col-md-10">
+            @(Html.Kendo().MaskedTextBoxFor(model => model.PoNo).Mask("0000-00-0000")
+                .PromptChar(" ")
+                .Events(e => e.Change("onChangeAddCostPoNo"))
+                .Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(model => model.PoNo)
+        </div>        
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-2">
+            @Html.DisplayFor(model => model.Effectivity, "LabelDate")
+        </div>
+        <div class="col-md-10">
+            @(Html.Kendo().DatePickerFor(model => model.Effectivity).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                //.Events(e => e.Change("onChangeRisDate"))                    
+            )
+            @Html.ValidationMessageFor(model => model.Effectivity)
+        </div>        
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-2">
+            @Html.DisplayFor(model => model.Amount, "LabelDecimal")
+        </div>
+        <div class="col-md-10">
+            @(Html.Kendo().NumericTextBoxFor(model => model.Amount).Spinners(false).Decimals(0).Format("{0:n0}").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))                                    
+            @Html.ValidationMessageFor(model => model.Amount)            
+        </div>
+    </div>
+
+    <div class="row k-mb-2">
+        <div class="col-md-2">
+            @Html.DisplayFor(model => model.Remarks, "Label")
+        </div>
+        <div class="col-md-10">
+            @(Html.Kendo().TextAreaFor(model => model.Remarks).Rows(3).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @Html.ValidationMessageFor(model => model.Remarks)
+        </div>        
+    </div>
+}
+
+
+
+
+
+

@@ -264,7 +264,7 @@
             </div>
         </div>
 
-        <div class="row k-mb-2">
+        @*<div class="row k-mb-2">
             <div class="col-md-2">
                 @Html.DisplayFor(m => m.ProjectName, "Label")
             </div>
@@ -272,7 +272,7 @@
                 @(Html.Kendo().TextBoxFor(m => m.ProjectName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.ProjectName)
             </div>
-        </div>
+        </div>*@
 
         <div class="row k-mb-2">
             <div class="col-md-2">
@@ -284,31 +284,14 @@
             </div>
         </div>
 
-        <div class="row k-mb-2">
+        @*<div class="row k-mb-2">
             <div class="col-md-2">
                 @Html.DisplayFor(m => m.StartDate, "LabelDate")
             </div>
             <div class="col-md-4">
                 @(Html.Kendo().DatePickerFor(m => m.StartDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.StartDate)
-            </div>
-            @*<div class="col-md-2">
-                @Html.DisplayFor(m => m.StartYear, "LabelInt")
-            </div>
-            <div class="col-md-4">
-                @(Html.Kendo().MaskedTextBoxFor(m => m.StartYear).Mask("0000").PromptChar(" ").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(m => m.StartYear)
-            </div>*@
-
-            @*<div class="col-md-6">
-                    <div class="col-md-2">
-                        @Html.DisplayFor(m => m.AcqYear, "LabelInt")
-                    </div>
-                    <div class="col-md-4">
-                        @(Html.Kendo().MaskedTextBoxFor(m => m.AcqYear).Mask("0000").PromptChar(" ").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                        @Html.ValidationMessageFor(m => m.AcqYear)
-                    </div>
-                </div>*@
+            </div>            
             <div class="col-md-2">
                 @Html.DisplayFor(m => m.AcqDate, "LabelDate")
             </div>
@@ -318,22 +301,7 @@
             </div>
         </div>
 
-        <div class="row k-mb-2">
-            @*<div class="col-md-2">
-                @Html.DisplayFor(m => m.TargetYear, "LabelInt")
-            </div>
-            <div class="col-md-4">
-                @(Html.Kendo().MaskedTextBoxFor(m => m.TargetYear).Mask("0000").PromptChar(" ").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(m => m.TargetYear)
-            </div>
-            <div class="col-md-2">
-                @Html.DisplayFor(m => m.TargetMonth, "LabelInt")
-            </div>
-            <div class="col-md-4">
-                @(Html.Kendo().NumericTextBoxFor(m => m.TargetMonth).Decimals(0).Format("{0:0}").Min(1).Max(12).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(m => m.TargetMonth)
-            </div>*@
-
+        <div class="row k-mb-2">            
             <div class="col-md-2">
                 @Html.DisplayFor(m => m.TargetDate, "LabelDate")
             </div>
@@ -366,7 +334,7 @@
                 @(Html.Kendo().TextBoxFor(m => m.Status).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.Status)
             </div>
-        </div>
+        </div>*@
 
         <div class="row k-mb-2">
             <div class="col-md-2">
@@ -385,7 +353,7 @@
             </div>
         </div>
 
-        <div class="row k-mb-2">
+        @*<div class="row k-mb-2">
             <div class="col-md-2">
                 @Html.DisplayFor(m => m.OldAmount, "LabelDecimal")
             </div>
@@ -400,45 +368,9 @@
                 @(Html.Kendo().NumericTextBoxFor(m => m.AcqCost).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.AcqCost)
             </div>
-        </div>
-
-        <br />
-        @*<div class="row k-mb-2">
-            <div class="col-md-2">
-                @Html.DisplayFor(m => m.PhaseNo, "Label")
-            </div>
-            <div class="col-md-4">
-                @(Html.Kendo().TextBoxFor(m => m.PhaseNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(m => m.PhaseNo)
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-2">
-                @Html.DisplayFor(m => m.PhaseAmountCo, "LabelDecimal")
-            </div>
-            <div class="col-md-4">
-                @(Html.Kendo().NumericTextBoxFor(m => m.PhaseAmountCo).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(m => m.PhaseAmountCo)
-            </div>
-            <div class="col-md-2">
-                @Html.DisplayFor(m => m.TotalAmount, "LabelDecimal")
-            </div>
-            <div class="col-md-4">
-                @(Html.Kendo().NumericTextBoxFor(m => m.TotalAmount).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(m => m.TotalAmount)
-            </div>
-        </div>
-
-        <div class="row k-mb-2">
-            <div class="col-md-2">
-                @Html.DisplayFor(m => m.PhaseAmountMooe, "LabelDecimal")
-            </div>
-            <div class="col-md-4">
-                @(Html.Kendo().NumericTextBoxFor(m => m.PhaseAmountMooe).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
-                @Html.ValidationMessageFor(m => m.PhaseAmountMooe)
-            </div>
         </div>*@
+
+        @*<br />        
 
         <div class="row k-mb-2">
             <div class="col-md-12">
@@ -448,6 +380,6 @@
                 @(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(5).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 @Html.ValidationMessageFor(m => m.Remarks)
             </div>
-        </div>        
+        </div>*@        
     </fieldset>
 }

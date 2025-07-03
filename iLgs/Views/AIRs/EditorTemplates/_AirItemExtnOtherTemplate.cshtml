@@ -52,7 +52,7 @@
         <div class="row k-mb-2">
                 @Html.LabelFor(m => m.IsAutoGen, "Auto Generated", htmlAttributes: new { @class = "col-md-3" })
                 <div class="col-md-1">
-                    @(Html.Kendo().SwitchFor(m => m.IsAutoGen).Messages(c => c.Checked("YES").Unchecked("NO")))
+                    @(Html.Kendo().SwitchFor(m => m.IsAutoGen).Enabled(false).Messages(c => c.Checked("YES").Unchecked("NO")))
                     @Html.ValidationMessageFor(m => m.IsAutoGen)
                 </div>            
         </div>

@@ -1,14 +1,11 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.AIRs_
 {
@@ -25,14 +22,19 @@ namespace iLgs.Services.AIRs_
     public class AirInvoiceService : BaseValidator, IAirInvoiceService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<AIRInvoiceVM> _vmExceptionService = new ExceptionService<AIRInvoiceVM>();
-        private readonly IExceptionService<AIRInvoice> _exceptionService = new ExceptionService<AIRInvoice>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<AIRInvoiceVM> _vmExceptionService;
+        private readonly IExceptionService<AIRInvoice> _exceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public AirInvoiceService(AppManEntities db)
+        public AirInvoiceService(AppManEntities db, ICreateAndLogExceptions exceptions,
+            IExceptionService<AIRInvoiceVM> vmExceptionService,
+            IExceptionService<AIRInvoice> exceptionService)
         {
             _db = db;
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
             _getDisplayName = propertyName => Utility.GetDisplayName<AIRInvoiceVM>(propertyName);
         }
 

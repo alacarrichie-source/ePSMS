@@ -4,7 +4,6 @@ using iLgs.Models;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Data.Entity;
 using System.Linq;
 
 namespace iLgs.Services.PropertyCard

@@ -1,30 +1,23 @@
 ﻿using iLgs.Models;
-using Kendo.Mvc.UI;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Data.Entity;
-using Microsoft.AspNet.Identity;
-using System.Threading.Tasks;
-using System.Net.Http;
-using System.Data.SqlClient;
 using System.Configuration;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Net.Http;
 using System.Net.Http.Headers;
-using Newtonsoft.Json;
-using iLgs.Utilities;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
     public class MenuAccessActionController : Controller
     {
         private static string sysCode = "PSMS";
-        private static string sysAdmin = "PSMS_ADMIN";
-
-        private AppManEntities db = new AppManEntities();
-
+        private static string sysAdmin = "PSMS_ADMIN";        
 
         HttpClient client;
 
@@ -36,8 +29,9 @@ namespace iLgs.Controllers
         //The HttpClient Class, this will be used for performing 
         //HTTP Operations, GET, POST, PUT, DELETE
         //Set the base address and the Header Formatter
+
         public MenuAccessActionController()
-        {
+        {            
             client = new HttpClient();
             client.BaseAddress = new Uri(iLgsApiUrl);
             client.DefaultRequestHeaders.Accept.Clear();

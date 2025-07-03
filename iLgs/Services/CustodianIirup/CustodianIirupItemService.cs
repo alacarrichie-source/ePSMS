@@ -1,19 +1,13 @@
-﻿using ClosedXML.Excel;
-using iLgs.Controllers;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.CustodianDisposal_;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianIirup
@@ -30,15 +24,18 @@ namespace iLgs.Services.CustodianIirup
     public class CustodianIirupItemService : BaseValidator, ICustodianIirupItemService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<CustodianIirupItem> _exceptionService = new ExceptionService<CustodianIirupItem>();
+        private readonly IExceptionService<CustodianIirupItem> _exceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICustodianDisposalItemService _custodianDisposalItemService;
         
-        public CustodianIirupItemService(AppManEntities db)
+        public CustodianIirupItemService(AppManEntities db, 
+            IExceptionService<CustodianIirupItem> exceptionService, 
+            ICustodianDisposalItemService custodianDisposalItemService)
         {
             _db = db;
-            _custodianDisposalItemService = new CustodianDisposalItemService(_db);
-            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianIirupItem>(propertyName);
+            _exceptionService = exceptionService;
+            _custodianDisposalItemService = custodianDisposalItemService;
+            _getDisplayName = Utility.GetDisplayName<CustodianIirupItem>;
         }
 
         public ValueTask<CustodianIirupItem> GetByIdAsync(Guid? id) =>

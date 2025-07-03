@@ -1,19 +1,15 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
 using iLgs.Services.Codes;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
@@ -24,10 +20,10 @@ namespace iLgs.Controllers
         private readonly AppManEntities _db;
         private readonly IAnnexDService _annexDService;
         
-        public AnnexDController()
+        public AnnexDController(AppManEntities db, IAnnexDService annexDService)
         {
-            _db = new AppManEntities();
-            _annexDService = new AnnexDService(_db);        
+            _db = db;
+            _annexDService = annexDService;        
         }
 
         // GET: Location

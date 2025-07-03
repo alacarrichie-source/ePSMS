@@ -1,5 +1,4 @@
 ﻿using iLgs.Models;
-using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Newtonsoft.Json;
@@ -11,11 +10,11 @@ namespace iLgs.Controllers
 {
     public class SuppliersController : BaseController
     {
-        private AppManEntities _db;
+        private readonly AppManEntities _db;
 
-        public SuppliersController()
+        public SuppliersController(AppManEntities db)
         {
-            _db = new AppManEntities();
+            _db = db;
         }
         // GET: Suppliers
         public ActionResult Index()

@@ -1,9 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 
 namespace iLgs.Services
 {
@@ -15,13 +12,17 @@ namespace iLgs.Services
     public class RsmiService : IRsmiService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<RsmiVM> _vmExceptionService = new ExceptionService<RsmiVM>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<RsmiVM> _vmExceptionService;
 
-        public RsmiService(AppManEntities db)
+        public RsmiService(AppManEntities db, 
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<RsmiVM> vmExceptionService)
         {
             _db = db;
-            _db.Database.CommandTimeout = 3000;         
+            _db.Database.CommandTimeout = 3000;
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
         }
         
         public IQueryable<RsmiVM> GetAll() =>

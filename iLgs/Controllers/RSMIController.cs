@@ -1,21 +1,20 @@
-﻿using iLgs.Models;
-using Kendo.Mvc.UI;
+﻿using CrystalDecisions.CrystalReports.Engine;
+using CrystalDecisions.Shared;
+using iLgs.Models;
+using iLgs.Services;
+using iLgs.Services.Codes;
+using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
+using System.Data.Entity;
+using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using System.Data.Entity;
-using Microsoft.AspNet.Identity;
-using iLgs.Utilities;
-using Newtonsoft.Json;
-using CrystalDecisions.Shared;
-using CrystalDecisions.CrystalReports.Engine;
-using System.Data.SqlClient;
-using System.IO;
-using iLgs.Services.Interfaces;
-using iLgs.Services;
-using iLgs.Services.Codes;
 
 namespace iLgs.Controllers
 {
@@ -26,11 +25,11 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly IRsmiService _rsmiService;
 
-        public RSMIController()
+        public RSMIController(AppManEntities db, ICodextnService codextnService, IRsmiService rsmiService)
         {
-            _db = new AppManEntities();
-            _codextnService = new CodextnService(_db);
-            _rsmiService = new RsmiService(_db);
+            _db = db;
+            _codextnService = codextnService;
+            _rsmiService = rsmiService;
         }
 
         // GET: RSMI

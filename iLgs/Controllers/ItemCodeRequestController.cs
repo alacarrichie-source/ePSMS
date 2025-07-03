@@ -2,10 +2,8 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
-using iLgs.Services.Codes;
 using iLgs.Services.Items;
 using iLgs.Services.Uploads;
-using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
@@ -25,19 +23,21 @@ namespace iLgs.Controllers
         private readonly AppManEntities _db;
         private readonly IItemCodeRequestService _itemCodeRequestService;
         private readonly IItemCodeRequestUploadService _uploadService;
+        private readonly IUserService _userService;
 
-        public ItemCodeRequestController()
+        public ItemCodeRequestController(AppManEntities db, IItemCodeRequestService itemCodeRequestService, IItemCodeRequestUploadService itemCodeRequestUploadService,
+            IUserService userService)
         {
-            _db = new AppManEntities();
-            _itemCodeRequestService = new ItemCodeRequestService(_db);
-            _uploadService = new ItemCodeRequestUploadService(_db);
+            _db = db;
+            _itemCodeRequestService = itemCodeRequestService;
+            _uploadService = itemCodeRequestUploadService;
+            _userService = userService;
         }
 
         public ActionResult Index()
-        {
-            IUserService userService = new UserService(_db);
+        {            
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var isAdmin = userService.IsUserNameAdmin(user);
+            var isAdmin = _userService.IsUserNameAdmin(user);
             ViewBag.IsAdmin = isAdmin;
             return View();
         }

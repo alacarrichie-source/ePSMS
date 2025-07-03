@@ -1,18 +1,12 @@
-﻿using ClosedXML.Excel;
-using iLgs.Controllers;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianDisposal_
@@ -33,14 +27,18 @@ namespace iLgs.Services.CustodianDisposal_
     public class CustodianDisposalService : BaseValidator, ICustodianDisposalService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<CustodianDisposal> _exceptionService = new ExceptionService<CustodianDisposal>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<CustodianDisposal> _exceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
         
-        public CustodianDisposalService(AppManEntities db)
+        public CustodianDisposalService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<CustodianDisposal> exceptionService)
         {
             _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianDisposal>(propertyName);
+            _exceptions = exceptions;
+            _exceptionService = exceptionService;
+            _getDisplayName = Utility.GetDisplayName<CustodianDisposal>;
         }
 
         public IQueryable<CustodianDisposal> GetAll() =>

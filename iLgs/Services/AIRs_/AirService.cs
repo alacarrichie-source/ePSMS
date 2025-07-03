@@ -1,6 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
+using iLgs.Services.Codes;
 using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
@@ -10,24 +10,19 @@ using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.AIRs_
 {
-    public interface IAirService
+    public interface IAirService : IAirAbstractService
     {
         IQueryable<AIR_VM> GetAll();
         ValueTask<IQueryable<AIR_VM>> GetAllAsync(string userId);
         ValueTask<AIR> GetByIdAsync(Guid id);
         ValueTask<AIR_VM> GetVmByIdAsync(Guid id);
         ValueTask<AIR> GetByAirNoAsync(string airNo);
-        ValueTask<bool> GetAnyAirNoAsync(Guid airId, string airNo);
-        bool IsPosted(Guid airId);
-        bool IsPosted(AIR air);
-        bool IsPosted(AIRItem airItem);
-        bool IsPosted(AIRItemExtn airItemExtn);
-        ValueTask<bool> IsPostedAsync(Guid airId);
+        ValueTask<bool> GetAnyAirNoAsync(Guid airId, string airNo);        
+        
         ValueTask<AIR_VM> CreateAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> UpdateAsync(AIR_VM model, string user, DateTime date);
         ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date);
@@ -39,21 +34,32 @@ namespace iLgs.Services.AIRs_
     public class AirService : BaseValidator, IAirService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<AIR_VM> _VmExceptionService = new ExceptionService<AIR_VM>();
-        private readonly IExceptionService<AIR> _ExceptionService = new ExceptionService<AIR>();
+        private readonly IExceptionService<AIR_VM> _vmExceptionService;
+        private readonly IExceptionService<AIR> _exceptionService;
+        private readonly IAirAbstractService _airAbstractService;
         private readonly IAirItemService _airItemService;
         private readonly IItemCodeService _itemCodeService;
-        private readonly IAirUploadService _uploadService;
-        private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly IAirUploadService _uploadService;        
         private readonly IUserService _userService;
+        private readonly IPriceCapService _priceCapService;
+        private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public AirService(AppManEntities db)
+        public AirService(AppManEntities db,
+            IExceptionService<AIR_VM> vmExceptionService,
+            IExceptionService<AIR> exceptionService,
+            IAirAbstractService airAbstractService, 
+            IAirItemService airItemService, IAirUploadService uploadService, IItemCodeService itemCodeService,
+            IUserService userService, IPriceCapService priceCapService)
         {
             _db = db;
-            _airItemService = new AirItemService(_db);
-            _itemCodeService = new ItemCodeService(_db);
-            _uploadService = new AirUploadService(_db);
-            _userService = new UserService(_db);
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _airAbstractService = airAbstractService;
+            _airItemService = airItemService;
+            _itemCodeService = itemCodeService;
+            _uploadService = uploadService;
+            _userService = userService;
+            _priceCapService = priceCapService;
             _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
         }
 
@@ -122,12 +128,12 @@ namespace iLgs.Services.AIRs_
             return await _db.AIRs.AnyAsync(a => a.Id != airId && a.AIRNo == airNo);
         }
 
-        public ValueTask<AIR> GetByIdAsync(Guid id) => _ExceptionService.TryCatch(async () =>
+        public ValueTask<AIR> GetByIdAsync(Guid id) => _exceptionService.TryCatch(async () =>
         {
             return await _db.AIRs.FindAsync(id);
         });
 
-        public ValueTask<AIR_VM> GetVmByIdAsync(Guid id) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<AIR_VM> GetVmByIdAsync(Guid id) => _vmExceptionService.TryCatch(async () =>
         {
             var data = await _db.AIRs
                 .Include(i => i.AIRInvoices)
@@ -136,43 +142,11 @@ namespace iLgs.Services.AIRs_
             return data;
         });
 
-        public ValueTask<AIR> GetByAirNoAsync(string airNo) => _ExceptionService.TryCatch(async () =>
+        public ValueTask<AIR> GetByAirNoAsync(string airNo) => _exceptionService.TryCatch(async () =>
         {
             return await _db.AIRs.Where(w => w.AIRNo == airNo).FirstOrDefaultAsync();
         });
-
-        public bool IsPosted(Guid airId)
-        {
-            var entity = _db.AIRs.Find(airId);
-            return !string.IsNullOrWhiteSpace(entity.PostedBy);
-        }
-
-        public bool IsPosted(AIR air)
-        {
-            return IsPosted(air.Id);
-        }
-
-        public bool IsPosted(AIRItem airItem)
-        {
-            var airId = (Guid)airItem.AirId;
-            return IsPosted(airId);
-        }
-
-        public bool IsPosted(AIRItemExtn airItemExtn)
-        {
-            var airId = (Guid)_db.AIRItemExtns
-                .Include(i => i.AIRItem)
-                .Where(w => w.AIRItemId == airItemExtn.AIRItemId)
-                .AsNoTracking()
-                .FirstOrDefault()?.AIRItem.AirId;
-            return IsPosted(airId);
-        }
-
-        public async ValueTask<bool> IsPostedAsync(Guid airId)
-        {
-            var entity = await _db.AIRs.FindAsync(airId);
-            return !string.IsNullOrWhiteSpace(entity.PostedBy);
-        }
+        
 
         //public async Task<bool> IsPrPostedAsync(Guid risId)
         //{
@@ -184,9 +158,9 @@ namespace iLgs.Services.AIRs_
         //    return false;
         //}
 
-        public ValueTask<AIR> PostAsync(Guid airId, string user, DateTime date) => _ExceptionService.TryCatch(async () =>
+        public ValueTask<AIR> PostAsync(Guid airId, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
-            var entity = await _db.AIRs.Include(i => i.AIRItems).FirstOrDefaultAsync(f => f.Id == airId);
+            var entity = await _db.AIRs.Include(i => i.AIRItems).Include(i => i.AIRInvoices).FirstOrDefaultAsync(f => f.Id == airId);
             if (entity == null)
             {
                 throw new RecordNotFoundException(airId);
@@ -195,6 +169,11 @@ namespace iLgs.Services.AIRs_
             if (await IsPostedAsync(airId))
             {
                 throw new RecordAlreadyPostedException();
+            }
+
+            if (!entity.AIRInvoices.Any())
+            {
+                throw new RecordNotFoundException("Invoice Record is Required.");
             }
 
             var order = await _db.Orders.FindAsync(entity.OrderId);
@@ -238,7 +217,7 @@ namespace iLgs.Services.AIRs_
             if (string.IsNullOrWhiteSpace(entity.Officer))
             {
                 throw new InvalidValueException("Inspection Officer is required.");
-            }
+            }            
 
             await ValidateUploadAsync(airId, entity.AIRNo);
 
@@ -994,7 +973,7 @@ namespace iLgs.Services.AIRs_
             }
         }
 
-        public ValueTask<AIR> UnpostAsync(Guid airId, string user, DateTime date) => _ExceptionService.TryCatch(async () =>
+        public ValueTask<AIR> UnpostAsync(Guid airId, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.AIRs.FindAsync(airId);
             if (entity == null)
@@ -1154,7 +1133,7 @@ namespace iLgs.Services.AIRs_
             return entity;
         });
 
-        private ValueTask<AIR> UpdatePsItem(AIR entity, string user, DateTime date, bool post) => _ExceptionService.TryCatch(async () =>
+        private ValueTask<AIR> UpdatePsItem(AIR entity, string user, DateTime date, bool post) => _exceptionService.TryCatch(async () =>
         {
             var orderItemIdList = await _db.AIRItems.Where(w => w.AirId == entity.Id).GroupBy(g => g.OrderItemId)
                 .Select(s => s.Key).ToListAsync();
@@ -1189,7 +1168,7 @@ namespace iLgs.Services.AIRs_
             return entity;
         });
 
-        public ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<AIR_VM> SaveAsync(AIR_VM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             //if (model.Id == Guid.Empty || model.Id == null)
             //{
@@ -1352,7 +1331,7 @@ namespace iLgs.Services.AIRs_
             return model;
         }
 
-        public ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<AIR_VM> DeleteAsync(AIR_VM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
 
             await ValidateOnDelete(model);
@@ -1516,5 +1495,30 @@ namespace iLgs.Services.AIRs_
                 throw new RecordAlreadyPostedException("Record already posted, cannot delete!");
             }
         }
-    }
+
+        public bool IsPosted(Guid airId)
+        {
+            return _airAbstractService.IsPosted(airId);            
+        }
+
+        public bool IsPosted(AIR air)
+        {
+            return _airAbstractService.IsPosted(air);
+        }
+
+        public bool IsPosted(AIRItem airItem)
+        {
+            return _airAbstractService.IsPosted(airItem);
+        }
+
+        public bool IsPosted(AIRItemExtn airItemExtn)
+        {
+            return _airAbstractService.IsPosted(airItemExtn);
+        }
+
+        public async ValueTask<bool> IsPostedAsync(Guid airId)
+        {
+            return await _airAbstractService.IsPostedAsync(airId);
+        }
+    }    
 }

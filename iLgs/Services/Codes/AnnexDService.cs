@@ -26,9 +26,16 @@ namespace iLgs.Services.Codes
     public class AnnexDService : CodextnService, IAnnexDService
     {
         private readonly string _mastCode = "ANNEX-D";
-        private new readonly IExceptionService<AnnexDVM> _vmExceptionService = new ExceptionService<AnnexDVM>();
-        public AnnexDService(AppManEntities db) : base(db)
+        private readonly IExceptionService<AnnexDVM> _xtraExceptionService;
+
+        public AnnexDService(AppManEntities db,
+            IExceptionService<Codextn> exceptionService,
+            IExceptionService<CodextnVM> vmExceptionService,
+            IExceptionService<AnnexDVM> xtraExceptionService,
+            IUserService userService)
+        : base(db, exceptionService, vmExceptionService, userService)
         {
+            _xtraExceptionService = xtraExceptionService;
         }
 
         private static Expression<Func<Codextn, AnnexDVM>> CodextnProjection
@@ -62,33 +69,33 @@ namespace iLgs.Services.Codes
             return data;
         }
 
-        public ValueTask<AnnexDVM> CreateAsync(AnnexDVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<AnnexDVM> CreateAsync(AnnexDVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateFields(model, Mode.ADD);
-            
+
             await base.CreateAsync((Codextn)model, user, date);
             return model;
         });
 
-        public ValueTask<AnnexDVM> UpdateAsync(AnnexDVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<AnnexDVM> UpdateAsync(AnnexDVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateRecord(model.Id);
             ValidateFields(model, Mode.EDIT);
-        
+
             await base.UpdateAsync((Codextn)model, user, date);
             return model;
         });
 
-        public ValueTask<AnnexDVM> DeleteAsync(AnnexDVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<AnnexDVM> DeleteAsync(AnnexDVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateRecord(model.Id);
             await base.DeleteAsync((Codextn)model, user, date);
             return model;
         });
-        
+
         private void ValidateIfNull(AnnexDVM model)
         {
             if (model is null)

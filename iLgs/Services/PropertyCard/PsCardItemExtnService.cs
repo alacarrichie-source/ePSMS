@@ -1,5 +1,4 @@
 ﻿using iLgs.Models;
-using iLgs.Services.ParIcs;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -9,7 +8,7 @@ using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
 {
-    public interface IPsCardItemExtnService
+    public interface IPsCardItemExtnService : IPsCardItemExtnSharedService
     {        
         IQueryable<T> GetCardItemExtnForIcsPars<T>(Guid? psCardItemId) where T : PsCardItemExtn;
         IQueryable<T> GetCardItemExtnForIssuance<T>(Guid? psCardItemId) where T : PsCardItemExtn;
@@ -30,11 +29,12 @@ namespace iLgs.Services.PropertyCard
         string GetEndSeries(string startSeries, Guid? itemId);
         string GetEndSeries(string startSeries, int qty);
 
-        void MapModelToEntityFields(PsCardItemExtn entity, PsCardItemExtnCommonVM model, Mode mode);
+        //void MapModelToEntityFields(PsCardItemExtn entity, PsCardItemExtnCommonVM model, Mode mode);
 
         IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get; }
         IPsCardItemExtnOtherService PsCardItemExtnOther { get; }
         IPsCardItemExtnLandService PsCardItemExtnLand { get; }
+        IPsCardItemExtnBldgService PsCardItemExtnBldg { get; }
         IPsCardItemExtnUpdateService PsCardItemExtnUpdate { get; }
         IPsCardItemExtnAddCostService PsCardItemExtnAddCost{ get; }       
     }
@@ -42,23 +42,43 @@ namespace iLgs.Services.PropertyCard
 
     public class PsCardItemExtnService : IPsCardItemExtnService
     {
-        private readonly AppManEntities _db;        
-        private IPsCardItemExtnVehicleService _psCardItemExtnVehicleService;
-        private IPsCardItemExtnOtherService _psCardItemExtnOtherService;
-        private IPsCardItemExtnLandService _psCardItemExtnLandService;
-        private IPsCardItemExtnUpdateService _psCardItemExtnUpdateService;
-        private IPsCardItemExtnAddCostService _psCardItemExtnAddCostService;
+        private readonly AppManEntities _db;
+        private readonly IPsCardSharedService _psCardSharedService;
+        private readonly IPsCardItemExtnSharedService _psCardItemExtnSharedService;
+        private readonly IPsCardItemExtnVehicleService _psCardItemExtnVehicleService;
+        private readonly IPsCardItemExtnOtherService _psCardItemExtnOtherService;
+        private readonly IPsCardItemExtnLandService _psCardItemExtnLandService;
+        private readonly IPsCardItemExtnBldgService _psCardItemExtnBldgService;
+        private readonly IPsCardItemExtnUpdateService _psCardItemExtnUpdateService;
+        private readonly IPsCardItemExtnAddCostService _psCardItemExtnAddCostService;
 
-        public PsCardItemExtnService(AppManEntities db)
+        public PsCardItemExtnService(AppManEntities db,
+            IPsCardSharedService psCardSharedService,
+            IPsCardItemExtnSharedService psCardItemExtnSharedService,
+            IPsCardItemExtnVehicleService psCardItemExtnVehicleService,
+            IPsCardItemExtnOtherService psCardItemExtnOtherService,
+            IPsCardItemExtnLandService psCardItemExtnLandService,
+            IPsCardItemExtnBldgService psCardItemExtnBldgService,
+            IPsCardItemExtnUpdateService psCardItemExtnUpdateService,
+            IPsCardItemExtnAddCostService psCardItemExtnAddCostService)
         {
-            _db = db;                        
+            _db = db;
+            _psCardSharedService = psCardSharedService;
+            _psCardItemExtnSharedService = psCardItemExtnSharedService;
+            _psCardItemExtnVehicleService = psCardItemExtnVehicleService;
+            _psCardItemExtnOtherService = psCardItemExtnOtherService;
+            _psCardItemExtnLandService = psCardItemExtnLandService;
+            _psCardItemExtnBldgService = psCardItemExtnBldgService;
+            _psCardItemExtnUpdateService = psCardItemExtnUpdateService;
+            _psCardItemExtnAddCostService = psCardItemExtnAddCostService;
         }
 
-        public IPsCardItemExtnVehicleService PsCardItemExtnVehicle { get { return _psCardItemExtnVehicleService = _psCardItemExtnVehicleService ?? new PsCardItemExtnVehicleService(_db, this); } }
-        public IPsCardItemExtnLandService PsCardItemExtnLand { get { return _psCardItemExtnLandService = _psCardItemExtnLandService ?? new PsCardItemExtnLandService(_db, this); } }
-        public IPsCardItemExtnOtherService PsCardItemExtnOther { get { return _psCardItemExtnOtherService = _psCardItemExtnOtherService ?? new PsCardItemExtnOtherService(_db, this); } }
-        public IPsCardItemExtnUpdateService PsCardItemExtnUpdate { get { return _psCardItemExtnUpdateService = _psCardItemExtnUpdateService ?? new PsCardItemExtnUpdateService(_db); } }
-        public IPsCardItemExtnAddCostService PsCardItemExtnAddCost { get { return _psCardItemExtnAddCostService = _psCardItemExtnAddCostService ?? new PsCardItemExtnAddCostService(_db); } }
+        public IPsCardItemExtnVehicleService PsCardItemExtnVehicle => _psCardItemExtnVehicleService;
+        public IPsCardItemExtnLandService PsCardItemExtnLand => _psCardItemExtnLandService;
+        public IPsCardItemExtnBldgService PsCardItemExtnBldg => _psCardItemExtnBldgService;
+        public IPsCardItemExtnOtherService PsCardItemExtnOther => _psCardItemExtnOtherService;
+        public IPsCardItemExtnUpdateService PsCardItemExtnUpdate => _psCardItemExtnUpdateService;
+        public IPsCardItemExtnAddCostService PsCardItemExtnAddCost => _psCardItemExtnAddCostService;
 
         public IQueryable<T> GetCardItemExtnForIcsPars<T>(Guid? psCardItemId) where T : PsCardItemExtn
         {        
@@ -87,8 +107,7 @@ namespace iLgs.Services.PropertyCard
 
         public IQueryable<PsCardItemExtn> GetCardItemExtnForIcsParsByType(Guid? psCardItemId)
         {
-            IPsCardService psCardService = new PsCardService(_db);
-            var itemExtnName = psCardService.GetItemExtnName(psCardItemId);
+            var itemExtnName = _psCardSharedService.GetItemExtnName(psCardItemId);
             switch (itemExtnName)
             {
                 case "ItemExtnLand":
@@ -104,8 +123,7 @@ namespace iLgs.Services.PropertyCard
 
         public IQueryable<PsCardItemExtn> GetCardItemExtnSetForIcsParsByType(Guid? psCardItemId)
         {
-            IPsCardService psCardService = new PsCardService(_db);
-            var itemExtnName = psCardService.GetItemExtnName(psCardItemId);
+            var itemExtnName = _psCardSharedService.GetItemExtnName(psCardItemId);
             switch (itemExtnName)
             {
                 case "ItemExtnLand":
@@ -135,8 +153,7 @@ namespace iLgs.Services.PropertyCard
 
         public IQueryable<PsCardItemExtn> GetCardItemExtnForIssuanceByType(Guid? psCardItemId)
         {
-            IPsCardService psCardService = new PsCardService(_db);
-            var itemExtnName = psCardService.GetItemExtnName(psCardItemId);
+            var itemExtnName = _psCardSharedService.GetItemExtnName(psCardItemId);
             switch (itemExtnName)
             {
                 case "ItemExtnLand":
@@ -246,32 +263,7 @@ namespace iLgs.Services.PropertyCard
 
         public void MapModelToEntityFields(PsCardItemExtn entity, PsCardItemExtnCommonVM model, Mode mode)
         {
-
-            if (mode == Mode.ADD)
-            {
-                entity.Id = model.Id;
-                entity.InsertedBy = model.InsertedBy;
-                entity.InsertedDt = model.InsertedDt;
-            }
-            entity.PsCardItemId = model.PsCardItemId;
-            entity.CustItemNo = model.CustItemNo;
-            entity.SeriesNo = model.SeriesNo;
-            entity.SetLotNo = model.SetLotNo;
-            entity.SetLotQtyNo = model.SetLotQtyNo;
-            entity.ContentNo = model.ContentNo;
-            entity.Condition = model.Condition;
-            entity.Condition = model.Condition;
-            entity.SubLocation = model.SubLocation;
-            entity.Annex = model.Annex;
-            entity.AddCost = model.AddCost;
-            entity.AcqCost = model.AcqCost;
-            entity.AcqDate = model.AcqDate;
-            entity.LocationId = model.LocationId;
-            entity.PropNo = model.PropNo;
-            entity.OldPropNo = model.OldPropNo;
-            entity.OldAmount = model.OldAmount;
-            entity.UpcomingOfficer = model.UpcomingOfficer;
-            entity.Remarks = model.Remarks;
+            _psCardItemExtnSharedService.MapModelToEntityFields(entity, model, mode);            
         }
     }
 }

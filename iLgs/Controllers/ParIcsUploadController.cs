@@ -1,7 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
 using iLgs.Services.ParIcs;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
@@ -20,13 +19,11 @@ namespace iLgs.Controllers
     [AppAuthorize("PARSET", "ICSSET", "ICSPARUPDATE")]
     public class ParIcsUploadController : BaseController
     {
-        private readonly AppManEntities _db;
         private readonly IParIcsUploadService _uploadService;
 
-        public ParIcsUploadController()
+        public ParIcsUploadController(IParIcsUploadService parIcsUploadService)
         {
-            _db = new AppManEntities();
-            _uploadService = new ParIcsUploadService(_db);            
+            _uploadService = parIcsUploadService;            
         }
 
         public ActionResult _Images(Guid? imageId, string postedBy, string description)

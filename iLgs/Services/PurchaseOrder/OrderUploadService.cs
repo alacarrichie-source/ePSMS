@@ -11,19 +11,25 @@ namespace iLgs.Services.PurchaseOrder
 {
     public interface IOrderUploadService : IUploadService
     {
+        IOrderUploadService Create(string type);
     }
 
-    public class OrderUploadServiceService : UploadService, IOrderUploadService
+    public class OrderUploadService : UploadService, IOrderUploadService
     {
-        public OrderUploadServiceService(AppManEntities db)
+        public OrderUploadService(AppManEntities db)
             : base(db, "ORDERS")
         {
         }
 
         // Constructor for other uploads like "REQUEST"
-        public OrderUploadServiceService(AppManEntities db, string type)
+        public OrderUploadService(AppManEntities db, string type)
             : base(db, type)
         {
+        }
+
+        public IOrderUploadService Create(string type)
+        {
+            return new OrderUploadService(_db, type);
         }
 
         private async Task<bool> IsPostedAsync(Guid? imageId)

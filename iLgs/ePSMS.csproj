@@ -105,8 +105,11 @@
     <Reference Include="Microsoft.Extensions.DependencyInjection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.8.0.0\lib\net462\Microsoft.Extensions.DependencyInjection.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.8.0.0\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=8.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.8.0.1\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyModel, Version=8.0.0.2, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyModel.8.0.2\lib\net462\Microsoft.Extensions.DependencyModel.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.Logging, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Logging.8.0.0\lib\net462\Microsoft.Extensions.Logging.dll</HintPath>
@@ -168,6 +171,9 @@
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Scrutor, Version=6.0.0.0, Culture=neutral, PublicKeyToken=167d3117ac9a6821, processorArchitecture=MSIL">
+      <HintPath>..\packages\Scrutor.6.1.0\lib\net462\Scrutor.dll</HintPath>
+    </Reference>
     <Reference Include="SixLabors.Fonts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d998eea7b14cab13, processorArchitecture=MSIL">
       <HintPath>..\packages\SixLabors.Fonts.1.0.0\lib\netstandard2.0\SixLabors.Fonts.dll</HintPath>
     </Reference>
@@ -222,6 +228,12 @@
     <Reference Include="System.Security.Cryptography.X509Certificates">
       <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Text.Encodings.Web, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.8.0.0\lib\net462\System.Text.Encodings.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Json, Version=8.0.0.5, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Json.8.0.5\lib\net462\System.Text.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Text.RegularExpressions">
       <HintPath>..\packages\System.Text.RegularExpressions.4.3.1\lib\net463\System.Text.RegularExpressions.dll</HintPath>
@@ -314,9 +326,7 @@
     <Compile Include="Controllers\LocationController.cs" />
     <Compile Include="Controllers\ParSetController.cs" />
     <Compile Include="Controllers\PropertyCardController.cs" />
-    <Compile Include="Controllers\PropertyCardPpeController.cs" />
     <Compile Include="Controllers\PoIssuanceController.cs" />
-    <Compile Include="Controllers\PropertyCardTranspoControoller.cs" />
     <Compile Include="Controllers\PsCategoryController.cs" />
     <Compile Include="Controllers\ItemCardController.cs" />
     <Compile Include="Controllers\RpceffoppeController.cs" />
@@ -813,6 +823,9 @@
       <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Services\AccountableOfficerService.cs" />
+    <Compile Include="Services\AIRs_\AirAbstractService.cs" />
+    <Compile Include="Services\AIRs_\AirItemAbstractService.cs" />
+    <Compile Include="Services\AIRs_\AirItemExtnAbstractService.cs" />
     <Compile Include="Services\AIRs_\AirItemExtnOtherService.cs" />
     <Compile Include="Services\AIRs_\AirItemExtnService.cs" />
     <Compile Include="Services\AIRs_\AirItemExtnVehicleService.cs" />
@@ -821,6 +834,7 @@
     <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\Codes\AnnexDService.cs" />
     <Compile Include="Services\Codes\BudgetService.cs" />
+    <Compile Include="Services\Codes\PriceCapService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportBldgItemPhaseService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemIssuanceRpcPpeService.cs" />
     <Compile Include="Services\Items\ItemCodeRequestService.cs" />
@@ -865,6 +879,7 @@
     <Compile Include="Services\PropertyCard\PsCardItemExtnAddCostService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnBldgService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnLandService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemExtnSharedService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnVehicleRepairService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemTransferItemBldgService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnBldgValidator.cs" />
@@ -876,8 +891,10 @@
     <Compile Include="Services\PropertyCard\PsCardItemTransferItemLandService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemTransferItemOtherService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemTransferItemService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardItemTransferItemSharedService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemTransferItemVehicleService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItramTransferService.cs" />
+    <Compile Include="Services\PropertyCard\PsCardSharedService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupService.cs" />
@@ -907,6 +924,7 @@
     <Compile Include="Services\StockCards\StockCardService.cs" />
     <Compile Include="Services\ParIcs\ParIcsUploadService.cs" />
     <Compile Include="Services\UploadService.cs" />
+    <Compile Include="Services\Uploads\AddCostUploadService.cs" />
     <Compile Include="Services\Uploads\ItemCodeRequestUploadService.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Exceptions\RecordNotYetPostedException.cs" />
@@ -1117,6 +1135,8 @@
     <Compile Include="Utilities\AllFieldsUtil.cs" />
     <Compile Include="Utilities\AppAuthorizeAttribute.cs" />
     <Compile Include="Controllers\BaseConroller.cs" />
+    <Compile Include="Utilities\DefaultDependencyResolver.cs" />
+    <Compile Include="Utilities\ServiceProviderControllerFactory.cs" />
     <Compile Include="Utilities\StringExtensions.cs" />
     <Compile Include="Utilities\Utility.cs" />
     <Compile Include="Utilities\ValidationService.cs" />
@@ -4156,6 +4176,10 @@
     <Content Include="Views\ItemCard\_ItemCardLandEntry.cshtml" />
     <Content Include="Views\CustodianReportBldg\BldgQuery.cshtml" />
     <Content Include="Views\ItemCard\_Land_FieldLand.cshtml" />
+    <Content Include="Views\ItemCard\_ItemCardStructureEntry.cshtml" />
+    <Content Include="Views\CustodianReportBldg\EditorTemplates\_ItemPhaseTemplate.cshtml" />
+    <Content Include="Views\ItemCard\_ImagesAdd.cshtml" />
+    <Content Include="Views\ItemCard\EditorTemplates\_AddCostTemplate.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4500,6 +4524,7 @@
     <Content Include="Views\Shared\EditorTemplates\_RepairDateTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_CardItemExtnLandTemplate.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\_CardItemExtnBldgTemplate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\_ImagesTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\Orders\" />
@@ -4648,7 +4673,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

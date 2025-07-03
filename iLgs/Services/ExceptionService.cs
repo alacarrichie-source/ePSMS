@@ -1,6 +1,5 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Validation;
@@ -11,20 +10,18 @@ using System.Threading.Tasks;
 namespace iLgs.Services
 {
     public interface IExceptionService<T> where T : class
-    {
-        
+    {        
         ValueTask<T> TryCatch(Func<ValueTask<T>> returningFunction);
         IQueryable<T> TryCatch(Func<IQueryable<T>> returningQueryableFunction);
-
-
     }
+
     public class ExceptionService<T> : IExceptionService<T> where T : class
     {
         private readonly ILoggingService _loggingService;
 
-        public ExceptionService()
+        public ExceptionService(ILoggingService loggingService)
         {
-            _loggingService = new LoggingService();            
+            _loggingService = loggingService;
         }
         
         public async ValueTask<T> TryCatch(Func<ValueTask<T>> returningFunction)

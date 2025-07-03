@@ -9,11 +9,9 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
@@ -27,13 +25,15 @@ namespace iLgs.Controllers
         private readonly IAccountableOfficerService _accountableOfficerService;
         private readonly ILocationBudgetService _locationBudgetService;
 
-        public LocationController()
+        public LocationController(AppManEntities db, ILocationService locationService,
+            IDepartmentUserService departmentUserService, IAccountableOfficerService accountableOfficerService,
+            ILocationBudgetService locationBudgetService)
         {
-            _db = new AppManEntities();
-            _locationService = new LocationService(_db);
-            _departmentUserService = new DepartmentUserService(_db);
-            _accountableOfficerService = new AccountableOfficerService(_db);
-            _locationBudgetService = new LocationBudgetService(_db);
+            _db = db;
+            _locationService = locationService;
+            _departmentUserService = departmentUserService;
+            _accountableOfficerService = accountableOfficerService;
+            _locationBudgetService = locationBudgetService;
         }
 
         // GET: Location

@@ -1,13 +1,12 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
+using iLgs.Services.AllFields;
 using iLgs.Services.Codes;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
-using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianReports
 {
@@ -24,14 +23,22 @@ namespace iLgs.Services.CustodianReports
 
     public class CustodianReportItemVehicleService : CustodianReportItemService, ICustodianReportItemVehicleService
     {
-        private readonly IExceptionService<CustodianReportItemVehicleVM> _exceptionService = new ExceptionService<CustodianReportItemVehicleVM>();
+        private readonly IExceptionService<CustodianReportItemVehicleVM> _xtraExceptionService;
         private readonly ICustodianReportItemVehicleValidator _validator;
         private readonly IAnnexDService _annexDService;
-
-        public CustodianReportItemVehicleService(AppManEntities db) : base(db)
+        
+        public CustodianReportItemVehicleService(AppManEntities db,
+            IAllFieldService allFieldService,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<CustodianReportItem> exceptionService,
+            IUserService userService,
+            IExceptionService<CustodianReportItemVehicleVM> xtraExceptionService,
+            ICustodianReportItemVehicleValidator validator,
+            IAnnexDService annexDService) : base(db, allFieldService, exceptions, exceptionService, userService)
         {
-            _validator = new CustodianReportItemVehicleValidator(db);
-            _annexDService = new AnnexDService(db);
+            _xtraExceptionService = xtraExceptionService;
+            _validator = validator;
+            _annexDService = annexDService;
         }
 
         private static Expression<Func<CustodianReportItem, CustodianReportItemVehicleVM>> CustodianReporVehicleItemProjection
@@ -139,7 +146,7 @@ namespace iLgs.Services.CustodianReports
         };
 
         public new ValueTask<CustodianReportItemVehicleVM> GetByIdAsync(Guid id) =>
-        _exceptionService.TryCatch(async () =>
+        _xtraExceptionService.TryCatch(async () =>
         {
             var data = await _db.CustodianReportItems
                 .Where(w => w.Id == id)
@@ -217,7 +224,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public ValueTask<CustodianReportItemVehicleVM> CreateAsync(CustodianReportItemVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemVehicleVM> CreateAsync(CustodianReportItemVehicleVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             if (model != null)
             {
@@ -231,7 +238,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportItemVehicleVM> UpdateAsync(CustodianReportItemVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemVehicleVM> UpdateAsync(CustodianReportItemVehicleVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             if (model != null)
             {
@@ -245,7 +252,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportItemVehicleVM> DeleteAsync(CustodianReportItemVehicleVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemVehicleVM> DeleteAsync(CustodianReportItemVehicleVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             _validator.ValidateOnDelete(model);
             await base.DeleteAsync(model, user, date);

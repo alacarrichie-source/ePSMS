@@ -1,11 +1,5 @@
 ﻿using iLgs.Models;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
@@ -15,7 +9,12 @@ namespace iLgs.Controllers
     public class SysCodes_Controller : ApiController
     {
         private string _mastCode = "APPS";
-        private AppManEntities db = new AppManEntities();
+        private AppManEntities _db;
+
+        public SysCodes_Controller(AppManEntities db)
+        {
+            _db = db;
+        }
 
         // GET: api/syscodes_/82814eba-0738-4edd-a11f-66c8112e20de
         [Route("api/syscodes_/{userId}")]
@@ -26,17 +25,17 @@ namespace iLgs.Controllers
              * if role = admin, view all
              * else view all menu where user is in {role}_admin
              */
-            var isAdmin = db.AspNetUserRoles.Where(w => w.RoleId == "admin" && w.UserId == userId).Count() > 0;
+            var isAdmin = _db.AspNetUserRoles.Where(w => w.RoleId == "admin" && w.UserId == userId).Count() > 0;
             var model = Enumerable.Empty<Codextn>().AsQueryable();
 
             if (isAdmin)
             {
-                model = db.Codextns.Where(w => w.CodeMast.Code == _mastCode);
+                model = _db.Codextns.Where(w => w.CodeMast.Code == _mastCode);
             }
             else
             {
-                model = db.Codextns.Where(w => w.CodeMast.Code == _mastCode
-                    && db.AspNetUserRoles.Where(x => x.UserId == userId && x.RoleId.Contains(w.Code) && x.RoleId.Contains("_admin")).Any());
+                model = _db.Codextns.Where(w => w.CodeMast.Code == _mastCode
+                    && _db.AspNetUserRoles.Where(x => x.UserId == userId && x.RoleId.Contains(w.Code) && x.RoleId.Contains("_admin")).Any());
             }
 
             return model;
@@ -51,18 +50,18 @@ namespace iLgs.Controllers
              * else view all menu where user is in {role}_admin
              */
            
-            var isAdmin = db.AspNetUserRoles.Where(w => w.RoleId == "admin" && w.UserId == userId).Count() > 0;
+            var isAdmin = _db.AspNetUserRoles.Where(w => w.RoleId == "admin" && w.UserId == userId).Count() > 0;
             //var model = Enumerable.Empty<Codextn>().AsQueryable();
 
             if (isAdmin)
             {
-                var data = db.Codextns.Where(w => w.CodeMast.Code == _mastCode);
+                var data = _db.Codextns.Where(w => w.CodeMast.Code == _mastCode);
                 return data;
             }
             else
             {
-                var data = db.Codextns.Where(w => w.CodeMast.Code == _mastCode
-                    && db.AspNetUserRoles.Where(x => x.UserId == userId && x.RoleId.Contains(w.Code) && x.RoleId.Contains("_admin")).Any());
+                var data = _db.Codextns.Where(w => w.CodeMast.Code == _mastCode
+                    && _db.AspNetUserRoles.Where(x => x.UserId == userId && x.RoleId.Contains(w.Code) && x.RoleId.Contains("_admin")).Any());
                 return data;
             }
 
@@ -81,7 +80,7 @@ namespace iLgs.Controllers
         [Route("api/SysCodes_/Contains/{text}")]
         public IQueryable<Codextn> GetSysCodeContains(string text)
         {
-            var data = db.Codextns.Where(w => w.CodeMast.Code == _mastCode && w.Code.Contains(text)).AsQueryable();
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == _mastCode && w.Code.Contains(text)).AsQueryable();
             return data;
         }
 
@@ -90,7 +89,7 @@ namespace iLgs.Controllers
         public async Task<IHttpActionResult> GetSysCode(string id)
         {
             
-            var sysCode = db.Codextns.Where(w => w.CodeMast.Code == _mastCode && w.Code == id).FirstOrDefault();
+            var sysCode = _db.Codextns.Where(w => w.CodeMast.Code == _mastCode && w.Code == id).FirstOrDefault();
 
             if (sysCode == null)
             {
@@ -185,7 +184,7 @@ namespace iLgs.Controllers
         {
             if (disposing)
             {
-                db.Dispose();
+                _db.Dispose();
             }
             base.Dispose(disposing);
         }

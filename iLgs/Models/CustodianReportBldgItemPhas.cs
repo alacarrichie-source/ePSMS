@@ -19,6 +19,16 @@ namespace iLgs.Models
         public string PhaseNo { get; set; }
         public Nullable<decimal> CapitalOutlay { get; set; }
         public Nullable<decimal> MOOE { get; set; }
+        public string ProjectName { get; set; }
+        public Nullable<System.DateTime> StartDate { get; set; }
+        public Nullable<System.DateTime> TargetDate { get; set; }
+        public Nullable<System.DateTime> AcqDate { get; set; }
+        public Nullable<System.DateTime> CompletionDate { get; set; }
+        public Nullable<decimal> PercentComplete { get; set; }
+        public string Status { get; set; }
+        public Nullable<decimal> OldAmount { get; set; }
+        public Nullable<decimal> AcqCost { get; set; }
+        public string Remarks { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }

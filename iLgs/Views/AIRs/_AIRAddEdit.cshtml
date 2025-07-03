@@ -16,17 +16,17 @@
     <fieldset>
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.AIRNo, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.AIRNo, "Label")
                 <div class="col-md-12">
-                    @*@(Html.Kendo().TextBoxFor(model => model.AIRNo).Placeholder("(AUTO)").HtmlAttributes(new { style = "width:100%; max-width:100%;text-transform: uppercase;" }))*@
                     @(Html.Kendo().MaskedTextBoxFor(model => model.AIRNo).Mask("0000-00-0000")
                                 .PromptChar(" ")
-                                .Enable(true).HtmlAttributes(new { placeholder = "(AUTO)", style = "width:100%; max-width:100%;" }))
+                                //.Enable(true).HtmlAttributes(new { placeholder = "(AUTO)", style = "width:100%; max-width:100%;" }))
+                                .Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.AIRNo)
                 </div>
             </div>
             <div class="col-md-6">
-                @Html.LabelFor(model => model.AIRDate, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.AIRDate, "LabelDate")
                 <div class="col-md-12">
                     @(Html.Kendo().DatePickerFor(model => model.AIRDate).Enable(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.AIRDate)
@@ -36,7 +36,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.OrderId, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.OrderId, "LabelGuid")
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.OrderId)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -67,7 +67,7 @@
                 </div>
             </div>
             <div class="col-md-6">
-                @Html.LabelFor(model => model.PoDate, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.PoDate, "LabelDate")
                 <div class="col-md-12">
                     @(Html.Kendo().DatePickerFor(model => model.PoDate).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                     @Html.ValidationMessageFor(model => model.PoDate)
@@ -77,7 +77,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.Supplier, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.Supplier, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.Supplier).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
@@ -86,7 +86,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-12">
-                @Html.LabelFor(model => model.Department, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.Department, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().TextBoxFor(m => m.Department).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                 </div>
@@ -102,23 +102,23 @@
                     <div class="card-body">
                         <div class="row k-mb-2">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.AcceptedDate, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.DisplayFor(model => model.AcceptedDate, "LabelDate")
                                 <div class="col-md-9">
-                                    @(Html.Kendo().DatePickerFor(m => m.AcceptedDate).Enable(ViewBag.AirGroup == 2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                    @(Html.Kendo().DatePickerFor(m => m.AcceptedDate).Enable(ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
                             </div>
                         </div>
                         <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
-                                    @(Html.Kendo().CheckBoxFor(m => m.IsComplete).Enable(ViewBag.AirGroup == 2).Label("Complete"))
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsComplete).Enable(ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4).Label("Complete"))
                                 </div>
                             </div>
                         </div>
                         <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
-                                    @(Html.Kendo().CheckBoxFor(m => m.IsPartial).Enable(ViewBag.AirGroup == 2).Label("Partial (pls. specify)"))
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsPartial).Enable(ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4).Label("Partial (pls. specify)"))
                                 </div>
                             </div>
                         </div>
@@ -128,14 +128,14 @@
                                     &nbsp;
                                 </div>
                                 <div class="col-md-9">
-                                    @(Html.Kendo().TextBoxFor(m => m.Remarks).Enable(ViewBag.AirGroup == 2).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                    @(Html.Kendo().TextBoxFor(m => m.Remarks).Enable(ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
                             </div>
                         </div>
 
                         <div class="row k-mb-2">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.Custodian, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.DisplayFor(model => model.Custodian, "Label")
                                 <div class="col-md-9">
                                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.Custodian)
                                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -156,7 +156,7 @@
                                             c.Add().Field("Description").Title("Name").Width("60%");
                                             c.Add().Field("Desc2").Title("Designation").Width("40%");
                                         })
-                                        .Enable(ViewBag.AirGroup == 2)
+                                        .Enable(ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4)
                                         .Suggest(true)
                                     )
                                     @Html.ValidationMessageFor(model => model.Custodian)
@@ -172,23 +172,23 @@
                     <div class="card-body">
                         <div class="row k-mb-2">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.InspectedDate, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.DisplayFor(model => model.InspectedDate, "LabelDate")
                                 <div class="col-md-9">
-                                    @(Html.Kendo().DatePickerFor(m => m.InspectedDate).Enable(ViewBag.AirGroup == 1).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                                    @(Html.Kendo().DatePickerFor(m => m.InspectedDate).Enable(ViewBag.AirGroup == 1 || ViewBag.AirGroup == 4).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
                                 </div>
                             </div>
                         </div>
                         <div class="row k-mb-2">
                             <div class="col-md-12">
                                 <div class="col-md-offset-2">
-                                    @(Html.Kendo().CheckBoxFor(m => m.IsInspected).Enable(ViewBag.AirGroup == 1).Label("Inspected, verified and found in order as to quality and specifications."))
+                                    @(Html.Kendo().CheckBoxFor(m => m.IsInspected).Enable(ViewBag.AirGroup == 1 || ViewBag.AirGroup == 4).Label("Inspected, verified and found in order as to quality and specifications."))
                                 </div>
                             </div>
                         </div>
                         <br />
                         <div class="row k-mb-2">
                             <div class="col-md-12">
-                                @Html.LabelFor(model => model.Officer, htmlAttributes: new { @class = "col-md-3" })
+                                @Html.DisplayFor(model => model.Officer, "Label")
                                 <div class="col-md-9">
                                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.Officer)                                        
                                         .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -210,7 +210,7 @@
                                             c.Add().Field("Desc2").Title("Designation").Width("40%");
                                         })
                                         .Suggest(true)
-                                        .Enable(ViewBag.AirGroup == 1)
+                                        .Enable(ViewBag.AirGroup == 1 || ViewBag.AirGroup == 4)
                                     )
                                     @Html.ValidationMessageFor(model => model.Officer)
                                 </div>
@@ -224,7 +224,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-6">
-                @Html.LabelFor(model => model.InvDist, htmlAttributes: new { @class = "col-md-12" })
+                @Html.DisplayFor(model => model.InvDist, "Label")
                 <div class="col-md-12">
                     @(Html.Kendo().MultiColumnComboBoxFor(m => m.InvDist)
                             .HtmlAttributes(new { style = "width:100%; max-width:100%;" })

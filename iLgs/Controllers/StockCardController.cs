@@ -1,11 +1,8 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
-using CrystalDecisions.Shared;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
 using iLgs.Services.Codes;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Items;
 using iLgs.Services.StockCards;
 using iLgs.Utilities;
@@ -14,12 +11,10 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
-using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using static iLgs.Models.Enums;
 
@@ -35,13 +30,14 @@ namespace iLgs.Controllers
         private readonly IItemCodeService _itemCodeService;
         private readonly IStockCardValidator _stockCardValidator;
 
-        public StockCardController()
+        public StockCardController(AppManEntities db, IStockCardService stockCardService, ICodextnService codextnService,
+            IItemCodeService itemCodeService, IStockCardValidator stockCardValidator)
         {
-            _db = new AppManEntities();
-            _codextnService = new CodextnService(_db);
-            _stockCardService = new StockCardService(_db);
-            _itemCodeService = new ItemCodeService(_db);
-            _stockCardValidator = new StockCardValidator(_db);
+            _db = db;
+            _codextnService = codextnService;
+            _stockCardService = stockCardService;
+            _itemCodeService = itemCodeService;
+            _stockCardValidator = stockCardValidator;
         }
 
         // GET: Index

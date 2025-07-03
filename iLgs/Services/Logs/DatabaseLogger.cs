@@ -12,9 +12,9 @@ namespace iLgs.Services.Logs
     {
         private readonly AppManEntities _db;        
 
-        public DatabaseLogger()
+        public DatabaseLogger(AppManEntities db)
         {
-            _db = new AppManEntities();
+            _db = db;
         }
 
         public IDisposable BeginScope<TState>(TState state) => null;

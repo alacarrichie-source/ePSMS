@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Services.AllFields;
 using iLgs.Services.Items;
 using iLgs.Services.PropertyCard;
 using System;
@@ -19,17 +20,30 @@ namespace iLgs.Services.StockCards
     }
     public class StockCardService : PsCardService, IStockCardService
     {
-        private readonly IExceptionService<StockCardVM> _vmExceptionService = new ExceptionService<StockCardVM>();
+        private readonly IExceptionService<StockCardVM> _stockExceptionService;
         private readonly IStockCardValidator _validator;
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
 
-        public StockCardService(AppManEntities db) : base (db)
+        public StockCardService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<PsCardVM> vmExceptionService,
+            IExceptionService<PsCard> exceptionService,
+            IAllFieldService allFieldService,
+            IPsCardSharedService psCardSharedService,
+            IPsCardItemService psCardItemService,
+            IPsCardItemIssuanceService psCardItemIssuanceService,
+            IExceptionService<StockCardVM> stockExceptionService,
+            IStockCardValidator validator,
+            IItemCodeService itemCodeService,
+            IUserService userService) 
+            : base(db, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService, psCardItemIssuanceService)
         {
-            _validator = new StockCardValidator(db);
-            _itemCodeService = new ItemCodeService(db);
-            _userService = new UserService(_db);
-        }               
+            _stockExceptionService = stockExceptionService;
+            _validator = validator;
+            _itemCodeService = itemCodeService;
+            _userService = userService;
+        }
 
         public new IQueryable<StockCardVM> GetAll(string userName)
         {            
@@ -91,7 +105,7 @@ namespace iLgs.Services.StockCards
             return data;
         }
 
-        public ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<StockCardVM> CreateAsync(StockCardVM model, string user, DateTime date) => _stockExceptionService.TryCatch(async () =>
         {
             var stockNo = GetStockNo(model);
             model.PsNo = stockNo;
@@ -139,7 +153,7 @@ namespace iLgs.Services.StockCards
             return model;
         });
         
-        public ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<StockCardVM> UpdateAsync(StockCardVM model, string user, DateTime date) => _stockExceptionService.TryCatch(async () =>
         {
             var stockNo = GetStockNo(model);
             model.PsNo = stockNo;
@@ -179,7 +193,7 @@ namespace iLgs.Services.StockCards
             return model;
         });
 
-        public ValueTask<StockCardVM> DeleteAsync(StockCardVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<StockCardVM> DeleteAsync(StockCardVM model, string user, DateTime date) => _stockExceptionService.TryCatch(async () =>
         {
             _validator.ValidateOnDelete(model);
 

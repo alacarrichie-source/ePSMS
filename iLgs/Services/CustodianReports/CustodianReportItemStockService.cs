@@ -29,14 +29,22 @@ namespace iLgs.Services.CustodianReports
 
     public class CustodianReportItemStockService : CustodianReportItemService, ICustodianReportItemStockService
     {
-        private readonly IExceptionService<CustodianReportItemStockVM> _exceptionService = new ExceptionService<CustodianReportItemStockVM>();
+        private readonly IExceptionService<CustodianReportItemStockVM> _xtraExceptionService;
         private readonly ICustodianReportItemStockValidator _validator;
         private readonly IAnnexDService _annexDService;
 
-        public CustodianReportItemStockService(AppManEntities db) : base(db)
+        public CustodianReportItemStockService(AppManEntities db,
+            IAllFieldService allFieldService,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<CustodianReportItem> exceptionService,            
+            IUserService userService,
+            IExceptionService<CustodianReportItemStockVM> xtraExceptionService,
+            ICustodianReportItemStockValidator validator,
+            IAnnexDService annexDService) : base(db, allFieldService, exceptions, exceptionService, userService)
         {
-            _validator = new CustodianReportItemStockValidator(db);
-            _annexDService = new AnnexDService(db);
+            _xtraExceptionService = xtraExceptionService;
+            _validator = validator;
+            _annexDService = annexDService;
         }
 
         private static Expression<Func<CustodianReportItem, CustodianReportItemStockVM>> CustodianReporStockItemProjection
@@ -143,7 +151,7 @@ namespace iLgs.Services.CustodianReports
         };
 
         public new ValueTask<CustodianReportItemStockVM> GetByIdAsync(Guid id) =>
-        _exceptionService.TryCatch(async () =>
+        _xtraExceptionService.TryCatch(async () =>
         {
             var data = await _db.CustodianReportItems.Include(i => i.ItemCode.ItemType)
                 .Where(w => w.Id == id)
@@ -228,7 +236,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public ValueTask<CustodianReportItemStockVM> CreateAsync(CustodianReportItemStockVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemStockVM> CreateAsync(CustodianReportItemStockVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             if (model != null)
             {
@@ -240,7 +248,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportItemStockVM> UpdateAsync(CustodianReportItemStockVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemStockVM> UpdateAsync(CustodianReportItemStockVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             if (model != null)
             {
@@ -252,7 +260,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportItemStockVM> DeleteAsync(CustodianReportItemStockVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemStockVM> DeleteAsync(CustodianReportItemStockVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             _validator.ValidateOnDelete(model);
             await base.DeleteAsync(model, user, date);

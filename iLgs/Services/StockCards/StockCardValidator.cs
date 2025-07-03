@@ -1,18 +1,11 @@
-﻿using FluentValidation;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
 using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.StockCards
@@ -27,20 +20,20 @@ namespace iLgs.Services.StockCards
 
     public class StockCardValidator : BaseValidator, IStockCardValidator
     {
-        private delegate string GetDisplayNameDelegate(string propertyName);
+        //private delegate string GetDisplayNameDelegate(string propertyName);
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly AppManEntities _db;
         private readonly IAllFieldsValidator _allFieldsValidator;
         private readonly IItemCodeService _itemCodeService;
-        //private readonly IStockCardService _stockCardService;
-
-        public StockCardValidator(AppManEntities db)
+        
+        public StockCardValidator(AppManEntities db,
+            IAllFieldsValidator allFieldsValidator,
+            IItemCodeService itemCodeService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<StockCardVM>(propertyName);
-            _allFieldsValidator = new AllFieldsValidator(_db);
-            _itemCodeService = new ItemCodeService(_db);
-            //_stockCardService = new StockCardService(_db);
+            _allFieldsValidator = allFieldsValidator;
+            _itemCodeService = itemCodeService;            
         }
         public void ValidateOnCreate(StockCardVM model)
         {                       

@@ -1,25 +1,21 @@
 ﻿using iLgs.Models;
+using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Security;
-using Microsoft.AspNet.Identity;
 using System.Configuration;
+using System.Data.SqlClient;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using iLgs.Utilities;
-using System.Data.SqlClient;
 using System.Text;
-using System.IO;
-using System.Security.Claims;
-using iLgs.Controllers;
-using Kendo.Mvc.UI;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
 
-namespace iLgs.Utilities
+namespace iLgs.Controllers
 {
     public abstract class BaseController : Controller
     {

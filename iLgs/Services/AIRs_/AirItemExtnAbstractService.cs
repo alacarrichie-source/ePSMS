@@ -1,0 +1,133 @@
+﻿using iLgs.Models;
+using iLgs.Services.Items;
+using System;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace iLgs.Services.AIRs_
+{
+    public interface IAirItemExtnAbstractService
+    {
+        Task CreateAirItemExtnAsync(AIRItem airItem, OrderItem orderItem, string user, DateTime date);
+        void SetAirItmExtn(string itemExtnName, string setLotNo, int? setLotQtyNo, int? contentNo, int? tContentNo, AIRItem airItem, string user, DateTime date);
+    }
+
+    public class AirItemExtnAbstractService : IAirItemExtnAbstractService
+    {
+        private readonly AppManEntities _db;
+        private readonly IAirItemAbstractService _airItemSharedService;
+        private readonly IItemCodeService _itemCodeService;
+
+        public AirItemExtnAbstractService(AppManEntities db, IAirItemAbstractService airItemSharedService, IItemCodeService itemCodeService)
+        {
+            _db = db;
+            _airItemSharedService = airItemSharedService;
+            _itemCodeService = itemCodeService;
+        }
+
+        public async Task CreateAirItemExtnAsync(AIRItem airItem, OrderItem orderItem, string user, DateTime date)
+        {
+            if (airItem.InvDist != "I")
+            {
+                return;
+            }
+
+            var isWithParIcs = _itemCodeService.IsWithParIcs(orderItem.ItemCodeId);
+            if (isWithParIcs != true)
+            {
+                return;
+            }
+
+            var unitGroupDescriptionItem = await _db.OrderItemUnitGroupDescriptionItems
+                       .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
+                       .Where(w => w.OrderItemId == orderItem.Id)
+                       .FirstOrDefaultAsync();
+            var qty = (int?)orderItem.Qty;
+            string category = orderItem.RequestItem.RisItem.ItemCode.ItemType.Code;
+            string itemExtnName = _airItemSharedService.GetItemExtnNameByCategory(category);
+
+            // create template based on number of qty
+            if (unitGroupDescriptionItem != null)
+            {
+                var setLotNo = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.SetLotNo;
+                var groupQty = unitGroupDescriptionItem.OrderItemUnitGroupDescription.OrderItemUnitGroup.Qty;
+                var tQty = 0; // qty * groupQty;
+                for (int gQty = 1; gQty <= groupQty; gQty++)
+                {
+                    for (int q = 1; q <= qty; q++)
+                    {
+                        tQty++;
+                        var airItemExtns = _db.AIRItemExtns.Where(w => w.AIRItemId == airItem.Id && w.SetLotNo == setLotNo && w.SetLotQtyNo == gQty && w.ContentNo == q);
+                        if (!airItemExtns.Any())
+                        {
+                            SetAirItmExtn(itemExtnName, setLotNo, gQty, tQty, qty, airItem, user, date);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (int q = 1; q <= qty; q++)
+                {
+                    var airItemExtns = _db.AIRItemExtns
+                        .Where(w => w.AIRItemId == airItem.Id
+                            && (w.SetLotNo == "" || w.SetLotNo == null)
+                            && w.SetLotQtyNo == null
+                            && w.ContentNo == q);
+                    if (!airItemExtns.Any())
+                    {
+                        SetAirItmExtn(itemExtnName, "", null, q, qty, airItem, user, date);
+                    }
+                }
+            }
+        }
+
+        public void SetAirItmExtn(string itemExtnName, string setLotNo, int? setLotQtyNo, int? contentNo, int? tContentNo, AIRItem airItem, string user, DateTime date)
+        {
+            if (itemExtnName == "ItemExtnLand")
+            {
+                // To do: Add Land process here
+            }
+            else if (itemExtnName == "ItemExtnVehicle")
+            {
+                var airItemExtnVehicle = new AIRItemExtnVehicle()
+                {
+                    Id = Guid.NewGuid(),
+                    AIRItemId = airItem.Id,
+                    SetLotNo = setLotNo,
+                    SetLotQtyNo = setLotQtyNo,
+                    ContentNo = contentNo,
+                    TContentNo = tContentNo,
+                    ConductionNo = "",
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+
+                airItem.AIRItemExtns.Add(airItemExtnVehicle);
+            }
+            else if (itemExtnName == "ItemExtnOther")
+            {
+                var airItemExtnOther = new AIRItemExtnOther()
+                {
+                    Id = Guid.NewGuid(),
+                    AIRItemId = airItem.Id,
+                    SetLotNo = setLotNo,
+                    SetLotQtyNo = setLotQtyNo,
+                    ContentNo = contentNo,
+                    TContentNo = tContentNo,
+                    SerialNo = "",
+                    InsertedBy = user,
+                    InsertedDt = date,
+                    UpdatedBy = user,
+                    UpdatedDt = date
+                };
+
+                airItem.AIRItemExtns.Add(airItemExtnOther);
+            }
+        }
+    }
+
+}

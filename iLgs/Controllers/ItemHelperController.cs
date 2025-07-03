@@ -1,10 +1,7 @@
 ﻿using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Items;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
@@ -12,22 +9,19 @@ namespace iLgs.Controllers
     [Authorize]
     public class ItemHelperController : Controller
     {
-        private readonly AppManEntities _db;
         private readonly IItemTypeService _itemTypeService;
         private readonly IItemCodeService _itemCodeService;
         
-        public ItemHelperController()
+        public ItemHelperController(IItemTypeService itemTypeService, IItemCodeService itemCodeService)
         {
-            _db = new AppManEntities();
-            _itemTypeService = new ItemTypeService(_db);
-            _itemCodeService = new ItemCodeService(_db);        
+            _itemTypeService = itemTypeService;
+            _itemCodeService = itemCodeService;        
         }
 
         public JsonResult GetItems(string text)
         {
             var model = _itemCodeService.GetItems(text).OrderBy(o => o.ItemType).ThenBy(o => o.ItemNoIndex);
             return Json(model.Select(c => new { Id = c.Id, ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode }), JsonRequestBehavior.AllowGet);
-            //return Json(model.Select(c => new { Id = c.Id, ItemNoIndex = c.ItemNoIndex, Code = c.Code, Description = c.Description, Type = c.ItemType, TypeDesc = c.ItemTypeDesc, ItemNo = c.ItemNo, MainDesc = c.MainDesc, Account = c.Account, SubArticle = c.SubArticle, MainDescCode = c.MainDescCode, FieldGroupNo = c.FieldGroupNo }), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetItemAccounts(string text)

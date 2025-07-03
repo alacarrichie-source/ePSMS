@@ -1,9 +1,5 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Codes;
-using iLgs.Services.Interfaces;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,7 +9,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services
 {
@@ -31,15 +26,17 @@ namespace iLgs.Services
         private static string _sysCode = "PSMS";
         private static string _sysAdmin = "PSMS_ADMIN";
 
-        private readonly AppManEntities _db; // = new AppManEntities();
-        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
+        private readonly AppManEntities _db;
+        private readonly ICreateAndLogExceptions _exceptions;
         private HttpClient _client;
         private string _iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
         //private IAnnexDService _annexDService;
 
-        public UserService(AppManEntities db)
+        public UserService(AppManEntities db,
+            ICreateAndLogExceptions exceptions)
         {
             _db = db;
+            _exceptions = exceptions;
             _client = new HttpClient();
             _client.BaseAddress = new Uri(_iLgsApiUrl);
             _client.DefaultRequestHeaders.Accept.Clear();

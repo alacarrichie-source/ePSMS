@@ -1,17 +1,15 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.ParIcs;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
 {
-    public interface IPsCardItemTransferItemService
+    public interface IPsCardItemTransferItemService : IPsCardItemTransferItemSharedService
     {
         IQueryable<PsCardItemExtn> GetCardItemExtnForIssuanceByType(Guid? psCardTransferId);
 
@@ -31,8 +29,8 @@ namespace iLgs.Services.PropertyCard
         IPsCardItemTransferItemBldgService PsCardItemTransferItemBldg { get; }
         IPsCardItemTransferItemLandService PsCardItemTransferItemLand { get; }
 
-        void ValidateIfTransit(Guid? psCardTransferId);
-        void MapModelToEntityFields(PsCardItemExtn entity, PsCardItemExtnCommonVM model, Mode mode);
+        //void ValidateIfTransit(Guid? psCardTransferId);
+        //void MapModelToEntityFields(PsCardItemExtn entity, PsCardItemExtnCommonVM model, Mode mode);
         ValueTask DeleteAsync(Guid? id, string user, DateTime? date);
     }
 
@@ -40,29 +38,38 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemTransferItemService : IPsCardItemTransferItemService
     {
         private readonly AppManEntities _db;
-        private IPsCardItemTransferItemOtherService _psCardItemTransferItemOtherService;
-        private IPsCardItemTransferItemVehicleService _psCardItemTransferItemVehicleService;
-        private IPsCardItemTransferItemBldgService _psCardItemTransferItemBldgService;
-        private IPsCardItemTransferItemLandService _psCardItemTransferItemLandService;
+        private readonly IPsCardItemTransferItemSharedService _psCardItemTransferItemSharedService;
+        private readonly IPsCardItemTransferItemOtherService _psCardItemTransferItemOtherService;
+        private readonly IPsCardItemTransferItemVehicleService _psCardItemTransferItemVehicleService;
+        private readonly IPsCardItemTransferItemBldgService _psCardItemTransferItemBldgService;
+        private readonly IPsCardItemTransferItemLandService _psCardItemTransferItemLandService;
+        private readonly IPsCardSharedService _psCardSharedService;
 
-        public PsCardItemTransferItemService(AppManEntities db)
+        public PsCardItemTransferItemService(AppManEntities db,
+            IPsCardItemTransferItemSharedService psCardItemTransferItemSharedService,
+            IPsCardItemTransferItemOtherService psCardItemTransferItemOtherService,
+            IPsCardItemTransferItemVehicleService psCardItemTransferItemVehicleService,
+            IPsCardItemTransferItemBldgService psCardItemTransferItemBldgService,
+            IPsCardItemTransferItemLandService psCardItemTransferItemLandService,
+            IPsCardSharedService psCardSharedService)
         {
             _db = db;
-            //_psCardItemTransferItemOtherService = new PsCardItemTransferItemOtherService(_db);
-            //_psCardItemTransferItemVehicleService = new PsCardItemTransferItemVehicleService(_db);
-            //_psCardItemTransferItemBldgService = new PsCardItemTransferItemBldgService(_db);
-            //_psCardItemTransferItemLandService = new PsCardItemTransferItemLandService(_db);
+            _psCardItemTransferItemSharedService = psCardItemTransferItemSharedService;
+            _psCardItemTransferItemOtherService = psCardItemTransferItemOtherService;
+            _psCardItemTransferItemVehicleService = psCardItemTransferItemVehicleService;
+            _psCardItemTransferItemBldgService = psCardItemTransferItemBldgService;
+            _psCardItemTransferItemLandService = psCardItemTransferItemLandService;
+            _psCardSharedService = psCardSharedService;
         }
 
-        public IPsCardItemTransferItemOtherService PsCardItemTransferItemOther { get { return _psCardItemTransferItemOtherService = _psCardItemTransferItemOtherService ?? new PsCardItemTransferItemOtherService(_db, this); } }
-        public IPsCardItemTransferItemVehicleService PsCardItemTransferItemVehicle { get { return _psCardItemTransferItemVehicleService = _psCardItemTransferItemVehicleService ?? new PsCardItemTransferItemVehicleService(_db, this); } }
-        public IPsCardItemTransferItemBldgService PsCardItemTransferItemBldg { get { return _psCardItemTransferItemBldgService = _psCardItemTransferItemBldgService ?? new PsCardItemTransferItemBldgService(_db, this); } }
-        public IPsCardItemTransferItemLandService PsCardItemTransferItemLand { get { return _psCardItemTransferItemLandService = _psCardItemTransferItemLandService ?? new PsCardItemTransferItemLandService(_db, this); } }
+        public IPsCardItemTransferItemOtherService PsCardItemTransferItemOther => _psCardItemTransferItemOtherService;
+        public IPsCardItemTransferItemVehicleService PsCardItemTransferItemVehicle => _psCardItemTransferItemVehicleService;
+        public IPsCardItemTransferItemBldgService PsCardItemTransferItemBldg => _psCardItemTransferItemBldgService;
+        public IPsCardItemTransferItemLandService PsCardItemTransferItemLand => _psCardItemTransferItemLandService;
 
         public IQueryable<PsCardItemExtn> GetCardItemExtnForIssuanceByType(Guid? psCardTransferId)
         {
-            IPsCardService psCardService = new PsCardService(_db);
-            var itemExtnName = psCardService.GetItemExtnName(psCardTransferId);
+            var itemExtnName = _psCardSharedService.GetItemExtnName(psCardTransferId);
             switch (itemExtnName)
             {
                 case "ItemExtnLand":
@@ -152,10 +159,7 @@ namespace iLgs.Services.PropertyCard
 
         public void ValidateIfTransit(Guid? psCardTransferId)
         {
-            if (_db.PsCardItemTransfers.Any(a => a.Id == psCardTransferId && a.ParentId != null))
-            {
-                throw new InvalidValueException("Action not allowed for transit record.");
-            }
+            _psCardItemTransferItemSharedService.ValidateIfTransit(psCardTransferId);            
         }
 
         public async ValueTask DeleteAsync(Guid? id, string user, DateTime? date)
@@ -177,32 +181,7 @@ namespace iLgs.Services.PropertyCard
 
         public void MapModelToEntityFields(PsCardItemExtn entity, PsCardItemExtnCommonVM model, Mode mode)
         {
-
-            if (mode == Mode.ADD)
-            {
-                entity.Id = model.Id;
-                entity.InsertedBy = model.InsertedBy;
-                entity.InsertedDt = model.InsertedDt;
-            }
-            entity.PsCardItemId = model.PsCardItemId;
-            entity.CustItemNo = model.CustItemNo;
-            entity.SeriesNo = model.SeriesNo;
-            entity.SetLotNo = model.SetLotNo;
-            entity.SetLotQtyNo = model.SetLotQtyNo;
-            entity.ContentNo = model.ContentNo;
-            entity.Condition = model.Condition;
-            entity.Condition = model.Condition;
-            entity.SubLocation = model.SubLocation;
-            entity.Annex = model.Annex;
-            entity.AddCost = model.AddCost;
-            entity.AcqCost = model.AcqCost;
-            entity.AcqDate = model.AcqDate;
-            entity.LocationId = model.LocationId;
-            entity.PropNo = model.PropNo;
-            entity.OldPropNo = model.OldPropNo;
-            entity.OldAmount = model.OldAmount;
-            entity.UpcomingOfficer = model.UpcomingOfficer;
-            entity.Remarks = model.Remarks;
+            _psCardItemTransferItemSharedService.MapModelToEntityFields(entity, model, mode);            
         }
     }
 }

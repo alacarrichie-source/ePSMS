@@ -1,12 +1,9 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.PurchaseOrder
 {
@@ -24,13 +21,22 @@ namespace iLgs.Services.PurchaseOrder
     public class OrderItemUnitGroupDescriptionItemService : IOrderItemUnitGroupDescriptionItemService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<OrderItemUnitGroupDescriptionItemVM> _vmExceptionService = new ExceptionService<OrderItemUnitGroupDescriptionItemVM>();
-        private readonly IExceptionService<OrderItemUnitGroupDescriptionItem> _exceptionService = new ExceptionService<OrderItemUnitGroupDescriptionItem>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<OrderItemUnitGroupDescriptionItemVM> _vmExceptionService;
+        private readonly IExceptionService<OrderItemUnitGroupDescriptionItem> _exceptionService;
+        private readonly IOrderItemService _orderItemService;
 
-        public OrderItemUnitGroupDescriptionItemService(AppManEntities db)
+        public OrderItemUnitGroupDescriptionItemService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<OrderItemUnitGroupDescriptionItemVM> vmExceptionService,
+            IExceptionService<OrderItemUnitGroupDescriptionItem> exceptionService,
+            IOrderItemService orderItemService)
         {
             _db = db;
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _orderItemService = orderItemService;
         }
 
         public ValueTask<OrderItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id) =>
@@ -102,28 +108,13 @@ namespace iLgs.Services.PurchaseOrder
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            //var entity = await _db.OrderItemUnitGroupDescriptionItems.FindAsync(model.Id);
-
-            //entity.UpdatedBy = model.UpdatedBy;
-            //entity.UpdatedDt = model.UpdatedDt;
-
-            //_db.OrderItemUnitGroupDescriptionItems.Attach(entity);
-            //_db.Entry(entity).State = EntityState.Modified;
-            //await _db.SaveChangesAsync();
-
-            //_db.OrderItemUnitGroupDescriptionItems.Remove(entity);
-            //_db.Entry(entity).State = EntityState.Deleted;
-            //await _db.SaveChangesAsync();
-
-            IOrderItemService orderItemService = new OrderItemService(_db);
+            
             var orderItemVM = new OrderItemVM()
             {
                 Id = (Guid)model.OrderItemId
             };
 
-            await orderItemService.DeleteAsync(orderItemVM, user, date);
-
-            //await DeleteEmptyGroupsAsync(model.OrderItemId);
+            await _orderItemService.DeleteAsync(orderItemVM, user, date);            
 
             return model;
         });

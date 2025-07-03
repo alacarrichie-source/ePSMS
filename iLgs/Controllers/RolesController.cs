@@ -1,27 +1,29 @@
 ﻿using iLgs.Models;
-using Kendo.Mvc.UI;
+using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
 using System.Data.Entity;
-using Microsoft.AspNet.Identity;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Net.Http;
-using System.Data.SqlClient;
-using System.Configuration;
-using System.Net.Http.Headers;
-using Newtonsoft.Json;
-using iLgs.Utilities;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
     [AppAuthorize("roles")]
     public class RolesController : BaseController
     {
-        private AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
+
+        public RolesController(AppManEntities db)
+        {
+            _db = db;
+        }
+
         //HttpClient client;
 
         ////The URL of the WEB API Service
@@ -46,7 +48,7 @@ namespace iLgs.Controllers
         public ActionResult Index()
         {
             var userId = User.Identity.GetUserId();
-            ViewBag.IsNotAdmin = !db.AspNetUserRoles.Where(w => w.UserId == userId && w.RoleId == "admin").Any();
+            ViewBag.IsNotAdmin = !_db.AspNetUserRoles.Where(w => w.UserId == userId && w.RoleId == "admin").Any();
             return View();
         }
 
@@ -54,10 +56,10 @@ namespace iLgs.Controllers
         public ActionResult RolesRead([DataSourceRequest] DataSourceRequest request)
         {
             var userId = User.Identity.GetUserId();
-            var isAdmin = db.AspNetUserRoles.Where(w => w.UserId == userId && w.RoleId == "admin").Any();
+            var isAdmin = _db.AspNetUserRoles.Where(w => w.UserId == userId && w.RoleId == "admin").Any();
             if (isAdmin)
             {
-                return Json(db.AspNetRoles.ToDataSourceResult(request));
+                return Json(_db.AspNetRoles.ToDataSourceResult(request));
             }
             else
             {
@@ -67,7 +69,7 @@ namespace iLgs.Controllers
                 //                && db.AspNetUserRoles.Where(y => y.UserId == x.UserId && y.RoleId.Contains("_admin") && y.RoleId.Contains(x.RoleId)).Any()
                 //            ).Any()
                 //        ).ToDataSourceResult(request));                
-                var data = db.AspNetRoles.Where(w => w.Id != "admin" && db.AspNetUserRoles.Any(a => a.UserId == userId && a.RoleId.Contains(w.Id)));
+                var data = _db.AspNetRoles.Where(w => w.Id != "admin" && _db.AspNetUserRoles.Any(a => a.UserId == userId && a.RoleId.Contains(w.Id)));
                 return Json(data.ToDataSourceResult(request));
             }
         }
@@ -79,8 +81,8 @@ namespace iLgs.Controllers
             {
                 if (model != null && ModelState.IsValid)
                 {
-                    db.AspNetRoles.Add(model);
-                    db.SaveChanges();
+                    _db.AspNetRoles.Add(model);
+                    _db.SaveChanges();
                 }
             }
             catch (Exception e)
@@ -102,9 +104,9 @@ namespace iLgs.Controllers
                 if (ModelState.IsValid)
                 {
                     
-                    db.AspNetRoles.Attach(model);
-                    db.Entry(model).State = EntityState.Modified;
-                    db.SaveChanges();
+                    _db.AspNetRoles.Attach(model);
+                    _db.Entry(model).State = EntityState.Modified;
+                    _db.SaveChanges();
                 }
             }
             catch (Exception e)
@@ -125,13 +127,13 @@ namespace iLgs.Controllers
                 if (ModelState.IsValid)
                 {
                     // Attach the entity
-                    db.AspNetRoles.Attach(model);
+                    _db.AspNetRoles.Attach(model);
                     // Delete the entity
-                    db.AspNetRoles.Remove(model);
+                    _db.AspNetRoles.Remove(model);
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    db.SaveChanges();
+                    _db.SaveChanges();
 
                 }
             }
@@ -150,7 +152,7 @@ namespace iLgs.Controllers
 
         public ActionResult UserInRoleRead([DataSourceRequest] DataSourceRequest request, string roleId)
         {
-            return Json(db.Database.SqlQuery<AspNetUserRoles_View>("Select *, CompKeyId = UserId + RoleId From AspNetUserRoles_View where RoleId = {0}", roleId).ToDataSourceResult(request));
+            return Json(_db.Database.SqlQuery<AspNetUserRoles_View>("Select *, CompKeyId = UserId + RoleId From AspNetUserRoles_View where RoleId = {0}", roleId).ToDataSourceResult(request));
 
         }
 
@@ -166,8 +168,8 @@ namespace iLgs.Controllers
                     model.RoleId = roleId;
                     AspNetUserRole entity = SetAspNetUserRole(model);
 
-                    db.AspNetUserRoles.Add(entity);
-                    db.SaveChanges();
+                    _db.AspNetUserRoles.Add(entity);
+                    _db.SaveChanges();
                     model.CompKeyId = model.UserId + model.RoleId;
                 }
             }
@@ -202,13 +204,13 @@ namespace iLgs.Controllers
                     AspNetUserRole entity = SetAspNetUserRole(model);
 
                     // Attach the entity
-                    db.AspNetUserRoles.Attach(entity);
+                    _db.AspNetUserRoles.Attach(entity);
                     // Delete the entity
-                    db.AspNetUserRoles.Remove(entity);
+                    _db.AspNetUserRoles.Remove(entity);
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    db.SaveChanges();
+                    _db.SaveChanges();
 
                 }
             }

@@ -1,11 +1,8 @@
-﻿using iLgs.Exceptions;
-using iLgs.Models;
+﻿using iLgs.Models;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
@@ -25,17 +22,22 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnLandService : IPsCardItemExtnLandService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<PsCardItemExtnLandVM> _exceptionService = new ExceptionService<PsCardItemExtnLandVM>();
+        private readonly IExceptionService<PsCardItemExtnLandVM> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnLandValidator _psCardItemExtnLandValidator;
-        private readonly IPsCardItemExtnService _psCardItemExtnService;
+        private readonly IPsCardItemExtnSharedService _psCardItemExtnSharedService;
 
-        public PsCardItemExtnLandService(AppManEntities db, IPsCardItemExtnService psCardItemExtnService)
+        public PsCardItemExtnLandService(AppManEntities db,
+            IExceptionService<PsCardItemExtnLandVM> exceptionService,
+            IPsCardItemTransactionService psCardItemTransactionService,
+            IPsCardItemExtnLandValidator psCardItemExtnLandValidator,
+            IPsCardItemExtnSharedService psCardItemExtnSharedService)
         {
             _db = db;
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _psCardItemExtnLandValidator = new PsCardItemExtnLandValidator(_db);
-            _psCardItemExtnService = psCardItemExtnService;
+            _exceptionService = exceptionService;
+            _psCardItemTransactionService = psCardItemTransactionService;
+            _psCardItemExtnLandValidator = psCardItemExtnLandValidator;
+            _psCardItemExtnSharedService = psCardItemExtnSharedService;
         }
 
         private Expression<Func<PsCardItemExtnLand, PsCardItemExtnLandVM>> GetProjection()
@@ -201,7 +203,7 @@ namespace iLgs.Services.PropertyCard
 
         public void MapModelToEntityFields(PsCardItemExtnLand entity, PsCardItemExtnLandVM model, Mode mode)
         {
-            _psCardItemExtnService.MapModelToEntityFields(entity, model, mode);
+            _psCardItemExtnSharedService.MapModelToEntityFields(entity, model, mode);
 
             // Extension
             entity.PIN = model.PIN;

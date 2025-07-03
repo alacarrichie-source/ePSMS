@@ -19,6 +19,7 @@ namespace iLgs.Services
             : base(db, "CARD")
         {
         }
+
         private void ValidateIfPosted(Guid? psCardItemId)
         {
             var entity = _db.PsCards.Where(w => w.PsCardItems.Any(a => a.Id == psCardItemId)).FirstOrDefault();

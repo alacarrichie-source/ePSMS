@@ -1,15 +1,18 @@
 ﻿using iLgs.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
     public class SequenceController : Controller
     {
-        private AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
+
+        public SequenceController(AppManEntities db)
+        {
+            _db = db;
+        }
 
         public string NextPoNo(DateTime poDate)
         {
@@ -18,7 +21,7 @@ namespace iLgs.Controllers
             yy = yy.Substring(2, 2);
             mm = mm.Substring(0, mm.Length).PadLeft(2, '0');
             string keyName = yy + mm;
-            var sequence = db.Sequences.Where(w => w.KeyName == "PO-NO" + keyName).SingleOrDefault();
+            var sequence = _db.Sequences.Where(w => w.KeyName == "PO-NO" + keyName).SingleOrDefault();
             if (sequence == null)
             {
                 sequence = new Sequence()
@@ -26,13 +29,13 @@ namespace iLgs.Controllers
                     KeyName = "PO-NO" + keyName,
                     KeyValue = "1"
                 };
-                db.Sequences.Add(sequence);
+                _db.Sequences.Add(sequence);
             }
             else
             {
                 sequence.KeyValue = (decimal.Parse(sequence.KeyValue) + 1).ToString();
             }
-            db.SaveChanges();
+            _db.SaveChanges();
             return keyName + sequence.KeyValue.PadLeft(6, '0');
         }
     }

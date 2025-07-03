@@ -1,8 +1,6 @@
-﻿using CrystalDecisions.CrystalReports.Engine;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
 using iLgs.Services.CustodianReports;
 using iLgs.Services.CustodianUploads;
 using iLgs.Utilities;
@@ -12,7 +10,6 @@ using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,17 +22,17 @@ namespace iLgs.Controllers
     [AppAuthorize("CUSTODIANREPORTBLDG")]
     public class CustodianReportBldgController : BaseController
     {
-        private readonly AppManEntities _db;
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianReportBldgItemService _custodianReportBldgItemService;
         private readonly ICustodianBldgUploadService _uploadService;
         
-        public CustodianReportBldgController()
+        public CustodianReportBldgController(ICustodianReportService custodianReportService,
+            ICustodianReportBldgItemService custodianReportBldgItemService,
+            ICustodianBldgUploadService custodianBldgUploadService)
         {
-            _db = new AppManEntities();
-            _custodianReportService = new CustodianReportService(_db);
-            _custodianReportBldgItemService = new CustodianReportBldgItemService(_db);
-            _uploadService = new CustodianBldgUploadService(_db);        
+            _custodianReportService = custodianReportService;
+            _custodianReportBldgItemService = custodianReportBldgItemService;
+            _uploadService = custodianBldgUploadService;        
         }
 
         public ActionResult BldgQuery()

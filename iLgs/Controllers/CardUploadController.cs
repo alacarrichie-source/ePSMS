@@ -19,13 +19,11 @@ namespace iLgs.Controllers
     [AppAuthorize("STOCKCARD", "PROPERTYCARD")]
     public class CardUploadController : BaseController
     {
-        private AppManEntities _db;
-        private ICardUploadService _uploadService;
+        private readonly ICardUploadService _uploadService;
 
-        public CardUploadController()
+        public CardUploadController(ICardUploadService cardUploadService)
         {
-            _db = new AppManEntities();
-            _uploadService = new CardUploadService(_db);
+            _uploadService = cardUploadService;
         }
 
         public ActionResult _Images(Guid? imageId, Guid? psCardItemId)

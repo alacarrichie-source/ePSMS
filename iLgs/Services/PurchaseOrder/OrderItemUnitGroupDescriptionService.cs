@@ -1,12 +1,9 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.PurchaseOrder
 {
@@ -22,13 +19,19 @@ namespace iLgs.Services.PurchaseOrder
     public class OrderItemUnitGroupDescriptionService : IOrderItemUnitGroupDescriptionService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<OrderItemUnitGroupDescriptionVM> _vmExceptionService = new ExceptionService<OrderItemUnitGroupDescriptionVM>();
-        private readonly IExceptionService<OrderItemUnitGroupDescription> _exceptionService = new ExceptionService<OrderItemUnitGroupDescription>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<OrderItemUnitGroupDescriptionVM> _vmExceptionService;
+        private readonly IExceptionService<OrderItemUnitGroupDescription> _exceptionService;
 
-        public OrderItemUnitGroupDescriptionService(AppManEntities db)
+        public OrderItemUnitGroupDescriptionService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<OrderItemUnitGroupDescriptionVM> vmExceptionService,
+            IExceptionService<OrderItemUnitGroupDescription> exceptionService)
         {
             _db = db;
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
         }
 
 

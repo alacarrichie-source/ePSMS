@@ -1,15 +1,10 @@
-﻿using ClosedXML.Excel;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.AllFields;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianReports
@@ -26,14 +21,19 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportItemIssuanceService : ICustodianReportItemIssuanceService
     {        
         protected readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<CustodianReportItemIssuance> _exceptionService = new ExceptionService<CustodianReportItemIssuance>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<CustodianReportItemIssuance> _exceptionService;
         private readonly IUserService _userService;
 
-        public CustodianReportItemIssuanceService(AppManEntities db)
+        public CustodianReportItemIssuanceService(AppManEntities db, 
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<CustodianReportItemIssuance> exceptionService,
+            IUserService userService)
         {
             _db = db;
-            _userService = new UserService(_db);
+            _exceptions = exceptions;
+            _exceptionService = exceptionService;
+            _userService = userService;
         }
 
         public ValueTask<CustodianReportItemIssuance> GetByIdAsync(Guid id) =>

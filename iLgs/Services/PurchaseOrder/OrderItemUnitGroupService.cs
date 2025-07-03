@@ -1,12 +1,9 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.PurchaseOrder
 {
@@ -22,17 +19,25 @@ namespace iLgs.Services.PurchaseOrder
     public class OrderItemUnitGroupService : IOrderItemUnitGroupService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<OrderItemUnitGroupVM> _vmExceptionService = new ExceptionService<OrderItemUnitGroupVM>();
-        private readonly IExceptionService<OrderItemUnitGroup> _exceptionService = new ExceptionService<OrderItemUnitGroup>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<OrderItemUnitGroupVM> _vmExceptionService;
+        private readonly IExceptionService<OrderItemUnitGroup> _exceptionService;
         private readonly IOrderService _orderService;
         private readonly IOrderItemUnitGroupDescriptionItemService _orderItemUnitGroupDescriptionItemService;
 
-        public OrderItemUnitGroupService(AppManEntities db)
+        public OrderItemUnitGroupService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<OrderItemUnitGroupVM> vmExceptionService,
+            IExceptionService<OrderItemUnitGroup> exceptionService,
+            IOrderService orderService,
+            IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService)
         {
             _db = db;
-            _orderService = new OrderService(_db);
-            _orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _orderService = orderService;
+            _orderItemUnitGroupDescriptionItemService = orderItemUnitGroupDescriptionItemService;
         }
 
         public ValueTask<OrderItemUnitGroup> GetByIdAsync(Guid? id) =>

@@ -10,7 +10,7 @@ using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
 {
-    public interface IPsCardService
+    public interface IPsCardService : IPsCardSharedService
     {
         IQueryable<PsCardVM> GetAll(string userName);
         IQueryable<PsCardVM> GetAllStocks();
@@ -26,8 +26,8 @@ namespace iLgs.Services.PropertyCard
         ValueTask<bool> GetAnyPsNoAsync(Guid id, string psNo);
         string GetDescription(PsCardVM model);
         string GetStockNo(PsCardVM model);
-        string GetItemExtnName(Guid? id);
-        string GetItemExtnNameByItmExtnId(Guid? id);
+        //string GetItemExtnNameByItmExtnId(Guid? id);
+        //string GetItemExtnName(Guid? id);
 
         bool IsPosted(Guid psCardId);
         bool IsPosted(PsCard psCard);
@@ -49,28 +49,36 @@ namespace iLgs.Services.PropertyCard
     public class PsCardService : IPsCardService
     {
         protected readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<PsCardVM> _vmExceptionService = new ExceptionService<PsCardVM>();
-        private readonly IExceptionService<PsCard> _exceptionService = new ExceptionService<PsCard>();
-        protected IAllFieldService _allFieldService;
-        protected IPsCardItemService _psCardItemService;
-        //protected IPsCardItemExtnService _psCardItemExtnService;
-        protected IPsCardItemIssuanceService _psCardItemIssuanceService;
-        
-        public PsCardService(AppManEntities db)
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<PsCardVM> _vmExceptionService;
+        private readonly IExceptionService<PsCard> _exceptionService;
+        protected readonly IAllFieldService _allFieldService;
+        protected readonly IPsCardSharedService _psCardSharedService;
+        protected readonly IPsCardItemService _psCardItemService;
+        protected readonly IPsCardItemIssuanceService _psCardItemIssuanceService;
+
+        public PsCardService(AppManEntities db,            
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<PsCardVM> vmExceptionService,
+            IExceptionService<PsCard> exceptionService,
+            IAllFieldService allFieldService,
+            IPsCardSharedService psCardSharedService,
+            IPsCardItemService psCardItemService,
+            IPsCardItemIssuanceService psCardItemIssuanceService)
         {
             _db = db;
-            _allFieldService = new AllFieldService(_db);
-            _psCardItemService = new PsCardItemService(_db);
-            _psCardItemIssuanceService = new PsCardItemIssuanceService(_db);
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _allFieldService = allFieldService;
+            _psCardSharedService = psCardSharedService;
+            _psCardItemService = psCardItemService;
+            _psCardItemIssuanceService = psCardItemIssuanceService;
         }
 
-        //public IStockCardService StockCard { get { return _stockCardService = _stockCardService ?? new StockCardService(_db); } }
-        //public IPropertyCardService PropertyCard { get { return _propertyCardService = _propertyCardService ?? new PropertyCardService(_db); } }
-        public IAllFieldService AllField { get { return _allFieldService = _allFieldService ?? new AllFieldService(_db); } }
-        public IPsCardItemService PsCardItem { get { return _psCardItemService = _psCardItemService ?? new PsCardItemService(_db); } }
-        //public IPsCardItemExtnService PsCardItemExtn { get { return _psCardItemExtnService = _psCardItemExtnService ?? new PsCardItemExtnService(_db); } }
-        public IPsCardItemIssuanceService PsCardItemIssuance { get { return _psCardItemIssuanceService = _psCardItemIssuanceService ?? new PsCardItemIssuanceService(_db); } }
+        public IAllFieldService AllField => _allFieldService;
+        public IPsCardItemService PsCardItem => _psCardItemService;
+        public IPsCardItemIssuanceService PsCardItemIssuance => _psCardItemIssuanceService;
 
         public IQueryable<PsCardVM> GetAll(string userName) => _vmExceptionService.TryCatch(() =>
         {            
@@ -298,58 +306,12 @@ namespace iLgs.Services.PropertyCard
 
         public string GetItemExtnNameByItmExtnId(Guid? id)
         {
-            var cardItem = _db.PsCardItems.FirstOrDefault(f => f.PsCardItemExtns.Any(a => a.Id == id));
-            if (cardItem == null)
-            {
-                return string.Empty;
-            }
-
-            return GetItemExtnName(cardItem.Id);
+            return _psCardSharedService.GetItemExtnNameByItmExtnId(id);
         }
 
         public string GetItemExtnName(Guid? id)
         {
-            var category = _db.PsCardItems.Where(w => w.Id == id).Select(s => s.PsCard.ItemCode.ItemType.Code).FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(category))
-            {
-                return "";
-            }
-
-            string itemExtnName = "";
-            if (Enum.TryParse(category, out Category c))
-            {
-                if (c == CatLandsProp())
-                {
-                    itemExtnName = "ItemExtnLand";
-                }
-                else if (c == CatBuildingsProp())
-                {
-                    itemExtnName = "ItemExtnBldg";
-                }
-                else if (c == CatTransportationProp())
-                {
-                    itemExtnName = "ItemExtnVehicle";
-                }
-                else if (c == CatMachineriesProp()
-                    || c == CatFurnituresProp()
-                    || c == CatOtherProperties()
-                    || c == CatMedicalSupply()
-                    || c == CatAgriculturalSupply()
-                    || c == CatAnimalSupplies()
-                    || c == CatConstructionMaterialsSupply()
-                    || c == CatOfficeSupplies()
-                    || c == CatAccountableFormsSupply()
-                    || c == CatNonAccountableFornsSupply()
-                    || c == CatMilitarySupply()
-                    || c == CatOtherSupplies()
-                    || c == CatDrugsSupply()
-                    || c == CatRepairSupply()
-                    )
-                {
-                    itemExtnName = "ItemExtnOther";
-                }
-            }
-            return itemExtnName;
+            return _psCardSharedService.GetItemExtnName(id);
         }
 
         public virtual ValueTask<PsCard> PostAsync(Guid id, string user, DateTime date) =>

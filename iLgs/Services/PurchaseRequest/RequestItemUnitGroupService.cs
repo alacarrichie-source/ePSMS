@@ -1,13 +1,10 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Requisition;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.PurchaseRequest
 {
@@ -22,20 +19,29 @@ namespace iLgs.Services.PurchaseRequest
 
     public class RequestItemUnitGroupService : IRequestItemUnitGroupService
     {
-        private readonly AppManEntities _db = new AppManEntities();
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<RequestItemUnitGroupVM> _vmExceptionService = new ExceptionService<RequestItemUnitGroupVM>();
-        private readonly IExceptionService<RequestItemUnitGroup> _exceptionService = new ExceptionService<RequestItemUnitGroup>();
+        private readonly AppManEntities _db;
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<RequestItemUnitGroupVM> _vmExceptionService;
+        private readonly IExceptionService<RequestItemUnitGroup> _exceptionService;
         private readonly IRisService _risService;
         private readonly IRequestService _requestService;
         private readonly IRequestItemUnitGroupDescriptionItemService _requestItemUnitGroupDescriptionItemService;
 
-        public RequestItemUnitGroupService(AppManEntities db)
+        public RequestItemUnitGroupService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<RequestItemUnitGroupVM> vmExceptionService,
+            IExceptionService<RequestItemUnitGroup> exceptionService,
+            IRisService risService,
+            IRequestService requestService,
+            IRequestItemUnitGroupDescriptionItemService requestItemUnitGroupDescriptionItemService)
         {
             _db = db;
-            _risService = new RisService(_db);
-            _requestService = new RequestService(_db);
-            _requestItemUnitGroupDescriptionItemService = new RequestItemUnitGroupDescriptionItemService(_db);
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _risService = risService;
+            _requestService = requestService;
+            _requestItemUnitGroupDescriptionItemService = requestItemUnitGroupDescriptionItemService;
         }
 
         public ValueTask<RequestItemUnitGroup> GetByIdAsync(Guid? id) =>

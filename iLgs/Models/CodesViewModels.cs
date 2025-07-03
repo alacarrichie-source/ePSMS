@@ -106,6 +106,22 @@ namespace iLgs.Models
         }
     }
 
+    [MetadataType(typeof(PriceCapVM.Metadata))]
+    public class PriceCapVM : Codextn
+    {
+        internal sealed class Metadata
+        {
+            public Guid Id { get; set; }
+            public System.Guid MastId { get; set; }
+
+            [Display(Name = "Effectivity (mm/dd/yyyy)")]
+            public string Code { get; set; }
+
+            [Display(Name = "Amount")]
+            public string Description { get; set; }
+
+        }
+    }
 
     public class MenuActionSw
     {

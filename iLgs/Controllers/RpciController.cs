@@ -3,7 +3,6 @@ using CrystalDecisions.Shared;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
 using iLgs.Services.Codes;
 using iLgs.Services.RPC;
 using iLgs.Utilities;
@@ -28,12 +27,12 @@ namespace iLgs.Controllers
         private readonly IRpciItemService _rpciItemService;
         private readonly ICodextnService _codextnService;
 
-        public RpciController()
+        public RpciController(AppManEntities db, IRpciService rpciService, IRpciItemService rpciItemService, ICodextnService codextnService)
         {
-            _db = new AppManEntities();
-            _rpciService = new RpciService(_db);
-            _rpciItemService = new RpciItemService(_db);
-            _codextnService = new CodextnService(_db);
+            _db = db;
+            _rpciService = rpciService;
+            _rpciItemService = rpciItemService;
+            _codextnService = codextnService;
         }
 
         public ActionResult NotPosted()
@@ -571,7 +570,7 @@ namespace iLgs.Controllers
                 Stream stream = crReportDocument.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
                 crReportDocument.Close();
                 crReportDocument.Dispose();
-                return File(stream, "application/xlsx");
+                return File(stream, "application/xlsx", $"RpciSumRpt.xls");
             }
             else
             {

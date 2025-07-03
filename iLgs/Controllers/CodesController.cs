@@ -1,36 +1,35 @@
-﻿using iLgs.Models;
-using Kendo.Mvc.UI;
-using Kendo.Mvc.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Data.Entity;
-using iLgs.Utilities;
-using System.Threading.Tasks;
-using Microsoft.AspNet.Identity;
-using iLgs.Services.Interfaces;
-using iLgs.Services;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
+using iLgs.Models;
+using iLgs.Services;
 using iLgs.Services.Codes;
+using iLgs.Utilities;
+using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
+using System;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
     [AppAuthorize("CODES")]
     public class CodesController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
+        private AppManEntities _db;
         private ICodextnService _codextnService;
         private IDepartmentUserService _departmentUserService;
         private IAccountableOfficerService _accountableOfficerService;
 
-        public CodesController()
+        public CodesController(AppManEntities db, 
+            ICodextnService codextnService, IDepartmentUserService departmentUserService, IAccountableOfficerService accountableOfficerService)
         {
-            _codextnService = new CodextnService(_db);
-            _departmentUserService = new DepartmentUserService(_db);
-            _accountableOfficerService = new AccountableOfficerService(_db);
+            _db = db;
+            _codextnService = codextnService;
+            _departmentUserService = departmentUserService;
+            _accountableOfficerService = accountableOfficerService;
         }
         // GET: Codes
         public ActionResult Index()

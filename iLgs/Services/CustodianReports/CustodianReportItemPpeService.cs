@@ -1,4 +1,6 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
+using iLgs.Services.AllFields;
 using iLgs.Services.Codes;
 using System;
 using System.Collections.Generic;
@@ -23,14 +25,22 @@ namespace iLgs.Services.CustodianReports
 
     public class CustodianReportItemPpeService : CustodianReportItemService, ICustodianReportItemPpeService
     {
-        private readonly IExceptionService<CustodianReportItemPpeVM> _exceptionService = new ExceptionService<CustodianReportItemPpeVM>();
+        private readonly IExceptionService<CustodianReportItemPpeVM> _xtraExceptionService;
         private readonly ICustodianReportItemPpeValidator _validator;
         private readonly IAnnexDService _annexDService;
-
-        public CustodianReportItemPpeService(AppManEntities db) : base(db)
+        
+        public CustodianReportItemPpeService(AppManEntities db,
+            IAllFieldService allFieldService,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<CustodianReportItem> exceptionService,
+            IExceptionService<CustodianReportItemPpeVM> xtraExceptionService,
+            ICustodianReportItemPpeValidator validator,
+            IAnnexDService annexDService,
+            IUserService userService) : base(db, allFieldService, exceptions, exceptionService, userService)
         {
-            _validator = new CustodianReportItemPpeValidator(db);
-            _annexDService = new AnnexDService(db);
+            _xtraExceptionService = xtraExceptionService;
+            _validator = validator;
+            _annexDService = annexDService;
         }
 
         private static Expression<Func<CustodianReportItem, CustodianReportItemPpeVM>> CustodianReporPpeItemProjection
@@ -137,7 +147,7 @@ namespace iLgs.Services.CustodianReports
         };
 
         public new ValueTask<CustodianReportItemPpeVM> GetByIdAsync(Guid id) =>
-        _exceptionService.TryCatch(async () =>
+        _xtraExceptionService.TryCatch(async () =>
         {
             var data = await _db.CustodianReportItems.Include(i => i.ItemCode.ItemType)
                 .Where(w => w.Id == id)
@@ -220,7 +230,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public ValueTask<CustodianReportItemPpeVM> CreateAsync(CustodianReportItemPpeVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemPpeVM> CreateAsync(CustodianReportItemPpeVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             if (model != null)
             {
@@ -234,7 +244,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportItemPpeVM> UpdateAsync(CustodianReportItemPpeVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemPpeVM> UpdateAsync(CustodianReportItemPpeVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             if (model != null)
             {
@@ -248,7 +258,7 @@ namespace iLgs.Services.CustodianReports
             return model;
         });
 
-        public ValueTask<CustodianReportItemPpeVM> DeleteAsync(CustodianReportItemPpeVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemPpeVM> DeleteAsync(CustodianReportItemPpeVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             _validator.ValidateOnDelete(model);
             await base.DeleteAsync(model, user, date);

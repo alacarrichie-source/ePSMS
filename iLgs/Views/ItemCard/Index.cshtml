@@ -123,6 +123,12 @@
 <div id="windowcontainer"></div>
 
 <style>
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
     .numeric-wrapper {
         position: relative;
     }
@@ -242,6 +248,19 @@
             color: inherit !important; /* Ensure text color remains unaffected */
         }
 </style>
+
+<script type="text/x-kendo-template" id="validationMessageTemplate">
+    # if (messages.length) { #
+    <li>
+        #=field#
+        <ul>
+            # for (var i = 0; i < messages.length; ++i) { #
+            <li>#= messages[i] #</li>
+            # } #
+        </ul>
+    </li>
+    # } #
+</script>
 
 <script type="text/javascript">
     $(document).ready(function () {
@@ -483,23 +502,23 @@
                 setTimeout(function () {
                     // Disable all Kendo UI Inputs (TextBox, ComboBox, NumericTextBox, etc.)
                     fieldsContainer.find("input").each(function () {
-                        //var textbox = $(this).data("kendoTextBox");
-                        //var combobox = $(this).data("kendoComboBox");
-                        //var numericTextBox = $(this).data("kendoNumericTextBox");
+                        var textbox = $(this).data("kendoTextBox");
+                        var combobox = $(this).data("kendoComboBox");
+                        var numericTextBox = $(this).data("kendoNumericTextBox");
 
-                        //if (textbox) {
-                        //    textbox.enable(false); // Disable Kendo TextBox
-                        //}
-                        //if (combobox) {
-                        //    combobox.enable(false); // Disable Kendo ComboBox
-                        //}
-                        //if (numericTextBox) {
-                        //    numericTextBox.enable(false); // Disable Kendo NumericTextBox
-                        //}
+                        if (textbox) {
+                            textbox.enable(false); // Disable Kendo TextBox
+                        }
+                        if (combobox) {
+                            combobox.enable(false); // Disable Kendo ComboBox
+                        }
+                        if (numericTextBox) {
+                            numericTextBox.enable(false); // Disable Kendo NumericTextBox
+                        }
                     });
 
                     // Disable all regular <input>, <select>, and <textarea>
-                    //fieldsContainer.find("input, select, textarea").prop("disabled", true);
+                    fieldsContainer.find("input, select, textarea").prop("disabled", true);
                 }, 100); // Delay to ensure Kendo widgets are initialized
             }
         });
@@ -607,6 +626,11 @@
         }
     }
 
+    function onChangeGridAddCost(e) {
+        var selectedData = this.dataItem(this.select());
+        selectedGridAddCostItem = selectedData.Id;
+    }
+
     function onDataBoundGridAddCost(e) {
         if (selectedGridAddCostItem) {
             var dataItem = this.dataSource.get(selectedGridAddCostItem);
@@ -626,6 +650,51 @@
                 var grid = $("#gridAddCost").data("kendoGrid");
 
                 grid.dataSource.read();
+            }
+        }
+    }
+
+    function onChangeAddCostPoNo(e) {
+        var poNo = this.value();
+        //var disabled = $("#formAddCost").find(':input:disabled').removeAttr('disabled');
+        $.ajax({
+            url: '@Url.Action("GetPoNo", "ItemCard")',
+            type: 'POST',
+            data: { poNo: poNo },
+            success: function (data) {
+                if (data.Errors == "") {                    
+                    var poDate = $("#Effectivity").data("kendoDatePicker");
+                    poDate.value(data.PoDate);
+                    poDate.trigger("change");
+                }
+            }
+        });
+        //disabled.attr('disabled', 'disabled');
+    }
+
+    function GridErrorAddCost(args) {
+        if (args.errors) {
+            var selectedGrid = $("#gridAddCost").data("kendoGrid");
+            var validationError = true;
+            $.each(args.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                    validationError = false;
+                    selectedGrid.dataSource.read();
+                }
+            });
+            if (validationError) {
+                var validationTemplate = kendo.template($("#validationMessageTemplate").html());
+                $('#ErrorContent').removeClass('hidden');
+                selectedGrid.one("dataBinding", function (e) {
+                    e.preventDefault();
+                    var errors = selectedGrid.editable.element.find(".errors");
+                    errors.empty();
+                    $.each(args.errors, function (propertyName) {
+                        var renderedTemplate = validationTemplate({ field: propertyName, messages: this.errors });
+                        errors.append(renderedTemplate);
+                    });
+                });
             }
         }
     }
@@ -731,4 +800,182 @@
         }
     }
 
+    // uploads
+    function onClickUploads(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        Uploads(dataItem.Id, dataItem.PostedBy);
+    }
+
+
+    function Uploads(imageId, postedBy) {
+        var myTitle = "Uploads";
+        var width = 1000;
+        var height = 650;
+        $("#windowcontainer").append("<div id='window'></div>");
+        var mywindow = $("#window")
+                .kendoWindow({
+                    actions: ["Minimize", "Close"],
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    autoheight: true,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+        mywindow.setOptions({
+            title: myTitle,
+            width: width
+            //height: height
+        });
+        mywindow.refresh({
+            url: '@Url.Action("_Images", "ItemCard")',
+            data: {
+                imageId: imageId,
+                postedBy: postedBy,
+                description: "ADDITIONAL COST"
+            },
+            // Specify a callback function to execute after content is loaded
+            complete: function () {
+                // Resize the window to fit its content
+                mywindow.resize();
+                mywindow.center();
+            }
+        });
+        //mywindow.center();
+        mywindow.open();
+        //resizeWindow();
+    }
+
+
+    var selectedGridImagesItem = null;
+    function onEditGridImages(e) {
+        e.preventDefault();
+
+        //// the master row for this detail
+        //var parentRow = this.wrapper.closest("tr").prev();
+        //var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        ////var parentModel = parentGrid.dataItem(parentRow);
+        //parentGrid.select(parentRow);
+
+        var selectedGrid = e.sender; // local, grid is popup
+        if (e.model.isNew()) {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+            e.model.set("ImageId", '@ViewData["imageId"]');
+        } else {
+            selectedGridImagesItem = e.model.get("Id");
+            var rowitem = selectedGrid.dataSource.get(selectedGridImagesItem);
+            selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        }
+    }
+
+    function onDataBoundGridImages(e) {
+        if (selectedGridImagesItem) {
+            var dataItem = this.dataSource.get(selectedGridImagesItem);
+            if (dataItem) {
+                this.select($('[data-uid=' + dataItem.uid + ']'));
+            }
+        } else {
+            var row = e.sender.tbody.find("tr:first");
+            this.select(row);
+        }
+
+        @*var trs = this.tbody.find('tr').each(
+           function () {
+               var item = this.dataItem($(this));
+
+               if ('@ViewBag.isAllowed' == 'False') {
+                   $('.k-grid-Upload', $("#gridImages")).remove();
+               }
+           }
+          );*@
+    }
+    function onDeleteGridImages(e) {
+        e.preventDefault();
+        selectedGrid = this;
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        setTimeout(function () { selectedGrid.removeRow(tr); }, 10);
+    }
+
+
+    function onClickUpload(e) {
+        var button = e.sender.element; // Use the sender's element;
+        // Retrieve the grid name from the data attribute
+        var imageId = $(button).data("imageid");
+        var description = $(button).data("description");
+        var myUrl = '@Url.Action("_ImagesAdd", "iTEMcARD")?imageId=' + imageId + '&description=' + description;
+        var myTitle = "Upload Images/Documents";
+        var width = 800;
+        var height = 650;
+
+        $("#windowcontainer").append("<div id='windowUpload'></div>");
+        var mywindow = $("#windowUpload")
+                .kendoWindow({
+                    actions: ["Minimize", "Maximize", "Close"],
+                    resizable: true,
+                    draggable: true,
+                    modal: true,
+                    visible: false,
+                    deactivate: function () {
+                        this.destroy();
+                    }
+                }).data("kendoWindow");
+
+        mywindow.setOptions({ title: myTitle, width: width, height: height });
+        mywindow.refresh({ url: myUrl });
+        mywindow.center();
+        mywindow.open();
+
+    }
+
+    function UploadPara(e) {
+        var data = JSON.stringify({ model: $("#formUpload").serialize() });
+        var description = document.forms["formUpload"]["Description"].value;
+        e.data = { imageId: $("#ImageId").val(), Description: description }
+    }
+
+    function onClickPreview(e) {
+        var selectedGrid = this; // local, grid is popup
+
+        var tr = $(e.currentTarget).closest("tr");
+        var dataItem = selectedGrid.dataItem(tr);
+        var rowitem = selectedGrid.dataSource.get(dataItem.Id);
+
+        selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+        selectedGridImagesItem = dataItem.Id;
+
+        var myUrl = '@Url.Action("PreviewUpload", "ItemCard")?id=' + selectedGridImagesItem;
+        window.open(myUrl, "_blank");
+    }
+
+    function onUploadSuccess(e)
+    {
+        $("#gridImages_").data("kendoGrid").dataSource.read();
+    }
+
+    function onError(e) {
+        // invalid because the responseText is a raw string, not JSON
+        //var err = $.parseJSON(e.XMLHttpRequest.responseText);
+        var err = e.XMLHttpRequest.responseText;
+        alert(err);
+    };
+
+    function GridUploadError(e) {
+        if (e.errors) {
+            $.each(e.errors, function (propertyName) {
+                if (propertyName == "DeleteError" || propertyName == "AddError" || propertyName == "UpdateError") {
+                    alert(this.errors);
+                }
+            });
+        }
+    }
+    // END UPLOADS
 </script>

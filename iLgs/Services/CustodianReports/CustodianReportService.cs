@@ -33,16 +33,22 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportService : ICustodianReportService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<CustodianReport> _exceptionService = new ExceptionService<CustodianReport>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<CustodianReport> _exceptionService;
         private readonly ICustodianReportValidator _validator;
         private readonly IUserService _userService;
 
-        public CustodianReportService(AppManEntities db)
+        public CustodianReportService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<CustodianReport> exceptionService,
+            IUserService userService,
+            ICustodianReportValidator validator)
         {
             _db = db;
-            _validator = new CustodianReportValidator(_db);
-            _userService = new UserService(_db);
+            _exceptions = exceptions;
+            _exceptionService = exceptionService;
+            _validator = validator;
+            _userService = userService;
         }
 
         public ValueTask<CustodianReport> GetByIdAsync(Guid? id) =>

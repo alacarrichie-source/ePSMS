@@ -849,6 +849,7 @@
         //var risDate = kendo.toString(new Date(parseInt(dataItem.RisDate.substr(6))), 'MM/dd/yyyy');
         var risDate = kendo.parseDate(dataItem.RisDate);
 
+        $("#PrNo").val(dataItem.RisNo).trigger("change");
         $("#RisNo").val(dataItem.RisNo).trigger("change");
         $("#RisDate").val(risDate).trigger("change");
         $("#Fund").val(dataItem.Fund).trigger("change");

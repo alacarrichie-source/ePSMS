@@ -1,15 +1,12 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Items;
-using iLgs.Utilities;
 using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using static iLgs.Models.Enums;
 
 namespace iLgs.Services
 {
@@ -29,10 +26,11 @@ namespace iLgs.Services
         private readonly AppManEntities _db ;
         private readonly IItemCodeService _itemCodeService;
 
-        public ItemTypeService(AppManEntities db)
+        public ItemTypeService(AppManEntities db,
+            IItemCodeService itemCodeService)
         {
             _db = db;
-            _itemCodeService = new ItemCodeService(_db);
+            _itemCodeService = itemCodeService;
         }
         
         private Expression<Func<ItemType, ItemTypeVM>> Projection(AppManEntities _db)

@@ -2,13 +2,10 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.Codes
@@ -24,10 +21,18 @@ namespace iLgs.Services.Codes
 
     public class BudgetService : CodextnService, IBudgetService
     {
-        private new readonly IExceptionService<BudgetCodeVM> _vmExceptionService = new ExceptionService<BudgetCodeVM>();
-        public BudgetService(AppManEntities db) : base(db)
+        private readonly IExceptionService<BudgetCodeVM> _xtraExceptionService;
+        
+        public BudgetService(AppManEntities db,
+            IExceptionService<Codextn> exceptionService,
+            IExceptionService<CodextnVM> vmExceptionService,
+            IExceptionService<BudgetCodeVM> xtraExceptionService,
+            IUserService userService)
+        : base(db, exceptionService, vmExceptionService, userService)
         {
+            _xtraExceptionService = xtraExceptionService;
         }
+
 
         private static Expression<Func<Codextn, BudgetCodeVM>> CodextnProjection
         = s => new BudgetCodeVM
@@ -59,7 +64,7 @@ namespace iLgs.Services.Codes
             return data;
         }
 
-        public ValueTask<BudgetCodeVM> CreateAsync(BudgetCodeVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<BudgetCodeVM> CreateAsync(BudgetCodeVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateFields(model, Mode.ADD);
@@ -71,7 +76,7 @@ namespace iLgs.Services.Codes
             return model;
         });
 
-        public ValueTask<BudgetCodeVM> UpdateAsync(BudgetCodeVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<BudgetCodeVM> UpdateAsync(BudgetCodeVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateRecord(model.Id);
@@ -84,7 +89,7 @@ namespace iLgs.Services.Codes
             return model;
         });
 
-        public ValueTask<BudgetCodeVM> DeleteAsync(BudgetCodeVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<BudgetCodeVM> DeleteAsync(BudgetCodeVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateRecord(model.Id);

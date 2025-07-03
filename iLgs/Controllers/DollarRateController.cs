@@ -2,7 +2,6 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.DollarRate_;
-using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
@@ -16,13 +15,11 @@ namespace iLgs.Controllers
 {
     public class DollarRateController : BaseController
     {
-        private readonly AppManEntities _db;
         private readonly IDollarRateService _dollarRateService;
 
-        public DollarRateController()
+        public DollarRateController(IDollarRateService dollarRateService)
         {
-            _db = new AppManEntities();
-            _dollarRateService = new DollarRateService(_db);            
+            _dollarRateService = dollarRateService;            
         }
 
         public ActionResult Index()

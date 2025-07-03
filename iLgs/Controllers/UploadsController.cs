@@ -1,20 +1,18 @@
 ﻿using iLgs.Models;
-using Kendo.Mvc.UI;
+using iLgs.Services;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using System.Data.Entity;
-using Microsoft.AspNet.Identity;
-using iLgs.Utilities;
-using Newtonsoft.Json;
-using System.IO;
-using System.Configuration;
-using iLgs.Services.Interfaces;
-using iLgs.Services;
 
 namespace iLgs.Controllers
 {
@@ -22,10 +20,11 @@ namespace iLgs.Controllers
     {
         private readonly AppManEntities _db;
         private readonly IDirectoryService _directoryService;
-        public UploadsController()
+
+        public UploadsController(AppManEntities db, IDirectoryService directoryService)
         {
-            _db = new AppManEntities();
-            _directoryService = new DirectoryService(_db);
+            _db = db;
+            _directoryService = directoryService;
         }
         // GET: Uploads
         public ActionResult Index()

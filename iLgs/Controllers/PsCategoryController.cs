@@ -9,11 +9,9 @@ using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
@@ -26,12 +24,13 @@ namespace iLgs.Controllers
         private readonly IDepartmentUserService _userService;
         private readonly IItemTypeExclusionService _itemTypeExclusionService;
 
-        public PsCategoryController()
+        public PsCategoryController(AppManEntities db, IPsCategoryService psCategoryService, IDepartmentUserService departmentUserService, 
+            IItemTypeExclusionService itemTypeExclusionService)
         {
-            _db = new AppManEntities();
-            _psCategoryService = new PsCategoryService(_db);
-            _userService = new DepartmentUserService(_db);
-            _itemTypeExclusionService = new ItemTypeExclusionService(_db);
+            _db = db;
+            _psCategoryService = psCategoryService;
+            _userService = departmentUserService;
+            _itemTypeExclusionService = itemTypeExclusionService;
         }
 
         // GET: Location

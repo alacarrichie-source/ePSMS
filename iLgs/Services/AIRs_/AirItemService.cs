@@ -1,6 +1,5 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Validators;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -10,10 +9,8 @@ using static iLgs.Models.Enums;
 
 namespace iLgs.Services.AIRs_
 {
-    public interface IAirItemService
+    public interface IAirItemService : IAirItemAbstractService
     {
-        string GetItemExtnName(Guid? id);
-        string GetItemExtnNameByCategory(string category);
         IQueryable<AIRItemVM> GetByAirId(Guid? airId);
         ValueTask<AIRItemVM> GetByIdAsync(Guid? id);
 
@@ -28,63 +25,31 @@ namespace iLgs.Services.AIRs_
     public class AirItemService : IAirItemService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<AIRItemVM> _vmExceptionService = new ExceptionService<AIRItemVM>();
-        private readonly IValidationService<AIRItemVM> _validationService;
+        private readonly IExceptionService<AIRItemVM> _vmExceptionService;
+        //private readonly IValidationService<AIRItemVM> _validationService;
+        private readonly IAirItemAbstractService _airItemAbstractService;
+        private readonly IAirItemExtnService _airItemExtnService;
 
-        private IAirItemExtnService _airItemExtnService;
+        public IAirItemExtnService AirItemExtn => _airItemExtnService;
 
-        public AirItemService(AppManEntities db)
+        public AirItemService(AppManEntities db, IExceptionService<AIRItemVM> vmExceptionService, IAirItemAbstractService airItemAbstractService, IAirItemExtnService airItemExtnService)
         {
             _db = db;
-            _validationService = new ValidationService<AIRItemVM>(new AirItemValidator(this));
+            _vmExceptionService = vmExceptionService;
+            _airItemAbstractService = airItemAbstractService;
+            _airItemExtnService = airItemExtnService;
+            //_validationService = new ValidationService<AIRItemVM>(new AirItemValidator(this));
         }
 
-        public IAirItemExtnService AirItemExtn { get { return _airItemExtnService = _airItemExtnService ?? new AirItemExtnService(_db, this); } }
 
         public string GetItemExtnName(Guid? id)
         {
-            var category = _db.AIRItems.Where(w => w.Id == id).Select(s => s.OrderItem.RequestItem.RisItem.ItemCode.ItemType.Code).FirstOrDefault();
-            return GetItemExtnNameByCategory(category);
+            return _airItemAbstractService.GetItemExtnName(id);            
         }
 
         public string GetItemExtnNameByCategory(string category)
         {
-            if (string.IsNullOrWhiteSpace(category))
-            {
-                return "";
-            }
-
-            string itemExtnName = "";
-            if (Enum.TryParse(category, out Category c))
-            {
-                if (c == CatLandsProp())
-                {
-                    itemExtnName = "ItemExtnLand";
-                }
-                else if (c == CatTransportationProp())
-                {
-                    itemExtnName = "ItemExtnVehicle";
-                }
-                else if (c == CatMachineriesProp()
-                    || c == CatFurnituresProp()
-                    || c == CatOtherProperties()
-                    || c == CatMedicalSupply()
-                    || c == CatAgriculturalSupply()
-                    || c == CatAnimalSupplies()
-                    || c == CatConstructionMaterialsSupply()
-                    || c == CatOfficeSupplies()
-                    || c == CatAccountableFormsSupply()
-                    || c == CatNonAccountableFornsSupply()
-                    || c == CatMilitarySupply()
-                    || c == CatOtherSupplies()
-                    || c == CatDrugsSupply()
-                    || c == CatRepairSupply()
-                    )
-                {
-                    itemExtnName = "ItemExtnOther";
-                }
-            }
-            return itemExtnName;
+            return _airItemAbstractService.GetItemExtnNameByCategory(category);            
         }
 
         private Expression<Func<AIRItem, AIRItemVM>> Projection()
@@ -245,7 +210,7 @@ namespace iLgs.Services.AIRs_
             if (await IsPostedAsync(model.AirId))
             {
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
-            }            
+            }
 
             ValidateFields(model);
 

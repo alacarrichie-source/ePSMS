@@ -1,12 +1,7 @@
-﻿using CrystalDecisions.CrystalReports.Engine;
-using CrystalDecisions.Shared;
-using iLgs.Exceptions;
-using iLgs.Exceptions.PARs;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
 using iLgs.Services.Codes;
-using iLgs.Services.Interfaces;
 using iLgs.Services.ParIcs;
 using iLgs.Services.PropertyCard;
 using iLgs.Utilities;
@@ -15,8 +10,6 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
-using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -27,17 +20,15 @@ namespace iLgs.Controllers
     [AppAuthorize("PARSET")]
     public class ParSetController : BaseController
     {
-        private readonly AppManEntities _db;
         private readonly IIcsParService _icsParService;
         private readonly IPsCardService _psCardService;
         private readonly ICodextnService _codextnService;
         
-        public ParSetController()
+        public ParSetController(IIcsParService icsParService, IPsCardService psCardService, ICodextnService codextnService)
         {
-            _db = new AppManEntities();
-            _icsParService = new IcsParService(_db);
-            _psCardService = new PsCardService(_db);
-            _codextnService = new CodextnService(_db);
+            _icsParService = icsParService;
+            _psCardService = psCardService;
+            _codextnService = codextnService;
         }
 
         // GET: PARs

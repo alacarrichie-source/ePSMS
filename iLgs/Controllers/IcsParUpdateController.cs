@@ -1,7 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Codes;
 using iLgs.Services.ParIcs;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
@@ -9,11 +8,9 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
@@ -21,12 +18,13 @@ namespace iLgs.Controllers
     [AppAuthorize("ICSPARUPDATE")]
     public class IcsParUpdateController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
-        private IIcsParService _icsParService;
+        private readonly AppManEntities _db;
+        private readonly IIcsParService _icsParService;
 
-        public IcsParUpdateController()
+        public IcsParUpdateController(AppManEntities db, IIcsParService icsParService)
         {
-            _icsParService = new IcsParService(_db);
+            _db = db;
+            _icsParService = icsParService;
         }
 
         // GET: IcsParUpdate

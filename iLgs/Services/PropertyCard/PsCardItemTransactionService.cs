@@ -22,12 +22,16 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemTransactionService : IPsCardItemTransactionService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<PsCardItemTransaction> _exceptionService = new ExceptionService<PsCardItemTransaction>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<PsCardItemTransaction> _exceptionService;
 
-        public PsCardItemTransactionService(AppManEntities db)
+        public PsCardItemTransactionService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<PsCardItemTransaction> exceptionService)
         {
             _db = db;
+            _exceptions = exceptions;
+            _exceptionService = exceptionService;
         }
 
         public IQueryable<PsCardItemTransaction> GetAllByPsCardItemExtnId(Guid? psCardItemExtnId) =>

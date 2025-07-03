@@ -44,27 +44,38 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemService : IPsCardItemService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<PsCardItemVM> _vmExceptionService = new ExceptionService<PsCardItemVM>();
-        private readonly IExceptionService<PsCardItem> _exceptionService = new ExceptionService<PsCardItem>();
-        private readonly IExceptionService<ParIcsItemVm> _parIcsItemExceptionService = new ExceptionService<ParIcsItemVm>();
+        private readonly IExceptionService<PsCardItemVM> _vmExceptionService;
+        private readonly IExceptionService<PsCardItem> _exceptionService;
+        private readonly IExceptionService<ParIcsItemVm> _parIcsItemExceptionService;
         private readonly IPsCardItemValidator _psCardItemValidator;
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
-        private IPsCardItemExtnService _psCardItemExtnService;
-        private IPsCardItemTransferService _psCardItemTransferService;
+        private readonly IPsCardItemExtnService _psCardItemExtnService;
+        private readonly IPsCardItemTransferService _psCardItemTransferService;
 
-        public PsCardItemService(AppManEntities db)
+        public PsCardItemService(AppManEntities db,
+            IExceptionService<PsCardItemVM> vmExceptionService,
+            IExceptionService<PsCardItem> exceptionService,
+            IExceptionService<ParIcsItemVm> parIcsItemExceptionService,
+            IPsCardItemValidator psCardItemValidator,
+            IItemCodeService itemCodeService,
+            IUserService userService,
+            IPsCardItemExtnService psCardItemExtnService,
+            IPsCardItemTransferService psCardItemTransferService)
         {
             _db = db;
-            _psCardItemExtnService = new PsCardItemExtnService(_db);
-            _psCardItemTransferService = new PsCardItemTransferService(_db);
-            _psCardItemValidator = new PsCardItemValidator(_db);
-            _itemCodeService = new ItemCodeService(_db);
-            _userService = new UserService(_db);
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _parIcsItemExceptionService = parIcsItemExceptionService;
+            _psCardItemValidator = psCardItemValidator;
+            _itemCodeService = itemCodeService;
+            _userService = userService;
+            _psCardItemExtnService = psCardItemExtnService;
+            _psCardItemTransferService = psCardItemTransferService;                                    
         }
 
-        public IPsCardItemExtnService PsCardItemExtn { get { return _psCardItemExtnService = _psCardItemExtnService ?? new PsCardItemExtnService(_db); } }
-        public IPsCardItemTransferService PsCardItemTransfer { get { return _psCardItemTransferService = _psCardItemTransferService ?? new PsCardItemTransferService(_db); } }
+        public IPsCardItemExtnService PsCardItemExtn => _psCardItemExtnService;
+        public IPsCardItemTransferService PsCardItemTransfer => _psCardItemTransferService;
 
         private Expression<Func<PsCardItem, PsCardItemVM>> GetPsCardItemProjection()
         {

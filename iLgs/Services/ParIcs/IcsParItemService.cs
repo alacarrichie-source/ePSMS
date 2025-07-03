@@ -1,16 +1,12 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.ParIcs
@@ -37,17 +33,21 @@ namespace iLgs.Services.ParIcs
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly GetDisplayNameDelegate _getDisplayNameVM;
-        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<IcsParItem> _exceptionService = new ExceptionService<IcsParItem>();
-        private readonly IExceptionService<IcsParItemVM> _vmExceptionService = new ExceptionService<IcsParItemVM>();
-        private readonly IValidationService<IcsParItem> _validationService;
-
-        public IcsParItemService(AppManEntities db)
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<IcsParItem> _exceptionService;
+        private readonly IExceptionService<IcsParItemVM> _vmExceptionService;
+        
+        public IcsParItemService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<IcsParItem> exceptionService,
+            IExceptionService<IcsParItemVM> vmExceptionService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<IcsParItem>(propertyName);
             _getDisplayNameVM = propertyName => Utility.GetDisplayName<IcsParItemVM>(propertyName);
-            _validationService = new ValidationService<IcsParItem>(new IcsParItemValidator(_db));
+            _exceptions = exceptions;
+            _exceptionService = exceptionService;
+            _vmExceptionService = vmExceptionService;
         }
 
         public IQueryable<IcsParItem> GetAllByIcsParId(Guid? icsParId) 

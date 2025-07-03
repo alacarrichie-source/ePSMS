@@ -1,5 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
+using iLgs.Services.AllFields;
 using iLgs.Services.Items;
 using System;
 using System.Data.Entity;
@@ -10,7 +11,7 @@ namespace iLgs.Services.PropertyCard
 {
     public interface IPropertyCardService : IPsCardService
     {
-        new IQueryable<PropertyCardVM> GetAll();
+        IQueryable<PropertyCardVM> GetAll();
         ValueTask<PropertyCardVM> GetByIdAsync(Guid? id);
         ValueTask<PropertyCardVM> CreateAsync(PropertyCardVM model, string user, DateTime date);
         ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date);
@@ -19,53 +20,38 @@ namespace iLgs.Services.PropertyCard
 
     public class PropertyCardService : PsCardService, IPropertyCardService
     {
-        private readonly IExceptionService<PropertyCardVM> _exceptionService = new ExceptionService<PropertyCardVM>();
-        private readonly IExceptionService<PropertyCardVM> _vmExceptionService = new ExceptionService<PropertyCardVM>();
+        private readonly IExceptionService<PropertyCardVM> _propCardVMexceptionService;
         private readonly IPropertyCardValidator _validator;
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
-        
-        public PropertyCardService(AppManEntities db) : base(db)
+                
+        public PropertyCardService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<PsCardVM> vmExceptionService,
+            IExceptionService<PsCard> exceptionService,
+            IAllFieldService allFieldService,
+            IPsCardItemService psCardItemService,
+            IPsCardSharedService psCardSharedService,
+            IPsCardItemIssuanceService psCardItemIssuanceService,
+            IExceptionService<PropertyCardVM> propCardVMexceptionService,
+            IPropertyCardValidator validator,
+            IItemCodeService itemCodeService,
+            IUserService userService) : base(db, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService, psCardItemIssuanceService)
         {
-            _validator = new PropertyCardValidator(db);
-            _itemCodeService = new ItemCodeService(db);
-            _userService = new UserService(db);
+            _propCardVMexceptionService = propCardVMexceptionService;
+            _validator = validator;
+            _itemCodeService = itemCodeService;
+            _userService = userService;
         }
 
-        public new IQueryable<PropertyCardVM> GetAll() => _vmExceptionService.TryCatch(() =>
+        public IQueryable<PropertyCardVM> GetAll() => _propCardVMexceptionService.TryCatch(() =>
         {            
             var data = _db.Database.SqlQuery<PropertyCardVM>("Exec Card_GetRecords 'P'").AsQueryable();
             return data;
         });
 
-        public ValueTask<PropertyCardVM> GetByIdAsync(Guid? id) => _vmExceptionService.TryCatch(async () =>
-        {
-            //var data = await _db.PsCards.Where(w => w.Id == id).AsNoTracking()
-            //    .Select(s => new PropertyCardVM
-            //    {
-            //        Id = s.Id,
-            //        ItemCodeId = s.ItemCodeId,
-            //        Item = s.ItemCode.Description,
-            //        ItemNo = s.ItemCode.ItemNo,
-            //        ItemCode = s.ItemCode.Code,
-            //        ItemType = s.ItemCode.ItemType.Description,
-            //        ItemTypeCode = s.ItemCode.ItemType.Code,
-            //        PartialPage = s.ItemCode.PartialPage == null ? s.ItemCode.ItemType.PartialPage : s.ItemCode.PartialPage,
-            //        CardCategory = s.CardCategory,
-            //        Description = s.Description,
-            //        SubAccountCode = s.SubAccountCode,
-            //        SubAccount = _db.ItemCodes.Where(w => w.ItemTypeId == s.ItemCode.ItemTypeId && w.Code == s.SubAccountCode).Select(x => x.Description).FirstOrDefault(),
-            //        Fund = s.Fund,
-            //        Unit = s.Unit,
-            //        PsNo = s.PsNo,
-            //        PsName = s.PsName,
-            //        PrevPsNo = s.PrevPsNo,
-            //        FromDonation = s.FromDonation,
-            //        Amount = s.Amount,
-            //        AllField = s.AllField,
-            //        InsertedDt = s.InsertedDt
-            //    }).FirstOrDefaultAsync();
-
+        public ValueTask<PropertyCardVM> GetByIdAsync(Guid? id) => _propCardVMexceptionService.TryCatch(async () =>
+        {            
             var data = _db.PsCards.Where(w => w.Id == id).AsNoTracking()
                .Where(w => w.ItemCode.ItemType.Category != "S")
                .Select(s => new PropertyCardVM
@@ -118,7 +104,7 @@ namespace iLgs.Services.PropertyCard
             return data;
         });
 
-        public ValueTask<PropertyCardVM> CreateAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PropertyCardVM> CreateAsync(PropertyCardVM model, string user, DateTime date) => _propCardVMexceptionService.TryCatch(async () =>
         {
             _validator.ValidateOnCreate(model);
 
@@ -164,7 +150,7 @@ namespace iLgs.Services.PropertyCard
             return model;
         });
 
-        public ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PropertyCardVM> UpdateAsync(PropertyCardVM model, string user, DateTime date) => _propCardVMexceptionService.TryCatch(async () =>
         {            
             _validator.ValidateOnUpdate(model);
 
@@ -206,7 +192,7 @@ namespace iLgs.Services.PropertyCard
             return model;
         });
 
-        public ValueTask<PropertyCardVM> DeleteAsync(PropertyCardVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
+        public ValueTask<PropertyCardVM> DeleteAsync(PropertyCardVM model, string user, DateTime date) => _propCardVMexceptionService.TryCatch(async () =>
         {
             _validator.ValidateOnDelete(model);
 

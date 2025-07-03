@@ -218,7 +218,8 @@
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.Unit).Width(50);
             col.Bound(c => c.UnitCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            col.Bound(c => c.AddCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.GTotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                     .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
             //col.Bound(c => c.SetPostedBy).Width(50);
@@ -248,7 +249,7 @@
             .Aggregates(a =>
             {
                 a.Add(p => p.Qty).Sum();
-                a.Add(p => p.TotalCost).Sum();
+                a.Add(p => p.GTotalCost).Sum();
             })
             .Sort(s => s.Add(a => a.InsertedDt))
             .Read(read => read.Action("_PoItemSetRead", "ParSet").Data("DataGridItemSet"))
@@ -402,7 +403,8 @@
             col.Bound(c => c.Description).Width(100);
             col.Bound(c => c.Unit).Width(50);
             col.Bound(c => c.UnitCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            col.Bound(c => c.AddCost).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}").HeaderHtmlAttributes(new { style = "text-align:right;" });
+            col.Bound(c => c.GTotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                     .ClientFooterTemplate("\\#=kendo.format('{0:n2}', sum)\\#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                     .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.TotalQty).Width(40).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n0}")
@@ -437,7 +439,8 @@
                 model.Field(p => p.TotalQty).Editable(false);
                 model.Field(p => p.Unit).Editable(false);
                 model.Field(p => p.UnitCost).Editable(false);
-                model.Field(p => p.TotalCost).Editable(false);
+                model.Field(p => p.AddCost).Editable(false);
+                model.Field(p => p.GTotalCost).Editable(false);
                 model.Field(p => p.Article).Editable(false);
                 model.Field(p => p.Description).Editable(false);
                 model.Field(p => p.GeneratedItems).Editable(false);
@@ -445,7 +448,7 @@
             .Aggregates(a =>
             {
                 a.Add(p => p.TotalQty).Sum();
-                a.Add(p => p.TotalCost).Sum();
+                a.Add(p => p.GTotalCost).Sum();
                 a.Add(p => p.GeneratedItems).Sum();
             })
             .Sort(s => s.Add(a => a.InsertedDt))

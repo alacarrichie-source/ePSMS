@@ -1,9 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Items;
-using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Data.Entity;
@@ -53,17 +51,23 @@ namespace iLgs.Services.AllFields
 
     public class AllFieldService : IAllFieldService
     {
-        private readonly AppManEntities _db = new AppManEntities();
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<AllField> _exceptionService = new ExceptionService<AllField>();
+        private readonly AppManEntities _db;
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<AllField> _exceptionService;
         private readonly IItemCodeService _itemCodeService;
-        private IAllFieldsValidator _validator;
+        private readonly IAllFieldsValidator _validator;
 
-        public AllFieldService(AppManEntities db)
+        public AllFieldService(AppManEntities db, 
+            ICreateAndLogExceptions createAndLogExceptions,
+            IExceptionService<AllField> exceptionService,
+            IItemCodeService itemCodeService,
+            IAllFieldsValidator allFieldsValidator)
         {
             _db = db;
-            _validator = new AllFieldsValidator(_db);
-            _itemCodeService = new ItemCodeService(_db);
+            _exceptions = createAndLogExceptions;
+            _exceptionService = exceptionService;
+            _itemCodeService = itemCodeService;
+            _validator = allFieldsValidator;
         }
 
         public IQueryable<AllField> GetAllByPsCardId(Guid? psCardId) => _exceptionService.TryCatch(() =>
@@ -619,7 +623,8 @@ namespace iLgs.Services.AllFields
                 if (property.PropertyType == typeof(string))
                 {
                     if (property.Name != nameof(allField.DosageStrength) && property.Name != nameof(allField.PlateNo)
-                         && property.Name != nameof(allField.InsertedBy) && property.Name != nameof(allField.UpdatedBy))
+                         && property.Name != nameof(allField.InsertedBy) && property.Name != nameof(allField.UpdatedBy)
+                         && property.Name != nameof(allField.Brand))
                     {
                         var value = (string)property.GetValue(allField);
                         if (value != null)

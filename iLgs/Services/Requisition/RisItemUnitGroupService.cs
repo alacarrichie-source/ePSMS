@@ -1,13 +1,10 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.Requisition
 {
@@ -23,17 +20,22 @@ namespace iLgs.Services.Requisition
     public class RisItemUnitGroupService : IRisItemUnitGroupService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<RisItemUnitGroupVM> _vmExceptionService = new ExceptionService<RisItemUnitGroupVM>();
-        private readonly IExceptionService<RisItemUnitGroup> _exceptionService = new ExceptionService<RisItemUnitGroup>();
-        //private readonly IRequestService _requestService;        
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<RisItemUnitGroupVM> _vmExceptionService;
+        private readonly IExceptionService<RisItemUnitGroup> _exceptionService;
         private readonly IRisItemUnitGroupValidator _validator;
 
-        public RisItemUnitGroupService(AppManEntities db)
+        public RisItemUnitGroupService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<RisItemUnitGroupVM> vmExceptionService,
+            IExceptionService<RisItemUnitGroup> exceptionService,
+            IRisItemUnitGroupValidator validator)
         {
             _db = db;
-            //_requestService = new RequestService(db);
-            _validator = new RisItemUnitGroupValidator(_db);            
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _validator = validator;
         }        
 
         public ValueTask<RisItemUnitGroup> GetByIdAsync(Guid? id) =>

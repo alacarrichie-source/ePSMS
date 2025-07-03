@@ -30,13 +30,14 @@ namespace iLgs.Controllers
         private readonly IUserService _userService;
 
 
-        public RpcPpeController()
+        public RpcPpeController(AppManEntities db, IRpcPpeService rpcPpeService, IRpcPpeItemService rpcPpeItemService,
+            ICodextnService codextnService, IUserService userService)
         {
-            _db = new AppManEntities();
-            _rpcService = new RpcPpeService(_db);
-            _rpcItemService = new RpcPpeItemService(_db);
-            _codextnService = new CodextnService(_db);
-            _userService = new UserService(_db);
+            _db = db;
+            _rpcService = rpcPpeService;
+            _rpcItemService = rpcPpeItemService;
+            _codextnService = codextnService;
+            _userService = userService;
         }
 
 

@@ -1,6 +1,4 @@
-﻿using CrystalDecisions.CrystalReports.Engine;
-using CrystalDecisions.Shared;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
@@ -13,8 +11,6 @@ using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Data.Entity;
-using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -24,16 +20,17 @@ namespace iLgs.Controllers
     [AppAuthorize("ICSSET")]
     public class IcsSetController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
-        private IPsCardService _psCardService;
-        private IIcsParService _icsParService;
-        private ICodextnService _codextnService;
+        private readonly AppManEntities _db;
+        private readonly IPsCardService _psCardService;
+        private readonly IIcsParService _icsParService;
+        private readonly ICodextnService _codextnService;
         
-        public IcsSetController()
+        public IcsSetController(AppManEntities db, IPsCardService psCardService, IIcsParService icsParService, ICodextnService codextnService)
         {
-            _psCardService = new PsCardService(_db);
-            _icsParService = new IcsParService(_db);
-            _codextnService = new CodextnService(_db);
+            _db = db;
+            _psCardService = psCardService;
+            _icsParService = icsParService;
+            _codextnService = codextnService;
         }
 
         // GET: Ics

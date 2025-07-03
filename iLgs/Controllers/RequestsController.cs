@@ -3,7 +3,6 @@ using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Codes;
-using iLgs.Services.Interfaces;
 using iLgs.Services.PurchaseOrder;
 using iLgs.Services.PurchaseRequest;
 using iLgs.Utilities;
@@ -33,16 +32,23 @@ namespace iLgs.Controllers
         private readonly IRequestItemUnitGroupDescriptionService _unitGroupDescriptionService;
         private readonly IRequestItemUnitGroupDescriptionItemService _unitGroupDescriptionItemService;
 
-        public RequestsController()
+        public RequestsController(AppManEntities db,
+            IOrderService orderService, 
+            IRequestService requestService, 
+            IRequestItemService requestItemService,
+            ICodextnService codextnService, 
+            IRequestItemUnitGroupService requestItemUnitGroupService, 
+            IRequestItemUnitGroupDescriptionService requestItemUnitGroupDescriptionService,
+            IRequestItemUnitGroupDescriptionItemService requestItemUnitGroupDescriptionItemService)
         {
-            _db = new AppManEntities();
-            _orderService = new OrderService(_db);
-            _requestService = new RequestService(_db);
-            _requestItemService = new RequestItemService(_db);
-            _codextnService = new CodextnService(_db);
-            _unitGroupService = new RequestItemUnitGroupService(_db);
-            _unitGroupDescriptionService = new RequestItemUnitGroupDescriptionService(_db);
-            _unitGroupDescriptionItemService = new RequestItemUnitGroupDescriptionItemService(_db);
+            _db = db;
+            _orderService = orderService;
+            _requestService = requestService;
+            _requestItemService = requestItemService;
+            _codextnService = codextnService;
+            _unitGroupService = requestItemUnitGroupService;
+            _unitGroupDescriptionService = requestItemUnitGroupDescriptionService;
+            _unitGroupDescriptionItemService = requestItemUnitGroupDescriptionItemService;
         }
 
         // GET: Requests

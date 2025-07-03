@@ -32,38 +32,51 @@ namespace iLgs.Controllers
         private readonly ICustodianReportItemService _custodianReportItemService;
         private readonly ICustodianReportItemStockService _custodianReportItemStockService;
         private readonly ICustodianReportItemPpeService _custodianReportItemPpeService;
-        private readonly ICustodianReportItemVehicleService _custodianReportItemVehicleService;
-        private readonly ICodextnService _codextnService;
-        private readonly ICustodianReportUploadService _uploadService;
+        private readonly ICustodianReportItemVehicleService _custodianReportItemVehicleService;   
         private readonly ICustodianReportItemIssuanceParService _parIssuanceService;
         private readonly ICustodianReportItemIssuanceIcsService _icsIssuanceService;
         private readonly ICustodianReportItemIssuanceAreService _areIssuanceService;
         private readonly ICustodianReportItemIssuanceMrService _mrIssuanceService;
         private readonly ICustodianReportItemIssuanceRpcPpeService _rpcPpeIssuanceService;
+        private readonly ICodextnService _codextnService;
+        private readonly ICustodianReportUploadService _uploadService;
         private readonly IItemCodeService _itemCodeService;
         private readonly IUserService _userService;
         private readonly IAnnexDService _annexDService;
-
         private readonly string _stockId, _ppeId, _transpoId;
 
-        public CustodianReportController()
+        public CustodianReportController(AppManEntities db,
+            ICustodianReportService custodianReportService,
+            ICustodianReportItemService custodianReportItemService,
+            ICustodianReportItemStockService custodianReportItemStockService,
+            ICustodianReportItemPpeService custodianReportItemPpeService,
+            ICustodianReportItemVehicleService custodianReportItemVehicleService,
+            ICustodianReportItemIssuanceParService custodianReportItemIssuanceParService,
+            ICustodianReportItemIssuanceIcsService custodianReportItemIssuanceIcsService,
+            ICustodianReportItemIssuanceAreService custodianReportItemIssuanceAreService,
+            ICustodianReportItemIssuanceMrService custodianReportItemIssuanceMrService,
+            ICustodianReportItemIssuanceRpcPpeService custodianReportItemIssuanceRpcPpeService,
+            ICodextnService codextnService,
+            ICustodianReportUploadService custodianReportUploadService,
+            IItemCodeService itemCodeService,
+            IUserService userService, IAnnexDService annexDService)
         {
-            _db = new AppManEntities();
-            _custodianReportService = new CustodianReportService(_db);
-            _custodianReportItemService = new CustodianReportItemService(_db);
-            _custodianReportItemStockService = new CustodianReportItemStockService(_db);
-            _custodianReportItemPpeService = new CustodianReportItemPpeService(_db);
-            _custodianReportItemVehicleService = new CustodianReportItemVehicleService(_db);
-            _codextnService = new CodextnService(_db);
-            _uploadService = new CustodianReportUploadService(_db);
-            _parIssuanceService = new CustodianReportItemIssuanceParService(_db);
-            _icsIssuanceService = new CustodianReportItemIssuanceIcsService(_db);
-            _areIssuanceService = new CustodianReportItemIssuanceAreService(_db);
-            _mrIssuanceService = new CustodianReportItemIssuanceMrService(_db);
-            _rpcPpeIssuanceService = new CustodianReportItemIssuanceRpcPpeService(_db);
-            _itemCodeService = new ItemCodeService(_db);
-            _userService = new UserService(_db);
-            _annexDService = new AnnexDService(_db);
+            _db = db;
+            _custodianReportService = custodianReportService;
+            _custodianReportItemService = custodianReportItemService;
+            _custodianReportItemStockService = custodianReportItemStockService;
+            _custodianReportItemPpeService = custodianReportItemPpeService;
+            _custodianReportItemVehicleService = custodianReportItemVehicleService;            
+            _parIssuanceService = custodianReportItemIssuanceParService;
+            _icsIssuanceService = custodianReportItemIssuanceIcsService;
+            _areIssuanceService = custodianReportItemIssuanceAreService;
+            _mrIssuanceService = custodianReportItemIssuanceMrService;
+            _rpcPpeIssuanceService = custodianReportItemIssuanceRpcPpeService;
+            _codextnService = codextnService;
+            _uploadService = custodianReportUploadService;
+            _itemCodeService = itemCodeService;
+            _userService = userService;
+            _annexDService = annexDService;
 
             _stockId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.STOCK);
             _ppeId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.PPE);

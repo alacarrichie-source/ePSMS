@@ -1,20 +1,14 @@
 ﻿using iLgs.Models;
-using Kendo.Mvc.UI;
+using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Data.Entity;
-using System.Threading.Tasks;
 using System.Net.Http;
-using System.Configuration;
-using System.Net.Http.Headers;
-using Newtonsoft.Json;
-using iLgs.Utilities;
-using Microsoft.AspNet.Identity;
-using System.Data.SqlClient;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
@@ -25,8 +19,12 @@ namespace iLgs.Controllers
         //private static string sysCode = "PSMS";
         //private static string sysAdmin = "PSMS_ADMIN";
 
-        private AppManEntities db = new AppManEntities();
+        //private readonly AppManEntities _db = new AppManEntities();
 
+        public MenuController()
+        {
+
+        }
 
         //HttpClient client;
 

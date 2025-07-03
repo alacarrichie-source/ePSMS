@@ -1,5 +1,4 @@
-﻿using iLgs.Exceptions;
-using iLgs.Models;
+﻿using iLgs.Models;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -24,18 +23,23 @@ namespace iLgs.Services.PropertyCard
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly IExceptionService<PsCardItemExtnBldgVM> _exceptionService = new ExceptionService<PsCardItemExtnBldgVM>();
+        private readonly IExceptionService<PsCardItemExtnBldgVM> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnBldgValidator _psCardItemExtnBldgValidator;
-        private readonly IPsCardItemTransferItemService _psCardItemTransferItemService;
+        private readonly IPsCardItemTransferItemSharedService _psCardItemTransferItemSharedService;
 
-        public PsCardItemTransferItemBldgService(AppManEntities db, IPsCardItemTransferItemService psCardItemTransferItemService)
+        public PsCardItemTransferItemBldgService(AppManEntities db,
+            IExceptionService<PsCardItemExtnBldgVM> exceptionService,
+            IPsCardItemTransactionService psCardItemTransactionService,
+            IPsCardItemExtnBldgValidator psCardItemExtnBldgValidator,
+            IPsCardItemTransferItemSharedService psCardItemTransferItemSharedService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnBldgVM>(propertyName);
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _psCardItemExtnBldgValidator = new PsCardItemExtnBldgValidator(_db);
-            _psCardItemTransferItemService = psCardItemTransferItemService;
+            _exceptionService = exceptionService;
+            _psCardItemTransactionService = psCardItemTransactionService;
+            _psCardItemExtnBldgValidator = psCardItemExtnBldgValidator;
+            _psCardItemTransferItemSharedService = psCardItemTransferItemSharedService;
         }
 
         public List<PsCardItemExtnBldgVM> GetCardItemExtns(Guid? psCardTransferId)
@@ -48,7 +52,7 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemExtnBldgVM> CreateAsync(PsCardItemExtnBldgVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnBldgValidator.ValidateOnCreate(model);
-            _psCardItemTransferItemService.ValidateIfTransit(model.TransferId);
+            _psCardItemTransferItemSharedService.ValidateIfTransit(model.TransferId);
 
             var itemExtns = _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().Where(w => w.PsCardItemId == model.PsCardItemId);
             //if (itemExtns.Any(a => a.SerialNo == model.SerialNo))
@@ -87,7 +91,7 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemExtnBldgVM> UpdateAsync(PsCardItemExtnBldgVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnBldgValidator.ValidateOnUpdate(model);
-            _psCardItemTransferItemService.ValidateIfTransit(model.TransferId);
+            _psCardItemTransferItemSharedService.ValidateIfTransit(model.TransferId);
 
             //var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.PsCardItemExtnId).FirstOrDefaultAsync();
             //if (itemExtn != null)
@@ -119,7 +123,7 @@ namespace iLgs.Services.PropertyCard
 
         public void MapModelToEntityFields(PsCardItemExtnBuilding entity, PsCardItemExtnBldgVM model, Mode mode)
         {
-            _psCardItemTransferItemService.MapModelToEntityFields(entity, model, mode);
+            _psCardItemTransferItemSharedService.MapModelToEntityFields(entity, model, mode);
 
             entity.Address = model.Address;
             entity.BuildingItem = model.BuildingItem;
@@ -143,7 +147,7 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemExtnBldgVM> DeleteAsync(PsCardItemExtnBldgVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnBldgValidator.ValidateOnDelete(model);
-            _psCardItemTransferItemService.ValidateIfTransit(model.TransferId);
+            _psCardItemTransferItemSharedService.ValidateIfTransit(model.TransferId);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;

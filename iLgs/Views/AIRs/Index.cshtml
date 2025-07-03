@@ -17,30 +17,40 @@
         col.Bound(c => c.InvoiceNo).Width(50);
         col.Bound(c => c.InvoiceDate).Width(50);
         col.Bound(c => c.PostedBy).Width(50);
-        if (ViewBag.AirGroup != 3) // serial
-        {
-            col.Command(command =>
-            {
+        //if (ViewBag.AirGroup != 3) // serial
+        //{
+        //    col.Command(command =>
+        //    {
 
-                command.Custom("Edit").IconClass("k-icon k-i-edit").Click("onGridEditClick").SendDataKeys(true);
-                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
-                command.Custom("Attachments").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
-                command.Custom("Print RIS").IconClass("k-icon k-i-print").Click("onGridPrintRisClick").SendDataKeys(true);
-            }).Width(200);
-        }
+        //        command.Custom("Edit").IconClass("k-icon k-i-edit").Click("onGridEditClick").SendDataKeys(true);
+        //        command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+        //        command.Custom("Attachments").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
+        //        command.Custom("Print RIS").IconClass("k-icon k-i-print").Click("onGridPrintRisClick").SendDataKeys(true);
+        //    }).Width(200);
+        //}
+        col.Command(command =>
+        {
+
+            command.Custom("Edit").IconClass("k-icon k-i-edit").Click("onGridEditClick").SendDataKeys(true);
+            command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+            command.Custom("AIR").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
+            command.Custom("Print RIS").IconClass("k-icon k-i-print").Click("onGridPrintRisClick").SendDataKeys(true);
+        }).Width(200);
     })
     .ToolBar(t =>
     {
     //t.Create().Text("Add Record");
     @*@(Html.Kendo().Button().Name("btnAdd").Icon("k-icon k-i-add").Content("Issue Order")
         .Events(e => e.Click("onClickBtnAdd"))*@
-        if (ViewBag.AirGroup != 3) // serial
+        if (ViewBag.AirGroup != 2) 
         {
-            t.Custom().Text("Add Record").IconClass("k-icon k-i-add").Name("btnAddAir_").HtmlAttributes(new { @class = "k-button", href = "" });
-            t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrint_").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Add Record").IconClass("k-icon k-i-add").Name("btnAddAir_").HtmlAttributes(new { @class = "k-button", href = "" });            
         }
+
+        t.Custom().Text("Print").IconClass("k-icon k-i-print").Name("btnPrint_").HtmlAttributes(new { @class = "k-button", href = "" });
+
         if (ViewBag.AirGroup == 2 || ViewBag.AirGroup == 4)
-        {
+        {            
             t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost_").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost_").HtmlAttributes(new { @class = "k-button", href = "" });
         }
@@ -114,6 +124,12 @@
         items.Add().Text("Groups")
                     .LoadContentFrom("_UnitGroup", "AIRs", new { orderId = "#=OrderId#", airGroup = ViewBag.AirGroup });
     }).ToClientTemplate())
+
+</script>
+
+@*Land & Bldg Not Included. Only Items for PAR/ICS*@
+<script id="default-template" type="text/kendo-tmpl">
+    <h4>Loading..</h4>
 </script>
 
 <script id="ItemExtnVehicle" type="text/kendo-tmpl">
@@ -181,10 +197,6 @@
     )
     .Selectable(s => s.Mode(GridSelectionMode.Single))
     .ToClientTemplate())
-</script>
-
-<script id="default-template" type="text/kendo-tmpl">
-    <h4>Loading..</h4>
 </script>
 
 <script id="ItemExtnOther" type="text/kendo-tmpl">

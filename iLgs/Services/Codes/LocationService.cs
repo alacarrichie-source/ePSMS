@@ -2,12 +2,9 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.Codes
@@ -24,9 +21,11 @@ namespace iLgs.Services.Codes
 
     public class LocationService : CodextnService, ILocationService
     {
-        //protected readonly IExceptionService<CodextnVM> _vmExceptionService = new ExceptionService<CodextnVM>();
-
-        public LocationService(AppManEntities db) : base(db)
+        public LocationService(AppManEntities db,
+            IExceptionService<Codextn> exceptionService,
+            IExceptionService<CodextnVM> vmExceptionService,
+            IUserService userService)
+        : base(db, exceptionService, vmExceptionService, userService)
         {
         }
 

@@ -27,12 +27,7 @@ namespace iLgs.Services.ParIcs
         IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate, Guid? deptId);
         IQueryable<PsCardItemUnitGroupDescription> GetItemSetDescriptionsByUnitGroupId(Guid? unitGroupId);
         IQueryable<ParIcsItemVm> GetItemSetDescriptionItemsByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
-        //ValueTask<PsCardItem> PostAsync(Guid? groupId, string user, DateTime date);
-        //ValueTask<PsCardItem> UnPostAsync(Guid? groupId, string user, DateTime date);
-
-        //ValueTask<PsCardItem> PostSetAsync(Guid? unitGroupId, string user, DateTime date);
-        //ValueTask<PsCardItem> UnPostSetAsync(Guid? unitGroupId, string user, DateTime date);
-
+        
         ValueTask<IcsPar> PostAsync(string refNo, string user, DateTime date);
         ValueTask<IcsPar> UnPostAsync(string refNo, string user, DateTime date);
 
@@ -44,13 +39,7 @@ namespace iLgs.Services.ParIcs
 
         ValueTask<PsCardItemUnitGroupDescriptionItem> UpdateNoICSAsync(PsCardItemUnitGroupDescriptionItem model, string user, DateTime date);
         ValueTask<string> NextRefNoAsync(DateTime parDate, string refType, IcsValue icsValue);
-
-        //IIcsParService IcsPar { get; }
-        //IIcsParItemService IcsParItem { get; }
-        //IPsCardService PsCard { get; }
-        //IPsCardItemService PsCardItem { get; }
-        ///IPsCardItemExtnService PsCardItemExtn { get; }
-        //IPsCardItemIssuanceService PsCardItemIssaunce { get; }
+        
     }
 
     public class IcsService : BaseValidator, IIcsService
@@ -58,39 +47,41 @@ namespace iLgs.Services.ParIcs
         private readonly AppManEntities _db;
         private decimal _parPrice = 50000;
 
-        //private IIcsParService _icsParService;
-        //private IIcsParItemService _icsParItemService;
-        //private IPsCardService _psCardService;
-        private IPsCardItemService _psCardItemService;
-        private IPsCardItemExtnService _psCardItemExtnService;
-        private IPsCardItemIssuanceService _psCardItemIssaunceService;
-        private readonly IExceptionService<GenerateIcsParVM> _generateParExceptionService = new ExceptionService<GenerateIcsParVM>();
-        private readonly IExceptionService<PsCardItem> _postExceptionService = new ExceptionService<PsCardItem>();
-        private readonly IExceptionService<IcsPar> _icsParExceptionService = new ExceptionService<IcsPar>();
-        private readonly IExceptionService<PsCardItemUnitGroupDescriptionItem> _psCardItemUnitGroupDescriptionItemService = new ExceptionService<PsCardItemUnitGroupDescriptionItem>();
+        private readonly IPsCardItemService _psCardItemService;
+        private readonly IPsCardItemExtnService _psCardItemExtnService;
+        private readonly IPsCardItemIssuanceService _psCardItemIssuanceService;
+        private readonly IExceptionService<GenerateIcsParVM> _generateParExceptionService;
+        private readonly IExceptionService<PsCardItem> _postExceptionService;
+        private readonly IExceptionService<IcsPar> _icsParExceptionService;
+        private readonly IExceptionService<PsCardItemUnitGroupDescriptionItem> _psCardItemUnitGroupDescriptionItemService;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
+        private readonly IIcsParService _icsParService;
 
-        public IcsService(AppManEntities db)
+        public IcsService(AppManEntities db,
+            IPsCardItemService psCardItemService,
+            IPsCardItemExtnService psCardItemExtnService,
+            IPsCardItemIssuanceService psCardItemIsauanceService,
+            IExceptionService<GenerateIcsParVM> generateParExceptionService,
+            IExceptionService<PsCardItem> postExceptionService,
+            IExceptionService<IcsPar> icsParExceptionService,
+            IExceptionService<PsCardItemUnitGroupDescriptionItem> psCardItemUnitGroupDescriptionItemService,
+            IPsCardItemTransactionService psCardItemTransactionService,
+            IIcsParService icsParService)
         {
             _db = db;
-            //_icsParService = icsParService;
-            //_icsParItemService = new IcsParItemService(_db);
-            //_psCardService = new PsCardService(_db);
-            _psCardItemService = new PsCardItemService(_db);
-            _psCardItemExtnService = new PsCardItemExtnService(_db);
-            _psCardItemIssaunceService = new PsCardItemIssuanceService(_db);
+            _psCardItemService = psCardItemService;
+            _psCardItemExtnService = psCardItemExtnService;
+            _psCardItemIssuanceService = psCardItemIsauanceService;
+            _generateParExceptionService = generateParExceptionService;
+            _postExceptionService = postExceptionService;
+            _icsParExceptionService = icsParExceptionService;
+            _psCardItemUnitGroupDescriptionItemService = psCardItemUnitGroupDescriptionItemService;
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemVM>(propertyName);
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _psCardItemTransactionService = psCardItemTransactionService;
+            _icsParService = icsParService;
         }
-
-        //public IIcsParService IcsPar { get { return _icsParService = _icsParService ?? new IcsParService(_db); } }
-        //public IIcsParItemService IcsParItem { get { return _icsParItemService = _icsParItemService ?? new IcsParItemService(_db); } }
-        //public IPsCardService PsCard { get { return _psCardService = _psCardService ?? new PsCardService(_db); } }
-        //public IPsCardItemService PsCardItem { get { return _psCardItemService = _psCardItemService ?? new PsCardItemService(_db); } }
-        ///public IPsCardItemExtnService PsCardItemExtn { get { return _psCardItemExtnService = _psCardItemExtnService ?? new PsCardItemExtnService(_db); } }
-        //public IPsCardItemIssuanceService PsCardItemIssaunce { get { return _psCardItemIssaunceService = _psCardItemIssaunceService ?? new PsCardItemIssuanceService(_db); } }
-
+        
         public IQueryable<IcsVM> GetAll()
         {
             var data = _db.PsCardItems.AsNoTracking()
@@ -1415,14 +1406,12 @@ namespace iLgs.Services.ParIcs
 
         public ValueTask<IcsPar> PostAsync(string parNo, string user, DateTime date) => _icsParExceptionService.TryCatch(async () =>
         {
-            var icsParService = new IcsParService(_db);
-            return await icsParService.PostAsync(parNo, "I", user, date);
+            return await _icsParService.PostAsync(parNo, "I", user, date);
         });
 
         public ValueTask<IcsPar> UnPostAsync(string parNo, string user, DateTime date) => _icsParExceptionService.TryCatch(async () =>
         {
-            var icsParService = new IcsParService(_db);
-            return await icsParService.UnPostAsync(parNo, "I", user, date);
+            return await _icsParService.UnPostAsync(parNo, "I", user, date);
         });
 
         private string NextPropNo(string acqYear, string stockNo, string locationCode, string refType)

@@ -24,14 +24,17 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnVehicleRepairService : BaseValidator, IPsCardItemExtnVehicleRepairService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<PsCardItemExtnVehicleRepair> _exceptionService = new ExceptionService<PsCardItemExtnVehicleRepair>();
+        private readonly IExceptionService<PsCardItemExtnVehicleRepair> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public PsCardItemExtnVehicleRepairService(AppManEntities db)
+        public PsCardItemExtnVehicleRepairService(AppManEntities db,
+            IExceptionService<PsCardItemExtnVehicleRepair> exceptionService,
+            IPsCardItemTransactionService psCardItemTransactionService)
         {
             _db = db;
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _exceptionService = exceptionService;
+            _psCardItemTransactionService = psCardItemTransactionService;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleRepair>(propertyName);
         }
 

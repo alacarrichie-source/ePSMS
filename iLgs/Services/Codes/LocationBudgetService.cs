@@ -1,19 +1,13 @@
-﻿using ClosedXML.Excel;
-using iLgs.Controllers;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.Codes
@@ -34,13 +28,17 @@ namespace iLgs.Services.Codes
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<LocationBudgetVM> _exceptionService = new ExceptionService<LocationBudgetVM>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<LocationBudgetVM> _exceptionService;
         
-        public LocationBudgetService(AppManEntities db)
+        public LocationBudgetService(AppManEntities db, 
+            ICreateAndLogExceptions createAndLogExceptions, 
+            IExceptionService<LocationBudgetVM> exceptionService)
         {
-            _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<LocationBudgetVM>(propertyName);
+            _db = db;            
+            _getDisplayName = Utility.GetDisplayName<LocationBudgetVM>;
+            _exceptions = createAndLogExceptions;
+            _exceptionService = exceptionService;
         }
 
         private static Expression<Func<LocationBudget, LocationBudgetVM>> Projection

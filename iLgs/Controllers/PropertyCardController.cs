@@ -1,11 +1,8 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
-using CrystalDecisions.Shared;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
 using iLgs.Services.Codes;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Items;
 using iLgs.Services.PropertyCard;
 using iLgs.Utilities;
@@ -14,12 +11,10 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
-using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using static iLgs.Models.Enums;
 
@@ -35,13 +30,15 @@ namespace iLgs.Controllers
         private readonly IItemCodeService _itemCodeService;
         private readonly IPropertyCardValidator _propertyCardValidator;
         
-        public PropertyCardController()
+        public PropertyCardController(AppManEntities db,
+            ICodextnService codextnService, IPropertyCardService propertyCardService, IItemCodeService itemCodeService,
+            IPropertyCardValidator propertyCardValidator)
         {
-            _db = new AppManEntities();
-            _codextnService = new CodextnService(_db);
-            _propertyCardService = new PropertyCardService(_db);
-            _itemCodeService = new ItemCodeService(_db);
-            _propertyCardValidator = new PropertyCardValidator(_db);
+            _db = db;
+            _codextnService = codextnService;
+            _propertyCardService = propertyCardService;
+            _itemCodeService = itemCodeService;
+            _propertyCardValidator = propertyCardValidator;
         }
 
         // GET: Index

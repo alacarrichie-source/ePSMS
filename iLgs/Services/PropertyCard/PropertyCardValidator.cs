@@ -20,18 +20,20 @@ namespace iLgs.Services.PropertyCard
 
     public class PropertyCardValidator : BaseValidator, IPropertyCardValidator
     {
-        private delegate string GetDisplayNameDelegate(string propertyName);
+        //private delegate string GetDisplayNameDelegate(string propertyName);
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly AppManEntities _db;
         private readonly IAllFieldsValidator _allFieldsValidator;
         private readonly IItemCodeService _itemCodeService;
 
-        public PropertyCardValidator(AppManEntities db)
+        public PropertyCardValidator(AppManEntities db,
+            IItemCodeService itemCodeService,
+            IAllFieldsValidator allFieldsValidator)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PropertyCardVM>(propertyName);
-            _allFieldsValidator = new AllFieldsValidator(_db);
-            _itemCodeService = new ItemCodeService(_db);
+            _allFieldsValidator = allFieldsValidator;
+            _itemCodeService = itemCodeService;
         }
         public void ValidateOnCreate(PropertyCardVM model)
         {

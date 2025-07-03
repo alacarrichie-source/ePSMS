@@ -27,21 +27,28 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnVehicleService : IPsCardItemExtnVehicleService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<PsCardItemExtnVehicleVM> _exceptionService = new ExceptionService<PsCardItemExtnVehicleVM>();
+        private readonly IExceptionService<PsCardItemExtnVehicleVM> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnVehicleValidator _psCardItemExtnValidator;
-        private readonly IPsCardItemExtnService _psCardItemExtnService;
-        private IPsCardItemExtnVehicleRepairService _psCardItemExtnVehicleRepairService;        
+        private readonly IPsCardItemExtnSharedService _psCardItemExtnSharedService;
+        private readonly IPsCardItemExtnVehicleRepairService _psCardItemExtnVehicleRepairService;        
 
-        public PsCardItemExtnVehicleService(AppManEntities db, IPsCardItemExtnService psCardItemExtnService)
+        public PsCardItemExtnVehicleService(AppManEntities db,
+            IExceptionService<PsCardItemExtnVehicleVM> exceptionService,
+            IPsCardItemTransactionService psCardItemTransactionService,
+            IPsCardItemExtnVehicleValidator psCardItemExtnValidator,
+            IPsCardItemExtnSharedService psCardItemExtnSharedService,
+            IPsCardItemExtnVehicleRepairService psCardItemExtnVehicleRepairService)
         {
             _db = db;
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _psCardItemExtnValidator = new PsCardItemExtnVehicleValidator(_db);
-            _psCardItemExtnService = psCardItemExtnService;
+            _exceptionService = exceptionService;
+            _psCardItemTransactionService = psCardItemTransactionService;
+            _psCardItemExtnValidator = psCardItemExtnValidator;
+            _psCardItemExtnSharedService = psCardItemExtnSharedService;
+            _psCardItemExtnVehicleRepairService = psCardItemExtnVehicleRepairService;
         }
 
-        public IPsCardItemExtnVehicleRepairService PsCardItemExtnVehicleRepair { get { return _psCardItemExtnVehicleRepairService = _psCardItemExtnVehicleRepairService ?? new PsCardItemExtnVehicleRepairService(_db); } }
+        public IPsCardItemExtnVehicleRepairService PsCardItemExtnVehicleRepair => _psCardItemExtnVehicleRepairService;
 
         private Expression<Func<PsCardItemExtnVehicle, PsCardItemExtnVehicleVM>> GetProjection()
         {
@@ -232,14 +239,8 @@ namespace iLgs.Services.PropertyCard
 
         public void MapModelToEntityFields(PsCardItemExtnVehicle entity, PsCardItemExtnVehicleVM model, Mode mode)
         {
-            if (mode == Mode.ADD)
-            {
-                entity.Id = model.Id;
-                entity.InsertedBy = model.InsertedBy;
-                entity.InsertedDt = model.InsertedDt;
-            }
+            _psCardItemExtnSharedService.MapModelToEntityFields(entity, model, mode);
 
-            entity.SeriesNo = model.SeriesNo;
             entity.YearModel = model.YearModel;
             entity.PlateNo = model.PlateNo;
             entity.BodyNo = model.BodyNo;
@@ -253,18 +254,7 @@ namespace iLgs.Services.PropertyCard
             entity.OrDate = model.OrDate;
             entity.NetWeight = model.NetWeight;
             entity.InsPolicyNo = model.InsPolicyNo;
-            entity.ConductionNo = model.ConductionNo;
-            entity.ContentNo = model.ContentNo;
-            entity.CustItemNo = model.CustItemNo;
-            entity.PsCardItemId = model.PsCardItemId;
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-            entity.Condition = model.Condition;
-            entity.SubLocation = model.SubLocation;
-            entity.Annex = model.Annex;
-            entity.OldAmount = model.OldAmount;
-            entity.OldPropNo = model.OldPropNo;
-            entity.UpcomingOfficer = model.UpcomingOfficer;
+            entity.ConductionNo = model.ConductionNo;            
         }        
     }
 }

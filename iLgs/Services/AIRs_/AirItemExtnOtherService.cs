@@ -1,14 +1,11 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Items;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.AIRs_
 {
@@ -28,15 +25,19 @@ namespace iLgs.Services.AIRs_
     public class AirItemExtnOtherService : IAirItemExtnOtherService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<AIRItemExtnOther> _exceptionService = new ExceptionService<AIRItemExtnOther>();
-        private readonly IAirItemExtnService _airItemExtnService;
+        private readonly IExceptionService<AIRItemExtnOther> _exceptionService;
+        private readonly IAirItemExtnAbstractService _airItemExtnSharedService;
         private readonly IItemCodeService _itemCodeService;
 
-        public AirItemExtnOtherService(AppManEntities db, AirItemExtnService airItemExtnService)
+        public AirItemExtnOtherService(AppManEntities db, 
+            IExceptionService<AIRItemExtnOther> exceptionService,
+            IAirItemExtnAbstractService airItemExtnSharedService,
+            IItemCodeService itemCodeService)
         {
             _db = db;
-            _airItemExtnService = airItemExtnService;
-            _itemCodeService = new ItemCodeService(db);
+            _exceptionService = exceptionService;
+            _airItemExtnSharedService = airItemExtnSharedService;
+            _itemCodeService = itemCodeService;
         }
 
         public IQueryable<AIRItemExtnOther> GetByAirItemId(Guid? airItemId)
@@ -198,7 +199,7 @@ namespace iLgs.Services.AIRs_
             }
 
             // complete the serial number template here, new airitemExtn is injected inside airItem
-            await _airItemExtnService.CreateAirItemExtnAsync(airItem, orderItem, user, date);
+            await _airItemExtnSharedService.CreateAirItemExtnAsync(airItem, orderItem, user, date);
             _db.AIRItems.Attach(airItem);
             _db.Entry(airItem).State = EntityState.Modified;
             await _db.SaveChangesAsync();

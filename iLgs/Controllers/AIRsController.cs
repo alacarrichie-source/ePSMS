@@ -27,29 +27,30 @@ namespace iLgs.Controllers
     [AppAuthorize("AIRS")]
     public class AIRsController : BaseController
     {
-        private AppManEntities _db;
-        private IAirService _airService;
-        private IAirItemService _airItemService;
-        private ICodextnService _codextnService;
-        private IOrderService _orderService;
+        private readonly IAirService _airService;
+        private readonly IAirItemService _airItemService;
+        private readonly ICodextnService _codextnService;
+        private readonly IOrderService _orderService;
         private readonly IOrderItemUnitGroupService _unitGroupService;
         private readonly IOrderItemUnitGroupDescriptionService _unitGroupDescriptionService;
         private readonly IOrderItemUnitGroupDescriptionItemService _unitGroupDescriptionItemService;
         private readonly IAirUploadService _uploadService;
         private IServiceAgent _sa;
 
-        public AIRsController()
+        public AIRsController(IAirService airService, IAirItemService airItemService, ICodextnService codextnService, IOrderService orderService,
+            IOrderItemUnitGroupService orderItemUnitGroupService, IOrderItemUnitGroupDescriptionService orderItemUnitGroupDescriptionService,
+            IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService, IServiceAgent serviceAgent,
+            IAirUploadService airUploadService)
         {
-            _db = new AppManEntities();
-            _airService = new AirService(_db);
-            _airItemService = new AirItemService(_db);
-            _codextnService = new CodextnService(_db);
-            _orderService = new OrderService(_db);            
-            _sa = new ServiceAgent(_db);
-            _unitGroupService = new OrderItemUnitGroupService(_db);
-            _unitGroupDescriptionService = new OrderItemUnitGroupDescriptionService(_db);
-            _unitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
-            _uploadService = new AirUploadService(_db);
+            _airService = airService;
+            _airItemService = airItemService;
+            _codextnService = codextnService;
+            _orderService = orderService;            
+            _sa = serviceAgent;
+            _unitGroupService = orderItemUnitGroupService;
+            _unitGroupDescriptionService = orderItemUnitGroupDescriptionService;
+            _unitGroupDescriptionItemService = orderItemUnitGroupDescriptionItemService;
+            _uploadService = airUploadService;
         }
 
         public ActionResult Admin()
@@ -59,7 +60,7 @@ namespace iLgs.Controllers
             return View("Index");
         }
 
-        public ActionResult Serial()
+        public ActionResult Custodian()
         {
             TempData["AllowIndexAccess"] = true;
             ViewBag.AirGroup = (int)AirGroup.SERIAL;
@@ -1048,6 +1049,7 @@ namespace iLgs.Controllers
             rpt.FileName = Server.MapPath(Url.Content("~/Reports/Air.rpt"));
             rpt.Refresh();
 
+            var _db = new AppManEntities();
             string user = ControllerContext.HttpContext.User.Identity.Name;
             string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
@@ -1138,6 +1140,7 @@ namespace iLgs.Controllers
             rpt.FileName = Server.MapPath(Url.Content("~/Reports/RisByAir.rpt"));
             rpt.Refresh();
 
+            var _db = new AppManEntities();
             string user = ControllerContext.HttpContext.User.Identity.Name;
             string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);

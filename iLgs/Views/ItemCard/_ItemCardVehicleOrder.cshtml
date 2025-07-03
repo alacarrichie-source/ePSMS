@@ -7,7 +7,7 @@
             @Html.DisplayFor(m => m.PoNo, "Label")
         </div>
         <div class="col-md-4">
-            @(Html.Kendo().TextBoxFor(m => m.PoNo).Readonly(true).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+            @(Html.Kendo().TextBoxFor(m => m.PoNo).Readonly(true).HtmlAttributes(new { id = "PoNoDisplay", style = "width:100%; max-width:100%;" }))
             @Html.ValidationMessageFor(m => m.PoNo)
         </div>
         <div class="item-label col-md-2">
@@ -384,9 +384,7 @@
 }
 
 
-
-
-<script type="text/javascript">
+@*<script type="text/javascript">
     $("#btnSave").click(function (e) {
         e.preventDefault();
         var popupNotification = $("#popupNotification").data("kendoNotification");
@@ -422,7 +420,7 @@
         e.preventDefault();
         $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
     });
-</script>
+</script>*@
 
 
 

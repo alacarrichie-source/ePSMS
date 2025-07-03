@@ -1,7 +1,6 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -24,12 +23,14 @@ namespace iLgs.Services.Items
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly IExceptionService<ItemTypeExclusion> _exceptionService = new ExceptionService<ItemTypeExclusion>();
+        private readonly IExceptionService<ItemTypeExclusion> _exceptionService;
 
-        public ItemTypeExclusionService(AppManEntities db)
+        public ItemTypeExclusionService(AppManEntities db,
+            IExceptionService<ItemTypeExclusion> exceptionService)
         {
             _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<ItemTypeExclusion>(propertyName);
+            _getDisplayName = Utility.GetDisplayName<ItemTypeExclusion>;
+            _exceptionService = exceptionService;
         }
 
         public IQueryable<ItemTypeExclusion> GetAll(Guid? itemUserId)

@@ -5,9 +5,7 @@ using iLgs.Services.Codes;
 using iLgs.Services.Requisition;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 
 namespace iLgs.Services.Validators
 {
@@ -25,12 +23,14 @@ namespace iLgs.Services.Validators
         private readonly ICodextnService _codextnService;
         private readonly IRisService _risService;    
 
-        public RisItemUnitGroupValidator(AppManEntities db)
+        public RisItemUnitGroupValidator(AppManEntities db,
+            ICodextnService codextnService,
+            IRisService risService)
         {
-            _db = db;
-            _risService = new RisService(_db);
+            _db = db;            
             _getDisplayName = propertyName => Utility.GetDisplayName<RisItemUnitGroupVM>(propertyName);
-            _codextnService = new CodextnService(_db);
+            _risService = risService;
+            _codextnService = codextnService;
         }
 
         public void ValidateOnCreate(RisItemUnitGroupVM model)

@@ -17,6 +17,7 @@
             {
                 command.Edit();
                 command.Destroy();
+                command.Custom("Uploads").IconClass("k-icon k-i-upload").Click("onClickUploads").SendDataKeys(true);
             }
         }).Width(100);
 
@@ -25,7 +26,8 @@
     {
         toolbar.Create();
     })
-    .Editable(e => e.Mode(GridEditMode.InLine))
+    //.Editable(e => e.Mode(GridEditMode.InLine))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_AddCostTemplate").Window(w => w.Width(500).Title("Additional Cost")))
     .Pageable(pageable => pageable.Refresh(true).PageSizes(true).ButtonCount(5))
     .Sortable(sortable => sortable
         .AllowUnsort(true)
@@ -36,7 +38,7 @@
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)
-        .Events(events => events.Error("InlineGridError").RequestEnd("onRequestEndGridAddCost"))
+        .Events(events => events.Error("GridErrorAddCost").RequestEnd("onRequestEndGridAddCost"))
         .Model(model =>
         {
             model.Id(p => p.Id);
@@ -52,6 +54,7 @@
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .AutoBind(true)
             .Events(events => events.Edit("onEditGridAddCost")
+            .Change("onChangeGridAddCost")
             .DataBound("onDataBoundGridAddCost")
         )
 )

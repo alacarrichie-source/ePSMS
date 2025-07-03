@@ -5,14 +5,17 @@ using iLgs.Services.Items;
 using iLgs.Services.ParIcs;
 using iLgs.Services.PoIssuance;
 using iLgs.Services.PropertyCard;
+using iLgs.Services.Uploads;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using static iLgs.Models.Enums;
 
@@ -24,18 +27,19 @@ namespace iLgs.Controllers
         private readonly AppManEntities _db;
         private readonly IIcsParService _icsParService;
         private readonly IPsCardService _psCardService;
-        private readonly IParIcsUploadService _uploadService;
+        private readonly IAddCostUploadService _uploadService;
         private readonly IItemCodeService _itemCodeService;
-        private readonly IPoIssuanceService _poIssuanceService;        
+        private readonly IPoIssuanceService _poIssuanceService;
 
-        public ItemCardController()
+        public ItemCardController(AppManEntities db, IIcsParService icsParService, IPsCardService psCardService, IAddCostUploadService addCostUploadService,
+            IItemCodeService itemCodeService, IPoIssuanceService poIssuanceService)
         {
-            _db = new AppManEntities();
-            _icsParService = new IcsParService(_db);
-            _psCardService = new PsCardService(_db);
-            _uploadService = new ParIcsUploadService(_db);
-            _itemCodeService = new ItemCodeService(_db);
-            _poIssuanceService = new PoIssuanceService(_db);
+            _db = db;
+            _icsParService = icsParService;
+            _psCardService = psCardService;
+            _uploadService = addCostUploadService;
+            _itemCodeService = itemCodeService;
+            _poIssuanceService = poIssuanceService;
         }
 
         public ActionResult Supplies()
@@ -103,7 +107,7 @@ namespace iLgs.Controllers
             var data = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetAll(accountGroup);
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
-        
+
         public ActionResult _ItemOrder(Guid? psCardItemExtnId, int? accountGroup)
         {
             ViewData["psCardItemExtnId"] = psCardItemExtnId;
@@ -175,15 +179,17 @@ namespace iLgs.Controllers
             ViewData["psCardItemExtnId"] = psCardItemExtnId;
             if (accountGroup == (int?)AccountGroup.PPE || accountGroup == (int?)AccountGroup.SUPPLIES)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnPpeEntry(psCardItemExtnId);                
-                ViewData["psCardItemId"] = model == null ?  Guid.Empty : model.PsCardItemId;
+                //var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnPpeEntry(psCardItemExtnId);                
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnOther.GetByIdAsync(psCardItemExtnId);
+                ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
                 return PartialView("_ItemCardPpeEntry", model);
             }
             if (accountGroup == (int?)AccountGroup.VEHICLE)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnVehicleEntry(psCardItemExtnId);
+                //var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnVehicleEntry(psCardItemExtnId);
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnVehicle.GetByIdAsync(psCardItemExtnId);
                 ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
-                return PartialView("_ItemCardVehicleEntry", model);                
+                return PartialView("_ItemCardVehicleEntry", model);
             }
             if (accountGroup == (int?)AccountGroup.LAND)
             {
@@ -194,7 +200,8 @@ namespace iLgs.Controllers
             }
             if (accountGroup == (int?)AccountGroup.BUILDING)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnStructuresEntry(psCardItemExtnId);
+                //var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnStructuresEntry(psCardItemExtnId);
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnBldg.GetByIdAsync(psCardItemExtnId);
                 ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
                 return PartialView("_ItemCardStructureEntry", model);
             }
@@ -216,7 +223,7 @@ namespace iLgs.Controllers
                     ModelState.AddModelError("Access Error", "Access Denied!");
                 }
 
-                
+
                 if (model != null && ModelState.IsValid)
                 {
                     string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -336,6 +343,49 @@ namespace iLgs.Controllers
             return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
         }
 
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ItemCardBldgSave(PsCardItemExtnBldgVM model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "item_card");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("Access Error", "Access Denied!");
+                }
+
+
+                if (model != null && ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnBldg.UpdateAsync(model, user, date);
+
+                    return Json(new { Errors = "", Model = model });
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            return Json(new { Errors = ModelState.Keys.SelectMany(k => ModelState[k].Errors).Select(m => m.ErrorMessage).ToArray() });
+        }
+
 
         public ActionResult _VehicleRepair(Guid? psCardItemExtnVehicleId)
         {
@@ -361,7 +411,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "vehicle_repair");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "item_card");
                 Access access = await accessTask;
                 if (!access.AllowAdd)
                 {
@@ -401,7 +451,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "vehicle_repair");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "item_card");
                 Access access = await accessTask;
                 if (!access.AllowEdit)
                 {
@@ -441,7 +491,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "vehicle_repair");
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "item_card");
                 Access access = await accessTask;
                 if (!access.AllowDelete)
                 {
@@ -471,7 +521,7 @@ namespace iLgs.Controllers
 
         public ActionResult _ParIcs(Guid? psCardItemExtnId)
         {
-            ViewData["psCardItemExtnId"] = psCardItemExtnId;            
+            ViewData["psCardItemExtnId"] = psCardItemExtnId;
             return PartialView();
         }
 
@@ -488,11 +538,24 @@ namespace iLgs.Controllers
             return result;
         }
 
-        public ActionResult _Images(Guid? imageId, string postedBy)
+        public ActionResult _Images(Guid? imageId, string postedBy, string description)
         {
             ViewData["imageId"] = imageId;
             ViewData["postedBy"] = postedBy;
+            ViewData["description"] = description;
             return PartialView();
+        }
+
+        public ActionResult _ImagesAdd(Guid? imageId, string description)
+        {
+            var model = new Models.Upload()
+            {
+                ImageId = imageId,
+                Description = description
+            };
+            ViewData["imageId"] = imageId;
+            ViewData["fileSize"] = model.FileSize;
+            return PartialView(model);
         }
 
 
@@ -506,6 +569,127 @@ namespace iLgs.Controllers
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
             return result;
+        }
+
+        public async Task<ActionResult> _ImagesDestroy([DataSourceRequest]DataSourceRequest request, Models.Upload model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "item_card");
+                Access access = await accessTask;
+                if (!access.AllowDelete)
+                {
+                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadService.DeleteAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("DeleteError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> _ImagesUpdate([DataSourceRequest] DataSourceRequest request, Models.Upload model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "item_card");
+                Access access = await accessTask;
+                if (!access.AllowEdit)
+                {
+                    ModelState.AddModelError("UpdateError", "Update Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadService.UpdateAsync(model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError("UpdateError", error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("UpdateError", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("UpdateError", e.Message);
+            }
+
+            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        }
+
+        public async Task<ActionResult> _ImagesUpload(IEnumerable<HttpPostedFileBase> files, Models.Upload model)
+        {
+            try
+            {
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), "item_card");
+                Access access = await accessTask;
+                if (!access.AllowAdd)
+                {
+                    ModelState.AddModelError("AddError", "Upload Access Denied!");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    model = await _uploadService.UploadAsync(files, model, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var vErrors = validationException.GetErrorsForModelState();
+                foreach (var error in vErrors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                       .Select(e => e.ErrorMessage)
+                                       .ToList();
+
+            if (errors.Any())
+            {
+                var errorMessage = string.Join("\n", errors);
+                return Content(errorMessage);
+            }
+
+            return Content("");
         }
 
         public async Task<ActionResult> PreviewUpload(Guid id)
@@ -690,9 +874,23 @@ namespace iLgs.Controllers
         [HttpPost]
         public ActionResult GetAddCost(Guid? psCardItemExtnId)
         {
-            var totalAddCost =  _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnAddCost.GetTotalAddCost(psCardItemExtnId);
+            var totalAddCost = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnAddCost.GetTotalAddCost(psCardItemExtnId);
 
-            return Json(new { Errors = "", TotalAddCost = totalAddCost}, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "", TotalAddCost = totalAddCost }, JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public ActionResult GetPoNo(string poNo)
+        {
+            var data = _db.PsCardItems.OrderByDescending(f => f.PoDate).FirstOrDefault(f => f.PoNo == poNo);
+
+            if (data == null)
+            {
+                return Json(new { Errors = "Invalid PO No." }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new { Errors = "", PoDate = data.PoDate }, JsonRequestBehavior.AllowGet);
         }
 
 

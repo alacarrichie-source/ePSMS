@@ -1,33 +1,25 @@
-﻿using CrystalDecisions.CrystalReports.Engine;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
 using iLgs.Services.Codes;
 using iLgs.Services.CustodianDisposal_;
 using iLgs.Services.CustodianIirup;
-using iLgs.Services.CustodianReports;
 using iLgs.Services.CustodianUploads;
-using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using static iLgs.Models.Enums;
 
 namespace iLgs.Controllers
 {
     public class CustodianIirupController : BaseController
     {
-        private readonly AppManEntities _db;
         private readonly ICustodianDisposalService _custodianDisposalService;
         private readonly ICustodianDisposalItemService _custodianDisposalItemService;        
         private readonly ICustodianIirupService _custodianIirupService;
@@ -35,15 +27,19 @@ namespace iLgs.Controllers
         private readonly ICodextnService _codextnService;
         private readonly ICustodianIirupUploadService _uploadService;
 
-        public CustodianIirupController()
+        public CustodianIirupController(ICustodianDisposalService custodianDisposalService, 
+              ICustodianDisposalItemService custodianDisposalItemService,
+              ICustodianIirupService custodianIirupService,
+              ICustodianIirupItemService custodianIirupItemService,
+              ICodextnService codextnService,
+              ICustodianIirupUploadService custodianIirupUploadService)
         {
-            _db = new AppManEntities();
-            _custodianDisposalService = new CustodianDisposalService(_db);
-            _custodianDisposalItemService = new CustodianDisposalItemService(_db);
-            _custodianIirupService = new CustodianIirupService(_db);
-            _custodianIirupItemService = new CustodianIirupItemService(_db);
-            _codextnService = new CodextnService(_db);
-            _uploadService = new CustodianIirupUploadService(_db);
+            _custodianDisposalService = custodianDisposalService;
+            _custodianDisposalItemService = custodianDisposalItemService;
+            _custodianIirupService = custodianIirupService;
+            _custodianIirupItemService = custodianIirupItemService;
+            _codextnService = codextnService;
+            _uploadService = custodianIirupUploadService;
         }
 
         public ActionResult Index()

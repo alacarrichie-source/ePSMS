@@ -24,18 +24,23 @@ namespace iLgs.Services.PropertyCard
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly IExceptionService<PsCardItemExtnLandVM> _exceptionService = new ExceptionService<PsCardItemExtnLandVM>();
+        private readonly IExceptionService<PsCardItemExtnLandVM> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnLandValidator _psCardItemExtnLandValidator;
-        private readonly IPsCardItemTransferItemService _psCardItemTransferItemService;
+        private readonly IPsCardItemTransferItemSharedService _psCardItemTransferItemSharedService;
 
-        public PsCardItemTransferItemLandService(AppManEntities db, IPsCardItemTransferItemService psCardItemTransferItemService)
+        public PsCardItemTransferItemLandService(AppManEntities db,
+            IExceptionService<PsCardItemExtnLandVM> exceptionService,
+            IPsCardItemTransactionService psCardItemTransactionService,
+            IPsCardItemExtnLandValidator psCardItemExtnLandValidator,
+            IPsCardItemTransferItemSharedService psCardItemTransferItemSharedService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnLandVM>(propertyName);
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _psCardItemExtnLandValidator = new PsCardItemExtnLandValidator(_db);
-            _psCardItemTransferItemService = psCardItemTransferItemService;
+            _exceptionService = exceptionService;
+            _psCardItemTransactionService = psCardItemTransactionService;
+            _psCardItemExtnLandValidator = psCardItemExtnLandValidator;
+            _psCardItemTransferItemSharedService = psCardItemTransferItemSharedService;
         }
 
         public List<PsCardItemExtnLandVM> GetCardItemExtns(Guid? psCardTransferId)
@@ -48,7 +53,7 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemExtnLandVM> CreateAsync(PsCardItemExtnLandVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnLandValidator.ValidateOnCreate(model);
-            _psCardItemTransferItemService.ValidateIfTransit(model.TransferId);
+            _psCardItemTransferItemSharedService.ValidateIfTransit(model.TransferId);
 
             var itemExtns = _db.PsCardItemExtns.OfType<PsCardItemExtnLand>().Where(w => w.PsCardItemId == model.PsCardItemId);
 
@@ -92,7 +97,7 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemExtnLandVM> UpdateAsync(PsCardItemExtnLandVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnLandValidator.ValidateOnUpdate(model);
-            _psCardItemTransferItemService.ValidateIfTransit(model.TransferId);
+            _psCardItemTransferItemSharedService.ValidateIfTransit(model.TransferId);
 
             var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnLand>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.PsCardItemExtnId && w.PIN == model.PIN).FirstOrDefaultAsync();
 
@@ -125,7 +130,7 @@ namespace iLgs.Services.PropertyCard
 
         public void MapModelToEntityFields(PsCardItemExtnLand entity, PsCardItemExtnLandVM model, Mode mode)
         {            
-            _psCardItemTransferItemService.MapModelToEntityFields(entity, model, mode);
+            _psCardItemTransferItemSharedService.MapModelToEntityFields(entity, model, mode);
 
             entity.PropNo= model.PropNo;
             entity.PIN = model.PIN;
@@ -195,7 +200,7 @@ namespace iLgs.Services.PropertyCard
         public ValueTask<PsCardItemExtnLandVM> DeleteAsync(PsCardItemExtnLandVM model, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             _psCardItemExtnLandValidator.ValidateOnDelete(model);
-            _psCardItemTransferItemService.ValidateIfTransit(model.TransferId);
+            _psCardItemTransferItemSharedService.ValidateIfTransit(model.TransferId);
 
             model.UpdatedBy = user;
             model.UpdatedDt = date;

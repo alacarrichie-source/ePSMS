@@ -1,13 +1,10 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.PurchaseOrder;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.RPC
 {
@@ -24,15 +21,22 @@ namespace iLgs.Services.RPC
     public class RpciItemService : IRpciItemService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<RPCIItem> _exceptionService = new ExceptionService<RPCIItem>();
-        private readonly IExceptionService<RPCIItemVM> _vmExceptionService = new ExceptionService<RPCIItemVM>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<RPCIItem> _exceptionService;
+        private readonly IExceptionService<RPCIItemVM> _vmExceptionService;
         private readonly IOrderService _orderService;
 
-        public RpciItemService(AppManEntities db)
+        public RpciItemService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<RPCIItem> exceptionService,
+            IExceptionService<RPCIItemVM> vmExceptionService,
+            IOrderService orderService)
         {
             _db = db;
-            _orderService = new OrderService(_db);
+            _exceptions = exceptions;
+            _exceptionService = exceptionService;
+            _vmExceptionService = vmExceptionService;
+            _orderService = orderService;
         }
 
         public ValueTask<RPCIItem> GetByIdAsync(Guid? id) =>

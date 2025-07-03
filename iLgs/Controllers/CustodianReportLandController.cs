@@ -1,8 +1,6 @@
-﻿using CrystalDecisions.CrystalReports.Engine;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
 using iLgs.Services.Codes;
 using iLgs.Services.CustodianReports;
 using iLgs.Services.CustodianUploads;
@@ -13,7 +11,6 @@ using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,19 +23,20 @@ namespace iLgs.Controllers
     [AppAuthorize("CUSTODIANREPORTLAND")]
     public class CustodianReportLandController : BaseController
     {
-        private readonly AppManEntities _db;
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianReportLandItemService _custodianReportLandItemService;
         private readonly ICodextnService _codextnService;
         private readonly ICustodianLandUploadService _uploadService;
 
-        public CustodianReportLandController()
+        public CustodianReportLandController(ICustodianReportService custodianReportService,
+            ICustodianReportLandItemService custodianReportLandItemService,
+            ICodextnService codextnService,
+            ICustodianLandUploadService custodianLandUploadService)
         {
-            _db = new AppManEntities();
-            _custodianReportService = new CustodianReportService(_db);
-            _custodianReportLandItemService = new CustodianReportLandItemService(_db);
-            _codextnService = new CodextnService(_db);
-            _uploadService = new CustodianLandUploadService(_db);
+            _custodianReportService = custodianReportService;
+            _custodianReportLandItemService = custodianReportLandItemService;
+            _codextnService = codextnService;
+            _uploadService = custodianLandUploadService;
         }
 
         public ActionResult Index()

@@ -44,27 +44,37 @@ namespace iLgs.Services.PurchaseOrder
 
     public class OrderService : BaseValidator, IOrderService
     {
-        private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<OrderVM> _orderVmExceptionService = new ExceptionService<OrderVM>();
-        private readonly IExceptionService<Order> _orderExceptionService = new ExceptionService<Order>();
-        private readonly IAllFieldService _allFieldService;
-        private readonly IItemCodeService _itemCodeService;
-        private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly decimal _parPrice = 50000;
+        private readonly AppManEntities _db;
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<OrderVM> _orderVmExceptionService;
+        private readonly IExceptionService<Order> _orderExceptionService;
+        private readonly IAllFieldService _allFieldService;
+        private readonly IItemCodeService _itemCodeService;                
         private readonly IUserService _userService;
         private readonly IOrderUploadService _uploadPoService;
         private readonly IOrderUploadService _uploadCafoaService;
+        private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public OrderService(AppManEntities db)
+        public OrderService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<OrderVM> orderVmExceptionService,
+            IExceptionService<Order> orderExceptionService,
+            IAllFieldService allFieldService,
+            IItemCodeService itemCodeService,
+            IUserService userService,
+            IOrderUploadService uploadService)
         {
             _db = db;
-            _allFieldService = new AllFieldService(_db);
-            _itemCodeService = new ItemCodeService(_db);
+            _exceptions = exceptions;
+            _orderVmExceptionService = orderVmExceptionService;
+            _orderExceptionService = orderExceptionService;
+            _allFieldService = allFieldService;
+            _itemCodeService = itemCodeService;            
+            _userService = userService;
+            _uploadPoService = uploadService;
+            _uploadCafoaService = uploadService.Create("CAFOA");
             _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
-            _userService = new UserService(_db);
-            _uploadPoService = new OrderUploadServiceService(_db);
-            _uploadCafoaService = new OrderUploadServiceService(_db, "CAFOA");
         }
 
         private static Expression<Func<Order, OrderVM>> Projection(AppManEntities db)

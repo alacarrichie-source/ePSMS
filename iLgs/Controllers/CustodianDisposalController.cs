@@ -1,25 +1,17 @@
-﻿using CrystalDecisions.CrystalReports.Engine;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services;
 using iLgs.Services.Codes;
 using iLgs.Services.CustodianDisposal_;
 using iLgs.Services.CustodianReports;
-using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
-using static iLgs.Models.Enums;
 
 namespace iLgs.Controllers
 {
@@ -32,14 +24,17 @@ namespace iLgs.Controllers
         private readonly ICustodianDisposalItemService _custodianDisposalItemService;
         private readonly ICodextnService _codextnService;
 
-        public CustodianDisposalController()
+        public CustodianDisposalController(AppManEntities db, 
+            ICustodianReportService custodianReportService, ICustodianReportItemService custodianReportItemService,
+            ICustodianDisposalService custodianDisposalService, ICustodianDisposalItemService custodianDisposalItemService,
+            ICodextnService codextnService)
         {
-            _db = new AppManEntities();
-            _custodianReportService = new CustodianReportService(_db);
-            _custodianReportItemService = new CustodianReportItemService(_db);
-            _custodianDisposalService = new CustodianDisposalService(_db);
-            _custodianDisposalItemService = new CustodianDisposalItemService(_db);
-            _codextnService = new CodextnService(_db);
+            _db = db;
+            _custodianReportService = custodianReportService;
+            _custodianReportItemService = custodianReportItemService;
+            _custodianDisposalService = custodianDisposalService;
+            _custodianDisposalItemService = custodianDisposalItemService;
+            _codextnService = codextnService;
         }
 
         public ActionResult Index()

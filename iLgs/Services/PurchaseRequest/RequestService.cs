@@ -1,17 +1,14 @@
-﻿using iLgs.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Threading.Tasks;
-using iLgs.Models;
-using System.Data.Entity;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
-using System.Linq.Expressions;
-using static iLgs.Models.Enums;
+using iLgs.Models;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
+using System;
+using System.Data.Entity;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PurchaseRequest
 {
@@ -43,16 +40,19 @@ namespace iLgs.Services.PurchaseRequest
 
     public class RequestService : BaseValidator, IRequestService
     {
-        private readonly AppManEntities _db;
-        private readonly IUserService _userService;
         private readonly decimal _priceCap = 50000;
+        private readonly AppManEntities _db;
+        private readonly IUserService _userService;                
+        private readonly IExceptionService<RequestVM> _vmExceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly IExceptionService<RequestVM> _vmExceptionService = new ExceptionService<RequestVM>();
 
-        public RequestService(AppManEntities db)
+        public RequestService(AppManEntities db,
+            IUserService userService,
+            IExceptionService<RequestVM> vmExceptionService)
         {
             _db = db;
-            _userService = new UserService(_db);
+            _userService = userService;
+            _vmExceptionService = vmExceptionService;
             _getDisplayName = propertyName => Utility.GetDisplayName<RequestVM>(propertyName);
         }
 

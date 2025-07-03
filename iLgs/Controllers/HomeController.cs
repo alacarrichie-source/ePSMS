@@ -112,41 +112,42 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> Index()
         {
-            try
-            {
-                ViewBag.Message = "iLGS";
-                string userId = User.Identity.GetUserId();
-                ViewBag.ShowMenu = false;
-                ViewBag.IsAdmin = false;
-                IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
-                if (userId != null)
-                {                 
-                    ViewBag.ShowMenu = true;
-                    if (await GetUserInRole(userId, "admin") || await GetUserInRole(userId, sysAdmin))
-                    {
-                        ViewBag.IsAdmin = true;
-                        if (await GetUserInRole(userId, "admin"))
-                        {
-                            model = await GetAdminMenu();
-                        }
-                        else
-                        {
-                            model = await GetAdminMenu2(userId);
-                        }
-                    }
-                    else
-                    {
-                        model = await GetUserMenu(userId);
-                    }
-                }
-                return View(model);
-            }
-            catch (Exception e)
-            {
-                ViewBag.Error = "CANNOT CONNECT TO WEB API.";
-                return View("Error");
-            }
+            //try
+            //{
+            //    ViewBag.Message = "iLGS";
+            //    string userId = User.Identity.GetUserId();
+            //    ViewBag.ShowMenu = false;
+            //    ViewBag.IsAdmin = false;
+            //    IQueryable<Menubase> model = Enumerable.Empty<Menubase>().AsQueryable();
+            //    if (userId != null)
+            //    {                 
+            //        ViewBag.ShowMenu = true;
+            //        if (await GetUserInRole(userId, "admin") || await GetUserInRole(userId, sysAdmin))
+            //        {
+            //            ViewBag.IsAdmin = true;
+            //            if (await GetUserInRole(userId, "admin"))
+            //            {
+            //                model = await GetAdminMenu();
+            //            }
+            //            else
+            //            {
+            //                model = await GetAdminMenu2(userId);
+            //            }
+            //        }
+            //        else
+            //        {
+            //            model = await GetUserMenu(userId);
+            //        }
+            //    }
+            //    return View(model);
+            //}
+            //catch (Exception e)
+            //{
+            //    ViewBag.Error = "CANNOT CONNECT TO WEB API.";
+            //    return View("Error");
+            //}
 
+            return View();
         }
 
         //public async Task<Access> Access(string userId, string menuId)

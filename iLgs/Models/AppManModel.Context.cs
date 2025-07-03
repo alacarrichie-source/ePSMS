@@ -104,16 +104,16 @@ namespace iLgs.Models
         public virtual DbSet<CustodianReportBldgItem> CustodianReportBldgItems { get; set; }
         public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         public virtual DbSet<CustodianReportItem> CustodianReportItems { get; set; }
-        public virtual DbSet<CustodianReportBldgItemPhas> CustodianReportBldgItemPhases { get; set; }
         public virtual DbSet<PsCardItemTransferIssuanceItem> PsCardItemTransferIssuanceItems { get; set; }
         public virtual DbSet<PsCardItemTransferIssuance> PsCardItemTransferIssuances { get; set; }
         public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
         public virtual DbSet<PsCardItemExtn> PsCardItemExtns { get; set; }
         public virtual DbSet<AccountableOfficer> AccountableOfficers { get; set; }
         public virtual DbSet<ItemCodeRequest> ItemCodeRequests { get; set; }
-        public virtual DbSet<IcsParItem> IcsParItems { get; set; }
         public virtual DbSet<PsCardItemExtnAddCost> PsCardItemExtnAddCosts { get; set; }
         public virtual DbSet<PsCard> PsCards { get; set; }
         public virtual DbSet<PsCardItemExtnVehicleRepair> PsCardItemExtnVehicleRepairs { get; set; }
+        public virtual DbSet<CustodianReportBldgItemPhas> CustodianReportBldgItemPhases { get; set; }
+        public virtual DbSet<IcsParItem> IcsParItems { get; set; }
     }
 }

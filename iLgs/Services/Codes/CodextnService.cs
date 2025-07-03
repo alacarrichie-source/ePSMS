@@ -1,14 +1,10 @@
-﻿using iLgs.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using iLgs.Models;
-using System.Threading.Tasks;
-using System.Data.Entity;
-using iLgs.Controllers;
+﻿using iLgs.Models;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
+using System;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace iLgs.Services.Codes
 {
@@ -41,15 +37,19 @@ namespace iLgs.Services.Codes
     {
         protected readonly AppManEntities _db;        
         protected readonly GetDisplayNameDelegate _getDisplayName;
-        protected readonly IExceptionService<Codextn> _exceptionService = new ExceptionService<Codextn>();
-        protected readonly IExceptionService<CodextnVM> _vmExceptionService = new ExceptionService<CodextnVM>();
+        protected readonly IExceptionService<Codextn> _exceptionService;
+        protected readonly IExceptionService<CodextnVM> _vmExceptionService;
         private readonly IUserService _userService;
         
-        public CodextnService(AppManEntities db)
+        public CodextnService(AppManEntities db, IExceptionService<Codextn> exceptionService, 
+            IExceptionService<CodextnVM> vmExceptionService,
+            IUserService userService)
         {
             _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<Codextn>(propertyName);
-            _userService = new UserService(_db);            
+            _exceptionService = exceptionService;
+            _vmExceptionService = vmExceptionService;
+            _getDisplayName = Utility.GetDisplayName<Codextn>;
+            _userService = userService;            
         }
 
         public async ValueTask<IQueryable<Codextn>> GetUserDepartmentsAsync(string userId)

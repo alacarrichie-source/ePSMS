@@ -1,22 +1,23 @@
-﻿using iLgs.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using CrystalDecisions.CrystalReports.Engine;
+﻿using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
+using iLgs.Models;
+using Microsoft.AspNet.Identity;
+using System;
 using System.Data.SqlClient;
 using System.IO;
-using iLgs.Utilities;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
     public class ReportController : BaseController
     {
-        private AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
+
+        public ReportController(AppManEntities db)
+        {
+            _db = db;
+        }
 
         public async Task<ActionResult> UserAccess()
         {
@@ -74,7 +75,7 @@ namespace iLgs.Controllers
 
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            string conString = db.Database.Connection.ConnectionString.ToString();
+            string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
 
             string un = decoder.UserID;
@@ -201,7 +202,7 @@ namespace iLgs.Controllers
 
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            string conString = db.Database.Connection.ConnectionString.ToString();
+            string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
 
             string un = decoder.UserID;

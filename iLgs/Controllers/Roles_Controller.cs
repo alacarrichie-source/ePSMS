@@ -1,16 +1,17 @@
 ﻿using iLgs.Models;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 
 namespace iLgs.Controllers
 {
     public class Roles_Controller : ApiController
     {
-        private AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
+
+        public Roles_Controller(AppManEntities db)
+        {
+            _db = db;
+        }
 
         // GET: api/Roles_/5/RPTONLINE/admin
         [Route("api/roles_/{id}/{role}")]
@@ -18,8 +19,8 @@ namespace iLgs.Controllers
         public IQueryable<AspNetUser> GetAspNetUsers(string id, string role)
         //public IEnumerable<AspNetUser> GetAspNetUsers(string id, string role)
         {
-            var users = from a in db.AspNetUsers
-                        join b in db.AspNetUserRoles on a.Id equals b.UserId
+            var users = from a in _db.AspNetUsers
+                        join b in _db.AspNetUserRoles on a.Id equals b.UserId
                         where (a.Id == id && b.RoleId == role)
                         select a;
 
@@ -34,7 +35,7 @@ namespace iLgs.Controllers
             //            join b in db.AspNetUserRoles on a.Id equals b.UserId
             //            where (a.Id == id)
             //            select a;        
-            var users = db.AspNetUsers
+            var users = _db.AspNetUsers
                 .Include("AspNetUserRoles")
                 .Where(w => w.Id == id);
             return users;

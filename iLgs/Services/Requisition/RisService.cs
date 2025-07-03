@@ -42,17 +42,25 @@ namespace iLgs.Services.Requisition
     public class RisService : IRisService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<RIS_VM> _risVmExceptionService = new ExceptionService<RIS_VM>();
-        private readonly IExceptionService<RISs> _risExceptionService = new ExceptionService<RISs>();
-        private readonly IRisValidator _validator;
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<RIS_VM> _risVmExceptionService;
+        private readonly IExceptionService<RISs> _risExceptionService;        
         private readonly IUserService _userService;
+        private readonly IRisValidator _validator;
 
-        public RisService(AppManEntities db)
+        public RisService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<RIS_VM> risVmExceptionService,
+            IExceptionService<RISs> risExceptionService,
+            IUserService userService,
+            IRisValidator validator)
         {
-            _db = db;            
-            _validator = new RisValidator(_db);
-            _userService = new UserService(_db);
+            _db = db;
+            _exceptions = exceptions;
+            _risVmExceptionService = risVmExceptionService;
+            _risExceptionService = risExceptionService;            
+            _userService = userService;
+            _validator = validator;
         }        
 
         private static Expression<Func<RISs, RIS_VM>> RisProjection

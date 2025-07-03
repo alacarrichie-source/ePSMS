@@ -1,4 +1,5 @@
-﻿using iLgs.Models;
+﻿using iLgs.Exceptions;
+using iLgs.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -21,11 +22,16 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportItemIssuanceAreService : CustodianReportItemIssuanceService, ICustodianReportItemIssuanceAreService
     {
         private readonly string _refType = "ARE";
-        private readonly IExceptionService<CustodianReportItemIssuanceAreVM> _vmExceptionService = new ExceptionService<CustodianReportItemIssuanceAreVM>();
+        private readonly IExceptionService<CustodianReportItemIssuanceAreVM> _xtraExceptionService;
 
-        public CustodianReportItemIssuanceAreService(AppManEntities db) : base(db)
+   
+        public CustodianReportItemIssuanceAreService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<CustodianReportItemIssuance> exceptionService,
+            IExceptionService<CustodianReportItemIssuanceAreVM> xtraExceptionService,
+            IUserService userService) : base(db, exceptions, exceptionService, userService)
         {
-
+            _xtraExceptionService = xtraExceptionService;
         }
 
         private static Expression<Func<CustodianReportItemIssuance, CustodianReportItemIssuanceAreVM>> CustodianReportItemIssuanceProjection
@@ -42,7 +48,7 @@ namespace iLgs.Services.CustodianReports
         };
 
         public new ValueTask<CustodianReportItemIssuanceAreVM> GetByIdAsync(Guid id) =>
-        _vmExceptionService.TryCatch(async () =>
+        _xtraExceptionService.TryCatch(async () =>
         {
             var data = await _db.CustodianReportItemIssuances
                 .Where(w => w.Id == id)
@@ -59,21 +65,21 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public ValueTask<CustodianReportItemIssuanceAreVM> CreateAsync(CustodianReportItemIssuanceAreVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemIssuanceAreVM> CreateAsync(CustodianReportItemIssuanceAreVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             model.RefType = _refType;
             await base.CreateAsync(model, user, date);
             return model;
         });
 
-        public ValueTask<CustodianReportItemIssuanceAreVM> UpdateAsync(CustodianReportItemIssuanceAreVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemIssuanceAreVM> UpdateAsync(CustodianReportItemIssuanceAreVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             model.RefType = _refType;
             await base.UpdateAsync(model, user, date);
             return model;
         });
 
-        public ValueTask<CustodianReportItemIssuanceAreVM> DeleteAsync(CustodianReportItemIssuanceAreVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
+        public ValueTask<CustodianReportItemIssuanceAreVM> DeleteAsync(CustodianReportItemIssuanceAreVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             await base.DeleteAsync(model, user, date);
             return model;

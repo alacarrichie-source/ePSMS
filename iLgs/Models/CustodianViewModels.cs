@@ -850,6 +850,7 @@ namespace iLgs.Models
             public Nullable<int> CompletionDay { get; set; }
 
             [Display(Name = "Completion Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> CompletionDate { get; set; }
 
             public string Status { get; set; }
@@ -901,6 +902,37 @@ namespace iLgs.Models
 
             [Display(Name = "Phase Amount MOOE")]
             public Nullable<decimal> MOOE { get; set; }
+
+            [Display(Name = "Project Name")]
+            public string ProjectName { get; set; }
+
+            [Display(Name = "Year of Construction")]
+            public Nullable<System.DateTime> StartDate { get; set; }
+
+            [Display(Name = "Target Year & Month")]
+            public Nullable<System.DateTime> TargetDate { get; set; }
+
+            [Display(Name = "Acquisition Date (mm/dd/yyyy)")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+            public Nullable<System.DateTime> AcqDate { get; set; }
+
+            [Display(Name = "Completion Date")]
+            [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+            public Nullable<System.DateTime> CompletionDate { get; set; }
+
+            [Display(Name = "Percentage (%) of Completion")]
+            public Nullable<decimal> PercentComplete { get; set; }
+
+            public string Status { get; set; }
+
+            [Display(Name = "Old Amount/s (in RPCPPE)")]
+
+            public Nullable<decimal> OldAmount { get; set; }
+
+            [Display(Name = "RPCPPE Acquisition Cost")]
+            public Nullable<decimal> AcqCost { get; set; }
+            public string Remarks { get; set; }
+
             public string InsertedBy { get; set; }
             public Nullable<System.DateTime> InsertedDt { get; set; }
             public string UpdatedBy { get; set; }

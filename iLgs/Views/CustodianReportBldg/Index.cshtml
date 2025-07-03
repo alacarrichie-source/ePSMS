@@ -51,7 +51,7 @@
                 .ClientFooterTemplate("#=kendo.format('{0:n0}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
             col.Bound(c => c.PsNo).Width(70);
-            col.Bound(c => c.ProjectName).Width(150);
+            //col.Bound(c => c.ProjectName).Width(150);
             col.Bound(c => c.BldgItem).Width(100);
             col.Bound(c => c.BuildingType).Width(100);
             col.Bound(c => c.InsertedBy).Width(50);
@@ -1072,7 +1072,7 @@
         e.preventDefault();
         if (!e.response.Errors) {
             if (e.type == "destroy" || e.type == "create" || e.type == "update") {
-                $("#gridAmounts").data("kendoGrid").dataSource.read();
+                $("#gridAmounts_" + selectedItem).data("kendoGrid").dataSource.read();
             }
         }
     }
@@ -1098,6 +1098,12 @@
         }
     }
 
+    function onChangeGridAmount(e) {
+        var selectedData = this.dataItem(this.select());
+        
+        selectedGridAmountItem = selectedData.Id;        
+    }
+
     function onDataBoundGridAmount(e) {
         if (selectedGridAmountItem) {
             var dataItem = this.dataSource.get(selectedGridAmountItem);
@@ -1110,37 +1116,6 @@
         }
     }
     // END GRID AMOUNTS
-
-    //function onEditGridAmount(e) {
-    //    e.preventDefault();
-    //    selectedGrid = e.sender;
-
-    //    var validator = $("#form").kendoValidator().data("kendoValidator");
-
-    //    if (!validator.validate()) {
-
-    //        // Get all the invalid input elements.
-    //        var invalidInputs = validator.element.find(".k-invalid");
-
-    //        // Loop through each invalid input element and display its properties.
-    //        invalidInputs.each(function () {
-    //            var invalidInput = $(this);
-    //            var invalidInputId = invalidInput.attr("id");
-    //            var invalidInputName = invalidInput.attr("name");
-
-    //            console.log("Invalid input ID: " + invalidInputId);
-    //            console.log("Invalid input name: " + invalidInputName);
-
-    //            // You can also display more properties or perform other actions as needed.
-    //        });
-
-    //        selectedGrid.cancelRow();
-    //    }
-    //    else {
-    //        SaveRecords(e, false);
-    //    }
-    //}
-    // END GRID INVOICE
 
     function SaveRecords(e, closeWindow) {
         var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
@@ -1185,6 +1160,7 @@
             window.kendo.ui.progress($("#formAir"), false);
         });
     }
+    
 </script>
 
 

@@ -1,39 +1,35 @@
-﻿using iLgs.Models;
-using Kendo.Mvc.UI;
+﻿using CrystalDecisions.CrystalReports.Engine;
+using iLgs.Models;
+using iLgs.Services;
+using iLgs.Services.Codes;
+using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
+using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using System.Data.Entity;
-using Microsoft.AspNet.Identity;
-using iLgs.Utilities;
-using Newtonsoft.Json;
-using iLgs.Services.Interfaces;
-using iLgs.Services;
-using CrystalDecisions.Shared;
-using CrystalDecisions.CrystalReports.Engine;
-using System.Data.SqlClient;
-using System.IO;
-using System.Collections.Generic;
-using iLgs.Exceptions;
-using iLgs.Services.Codes;
 
 namespace iLgs.Controllers
 {
     [AppAuthorize("RPCEFFOPPE")]
     public class RpceffoppeController : BaseController
     {
-        private AppManEntities _db = new AppManEntities();
-        private IRpceffoppeService _rpcService;
-        private IRpceffoppeItemService _rpcItemService;
-        private ICodextnService _codextnService;
+        private readonly AppManEntities _db;
+        private readonly IRpceffoppeService _rpcService;
+        private readonly IRpceffoppeItemService _rpcItemService;
+        private readonly ICodextnService _codextnService;
 
-        public RpceffoppeController()
+        public RpceffoppeController(AppManEntities db, IRpceffoppeService rpceffoppeService, IRpceffoppeItemService rpceffoppeItemService, ICodextnService codextnService)
         {
-            _rpcService = new RpceffoppeService(_db);
-            _rpcItemService = new RpceffoppeItemService(_db);
-            _codextnService = new CodextnService(_db);
+            _db = db;
+            _rpcService = rpceffoppeService;
+            _rpcItemService = rpceffoppeItemService;
+            _codextnService = codextnService;
         }
 
         // GET: Rpceffoppe

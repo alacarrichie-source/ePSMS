@@ -1,17 +1,12 @@
-﻿using ClosedXML.Excel;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.AllFields;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianReports
@@ -28,16 +23,21 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportBldgItemPhaseService : BaseValidator, ICustodianReportBldgItemPhaseService
     {
         protected readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<CustodianReportBldgItemPhas> _exceptionService = new ExceptionService<CustodianReportBldgItemPhas>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<CustodianReportBldgItemPhas> _exceptionService;
         private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public CustodianReportBldgItemPhaseService(AppManEntities db)
+        public CustodianReportBldgItemPhaseService(AppManEntities db, 
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<CustodianReportBldgItemPhas> exceptionService,
+            IUserService userService)
         {
             _db = db;
-            _userService = new UserService(_db);
-            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemPhas>(propertyName);
+            _exceptions = exceptions;
+            _exceptionService = exceptionService;
+            _userService = userService;
+            _getDisplayName = Utility.GetDisplayName<CustodianReportBldgItemPhas>;
         }
 
         public ValueTask<CustodianReportBldgItemPhas> GetByIdAsync(Guid id) =>
@@ -130,6 +130,16 @@ namespace iLgs.Services.CustodianReports
             entity.PhaseNo = model.PhaseNo;
             entity.CapitalOutlay= model.CapitalOutlay;
             entity.MOOE = model.MOOE;
+            entity.ProjectName = model.ProjectName;
+            entity.StartDate = model.StartDate;
+            entity.TargetDate = model.TargetDate;
+            entity.AcqDate = model.AcqDate;
+            entity.CompletionDate = model.CompletionDate;
+            entity.PercentComplete = model.PercentComplete;
+            entity.Status = model.Status;
+            entity.OldAmount = model.OldAmount;
+            entity.AcqCost = model.AcqCost;
+            entity.Remarks = model.Remarks;
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;
         }

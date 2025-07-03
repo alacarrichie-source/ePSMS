@@ -20,6 +20,7 @@ namespace iLgs.Models
         public Nullable<System.Guid> OrderId { get; set; }
         public string Fund { get; set; }
 
+        [Required]
         [Display(Name = "AIR No.")]
         public string AIRNo { get; set; }
 
@@ -58,7 +59,7 @@ namespace iLgs.Models
         [Display(Name = "Inspected")]
         public Nullable<bool> IsInspected { get; set; }
 
-        [Display(Name = "Officer/Committee")]
+        [Display(Name = "Officer / Committee")]
         public string Officer { get; set; }
 
         [Display(Name = "Inventory / For Distribution")]

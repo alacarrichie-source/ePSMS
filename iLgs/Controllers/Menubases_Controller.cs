@@ -1,29 +1,30 @@
 ﻿using iLgs.Models;
-using Kendo.Mvc.UI;
+using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
-using System;
-using System.Collections.Generic;
+using Kendo.Mvc.UI;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
-using System.Web;
-using iLgs.Utilities;
 
 namespace iLgs.Controllers
 {
     public class Menubases_Controller : ApiController
     {
-        private AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
+
+        public Menubases_Controller(AppManEntities db)
+        {
+            _db = db;
+        }
 
         // GET: api/Menubases
         public IQueryable<Menubase> GetMenubases()
         {
-            return db.Menubases;
+            return _db.Menubases;
         }
 
         // GET: api/Menubases_/read?sysCode=RPTONLINE&parentId=0
@@ -31,7 +32,7 @@ namespace iLgs.Controllers
         public DataSourceResult GetGridMenu([System.Web.Http.ModelBinding.ModelBinder(typeof(WebApiDataSourceRequestModelBinder))]DataSourceRequest request, string sysCode, int? parentId)
         {
             parentId = parentId ?? 0;
-            var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId);
+            var menu = _db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId);
             return menu.ToDataSourceResult(request);
         }
 
@@ -40,7 +41,7 @@ namespace iLgs.Controllers
         [Route("api/Menubases_/{sysCode}/{parentId}")]
         public IQueryable<Menubase> GetMenubases(string sysCode, int parentId)
         {
-            var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId);
+            var menu = _db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId);
                 //.Select(s => new Menubase
                 //{
                 //    SysCode = s.SysCode,
@@ -65,7 +66,7 @@ namespace iLgs.Controllers
         [Route("api/Menubases_/access/{sysCode}/{parentId}/{userId}")]
         public IQueryable<MenubaseVM> GetMenubases(string sysCode, int parentId, string userId)
         {            
-            var menu = db.Menubases.Include(i => i.MenuAccesses).Where(p => p.SysCode == sysCode && p.ParentId == parentId)
+            var menu = _db.Menubases.Include(i => i.MenuAccesses).Where(p => p.SysCode == sysCode && p.ParentId == parentId)
                 .Select(s => new MenubaseVM
                 {
                     SysCode = s.SysCode,
@@ -82,7 +83,7 @@ namespace iLgs.Controllers
                     UpdatedBy = s.UpdatedBy,
                     UpdatedDt = s.UpdatedDt,
                     IsAllowed = s.MenuAccesses.Any(a => a.MenuId == s.ChildId && a.UserId == userId && a.IsAllowed == true),
-                    Result = db.Menubases.Where(w => w.ParentId == s.ChildId).Any() ? "Submenu" : "Command",
+                    Result = _db.Menubases.Where(w => w.ParentId == s.ChildId).Any() ? "Submenu" : "Command",
                     //AccessId = s.MenuAccesses.FirstOrDefault().Id 
                     AccessId = s.MenuAccesses.FirstOrDefault(f => f.UserId == userId).Id
                 });
@@ -96,7 +97,7 @@ namespace iLgs.Controllers
         {
             if (string.IsNullOrEmpty(deptCode) || deptCode == "CORE")
             {
-                return db.Menubases.Include(i => i.MenuAccesses).Where(p => p.SysCode == sysCode && p.ParentId == parentId)
+                return _db.Menubases.Include(i => i.MenuAccesses).Where(p => p.SysCode == sysCode && p.ParentId == parentId)
                     .Select(s => new MenubaseVM
                     {
                         SysCode = s.SysCode,
@@ -113,13 +114,13 @@ namespace iLgs.Controllers
                         UpdatedBy = s.UpdatedBy,
                         UpdatedDt = s.UpdatedDt,
                         IsAllowed = true,
-                        Result = db.Menubases.Where(w => w.ParentId == s.ChildId).Any() ? "Submenu" : "Command",
+                        Result = _db.Menubases.Where(w => w.ParentId == s.ChildId).Any() ? "Submenu" : "Command",
                         AccessId = s.MenuAccesses.FirstOrDefault(f => f.UserId == userId).Id
                     });
             }
             else
             {
-                return db.Menubases.Include(i => i.MenuAccesses).Where(p => p.SysCode == sysCode && p.ParentId == parentId && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode))
+                return _db.Menubases.Include(i => i.MenuAccesses).Where(p => p.SysCode == sysCode && p.ParentId == parentId && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode))
                     .Select(s => new MenubaseVM
                     {
                         SysCode = s.SysCode,
@@ -136,7 +137,7 @@ namespace iLgs.Controllers
                         UpdatedBy = s.UpdatedBy,
                         UpdatedDt = s.UpdatedDt,
                         IsAllowed = s.MenuAccesses.Any(a => a.MenuId == s.ChildId && a.UserId == userId && a.IsAllowed == true),
-                        Result = db.Menubases.Where(w => w.ParentId == s.ChildId).Any() ? "Submenu" : "Command",
+                        Result = _db.Menubases.Where(w => w.ParentId == s.ChildId).Any() ? "Submenu" : "Command",
                         AccessId = s.MenuAccesses.FirstOrDefault(f => f.UserId == userId).Id
                     });
             }
@@ -147,7 +148,7 @@ namespace iLgs.Controllers
         public IQueryable<Menubase> GetUserMenubases(string userId, string sysCode)
         {
             //var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.Accessfiles.Where(a => a.ChildId == p.ChildId && a.UserId == userId).Any());
-            var menu = db.Menubases.Include(i => i.MenuAccesses).Where(w => w.SysCode == sysCode && w.MenuAccesses.Any(a => a.UserId == userId && a.MenuId == w.ChildId && a.IsAllowed == true));
+            var menu = _db.Menubases.Include(i => i.MenuAccesses).Where(w => w.SysCode == sysCode && w.MenuAccesses.Any(a => a.UserId == userId && a.MenuId == w.ChildId && a.IsAllowed == true));
             return menu;
         }
 
@@ -155,7 +156,7 @@ namespace iLgs.Controllers
         [Route("api/{sysCode}/{parentId}/test")]
         public IQueryable<Menubase> GetMenubases2(string sysCode, int parentId)
         {
-            var menu = db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId);
+            var menu = _db.Menubases.Where(p => p.SysCode == sysCode && p.ParentId == parentId);
             return menu;
         }
 
@@ -167,11 +168,11 @@ namespace iLgs.Controllers
             //return db.Menubases.Where(p => p.SysCode == sysCode && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode)).OrderBy(o => o.ParentId);
             if (string.IsNullOrEmpty(deptCode) || deptCode == "ICNS")
             {
-                return db.Menubases.Where(p => p.SysCode == sysCode).OrderBy(o => o.ParentId);
+                return _db.Menubases.Where(p => p.SysCode == sysCode).OrderBy(o => o.ParentId);
             }
             else
             {
-                return db.Menubases.Where(p => p.SysCode == sysCode && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode)).OrderBy(o => o.ParentId);
+                return _db.Menubases.Where(p => p.SysCode == sysCode && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode)).OrderBy(o => o.ParentId);
             }
             
         }
@@ -180,7 +181,7 @@ namespace iLgs.Controllers
         [Route("api/Menubases_/adminMenu2/{sysCode}/{deptCode}")]
         public IQueryable<Menubase> GetMenubasesLevel3(string sysCode, string deptCode)
         {
-            return db.Menubases.Where(p => p.SysCode == sysCode && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode)).OrderBy(o => o.ParentId);
+            return _db.Menubases.Where(p => p.SysCode == sysCode && p.ObjectParam == (string.IsNullOrEmpty(p.ObjectParam) ? p.ObjectParam : deptCode)).OrderBy(o => o.ParentId);
         }
 
 
@@ -188,7 +189,7 @@ namespace iLgs.Controllers
         [Route("api/Menubases_/{sysCode}")]
         public IQueryable<Menubase> GetMenubasesLevel(string sysCode)
         {
-            var menu = db.Menubases.Where(p => p.SysCode == sysCode).OrderBy(o => o.ParentId);
+            var menu = _db.Menubases.Where(p => p.SysCode == sysCode).OrderBy(o => o.ParentId);
             return menu;
         }        
 
@@ -199,7 +200,7 @@ namespace iLgs.Controllers
         public bool GetMenubasesAuthorize(string sysCode, string id, string controllerName)
         {
             bool retVal = false;
-            var access = db.Menubases.Include(i => i.MenuAccesses).Where(w => w.SysCode == sysCode && w.Controller.ToUpper() == controllerName.ToUpper() && w.MenuAccesses.Any(a => a.UserId == id)).Count();
+            var access = _db.Menubases.Include(i => i.MenuAccesses).Where(w => w.SysCode == sysCode && w.Controller.ToUpper() == controllerName.ToUpper() && w.MenuAccesses.Any(a => a.UserId == id)).Count();
 
             if (access > 0)
             {
@@ -221,7 +222,7 @@ namespace iLgs.Controllers
         [Route("api/Menubases_/accessRights/{userId}/{menuId}/{sysCode}")]
         public Access GetAccessRights(string userId, int menuId, string sysCode)
         {
-            var access = db.MenuAccesses.Include(i => i.MenuAccessActions)
+            var access = _db.MenuAccesses.Include(i => i.MenuAccessActions)
                 .Where(w => w.Menubase.SysCode == sysCode && w.MenuId == menuId && w.UserId == userId && w.IsAllowed == true)
                 .Select(s => new Access
                 {
@@ -261,7 +262,7 @@ namespace iLgs.Controllers
         [Route("api/Menubases_/menuAccessRights/{userId}/{menuId}/{sysCode}")]
         public Access GetAccessRights(string userId, string menuId, string sysCode)
         {
-            var access = db.MenuAccesses//.Include(i => i.MenuAccessActions).Include(i => i.Menubase.MenuActions)
+            var access = _db.MenuAccesses//.Include(i => i.MenuAccessActions).Include(i => i.Menubase.MenuActions)
                 .Where(w => w.Menubase.SysCode == sysCode && w.Menubase.MenuId == menuId && w.UserId == userId && w.IsAllowed == true)
                 .Select(s => new Access
                 {
@@ -288,7 +289,7 @@ namespace iLgs.Controllers
         [ResponseType(typeof(Menubase))]
         public async Task<IHttpActionResult> GetMenubase(int id)
         {
-            Menubase menubase = await db.Menubases.FindAsync(id);
+            Menubase menubase = await _db.Menubases.FindAsync(id);
             if (menubase == null)
             {
                 return NotFound();
@@ -301,7 +302,7 @@ namespace iLgs.Controllers
         [ResponseType(typeof(Menubase))]
         public async Task<IHttpActionResult> GetMenubase(int id, string sysCode)
         {
-            Menubase menubase = await db.Menubases.Where(p => p.ChildId == id && p.SysCode == sysCode).SingleOrDefaultAsync();
+            Menubase menubase = await _db.Menubases.Where(p => p.ChildId == id && p.SysCode == sysCode).SingleOrDefaultAsync();
             if (menubase == null)
             {
                 return NotFound();
@@ -328,11 +329,11 @@ namespace iLgs.Controllers
             }
 
 
-            db.Entry(menubase).State = EntityState.Modified;
+            _db.Entry(menubase).State = EntityState.Modified;
 
             try
             {
-                await db.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
 
             }
@@ -362,8 +363,8 @@ namespace iLgs.Controllers
                 return BadRequest(ModelState);
             }
 
-            db.Menubases.Add(menubase);
-            await db.SaveChangesAsync();
+            _db.Menubases.Add(menubase);
+            await _db.SaveChangesAsync();
 
             //return CreatedAtRoute("DefaultApi", new { id = menubase.ChildId}, menubase); // not working error 500
             return Created(menubase.ChildId.ToString(), menubase);
@@ -377,14 +378,14 @@ namespace iLgs.Controllers
         [Route("api/Menubases_/delete/{id}")]
         public async Task<IHttpActionResult> DeleteMenubase(int id)
         {
-            Menubase menubase = await db.Menubases.FindAsync(id);
+            Menubase menubase = await _db.Menubases.FindAsync(id);
             if (menubase == null)
             {
                 return NotFound();
             }
 
-            db.Menubases.Remove(menubase);
-            await db.SaveChangesAsync();
+            _db.Menubases.Remove(menubase);
+            await _db.SaveChangesAsync();
 
             return Ok(menubase);
         }
@@ -393,14 +394,14 @@ namespace iLgs.Controllers
         {
             if (disposing)
             {
-                db.Dispose();
+                _db.Dispose();
             }
             base.Dispose(disposing);
         }
 
         private bool MenubaseExists(int id)
         {
-            return db.Menubases.Count(e => e.ChildId == id) > 0;
+            return _db.Menubases.Count(e => e.ChildId == id) > 0;
         }
     }
 }

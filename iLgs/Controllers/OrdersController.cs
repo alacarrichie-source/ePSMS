@@ -39,20 +39,24 @@ namespace iLgs.Controllers
         private readonly IOrderUploadService _uploadPoService;
         private readonly IOrderUploadService _uploadCafoaService;
 
-        public OrdersController()
+        public OrdersController(AppManEntities db, IOrderService orderService, IOrderItemService orderItemService, IRequestService requestService,
+            ICodextnService codextnService, 
+            IOrderItemUnitGroupService orderItemUnitGroupService, IOrderItemUnitGroupDescriptionService orderItemUnitGroupDescriptionService,
+            IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService, IItemCodeService itemCodeService,
+            IAllFieldService allFieldService, IOrderUploadService orderUploadService)
         {
-            _db = new AppManEntities();
-            _orderService = new OrderService(_db);
-            _orderItemService = new OrderItemService(_db);
-            _requestService = new RequestService(_db);
-            _codextnService = new CodextnService(_db);
-            _unitGroupService = new OrderItemUnitGroupService(_db);
-            _unitGroupDescriptionService = new OrderItemUnitGroupDescriptionService(_db);
-            _unitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
-            _itemCodeService = new ItemCodeService(_db);
-            _allFieldService = new AllFieldService(_db);
-            _uploadPoService = new OrderUploadServiceService(_db);
-            _uploadCafoaService = new OrderUploadServiceService(_db, "CAFOA");
+            _db = db;
+            _orderService = orderService;
+            _orderItemService = orderItemService;
+            _requestService = requestService;
+            _codextnService = codextnService;
+            _unitGroupService = orderItemUnitGroupService;
+            _unitGroupDescriptionService = orderItemUnitGroupDescriptionService;
+            _unitGroupDescriptionItemService = orderItemUnitGroupDescriptionItemService;
+            _itemCodeService = itemCodeService;
+            _allFieldService = allFieldService;
+            _uploadPoService = orderUploadService.Create("PO");
+            _uploadCafoaService = orderUploadService.Create("CAFOA");
         }
 
         // GET: Codes

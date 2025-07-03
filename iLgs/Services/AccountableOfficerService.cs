@@ -1,12 +1,9 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services
 {
@@ -21,13 +18,19 @@ namespace iLgs.Services
     public class AccountableOfficerService : IAccountableOfficerService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<AccountableOfficerVM> _vmExceptionService = new ExceptionService<AccountableOfficerVM>();
-        private readonly IExceptionService<AccountableOfficer> _exceptionService = new ExceptionService<AccountableOfficer>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<AccountableOfficerVM> _vmExceptionService;
+        private readonly IExceptionService<AccountableOfficer> _exceptionService;
 
-        public AccountableOfficerService(AppManEntities db)
+        public AccountableOfficerService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<AccountableOfficerVM> vmExceptionService,
+            IExceptionService<AccountableOfficer> exceptionService)
         {
             _db = db;
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
         }
 
         public IQueryable<AccountableOfficerVM> GetAllByLocationId(Guid? locationId) =>

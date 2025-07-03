@@ -1,13 +1,10 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.PurchaseOrder;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services
 {
@@ -25,15 +22,22 @@ namespace iLgs.Services
     public class RpceffoppeService : IRpceffoppeService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<RPCEFFOPPE_VM> _vmExceptionService = new ExceptionService<RPCEFFOPPE_VM>();
-        private readonly IExceptionService<RPCEFFOPPE> _exceptionService = new ExceptionService<RPCEFFOPPE>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<RPCEFFOPPE_VM> _vmExceptionService;
+        private readonly IExceptionService<RPCEFFOPPE> _exceptionService;
         private readonly IOrderService _orderService;
 
-        public RpceffoppeService(AppManEntities db)
+        public RpceffoppeService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<RPCEFFOPPE_VM> vmExceptionService,
+            IExceptionService<RPCEFFOPPE> exceptionService,
+            IOrderService orderService)
         {
             _db = db;
-            _orderService = new OrderService(_db);
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _orderService = orderService;
         }
 
         public ValueTask<RPCEFFOPPE> GetByIdAsync(Guid? id) =>

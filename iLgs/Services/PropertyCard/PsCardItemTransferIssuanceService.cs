@@ -5,7 +5,6 @@ using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
@@ -38,18 +37,26 @@ namespace iLgs.Services.PropertyCard
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly IExceptionService<PsCardItemTransferIssuanceVM> _vmExceptionService = new ExceptionService<PsCardItemTransferIssuanceVM>();
+        private readonly IExceptionService<PsCardItemTransferIssuanceVM> _vmExceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnService _psCardItemExtnService;
         private readonly ICodextnService _codextnService;
+        private readonly IPsCardSharedService _psCardSharedService;
 
-        public PsCardItemTransferIssuanceService(AppManEntities db)
+        public PsCardItemTransferIssuanceService(AppManEntities db,
+            IExceptionService<PsCardItemTransferIssuanceVM> vmExceptionService,
+            IPsCardItemTransactionService psCardItemTransactionService,
+            IPsCardItemExtnService psCardItemExtnService,
+            ICodextnService codextnService,
+            IPsCardSharedService psCardSharedService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemTransferIssuanceVM>(propertyName);
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _psCardItemExtnService = new PsCardItemExtnService(_db);
-            _codextnService = new CodextnService(_db);
+            _vmExceptionService = vmExceptionService;
+            _psCardItemTransactionService = psCardItemTransactionService;
+            _psCardItemExtnService = psCardItemExtnService;
+            _codextnService = codextnService;
+            _psCardSharedService = psCardSharedService;
         }
 
         private Expression<Func<PsCardItemTransferIssuance, PsCardItemTransferIssuanceVM>> GetProjection()
@@ -257,8 +264,7 @@ namespace iLgs.Services.PropertyCard
 
         public IQueryable<PsCardItemExtn> GetCardItemExtnForIssuanceByType(Guid? transferId)
         {
-            IPsCardService psCardService = new PsCardService(_db);
-            var itemExtnName = psCardService.GetItemExtnName(transferId);
+            var itemExtnName = _psCardSharedService.GetItemExtnName(transferId);
             switch (itemExtnName)
             {
                 case "ItemExtnLand":

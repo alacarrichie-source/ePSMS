@@ -1,0 +1,331 @@
+﻿@model iLgs.Models.PsCardItemExtnBldgVM
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { name = "form", id = "form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div id="ErrorContent" class="hidden x-bootstrap-content">
+        <div class="alert alert-danger x-popup-alert">
+            <ul class="errors"></ul>
+        </div>
+    </div>
+
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.PsCardItemId)
+    @Html.HiddenFor(model => model.PsCardItemExtnId)
+    @Html.HiddenFor(model => model.SetLotNo)
+    @Html.HiddenFor(model => model.SetLotQtyNo)
+    @Html.HiddenFor(model => model.ContentNo)
+
+    <fieldset>
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.PropNo, "Label")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().TextBoxFor(m => m.PropNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.PropNo)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.CustItemNo, "Label")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().TextBoxFor(m => m.CustItemNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.CustItemNo)
+            </div>
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.SeriesNo, "Label")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().TextBoxFor(m => m.SeriesNo).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.SeriesNo)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.Annex, "Label")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().MaskedTextBoxFor(m => m.Annex).PromptChar(" ").Mask("L").HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.Annex)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(model => model.LocationId, "LabelGuid")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)
+                            .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                            .Placeholder("Select Location")
+                            .DataTextField("Code")
+                            .DataValueField("Id")
+                            .ValuePrimitive(true)
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetLandLocation", "Getters");
+                                })
+                                .ServerFiltering(true);
+                            })
+                            .Columns(c =>
+                            {
+                                c.Add().Field("Code").Title("Code").Width("50");
+                                c.Add().Field("Desc3").Title("Main-Location").Width("300");
+                                c.Add().Field("Desc2").Title("Location").Width("300");
+                            })
+                            .Events(e => e.Select("onSelectLocationId").DataBound("onDataBoundLocationId"))
+                //.Suggest(true)
+                )
+                @Html.ValidationMessageFor(model => model.LocationId)
+            </div>
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.Location, "Label")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().TextBoxFor(m => m.Location).Enable(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.Location)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.SubLocation, "Label")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().TextBoxFor(m => m.SubLocation).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.SubLocation)
+            </div>
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.Condition, "Label")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().MultiColumnComboBoxFor(m => m.Condition)
+                                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                                .Placeholder("Select Condition")
+                                .DataTextField("Description")
+                                .DataValueField("Description")
+                                .Filter(FilterType.Contains)
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetConditionBldg", "Getters");
+                                    })
+                                    .ServerFiltering(true);
+                                })
+                                .Columns(c =>
+                                {
+                                    c.Add().Field("Description").Title("Condition").Width("100%");
+                                })
+                //.Suggest(true)
+                )
+                @Html.ValidationMessageFor(m => m.Condition)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.Latitude, "LabelDouble")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().NumericTextBoxFor(m => m.Latitude).Decimals(8).Format("n8").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.Latitude)
+            </div>
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.Longitude, "LabelDouble")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().NumericTextBoxFor(m => m.Longitude).Decimals(8).Format("n8").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.Longitude)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.BuildingItem, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.BuildingItem).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.BuildingItem)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.ProjectName, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.ProjectName).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.ProjectName)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.BuildingType, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextBoxFor(m => m.BuildingType).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.BuildingType)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.StartDate, "LabelDate")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().DatePickerFor(m => m.StartDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.StartDate)
+            </div>
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.AcqDate, "LabelDate")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().DatePickerFor(m => m.AcqDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.AcqDate)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.TargetDate, "LabelDate")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().DatePickerFor(m => m.TargetDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.TargetDate)
+            </div>
+
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.CompletionDate, "LabelDate")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().DatePickerFor(m => m.CompletionDate).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.CompletionDate)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.PercentComplete, "LabelDecimal")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().NumericTextBoxFor(m => m.PercentComplete).Decimals(2).Format("{0:n2}%").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.PercentComplete)
+            </div>
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.Status, "Label")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().TextBoxFor(m => m.Status).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.Status)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.Area, "LabelDecimal")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().NumericTextBoxFor(m => m.Area).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.Area)
+            </div>
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.AppraisedValue, "LabelDecimal")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().NumericTextBoxFor(m => m.AppraisedValue).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.AppraisedValue)
+            </div>
+        </div>
+
+        <div class="row k-mb-2">
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.OldAmount, "LabelDecimal")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().NumericTextBoxFor(m => m.OldAmount).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.OldAmount)
+            </div>
+            <div class="col-md-2">
+                @Html.DisplayFor(m => m.AcqCost, "LabelDecimal")
+            </div>
+            <div class="col-md-4">
+                @(Html.Kendo().NumericTextBoxFor(m => m.AcqCost).Decimals(2).Format("{0:n2}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.AcqCost)
+            </div>
+        </div>
+
+        <br />
+        <div class="row k-mb-2">
+            <div class="item-label col-md-2">
+                @Html.DisplayFor(m => m.Remarks, "Label")
+            </div>
+            <div class="col-md-10">
+                @(Html.Kendo().TextAreaFor(m => m.Remarks).Rows(3).HtmlAttributes(new { id = "RemarksDisplay", style = "width:100%; max-width:100%;" }))
+                @Html.ValidationMessageFor(m => m.Remarks)
+            </div>
+        </div>
+
+        <br />
+        <div class="row k-mb-2">
+            <div class="col-md-12">
+                <span id="span_">
+                    @(Html.Kendo().Button().Icon("k-icon k-i-check").Content("Save").Name("btnSave"))
+                    @*@(Html.Kendo().Button().Icon("k-icon k-i-cancel").Content("Close").Name("btnCancel"))*@
+                </span>
+            </div>
+        </div>
+    </fieldset>
+}
+
+<script type="text/javascript">
+    $("#btnSave").click(function (e) {
+        e.preventDefault();
+        var popupNotification = $("#popupNotification").data("kendoNotification");
+        var validator = $("#form").kendoValidator().data("kendoValidator");
+        if (validator.validate()) {
+            var disabled = $("#form").find(':input:disabled').removeAttr('disabled');
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_ItemCardBldgSave", "ItemCard")',
+                data: $("#form").serialize(),
+                beforeSend: function () {
+                    window.kendo.ui.progress($("#form"), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($("#form"), false);
+                    if (result.Errors == "") {
+                        popupNotification.show("Data Saved...", "info");
+                        //$("#btnSave").closest(".k-window-content").data("kendoWindow").close();
+                    }
+                    else {
+                        alert(result.Errors);
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    alert(req.responseText);
+                }
+            });
+            disabled.attr('disabled', 'disabled');
+        }
+    });
+
+    $("#btnCancel").click(function (e) {
+        e.preventDefault();
+        $("#btnCancel").closest(".k-window-content").data("kendoWindow").close();
+    });
+</script>
+
+
+
+

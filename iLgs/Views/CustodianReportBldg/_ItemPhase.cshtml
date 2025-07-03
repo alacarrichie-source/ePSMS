@@ -19,7 +19,7 @@
         }).Width(50);
     })
     .ToolBar(toolbar => toolbar.Create().Text("Add Items"))
-    .Editable(editable => editable.Mode(GridEditMode.InLine))
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("_ItemPhaseTemplate").Window(w => w.Width(1000).Title("Project Name")))
     .Resizable(r => r.Columns(true))
     .Sortable()
     .NoRecords()
@@ -57,6 +57,7 @@
     .Destroy(destroy => destroy.Action("_ItemPhaseDestroy", "CustodianReportBldg"))
     )    
     .Events(events => events.Edit("onEditGridAmount")
+    .Change("onChangeGridAmount")
     .DataBound("onDataBoundGridAmount")
     )
 //.AutoBind(false)

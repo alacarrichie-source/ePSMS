@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
+﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
-using System.Data.Entity;
-using iLgs.Exceptions;
-using static iLgs.Models.Enums;
 using iLgs.Services.AllFields;
 using iLgs.Services.Codes;
-using System.Linq.Expressions;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
+using System;
+using System.Data.Entity;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PurchaseOrder
 {
@@ -31,18 +28,29 @@ namespace iLgs.Services.PurchaseOrder
     public class OrderItemService : BaseValidator, IOrderItemService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<OrderItemVM> _VmExceptionService = new ExceptionService<OrderItemVM>();
-        private ICodextnService _codextnService;
-        private IAllFieldService _allFieldService;
-        private IOrderItemUnitGroupDescriptionItemService _orderItemUnitGroupDescriptionItemService;
+        private readonly IExceptionService<OrderItemVM> _vmExceptionService;
+        private readonly ICodextnService _codextnService;
+        private readonly IAllFieldService _allFieldService;
+        private readonly IOrderItemUnitGroupService _orderItemUnitGroupService;
+        private readonly IOrderItemUnitGroupDescriptionService _orderItemUnitGroupDescriptionService;
+        private readonly IOrderItemUnitGroupDescriptionItemService _orderItemUnitGroupDescriptionItemService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public OrderItemService(AppManEntities db)
+        public OrderItemService(AppManEntities db,
+            IExceptionService<OrderItemVM> vmExceptionService,
+            ICodextnService codextnService,
+            IAllFieldService allFieldService,
+            IOrderItemUnitGroupService orderItemUnitGroupService,
+            IOrderItemUnitGroupDescriptionService orderItemUnitGroupDescriptionService,
+            IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService)
         {
             _db = db;
-            _codextnService = new CodextnService(_db);
-            _allFieldService = new AllFieldService(_db);
-            _orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
+            _vmExceptionService = vmExceptionService;
+            _codextnService = codextnService;
+            _allFieldService = allFieldService;
+            _orderItemUnitGroupService = orderItemUnitGroupService;
+            _orderItemUnitGroupDescriptionService = orderItemUnitGroupDescriptionService;
+            _orderItemUnitGroupDescriptionItemService = orderItemUnitGroupDescriptionItemService;
             _getDisplayName = propertyName => Utility.GetDisplayName<OrderItemVM>(propertyName);
         }
 
@@ -85,14 +93,14 @@ namespace iLgs.Services.PurchaseOrder
             };
         }
 
-        public ValueTask<OrderItemVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<OrderItemVM> GetByIdAsync(Guid? id) => _vmExceptionService.TryCatch(async () =>
         {
             var data = await _db.OrderItems.AsNoTracking().Where(w => w.Id == id)
                 .Select(Projection()).FirstOrDefaultAsync();
             return data;
         });
 
-        public IQueryable<OrderItemVM> GetByPoId(Guid? poId) => _VmExceptionService.TryCatch(() =>
+        public IQueryable<OrderItemVM> GetByPoId(Guid? poId) => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.OrderItems.AsNoTracking().Where(w => w.OrderId == poId)
                 .Select(Projection());
@@ -125,7 +133,7 @@ namespace iLgs.Services.PurchaseOrder
             _imex.ThrowIfContainsErrors();
         }
 
-        public ValueTask<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateFields(model);
 
@@ -152,11 +160,7 @@ namespace iLgs.Services.PurchaseOrder
             await _db.SaveChangesAsync();
 
             // include unit group if any
-            // check if requestItemId in RequestItemUnitGroup
-            IOrderItemUnitGroupService orderItemUnitGroupService = new OrderItemUnitGroupService(_db);
-            IOrderItemUnitGroupDescriptionService orderItemUnitGroupDescriptionService = new OrderItemUnitGroupDescriptionService(_db);
-            IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService = new OrderItemUnitGroupDescriptionItemService(_db);
-
+            // check if requestItemId in RequestItemUnitGroup            
             var requestItemUnitGroupDescriptionItem = await _db.RequestItemUnitGroupDescriptionItems
                 .Include(i => i.RequestItemUnitGroupDescription.RequestItemUnitGroup).Where(w => w.RequestItemId == model.RequestItemId)
                 .FirstOrDefaultAsync();
@@ -184,14 +188,14 @@ namespace iLgs.Services.PurchaseOrder
                                 UnitCost = model.UnitCost,
                                 TotalCost = model.Amount
                             };
-                            orderItemUnitGroupVM = await orderItemUnitGroupService.CreateAsync(orderItemUnitGroupVM, user, date);
+                            orderItemUnitGroupVM = await _orderItemUnitGroupService.CreateAsync(orderItemUnitGroupVM, user, date);
 
                             var orderItemUnitGroupDescriptionVM = new OrderItemUnitGroupDescriptionVM()
                             {
                                 OrderItemUnitGroupId = orderItemUnitGroupVM.Id,
                                 RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId
                             };
-                            orderItemUnitGroupDescriptionVM = await orderItemUnitGroupDescriptionService.CreateAsync(orderItemUnitGroupDescriptionVM, user, date);
+                            orderItemUnitGroupDescriptionVM = await _orderItemUnitGroupDescriptionService.CreateAsync(orderItemUnitGroupDescriptionVM, user, date);
 
                             var orderItemUnitGroupDescriptionItemVM = new OrderItemUnitGroupDescriptionItemVM()
                             {
@@ -199,7 +203,7 @@ namespace iLgs.Services.PurchaseOrder
                                 RequestItemUnitGroupDescriptionItemId = requestItemUnitGroupDescriptionItem.Id,
                                 OrderItemId = model.Id
                             };
-                            orderItemUnitGroupDescriptionItemVM = await orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
+                            orderItemUnitGroupDescriptionItemVM = await _orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
                         }
                         else
                         {
@@ -208,7 +212,7 @@ namespace iLgs.Services.PurchaseOrder
                                 OrderItemUnitGroupId = orderItemUnitGroup.Id,
                                 RequestItemUnitGroupDescriptionId = requestItemUnitGroupDescriptionItem.RequestItemUnitGroupDescriptionId
                             };
-                            orderItemUnitGroupDescriptionVM = await orderItemUnitGroupDescriptionService.CreateAsync(orderItemUnitGroupDescriptionVM, user, date);
+                            orderItemUnitGroupDescriptionVM = await _orderItemUnitGroupDescriptionService.CreateAsync(orderItemUnitGroupDescriptionVM, user, date);
 
                             var orderItemUnitGroupDescriptionItemVM = new OrderItemUnitGroupDescriptionItemVM()
                             {
@@ -216,7 +220,7 @@ namespace iLgs.Services.PurchaseOrder
                                 RequestItemUnitGroupDescriptionItemId = requestItemUnitGroupDescriptionItem.Id,
                                 OrderItemId = model.Id
                             };
-                            orderItemUnitGroupDescriptionItemVM = await orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
+                            orderItemUnitGroupDescriptionItemVM = await _orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
                         }
                     }
                     else
@@ -227,7 +231,7 @@ namespace iLgs.Services.PurchaseOrder
                             RequestItemUnitGroupDescriptionItemId = requestItemUnitGroupDescriptionItem.Id,
                             OrderItemId = model.Id
                         };
-                        orderItemUnitGroupDescriptionItemVM = await orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
+                        orderItemUnitGroupDescriptionItemVM = await _orderItemUnitGroupDescriptionItemService.CreateAsync(orderItemUnitGroupDescriptionItemVM, user, date);
                     }
                 }
             }
@@ -287,7 +291,7 @@ namespace iLgs.Services.PurchaseOrder
             
         }
 
-        public ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             await ValidateOnDelete(model);
 
@@ -312,7 +316,7 @@ namespace iLgs.Services.PurchaseOrder
             return model;
         });
 
-        public ValueTask<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateFields(model);
 

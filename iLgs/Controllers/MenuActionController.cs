@@ -1,18 +1,16 @@
 ﻿using iLgs.Models;
-using Kendo.Mvc.UI;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
-using System.Configuration;
-using iLgs.Utilities;
 
 namespace iLgs.Controllers
 {
@@ -21,7 +19,7 @@ namespace iLgs.Controllers
         private static string sysCode = "PSMS";
         private static string sysAdmin = "PSMS_ADMIN";
 
-        private AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
 
 
         HttpClient client;
@@ -34,8 +32,9 @@ namespace iLgs.Controllers
         //The HttpClient Class, this will be used for performing 
         //HTTP Operations, GET, POST, PUT, DELETE
         //Set the base address and the Header Formatter
-        public MenuActionController()
+        public MenuActionController(AppManEntities db)
         {
+            _db = db;
             client = new HttpClient();
             client.BaseAddress = new Uri(iLgsApiUrl);
             client.DefaultRequestHeaders.Accept.Clear();
@@ -63,7 +62,7 @@ namespace iLgs.Controllers
         {
             try
             {
-                var rec = db.MenuActions.Where(w => w.MenuId == menuId && w.Menubase.SysCode == sysCode && w.ActionCode == actionCode).FirstOrDefault();
+                var rec = _db.MenuActions.Where(w => w.MenuId == menuId && w.Menubase.SysCode == sysCode && w.ActionCode == actionCode).FirstOrDefault();
 
                 if (rec == null)
                 {
@@ -81,21 +80,21 @@ namespace iLgs.Controllers
                         UpdatedDt = date.Value,
                     };
 
-                    db.MenuActions.Add(action);
-                    db.SaveChanges();
+                    _db.MenuActions.Add(action);
+                    _db.SaveChanges();
                     model.IsAllowed = true;
                 }
                 else
                 {
 
                     // Attach the entity
-                    db.MenuActions.Attach(rec);
+                    _db.MenuActions.Attach(rec);
                     // Delete the entity
-                    db.MenuActions.Remove(rec);
+                    _db.MenuActions.Remove(rec);
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    db.SaveChanges();                    
+                    _db.SaveChanges();                    
                     model.IsAllowed = false;
                 }
             }

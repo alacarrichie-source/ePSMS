@@ -1,14 +1,13 @@
-﻿using iLgs.Services.Interfaces;
-using System;
-using System.Collections.Generic;
+﻿using iLgs.Models;
 using System.Linq;
-using System.Web;
-using iLgs.Models;
-using System.Threading.Tasks;
-using System.Data.Entity;
 
 namespace iLgs.Services
 {
+    public interface IDirectoryService
+    {
+        string GetItemImageDirectory();
+    }
+
     public class DirectoryService : IDirectoryService
     {
         private readonly AppManEntities _db;

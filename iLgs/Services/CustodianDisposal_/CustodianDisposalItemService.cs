@@ -1,19 +1,13 @@
-﻿using ClosedXML.Excel;
-using iLgs.Controllers;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.DollarRate_;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianDisposal_
@@ -35,15 +29,18 @@ namespace iLgs.Services.CustodianDisposal_
     public class CustodianDisposalItemService : BaseValidator, ICustodianDisposalItemService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<CustodianDisposalItem> _exceptionService = new ExceptionService<CustodianDisposalItem>();        
+        private readonly IExceptionService<CustodianDisposalItem> _exceptionService;        
         private readonly IDollarRateService _dollarRateService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public CustodianDisposalItemService(AppManEntities db)
+        public CustodianDisposalItemService(AppManEntities db,
+            IExceptionService<CustodianDisposalItem> exceptionService,
+            IDollarRateService dollarRateService)
         {
             _db = db;
-            _dollarRateService = new DollarRateService(_db);
-            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianDisposalItem>(propertyName);
+            _exceptionService = exceptionService;
+            _dollarRateService = dollarRateService;
+            _getDisplayName = Utility.GetDisplayName<CustodianDisposalItem>;
         }
 
         public ValueTask<CustodianDisposalItem> GetByIdAsync(Guid? id) =>

@@ -1,34 +1,25 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
-using iLgs.Services;
-using iLgs.Services.Interfaces;
 using iLgs.Services.ParIcs;
-using iLgs.Services.PropertyCard;
-using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
     public class ParItemsController : BaseController
     {
-        private readonly AppManEntities _db;
         private readonly IIcsParService _icsParService;
         private readonly IParService _parService;
 
-        public ParItemsController()
+        public ParItemsController(IIcsParService icsParService, IParService parService)
         {
-            _db = new AppManEntities();
-            _icsParService = new IcsParService(_db);
-            _parService = new ParService(_db);
+            _icsParService = icsParService;
+            _parService = parService;
         }
 
         public ActionResult _Item(Guid parId)

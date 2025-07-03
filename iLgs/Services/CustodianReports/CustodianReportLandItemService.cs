@@ -7,13 +7,11 @@ using iLgs.Services.CustodianUploads;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianReports
@@ -36,18 +34,24 @@ namespace iLgs.Services.CustodianReports
     public class CustodianReportLandItemService : BaseValidator, ICustodianReportLandItemService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<CustodianReportLandItemVM> _vmExceptionService = new ExceptionService<CustodianReportLandItemVM>();
-        private readonly IExceptionService<CustodianReportLandItem> _exceptionService = new ExceptionService<CustodianReportLandItem>();
+        private readonly IExceptionService<CustodianReportLandItemVM> _vmExceptionService;
+        private readonly IExceptionService<CustodianReportLandItem> _exceptionService;
         private readonly IAllFieldService _allFieldService;
         private readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public CustodianReportLandItemService(AppManEntities db)
+        public CustodianReportLandItemService(AppManEntities db,
+            IExceptionService<CustodianReportLandItemVM> vmExceptionService,
+            IExceptionService<CustodianReportLandItem> exceptionService,
+            IAllFieldService allFieldService,
+            IUserService userService)
         {
             _db = db;
-            _allFieldService = new AllFieldService(_db);
-            _userService = new UserService(_db);
-            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportLandItemVM>(propertyName);
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _allFieldService = allFieldService;
+            _userService = userService;
+            _getDisplayName = Utility.GetDisplayName<CustodianReportLandItemVM>;
         }
 
         private static Expression<Func<CustodianReportLandItem, CustodianReportLandItemVM>> CustodianReportLandItemProjection

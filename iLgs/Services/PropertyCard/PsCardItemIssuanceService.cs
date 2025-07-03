@@ -5,7 +5,6 @@ using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,22 +28,29 @@ namespace iLgs.Services.PropertyCard
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly IExceptionService<PsCardItemIssuanceVM> _VmExceptionService = new ExceptionService<PsCardItemIssuanceVM>();
-        private readonly IExceptionService<PsCardItemIssuance> _ExceptionService = new ExceptionService<PsCardItemIssuance>();
+        private readonly IExceptionService<PsCardItemIssuanceVM> _vmExceptionService;
+        private readonly IExceptionService<PsCardItemIssuance> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnService _psCardItemExtnService;
         private readonly ICodextnService _codextnService;
 
-        public PsCardItemIssuanceService(AppManEntities db)
+        public PsCardItemIssuanceService(AppManEntities db,
+            IExceptionService<PsCardItemIssuanceVM> vmExceptionService,
+            IExceptionService<PsCardItemIssuance> exceptionService,
+            IPsCardItemTransactionService psCardItemTransactionService,
+            IPsCardItemExtnService psCardItemExtnService,
+            ICodextnService codextnService)
         {
-            _db = db;
+            _db = db;            
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemIssuanceVM>(propertyName);
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _psCardItemExtnService = new PsCardItemExtnService(_db);
-            _codextnService = new CodextnService(_db);
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _psCardItemTransactionService = psCardItemTransactionService;
+            _psCardItemExtnService = psCardItemExtnService;
+            _codextnService = codextnService;
         }
 
-        public ValueTask<PsCardItemIssuanceVM> GetByIdAsync(Guid? id) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemIssuanceVM> GetByIdAsync(Guid? id) => _vmExceptionService.TryCatch(async () =>
         {
             var data = await _db.PsCardItemIssuances.Where(w => w.Id == id).AsNoTracking()
                 .Select(s => new PsCardItemIssuanceVM
@@ -70,7 +76,7 @@ namespace iLgs.Services.PropertyCard
             return data;
         });
 
-        public IQueryable<PsCardItemIssuanceVM> GetByCardItemId(Guid? cardItemId) => _VmExceptionService.TryCatch(() =>
+        public IQueryable<PsCardItemIssuanceVM> GetByCardItemId(Guid? cardItemId) => _vmExceptionService.TryCatch(() =>
         {
             var data = _db.PsCardItemIssuances.Where(w => w.PsCardItemId == cardItemId).AsNoTracking()
                 .Select(s => new PsCardItemIssuanceVM
@@ -101,7 +107,7 @@ namespace iLgs.Services.PropertyCard
         //    var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>().Where(w => w.PsCardItemId == cardItemId);
         //}        
 
-        public ValueTask<PsCardItemIssuanceVM> CreateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemIssuanceVM> CreateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             await ValidateFieldsAsync(model, Mode.ADD);
 
@@ -174,7 +180,7 @@ namespace iLgs.Services.PropertyCard
             return entity;
         }
 
-        public ValueTask<PsCardItemIssuanceVM> UpdateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemIssuanceVM> UpdateAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             var entity = await _db.PsCardItemIssuances.Include(i => i.PsCardItem).Where(w => w.Id == model.Id).FirstOrDefaultAsync();
@@ -239,7 +245,7 @@ namespace iLgs.Services.PropertyCard
             return model;
         });
 
-        public ValueTask<PsCardItemIssuanceVM> DeleteAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _VmExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemIssuanceVM> DeleteAsync(PsCardItemIssuanceVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
             var entity = await _db.PsCardItemIssuances.FindAsync(model.Id);
 
@@ -291,7 +297,7 @@ namespace iLgs.Services.PropertyCard
             await _db.SaveChangesAsync();
         }
 
-        public ValueTask<PsCardItemIssuance> PostAsync(Guid psCardItemIssuanceId, string user, DateTime date) => _ExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemIssuance> PostAsync(Guid psCardItemIssuanceId, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
             if (entity == null)
@@ -308,7 +314,7 @@ namespace iLgs.Services.PropertyCard
             return entity;
         });
 
-        public ValueTask<PsCardItemIssuance> UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date) => _ExceptionService.TryCatch(async () =>
+        public ValueTask<PsCardItemIssuance> UnpostAsync(Guid psCardItemIssuanceId, string user, DateTime date) => _exceptionService.TryCatch(async () =>
         {
             var entity = await _db.PsCardItemIssuances.FindAsync(psCardItemIssuanceId);
             if (entity == null)

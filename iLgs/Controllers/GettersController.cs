@@ -1,7 +1,6 @@
 ﻿using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Codes;
-using iLgs.Utilities;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -9,7 +8,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
@@ -23,13 +21,17 @@ namespace iLgs.Controllers
         private readonly ILocationBudgetService _locationBudgetService;
         private readonly IUserService _userService;
 
-        public GettersController()
+        public GettersController(AppManEntities db, 
+            ICodextnService codextnService,
+            ILocationService locationService,
+            ILocationBudgetService locationBudgetService,
+            IUserService userService)
         {
-            _db = new AppManEntities();
-            _codextnService = new CodextnService(_db);
-            _locationService = new LocationService(_db);
-            _locationBudgetService = new LocationBudgetService(_db);
-            _userService = new UserService(_db);
+            _db = db;
+            _codextnService = codextnService;
+            _locationService = locationService;
+            _locationBudgetService = locationBudgetService;
+            _userService = userService;
         }
 
         //public ActionResult GetSysCodeList(string text)

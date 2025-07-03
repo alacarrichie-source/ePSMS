@@ -36,17 +36,25 @@ namespace iLgs.Controllers
         private readonly IAllFieldService _allFieldService;
         private readonly IItemCodeService _itemCodeService;
 
-        public RISController()
+        public RISController(AppManEntities db,
+            IRisService risService,
+            IRisItemService risItemService,
+            IRisItemUnitGroupService risItemUnitGroupService,
+            IRisItemUnitGroupDescriptionService risItemUnitGroupDescriptionService,
+            IRisItemUnitGroupDescriptionItemService risItemUnitGroupDescriptionItemService,
+            ICodextnService codextnService,
+            IAllFieldService allFieldService,
+            IItemCodeService itemCodeService)
         {
-            _db = new AppManEntities();
-            _risService = new RisService(_db);
-            _risItemService = new RisItemService(_db);
-            _risItemUnitGroupService = new RisItemUnitGroupService(_db);
-            _risItemUnitGroupDescriptionService = new RisItemUnitGroupDescriptionService(_db);
-            _risItemUnitGroupDescriptionItemService = new RisItemUnitGroupDescriptionItemService(_db);
-            _codextnService = new CodextnService(_db);
-            _allFieldService = new AllFieldService(_db);
-            _itemCodeService = new ItemCodeService(_db);
+            _db = db;
+            _risService = risService;
+            _risItemService = risItemService;
+            _risItemUnitGroupService = risItemUnitGroupService;
+            _risItemUnitGroupDescriptionService = risItemUnitGroupDescriptionService;
+            _risItemUnitGroupDescriptionItemService = risItemUnitGroupDescriptionItemService;
+            _codextnService = codextnService;
+            _allFieldService = allFieldService;
+            _itemCodeService = itemCodeService;
         }
 
         // GET: RIS

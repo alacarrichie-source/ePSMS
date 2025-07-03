@@ -1,20 +1,14 @@
-﻿using iLgs.Models;
-using Kendo.Mvc.UI;
-using Kendo.Mvc.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
-using System.Data.Entity;
-using Microsoft.AspNet.Identity;
-using iLgs.Utilities;
-using Newtonsoft.Json;
-using System.Data.SqlClient;
-using CrystalDecisions.CrystalReports.Engine;
+﻿using CrystalDecisions.CrystalReports.Engine;
+using iLgs.Models;
 using iLgs.Services.Codes;
+using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Newtonsoft.Json;
+using System.Data.Entity;
+using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
+using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
@@ -24,10 +18,10 @@ namespace iLgs.Controllers
         private readonly AppManEntities _db;
         private readonly ICodextnService _codextnService;
 
-        public QueryController()
+        public QueryController(AppManEntities db, ICodextnService codextnService)
         {
-            _db = new AppManEntities();
-            _codextnService = new CodextnService(_db);
+            _db = db;
+            _codextnService = codextnService;
         }        
 
         public ActionResult Po()

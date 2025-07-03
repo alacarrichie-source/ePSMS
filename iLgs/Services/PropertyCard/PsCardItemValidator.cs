@@ -6,7 +6,6 @@ using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
@@ -25,12 +24,15 @@ namespace iLgs.Services.PropertyCard
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
         private readonly IUserService _userService;
-        public PsCardItemValidator(AppManEntities db)
+
+        public PsCardItemValidator(AppManEntities db,
+            ICodextnService codextnService,
+            IUserService userService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemVM>(propertyName);
-            _codextnService = new CodextnService(_db);
-            _userService = new UserService(_db);
+            _codextnService = codextnService;
+            _userService = userService;
         }
 
         public void ValidateOnCreate(PsCardItemVM cardItem)

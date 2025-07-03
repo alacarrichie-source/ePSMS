@@ -1,11 +1,8 @@
 ﻿using iLgs.Models;
-using iLgs.Services.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.ParIcs
 {
@@ -28,6 +25,7 @@ namespace iLgs.Services.ParIcs
         {
             _db = db;
         }
+
         public IQueryable<PARItemVM> GetAll(Guid? parId)
         {
             var data = _db.PARItems.Where(w => w.ParId == parId)

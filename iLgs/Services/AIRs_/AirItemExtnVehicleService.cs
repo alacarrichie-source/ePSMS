@@ -1,18 +1,13 @@
 ﻿using FluentValidation;
-using FluentValidation.Internal;
 using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.AIRs_
@@ -36,14 +31,15 @@ namespace iLgs.Services.AIRs_
     public class AirItemExtnVehicleService : BaseValidator, IAirItemExtnVehicleService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<AIRItemExtnVehicle> _exceptionService = new ExceptionService<AIRItemExtnVehicle>();
+        private readonly IExceptionService<AIRItemExtnVehicle> _exceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly IAirService _airService;
+        private readonly IAirAbstractService _airService;
 
-        public AirItemExtnVehicleService(AppManEntities db)
+        public AirItemExtnVehicleService(AppManEntities db, IExceptionService<AIRItemExtnVehicle> exceptionService, IAirAbstractService airService)
         {
             _db = db;
-            _airService = new AirService(_db);
+            _exceptionService = exceptionService;
+            _airService = airService;
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianIIRUP>(propertyName);
         }
 

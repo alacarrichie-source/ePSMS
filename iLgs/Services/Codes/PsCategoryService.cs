@@ -1,30 +1,22 @@
-﻿using iLgs.Exceptions;
-using iLgs.Exceptions.Service;
-using iLgs.Models;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
-using static iLgs.Models.Enums;
+﻿using iLgs.Models;
 
 namespace iLgs.Services.Codes
 {
     public interface IPsCategoryService : ICodextnService
     {
-        //ValueTask<Codextn> CreateAsync(Codextn model, string user, DateTime date);
-        //ValueTask<Codextn> UpdateAsync(Codextn model, string user, DateTime date);
-        //ValueTask<Codextn> DeleteAsync(Codextn model, string user, DateTime date);
+        
     }
 
     public class PsCategoryService : CodextnService, IPsCategoryService
     {
         //protected readonly IExceptionService<CodextnVM> _vmExceptionService = new ExceptionService<CodextnVM>();
-
-        public PsCategoryService(AppManEntities db) : base(db)
-        {
+        
+        public PsCategoryService(AppManEntities db,
+            IExceptionService<Codextn> exceptionService,
+            IExceptionService<CodextnVM> vmExceptionService,
+            IUserService userService)
+        : base(db, exceptionService, vmExceptionService, userService)
+        {            
         }
 
         //public ValueTask<CodextnVM> CreateAsync(CodextnVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>

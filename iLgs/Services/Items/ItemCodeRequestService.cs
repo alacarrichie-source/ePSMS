@@ -27,17 +27,23 @@ namespace iLgs.Services.Items
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<ItemCodeRequestVM> _exceptionService = new ExceptionService<ItemCodeRequestVM>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<ItemCodeRequestVM> _exceptionService;
         private readonly ICodextnService _codextnService;
         private readonly IUserService _userService;
 
-        public ItemCodeRequestService(AppManEntities db)
+        public ItemCodeRequestService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<ItemCodeRequestVM> exceptionService,
+            ICodextnService codextnService,
+            IUserService userService)
         {
             _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<ItemCodeRequestVM>(propertyName);
-            _codextnService = new CodextnService(_db);
-            _userService = new UserService(_db);
+            _getDisplayName = Utility.GetDisplayName<ItemCodeRequestVM>;
+            _exceptions = exceptions;
+            _exceptionService = exceptionService;
+            _codextnService = codextnService;
+            _userService = userService;
         }
 
         private static Expression<Func<ItemCodeRequest, ItemCodeRequestVM>> Projection

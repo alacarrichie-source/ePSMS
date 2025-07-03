@@ -7,9 +7,7 @@ using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianReports
@@ -29,13 +27,16 @@ namespace iLgs.Services.CustodianReports
         private readonly IAllFieldsValidator _allFieldsValidator;
         private readonly IItemCodeService _itemCodeService;
 
-        public CustodianReportItemVehicleValidator(AppManEntities db)
+        public CustodianReportItemVehicleValidator(AppManEntities db,
+            ICodextnService codextnService,
+            IItemCodeService itemCodeService,
+            IAllFieldsValidator allFieldsValidator)
         {
             _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportItemVehicleVM>(propertyName);
-            _codextnService = new CodextnService(_db);
-            _allFieldsValidator = new AllFieldsValidator(_db);
-            _itemCodeService = new ItemCodeService(_db);
+            _getDisplayName = Utility.GetDisplayName<CustodianReportItemVehicleVM>;
+            _codextnService = codextnService;
+            _allFieldsValidator = allFieldsValidator;
+            _itemCodeService = itemCodeService;
         }
 
         public void ValidateOnCreate(CustodianReportItemVehicleVM model)

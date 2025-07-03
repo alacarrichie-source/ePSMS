@@ -7,10 +7,7 @@ using iLgs.Services.Items;
 using iLgs.Services.Requisition;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.UI.WebControls;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.Validators
@@ -27,18 +24,23 @@ namespace iLgs.Services.Validators
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
-        private readonly IAllFieldsValidator _allFieldsValidator;
         private readonly IItemCodeService _itemCodeService;
         private readonly IRisService _risService;
+        private readonly IAllFieldsValidator _allFieldsValidator;
 
-        public RisItemValidator(AppManEntities db)
+
+        public RisItemValidator(AppManEntities db,
+            ICodextnService codextnService,
+            IItemCodeService itemCodeService,
+            IRisService risService,
+            IAllFieldsValidator allFieldsValidator)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RisItemEntryVM>(propertyName);
-            _codextnService = new CodextnService(_db);
-            _allFieldsValidator = new AllFieldsValidator(_db);
-            _itemCodeService = new ItemCodeService(_db);
-            _risService = new RisService(_db);
+            _codextnService = codextnService;
+            _itemCodeService = itemCodeService;
+            _risService = risService;
+            _allFieldsValidator = allFieldsValidator;
         }
 
         public void ValidateOnCreate(RisItemEntryVM model)

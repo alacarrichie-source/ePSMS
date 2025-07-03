@@ -1,51 +1,28 @@
 ﻿using iLgs.Models;
-using Kendo.Mvc.UI;
+using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Identity;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
-using System.Configuration;
+using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using iLgs.Utilities;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace iLgs.Controllers
 {
     [AppAuthorize("users")]
     public class UsersController : BaseController
-    {
-        //private static string sysCode = "PSMS";
-        //private static string sysAdmin = "PSMS_ADMIN";
+    {        
+        private readonly AppManEntities _db;
 
-        private AppManEntities db = new AppManEntities();
-
-        //HttpClient client;
-
-        ////The URL of the WEB API Service
-        ////string url = "http://localhost:60143/api/EmployeeInfoAPI";
-
-        ////string iLgsApiUrl = ConfigurationManager.AppSettings["APPMAN_API_URL"];
-
-        //string iLgsApiUrl = new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["APPMAN_API_URL"].ToString()).DataSource;
-
-        ////The HttpClient Class, this will be used for performing 
-        ////HTTP Operations, GET, POST, PUT, DELETE
-        ////Set the base address and the Header Formatter
-        //public UsersController()
-        //{
-        //    client = new HttpClient();
-        //    client.BaseAddress = new Uri(iLgsApiUrl);
-        //    client.DefaultRequestHeaders.Accept.Clear();
-        //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        //}
+        public UsersController(AppManEntities db)
+        {
+            _db = db;
+        }
 
         // GET: Users
         public ActionResult Index()
@@ -55,7 +32,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> UserRead([DataSourceRequest] DataSourceRequest request)
         {
-            var data = db.Database.SqlQuery<AspNetUser>("Select * from AspNetUsers");
+            var data = _db.Database.SqlQuery<AspNetUser>("Select * from AspNetUsers");
 
             return Json(await data.ToDataSourceResultAsync(request));
         }
@@ -87,9 +64,9 @@ namespace iLgs.Controllers
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
 
-                    db.Menubases.Attach(model);
-                    db.Entry(model).State = EntityState.Modified;
-                    db.SaveChanges();
+                    _db.Menubases.Attach(model);
+                    _db.Entry(model).State = EntityState.Modified;
+                    _db.SaveChanges();
                 }
             }
             catch (Exception e)
@@ -114,13 +91,13 @@ namespace iLgs.Controllers
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
                     // Attach the entity
-                    db.Menubases.Attach(model);
+                    _db.Menubases.Attach(model);
                     // Delete the entity
-                    db.Menubases.Remove(model);
+                    _db.Menubases.Remove(model);
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    db.SaveChanges();
+                    _db.SaveChanges();
 
                 }
             }
@@ -144,11 +121,11 @@ namespace iLgs.Controllers
             //var data = db.AspNetUsers.Include(i => i.UserInfo).ToList();
 
 
-            var data = db.Database.SqlQuery<AspNetUsers_View>("Select * From AspNetUsers_View").ToList();
+            var data = _db.Database.SqlQuery<AspNetUsers_View>("Select * From AspNetUsers_View").ToList();
             if (!isAdmin)
             {
                 //data = data.Where(w => w.AspNetUserRoles.Where(x => x.RoleId.TrimEnd() != "admin" && x.UserId == w.Id).Any()).ToList();
-                data = data.Where(w => db.AspNetUserRoles.Where(x => x.RoleId != "admin" && x.UserId == w.Id).Any() || db.AspNetUserRoles.Where(y => y.UserId == w.Id).Count() == 0).ToList();
+                data = data.Where(w => _db.AspNetUserRoles.Where(x => x.RoleId != "admin" && x.UserId == w.Id).Any() || _db.AspNetUserRoles.Where(y => y.UserId == w.Id).Count() == 0).ToList();
             }
             return Json(data.ToDataSourceResult(request));
 
@@ -238,23 +215,23 @@ namespace iLgs.Controllers
 
 
                     // check if record already exists
-                    UserProfile entity = db.UserProfiles.Where(p => p.UserId == model.Id).SingleOrDefault();
+                    UserProfile entity = _db.UserProfiles.Where(p => p.UserId == model.Id).SingleOrDefault();
                     if (entity == null)
                     {
 
                         entity = SetUserProfile(model, "A");
-                        db.UserProfiles.Add(entity);
-                        db.SaveChanges();
+                        _db.UserProfiles.Add(entity);
+                        _db.SaveChanges();
                     }
                     else
                     {
 
-                        var aspNetUser = db.AspNetUsers.Find(model.Id);
+                        var aspNetUser = _db.AspNetUsers.Find(model.Id);
                         aspNetUser.Email = model.Email;
                         aspNetUser.Active = model.Active;
-                        db.AspNetUsers.Attach(aspNetUser);
-                        db.Entry(aspNetUser).State = EntityState.Modified;
-                        db.SaveChanges();
+                        _db.AspNetUsers.Attach(aspNetUser);
+                        _db.Entry(aspNetUser).State = EntityState.Modified;
+                        _db.SaveChanges();
 
 
                         string user = ControllerContext.HttpContext.User.Identity.Name;
@@ -263,7 +240,7 @@ namespace iLgs.Controllers
                         model.UpdatedBy = user;
                         model.UpdatedDt = date;
 
-                        int id = db.Database.ExecuteSqlCommand("Exec UserProfile_Update {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}",
+                        int id = _db.Database.ExecuteSqlCommand("Exec UserProfile_Update {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}",
                             model.Id, model.NameLast, model.NameFirst, model.NameMid, model.NameFull, model.Birthday,
                             model.Sex, model.TelNo, model.MobileNo, model.AddressHouseNo, model.AddressStreet, model.AddressSubdivision,
                             model.AddressBarangay, model.AddressCity, model.AddressProvince, model.AddressZipCode, model.InsertedBy, model.InsertedDt, model.UpdatedBy,
@@ -297,15 +274,15 @@ namespace iLgs.Controllers
                 }
                 if (ModelState.IsValid)
                 {
-                    var entity = db.AspNetUsers.Find(model.Id);
+                    var entity = _db.AspNetUsers.Find(model.Id);
                     // Attach the entity
-                    db.AspNetUsers.Attach(entity);
+                    _db.AspNetUsers.Attach(entity);
                     // Delete the entity
-                    db.AspNetUsers.Remove(entity);
+                    _db.AspNetUsers.Remove(entity);
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    db.SaveChanges();
+                    _db.SaveChanges();
 
                 }
             }
@@ -325,7 +302,7 @@ namespace iLgs.Controllers
         {
 
             //var model = db.UserProfiles.Select(c => new { OwnerId = c.UserId, NameFull = c.NameFull, UserName = c.AspNetUser.UserName }).AsQueryable();
-            var model = db.UserProfiles.Select(c => new { UserId = c.UserId, NameFull = c.NameFull, UserName = c.AspNetUser.UserName }).AsQueryable();
+            var model = _db.UserProfiles.Select(c => new { UserId = c.UserId, NameFull = c.NameFull, UserName = c.AspNetUser.UserName }).AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 model = model.Where(p => p.NameFull.Contains(text));
@@ -338,17 +315,17 @@ namespace iLgs.Controllers
         {
 
             var userId = User.Identity.GetUserId();
-            var isAdmin = db.AspNetUserRoles.Where(w => w.UserId == userId && w.RoleId == "admin").Any();
+            var isAdmin = _db.AspNetUserRoles.Where(w => w.UserId == userId && w.RoleId == "admin").Any();
 
 
-            var model = db.UserProfiles.AsQueryable();
+            var model = _db.UserProfiles.AsQueryable();
             if (!string.IsNullOrEmpty(text))
             {
                 model = model.Where(p => p.NameFull.Contains(text) || p.AspNetUser.UserName.Contains(text));
             }
             if (!isAdmin)
             {
-                model = model.Where(w => db.AspNetUserRoles.Where(x => x.UserId == w.UserId && x.RoleId == "admin").Count() == 0);
+                model = model.Where(w => _db.AspNetUserRoles.Where(x => x.UserId == w.UserId && x.RoleId == "admin").Count() == 0);
             }
 
             return Json(model.Select(c => new { OwnerId = c.UserId, NameFull = c.NameFull, UserName = c.AspNetUser.UserName }), JsonRequestBehavior.AllowGet);
@@ -358,10 +335,10 @@ namespace iLgs.Controllers
         public JsonResult GetUserNotInRole(string roleId, string text)
         {
 
-            var model = db.UserProfiles.AsQueryable().Where(w => !db.AspNetUserRoles.Where(r => r.RoleId == roleId && r.UserId == w.UserId).Any());
+            var model = _db.UserProfiles.AsQueryable().Where(w => !_db.AspNetUserRoles.Where(r => r.RoleId == roleId && r.UserId == w.UserId).Any());
             if (!string.IsNullOrEmpty(text))
             {
-                model = db.UserProfiles.Where(p => p.NameFull.Contains(text));
+                model = _db.UserProfiles.Where(p => p.NameFull.Contains(text));
             }
             return Json(model.Select(c => new { OwnerId = c.UserId, NameFull = c.NameFull }), JsonRequestBehavior.AllowGet);
 
@@ -377,7 +354,7 @@ namespace iLgs.Controllers
 
         public ActionResult UserCodesRead([DataSourceRequest] DataSourceRequest request)
         {
-            return Json(db.Database.SqlQuery<UserCodes_View>("Select * From UserCodes_View").ToDataSourceResult(request));
+            return Json(_db.Database.SqlQuery<UserCodes_View>("Select * From UserCodes_View").ToDataSourceResult(request));
 
         }
 
@@ -414,8 +391,8 @@ namespace iLgs.Controllers
 
                     UserCode e = SetUserCode(model, "A");
 
-                    db.UserCodes.Add(e);
-                    db.SaveChanges();
+                    _db.UserCodes.Add(e);
+                    _db.SaveChanges();
 
                 }
             }
@@ -439,9 +416,9 @@ namespace iLgs.Controllers
                 {
                     UserCode e = SetUserCode(model, "U");
 
-                    db.UserCodes.Attach(e);
-                    db.Entry(model).State = EntityState.Modified;
-                    db.SaveChanges();
+                    _db.UserCodes.Attach(e);
+                    _db.Entry(model).State = EntityState.Modified;
+                    _db.SaveChanges();
                 }
             }
             catch (Exception e)
@@ -464,13 +441,13 @@ namespace iLgs.Controllers
                     UserCode e = SetUserCode(model, "U");
 
                     // Attach the entity
-                    db.UserCodes.Attach(e);
+                    _db.UserCodes.Attach(e);
                     // Delete the entity
-                    db.UserCodes.Remove(e);
+                    _db.UserCodes.Remove(e);
                     // Or use DeleteObject if using a previous versoin of Entity Framework
                     // Delete the entity in the database
                     //db.Entry(model).State = System.Data.EntityState.Deleted;
-                    db.SaveChanges();
+                    _db.SaveChanges();
 
                 }
             }
@@ -513,7 +490,7 @@ namespace iLgs.Controllers
             {
                 string user = HttpContext.User.Identity.Name;
                 DateTime? date = DateTime.Now;
-                var access = db.MenuAccesses.Where(w => w.Menubase.SysCode == sysCode && w.Menubase.ChildId == childId && w.UserId == userId).FirstOrDefault();
+                var access = _db.MenuAccesses.Where(w => w.Menubase.SysCode == sysCode && w.Menubase.ChildId == childId && w.UserId == userId).FirstOrDefault();
 
                 if (access == null)
                 {
@@ -529,8 +506,8 @@ namespace iLgs.Controllers
                         UpdatedDt = date
                     };
 
-                    db.MenuAccesses.Add(access);
-                    db.SaveChanges();
+                    _db.MenuAccesses.Add(access);
+                    _db.SaveChanges();
                     model.IsAllowed = true;
                 }
                 else
@@ -539,9 +516,9 @@ namespace iLgs.Controllers
                     access.UpdatedBy = user;
                     access.UpdatedDt = date;
 
-                    db.MenuAccesses.Attach(access);
-                    db.Entry(access).State = EntityState.Modified;
-                    db.SaveChanges();
+                    _db.MenuAccesses.Attach(access);
+                    _db.Entry(access).State = EntityState.Modified;
+                    _db.SaveChanges();
 
                     model.IsAllowed = (bool) access.IsAllowed;
                 }
@@ -582,7 +559,7 @@ namespace iLgs.Controllers
             {
                 string user = HttpContext.User.Identity.Name;
                 DateTime? date = DateTime.Now;
-                var rec = db.MenuAccessActions.Where(w => w.MenuAccess.Id == accessId && w.MenuAccess.UserId == userId && w.ActionId == actionId).FirstOrDefault();
+                var rec = _db.MenuAccessActions.Where(w => w.MenuAccess.Id == accessId && w.MenuAccess.UserId == userId && w.ActionId == actionId).FirstOrDefault();
 
                 if (rec == null)
                 {               
@@ -600,8 +577,8 @@ namespace iLgs.Controllers
                         IsAllowed = true
                     };
 
-                    db.MenuAccessActions.Add(action);
-                    db.SaveChanges();                    
+                    _db.MenuAccessActions.Add(action);
+                    _db.SaveChanges();                    
                 }
                 else
                 {
@@ -609,9 +586,9 @@ namespace iLgs.Controllers
                     model.UpdatedBy = user;
                     model.UpdatedDt = date;
 
-                    db.MenuAccessActions.Attach(rec);
-                    db.Entry(rec).State = EntityState.Modified;
-                    db.SaveChanges();                    
+                    _db.MenuAccessActions.Attach(rec);
+                    _db.Entry(rec).State = EntityState.Modified;
+                    _db.SaveChanges();                    
                 }
             }
             catch (Exception e)
@@ -650,10 +627,10 @@ namespace iLgs.Controllers
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 var date = System.DateTime.Now;
 
-                db.MenuAccesses.RemoveRange(db.MenuAccesses.Where(w => w.Menubase.SysCode == model.SysCode && w.UserId == model.TargetUserId));
-                await db.SaveChangesAsync();
+                _db.MenuAccesses.RemoveRange(_db.MenuAccesses.Where(w => w.Menubase.SysCode == model.SysCode && w.UserId == model.TargetUserId));
+                await _db.SaveChangesAsync();
 
-                var menubaseList = db.MenuAccesses.Include(i => i.MenuAccessActions).Where(w => w.Menubase.SysCode == model.SysCode && w.UserId == model.SourceUserId).ToList();
+                var menubaseList = _db.MenuAccesses.Include(i => i.MenuAccessActions).Where(w => w.Menubase.SysCode == model.SysCode && w.UserId == model.SourceUserId).ToList();
                 foreach (var e in menubaseList)
                 {
                     var menu = new MenuAccess()
@@ -667,8 +644,8 @@ namespace iLgs.Controllers
                         UpdatedBy = user,
                         UpdatedDt = date
                     };
-                    db.MenuAccesses.Add(menu);
-                    await db.SaveChangesAsync();
+                    _db.MenuAccesses.Add(menu);
+                    await _db.SaveChangesAsync();
 
                     foreach(var accessAction in e.MenuAccessActions)
                     {
@@ -683,8 +660,8 @@ namespace iLgs.Controllers
                             UpdatedBy = user,
                             UpdatedDt = date
                         };
-                        db.MenuAccessActions.Add(action);
-                        await db.SaveChangesAsync();
+                        _db.MenuAccessActions.Add(action);
+                        await _db.SaveChangesAsync();
                     }
                 }                                
             }

@@ -1,18 +1,12 @@
-﻿using ClosedXML.Excel;
-using iLgs.Controllers;
-using iLgs.Exceptions;
+﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.DollarRate_
@@ -32,14 +26,18 @@ namespace iLgs.Services.DollarRate_
     public class DollarRateService : BaseValidator, IDollarRateService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<DollarRate> _exceptionService = new ExceptionService<DollarRate>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<DollarRate> _exceptionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public DollarRateService(AppManEntities db)
+        public DollarRateService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<DollarRate> exceptionService)
         {
             _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<DollarRate>(propertyName);
+            _exceptions = exceptions;
+            _exceptionService = exceptionService;
+            _getDisplayName = Utility.GetDisplayName<DollarRate>;
         }
 
         public IQueryable<DollarRate> GetAll() =>

@@ -135,12 +135,11 @@
         e.preventDefault();
         var validator = $("#form").kendoValidator().data("kendoValidator");
         if (validator.validate()) {
-            Print();
+            Export();
         }
     })
 
-    function Print()
-    {
+    function Print() {
         var data = $("#form").serialize();
         var url = '@Url.Action("RsmiRpt", "RSMI")' + '?' + data;
 
@@ -169,6 +168,15 @@
         mywindow.open();
     }
 
+
+    function Export() {
+        var data = $("#form").serialize();
+        var url = '@Url.Action("RsmiRpt", "RSMI")' + '?' + data;
+
+        // Redirect to the export URL to trigger download
+        window.location.href = url;
+        window.kendo.ui.progress($(document.body), false);
+    }
 </script>
 
 

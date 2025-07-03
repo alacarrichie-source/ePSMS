@@ -27,19 +27,28 @@ namespace iLgs.Services.PoIssuance
     {
         private decimal _parPrice = 50000;
         private readonly AppManEntities _db;
-        private IUserService _userService;
-        private readonly IExceptionService<RisIssuedVM> _vmExceptionService = new ExceptionService<RisIssuedVM>();
-        private readonly IExceptionService<PsCardItemVM> _psCardItemVMExceptionService = new ExceptionService<PsCardItemVM>();
-        private readonly IExceptionService<PsCardItemTransferVM> _psCardItemTransferVMExceptionService = new ExceptionService<PsCardItemTransferVM>();
+        private readonly IUserService _userService;
+        private readonly IExceptionService<RisIssuedVM> _vmExceptionService;
+        private readonly IExceptionService<PsCardItemVM> _psCardItemVMExceptionService;
+        private readonly IExceptionService<PsCardItemTransferVM> _psCardItemTransferVMExceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardService _psCardService;
 
-        public PoIssuanceService(AppManEntities db)
+        public PoIssuanceService(AppManEntities db,
+            IUserService userService,
+            IExceptionService<RisIssuedVM> vmExceptionService,
+            IExceptionService<PsCardItemVM> psCardItemVMExceptionService,
+            IExceptionService<PsCardItemTransferVM> psCardItemTransferVMExceptionService,
+            IPsCardItemTransactionService psCardItemTransactionService,
+            IPsCardService psCardService)
         {
             _db = db;
-            _userService = new UserService(_db);
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _psCardService = new PsCardService(_db);
+            _userService = userService;
+            _vmExceptionService = vmExceptionService;
+            _psCardItemVMExceptionService = psCardItemVMExceptionService;
+            _psCardItemTransferVMExceptionService = psCardItemTransferVMExceptionService;
+            _psCardItemTransactionService = psCardItemTransactionService;
+            _psCardService = psCardService;
         }
 
         private Expression<Func<PsCardItem, PsCardItemVM>> GetPsCardItemProjection(AppManEntities _db)

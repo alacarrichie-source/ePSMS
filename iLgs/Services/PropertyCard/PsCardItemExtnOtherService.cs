@@ -25,17 +25,22 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnOtherService : IPsCardItemExtnOtherService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<PsCardItemExtnOtherVM> _exceptionService = new ExceptionService<PsCardItemExtnOtherVM>();
+        private readonly IExceptionService<PsCardItemExtnOtherVM> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnOtherValidator _psCardItemExtnOtherValidator;
-        private readonly IPsCardItemExtnService _psCardItemExtnService;
+        private readonly IPsCardItemExtnSharedService _psCardItemExtnSharedService;
 
-        public PsCardItemExtnOtherService(AppManEntities db, IPsCardItemExtnService psCardItemExtnService)
+        public PsCardItemExtnOtherService(AppManEntities db,
+            IExceptionService<PsCardItemExtnOtherVM> exceptionService,
+            IPsCardItemTransactionService psCardItemTransactionService,
+            IPsCardItemExtnOtherValidator psCardItemExtnOtherValidator,
+            IPsCardItemExtnSharedService psCardItemExtnSharedService)
         {
             _db = db;
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _psCardItemExtnOtherValidator = new PsCardItemExtnOtherValidator(_db);
-            _psCardItemExtnService = psCardItemExtnService;
+            _exceptionService = exceptionService;
+            _psCardItemTransactionService = psCardItemTransactionService;
+            _psCardItemExtnOtherValidator = psCardItemExtnOtherValidator;
+            _psCardItemExtnSharedService = psCardItemExtnSharedService;
         }
 
         private Expression<Func<PsCardItemExtnOther, PsCardItemExtnOtherVM>> GetProjection()
@@ -208,7 +213,7 @@ namespace iLgs.Services.PropertyCard
             //{
             //    throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             //}
-            var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.Id).FirstOrDefaultAsync();
+            var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.Id && w.SerialNo == model.SerialNo).FirstOrDefaultAsync();
 
             if (itemExtn != null)
             {
@@ -232,7 +237,7 @@ namespace iLgs.Services.PropertyCard
 
         public void MapModelToEntityFields(PsCardItemExtnOther entity, PsCardItemExtnOtherVM model, Mode mode)
         {
-            _psCardItemExtnService.MapModelToEntityFields(entity, model, mode);
+            _psCardItemExtnSharedService.MapModelToEntityFields(entity, model, mode);
             
             // extn
             entity.SerialNo = model.SerialNo;            

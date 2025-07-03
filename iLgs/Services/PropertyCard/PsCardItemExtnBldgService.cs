@@ -1,17 +1,14 @@
-﻿using iLgs.Exceptions;
-using iLgs.Models;
+﻿using iLgs.Models;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
 {
-    public interface IPsCardItemExtnBlgService
+    public interface IPsCardItemExtnBldgService
     {
         IQueryable<PsCardItemExtnBldgVM> GetByPsCardItemId(Guid? psCardItemId);
         IQueryable<PsCardItemExtnBldgVM> GetByPsCardItemIdWithTransferId(Guid? psCardItemId, Guid? trasferId);
@@ -22,20 +19,25 @@ namespace iLgs.Services.PropertyCard
         ValueTask<PsCardItemExtnBldgVM> DeleteAsync(PsCardItemExtnBldgVM model, string user, DateTime date);
     }
 
-    public class PsCardItemExtnBlgService : IPsCardItemExtnBlgService
+    public class PsCardItemExtnBldgService : IPsCardItemExtnBldgService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<PsCardItemExtnBldgVM> _exceptionService = new ExceptionService<PsCardItemExtnBldgVM>();
+        private readonly IExceptionService<PsCardItemExtnBldgVM> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardItemExtnBldgValidator _psCardItemExtnBlgValidator;
-        private readonly IPsCardItemExtnService _psCardItemExtnService;
+        private readonly IPsCardItemExtnSharedService _psCardItemExtnSharedService;
 
-        public PsCardItemExtnBlgService(AppManEntities db, IPsCardItemExtnService psCardItemExtnService)
+        public PsCardItemExtnBldgService(AppManEntities db,
+            IExceptionService<PsCardItemExtnBldgVM> exceptionService,
+            IPsCardItemTransactionService psCardItemTransactionService,
+            IPsCardItemExtnBldgValidator psCardItemExtnBldgValidator,
+            IPsCardItemExtnSharedService psCardItemExtnSharedService)
         {
             _db = db;
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _psCardItemExtnBlgValidator = new PsCardItemExtnBldgValidator(_db);
-            _psCardItemExtnService = psCardItemExtnService;
+            _exceptionService = exceptionService;
+            _psCardItemTransactionService = psCardItemTransactionService;
+            _psCardItemExtnBlgValidator = psCardItemExtnBldgValidator;
+            _psCardItemExtnSharedService = psCardItemExtnSharedService;
         }
 
         private Expression<Func<PsCardItemExtnBuilding, PsCardItemExtnBldgVM>> GetProjection()
@@ -165,7 +167,7 @@ namespace iLgs.Services.PropertyCard
 
         public void MapModelToEntityFields(PsCardItemExtnBuilding entity, PsCardItemExtnBldgVM model, Mode mode)
         {
-            _psCardItemExtnService.MapModelToEntityFields(entity, model, mode);
+            _psCardItemExtnSharedService.MapModelToEntityFields(entity, model, mode);
             
             entity.Address = model.Address;
             entity.BuildingItem = model.BuildingItem;

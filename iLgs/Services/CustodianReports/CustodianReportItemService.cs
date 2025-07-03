@@ -6,12 +6,10 @@ using iLgs.Services.AllFields;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.CustodianReports
@@ -38,17 +36,23 @@ namespace iLgs.Services.CustodianReports
     {
         protected readonly AppManEntities _db;
         protected readonly IAllFieldService _allFieldService;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<CustodianReportItem> _exceptionService = new ExceptionService<CustodianReportItem>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<CustodianReportItem> _exceptionService;
         protected readonly IUserService _userService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public CustodianReportItemService(AppManEntities db)
+        public CustodianReportItemService(AppManEntities db,
+            IAllFieldService allFieldService,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<CustodianReportItem> exceptionService,
+            IUserService userService)
         {
             _db = db;
-            _allFieldService = new AllFieldService(_db);
-            _userService = new UserService(_db);
-            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportItemPpeVM>(propertyName);
+            _allFieldService = allFieldService;
+            _exceptions = exceptions;
+            _exceptionService = exceptionService;
+            _userService = userService;
+            _getDisplayName = Utility.GetDisplayName<CustodianReportItemPpeVM>;
         }
 
         public ValueTask<CustodianReportItem> GetByIdAsync(Guid id) =>

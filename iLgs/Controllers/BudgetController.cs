@@ -7,13 +7,10 @@ using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
@@ -21,17 +18,17 @@ namespace iLgs.Controllers
     [AppAuthorize("BUDGET")]
     public class BudgetController : BaseController
     {
-        private readonly AppManEntities _db;
+        private AppManEntities _db;
         private readonly IBudgetService _budgetService;
         private readonly IDepartmentUserService _departmentUserService;
         private readonly IAccountableOfficerService _accountableOfficerService;
 
-        public BudgetController()
+        public BudgetController(AppManEntities db, IBudgetService budgetService, IDepartmentUserService departmentUserService, IAccountableOfficerService accountableOfficerService)
         {
-            _db = new AppManEntities();
-            _budgetService = new BudgetService(_db);
-            _departmentUserService = new DepartmentUserService(_db);
-            _accountableOfficerService = new AccountableOfficerService(_db);
+            _db = db;
+            _budgetService = budgetService;
+            _departmentUserService = departmentUserService;
+            _accountableOfficerService = accountableOfficerService;
         }
 
         // GET: Location

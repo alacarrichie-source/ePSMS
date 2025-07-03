@@ -21,13 +21,19 @@ namespace iLgs.Services
     public class DepartmentUserService : IDepartmentUserService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<DepartmentUserVM> _vmExceptionService = new ExceptionService<DepartmentUserVM>();
-        private readonly IExceptionService<DepartmentUser> _exceptionService = new ExceptionService<DepartmentUser>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<DepartmentUserVM> _vmExceptionService;
+        private readonly IExceptionService<DepartmentUser> _exceptionService;
 
-        public DepartmentUserService(AppManEntities db)
+        public DepartmentUserService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<DepartmentUserVM> vmExceptionService,
+            IExceptionService<DepartmentUser> exceptionService)
         {
             _db = db;
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
         }
 
         public IQueryable<DepartmentUserVM> GetAllByDeptId(Guid? deptId) =>

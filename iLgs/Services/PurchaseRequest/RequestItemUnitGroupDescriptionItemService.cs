@@ -1,16 +1,13 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Requisition;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.PurchaseRequest
 {
@@ -18,8 +15,6 @@ namespace iLgs.Services.PurchaseRequest
     {
         IQueryable<RequestItemUnitGroupDescriptionItemVM> GetByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
         ValueTask<RequestItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id);
-        //IQueryable<RequestItemUnitGroupDescriptionItemVM> GetAvailableUnitGroupItem(Guid? risId);
-        //ValueTask<RequestItemUnitGroupDescriptionItemVM> CreateAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date);
         void UpdateRequestItem(Guid? requestItemId, decimal? priceRate, decimal? unitCost, string user, DateTime date);
         ValueTask<RequestItemUnitGroupDescriptionItemVM> UpdateAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date);
         ValueTask<RequestItemUnitGroupDescriptionItemVM> DeleteAsync(RequestItemUnitGroupDescriptionItemVM model, string user, DateTime date);
@@ -27,19 +22,25 @@ namespace iLgs.Services.PurchaseRequest
 
     public class RequestItemUnitGroupDescriptionItemService : BaseValidator, IRequestItemUnitGroupDescriptionItemService
     {
-        private readonly AppManEntities _db ;
-        private readonly ICreateAndLogExceptions _exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<RequestItemUnitGroupDescriptionItemVM> _vmExceptionService = new ExceptionService<RequestItemUnitGroupDescriptionItemVM>();
-        //private readonly IExceptionService<RisItemUnitGroupAvailableVM> _vmUnitGroupAvailableExceptionService = new ExceptionService<RisItemUnitGroupAvailableVM>();
-        private readonly IExceptionService<RequestItemUnitGroupDescriptionItem> _exceptionService = new ExceptionService<RequestItemUnitGroupDescriptionItem>();
+        private readonly AppManEntities _db;
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<RequestItemUnitGroupDescriptionItemVM> _vmExceptionService;
+        private readonly IExceptionService<RequestItemUnitGroupDescriptionItem> _exceptionService;
         private readonly IRisService _risService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public RequestItemUnitGroupDescriptionItemService(AppManEntities db)
+        public RequestItemUnitGroupDescriptionItemService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<RequestItemUnitGroupDescriptionItemVM> vmExceptionService,
+            IExceptionService<RequestItemUnitGroupDescriptionItem> exceptionService,
+            IRisService risService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RequestItemUnitGroupDescriptionItemVM>(propertyName);
-            _risService = new RisService(_db);
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _risService = risService;
         }
 
         public ValueTask<RequestItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id) =>

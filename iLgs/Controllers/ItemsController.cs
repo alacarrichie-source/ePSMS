@@ -5,7 +5,6 @@ using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.Codes;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Items;
 using iLgs.Utilities;
 using Kendo.Mvc.Extensions;
@@ -13,7 +12,6 @@ using Kendo.Mvc.UI;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
-using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -25,23 +23,20 @@ namespace iLgs.Controllers
     [AppAuthorize("ITEMS")]
     public class ItemsController : BaseController
     {
-        private AppManEntities _db;
-        private IItemTypeService _itemTypeService;
-        private IItemCodeService _itemCodeService;
-        //private IItemFieldService _itemFieldService;
-        private ICodextnService _codextnService;
-        private IDirectoryService _directoryService;
-        //private IRisIssuedService _risIssuedService;
-
-        public ItemsController()
+        private readonly AppManEntities _db;
+        private readonly IItemTypeService _itemTypeService;
+        private readonly IItemCodeService _itemCodeService;
+        private readonly ICodextnService _codextnService;
+        private readonly IDirectoryService _directoryService;
+        
+        public ItemsController(AppManEntities db, IItemTypeService itemTypeService, 
+            IItemCodeService itemCodeService, ICodextnService codextnService, IDirectoryService directoryService)
         {
-            _db = new AppManEntities();
-            _itemTypeService = new ItemTypeService(_db);
-            _itemCodeService = new ItemCodeService(_db);
-            //_itemFieldService = new ItemFieldService(_db);
-            _codextnService = new CodextnService(_db);
-            _directoryService = new DirectoryService(_db);
-            //_risIssuedService = new RisIssuedService(_db);
+            _db = db;
+            _itemTypeService = itemTypeService;
+            _itemCodeService = itemCodeService;
+            _codextnService = codextnService;
+            _directoryService = directoryService;        
         }
 
         // GET: Codes

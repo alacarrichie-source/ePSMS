@@ -1,22 +1,15 @@
-﻿using FluentValidation;
-using iLgs.Exceptions.Service;
+﻿using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.AllFields
 {
     public interface IAllFieldsValidator
-    {
-        //void ValidateAllFields(AllField af, string category, string itemCode, InvalidModelException ex);
-        //void ValidateAllFields(AllField af, string category, string itemCode, InvalidModelException ex, Enums.Module? module);
-
+    {     
         void ValidateAllFieldsPartial(AllField af, string partialView, InvalidModelException ex);
         void ValidateAllFieldsPartial(AllField af, string partialView, InvalidModelException ex, Enums.Module? module);
     }
@@ -30,8 +23,10 @@ namespace iLgs.Services.AllFields
         public AllFieldsValidator(AppManEntities db)
         {
             _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<StockCardVM>(propertyName);
-            _getAllFieldDisplayName = propertyName => Utility.GetDisplayName<AllField>(propertyName);
+            //_getDisplayName = propertyName => Utility.GetDisplayName<StockCardVM>(propertyName);
+            //_getAllFieldDisplayName = propertyName => Utility.GetDisplayName<AllField>(propertyName);
+            _getDisplayName = Utility.GetDisplayName<StockCardVM>;
+            _getAllFieldDisplayName = Utility.GetDisplayName<AllField>;
         }
 
         private void ValidateFields(AllField af, List<string> f, InvalidModelException ex)

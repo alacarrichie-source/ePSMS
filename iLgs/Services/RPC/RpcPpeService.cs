@@ -32,17 +32,23 @@ namespace iLgs.Services.RPC
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<RpcPpe> _exceptionService = new ExceptionService<RpcPpe>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<RpcPpe> _exceptionService;
         private readonly IOrderService _orderService;
         private readonly ICodextnService _codextnService;
 
-        public RpcPpeService(AppManEntities db)
+        public RpcPpeService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<RpcPpe> exceptionService,
+            IOrderService orderService,
+            ICodextnService codextnService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RpcPpe>(propertyName);
-            _orderService = new OrderService(_db);
-            _codextnService = new CodextnService(_db);
+            _exceptions = exceptions;
+            _exceptionService = exceptionService;
+            _orderService = orderService;
+            _codextnService = codextnService;
         }
 
         public ValueTask<RpcPpe> GetByIdAsync(Guid? id) =>

@@ -23,18 +23,20 @@ namespace iLgs.Services.Validators
 
     public class RisValidator : BaseValidator, IRisValidator
     {
-        private delegate string GetDisplayNameDelegate(string propertyName);
+        //private delegate string GetDisplayNameDelegate(string propertyName);
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;
         private readonly ILocationBudgetService _locationBudgetService;
 
-        public RisValidator(AppManEntities db)
+        public RisValidator(AppManEntities db,
+            ICodextnService codextnService,
+            ILocationBudgetService locationBudgetService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RIS_VM>(propertyName);
-            _codextnService = new CodextnService(_db);
-            _locationBudgetService = new LocationBudgetService(_db);
+            _codextnService = codextnService;
+            _locationBudgetService = locationBudgetService;
         }
 
         public void ValidateOnCreate(RIS_VM model)
@@ -129,10 +131,10 @@ namespace iLgs.Services.Validators
                     ex.UpsertDataList(_getDisplayName(nameof(model.OfficeId)), "Future Date is not allowed.");
                 }
 
-                if (model.RisDate.Value.Date < DateTime.Now.Date)
-                {
-                    ex.UpsertDataList(_getDisplayName(nameof(model.OfficeId)), "Past Date is not allowed.");
-                }
+                //if (model.RisDate.Value.Date < DateTime.Now.Date)
+                //{
+                //    ex.UpsertDataList(_getDisplayName(nameof(model.OfficeId)), "Past Date is not allowed.");
+                //}
             }
 
             if (model.OfficeId.HasValue)

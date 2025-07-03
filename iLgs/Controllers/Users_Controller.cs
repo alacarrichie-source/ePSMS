@@ -1,11 +1,8 @@
 ﻿using iLgs.Models;
-using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
@@ -14,20 +11,25 @@ namespace iLgs.Controllers
 {
     public class Users_Controller : ApiController
     {
-        private AppManEntities db = new AppManEntities();
+        private readonly AppManEntities _db;
+
+        public Users_Controller(AppManEntities db)
+        {
+            _db = db;
+        }
 
         // GET: api/Users_
         public IQueryable<AspNetUser> GetAspNetUsers()
         {
             //return db.AspNetUsers.Include(i => i.UserInfo); //.Where(p => p.UserInfo.RecId != null);
-            return db.AspNetUsers.Include(i => i.UserProfile); //.Where(p => p.UserInfo.RecId != null);
+            return _db.AspNetUsers.Include(i => i.UserProfile); //.Where(p => p.UserInfo.RecId != null);
         }
 
         // GET: api/Users_/IsAdmin/82814eba-0738-4edd-a11f-66c8112e20de
         [Route("api/Users_/IsAdmin/{id}")]
         public bool GetAspNetUserAdmins(string id)
         {
-            var db2 = db;
+            var db2 = _db;
             db2.Configuration.LazyLoadingEnabled = true;
             bool retVal = false;
             var users = db2.AspNetUsers.Where(p => p.Id == id);
@@ -98,7 +100,7 @@ namespace iLgs.Controllers
         [ResponseType(typeof(AspNetUser))]
         public async Task<IHttpActionResult> GetAspNetUser(string id)
         {
-            AspNetUser aspNetUser = await db.AspNetUsers.FindAsync(id);
+            AspNetUser aspNetUser = await _db.AspNetUsers.FindAsync(id);
             if (aspNetUser == null)
             {
                 return NotFound();
@@ -112,7 +114,7 @@ namespace iLgs.Controllers
         [ResponseType(typeof(AspNetUser))]
         public async Task<IHttpActionResult> GetAspNetUserProfile(string id)
         {
-            UserProfile userProfile = await db.UserProfiles.Where(w => w.UserId == id).SingleOrDefaultAsync();
+            UserProfile userProfile = await _db.UserProfiles.Where(w => w.UserId == id).SingleOrDefaultAsync();
             if (userProfile == null)
             {
                 return NotFound();
@@ -135,11 +137,11 @@ namespace iLgs.Controllers
                 return BadRequest();
             }
 
-            db.Entry(aspNetUser).State = EntityState.Modified;
+            _db.Entry(aspNetUser).State = EntityState.Modified;
 
             try
             {
-                await db.SaveChangesAsync();
+                await _db.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -165,11 +167,11 @@ namespace iLgs.Controllers
                 return BadRequest(ModelState);
             }
 
-            db.AspNetUsers.Add(aspNetUser);
+            _db.AspNetUsers.Add(aspNetUser);
 
             try
             {
-                await db.SaveChangesAsync();
+                await _db.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
@@ -190,14 +192,14 @@ namespace iLgs.Controllers
         [ResponseType(typeof(AspNetUser))]
         public async Task<IHttpActionResult> DeleteAspNetUser(string id)
         {
-            AspNetUser aspNetUser = await db.AspNetUsers.FindAsync(id);
+            AspNetUser aspNetUser = await _db.AspNetUsers.FindAsync(id);
             if (aspNetUser == null)
             {
                 return NotFound();
             }
 
-            db.AspNetUsers.Remove(aspNetUser);
-            await db.SaveChangesAsync();
+            _db.AspNetUsers.Remove(aspNetUser);
+            await _db.SaveChangesAsync();
 
             return Ok(aspNetUser);
         }
@@ -206,14 +208,14 @@ namespace iLgs.Controllers
         {
             if (disposing)
             {
-                db.Dispose();
+                _db.Dispose();
             }
             base.Dispose(disposing);
         }
 
         private bool AspNetUserExists(string id)
         {
-            return db.AspNetUsers.Count(e => e.Id == id) > 0;
+            return _db.AspNetUsers.Count(e => e.Id == id) > 0;
         }
     }
 }

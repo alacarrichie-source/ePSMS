@@ -2,15 +2,10 @@
 using CrystalDecisions.Shared;
 using iLgs.Models;
 using iLgs.Services.Codes;
-using iLgs.Services.ParIcs;
-using iLgs.Utilities;
-using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace iLgs.Controllers
@@ -21,9 +16,10 @@ namespace iLgs.Controllers
         private AppManEntities _db = new AppManEntities();
         private ICodextnService _codextnService;
 
-        public IcsParRptController()
+        public IcsParRptController(AppManEntities db, ICodextnService codextnService)
         {
-            _codextnService = new CodextnService(_db);
+            _db = db;
+            _codextnService = codextnService;
         }
 
         public async Task<ActionResult> IcsSetRpt(string icsNo)

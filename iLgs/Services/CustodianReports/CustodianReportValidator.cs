@@ -5,9 +5,7 @@ using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 
 namespace iLgs.Services.CustodianReports
 {
@@ -26,11 +24,11 @@ namespace iLgs.Services.CustodianReports
         private readonly GetDisplayNameDelegate _getDisplayName;
         private readonly ICodextnService _codextnService;        
 
-        public CustodianReportValidator(AppManEntities db)
+        public CustodianReportValidator(AppManEntities db, ICodextnService codextnService)
         {
             _db = db;
-            _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReport>(propertyName);
-            _codextnService = new CodextnService(_db);
+            _getDisplayName = Utility.GetDisplayName<CustodianReport>;
+            _codextnService = codextnService;
         }
 
         public void ValidateOnCreate(CustodianReport model)

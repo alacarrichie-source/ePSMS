@@ -26,14 +26,17 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnAddCostService : BaseValidator, IPsCardItemExtnAddCostService
     {
         private readonly AppManEntities _db;
-        private readonly IExceptionService<PsCardItemExtnAddCost> _exceptionService = new ExceptionService<PsCardItemExtnAddCost>();
+        private readonly IExceptionService<PsCardItemExtnAddCost> _exceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public PsCardItemExtnAddCostService(AppManEntities db)
+        public PsCardItemExtnAddCostService(AppManEntities db,
+            IExceptionService<PsCardItemExtnAddCost> exceptionService,
+            IPsCardItemTransactionService psCardItemTransactionService)
         {
             _db = db;
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
+            _exceptionService = exceptionService;
+            _psCardItemTransactionService = psCardItemTransactionService;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnAddCost>(propertyName);
         }
 
@@ -54,8 +57,17 @@ namespace iLgs.Services.PropertyCard
 
         public decimal? GetTotalAddCost(Guid? psCardItemExtnId)
         {
-            var data = _db.PsCardItemExtnAddCosts.AsNoTracking().Where(w => w.PsCardItemExtnId == psCardItemExtnId).Sum(s => s.Amount) ?? 0;
-            return data;
+            decimal? addCost = 0;
+            var addCostExtns = _db.PsCardItemExtnAddCosts.AsNoTracking().Where(w => w.PsCardItemExtnId == psCardItemExtnId).ToList();
+            foreach(var addCostExtn in addCostExtns)
+            {
+                if (_db.Uploads.Any(a => a.ImageId == addCostExtn.Id))
+                {
+                    addCost += addCostExtn.Amount;
+                }
+            }
+                            
+            return addCost;
         }
 
 
@@ -82,7 +94,12 @@ namespace iLgs.Services.PropertyCard
                         }
                     }
                 }
-            }
+
+                if (!_db.PsCardItems.Any(a => a.PoNo == model.PoNo))
+                {
+                    _imex.UpsertDataList(_getDisplayName(nameof(model.PoNo)), "PO Record does not exists.");
+                }
+            }            
 
             if (!model.Effectivity.HasValue)
             {

@@ -22,7 +22,6 @@ namespace iLgs.Controllers
     [AppAuthorize("POISSUANCE")]
     public class PoIssuanceController : BaseController
     {
-        private readonly AppManEntities _db;
         private readonly IPoIssuanceService _poIssuanceService;
         private readonly IPsCardService _psCardService;
         private readonly IPsCardItemService _psCardItemService;
@@ -30,15 +29,15 @@ namespace iLgs.Controllers
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPoIssuanceUploadService _uploadService;
         
-        public PoIssuanceController()
+        public PoIssuanceController(IPoIssuanceService poIssuanceService, IPsCardService psCardService, IPsCardItemService psCardItemService,
+            IIcsParItemService icsParItemService, IPsCardItemTransactionService psCardItemTransactionService, IPoIssuanceUploadService poIssuanceUploadService)
         {
-            _db = new AppManEntities();
-            _poIssuanceService = new PoIssuanceService(_db);
-            _psCardService = new PsCardService(_db);
-            _psCardItemService = new PsCardItemService(_db);
-            _icsParItemService = new IcsParItemService(_db);
-            _psCardItemTransactionService = new PsCardItemTransactionService(_db);
-            _uploadService = new PoIssuanceUploadService(_db);
+            _poIssuanceService = poIssuanceService;
+            _psCardService = psCardService;
+            _psCardItemService = psCardItemService;
+            _icsParItemService = icsParItemService;
+            _psCardItemTransactionService = psCardItemTransactionService;
+            _uploadService = poIssuanceUploadService;
         }
 
         // GET: PoIssuance

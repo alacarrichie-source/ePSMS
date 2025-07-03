@@ -5,7 +5,6 @@ using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
@@ -35,23 +34,30 @@ namespace iLgs.Services.PropertyCard
     {
         private readonly AppManEntities _db;
         private readonly GetDisplayNameDelegate _getDisplayName;
-        private readonly IExceptionService<PsCardItemTransferVM> _vmExceptionService = new ExceptionService<PsCardItemTransferVM>();
-        private readonly IExceptionService<PsCardItemTransfer> _exceptionService = new ExceptionService<PsCardItemTransfer>();
+        private readonly IExceptionService<PsCardItemTransferVM> _vmExceptionService;
+        private readonly IExceptionService<PsCardItemTransfer> _exceptionService;
         private readonly ICodextnService _codextnService;
-        private IPsCardItemTransferIssuanceService _psCardItemTransferIssuanceService;
-        private IPsCardItemTransferItemService _psCardItemTransferItemService;
+        private readonly IPsCardItemTransferIssuanceService _psCardItemTransferIssuanceService;
+        private readonly IPsCardItemTransferItemService _psCardItemTransferItemService;
 
-        public PsCardItemTransferService(AppManEntities db)
+        public PsCardItemTransferService(AppManEntities db,
+            IExceptionService<PsCardItemTransferVM> vmExceptionService,
+            IExceptionService<PsCardItemTransfer> exceptionService,
+            ICodextnService codextnService,
+            IPsCardItemTransferIssuanceService psCardItemTransferIssuanceService,
+            IPsCardItemTransferItemService psCardItemTransferItemService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<PsCardItemTransferVM>(propertyName);
-            _codextnService = new CodextnService(_db);
-            _psCardItemTransferIssuanceService = new PsCardItemTransferIssuanceService(_db);
-            _psCardItemTransferItemService = new PsCardItemTransferItemService(_db);
+            _vmExceptionService = vmExceptionService;
+            _exceptionService = exceptionService;
+            _codextnService = codextnService;
+            _psCardItemTransferIssuanceService = psCardItemTransferIssuanceService;
+            _psCardItemTransferItemService = psCardItemTransferItemService;
         }
 
-        public IPsCardItemTransferIssuanceService PsCardItemTransferIssuance { get { return _psCardItemTransferIssuanceService = _psCardItemTransferIssuanceService ?? new PsCardItemTransferIssuanceService(_db); } }
-        public IPsCardItemTransferItemService PsCardItemTransferItem { get { return _psCardItemTransferItemService = _psCardItemTransferItemService ?? new PsCardItemTransferItemService(_db); } }
+        public IPsCardItemTransferIssuanceService PsCardItemTransferIssuance => _psCardItemTransferIssuanceService;
+        public IPsCardItemTransferItemService PsCardItemTransferItem => _psCardItemTransferItemService;
 
         private Expression<Func<PsCardItemTransfer, PsCardItemTransferVM>> GetProjection()
         {

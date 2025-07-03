@@ -1,18 +1,12 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services.AllFields;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
-using System.Data.SqlClient;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 using static iLgs.Models.Enums;
 
 namespace iLgs.Services.Requisition
@@ -35,20 +29,31 @@ namespace iLgs.Services.Requisition
     public class RisItemService : IRisItemService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<RisItemVM> _vmExceptionService = new ExceptionService<RisItemVM>();
-        private readonly IExceptionService<RisItemEntryVM> _entryVmExceptionService = new ExceptionService<RisItemEntryVM>();
-        private readonly IExceptionService<RisItem> _exceptionService = new ExceptionService<RisItem>();
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<RisItemVM> _vmExceptionService;
+        private readonly IExceptionService<RisItemEntryVM> _entryVmExceptionService;
+        private readonly IExceptionService<RisItem> _exceptionService;
         private readonly IItemCodeService _itemCodeService;
-        private IAllFieldService _allFieldService;
-        private IRisItemValidator _validator;
+        private readonly IAllFieldService _allFieldService;
+        private readonly IRisItemValidator _validator;
 
-        public RisItemService(AppManEntities db)
+        public RisItemService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<RisItemVM> vmExceptionService,
+            IExceptionService<RisItemEntryVM> entryVmExceptionService,
+            IExceptionService<RisItem> exceptionService,
+            IItemCodeService itemCodeService,
+            IAllFieldService allFieldService,
+            IRisItemValidator validator)
         {
             _db = db;
-            _allFieldService = new AllFieldService(_db);
-            _validator = new RisItemValidator(_db);
-            _itemCodeService = new ItemCodeService(_db);
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _entryVmExceptionService = entryVmExceptionService;
+            _exceptionService = exceptionService;
+            _itemCodeService = itemCodeService;
+            _allFieldService = allFieldService;
+            _validator = validator;
         }
 
         public RisItemEntryVM GetVmById(Guid? id) 

@@ -1,16 +1,13 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
-using iLgs.Services.Interfaces;
 using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.Requisition
 {
@@ -27,20 +24,30 @@ namespace iLgs.Services.Requisition
     public class RisItemUnitGroupDescriptionItemService : BaseValidator, IRisItemUnitGroupDescriptionItemService
     {
         private readonly AppManEntities _db;
-        private readonly ICreateAndLogExceptions exceptions = new CreateAndLogExceptions();
-        private readonly IExceptionService<RisItemUnitGroupDescriptionItemVM> _vmExceptionService = new ExceptionService<RisItemUnitGroupDescriptionItemVM>();
-        private readonly IExceptionService<RisItemUnitGroupAvailableVM> _vmUnitGroupAvailableExceptionService = new ExceptionService<RisItemUnitGroupAvailableVM>();
-        private readonly IExceptionService<RisItemUnitGroupDescriptionItem> _exceptionService = new ExceptionService<RisItemUnitGroupDescriptionItem>();
-        private readonly IRisService _risService;
-        private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly ICreateAndLogExceptions _exceptions;
+        private readonly IExceptionService<RisItemUnitGroupDescriptionItemVM> _vmExceptionService;
+        private readonly IExceptionService<RisItemUnitGroupAvailableVM> _vmUnitGroupAvailableExceptionService;
+        private readonly IExceptionService<RisItemUnitGroupDescriptionItem> _exceptionService;
+        private readonly IRisService _risService;        
         private readonly IItemCodeService _itemCodeService;
+        private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public RisItemUnitGroupDescriptionItemService(AppManEntities db)
+        public RisItemUnitGroupDescriptionItemService(AppManEntities db,
+            ICreateAndLogExceptions exceptions,
+            IExceptionService<RisItemUnitGroupDescriptionItemVM> vmExceptionService,
+            IExceptionService<RisItemUnitGroupAvailableVM> vmUnitGroupAvailableExceptionService,
+            IExceptionService<RisItemUnitGroupDescriptionItem> exceptionService,
+            IRisService risService,
+            IItemCodeService itemCodeService)
         {
             _db = db;
             _getDisplayName = propertyName => Utility.GetDisplayName<RisItemUnitGroupDescriptionItemVM>(propertyName);
-            _risService = new RisService(_db);
-            _itemCodeService = new ItemCodeService(_db);
+            _exceptions = exceptions;
+            _vmExceptionService = vmExceptionService;
+            _vmUnitGroupAvailableExceptionService = vmUnitGroupAvailableExceptionService;
+            _exceptionService = exceptionService;
+            _risService = risService;
+            _itemCodeService = itemCodeService;
         }
 
         public ValueTask<RisItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id) =>
