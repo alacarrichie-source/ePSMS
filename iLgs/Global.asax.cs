@@ -1,6 +1,5 @@
 ﻿using iLgs.Agents.Services;
 using iLgs.App_Start;
-using iLgs.Controllers;
 using iLgs.Exceptions;
 using iLgs.Models;
 using iLgs.Services;
@@ -91,6 +90,7 @@ namespace iLgs
             services.AddScoped<ILocationBudgetService, LocationBudgetService>();
             services.AddScoped<ILocationService, LocationService>();
             services.AddScoped<IPriceCapService, PriceCapService>();
+            services.AddScoped<ISemiExpendableService, SemiExpendableService>();
             services.AddScoped<IPsCategoryService, PsCategoryService>();
 
             // CUSTODIAN DISPOSAL
@@ -138,7 +138,9 @@ namespace iLgs
 
             // PAR/ICS
             services.AddScoped<IIcsParItemService, IcsParItemService>();
+            services.AddScoped<IIcsParSharedService, IcsParSharedService>();
             services.AddScoped<IIcsParService, IcsParService>();
+            services.AddScoped<IIcsSharedService, IcsSharedService>();
             services.AddScoped<IIcsService, IcsService>();
             services.AddScoped<IParIcsUploadService, ParIcsUploadService>();
             services.AddScoped<IParItemService, ParItemService>();
@@ -181,10 +183,13 @@ namespace iLgs
             services.AddScoped<IPsCardService, PsCardService>();
 
             // PURCHASE ORDER
+            services.AddScoped<IOrderItemSharedService, OrderItemSharedService>();
             services.AddScoped<IOrderItemService, OrderItemService>();
+            services.AddScoped<IOrderItemUnitGroupDescriptionItemSharedService, OrderItemUnitGroupDescriptionItemSharedService>();
             services.AddScoped<IOrderItemUnitGroupDescriptionItemService, OrderItemUnitGroupDescriptionItemService>();
             services.AddScoped<IOrderItemUnitGroupDescriptionService, OrderItemUnitGroupDescriptionService>();
             services.AddScoped<IOrderItemUnitGroupService, OrderItemUnitGroupService>();
+            services.AddScoped<IOrderSharedService, OrderSharedService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IOrderUploadService, OrderUploadService>();
 

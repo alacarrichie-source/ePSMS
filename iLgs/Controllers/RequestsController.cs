@@ -214,7 +214,7 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public async Task<ActionResult> _RequestItemAddEdit(Guid prId, Guid? requestItemId)
+        public async Task<ActionResult> _RequestItemAddEdit(Guid prId, Guid? requestItemId, string setLotNo)
         {
             var data = await _requestItemService.GetVmByIdAsync(requestItemId);
             if (data == null)
@@ -225,6 +225,7 @@ namespace iLgs.Controllers
                     PrId = prId
                 };
             }
+            ViewData["setLotNo"] = setLotNo;
             ViewData["requestItemId"] = requestItemId;
             return PartialView(data);
         }

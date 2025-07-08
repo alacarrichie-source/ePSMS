@@ -196,7 +196,7 @@ namespace iLgs.Controllers
             return PartialView();
         }
 
-        public async Task<ActionResult> _OrderItemAddEdit(Guid orderId, Guid? orderItemId)
+        public async Task<ActionResult> _OrderItemAddEdit(Guid orderId, Guid? orderItemId, string setLotNo)
         {
             var data = await _orderItemService.GetByIdAsync(orderItemId);
             if (data == null)
@@ -213,6 +213,7 @@ namespace iLgs.Controllers
                 data.Mode = "E";
             }
             ViewData["orderItemId"] = orderItemId;
+            ViewData["setLotNo"] = setLotNo;
             return PartialView(data);
         }
 

@@ -759,7 +759,7 @@
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
         parentGrid.select(parentRow);
 
-        RequestItem("A", null);
+        RequestItem("A", null, null);
     }
 
     function onClickBtnEditRequestItem(e) {
@@ -779,10 +779,10 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        RequestItem("E", dataItem.Id);
+        RequestItem("E", dataItem.Id, dataItem.SetLotNo);
     }
 
-    function RequestItem(mode, recId) {
+    function RequestItem(mode, recId, setLotNo) {
         var myTitle = (mode == "A") ? "Request Item - ADD" : "Request Item - EDIT";
         var width = 800;
         //var height = 570;
@@ -809,7 +809,8 @@
             url: '@Url.Action("_RequestItemAddEdit", "Requests")',
             data: {
                 prId: selectedId,
-                requestItemId: recId
+                requestItemId: recId,
+                setLotNo: setLotNo
             },
             complete: function () {
                 // Resize the window to fit its content

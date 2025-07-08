@@ -22,21 +22,21 @@ namespace iLgs.Services.PurchaseOrder
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<OrderItemUnitGroupVM> _vmExceptionService;
         private readonly IExceptionService<OrderItemUnitGroup> _exceptionService;
-        private readonly IOrderService _orderService;
+        private readonly IOrderSharedService _orderSharedService;
         private readonly IOrderItemUnitGroupDescriptionItemService _orderItemUnitGroupDescriptionItemService;
 
         public OrderItemUnitGroupService(AppManEntities db,
             ICreateAndLogExceptions exceptions,
             IExceptionService<OrderItemUnitGroupVM> vmExceptionService,
             IExceptionService<OrderItemUnitGroup> exceptionService,
-            IOrderService orderService,
+            IOrderSharedService orderSharedService,
             IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService)
         {
             _db = db;
             _exceptions = exceptions;
             _vmExceptionService = vmExceptionService;
             _exceptionService = exceptionService;
-            _orderService = orderService;
+            _orderSharedService = orderSharedService;
             _orderItemUnitGroupDescriptionItemService = orderItemUnitGroupDescriptionItemService;
         }
 
@@ -72,7 +72,7 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<OrderItemUnitGroupVM> CreateAsync(OrderItemUnitGroupVM model, string user, DateTime date) =>
         _vmExceptionService.TryCatch(async () =>
         {
-            if (await _orderService.IsPostedAsync((Guid)model.OrderId))
+            if (await _orderSharedService.IsPostedAsync((Guid)model.OrderId))
             {
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }
@@ -116,7 +116,7 @@ namespace iLgs.Services.PurchaseOrder
                 throw new RecordNotFoundException(model.Id);
             }
 
-            if (await _orderService.IsPostedAsync((Guid)model.OrderId))
+            if (await _orderSharedService.IsPostedAsync((Guid)model.OrderId))
             {
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }
@@ -147,7 +147,7 @@ namespace iLgs.Services.PurchaseOrder
                 throw new RecordNotFoundException(model.Id);
             }
 
-            if (await _orderService.IsPostedAsync((Guid)model.OrderId))
+            if (await _orderSharedService.IsPostedAsync((Guid)model.OrderId))
             {
                 throw new RecordAlreadyPostedException("Record already posted, cannot update!");
             }

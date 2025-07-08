@@ -2,6 +2,7 @@
 using iLgs.Exceptions.Service;
 using iLgs.Models;
 using iLgs.Services.AllFields;
+using iLgs.Services.Codes;
 using iLgs.Services.Items;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
@@ -14,7 +15,7 @@ using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PurchaseOrder
 {
-    public interface IOrderService
+    public interface IOrderService : IOrderSharedService
     {
         IQueryable<OrderVM> GetAll();
         ValueTask<IQueryable<OrderVM>> GetAllAsync(string userId);
@@ -23,13 +24,13 @@ namespace iLgs.Services.PurchaseOrder
         ValueTask<Models.Order> GetByPoNoAsync(string poNo);
         bool GetAnyPoNo(Guid id, string poNo);
         ValueTask<bool> GetAnyPoNoAsync(Guid id, string poNo);
-        bool IsPosted(Guid orderId);
-        bool IsPosted(Order order);
-        bool IsPosted(OrderItem orderItem);
-        bool IsPosted(OrderItemUnitGroup orderItemUnitGroup);
-        bool IsPosted(OrderItemUnitGroupDescription orderItemunitGroupDescription);
-        bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemunitGroupDescriptionItem);
-        ValueTask<bool> IsPostedAsync(Guid orderId);
+        //bool IsPosted(Guid orderId);
+        //bool IsPosted(Order order);
+        //bool IsPosted(OrderItem orderItem);
+        //bool IsPosted(OrderItemUnitGroup orderItemUnitGroup);
+        //bool IsPosted(OrderItemUnitGroupDescription orderItemunitGroupDescription);
+        //bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemunitGroupDescriptionItem);
+        //ValueTask<bool> IsPostedAsync(Guid orderId);
         ValueTask<bool> GetAnyParsAsync(Guid id);
         ValueTask<bool> GetAnyAirsAsync(Guid id);
 
@@ -44,8 +45,9 @@ namespace iLgs.Services.PurchaseOrder
 
     public class OrderService : BaseValidator, IOrderService
     {
-        private readonly decimal _parPrice = 50000;
+        private readonly decimal? _priceCap;
         private readonly AppManEntities _db;
+        private readonly IOrderSharedService _orderSharedService;
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<OrderVM> _orderVmExceptionService;
         private readonly IExceptionService<Order> _orderExceptionService;
@@ -54,18 +56,22 @@ namespace iLgs.Services.PurchaseOrder
         private readonly IUserService _userService;
         private readonly IOrderUploadService _uploadPoService;
         private readonly IOrderUploadService _uploadCafoaService;
+        private readonly IPriceCapService _priceCapService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public OrderService(AppManEntities db,
+            IOrderSharedService orderSharedService,
             ICreateAndLogExceptions exceptions,
             IExceptionService<OrderVM> orderVmExceptionService,
             IExceptionService<Order> orderExceptionService,
             IAllFieldService allFieldService,
             IItemCodeService itemCodeService,
             IUserService userService,
-            IOrderUploadService uploadService)
+            IOrderUploadService uploadService,
+            IPriceCapService priceCapService)
         {
             _db = db;
+            _orderSharedService = orderSharedService;
             _exceptions = exceptions;
             _orderVmExceptionService = orderVmExceptionService;
             _orderExceptionService = orderExceptionService;
@@ -74,7 +80,10 @@ namespace iLgs.Services.PurchaseOrder
             _userService = userService;
             _uploadPoService = uploadService;
             _uploadCafoaService = uploadService.Create("CAFOA");
+            _priceCapService = priceCapService;
             _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
+
+            _priceCap = _priceCapService.GetPriceCap();
         }
 
         private static Expression<Func<Order, OrderVM>> Projection(AppManEntities db)
@@ -198,51 +207,37 @@ namespace iLgs.Services.PurchaseOrder
 
         public bool IsPosted(Guid orderId)
         {
-            var entity = _db.Orders.Find(orderId);
-            return !string.IsNullOrWhiteSpace(entity.PostedBy);
+            return _orderSharedService.IsPosted(orderId);            
         }
 
         public bool IsPosted(Order order)
         {
-            return IsPosted(order.Id);
+            return _orderSharedService.IsPosted(order);
         }
 
         public bool IsPosted(OrderItem orderItem)
-        {
-            var orderId = (Guid)orderItem.OrderId;
-            return IsPosted(orderId);
+        {            
+            return _orderSharedService.IsPosted(orderItem);
         }
 
         public bool IsPosted(OrderItemUnitGroup orderItemUnitGroup)
         {
-            var orderId = (Guid)orderItemUnitGroup.OrderId;
-            return IsPosted(orderId);
+            return _orderSharedService.IsPosted(orderItemUnitGroup);            
         }
 
         public bool IsPosted(OrderItemUnitGroupDescription orderItemUnitGroupDescription)
         {
-            var orderId = (Guid)_db.OrderItemUnitGroupDescriptions
-                .Include(i => i.OrderItemUnitGroup)
-                .Where(w => w.OrderItemUnitGroupId == orderItemUnitGroupDescription.OrderItemUnitGroupId)
-                .AsNoTracking()
-                .FirstOrDefault()?.OrderItemUnitGroup.OrderId;
-            return IsPosted(orderId);
+            return _orderSharedService.IsPosted(orderItemUnitGroupDescription);            
         }
 
         public bool IsPosted(OrderItemUnitGroupDescriptionItem orderItemUnitGroupDescriptionItem)
         {
-            var orderId = (Guid)_db.OrderItemUnitGroupDescriptionItems
-                .Include(i => i.OrderItemUnitGroupDescription.OrderItemUnitGroup)
-                .Where(w => w.OrderItemUnitGroupDescriptionId == orderItemUnitGroupDescriptionItem.OrderItemUnitGroupDescriptionId)
-                .AsNoTracking()
-                .FirstOrDefault()?.OrderItemUnitGroupDescription.OrderItemUnitGroup.OrderId;
-            return IsPosted(orderId);
+            return _orderSharedService.IsPosted(orderItemUnitGroupDescriptionItem);            
         }
 
         public async ValueTask<bool> IsPostedAsync(Guid orderId)
         {
-            var entity = await _db.Orders.FindAsync(orderId);
-            return !string.IsNullOrWhiteSpace(entity.PostedBy);
+            return await _orderSharedService.IsPostedAsync(orderId);            
         }
 
         public async ValueTask<int> GetNotPostedAsync(DateTime asOf)
@@ -838,16 +833,16 @@ namespace iLgs.Services.PurchaseOrder
                     unitCost = unitGroup.UnitCost;
                     if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
                     {
-                        if (unitCost < _parPrice)
+                        if (unitCost < _priceCap)
                         {
-                            throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {_parPrice:n0}.");
+                            throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {_priceCap:n0}.");
                         }
                     }
                     else
                     {
-                        if (unitCost >= _parPrice)
+                        if (unitCost >= _priceCap)
                         {
-                            throw new InvalidValueException($"Please use property code for items with a group unit cost of {_parPrice:n0} and above.");
+                            throw new InvalidValueException($"Please use property code for items with a group unit cost of {_priceCap:n0} and above.");
                         }
                     }
                 }
@@ -856,16 +851,16 @@ namespace iLgs.Services.PurchaseOrder
                     unitCost = orderItem.UnitCost;
                     if (_itemCodeService.IsProperty(orderItem.ItemCodeId))
                     {
-                        if (unitCost < _parPrice)
+                        if (unitCost < _priceCap)
                         {
-                            throw new InvalidValueException($"Please use supplies code for items with a unit cost below {_parPrice:n0}.");
+                            throw new InvalidValueException($"Please use supplies code for items with a unit cost below {_priceCap:n0}.");
                         }
                     }
                     else
                     {
-                        if (unitCost >= _parPrice)
+                        if (unitCost >= _priceCap)
                         {
-                            throw new InvalidValueException($"Please use property code for items with a unit cost of {_parPrice:n0} and above.");
+                            throw new InvalidValueException($"Please use property code for items with a unit cost of {_priceCap:n0} and above.");
                         }
                     }
                 }

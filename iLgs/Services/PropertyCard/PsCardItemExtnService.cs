@@ -1,4 +1,5 @@
 ﻿using iLgs.Models;
+using iLgs.Services.Codes;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -43,6 +44,8 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnService : IPsCardItemExtnService
     {
         private readonly AppManEntities _db;
+        private decimal? _SPHV;
+
         private readonly IPsCardSharedService _psCardSharedService;
         private readonly IPsCardItemExtnSharedService _psCardItemExtnSharedService;
         private readonly IPsCardItemExtnVehicleService _psCardItemExtnVehicleService;
@@ -51,6 +54,7 @@ namespace iLgs.Services.PropertyCard
         private readonly IPsCardItemExtnBldgService _psCardItemExtnBldgService;
         private readonly IPsCardItemExtnUpdateService _psCardItemExtnUpdateService;
         private readonly IPsCardItemExtnAddCostService _psCardItemExtnAddCostService;
+        private readonly ISemiExpendableService _semiExpendableService;
 
         public PsCardItemExtnService(AppManEntities db,
             IPsCardSharedService psCardSharedService,
@@ -60,7 +64,8 @@ namespace iLgs.Services.PropertyCard
             IPsCardItemExtnLandService psCardItemExtnLandService,
             IPsCardItemExtnBldgService psCardItemExtnBldgService,
             IPsCardItemExtnUpdateService psCardItemExtnUpdateService,
-            IPsCardItemExtnAddCostService psCardItemExtnAddCostService)
+            IPsCardItemExtnAddCostService psCardItemExtnAddCostService,
+            ISemiExpendableService semiExpendableService)
         {
             _db = db;
             _psCardSharedService = psCardSharedService;
@@ -71,6 +76,7 @@ namespace iLgs.Services.PropertyCard
             _psCardItemExtnBldgService = psCardItemExtnBldgService;
             _psCardItemExtnUpdateService = psCardItemExtnUpdateService;
             _psCardItemExtnAddCostService = psCardItemExtnAddCostService;
+            _semiExpendableService = semiExpendableService;
         }
 
         public IPsCardItemExtnVehicleService PsCardItemExtnVehicle => _psCardItemExtnVehicleService;
@@ -79,6 +85,11 @@ namespace iLgs.Services.PropertyCard
         public IPsCardItemExtnOtherService PsCardItemExtnOther => _psCardItemExtnOtherService;
         public IPsCardItemExtnUpdateService PsCardItemExtnUpdate => _psCardItemExtnUpdateService;
         public IPsCardItemExtnAddCostService PsCardItemExtnAddCost => _psCardItemExtnAddCostService;
+
+        private decimal GetSPHV()
+        {
+            return _SPHV ?? (_SPHV = _semiExpendableService.GetSPHV()).Value;
+        }
 
         public IQueryable<T> GetCardItemExtnForIcsPars<T>(Guid? psCardItemId) where T : PsCardItemExtn
         {        
@@ -139,7 +150,8 @@ namespace iLgs.Services.PropertyCard
 
         public IQueryable<PsCardItemExtnSetVM> GetCardItemExtnSetForIcsParByUnitGroupId(Guid? unitGroupId)
         {
-            var data = _db.Database.SqlQuery<PsCardItemExtnSetVM>("Exec PsCardItemExtn_GetItemExtnSetForIcsPars {0}", unitGroupId).AsQueryable();
+            var SPHV = GetSPHV();
+            var data = _db.Database.SqlQuery<PsCardItemExtnSetVM>("Exec PsCardItemExtn_GetItemExtnSetForIcsPars {0}, {1}", unitGroupId, SPHV).AsQueryable();
             return data;
         }
 

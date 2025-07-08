@@ -426,7 +426,7 @@
         var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
         parentGrid.select(parentRow);
 
-        OrderItem("A", null);
+        OrderItem("A", null, null);
     }
 
     function onClickBtnEditOrderItem(e) {
@@ -446,10 +446,10 @@
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
 
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        OrderItem("E", dataItem.Id);
+        OrderItem("E", dataItem.Id, dataItem.SetLotNo);
     }
 
-    function OrderItem(mode, recId) {
+    function OrderItem(mode, recId, setLotNo) {
         var myTitle = (mode == "A") ? "Order Item - ADD" : "Order Item - EDIT";
         var width = 1000;
         var height = 650;
@@ -477,7 +477,8 @@
             url: '@Url.Action("_OrderItemAddEdit", "Orders")',
             data: {
                 orderId: selectedId,
-                orderItemId: recId
+                orderItemId: recId,
+                setLotNo: setLotNo
             },
             complete: function () {
                 // Resize the window to fit its content

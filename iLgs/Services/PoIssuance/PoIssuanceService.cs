@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Services.PropertyCard;
 using Newtonsoft.Json;
 using System;
@@ -25,7 +26,7 @@ namespace iLgs.Services.PoIssuance
 
     public class PoIssuanceService : IPoIssuanceService
     {
-        private decimal _parPrice = 50000;
+        private decimal? _priceCap;
         private readonly AppManEntities _db;
         private readonly IUserService _userService;
         private readonly IExceptionService<RisIssuedVM> _vmExceptionService;
@@ -33,6 +34,7 @@ namespace iLgs.Services.PoIssuance
         private readonly IExceptionService<PsCardItemTransferVM> _psCardItemTransferVMExceptionService;
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
         private readonly IPsCardService _psCardService;
+        private readonly IPriceCapService _priceCapService;
 
         public PoIssuanceService(AppManEntities db,
             IUserService userService,
@@ -40,7 +42,8 @@ namespace iLgs.Services.PoIssuance
             IExceptionService<PsCardItemVM> psCardItemVMExceptionService,
             IExceptionService<PsCardItemTransferVM> psCardItemTransferVMExceptionService,
             IPsCardItemTransactionService psCardItemTransactionService,
-            IPsCardService psCardService)
+            IPsCardService psCardService,
+            IPriceCapService priceCapService)
         {
             _db = db;
             _userService = userService;
@@ -49,8 +52,14 @@ namespace iLgs.Services.PoIssuance
             _psCardItemTransferVMExceptionService = psCardItemTransferVMExceptionService;
             _psCardItemTransactionService = psCardItemTransactionService;
             _psCardService = psCardService;
+            _priceCapService = priceCapService;            
         }
 
+        private decimal GetPriceCap()
+        {
+            return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
+        }
+        
         private Expression<Func<PsCardItem, PsCardItemVM>> GetPsCardItemProjection(AppManEntities _db)
         {
             return s => new PsCardItemVM

@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -40,22 +41,30 @@ namespace iLgs.Services.PurchaseRequest
 
     public class RequestService : BaseValidator, IRequestService
     {
-        private readonly decimal _priceCap = 50000;
+        private decimal? _priceCap;
         private readonly AppManEntities _db;
         private readonly IUserService _userService;                
         private readonly IExceptionService<RequestVM> _vmExceptionService;
+        private readonly IPriceCapService _priceCapService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
         public RequestService(AppManEntities db,
             IUserService userService,
-            IExceptionService<RequestVM> vmExceptionService)
+            IExceptionService<RequestVM> vmExceptionService,
+            IPriceCapService priceCapService)
         {
             _db = db;
             _userService = userService;
             _vmExceptionService = vmExceptionService;
             _getDisplayName = propertyName => Utility.GetDisplayName<RequestVM>(propertyName);
+            _priceCapService = priceCapService;            
         }
 
+        private decimal GetPriceCap()
+        {
+            return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
+        }
+        
         private static Expression<Func<Request, RequestVM>> Projection
         = s => new RequestVM
         {
@@ -480,6 +489,7 @@ namespace iLgs.Services.PurchaseRequest
                 }
 
                 // validate item price
+                var priceCap = GetPriceCap();
                 var requestItems = _db.RequestItems.Include(i => i.RisItem.ItemCode.ItemType).AsNoTracking().Where(w => w.PrId == requestId).ToList();
                 foreach(var requestItem in requestItems)
                 {                    
@@ -491,16 +501,16 @@ namespace iLgs.Services.PurchaseRequest
                         unitCost = unitGroup.UnitCost;
                         if (category != "S")
                         {
-                            if (unitCost < _priceCap)
+                            if (unitCost < priceCap)
                             {
-                                throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {_priceCap:n0}.");
+                                throw new InvalidValueException($"Please use supplies code for items with a group unit cost below {priceCap:n0}.");
                             }
                         }
                         else
                         {
-                            if (unitCost >= _priceCap)
+                            if (unitCost >= priceCap)
                             {
-                                throw new InvalidValueException($"Please use property code for items with a group unit cost of {_priceCap:n0} and above.");
+                                throw new InvalidValueException($"Please use property code for items with a group unit cost of {priceCap:n0} and above.");
                             }
                         }
                     }
@@ -509,16 +519,16 @@ namespace iLgs.Services.PurchaseRequest
                         unitCost = requestItem.UnitCost;
                         if (category != "S")
                         {
-                            if (unitCost < _priceCap)
+                            if (unitCost < priceCap)
                             {
-                                throw new InvalidValueException($"Please use supplies code for items with a unit cost below {_priceCap:n0}.");
+                                throw new InvalidValueException($"Please use supplies code for items with a unit cost below {priceCap:n0}.");
                             }
                         }
                         else
                         {
-                            if (unitCost >= _priceCap)
+                            if (unitCost >= priceCap)
                             {
-                                throw new InvalidValueException($"Please use property code for items with a unit cost of {_priceCap:n0} and above.");
+                                throw new InvalidValueException($"Please use property code for items with a unit cost of {priceCap:n0} and above.");
                             }
                         }
                     }

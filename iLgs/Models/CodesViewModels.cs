@@ -123,6 +123,23 @@ namespace iLgs.Models
         }
     }
 
+    [MetadataType(typeof(SemiExpendableVM.Metadata))]
+    public class SemiExpendableVM : Codextn
+    {
+        internal sealed class Metadata
+        {
+            public Guid Id { get; set; }
+            public System.Guid MastId { get; set; }
+
+            [Display(Name = "Effectivity (mm/dd/yyyy)")]
+            public string Code { get; set; }
+
+            [Display(Name = "High-Value Base Amount")]
+            public string Description { get; set; }
+
+        }
+    }
+
     public class MenuActionSw
     {
         [Display(Name = "Action")]

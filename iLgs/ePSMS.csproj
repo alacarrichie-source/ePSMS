@@ -835,6 +835,7 @@
     <Compile Include="Services\Codes\AnnexDService.cs" />
     <Compile Include="Services\Codes\BudgetService.cs" />
     <Compile Include="Services\Codes\PriceCapService.cs" />
+    <Compile Include="Services\Codes\SemiExpendableService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportBldgItemPhaseService.cs" />
     <Compile Include="Services\CustodianReports\CustodianReportItemIssuanceRpcPpeService.cs" />
     <Compile Include="Services\Items\ItemCodeRequestService.cs" />
@@ -872,9 +873,11 @@
     <Compile Include="Services\Logs\DatabaseLoggerProvider.cs" />
     <Compile Include="Services\ParIcs\IcsParItemService.cs" />
     <Compile Include="Services\ParIcs\IcsParService.cs" />
+    <Compile Include="Services\ParIcs\IcsParSharedService.cs" />
     <Compile Include="Services\ParIcs\IcsService.cs" />
     <Compile Include="Services\Interfaces\IDepartmentUserService.cs" />
     <Compile Include="Services\LoggingService.cs" />
+    <Compile Include="Services\ParIcs\IcsSharedService.cs" />
     <Compile Include="Services\PoIssuance\PoIssuanceUploadService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnAddCostService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemExtnBldgService.cs" />
@@ -895,7 +898,9 @@
     <Compile Include="Services\PropertyCard\PsCardItemTransferItemVehicleService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItramTransferService.cs" />
     <Compile Include="Services\PropertyCard\PsCardSharedService.cs" />
+    <Compile Include="Services\PurchaseOrder\OrderItemSharedService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupDescriptionItemService.cs" />
+    <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupDescriptionItemSharedService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupDescriptionService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderItemUnitGroupService.cs" />
     <Compile Include="Services\PropertyCard\PropertyCardService.cs" />
@@ -906,6 +911,7 @@
     <Compile Include="Services\PropertyCard\PsCardItemTransactionService.cs" />
     <Compile Include="Services\PropertyCard\PsCardItemService.cs" />
     <Compile Include="Services\PropertyCard\PsCardService.cs" />
+    <Compile Include="Services\PurchaseOrder\OrderSharedService.cs" />
     <Compile Include="Services\PurchaseOrder\OrderUploadService.cs" />
     <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupDescriptionItemService.cs" />
     <Compile Include="Services\PurchaseRequest\RequestItemUnitGroupDescriptionService.cs" />

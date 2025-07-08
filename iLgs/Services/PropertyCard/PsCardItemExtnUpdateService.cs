@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
@@ -37,28 +38,38 @@ namespace iLgs.Services.PropertyCard
     public class PsCardItemExtnUpdateService : BaseValidator, IPsCardItemExtnUpdateService
     {
         private readonly AppManEntities _db;
+        private decimal? _SPHV;
+
         private readonly GetDisplayNameDelegate _getPpeDisplayName;
         private readonly GetDisplayNameDelegate _getVehicleDisplayName;
         private readonly IPsCardSharedService _psCardSharedService;
         private readonly IExceptionService<PsCardItemExtnPpeEntryVM> _ppeExceptionService;
         private readonly IExceptionService<PsCardItemExtnVehicleEntryVM> _vehicleExceptionService;
         private readonly IExceptionService<PsCardItemExtnLandEntryVM> _landExceptionService;
+        private readonly ISemiExpendableService _semiExpendableService;
 
         public PsCardItemExtnUpdateService(AppManEntities db,
             IPsCardSharedService psCardSharedService,
             IExceptionService<PsCardItemExtnPpeEntryVM> ppeExceptionService,
             IExceptionService<PsCardItemExtnVehicleEntryVM> vehicleExceptionService,
-            IExceptionService<PsCardItemExtnLandEntryVM> landExceptionService)
+            IExceptionService<PsCardItemExtnLandEntryVM> landExceptionService,
+            ISemiExpendableService semiExpendableService)
         {
             _db = db;
             _psCardSharedService = psCardSharedService;
             _ppeExceptionService = ppeExceptionService;
             _vehicleExceptionService = vehicleExceptionService;
             _landExceptionService = landExceptionService;
+            _semiExpendableService = semiExpendableService;
             _getPpeDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnPpeEntryVM>(propertyName);
             _getVehicleDisplayName = propertyName => Utility.GetDisplayName<PsCardItemExtnVehicleEntryVM>(propertyName);
         }
-        
+
+        private decimal GetSPHV()
+        {
+            return _SPHV ?? (_SPHV = _semiExpendableService.GetSPHV()).Value;
+        }
+
         public IQueryable<PsCardItemExtnVM> GetAll()
         {
             return GetAll((int)AccountGroup.ALL);
@@ -190,7 +201,8 @@ namespace iLgs.Services.PropertyCard
 
         public IQueryable<PsCardItemExtnSetVM> GetCardItemExtnSetForIcsParByUnitGroupId(Guid? unitGroupId)
         {
-            var data = _db.Database.SqlQuery<PsCardItemExtnSetVM>("Exec PsCardItemExtn_GetItemExtnSetForIcsPars {0}", unitGroupId).AsQueryable();
+            var SPHV = GetSPHV();
+            var data = _db.Database.SqlQuery<PsCardItemExtnSetVM>("Exec PsCardItemExtn_GetItemExtnSetForIcsPars {0}, {1}", unitGroupId, SPHV).AsQueryable();
             return data;
         }
 

@@ -10,33 +10,33 @@ using static iLgs.Models.Enums;
 
 namespace iLgs.Services.Codes
 {
-    public interface IPriceCapService
+    public interface ISemiExpendableService
     {
-        IQueryable<PriceCapVM> GetAll();
-        decimal? GetPriceCap();
-        decimal? GetPriceCap(DateTime? asOfDate);
-        ValueTask<PriceCapVM> GetByIdAsync(Guid id);
-        ValueTask<PriceCapVM> CreateAsync(PriceCapVM model, string user, DateTime date);
-        ValueTask<PriceCapVM> UpdateAsync(PriceCapVM model, string user, DateTime date);
-        ValueTask<PriceCapVM> DeleteAsync(PriceCapVM model, string user, DateTime date);
+        IQueryable<SemiExpendableVM> GetAll();
+        decimal? GetSPHV();
+        decimal? GetSPHV(DateTime? asOfDate);
+        ValueTask<SemiExpendableVM> GetByIdAsync(Guid id);
+        ValueTask<SemiExpendableVM> CreateAsync(SemiExpendableVM model, string user, DateTime date);
+        ValueTask<SemiExpendableVM> UpdateAsync(SemiExpendableVM model, string user, DateTime date);
+        ValueTask<SemiExpendableVM> DeleteAsync(SemiExpendableVM model, string user, DateTime date);
     }
 
-    public class PriceCapService : CodextnService, IPriceCapService
+    public class SemiExpendableService : CodextnService, ISemiExpendableService
     {
-        private readonly IExceptionService<PriceCapVM> _xtraExceptionService;
-        
-        public PriceCapService(AppManEntities db,
+        private readonly IExceptionService<SemiExpendableVM> _xtraExceptionService;
+
+        public SemiExpendableService(AppManEntities db,
             IExceptionService<Codextn> exceptionService,
             IExceptionService<CodextnVM> vmExceptionService,
-            IExceptionService<PriceCapVM> xtraExceptionService,
+            IExceptionService<SemiExpendableVM> xtraExceptionService,
             IUserService userService)
         : base(db, exceptionService, vmExceptionService, userService)
         {
             _xtraExceptionService = xtraExceptionService;
         }
 
-        private static Expression<Func<Codextn, PriceCapVM>> CodextnProjection
-        = s => new PriceCapVM
+        private static Expression<Func<Codextn, SemiExpendableVM>> CodextnProjection
+        = s => new SemiExpendableVM
         {
             Id = s.Id,
             MastId = s.MastId,
@@ -46,34 +46,34 @@ namespace iLgs.Services.Codes
             InsertedDt = s.InsertedDt
         };
 
-        public IQueryable<PriceCapVM> GetAll()
+        public IQueryable<SemiExpendableVM> GetAll()
         {
-            var data = _db.Codextns.Where(w => w.CodeMast.Code == "PRICE-CAP")
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == "SEMI-EXPENDABLE")
                 .Select(CodextnProjection);
             return data;
         }
 
-        public new async ValueTask<PriceCapVM> GetByIdAsync(Guid id)
+        public new async ValueTask<SemiExpendableVM> GetByIdAsync(Guid id)
         {
-            var data = await _db.Codextns.Where(w => w.CodeMast.Code == "PRICE-CAP" && w.Id == id)
+            var data = await _db.Codextns.Where(w => w.CodeMast.Code == "SEMI-EXPENDABLE" && w.Id == id)
                 .Select(CodextnProjection).FirstOrDefaultAsync();
             return data;
         }
 
-        public decimal? GetPriceCap()
+        public decimal? GetSPHV()
         {
-            return GetPriceCap(DateTime.Now);
+            return GetSPHV(DateTime.Now);
         }
 
-        public decimal? GetPriceCap(DateTime? asOfDate)
+        public decimal? GetSPHV(DateTime? asOfDate)
         {
             var data = _db.Database.SqlQuery<decimal?>("Select top 1 convert(numeric(18, 2), Description) as PriceCap From Codextn " +
-                "Where MastId in (Select Id From CodeMast Where Code = 'PRICE-CAP') " +
+                "Where MastId in (Select Id From CodeMast Where Code = 'SEMI-EXPENDABLE') " +
                 "and convert(varchar(10), Description, 102) <= convert(varchar(10), {0}, 102)", asOfDate).FirstOrDefault();
-            return data ?? 50000;
+            return data ?? 5000;
         }
 
-        public ValueTask<PriceCapVM> CreateAsync(PriceCapVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
+        public ValueTask<SemiExpendableVM> CreateAsync(SemiExpendableVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateFields(model, Mode.ADD);
@@ -82,7 +82,7 @@ namespace iLgs.Services.Codes
             return model;
         });
 
-        public ValueTask<PriceCapVM> UpdateAsync(PriceCapVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
+        public ValueTask<SemiExpendableVM> UpdateAsync(SemiExpendableVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateRecord(model.Id);
@@ -92,7 +92,7 @@ namespace iLgs.Services.Codes
             return model;
         });
 
-        public ValueTask<PriceCapVM> DeleteAsync(PriceCapVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
+        public ValueTask<SemiExpendableVM> DeleteAsync(SemiExpendableVM model, string user, DateTime date) => _xtraExceptionService.TryCatch(async () =>
         {
             ValidateIfNull(model);
             ValidateRecord(model.Id);
@@ -101,7 +101,7 @@ namespace iLgs.Services.Codes
         });
 
 
-        private void ValidateIfNull(PriceCapVM model)
+        private void ValidateIfNull(SemiExpendableVM model)
         {
             if (model is null)
             {
@@ -117,7 +117,7 @@ namespace iLgs.Services.Codes
             }
         }
 
-        private void ValidateFields(PriceCapVM model, Mode mode)
+        private void ValidateFields(SemiExpendableVM model, Mode mode)
         {
             if (string.IsNullOrWhiteSpace(model.Code))
             {

@@ -1,6 +1,7 @@
 ﻿using iLgs.Exceptions;
 using iLgs.Exceptions.Service;
 using iLgs.Models;
+using iLgs.Services.Codes;
 using iLgs.Services.PropertyCard;
 using iLgs.Services.Validators;
 using iLgs.Utilities;
@@ -43,15 +44,16 @@ namespace iLgs.Services.ParIcs
     public class ParService : BaseValidator, IParService
     {
         private readonly AppManEntities _db;
-        private decimal _parPrice = 50000;
+        private decimal? _priceCap;
 
         private readonly IParItemService _parItemService;
         private readonly IExceptionService<GenerateIcsParVM> _generateParExceptionService;
         private readonly IExceptionService<PsCardItem> _postExceptionService;
         private readonly IExceptionService<IcsPar> _icsParExceptionService;        
         private readonly IPsCardItemTransactionService _psCardItemTransactionService;
-        private readonly IIcsParService _icsParService;
-        private readonly GetDisplayNameDelegate _getDisplayName;
+        private readonly IIcsParSharedService _icsParSharedService;
+        private readonly IPriceCapService _priceCapService;
+        private readonly GetDisplayNameDelegate _getDisplayName;        
 
         public ParService(AppManEntities db,
             IParItemService parItemService,
@@ -59,7 +61,8 @@ namespace iLgs.Services.ParIcs
             IExceptionService<PsCardItem> postExceptionService,
             IExceptionService<IcsPar> icsParExceptionService,
             IPsCardItemTransactionService psCardItemTransactionService,
-            IIcsParService icsParService)
+            IIcsParSharedService icsParSharedService,
+            IPriceCapService priceCapService)
         {
             _db = db;
             _parItemService = parItemService;
@@ -68,18 +71,25 @@ namespace iLgs.Services.ParIcs
             _icsParExceptionService = icsParExceptionService;
             _getDisplayName = propertyName => Utility.GetDisplayName<CustodianReportBldgItemVM>(propertyName);
             _psCardItemTransactionService = psCardItemTransactionService;
-            _icsParService = icsParService;
+            _icsParSharedService = icsParSharedService;
+            _priceCapService = priceCapService;            
         }
 
         public IParItemService ParItem => _parItemService;
 
+        private decimal GetPriceCap()
+        {
+            return _priceCap ?? (_priceCap = _priceCapService.GetPriceCap()).Value;
+        }        
+
         public IQueryable<ParVM> GetAll()
         {
+            var priceCap = GetPriceCap();
             var data = _db.PsCardItems.AsNoTracking()
                 .Where(w => w.TransferRefId == null
                     && (w.OrderItem.OrderItemUnitGroupDescriptionItems
-                        .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= _parPrice)
-                            || w.UnitCost >= _parPrice))
+                        .Any(a => a.OrderItemUnitGroupDescription.OrderItemUnitGroup.UnitCost >= priceCap)
+                            || w.UnitCost >= priceCap))
                 .Select(s => new ParVM
                 {
                     Id = s.Id,
@@ -122,7 +132,8 @@ namespace iLgs.Services.ParIcs
 
         public IQueryable<ParIcsPOGroupVM> GetAllPo()
         {
-            var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo").AsQueryable();
+            var priceCap = GetPriceCap();
+            var data = _db.Database.SqlQuery<ParIcsPOGroupVM>("Exec ParIcs_GetAllPo 'P', {0}", priceCap).AsQueryable();
             return data;
         }
 
@@ -170,13 +181,14 @@ namespace iLgs.Services.ParIcs
         }
         public IQueryable<ParIcsItemVm> GetItemsByPoNo(string poNo, DateTime? poDate, Guid? deptId)
         {
+            var priceCap = GetPriceCap();
             var data = _db.PsCardItems.Include(i => i.PsCard.ItemCode)                
                 .AsNoTracking()
                 .Where(w => 
                     w.PoNo == (string.IsNullOrEmpty(poNo) ? w.PoNo : poNo)
                     && w.PoDate == (poDate == null ? w.PoDate : poDate)
                     && w.DeptId == (deptId == null ? w.DeptId : deptId)
-                    && w.UnitCost >= _parPrice 
+                    && w.UnitCost >= priceCap 
                     && !w.PsCardItemUnitGroupDescriptionItems.Any(a => a.PsCardItemId == w.Id)                    
                 )
                 .Select(s => new ParIcsItemVm
@@ -214,13 +226,14 @@ namespace iLgs.Services.ParIcs
 
         public IQueryable<ParIcsItemSetVm> GetItemSetsByPoNo(string poNo, DateTime? poDate, Guid? deptId)
         {
+            var priceCap = GetPriceCap();
             var data = _db.PsCardItemUnitGroups.AsNoTracking()
                 .Where(w => w.PsCardItemUnitGroupDescriptions.Any(a => a.PsCardItemUnitGroupDescriptionItems
                     .Any(b => b.PsCardItem.PoNo == (string.IsNullOrEmpty(poNo) ? b.PsCardItem.PoNo : poNo)
                         && b.PsCardItem.PoDate == (poDate == null ? b.PsCardItem.PoDate : poDate)
                         && b.PsCardItem.DeptId == (deptId == null ? b.PsCardItem.DeptId : deptId)
                         ))
-                && w.UnitCost >= _parPrice)
+                && w.UnitCost >= priceCap)
                 .Select(s => new ParIcsItemSetVm
                 {
                     Id = s.Id,
@@ -720,12 +733,12 @@ namespace iLgs.Services.ParIcs
 
         public ValueTask<IcsPar> PostAsync(string parNo, string user, DateTime date) => _icsParExceptionService.TryCatch(async () =>
         {
-            return await _icsParService.PostAsync(parNo, "P", user, date);
+            return await _icsParSharedService.PostAsync(parNo, "P", user, date);
         });
 
         public ValueTask<IcsPar> UnPostAsync(string parNo, string user, DateTime date) => _icsParExceptionService.TryCatch(async () =>
         {
-            return await _icsParService.UnPostAsync(parNo, "P", user, date);
+            return await _icsParSharedService.UnPostAsync(parNo, "P", user, date);
         });
 
         private string NextPropNo(string acqYear, string stockNo, string locationCode, string refType)

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace iLgs.Services.PurchaseOrder
 {
-    public interface IOrderItemUnitGroupDescriptionItemService
+    public interface IOrderItemUnitGroupDescriptionItemService : IOrderItemUnitGroupDescriptionItemSharedService
     {
         IQueryable<OrderItemUnitGroupDescriptionItemVM> GetByUnitGroupDescriptionId(Guid? unitGroupDescriptionId);
         ValueTask<OrderItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id);
@@ -15,7 +15,7 @@ namespace iLgs.Services.PurchaseOrder
         ValueTask<OrderItemUnitGroupDescriptionItemVM> CreateAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date);
         ValueTask<OrderItemUnitGroupDescriptionItemVM> UpdateAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date);
         ValueTask<OrderItemUnitGroupDescriptionItemVM> DeleteAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date);
-        ValueTask<OrderItemUnitGroupDescriptionItem> DeleteEmptyGroupsAsync(Guid? orderItemId);
+        //ValueTask<OrderItemUnitGroupDescriptionItem> DeleteEmptyGroupsAsync(Guid? orderItemId);
     }
 
     public class OrderItemUnitGroupDescriptionItemService : IOrderItemUnitGroupDescriptionItemService
@@ -24,19 +24,22 @@ namespace iLgs.Services.PurchaseOrder
         private readonly ICreateAndLogExceptions _exceptions;
         private readonly IExceptionService<OrderItemUnitGroupDescriptionItemVM> _vmExceptionService;
         private readonly IExceptionService<OrderItemUnitGroupDescriptionItem> _exceptionService;
-        private readonly IOrderItemService _orderItemService;
+        private readonly IOrderItemUnitGroupDescriptionItemSharedService _orderItemUnitGroupDescriptionItemSharedService;
+        private readonly IOrderItemSharedService _orderItemSharedService;
 
         public OrderItemUnitGroupDescriptionItemService(AppManEntities db,
             ICreateAndLogExceptions exceptions,
             IExceptionService<OrderItemUnitGroupDescriptionItemVM> vmExceptionService,
             IExceptionService<OrderItemUnitGroupDescriptionItem> exceptionService,
-            IOrderItemService orderItemService)
+            IOrderItemUnitGroupDescriptionItemSharedService orderItemUnitGroupDescriptionItemSharedService,
+            IOrderItemSharedService orderItemSharedService)
         {
             _db = db;
             _exceptions = exceptions;
             _vmExceptionService = vmExceptionService;
             _exceptionService = exceptionService;
-            _orderItemService = orderItemService;
+            _orderItemUnitGroupDescriptionItemSharedService = orderItemUnitGroupDescriptionItemSharedService;
+            _orderItemSharedService = orderItemSharedService;
         }
 
         public ValueTask<OrderItemUnitGroupDescriptionItem> GetByIdAsync(Guid? id) =>
@@ -114,7 +117,7 @@ namespace iLgs.Services.PurchaseOrder
                 Id = (Guid)model.OrderItemId
             };
 
-            await _orderItemService.DeleteAsync(orderItemVM, user, date);            
+            await _orderItemSharedService.DeleteAsync(orderItemVM, user, date);            
 
             return model;
         });
@@ -122,33 +125,7 @@ namespace iLgs.Services.PurchaseOrder
         public ValueTask<OrderItemUnitGroupDescriptionItem> DeleteEmptyGroupsAsync(Guid? orderItemId) =>
         _exceptionService.TryCatch(async () =>
         {
-            var unitGroupDescriptionItems = _db.OrderItemUnitGroupDescriptionItems.Where(w => w.OrderItemId == orderItemId);
-            if (unitGroupDescriptionItems.Any())
-            {
-                var unitGroupDescriptionId = unitGroupDescriptionItems.FirstOrDefault().OrderItemUnitGroupDescriptionId;
-
-                _db.OrderItemUnitGroupDescriptionItems.RemoveRange(unitGroupDescriptionItems);
-                await _db.SaveChangesAsync();
-
-                var unitGroupDescriptions = _db.OrderItemUnitGroupDescriptions
-                    .Where(w => w.Id == unitGroupDescriptionId && !w.OrderItemUnitGroupDescriptionItems.Any());
-                if (unitGroupDescriptions.Any())
-                {
-                    var uniGroupId = unitGroupDescriptions.FirstOrDefault().OrderItemUnitGroupId;
-
-                    _db.OrderItemUnitGroupDescriptions.RemoveRange(unitGroupDescriptions);
-                    await _db.SaveChangesAsync();
-
-                    var unitGroups = _db.OrderItemUnitGroups.Where(w => w.Id == uniGroupId && !w.OrderItemUnitGroupDescriptions.Any());
-                    if (unitGroups.Any())
-                    {
-                        _db.OrderItemUnitGroups.RemoveRange(unitGroups);
-                        await _db.SaveChangesAsync();
-                    }
-                }
-                return unitGroupDescriptionItems.FirstOrDefault();
-            }
-            return new OrderItemUnitGroupDescriptionItem();            
+            return await _orderItemUnitGroupDescriptionItemSharedService.DeleteEmptyGroupsAsync(orderItemId);            
         });
 
         public ValueTask<OrderItemUnitGroupDescriptionItemVM> UpdateAsync(OrderItemUnitGroupDescriptionItemVM model, string user, DateTime date) =>

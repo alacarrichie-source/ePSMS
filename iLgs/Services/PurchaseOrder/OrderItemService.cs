@@ -13,16 +13,16 @@ using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PurchaseOrder
 {
-    public interface IOrderItemService
+    public interface IOrderItemService : IOrderItemSharedService
     {
         IQueryable<OrderItemVM> GetByPoId(Guid? poId);
         ValueTask<OrderItemVM> GetByIdAsync(Guid? id);
-        ValueTask<bool> GetAnyParItemsAsync(Guid id);
-        ValueTask<bool> GetAnyAirItemsAsync(Guid id);
+        //ValueTask<bool> GetAnyParItemsAsync(Guid id);
+        //ValueTask<bool> GetAnyAirItemsAsync(Guid id);
 
         ValueTask<OrderItemVM> CreateAsync(OrderItemVM model, string user, DateTime date);
         ValueTask<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date);
-        ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date);    
+        //ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date);    
     }
 
     public class OrderItemService : BaseValidator, IOrderItemService
@@ -31,23 +31,26 @@ namespace iLgs.Services.PurchaseOrder
         private readonly IExceptionService<OrderItemVM> _vmExceptionService;
         private readonly ICodextnService _codextnService;
         private readonly IAllFieldService _allFieldService;
+        private readonly IOrderItemSharedService _orderItemSharedService;
         private readonly IOrderItemUnitGroupService _orderItemUnitGroupService;
         private readonly IOrderItemUnitGroupDescriptionService _orderItemUnitGroupDescriptionService;
         private readonly IOrderItemUnitGroupDescriptionItemService _orderItemUnitGroupDescriptionItemService;
         private readonly GetDisplayNameDelegate _getDisplayName;
 
-        public OrderItemService(AppManEntities db,
+        public OrderItemService(AppManEntities db,            
             IExceptionService<OrderItemVM> vmExceptionService,
             ICodextnService codextnService,
             IAllFieldService allFieldService,
+            IOrderItemSharedService orderItemSharedService,
             IOrderItemUnitGroupService orderItemUnitGroupService,
             IOrderItemUnitGroupDescriptionService orderItemUnitGroupDescriptionService,
             IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService)
         {
-            _db = db;
+            _db = db;            
             _vmExceptionService = vmExceptionService;
             _codextnService = codextnService;
             _allFieldService = allFieldService;
+            _orderItemSharedService = orderItemSharedService;
             _orderItemUnitGroupService = orderItemUnitGroupService;
             _orderItemUnitGroupDescriptionService = orderItemUnitGroupDescriptionService;
             _orderItemUnitGroupDescriptionItemService = orderItemUnitGroupDescriptionItemService;
@@ -109,12 +112,12 @@ namespace iLgs.Services.PurchaseOrder
 
         public async ValueTask<bool> GetAnyParItemsAsync(Guid id)
         {
-            return await _db.PARItems.AnyAsync(a => a.OrderItemId == id);
+            return await _orderItemSharedService.GetAnyParItemsAsync(id);                        
         }
 
         public async ValueTask<bool> GetAnyAirItemsAsync(Guid id)
         {
-            return await _db.AIRItems.AnyAsync(a => a.OrderItemId == id);
+            return await _orderItemSharedService.GetAnyAirItemsAsync(id);            
         }
 
         private void ValidateFields(OrderItemVM model)
@@ -293,27 +296,7 @@ namespace iLgs.Services.PurchaseOrder
 
         public ValueTask<OrderItemVM> DeleteAsync(OrderItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-            await ValidateOnDelete(model);
-
-            model.UpdatedBy = user;
-            model.UpdatedDt = date;
-
-            var orderItemGroupDescriptionItem = await _orderItemUnitGroupDescriptionItemService.DeleteEmptyGroupsAsync(model.Id);            
-
-            OrderItem entity = await _db.OrderItems.FindAsync(model.Id);
-
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
-
-            _db.OrderItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
-
-            _db.OrderItems.Remove(entity);
-            _db.Entry(entity).State = EntityState.Deleted;
-            await _db.SaveChangesAsync();            
-
-            return model;
+            return await _orderItemSharedService.DeleteAsync(model, user, date);            
         });
 
         public ValueTask<OrderItemVM> UpdateAsync(OrderItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
@@ -387,27 +370,6 @@ namespace iLgs.Services.PurchaseOrder
             //}
 
             return stockName;
-        }
-        
-        private async ValueTask ValidateOnDelete(OrderItemVM model)
-        {
-            var postedBy = _db.Orders.FindAsync(model.OrderId).Result?.PostedBy;
-            if (!string.IsNullOrWhiteSpace(postedBy))
-            {
-                throw new RecordAlreadyPostedException("PO Number already Posted, cannot delete!");
-            }
-            if (await GetAnyAirItemsAsync(model.Id))
-            {
-                throw new RecordRelationshipException("PO Number already with AIR, cannot delete!");
-            }
-            if (await GetAnyParItemsAsync(model.Id))
-            {
-                throw new RecordRelationshipException("PO Number already with PAR, cannot delete!");
-            }
-            //if (!string.IsNullOrEmpty(model.SetLotNo))
-            //{
-            //    throw new RecordRelationshipException("Item belongs to a set, cannot delete!");
-            //}
-        }
+        }               
     }
 }

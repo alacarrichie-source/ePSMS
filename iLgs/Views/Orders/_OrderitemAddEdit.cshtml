@@ -230,7 +230,9 @@
                     @Html.DisplayFor(model => model.UnitCost, "LabelDecimal")
                 </div>
                 <div class="col-md-10">
-                    @(Html.Kendo().NumericTextBoxFor(model => model.UnitCost).Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                    @(Html.Kendo().NumericTextBoxFor(model => model.UnitCost)
+                        .Enable(string.IsNullOrWhiteSpace(ViewData["setLotNo"] as string)) 
+                        .Decimals(2).Format("{0:n2}").HtmlAttributes(new { style = "width:100%; max-width:100%;" })
                         .Events(e => e.Change("changeAmount"))
                     )
                     @Html.ValidationMessageFor(model => model.UnitCost)

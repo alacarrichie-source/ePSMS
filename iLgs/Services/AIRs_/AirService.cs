@@ -34,6 +34,8 @@ namespace iLgs.Services.AIRs_
     public class AirService : BaseValidator, IAirService
     {
         private readonly AppManEntities _db;
+        private decimal? _priceCap;
+
         private readonly IExceptionService<AIR_VM> _vmExceptionService;
         private readonly IExceptionService<AIR> _exceptionService;
         private readonly IAirAbstractService _airAbstractService;
@@ -60,7 +62,9 @@ namespace iLgs.Services.AIRs_
             _uploadService = uploadService;
             _userService = userService;
             _priceCapService = priceCapService;
-            _getDisplayName = propertyName => Utility.GetDisplayName<OrderVM>(propertyName);
+            _getDisplayName = Utility.GetDisplayName<OrderVM>;
+
+            _priceCap = _priceCapService.GetPriceCap();
         }
 
         private static Expression<Func<AIR, AIR_VM>> Projection
@@ -232,7 +236,7 @@ namespace iLgs.Services.AIRs_
             _db.Entry(entity).State = EntityState.Modified;
 
             List<Guid> psCardIdList = new List<Guid>();
-            var orderItemGroups = await _db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}", entity.OrderId).ToListAsync();
+            var orderItemGroups = await _db.Database.SqlQuery<OrderItemGroupVM>("Exec OrderService_GetOrderItemGroup {0}, {1}", entity.OrderId, _priceCap).ToListAsync();
             // create stock for each group
             foreach (var oig in orderItemGroups)
             {

@@ -46,6 +46,15 @@ namespace iLgs.Controllers
             return View("Codextn", codeMast);
         }
 
+        public async Task<ActionResult> SemiExpendable()
+        {
+            var code = "SEMI-EXPENDABLE";
+            var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
+            ViewData["code"] = code;
+            ViewData["title"] = "Semi-Expendable Property Value";
+            return View("Codextn", codeMast);
+        }
+
         public async Task<ActionResult> Issuance()
         {
             var code = "ISSUANCE-YEAR";
