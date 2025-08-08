@@ -32,12 +32,12 @@ namespace iLgs.Services.StockCards
             IAllFieldService allFieldService,
             IPsCardSharedService psCardSharedService,
             IPsCardItemService psCardItemService,
-            IPsCardItemIssuanceService psCardItemIssuanceService,
+            //IPsCardItemIssuanceService psCardItemIssuanceService,
             IExceptionService<StockCardVM> stockExceptionService,
             IStockCardValidator validator,
             IItemCodeService itemCodeService,
             IUserService userService) 
-            : base(db, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService, psCardItemIssuanceService)
+            : base(db, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService) //, psCardItemIssuanceService)
         {
             _stockExceptionService = stockExceptionService;
             _validator = validator;

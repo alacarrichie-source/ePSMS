@@ -49,7 +49,7 @@ namespace iLgs.Services.PropertyCard
             {
                 Location = s.Codextn.Description,
                 Id = s.Id,
-                PsCardItemExtnId = s.Id,
+                //PsCardItemExtnId = s.Id,
                 PsCardItemId = s.PsCardItemId,
                 AIRItemExtnId = s.AIRItemExtnId,
                 SetLotNo = s.SetLotNo,
@@ -169,39 +169,20 @@ namespace iLgs.Services.PropertyCard
             _db.PsCardItemExtns.Add(entity);
             await _db.SaveChangesAsync();
 
-            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
-
-            //model.InsertedBy = user;
-            //model.UpdatedBy = user;
-            //model.InsertedDt = date;
-            //model.UpdatedDt = date;
-
-            //// Generate the series
-            //List<string> seriesList = GenerateSeries(model.BegSerial, model.EndSerial);
-
-            //// Output the series
-            //foreach (var series in seriesList)
-            //{
-            //    model.Id = Guid.NewGuid();
-            //    model.SerialNo = series;
-            //    model.InsertedBy = user;
-            //    model.UpdatedBy = user;
-            //    model.InsertedDt = date;
-            //    model.UpdatedDt = date;
-
-            //    var entity = new PsCardItemExtnOther();
-            //    MapModelToEntityFields(entity, model, Mode.ADD);
-
-            //    _db.PsCardItemExtns.Add(entity);
-            //    await _db.SaveChangesAsync();
-
-            //    await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
-
-            //    if (++itemExtnCount >= itemQty)
-            //    {
-            //        break;
-            //    }
-            //}
+            // Add Item to PsCardItemTransferItems
+            var psCardItemTransferItem = new PsCardItemTransferItem()
+            {
+                Id = Guid.NewGuid(),
+                PsCardItemTransferId = model.TransferId,
+                PsCardItemExtnId = model.Id,
+                InsertedBy = user,
+                InsertedDt = date,
+                UpdatedBy = user,
+                UpdatedDt = date
+            };
+            _db.PsCardItemTransferItems.Add(psCardItemTransferItem);
+            await _db.SaveChangesAsync();
+            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);            
 
             return model;
         });
@@ -250,7 +231,22 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().FirstOrDefault(f => f.Id == model.Id);
+            var psCardItemTransferItem = await _db.PsCardItemTransferItems.FirstOrDefaultAsync(f => f.PsCardItemExtnId == model.Id);
+            if (psCardItemTransferItem != null)
+            {
+                psCardItemTransferItem.UpdatedBy = model.UpdatedBy;
+                psCardItemTransferItem.UpdatedDt = model.UpdatedDt;
+
+                _db.PsCardItemTransferItems.Attach(psCardItemTransferItem);
+                _db.Entry(psCardItemTransferItem).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
+
+                _db.PsCardItemTransferItems.Remove(psCardItemTransferItem);
+                _db.Entry(psCardItemTransferItem).State = EntityState.Deleted;
+                await _db.SaveChangesAsync();
+            }
+
+            var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnOther>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
             entity.UpdatedBy = model.UpdatedBy;
             entity.UpdatedDt = model.UpdatedDt;

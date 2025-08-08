@@ -24,6 +24,8 @@ namespace iLgs.Services.PropertyCard
         ValueTask<PsCardItemVM> GetByGroupIdAsync(Guid? groupId);
         ValueTask<string> GetCategoryAsync(Guid? psCardItemId);
 
+        ValueTask<PsCardItem> GetByItemExtnIdAsync(Guid? psCardItemExtnId);
+
         ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date);
         ValueTask<PsCardItemVM> UpdateAsync(PsCardItemVM model, string user, DateTime date);
         ValueTask<ParIcsItemVm> UpdateIsForICSAsync(ParIcsItemVm model, string user, DateTime date);
@@ -325,7 +327,12 @@ namespace iLgs.Services.PropertyCard
         public async ValueTask<string> GetCategoryAsync(Guid? psCardItemId)
         {
             return await _db.PsCardItems.Where(w => w.Id == psCardItemId).Select(s => s.PsCard.ItemCode.ItemType.Code).FirstOrDefaultAsync();
-        }        
+        }
+
+        public async ValueTask<PsCardItem> GetByItemExtnIdAsync(Guid? psCardItemExtnId)
+        {
+            return await _db.PsCardItems.FirstOrDefaultAsync(f => f.PsCardItemExtns.Any(a => a.Id == psCardItemExtnId));
+        }
 
         public ValueTask<PsCardItemVM> CreateAsync(PsCardItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {

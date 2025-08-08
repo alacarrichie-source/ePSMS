@@ -55,7 +55,6 @@ namespace iLgs.Models
     
         public virtual AIRItemExtn AIRItemExtn { get; set; }
         public virtual Codextn Codextn { get; set; }
-        public virtual PsCardItem PsCardItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemIssuanceItem> PsCardItemIssuanceItems { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -66,5 +65,6 @@ namespace iLgs.Models
         public virtual ICollection<PsCardItemExtnAddCost> PsCardItemExtnAddCosts { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<IcsParItem> IcsParItems { get; set; }
+        public virtual PsCardItem PsCardItem { get; set; }
     }
 }

@@ -523,126 +523,126 @@ namespace iLgs.Controllers
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
         }
 
-        public ActionResult IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
-        {
-            var data = _propertyCardService.PsCardItemIssuance.GetByCardItemId(cardItemId);
+        //public ActionResult IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        //{
+        //    var data = _propertyCardService.PsCardItemIssuance.GetByCardItemId(cardItemId);
 
-            return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
-        }
+        //    return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
+        //}
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> IssuanceCreate([DataSourceRequest] DataSourceRequest request, PsCardItemIssuanceVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
-                Access access = await accessTask;
-                if (!access.AllowAdd)
-                {
-                    ModelState.AddModelError("Access", "Access Denied!");
-                }
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> IssuanceCreate([DataSourceRequest] DataSourceRequest request, PsCardItemIssuanceVM model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+        //        Access access = await accessTask;
+        //        if (!access.AllowAdd)
+        //        {
+        //            ModelState.AddModelError("Access", "Access Denied!");
+        //        }
 
-                if (model != null && ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+        //        if (model != null && ModelState.IsValid)
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
 
-                    model = await _propertyCardService.PsCardItemIssuance.CreateAsync(model, user, date);
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", e.Message);
-            }
+        //            model = await _propertyCardService.PsCardItemIssuance.CreateAsync(model, user, date);
+        //        }
+        //    }
+        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+        //    {
+        //        var errors = validationException.GetErrorsForModelState();
+        //        foreach (var error in errors)
+        //        {
+        //            ModelState.AddModelError(error.Key, error.Message);
+        //        }
+        //    }
+        //    catch (ValidationException validationException)
+        //    {
+        //        ModelState.AddModelError("", validationException.InnerException.Message);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("", e.Message);
+        //    }
 
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
+        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        //}
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> IssuanceUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemIssuanceVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
-                Access access = await accessTask;
-                if (!access.AllowEdit)
-                {
-                    ModelState.AddModelError("Access", "Access Denied!");
-                }
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> IssuanceUpdate([DataSourceRequest] DataSourceRequest request, PsCardItemIssuanceVM model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+        //        Access access = await accessTask;
+        //        if (!access.AllowEdit)
+        //        {
+        //            ModelState.AddModelError("Access", "Access Denied!");
+        //        }
 
-                if (ModelState.IsValid)
-                {
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+        //        if (ModelState.IsValid)
+        //        {
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
 
-                    model = await _propertyCardService.PsCardItemIssuance.UpdateAsync(model, user, date);
-                }
-            }
-            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
-            {
-                var errors = validationException.GetErrorsForModelState();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.Message);
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("", e.Message);
-            }
+        //            model = await _propertyCardService.PsCardItemIssuance.UpdateAsync(model, user, date);
+        //        }
+        //    }
+        //    catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+        //    {
+        //        var errors = validationException.GetErrorsForModelState();
+        //        foreach (var error in errors)
+        //        {
+        //            ModelState.AddModelError(error.Key, error.Message);
+        //        }
+        //    }
+        //    catch (ValidationException validationException)
+        //    {
+        //        ModelState.AddModelError("", validationException.InnerException.Message);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("", e.Message);
+        //    }
 
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }
+        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        //}
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<ActionResult> IssuanceDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemIssuanceVM model)
-        {
-            try
-            {
-                Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
-                Access access = await accessTask;
-                if (!access.AllowDelete)
-                {
-                    ModelState.AddModelError("DeleteError", "Delete Access Denied!");
-                }
-                else
-                //if (ModelState.IsValid)
-                {
-                    ModelState.Clear();
-                    string user = ControllerContext.HttpContext.User.Identity.Name;
-                    DateTime date = System.DateTime.Now;
+        //[AcceptVerbs(HttpVerbs.Post)]
+        //public async Task<ActionResult> IssuanceDestroy([DataSourceRequest]DataSourceRequest request, PsCardItemIssuanceVM model)
+        //{
+        //    try
+        //    {
+        //        Task<Access> accessTask = Access(User.Identity.GetUserId(), "property_card");
+        //        Access access = await accessTask;
+        //        if (!access.AllowDelete)
+        //        {
+        //            ModelState.AddModelError("DeleteError", "Delete Access Denied!");
+        //        }
+        //        else
+        //        //if (ModelState.IsValid)
+        //        {
+        //            ModelState.Clear();
+        //            string user = ControllerContext.HttpContext.User.Identity.Name;
+        //            DateTime date = System.DateTime.Now;
 
-                    model = await _propertyCardService.PsCardItemIssuance.DeleteAsync(model, user, date);
-                    // TO DO: update stocks
-                }
-            }
-            catch (ValidationException validationException)
-            {
-                ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("DeleteError", e.Message);
-            }
+        //            model = await _propertyCardService.PsCardItemIssuance.DeleteAsync(model, user, date);
+        //            // TO DO: update stocks
+        //        }
+        //    }
+        //    catch (ValidationException validationException)
+        //    {
+        //        ModelState.AddModelError("DeleteError", validationException.InnerException.Message);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ModelState.AddModelError("DeleteError", e.Message);
+        //    }
 
-            return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }        
+        //    return Json(new[] { model }.ToDataSourceResult(request, ModelState));
+        //}        
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> LoadFields([System.Web.Http.FromBody] PropertyCardVM model)
@@ -1245,7 +1245,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> GetItemExtnTemplate(Guid? id)
         {            
             var itemTransfer = await _propertyCardService.PsCardItem.PsCardItemTransfer.GetByIdAsync(id);
-            string itemExtnName = _propertyCardService.GetItemExtnName(id);
+            string itemExtnName = _propertyCardService.GetItemExtnName(itemTransfer.PsCardItemId);
 
             return Json(new { Errors = "", ItemExtnName = itemExtnName, ItemTransfer = itemTransfer }, JsonRequestBehavior.AllowGet);
         }

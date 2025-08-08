@@ -64,7 +64,7 @@ namespace iLgs.Services.ParIcs
                     Id = s.Id,
                     PsCardItemExtnId = s.PsCardItemExtnId,
                     ContentNo = s.PsCardItemExtn.ContentNo,
-                    TContentNo = s.PsCardItemExtn.PsCardItem.Qty,
+                    TContentNo = (int?)s.PsCardItemExtn.PsCardItem.Qty,
                     PropNo = s.PsCardItemExtn.PropNo,
                     IssuedTo = s.IssuedTo,
                     Designation = s.Designation,

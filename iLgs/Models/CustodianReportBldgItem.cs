@@ -88,9 +88,10 @@ namespace iLgs.Models
         public virtual Codextn Codextn1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianDisposalItem> CustodianDisposalItems { get; set; }
-        public virtual CustodianReport CustodianReport { get; set; }
-        public virtual ItemCode ItemCode { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CustodianReportBldgItemPhas> CustodianReportBldgItemPhases { get; set; }
+        public virtual CustodianReport CustodianReport { get; set; }
+        public virtual ItemCode ItemCode { get; set; }
+        public virtual CustodianReportUpload CustodianReportUpload { get; set; }
     }
 }

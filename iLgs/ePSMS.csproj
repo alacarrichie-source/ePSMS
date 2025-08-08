@@ -427,6 +427,9 @@
     <Compile Include="Models\CustodianReportLandItem.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\CustodianReportUpload.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\CustodianViewModels.cs" />
     <Compile Include="Models\DepartmentUser.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -929,7 +932,7 @@
     <Compile Include="Services\ServiceResult.cs" />
     <Compile Include="Services\StockCards\StockCardService.cs" />
     <Compile Include="Services\ParIcs\ParIcsUploadService.cs" />
-    <Compile Include="Services\UploadService.cs" />
+    <Compile Include="Services\Uploads\UploadService.cs" />
     <Compile Include="Services\Uploads\AddCostUploadService.cs" />
     <Compile Include="Services\Uploads\ItemCodeRequestUploadService.cs" />
     <Compile Include="Services\UserService.cs" />
@@ -4679,7 +4682,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
+      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

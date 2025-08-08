@@ -138,6 +138,11 @@ namespace iLgs.Utilities
             }
 
             return null;
-        }        
+        }
+
+        public static DateTime GetAsOfDate(int? forYear)
+        {
+            return new DateTime((int)forYear, 12, 31);
+        }
     }
 }

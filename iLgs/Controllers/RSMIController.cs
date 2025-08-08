@@ -128,7 +128,7 @@ namespace iLgs.Controllers
                             ItemName = s.PsCardItemTransfer.PsCardItem.Description,
                             Unit = s.PsCardItemTransfer.PsCardItem.Unit,
                             UnitCost = s.PsCardItemTransfer.PsCardItem.UnitCost,
-                            Qty = s.Qty,
+                            Qty = (int?)s.Qty,
                             Amount = s.Amount,
                             AccountCode = s.PsCardItemTransfer.PsCardItem.PsCard.ItemCode.AccountCode
                         }).ToListAsync();

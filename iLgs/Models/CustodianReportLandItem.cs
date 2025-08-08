@@ -118,5 +118,6 @@ namespace iLgs.Models
         public virtual ICollection<CustodianDisposalItem> CustodianDisposalItems { get; set; }
         public virtual CustodianReport CustodianReport { get; set; }
         public virtual ItemCode ItemCode { get; set; }
+        public virtual CustodianReportUpload CustodianReportUpload { get; set; }
     }
 }

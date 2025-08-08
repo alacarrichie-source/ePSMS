@@ -65,7 +65,7 @@ namespace iLgs.Services.PurchaseRequest
                     ItemName = s.RisItemUnitGroupDescriptionItem.RisItem.ItemName,
                     Description = s.RisItemUnitGroupDescriptionItem.RisItem.Description,
                     Unit = s.RisItemUnitGroupDescriptionItem.RisItem.Unit,
-                    QtyRequest = s.RisItemUnitGroupDescriptionItem.RisItem.QtyRequest,
+                    QtyRequest = (int?)s.RisItemUnitGroupDescriptionItem.RisItem.QtyRequest,
                     PriceRate = s.RequestItem.PriceRate,
                     UnitCost = s.RequestItem.UnitCost,
                     TotalCost = s.RequestItem.TotalCost,

@@ -557,8 +557,7 @@
         var myTitle = "Additional Cost";
         var width = 1000;
         var psCardItemExtnId = $("#Id").val();
-        var unitCost = $("#UnitCost").data("kendoNumericTextBox").value();
-
+        
         $("#windowcontainer").append("<div id='window'></div>");
         var mywindow = $("#window")
                 .kendoWindow({
@@ -568,7 +567,7 @@
                     visible: false,
                     autoheight: true,
                     close: function () {
-                        GetAddCost(psCardItemExtnId, unitCost);
+                        GetAddCost(psCardItemExtnId);
                     },
                     deactivate: function () {
                         this.destroy();
@@ -593,14 +592,14 @@
         mywindow.open();
     }
 
-    function GetAddCost(psCardItemExtnId, unitCost) {
+    function GetAddCost(psCardItemExtnId) {
         var url = '@Url.Action("GetAddCost", "ItemCard")';
         $.ajax({
             url: url,
             type: 'POST',
             data: {psCardItemExtnId: psCardItemExtnId},
             success: function (data) {
-                var acqCost = data.TotalAddCost + unitCost;
+                var acqCost = data.TotalAddCost + data.UnitCost;
                 $("#AddCost").data("kendoNumericTextBox").value(data.TotalAddCost);
                 $("#AddCost").data("kendoNumericTextBox").trigger("change");
 
@@ -685,7 +684,7 @@
             });
             if (validationError) {
                 var validationTemplate = kendo.template($("#validationMessageTemplate").html());
-                $('#ErrorContent').removeClass('hidden');
+                $('#AddCostErrorContent').removeClass('hidden');
                 selectedGrid.one("dataBinding", function (e) {
                     e.preventDefault();
                     var errors = selectedGrid.editable.element.find(".errors");
@@ -801,17 +800,17 @@
     }
 
     // uploads
-    function onClickUploads(e) {
+    function onClickUploadAddCost(e) {
         e.preventDefault();
         selectedGrid = this;
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
         var rowitem = selectedGrid.dataSource.get(dataItem.Id);
         selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
-        Uploads(dataItem.Id, dataItem.PostedBy);
+        UploadAddCost(dataItem.Id, dataItem.PostedBy);
     }
 
 
-    function Uploads(imageId, postedBy) {
+    function UploadAddCost(imageId, postedBy) {
         var myTitle = "Uploads";
         var width = 1000;
         var height = 650;
@@ -911,7 +910,7 @@
         // Retrieve the grid name from the data attribute
         var imageId = $(button).data("imageid");
         var description = $(button).data("description");
-        var myUrl = '@Url.Action("_ImagesAdd", "iTEMcARD")?imageId=' + imageId + '&description=' + description;
+        var myUrl = '@Url.Action("_ImagesAdd", "ItemCard")?imageId=' + imageId + '&description=' + description;
         var myTitle = "Upload Images/Documents";
         var width = 800;
         var height = 650;

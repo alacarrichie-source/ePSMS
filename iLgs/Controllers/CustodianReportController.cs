@@ -32,7 +32,7 @@ namespace iLgs.Controllers
         private readonly ICustodianReportItemService _custodianReportItemService;
         private readonly ICustodianReportItemStockService _custodianReportItemStockService;
         private readonly ICustodianReportItemPpeService _custodianReportItemPpeService;
-        private readonly ICustodianReportItemVehicleService _custodianReportItemVehicleService;   
+        private readonly ICustodianReportItemVehicleService _custodianReportItemVehicleService;
         private readonly ICustodianReportItemIssuanceParService _parIssuanceService;
         private readonly ICustodianReportItemIssuanceIcsService _icsIssuanceService;
         private readonly ICustodianReportItemIssuanceAreService _areIssuanceService;
@@ -66,7 +66,7 @@ namespace iLgs.Controllers
             _custodianReportItemService = custodianReportItemService;
             _custodianReportItemStockService = custodianReportItemStockService;
             _custodianReportItemPpeService = custodianReportItemPpeService;
-            _custodianReportItemVehicleService = custodianReportItemVehicleService;            
+            _custodianReportItemVehicleService = custodianReportItemVehicleService;
             _parIssuanceService = custodianReportItemIssuanceParService;
             _icsIssuanceService = custodianReportItemIssuanceIcsService;
             _areIssuanceService = custodianReportItemIssuanceAreService;
@@ -82,7 +82,7 @@ namespace iLgs.Controllers
             _ppeId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.PPE);
             _transpoId = _custodianReportService.GetAccountGroupMenuId(CustodianAccountGroup.VEHICLE);
         }
-        
+
         public ActionResult Stock()
         {
             TempData["AllowIndexAccess"] = true; // Set a flag to allow Index access
@@ -98,6 +98,8 @@ namespace iLgs.Controllers
             {
                 ViewBag.AnnexDUser = false;
             }
+
+            ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
 
@@ -115,6 +117,8 @@ namespace iLgs.Controllers
             {
                 ViewBag.AnnexDUser = false;
             }
+
+            ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
 
@@ -133,7 +137,8 @@ namespace iLgs.Controllers
             {
                 ViewBag.AnnexDUser = false;
             }
-        
+
+            ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
 
@@ -153,6 +158,7 @@ namespace iLgs.Controllers
                 ViewBag.AnnexDUser = false;
             }
 
+            ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
 
@@ -171,6 +177,8 @@ namespace iLgs.Controllers
             {
                 ViewBag.AnnexDUser = false;
             }
+
+            ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
 
@@ -189,6 +197,8 @@ namespace iLgs.Controllers
             {
                 ViewBag.AnnexDUser = false;
             }
+
+            ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
 
@@ -202,7 +212,7 @@ namespace iLgs.Controllers
                 return View("Error"); // Or some other handling
             }
             return View();
-        }        
+        }
 
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> Post(Guid id, int? accountGroup)
@@ -329,18 +339,18 @@ namespace iLgs.Controllers
         }
 
         #region STOCK ITEM
-        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
+        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(deptId, accountGroup, user);
+            var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
-        public ActionResult _StockItemReadAll([DataSourceRequest] DataSourceRequest request, int? accountGroup)
+        public ActionResult _StockItemReadAll([DataSourceRequest] DataSourceRequest request, int? forYear, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemStockService.GetAllByAcctGroup(accountGroup, user);
+            var data = _custodianReportItemStockService.GetAllByAcctGroup(forYear, accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -349,7 +359,7 @@ namespace iLgs.Controllers
         public async Task<ActionResult> _StockItemCreate([DataSourceRequest] DataSourceRequest request, CustodianReportItemStockVM model)
         {
             try
-            {                
+            {
                 Task<Access> accessTask = Access(User.Identity.GetUserId(), _stockId);
                 Access access = await accessTask;
                 if (!access.AllowAdd)
@@ -460,18 +470,18 @@ namespace iLgs.Controllers
         #endregion
 
         #region PPE ITEMS
-        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
+        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(deptId, accountGroup, user);
+            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
-        public ActionResult _PpeItemReadAll([DataSourceRequest] DataSourceRequest request, int? accountGroup)
+        public ActionResult _PpeItemReadAll([DataSourceRequest] DataSourceRequest request, int? forYear, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemPpeService.GetAllByAcctGroup(accountGroup, user);
+            var data = _custodianReportItemPpeService.GetAllByAcctGroup(forYear, accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -591,18 +601,18 @@ namespace iLgs.Controllers
         #endregion
 
         #region VEHICLE ITEMS
-        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
+        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(deptId, accountGroup, user);
+            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
-        public ActionResult _VehicleItemReadAll([DataSourceRequest] DataSourceRequest request, int? accountGroup)
+        public ActionResult _VehicleItemReadAll([DataSourceRequest] DataSourceRequest request, int? forYear, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemVehicleService.GetAllByAcctGroup(accountGroup, user);
+            var data = _custodianReportItemVehicleService.GetAllByAcctGroup(forYear, accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -727,7 +737,7 @@ namespace iLgs.Controllers
             ViewData["reportItemId"] = reportItemId;
             return PartialView();
         }
-        
+
         public ActionResult _StockParIssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? reportItemId)
         {
             var data = _parIssuanceService.GetAll(reportItemId);
@@ -2811,7 +2821,7 @@ namespace iLgs.Controllers
             {
                 partialView = $"_Stock{partialView}";
             }
-            
+
             return PartialView(partialView, model);
         }
 
@@ -2873,34 +2883,26 @@ namespace iLgs.Controllers
             return File(fileContents, contentType, fileName);
         }
 
-        public ActionResult ExcelExportReport(Guid? reportId, int? accountGroup)
+        public ActionResult ExcelExportReport(int? forYear, Guid? reportId, int? accountGroup)
         {
-            return ExcelExport(reportId, null, accountGroup, "", null, "", "", "", "");
+            return ExcelExport(forYear, reportId, null, accountGroup, "", null, "", "", "", "");
         }
 
-        public ActionResult ExcelExportAll(Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf
+        public ActionResult ExcelExportAll(int? forYear, Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
-        {            
-            return ExcelExport(null, deptId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+        {
+            return ExcelExport(forYear, null, deptId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
-        public ActionResult ExcelExport(Guid? reportId, Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf
+        public ActionResult ExcelExport(int? forYear, Guid? reportId, Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
             {
-                //var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
-                //Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
-                //Access access = await accessTask;
-                //if (!access.AllowPrint)
-                //{
-                //    return new HttpStatusCodeResult(401, "Access Denied");
-                //}
-
                 string exportFileName = "";
                 if (accountGroup == (int?)CustodianAccountGroup.STOCK)
                 {
-                    exportFileName = "CustodianSupplies";                    
+                    exportFileName = "CustodianSupplies";
                 }
                 else if (accountGroup == (int?)CustodianAccountGroup.PPE)
                 {
@@ -2912,10 +2914,10 @@ namespace iLgs.Controllers
                 }
 
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportItemService.ProcessExcelFile(reportId, deptId, templateFilePath, accountGroup, mainAccount, asOf
+                var stream = _custodianReportItemService.ProcessExcelFile(forYear, reportId, deptId, templateFilePath, accountGroup, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4);
 
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");                
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");
             }
             catch (Exception ex)
             {
@@ -2923,18 +2925,18 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult ExcelExportAnnexAll(Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        public ActionResult ExcelExportAnnexAll(int? forYear, Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            return ExcelExportAnnex(null, deptId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return ExcelExportAnnex(forYear, null, deptId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
-        public ActionResult ExcelExportAnnexReport(Guid? reportId, int? accountGroup, string annex)
+        public ActionResult ExcelExportAnnexReport(int? forYear, Guid? reportId, int? accountGroup, string annex)
         {
-            return ExcelExportAnnex(reportId, null, accountGroup, annex, "", null, "", "", "", "");
+            return ExcelExportAnnex(forYear, reportId, null, accountGroup, annex, "", null, "", "", "", "");
         }
 
-        public ActionResult ExcelExportAnnex(Guid? reportId, Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        public ActionResult ExcelExportAnnex(int? forYear, Guid? reportId, Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
@@ -2954,7 +2956,7 @@ namespace iLgs.Controllers
                 }
 
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportItemService.ProcessExcelFileAnnex(reportId, deptId, templateFilePath, accountGroup, annex, mainAccount, asOf
+                var stream = _custodianReportItemService.ProcessExcelFileAnnex(forYear, reportId, deptId, templateFilePath, accountGroup, annex, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}-{annex}.xlsx");
@@ -2995,7 +2997,7 @@ namespace iLgs.Controllers
         //    }
         //}
 
-        #region UPLOADS
+        #region IMAGE UPLOADS
         public ActionResult _Images(Guid? imageId)
         {
             ViewData["imageId"] = imageId;
@@ -3024,7 +3026,7 @@ namespace iLgs.Controllers
             };
             return result;
         }
-        
+
         public async Task<ActionResult> _ImagesDestroy([DataSourceRequest]DataSourceRequest request, Models.Upload model, int? accountGroup)
         {
             try
@@ -3152,7 +3154,7 @@ namespace iLgs.Controllers
         public ActionResult DownloadFile(string fileName)
         {
             try
-            {                
+            {
                 // Call the service to get the file bytes
                 byte[] fileBytes = _uploadService.DownloadFile(fileName);
 
@@ -3169,7 +3171,7 @@ namespace iLgs.Controllers
                 // Handle other exceptions
                 return new HttpStatusCodeResult(500, "Error downloading file: " + ex.Message);
             }
-        }    
+        }
 
         public async Task<ActionResult> PreviewUpload(Guid id)
         {
@@ -3184,5 +3186,111 @@ namespace iLgs.Controllers
             }
         }
         #endregion
+
+        #region DOWNLOAD RECORDS
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> Download(int? forYear, Guid? deptId, int? accountGroup)
+        {
+            try
+            {
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.AllowDownload)
+                {
+                    ModelState.AddModelError("GridError", "Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _custodianReportService.Download(forYear, deptId, accountGroup, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+        #endregion  
+
+        #region UPLOAD RECORDS
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> Upload(int? forYear, Guid? deptId, int? accountGroup)
+        {
+            try
+            {
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.AllowDownload)
+                {
+                    ModelState.AddModelError("GridError", "Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _custodianReportService.Upload(forYear, deptId, accountGroup, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+        #endregion  
     }
 }

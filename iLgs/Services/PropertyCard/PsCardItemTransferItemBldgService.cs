@@ -84,7 +84,7 @@ namespace iLgs.Services.PropertyCard
             _db.PsCardItemExtns.Add(entity);
             await _db.SaveChangesAsync();
 
-            await _psCardItemTransactionService.LogUpdates(model.PsCardItemExtnId, model.PsCardItemId, "CARD", user, date);
+            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
             return model;
         });
 
@@ -104,7 +104,7 @@ namespace iLgs.Services.PropertyCard
 
             var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnBuilding>()
                 .Include(i => i.PsCardItemTransferItems)
-                .FirstOrDefaultAsync(f => f.Id == model.PsCardItemExtnId);
+                .FirstOrDefaultAsync(f => f.Id == model.Id);
             var psCardItemTransferItem = entity.PsCardItemTransferItems.FirstOrDefault(f => f.Id == model.Id);
             psCardItemTransferItem.UpdatedBy = user;
             psCardItemTransferItem.UpdatedDt = date;
@@ -116,7 +116,7 @@ namespace iLgs.Services.PropertyCard
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            await _psCardItemTransactionService.LogUpdates(model.PsCardItemExtnId, model.PsCardItemId, "CARD", user, date);
+            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
 
             return model;
         });
@@ -152,7 +152,7 @@ namespace iLgs.Services.PropertyCard
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var entity = await _db.PsCardItemExtns.Include(i => i.PsCardItemTransferItems).OfType<PsCardItemExtnBuilding>().FirstOrDefaultAsync(f => f.Id == model.PsCardItemExtnId);
+            var entity = await _db.PsCardItemExtns.Include(i => i.PsCardItemTransferItems).OfType<PsCardItemExtnBuilding>().FirstOrDefaultAsync(f => f.Id == model.Id);
 
             //// Remove each item from the DbContext
             //foreach (var item in entity.PsCardItemTransferItems.ToList())

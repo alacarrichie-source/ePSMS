@@ -37,7 +37,7 @@ namespace iLgs.Services.PropertyCard
         public void ValidateOnUpdate(PsCardItemExtnVehicleVM model)
         {
             ValidateIfNull(model);
-            ValidateRecord((Guid)model.PsCardItemExtnId);
+            ValidateRecord((Guid)model.Id);
             ValidateIfPosted(model);
             ValidateFieldsOnCreateUpdate(model, Mode.EDIT);
         }
@@ -45,7 +45,7 @@ namespace iLgs.Services.PropertyCard
         public void ValidateOnDelete(PsCardItemExtnVehicleVM model)
         {
             ValidateIfNull(model);
-            ValidateRecord((Guid)model.PsCardItemExtnId);
+            ValidateRecord((Guid)model.Id);
             ValidateIfPosted(model);
 
             // check in Par/Ics
@@ -55,14 +55,14 @@ namespace iLgs.Services.PropertyCard
             }
 
             var transfer = _db.PsCardItemTransferItems.AsNoTracking()
-                    .Where(w => w.PsCardItemTransfer.ParentId != null && w.PsCardItemExtnId == model.PsCardItemExtnId);
+                    .Where(w => w.PsCardItemTransfer.ParentId != null && w.PsCardItemExtnId == model.Id);
             if (transfer.Any())
             {
                 throw new RecordAlreadyExistsException("Item was already Transferred, cannot delete!");
             }
 
             var issuance = _db.PsCardItemTransferItems.AsNoTracking()
-                    .Where(w => w.PsCardItemExtnId == model.PsCardItemExtnId && w.PsCardItemTransferIssuanceItems.Any());
+                    .Where(w => w.PsCardItemExtnId == model.Id && w.PsCardItemTransferIssuanceItems.Any());
             if (issuance.Any())
             {
                 throw new RecordAlreadyExistsException("Item was already Issued, cannot delete!");
@@ -77,66 +77,41 @@ namespace iLgs.Services.PropertyCard
             {
                 var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
                     .FirstOrDefault(f => f.ConductionNo == model.ConductionNo);
-                if (data != null) {
-                    if (mode == Mode.ADD)
-                    {
-                        ex.UpsertDataList(_getDisplayName(nameof(model.ConductionNo)), "Already exists.");
-                    }
-                    else
-                    {
-                        if (data.Id != model.PsCardItemExtnId)
-                        {
-                            ex.UpsertDataList(_getDisplayName(nameof(model.ConductionNo)), "Already exists.");
-                        }
-                    }
+                if (data != null && (mode == Mode.ADD || data.Id != model.Id))
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.ConductionNo)), "Already exists.");
+                }                
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.PlateNo))
+            {
+                var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
+                    .FirstOrDefault(f => f.PlateNo == model.PlateNo);
+                if (data != null && (mode == Mode.ADD || data.Id != model.Id))
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.PlateNo)), "Already exists.");
+                }                
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.EngineNo))
+            {
+                var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
+                    .FirstOrDefault(f => f.EngineNo == model.EngineNo);               
+                if (data != null && (mode == Mode.ADD || data.Id != model.Id))
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.EngineNo)), "Already exists.");
                 }
             }
 
-            //if (model.DeptId == null)
-            //{
-            //    ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Field is required.");
-            //}
-            //else
-            //{
-            //    if (!_codextnService.IsValidMastCodeId("DEPARTMENTS", model.DeptId))
-            //    {
-            //        ex.UpsertDataList(_getDisplayName(nameof(model.DeptId)), "Invalid value");
-            //    }
-            //}
-
-            //if (string.IsNullOrWhiteSpace(model.Unit))
-            //{
-            //    ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Field is required.");
-            //}
-            //else
-            //{
-            //    if (!_codextnService.IsValidMastCodeCode("UNIT", model.Unit))
-            //    {
-            //        ex.UpsertDataList(_getDisplayName(nameof(model.Unit)), "Invalid value");
-            //    }
-            //}
-
-            //if (!model.UnitCost.HasValue)
-            //{
-            //    ex.UpsertDataList(_getDisplayName(nameof(model.UnitCost)), "Field is required.");
-            //}
-
-            //if (string.IsNullOrWhiteSpace(model.Description))
-            //{
-            //    ex.UpsertDataList(_getDisplayName(nameof(model.Description)), "Field is required.");
-            //}
-
-            //if (string.IsNullOrWhiteSpace(model.InvDist))
-            //{
-            //    ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Field is required.");
-            //}
-            //else
-            //{
-            //    if (!_codextnService.IsValidMastCodeCode("PS-REMARKS", model.InvDist))
-            //    {
-            //        ex.UpsertDataList(_getDisplayName(nameof(model.InvDist)), "Invalid value");
-            //    }
-            //}
+            if (!string.IsNullOrWhiteSpace(model.BodyNo))
+            {
+                var data = _db.PsCardItemExtns.OfType<PsCardItemExtnVehicle>()
+                    .FirstOrDefault(f => f.BodyNo == model.BodyNo);
+                if (data != null && (mode == Mode.ADD || data.Id != model.Id))
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.BodyNo)), "Already exists.");
+                }
+            }            
 
             ex.ThrowIfContainsErrors();
         }

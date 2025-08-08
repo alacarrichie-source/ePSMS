@@ -25,10 +25,10 @@ namespace iLgs.Services.PropertyCard
         IQueryable<PsCardItemExtn> GetCardItemExtnForLand();
         IQueryable<PsCardItemExtn> GetCardItemExtnForStructures();
 
-        PsCardItemExtnLandEntryVM GetCardItemExtnLandEntry(Guid? id);
-        PsCardItemExtnStructuresEntryVM GetCardItemExtnStructuresEntry(Guid? id);
-        PsCardItemExtnVehicleEntryVM GetCardItemExtnVehicleEntry(Guid? id);
-        PsCardItemExtnPpeEntryVM GetCardItemExtnPpeEntry(Guid? id);
+        ValueTask<PsCardItemExtnLandEntryVM> GetCardItemExtnLandEntryAsync(Guid? id);
+        ValueTask<PsCardItemExtnStructuresEntryVM> GetCardItemExtnStructuresEntryAsync(Guid? id);
+        ValueTask<PsCardItemExtnVehicleEntryVM> GetCardItemExtnVehicleEntryAsync(Guid? id);
+        ValueTask<PsCardItemExtnPpeEntryVM> GetCardItemExtnPpeEntryAsync(Guid? id);
 
         ValueTask<PsCardItemExtnPpeEntryVM> UpdatePpeAsync(PsCardItemExtnPpeEntryVM model, string user, DateTime date);
         ValueTask<PsCardItemExtnVehicleEntryVM> UpdateVehicleAsync(PsCardItemExtnVehicleEntryVM model, string user, DateTime date);        
@@ -115,27 +115,27 @@ namespace iLgs.Services.PropertyCard
             return data;
         }
                                                
-        public PsCardItemExtnStructuresEntryVM GetCardItemExtnStructuresEntry(Guid? id)
+        public async ValueTask<PsCardItemExtnStructuresEntryVM> GetCardItemExtnStructuresEntryAsync(Guid? id)
         {
-            var data = _db.Database.SqlQuery<PsCardItemExtnStructuresEntryVM>("Exec PsCardItemExtn_Building_GetById {0}", id).FirstOrDefault();
+            var data = await _db.Database.SqlQuery<PsCardItemExtnStructuresEntryVM>("Exec PsCardItemExtn_Building_GetById {0}", id).FirstOrDefaultAsync();
             return data;
         }
 
-        public PsCardItemExtnLandEntryVM GetCardItemExtnLandEntry(Guid? id)
+        public async ValueTask<PsCardItemExtnLandEntryVM> GetCardItemExtnLandEntryAsync(Guid? id)
         {
-            var data = _db.Database.SqlQuery<PsCardItemExtnLandEntryVM>("Exec PsCardItemExtn_Land_GetById {0}", id).FirstOrDefault();
+            var data = await _db.Database.SqlQuery<PsCardItemExtnLandEntryVM>("Exec PsCardItemExtn_Land_GetById {0}", id).FirstOrDefaultAsync();
             return data;
         }
 
-        public PsCardItemExtnVehicleEntryVM GetCardItemExtnVehicleEntry(Guid? id)
+        public async ValueTask<PsCardItemExtnVehicleEntryVM> GetCardItemExtnVehicleEntryAsync(Guid? id)
         {
-            var data = _db.Database.SqlQuery<PsCardItemExtnVehicleEntryVM>("Exec PsCardItemExtn_Vehicle_GetById {0}", id).FirstOrDefault();
+            var data = await _db.Database.SqlQuery<PsCardItemExtnVehicleEntryVM>("Exec PsCardItemExtn_Vehicle_GetById {0}", id).FirstOrDefaultAsync();
             return data;
         }
 
-        public PsCardItemExtnPpeEntryVM GetCardItemExtnPpeEntry(Guid? id)
+        public async ValueTask<PsCardItemExtnPpeEntryVM> GetCardItemExtnPpeEntryAsync(Guid? id)
         {
-            var data = _db.Database.SqlQuery<PsCardItemExtnPpeEntryVM>("Exec PsCardItemExtn_PpeSupplies_GetById {0}", id).FirstOrDefault();
+            var data = await _db.Database.SqlQuery<PsCardItemExtnPpeEntryVM>("Exec PsCardItemExtn_PpeSupplies_GetById {0}", id).FirstOrDefaultAsync();
             return data;
         }
 
@@ -360,7 +360,7 @@ namespace iLgs.Services.PropertyCard
             return GetEndSeries(startSeries, qty);
         }
 
-        public string GetEndSeries(string startSeries, int qty)
+        public string GetEndSeries(string startSeries, decimal qty)
         {
             // Regular expression to capture the numeric part at the end of the string
             string pattern = @"(.*?)(\d+)$";
@@ -372,10 +372,10 @@ namespace iLgs.Services.PropertyCard
                 string prefix = match.Groups[1].Value;  // 'AB-01-X-'
                 string numericPart = match.Groups[2].Value;  // '01'
 
-                int startNumber = int.Parse(numericPart);  // Convert '01' to 1
+                decimal startNumber = decimal.Parse(numericPart);  // Convert '01' to 1
 
                 // Add the quantity to the start number
-                int endNumber = startNumber + qty - 1;
+                decimal endNumber = startNumber + qty - 1;
 
                 // Reassemble the series and maintain the same padding (based on the length of the numeric part)
                 int paddingLength = numericPart.Length;  // Get the length of the original numeric part

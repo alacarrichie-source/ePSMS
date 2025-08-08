@@ -336,9 +336,9 @@ namespace iLgs.Controllers
             return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult _AvaialbleItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId)
+        public ActionResult _AvaialbleItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId)
         {
-            var data = _custodianReportItemService.GetAvailableItemsForDisposal(deptId);
+            var data = _custodianReportItemService.GetAvailableItemsForDisposal(forYear, deptId);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }

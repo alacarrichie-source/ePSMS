@@ -8,7 +8,7 @@ using static iLgs.Models.Enums;
 namespace iLgs.Models
 {
 
-    public class IcsParVM : IcsPar
+    public class IcsParVM
     {
         public int? ItemCount { get; set; }
         public int? ItemCountActive { get; set; }
@@ -28,11 +28,11 @@ namespace iLgs.Models
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [Display(Name = "Date")]
         [Required]
-        new public Nullable<System.DateTime> RefDate { get; set; }
+        public Nullable<System.DateTime> RefDate { get; set; }
 
         [Display(Name = "Location Code")]
         [Required]
-        new public Nullable<System.Guid> LocationId { get; set; }
+        public Nullable<System.Guid> LocationId { get; set; }
 
         public string SelectedIds { get; set; }
 
@@ -41,6 +41,78 @@ namespace iLgs.Models
 
         [Display(Name = "Position")]
         public string Designation { get; set; }
+
+        //------------------
+        public System.Guid Id { get; set; }
+
+        [Display(Name = "Update Code")]
+        public string UpdateCode { get; set; }
+
+        public string RefNo { get; set; }
+        
+        public string RefType { get; set; }
+        
+        public string LocationCode { get; set; }
+
+        public string Location { get; set; }
+
+        [Display(Name = "Received by")]
+        [Required]
+        public Nullable<System.Guid> ReceivedById { get; set; }
+
+        [Required]
+        [Display(Name = "Received by")]
+        public string ReceivedBy { get; set; }
+
+        [Display(Name = "Title")]
+        public string ReceivedByTitle { get; set; }
+
+        [Display(Name = "Add'l Title")]
+        public string ReceivedByTitle2 { get; set; }
+
+        [Required]
+        [Display(Name = "Position")]
+        public string ReceivedByPosition { get; set; }
+
+        [Required]
+        [Display(Name = "Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> ReceivedDate { get; set; }
+
+        [Required]
+        [Display(Name = "Department")]
+        public string ReceivedDept { get; set; }
+
+        [Required]
+        [Display(Name = "Issued By")]
+        public string IssuedBy { get; set; }
+
+        [Required]
+        [Display(Name = "Position")]
+        public string IssuedByPosition { get; set; }
+
+        [Required]
+        [Display(Name = "Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> IssuedDate { get; set; }
+
+        [Required]
+        [Display(Name = "Department")]
+        public string IssuedDept { get; set; }
+
+        [Display(Name = "Posted by")]
+        public string PostedBy { get; set; }
+
+        [Display(Name = "Posted Date")]
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> PostedDt { get; set; }
+
+        public string InsertedBy { get; set; }
+
+        [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public Nullable<System.DateTime> InsertedDt { get; set; }
+        public string UpdatedBy { get; set; }
+        public Nullable<System.DateTime> UpdatedDt { get; set; }
     }
 
 
@@ -69,10 +141,8 @@ namespace iLgs.Models
             public string Location { get; set; }
 
             [Display(Name = "Received by")]
-            [Required]
             public Nullable<System.Guid> ReceivedById { get; set; }
 
-            [Required]
             [Display(Name = "Received by")]
             public string ReceivedBy { get; set; }
 
@@ -82,33 +152,26 @@ namespace iLgs.Models
             [Display(Name = "Add'l Title")]
             public string ReceivedByTitle2 { get; set; }
 
-            [Required]
             [Display(Name = "Position")]
             public string ReceivedByPosition { get; set; }
 
-            [Required]
             [Display(Name = "Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> ReceivedDate { get; set; }
 
-            [Required]
             [Display(Name = "Department")]            
             public string ReceivedDept { get; set; }
 
-            [Required]
             [Display(Name = "Issued By")]
             public string IssuedBy { get; set; }
 
-            [Required]
             [Display(Name = "Position")]
             public string IssuedByPosition { get; set; }
 
-            [Required]
             [Display(Name = "Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
             public Nullable<System.DateTime> IssuedDate { get; set; }
 
-            [Required]
             [Display(Name = "Department")]
             public string IssuedDept { get; set; }
 

@@ -32,11 +32,11 @@ namespace iLgs.Services.PropertyCard
             IAllFieldService allFieldService,
             IPsCardItemService psCardItemService,
             IPsCardSharedService psCardSharedService,
-            IPsCardItemIssuanceService psCardItemIssuanceService,
+            //IPsCardItemIssuanceService psCardItemIssuanceService,
             IExceptionService<PropertyCardVM> propCardVMexceptionService,
             IPropertyCardValidator validator,
             IItemCodeService itemCodeService,
-            IUserService userService) : base(db, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService, psCardItemIssuanceService)
+            IUserService userService) : base(db, exceptions, vmExceptionService, exceptionService, allFieldService, psCardSharedService, psCardItemService) //, psCardItemIssuanceService)
         {
             _propCardVMexceptionService = propCardVMexceptionService;
             _validator = validator;

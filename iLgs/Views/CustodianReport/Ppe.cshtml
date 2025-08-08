@@ -4,6 +4,23 @@
 <br />
 <div class="row k-mb-2">
     <div class="col-md-6">
+        @Html.Label("For Year", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().NumericTextBox()
+                .Name("forYear")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .Decimals(0)
+                .Spinners(false)
+                .Events(e => e.Change("onChangeForYear"))
+                .Format("0")
+                .Value(@ViewBag.ForYear)
+            )
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
         @Html.Label("Department", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().MultiColumnComboBox()
@@ -46,26 +63,26 @@
             col.Bound(c => c.Account).Width(70);
             col.Bound(c => c.SubAccount).Width(70);
             col.Bound(c => c.Article).Width(70);
-            col.Bound(c => c.PoNo).Width(50);
-            col.Bound(c => c.PoDate).Width(50);
-            col.Bound(c => c.Unit).Width(50);
-            col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
-                .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.LocationCode).Width(50);
-            col.Bound(c => c.Location).Width(70);            
+            //col.Bound(c => c.PoNo).Width(50);
+            //col.Bound(c => c.PoDate).Width(50);
+            //col.Bound(c => c.Unit).Width(50);
+            //col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
+            //    .HeaderHtmlAttributes(new { style = "text-align:right;" });
+            //col.Bound(c => c.LocationCode).Width(50);
+            //col.Bound(c => c.Location).Width(70);
             col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            col.Bound(c => c.AcqDate).Width(50);
+            //col.Bound(c => c.AcqDate).Width(50);
             col.Bound(c => c.PsNo).Width(70);
             col.Bound(c => c.Description).Width(150);
             col.Bound(c => c.Annex).Width(50);
             col.Bound(c => c.InsertedBy).Width(50);
-            col.Bound(c => c.InsertedDt).Width(50);            
+            col.Bound(c => c.InsertedDt).Width(50);
             col.Command(command =>
             {
                 command.Edit();
-                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true);
+                command.Custom("Delete").IconClass("k-icon k-i-close").Click("onGridDeleteClick").SendDataKeys(true).Visible("IsNotPosted");
                 command.Custom("Sticker").IconClass("k-icon k-i-print").Click("onGridPrintClick");
                 //command.Destroy();
             }).Width(172);
@@ -84,6 +101,8 @@
             }
             t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Download").IconClass("k-icon k-i-download").Name("btnDownload").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Download").IconClass("k-icon k-i-upload").Name("btnUpload").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Search();
         })
         .Search(s =>
@@ -91,7 +110,7 @@
             s.Field(o => o.Account, "contains");
             s.Field(o => o.SubAccount, "contains");
             s.Field(o => o.Article, "contains");
-            s.Field(o => o.PoNo, "contains");
+            //s.Field(o => o.PoNo, "contains");
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
         })
@@ -111,7 +130,7 @@
         .Selectable(s => s.Mode(GridSelectionMode.Single))
         .Scrollable()
         .Sortable()
-        .Groupable()
+        //.Groupable()
         .ClientDetailTemplateId("UploadedFiles")
         .DataSource(dataSource => dataSource
             .Ajax()
@@ -233,7 +252,7 @@
 
     .custom-max-grid .k-grid-content {
         overflow-x: auto;
-        height: calc(90vh - 180px) !important;
+        height: calc(80vh - 150px) !important;
     }
 </style>
 
@@ -252,6 +271,14 @@
 </script>
 
 <script type="text/javascript">
+    function IsNotPosted(dataItem) {
+        return !dataItem.PostedBy;
+    }
+
+    function IsPosted(dataItem) {
+        return dataItem.PostedBy;
+    }
+
     $(".k-grid-btnExport").click(function (e) {
         e.preventDefault();
         // Get the selected row's data (assuming a single selection model)
@@ -261,11 +288,12 @@
 
         if (selectedData) {
             window.kendo.ui.progress($(document.body), true);
+            var forYear = $("#forYear").val();
             // Get the ID of the selected row
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportReport", "CustodianReport")" + "?reportId=" + reportId + '&accountGroup=@ViewBag.AccountGroup';
+            var url = "@Url.Action("ExcelExportReport", "CustodianReport")?forYear=" + forYear + "&reportId=" + reportId + '&accountGroup=@ViewBag.AccountGroup';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -284,11 +312,12 @@
 
         if (selectedData) {
             window.kendo.ui.progress($(document.body), true);
+            var forYear = $("#forYear").val();
             // Get the ID of the selected row
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")" + "?reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=A';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear + "&reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=A';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -307,11 +336,12 @@
 
         if (selectedData) {
             window.kendo.ui.progress($(document.body), true);
+            var forYear = $("#forYear").val();
             // Get the ID of the selected row
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")" + "?reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=B';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear + "&reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=B';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -330,11 +360,12 @@
 
         if (selectedData) {
             window.kendo.ui.progress($(document.body), true);
+            var forYear = $("#forYear").val();
             // Get the ID of the selected row
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")" + "?reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=C';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear + "&reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=C';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -353,11 +384,12 @@
 
         if (selectedData) {
             window.kendo.ui.progress($(document.body), true);
+            var forYear = $("#forYear").val();
             // Get the ID of the selected row
             var reportId = selectedData.ReportId;
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")" + "?reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=D';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear + "&reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=D';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -374,8 +406,11 @@
         grid.wrapper.find(".k-grid-btnExportA").hide();
         grid.wrapper.find(".k-grid-btnExportB").hide();
         grid.wrapper.find(".k-grid-btnExportC").hide();
+        grid.wrapper.find(".k-grid-btnExportD").hide();
         grid.wrapper.find(".k-grid-btnPost").hide();
         grid.wrapper.find(".k-grid-btnUnpost").hide();
+        grid.wrapper.find(".k-grid-btnDownload").hide();
+        grid.wrapper.find(".k-grid-btnUpload").hide();
     });
 
     function onShowNotification(e) {
@@ -427,10 +462,16 @@
         }
     }
 
+    function onChangeForYear(e) {
+        $("#grid").data("kendoGrid").dataSource.read();
+    }
+
     function onSelectDeptId(e) {
         var dataItem = this.dataItem(e.item.index());
-
-        $("#grid").data("kendoGrid").dataSource.read({deptId: dataItem.Id, accountGroup : '@ViewBag.AccountGroup'});
+        $("#deptId").data("kendoMultiColumnComboBox").value(dataItem.Id);
+        $("#deptId").data("kendoMultiColumnComboBox").trigger("change");
+        //$("#grid").data("kendoGrid").dataSource.read({deptId: dataItem.Id, accountGroup : '@ViewBag.AccountGroup'});
+        $("#grid").data("kendoGrid").dataSource.read();
     }
 
     function onChangeDeptId(e) {
@@ -446,6 +487,7 @@
 
     function DataGrid() {
         return {
+            forYear: $("#forYear").val(),
             deptId: $("#deptId").val(),
             accountGroup: '@ViewBag.AccountGroup'
         };
@@ -490,9 +532,11 @@
         }
         if ($("#deptId").data("kendoMultiColumnComboBox").value()) {
             this.wrapper.find(".k-grid-add").show();
+            this.wrapper.find(".k-grid-btnDownload").show();
         }
         else {
             this.wrapper.find(".k-grid-add").hide();
+            this.wrapper.find(".k-grid-btnDownload").hide();
         }
 
         if (this.dataSource.data().length == 0) {
@@ -502,12 +546,14 @@
             $(".k-grid-btnExportC", grid).hide();
             $(".k-grid-btnPost", grid).hide();
             $(".k-grid-btnUnpost", grid).hide();
+            $(".k-grid-btnUpload", grid).hide();
         }
         else {
             $(".k-grid-btnExport", grid).show();
             $(".k-grid-btnExportA", grid).show();
             $(".k-grid-btnExportB", grid).show();
             $(".k-grid-btnExportC", grid).show();
+            $(".k-grid-btnUpload", grid).show();
             //$(".k-grid-btnPost", grid).show();
         }
     }
@@ -521,6 +567,7 @@
             var row = e.sender.tbody.find("tr:first");
             this.select(row);
             selectedId = null;
+            e.model.set("ForYear", $("#forYear").val());
             e.model.set("MainDeptId", $("#deptId").val());
             e.model.set("MainDeptName", $("#deptId").data("kendoMultiColumnComboBox").text());
             e.model.set("AccountGroup", accountGroup);
@@ -528,6 +575,27 @@
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);
             selectedGrid.select($('[data-uid=' + rowitem.uid + ']'));
+
+            var dataItem = e.model;
+            if (IsPosted(dataItem)) {
+                setTimeout(function () {
+                    var popup = e.container;
+
+                    // Disable all inputs, selects, and widgets
+                    popup.find("input, select, textarea, .k-datapicker, .k-numerictextbox, .k-combobox").prop("disabled", true);
+
+                    // Disable Kendo widgets including their buttons/icons
+                    popup.find("[data-role]").each(function () {
+                        var widget = kendo.widgetInstance($(this));
+                        if (widget && typeof widget.enable === "function") {
+                            widget.enable(false); // This disables the entire widget, including the icon
+                        }
+                    });
+
+                    // Hide update/save button
+                    popup.find(".k-grid-update").hide();
+                }, 50); // 0-50ms delay usually works well
+            }
         }
     }
 
@@ -656,6 +724,74 @@
                     }
                 });
             }
+        }
+    });
+
+    $(".k-grid-btnDownload").click(function (e) {
+        e.preventDefault();
+        var forYear = $("#forYear").val();
+        if (confirm("Download existing records for year " + forYear + "?")) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("Download", "CustodianReport")',
+                data: {
+                    forYear: forYear,
+                    deptId: $("#deptId").val(),
+                    accountGroup: '@ViewBag.AccountGroup'
+                },
+                async: true,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    if (result.Errors == "") {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    } else {
+                        displayErrors(result.Errors);
+                        return false;
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    disabled.attr('disabled', 'disabled');
+                    alert(req.responseText);
+                    return false;
+                }
+            });
+        }
+    });
+
+    $(".k-grid-btnUpload").click(function (e) {
+        e.preventDefault();
+        var forYear = $("#forYear").val();
+        if (confirm("Upload posted records for year " + forYear + "?")) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("Upload", "CustodianReport")',
+                data: {
+                    forYear: forYear,
+                    deptId: $("#deptId").val(),
+                    accountGroup: '@ViewBag.AccountGroup'
+                },
+                async: true,
+                beforeSend: function () {
+                    window.kendo.ui.progress($(document.body), true);
+                },
+                success: function (result) {
+                    window.kendo.ui.progress($(document.body), false);
+                    if (result.Errors == "") {
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    } else {
+                        displayErrors(result.Errors);
+                        return false;
+                    }
+                },
+                error: function (req, status, errorObj) {
+                    disabled.attr('disabled', 'disabled');
+                    alert(req.responseText);
+                    return false;
+                }
+            });
         }
     });
 

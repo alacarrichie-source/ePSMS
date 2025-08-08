@@ -56,7 +56,7 @@ namespace iLgs.Services.PropertyCard
             {
                 Location = s.Codextn.Description,
                 Id = s.Id,
-                PsCardItemExtnId = s.Id,
+                //PsCardItemExtnId = s.Id,
                 PsCardItemId = s.PsCardItemId,
                 AIRItemExtnId = s.AIRItemExtnId,
                 SetLotNo = s.SetLotNo,

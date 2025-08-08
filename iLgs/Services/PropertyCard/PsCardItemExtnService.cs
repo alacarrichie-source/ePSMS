@@ -28,7 +28,7 @@ namespace iLgs.Services.PropertyCard
         IQueryable<PsCardItemExtn> GetCardItemExtnForBldgIssuanceSelection(Guid? psCardItemId);
         
         string GetEndSeries(string startSeries, Guid? itemId);
-        string GetEndSeries(string startSeries, int qty);
+        string GetEndSeries(string startSeries, decimal qty);
 
         //void MapModelToEntityFields(PsCardItemExtn entity, PsCardItemExtnCommonVM model, Mode mode);
 
@@ -247,7 +247,7 @@ namespace iLgs.Services.PropertyCard
             return GetEndSeries(startSeries, qty);
         }
 
-        public string GetEndSeries(string startSeries, int qty)
+        public string GetEndSeries(string startSeries, decimal qty)
         {
             // Regular expression to capture the numeric part at the end of the string
             string pattern = @"(.*?)(\d+)$";
@@ -259,10 +259,10 @@ namespace iLgs.Services.PropertyCard
                 string prefix = match.Groups[1].Value;  // 'AB-01-X-'
                 string numericPart = match.Groups[2].Value;  // '01'
 
-                int startNumber = int.Parse(numericPart);  // Convert '01' to 1
+                decimal startNumber = decimal.Parse(numericPart);  // Convert '01' to 1
 
                 // Add the quantity to the start number
-                int endNumber = startNumber + qty - 1;
+                decimal endNumber = startNumber + qty - 1;
 
                 // Reassemble the series and maintain the same padding (based on the length of the numeric part)
                 int paddingLength = numericPart.Length;  // Get the length of the original numeric part

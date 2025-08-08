@@ -144,6 +144,8 @@ namespace iLgs.Models
             AllowUnpost = false;
             AllowPrint = false;
             AllowTransfer = false;
+            AllowDownload = false;
+            AllowUpload = false;
         }
         public bool IsAdmin { get; set; }
         public bool IsAllowed { get; set; }
@@ -154,6 +156,8 @@ namespace iLgs.Models
         public bool AllowUnpost { get; set; }
         public bool AllowPrint { get; set; }
         public bool AllowTransfer { get; set; }
+        public bool AllowDownload { get; set; }
+        public bool AllowUpload { get; set; }
 
         //public bool AllowAdd
         //{

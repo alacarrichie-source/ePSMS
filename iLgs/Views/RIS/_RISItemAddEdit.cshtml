@@ -172,7 +172,7 @@
         <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-2">
-                    @Html.DisplayFor(model => model.QtyRequest, "LabelInt")
+                    @Html.DisplayFor(model => model.QtyRequest, "LabelDecimal")
                 </div>
                 <div class="col-md-10">
                     @(Html.Kendo().NumericTextBoxFor(model => model.QtyRequest).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))
@@ -184,7 +184,7 @@
         <div class="row k-mb-2">
             <div class="col-md-12">
                 <div class="col-md-2">
-                    @Html.DisplayFor(model => model.QtyIssue, "LabelInt")
+                    @Html.DisplayFor(model => model.QtyIssue, "LabelDecimal")
                 </div>
                 <div class="col-md-10">
                     @(Html.Kendo().NumericTextBoxFor(model => model.QtyIssue).Decimals(0).Enable(false).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))

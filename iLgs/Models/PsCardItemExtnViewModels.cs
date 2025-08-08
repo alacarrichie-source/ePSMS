@@ -177,7 +177,8 @@ namespace iLgs.Models
         // Transients 
 
         public Guid? TransferId { get; set; }
-        public Guid? PsCardItemExtnId { get; set; }
+        public Guid? TransferItemId { get; set; }
+        //public Guid? PsCardItemExtnId { get; set; }
 
         [Display(Name = "Location")]
         public string Location { get; set; }
@@ -1094,7 +1095,7 @@ namespace iLgs.Models
         public Nullable<int> OtherQty { get; set; }
 
         [Display(Name = "PO Qty")]
-        public Nullable<int> Qty { get; set; }
+        public Nullable<decimal> Qty { get; set; }
 
         public string FPP { get; set; }
 

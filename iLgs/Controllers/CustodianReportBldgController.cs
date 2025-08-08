@@ -25,20 +25,21 @@ namespace iLgs.Controllers
         private readonly ICustodianReportService _custodianReportService;
         private readonly ICustodianReportBldgItemService _custodianReportBldgItemService;
         private readonly ICustodianBldgUploadService _uploadService;
-        
+
         public CustodianReportBldgController(ICustodianReportService custodianReportService,
             ICustodianReportBldgItemService custodianReportBldgItemService,
             ICustodianBldgUploadService custodianBldgUploadService)
         {
             _custodianReportService = custodianReportService;
             _custodianReportBldgItemService = custodianReportBldgItemService;
-            _uploadService = custodianBldgUploadService;        
+            _uploadService = custodianBldgUploadService;
         }
 
         public ActionResult BldgQuery()
         {
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
             ViewBag.Title = "Custodian Report - Structure - Query";
+            ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
 
@@ -46,12 +47,13 @@ namespace iLgs.Controllers
         {
             ViewBag.AccountGroup = (int?)CustodianAccountGroup.BUILDING;
             ViewBag.Title = "Custodian Report - Structure";
+            ViewBag.ForYear = DateTime.Now.Year;
             return View();
         }
 
-        public ActionResult Read([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
+        public ActionResult Read([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
         {
-            var data = _custodianReportService.GetAllByDepartmentAccountGroup(deptId, accountGroup);
+            var data = _custodianReportService.GetAllByDepartmentAccountGroup(forYear, deptId, accountGroup);
 
             var result = new JsonNetResult
             {
@@ -140,7 +142,7 @@ namespace iLgs.Controllers
             }
 
             return Json(new[] { model }.ToDataSourceResult(request, ModelState));
-        }        
+        }
         [AcceptVerbs(HttpVerbs.Post)]
         public async Task<ActionResult> Destroy([DataSourceRequest]DataSourceRequest request, CustodianReport model)
         {
@@ -272,17 +274,17 @@ namespace iLgs.Controllers
         }
 
 
-        public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, Guid? deptId, int? accountGroup)
+        public ActionResult _ItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
         {
-            var data = _custodianReportBldgItemService.GetAllByDeptAcctGroup(deptId, accountGroup);
+            var data = _custodianReportBldgItemService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
-        public ActionResult _ItemReadAll([DataSourceRequest] DataSourceRequest request, int? accountGroup)
+        public ActionResult _ItemReadAll([DataSourceRequest] DataSourceRequest request, int? forYear, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportBldgItemService.GetAllByAcctGroup(accountGroup, user);
+            var data = _custodianReportBldgItemService.GetAllByAcctGroup(forYear, accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -780,6 +782,112 @@ namespace iLgs.Controllers
             }
         }
         #endregion
+
+        #region DOWNLOAD RECORDS
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> Download(int? forYear, Guid? deptId, int? accountGroup)
+        {
+            try
+            {
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.AllowDownload)
+                {
+                    ModelState.AddModelError("GridError", "Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _custodianReportService.DownloadBldg(forYear, deptId, accountGroup, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+        #endregion  
+
+        #region UPLOAD RECORDS
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<ActionResult> Upload(int? forYear, Guid? deptId, int? accountGroup)
+        {
+            try
+            {
+                var menuId = _custodianReportService.GetAccountGroupMenuId(accountGroup);
+                Task<Access> accessTask = Access(User.Identity.GetUserId(), menuId);
+                Access access = await accessTask;
+                if (!access.AllowDownload)
+                {
+                    ModelState.AddModelError("GridError", "Access Denied!");
+                }
+                else
+                {
+                    string user = ControllerContext.HttpContext.User.Identity.Name;
+                    DateTime date = System.DateTime.Now;
+
+                    await _custodianReportService.UploadBldg(forYear, deptId, accountGroup, user, date);
+                }
+            }
+            catch (ValidationException validationException) when (validationException.InnerException is InvalidModelException)
+            {
+                var errors = validationException.GetErrorsForModelState();
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
+            }
+            catch (ValidationException validationException)
+            {
+                ModelState.AddModelError("", validationException.InnerException.Message);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+            }
+
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+
+            var errorList = query.ToList();
+
+            if (errorList.Count() > 0)
+            {
+                return Json(new { Errors = errorList }, JsonRequestBehavior.DenyGet);
+            }
+
+            return Json(new { Errors = "" }, JsonRequestBehavior.AllowGet);
+        }
+        #endregion  
 
 
         [AcceptVerbs(HttpVerbs.Post)]

@@ -747,24 +747,24 @@ namespace iLgs.Controllers
         #endregion  
 
         #region Issuance View
-        public ActionResult _Issuance(Guid? cardItemId)
-        {
-            ViewData["CardItemId"] = cardItemId;
-            return PartialView();
-        }
+        //public ActionResult _Issuance(Guid? cardItemId)
+        //{
+        //    ViewData["CardItemId"] = cardItemId;
+        //    return PartialView();
+        //}
 
-        public ActionResult _IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
-        {
-            var data = _psCardService.PsCardItemIssuance.GetByCardItemId(cardItemId);
+        //public ActionResult _IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? cardItemId)
+        //{
+        //    var data = _psCardService.PsCardItemIssuance.GetByCardItemId(cardItemId);
 
-            var result = new JsonNetResult
-            {
-                Data = data.ToDataSourceResult(request),
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-                Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
-            };
-            return result;
-        }
+        //    var result = new JsonNetResult
+        //    {
+        //        Data = data.ToDataSourceResult(request),
+        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+        //        Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
+        //    };
+        //    return result;
+        //}
         #endregion
 
 

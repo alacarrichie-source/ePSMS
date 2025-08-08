@@ -11,7 +11,7 @@ namespace iLgs.Models
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PsCardItemId { get; set; }
         public Nullable<System.Guid> ParentId { get; set; }
-        public Nullable<int> Qty { get; set; }
+        public Nullable<decimal> Qty { get; set; }
 
         [Display(Name = "Transit Date (mm/dd/yyyy)")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
@@ -27,16 +27,16 @@ namespace iLgs.Models
         public string Location { get; set; }
 
         [Display(Name = "Qty Issued")]
-        public Nullable<int> QtyIss { get; set; }
+        public Nullable<decimal> QtyIss { get; set; }
 
         [Display(Name = "Qty Balance")]
-        public Nullable<int> QtyBal { get; set; }
+        public Nullable<decimal> QtyBal { get; set; }
 
         [Display(Name = "Transit-In")]
-        public Nullable<int> TransferIn { get; set; }
+        public Nullable<decimal> TransferIn { get; set; }
 
         [Display(Name = "Transit-Out")]
-        public Nullable<int> TransferOut { get; set; }
+        public Nullable<decimal> TransferOut { get; set; }
 
         [Display(Name = "Trans. Type")]
         public string TranType { get; set; }
@@ -111,7 +111,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> IssuedDate { get; set; }
 
         [Required]
-        public Nullable<int> Qty { get; set; }
+        public Nullable<decimal> Qty { get; set; }
         public Nullable<decimal> Amount { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }

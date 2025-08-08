@@ -167,7 +167,7 @@ namespace iLgs
             services.AddScoped<IPsCardItemExtnVehicleRepairService, PsCardItemExtnVehicleRepairService>();
             services.AddScoped<IPsCardItemExtnVehicleService, PsCardItemExtnVehicleService>();
             services.AddScoped<IPsCardItemExtnVehicleValidator, PsCardItemExtnVehicleValidator>();
-            services.AddScoped<IPsCardItemIssuanceService, PsCardItemIssuanceService>();
+            //services.AddScoped<IPsCardItemIssuanceService, PsCardItemIssuanceService>();
             services.AddScoped<IPsCardItemService, PsCardItemService>();
             services.AddScoped<IPsCardItemTransactionService, PsCardItemTransactionService>();
             services.AddScoped<IPsCardItemTransferIssuanceService, PsCardItemTransferIssuanceService>();
@@ -220,6 +220,7 @@ namespace iLgs
             // UPLOADS
             services.AddScoped<IAddCostUploadService, AddCostUploadService>();
             services.AddScoped<IItemCodeRequestUploadService, ItemCodeRequestUploadService>();
+            services.AddScoped<IUploadService, UploadService>();
 
             // VALIDATORS
             services.AddScoped<IRisItemUnitGroupValidator, RisItemUnitGroupValidator>();

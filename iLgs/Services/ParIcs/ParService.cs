@@ -101,7 +101,7 @@ namespace iLgs.Services.ParIcs
                     AirDate = s.AirDate,
                     AirNo = s.AirNo,
                     //Qty = s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0),
-                    Qty = s.Qty,
+                    Qty = (int?)s.Qty,
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
@@ -122,7 +122,7 @@ namespace iLgs.Services.ParIcs
                     StockNo = s.PsCard.PsNo,
                     //ParBalance = (s.Qty + (s.TransferIn ?? 0) - (s.TransferOut ?? 0)) -
                     // (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
-                    ParBalance = s.Qty - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    ParBalance = (int?)s.Qty - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
                     OrderItemUnitGroupDescriptionItem = s.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemId)
                 }).AsQueryable();
             //var data = _db.Database.SqlQuery<ParVM>("Exec PARS_GetAll {0}", "").AsQueryable();
@@ -196,7 +196,7 @@ namespace iLgs.Services.ParIcs
                     Id = s.Id,
                     GroupId = s.GroupId,
                     PsCardId = s.PsCardId,
-                    Qty = s.Qty,
+                    Qty = (int?)s.Qty,
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     TotalCost = s.Amount,
@@ -311,7 +311,7 @@ namespace iLgs.Services.ParIcs
                     PoDate = s.PoDate,
                     AirDate = s.AirDate,
                     AirNo = s.AirNo,
-                    Qty = s.Qty,
+                    Qty = (int?)s.Qty,
                     Unit = s.Unit,
                     UnitCost = s.UnitCost,
                     Amount = s.Amount,
@@ -330,7 +330,7 @@ namespace iLgs.Services.ParIcs
                     LocCode = s.Codextn1.Code,
                     Location = s.Codextn1.Description,
                     StockNo = s.PsCard.PsNo,
-                    ParBalance = s.Qty - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                    ParBalance = (int?)s.Qty - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.GroupId == s.GroupId && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
                     OrderItemUnitGroupDescriptionItem = s.OrderItem.OrderItemUnitGroupDescriptionItems.FirstOrDefault(f => f.OrderItemId == s.OrderItemId),
                     IsForICS = s.IsForICS,
                     AcqDate = s.AcqDate

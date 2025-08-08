@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
-using static iLgs.Models.Enums;
 
 namespace iLgs.Models
 {
@@ -49,6 +45,7 @@ namespace iLgs.Models
 
         }
     }
+
 
     [MetadataType(typeof(CustodianReportItem.Metadata))]
     public partial class CustodianReportItem
@@ -98,6 +95,8 @@ namespace iLgs.Models
         public string AreIssuedsTo { get; set; }
         public string MrIssuedsTo { get; set; }
         public string RpcPpeIssuedsTo { get; set; }
+
+        public int? ForYear { get; set; }
 
         internal sealed class Metadata
         {
@@ -358,7 +357,7 @@ namespace iLgs.Models
             [Display(Name = "Set/Lot Remarks")]
             public string SetLotRemarks { get; set; }
 
-            public ItemCode ItemCode { get; set; }
+            public ItemCode ItemCode { get; set; }         
         }
     }
 
@@ -467,6 +466,7 @@ namespace iLgs.Models
         [Display(Name = "Custodian Department")]
         public string MainDeptName { get; set; }
         public int? AccountGroup { get; set; }
+        public int? ForYear { get; set; }
 
         internal sealed class Metadata
         {
@@ -685,7 +685,7 @@ namespace iLgs.Models
 
             [Display(Name = "Posted Date")]
             [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy hh:mm tt}", ApplyFormatInEditMode = true)]
-            public Nullable<System.DateTime> PostedDt { get; set; }
+            public Nullable<System.DateTime> PostedDt { get; set; }            
         }
     }
 
@@ -714,6 +714,7 @@ namespace iLgs.Models
 
         [Display(Name = "Custodian Item Index")]
         public decimal? CustodianItemIndex { get; set; }
+        public int? ForYear { get; set; }
 
         internal sealed class Metadata
         {

@@ -157,20 +157,20 @@ namespace iLgs.Models
         public Nullable<System.DateTime> AirIssueDate { get; set; }
 
         [Required]
-        public Nullable<int> Qty { get; set; }
+        public Nullable<decimal> Qty { get; set; }
 
         [Display(Name = "Qty. Issued")]
-        public Nullable<int> QtyIss { get; set; }
+        public Nullable<decimal> QtyIss { get; set; }
 
         //[Required]
         [Display(Name = "Qty. Balance")]
-        public Nullable<int> QtyBal { get; set; }
+        public Nullable<decimal> QtyBal { get; set; }
 
         [Display(Name = "Transit-In Qty")]
-        public Nullable<int> TransferIn { get; set; }
+        public Nullable<decimal> TransferIn { get; set; }
 
         [Display(Name = "Transit-Out Qty")]
-        public Nullable<int> TransferOut { get; set; }
+        public Nullable<decimal> TransferOut { get; set; }
 
         [Display(Name = "Transaction Type")]
         public string TranType { get; set; }
@@ -321,11 +321,11 @@ namespace iLgs.Models
         public string Location { get; set; }
         //public string Location { get { return _Location?.Description; } }
 
-        public int? ParBalance { get; set; } = 0;
-        public int? IcsBalance { get; set; } = 0;
+        public decimal? ParBalance { get; set; } = 0;
+        public decimal? IcsBalance { get; set; } = 0;
         public string StockNo { get; set; }
         [Display(Name = "Remaining Balance")]
-        public Nullable<int> RemBalance { get; set; }
+        public Nullable<decimal> RemBalance { get; set; }
 
         [Display(Name = "Transit Date")]
         [DisplayFormat(NullDisplayText = "", DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
@@ -374,7 +374,7 @@ namespace iLgs.Models
         public Nullable<System.DateTime> IssuedDate { get; set; }
 
         [Required]
-        public Nullable<int> Qty { get; set; }
+        public Nullable<decimal> Qty { get; set; }
         public Nullable<decimal> Amount { get; set; }
 
         public string IssuedToCode { get; set; }

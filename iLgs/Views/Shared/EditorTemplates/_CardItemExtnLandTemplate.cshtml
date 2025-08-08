@@ -15,7 +15,7 @@
     @Html.HiddenFor(model => model.PsCardItemId)
     @Html.HiddenFor(model => model.AIRItemExtnId)
     @Html.HiddenFor(model => model.TransferId)
-    @Html.HiddenFor(model => model.PsCardItemExtnId)
+    //@Html.HiddenFor(model => model.PsCardItemExtnId)
     @Html.HiddenFor(model => model.SetLotNo)
     @Html.HiddenFor(model => model.SetLotQtyNo)
     @Html.HiddenFor(model => model.ContentNo)
@@ -68,7 +68,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-2">
-                @Html.DisplayFor(model => model.LocationId, "Label")
+                @Html.DisplayFor(model => model.LocationId, "LabelGuid")
             </div>
             <div class="col-md-4">
                 @(Html.Kendo().MultiColumnComboBoxFor(m => m.LocationId)

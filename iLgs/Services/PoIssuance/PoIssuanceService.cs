@@ -93,9 +93,9 @@ namespace iLgs.Services.PoIssuance
                 Description = s.Description,
                 DeptDisplay = s.DeptDisplay,
                 StockNo = s.PsCard.PsNo,
-                ParBalance = s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
-                IcsBalance = s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
-                RemBalance = s.QtyBal,
+                ParBalance = (int?)s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "P").Sum(x => x.Qty) ?? 0),
+                IcsBalance = (int?)s.QtyBal - (_db.IcsParItems.Where(w => w.PsCardItemExtn.PsCardItem.Id == s.Id && w.IcsPar.RefType == "I").Sum(x => x.Qty) ?? 0),
+                RemBalance = (int?)s.QtyBal,
                 Department = s.Codextn.Description,
                 Location = s.Codextn1.Description,
                 LocCode = s.Codextn1.Code,
@@ -563,7 +563,7 @@ namespace iLgs.Services.PoIssuance
             return model;
         });
 
-        private async ValueTask<PsCardItemTransfer> CreatePsCardItemTransfer(PsCardItemTransferVM psCardItemTransferSource, DateTime? transDate, int? transOut, Guid? locationId, string user, DateTime date)
+        private async ValueTask<PsCardItemTransfer> CreatePsCardItemTransfer(PsCardItemTransferVM psCardItemTransferSource, DateTime? transDate, decimal? transOut, Guid? locationId, string user, DateTime date)
         {
             var psCardItemTransfer = new PsCardItemTransfer()
             {

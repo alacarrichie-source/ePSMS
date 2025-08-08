@@ -4,9 +4,9 @@
 {
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
-    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.Id)    
 
-    <div id="ErrorContent" class="hidden x-bootstrap-content">
+    <div id="AddCostErrorContent" class="hidden x-bootstrap-content">
         <div class="alert alert-danger x-popup-alert">
             <ul class="errors"></ul>
         </div>

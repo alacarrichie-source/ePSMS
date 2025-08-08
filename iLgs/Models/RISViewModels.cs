@@ -252,10 +252,10 @@ namespace iLgs.Models
 
         [Required]
         [Display(Name = "Qty Req.")]
-        public Nullable<int> QtyRequest { get; set; }
+        public Nullable<decimal> QtyRequest { get; set; }
 
         [Display(Name = "Qty Iss.")]
-        public Nullable<int> QtyIssue { get; set; }
+        public Nullable<decimal> QtyIssue { get; set; }
 
         public string Remarks { get; set; }
         public string InsertedBy { get; set; }

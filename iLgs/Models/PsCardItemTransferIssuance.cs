@@ -27,7 +27,7 @@ namespace iLgs.Models
         public string IssuedToCode { get; set; }
         public string IssuedToDescription { get; set; }
         public Nullable<System.DateTime> IssuedDate { get; set; }
-        public Nullable<int> Qty { get; set; }
+        public Nullable<decimal> Qty { get; set; }
         public Nullable<decimal> Amount { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }

@@ -40,7 +40,7 @@ namespace iLgs.Services.PropertyCard
         IAllFieldService AllField { get; }
         IPsCardItemService PsCardItem { get; }
         //IPsCardItemExtnService PsCardItemExtn { get; }
-        IPsCardItemIssuanceService PsCardItemIssuance { get; }
+        //IPsCardItemIssuanceService PsCardItemIssuance { get; }
 
         ValueTask<PsCard> TransferPo(Guid? psCardItemId, Guid? transferToPsCardId, string user, DateTime date);
 
@@ -55,7 +55,7 @@ namespace iLgs.Services.PropertyCard
         protected readonly IAllFieldService _allFieldService;
         protected readonly IPsCardSharedService _psCardSharedService;
         protected readonly IPsCardItemService _psCardItemService;
-        protected readonly IPsCardItemIssuanceService _psCardItemIssuanceService;
+        //protected readonly IPsCardItemIssuanceService _psCardItemIssuanceService;
 
         public PsCardService(AppManEntities db,            
             ICreateAndLogExceptions exceptions,
@@ -63,8 +63,9 @@ namespace iLgs.Services.PropertyCard
             IExceptionService<PsCard> exceptionService,
             IAllFieldService allFieldService,
             IPsCardSharedService psCardSharedService,
-            IPsCardItemService psCardItemService,
-            IPsCardItemIssuanceService psCardItemIssuanceService)
+            IPsCardItemService psCardItemService
+            //,IPsCardItemIssuanceService psCardItemIssuanceService
+            )
         {
             _db = db;
             _exceptions = exceptions;
@@ -73,12 +74,12 @@ namespace iLgs.Services.PropertyCard
             _allFieldService = allFieldService;
             _psCardSharedService = psCardSharedService;
             _psCardItemService = psCardItemService;
-            _psCardItemIssuanceService = psCardItemIssuanceService;
+            //_psCardItemIssuanceService = psCardItemIssuanceService;
         }
 
         public IAllFieldService AllField => _allFieldService;
         public IPsCardItemService PsCardItem => _psCardItemService;
-        public IPsCardItemIssuanceService PsCardItemIssuance => _psCardItemIssuanceService;
+        //public IPsCardItemIssuanceService PsCardItemIssuance => _psCardItemIssuanceService;
 
         public IQueryable<PsCardVM> GetAll(string userName) => _vmExceptionService.TryCatch(() =>
         {            

@@ -108,30 +108,30 @@ namespace iLgs.Controllers
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
 
-        public ActionResult _ItemOrder(Guid? psCardItemExtnId, int? accountGroup)
+        public async Task<ActionResult> _ItemOrder(Guid? psCardItemExtnId, int? accountGroup)
         {
             ViewData["psCardItemExtnId"] = psCardItemExtnId;
             if (accountGroup == (int?)AccountGroup.PPE || accountGroup == (int?)AccountGroup.SUPPLIES)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnPpeEntry(psCardItemExtnId);
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnPpeEntryAsync(psCardItemExtnId);
                 ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
                 return PartialView("_ItemCardPpeOrder", model);
             }
             if (accountGroup == (int?)AccountGroup.VEHICLE)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnVehicleEntry(psCardItemExtnId);
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnVehicleEntryAsync(psCardItemExtnId);
                 ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
                 return PartialView("_ItemCardVehicleOrder", model);
             }
             if (accountGroup == (int?)AccountGroup.LAND)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnLandEntry(psCardItemExtnId);
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnLandEntryAsync(psCardItemExtnId);
                 ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
                 return PartialView("_ItemCardLandOrder", model);
             }
             if (accountGroup == (int?)AccountGroup.BUILDING)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnStructuresEntry(psCardItemExtnId);
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnStructuresEntryAsync(psCardItemExtnId);
                 ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
                 return PartialView("_ItemCardStructureOrder", model);
             }
@@ -141,30 +141,30 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult _ItemAccount(Guid? psCardItemExtnId, int? accountGroup)
+        public async Task<ActionResult> _ItemAccount(Guid? psCardItemExtnId, int? accountGroup)
         {
             ViewData["psCardItemExtnId"] = psCardItemExtnId;
             if (accountGroup == (int?)AccountGroup.PPE || accountGroup == (int?)AccountGroup.SUPPLIES)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnPpeEntry(psCardItemExtnId);
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnPpeEntryAsync(psCardItemExtnId);
                 ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
                 return PartialView("_ItemCardPpeAccount", model);
             }
             if (accountGroup == (int?)AccountGroup.VEHICLE)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnVehicleEntry(psCardItemExtnId);
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnVehicleEntryAsync(psCardItemExtnId);
                 ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
                 return PartialView("_ItemCardVehicleAccount", model);
             }
             if (accountGroup == (int?)AccountGroup.LAND)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnLandEntry(psCardItemExtnId);
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnLandEntryAsync(psCardItemExtnId);
                 ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
                 return PartialView("_ItemCardLandAccount", model);
             }
             if (accountGroup == (int?)AccountGroup.BUILDING)
             {
-                var model = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnStructuresEntry(psCardItemExtnId);
+                var model = await _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnUpdate.GetCardItemExtnStructuresEntryAsync(psCardItemExtnId);
                 ViewData["psCardItemId"] = model == null ? Guid.Empty : model.PsCardItemId;
                 return PartialView("_ItemCardStructureAccount", model);
             }
@@ -720,13 +720,13 @@ namespace iLgs.Controllers
         public ActionResult _IssuanceRead([DataSourceRequest] DataSourceRequest request, Guid? transferId)
         {
             var data = _psCardService.PsCardItem.PsCardItemTransfer.PsCardItemTransferIssuance.GetByTransferId(transferId);
-
             var result = new JsonNetResult
             {
                 Data = data.ToDataSourceResult(request),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet,
                 Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }
             };
+
             return result;
         }
 
@@ -872,11 +872,13 @@ namespace iLgs.Controllers
         #region AJAX CALLS
         [Authorize]
         [HttpPost]
-        public ActionResult GetAddCost(Guid? psCardItemExtnId)
+        public async Task<ActionResult> GetAddCost(Guid? psCardItemExtnId)
         {
             var totalAddCost = _psCardService.PsCardItem.PsCardItemExtn.PsCardItemExtnAddCost.GetTotalAddCost(psCardItemExtnId);
+            var psCardItem = await _psCardService.PsCardItem.GetByItemExtnIdAsync(psCardItemExtnId);
+            var unitCost = psCardItem == null ? 0 : psCardItem.UnitCost;
 
-            return Json(new { Errors = "", TotalAddCost = totalAddCost }, JsonRequestBehavior.AllowGet);
+            return Json(new { Errors = "", TotalAddCost = totalAddCost, UnitCost = unitCost }, JsonRequestBehavior.AllowGet);
         }
 
         [Authorize]

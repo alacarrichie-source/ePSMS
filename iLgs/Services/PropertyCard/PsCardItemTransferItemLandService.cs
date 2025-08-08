@@ -90,7 +90,7 @@ namespace iLgs.Services.PropertyCard
             _db.PsCardItemExtns.Add(entity);
             await _db.SaveChangesAsync();
 
-            await _psCardItemTransactionService.LogUpdates(model.PsCardItemExtnId, model.PsCardItemId, "CARD", user, date);
+            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
             return model;
         });
 
@@ -99,7 +99,7 @@ namespace iLgs.Services.PropertyCard
             _psCardItemExtnLandValidator.ValidateOnUpdate(model);
             _psCardItemTransferItemSharedService.ValidateIfTransit(model.TransferId);
 
-            var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnLand>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.PsCardItemExtnId && w.PIN == model.PIN).FirstOrDefaultAsync();
+            var itemExtn = await _db.PsCardItemExtns.OfType<PsCardItemExtnLand>().Where(w => w.PsCardItemId == model.PsCardItemId && w.Id != model.Id && w.PIN == model.PIN).FirstOrDefaultAsync();
 
             if (itemExtn != null)
             {
@@ -111,7 +111,7 @@ namespace iLgs.Services.PropertyCard
 
             var entity = await _db.PsCardItemExtns.OfType<PsCardItemExtnLand>()
                 .Include(i => i.PsCardItemTransferItems)
-                .FirstOrDefaultAsync(f => f.Id == model.PsCardItemExtnId);
+                .FirstOrDefaultAsync(f => f.Id == model.Id);
             var psCardItemTransferItem = entity.PsCardItemTransferItems.FirstOrDefault(f => f.Id == model.Id);
             psCardItemTransferItem.UpdatedBy = user;
             psCardItemTransferItem.UpdatedDt = date;
@@ -123,7 +123,7 @@ namespace iLgs.Services.PropertyCard
             _db.Entry(entity).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            await _psCardItemTransactionService.LogUpdates(model.PsCardItemExtnId, model.PsCardItemId, "CARD", user, date);
+            await _psCardItemTransactionService.LogUpdates(model.Id, model.PsCardItemId, "CARD", user, date);
 
             return model;
         });

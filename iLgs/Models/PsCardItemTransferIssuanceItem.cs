@@ -22,7 +22,7 @@ namespace iLgs.Models
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
     
-        public virtual PsCardItemTransferIssuance PsCardItemTransferIssuance { get; set; }
         public virtual PsCardItemTransferItem PsCardItemTransferItem { get; set; }
+        public virtual PsCardItemTransferIssuance PsCardItemTransferIssuance { get; set; }
     }
 }

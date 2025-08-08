@@ -29,7 +29,7 @@ namespace iLgs.Services.ParIcs
         ValueTask<IcsPar> CreateAsync(IcsPar model, string user, DateTime date);
         ValueTask<IcsPar> UpdateAsync(IcsPar model, string user, DateTime date);
         ValueTask<IcsPar> DeleteAsync(IcsPar model, string user, DateTime date);
-        ValueTask<IcsPar> DeleteUpdatesAsync(IcsPar model, string user, DateTime date);
+        ValueTask<IcsParVM> DeleteUpdatesAsync(IcsParVM model, string user, DateTime date);
 
         ValueTask<IcsParVM> TransferIcsPar(IcsParVM model, string user, DateTime date);
 
@@ -201,8 +201,8 @@ namespace iLgs.Services.ParIcs
             return model;
         });
 
-        public ValueTask<IcsPar> DeleteUpdatesAsync(IcsPar model, string user, DateTime date) =>
-        _exceptionService.TryCatch(async () =>
+        public ValueTask<IcsParVM> DeleteUpdatesAsync(IcsParVM model, string user, DateTime date) =>
+        _vmExceptionService.TryCatch(async () =>
         {
             IcsPar entity = await _db.IcsPars
                 .Include(i => i.IcsParItems)

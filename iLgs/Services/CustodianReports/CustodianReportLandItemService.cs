@@ -21,7 +21,7 @@ namespace iLgs.Services.CustodianReports
         string GetStockNo(CustodianReportLandItem model);
         ValueTask<CustodianReportLandItemVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportLandItemVM> GetAll(Guid? reportId);
-        IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup);
+        IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup);
         ValueTask<CustodianReportLandItemVM> CreateAsync(CustodianReportLandItemVM model, string user, DateTime date);
         ValueTask<CustodianReportLandItemVM> UpdateAsync(CustodianReportLandItemVM model, string user, DateTime date);
         ValueTask<CustodianReportLandItemVM> DeleteAsync(CustodianReportLandItemVM model, string user, DateTime date);
@@ -176,11 +176,11 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup)
+        public IQueryable<CustodianReportLandItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup)
         {
             var data = _db.CustodianReportLandItems
                 .AsNoTracking()
-                .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
+                .Where(w => w.CustodianReport.AsOf.Value.Year == forYear && w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReportLandItemProjection);
 
             return data;
@@ -188,7 +188,6 @@ namespace iLgs.Services.CustodianReports
 
         public ValueTask<CustodianReportLandItemVM> CreateAsync(CustodianReportLandItemVM model, string user, DateTime date) => _vmExceptionService.TryCatch(async () =>
         {
-
             ValidateIfNull(model);
             ValidateRequired(model);
 
@@ -199,11 +198,12 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var custodianReport = await _db.CustodianReports.Where(w => w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
+            var custodianReport = await _db.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
             if (custodianReport == null)
             {
                 custodianReport = new CustodianReport();
                 custodianReport.Id = Guid.NewGuid();
+                custodianReport.AsOf = Utility.GetAsOfDate((int)model.ForYear);
                 custodianReport.DeptId = model.MainDeptId;
                 custodianReport.Department = model.MainDeptName;
                 custodianReport.AccountGroup = model.AccountGroup;
@@ -762,6 +762,12 @@ namespace iLgs.Services.CustodianReports
             {
                 _imex.UpsertDataList("Department", "Please select department before creating an entry.");
             }
+
+            if (model.ForYear == 0 || model.ForYear == null)
+            {
+                _imex.UpsertDataList("For Year", "Field is Required.");
+            }
+
             //if (!model.Area.HasValue)
             //{
             //    _imex.UpsertDataList(_getDisplayName(nameof(model.Area)), "Field is required.");

@@ -39,8 +39,8 @@ namespace iLgs.Models
     
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }
-        public virtual PsCardItem PsCardItem { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemIssuanceItem> PsCardItemIssuanceItems { get; set; }
+        public virtual PsCardItem PsCardItem { get; set; }
     }
 }

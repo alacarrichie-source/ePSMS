@@ -2,13 +2,12 @@
 using iLgs.Models;
 using iLgs.Services.AllFields;
 using iLgs.Services.Codes;
+using iLgs.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace iLgs.Services.CustodianReports
 {
@@ -16,8 +15,8 @@ namespace iLgs.Services.CustodianReports
     {
         new ValueTask<CustodianReportItemPpeVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportItemPpeVM> GetAll(Guid? reportId, string userName);
-        IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? accountGroup, string userName);
-        IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup, string userName);
+        IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
+        IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, string userName);
         ValueTask<CustodianReportItemPpeVM> CreateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
         ValueTask<CustodianReportItemPpeVM> UpdateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
         ValueTask<CustodianReportItemPpeVM> DeleteAsync(CustodianReportItemPpeVM model, string user, DateTime date);
@@ -163,69 +162,46 @@ namespace iLgs.Services.CustodianReports
                 data = _db.CustodianReportItems
                     .AsNoTracking()
                     .Where(w => w.ReportId == reportId)
-                    .Select(CustodianReporPpeItemProjection);
-                //data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_Ppe {0}, {1}, {2}", reportId, null, null).AsQueryable();
+                    .Select(CustodianReporPpeItemProjection);                
             }
             else
             {
                 data = _db.CustodianReportItems
                     .AsNoTracking()
                     .Where(w => w.ReportId == reportId && w.Annex != "D")
-                    .Select(CustodianReporPpeItemProjection);
-                //data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_Ppe {0}, {1}, {2}", reportId, null, null).AsQueryable();
-                //if (data.Any())
-                //{
-                //    data = data.Where(w => w.Annex != "D");
-                //}
+                    .Select(CustodianReporPpeItemProjection);                
             }
             return data;
         }
+        
+        public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, string userName)
+        {
+            IQueryable<CustodianReportItemPpeVM> data = null;
+            if (deptId != null)
+            {
+                if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+                {
+                    data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, deptId, accountGroup, "", null, "", true, "").AsQueryable();
+                }
+                else
+                {
+                    data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, deptId, accountGroup, "", null, "", false, "").AsQueryable();
+                }
+            }
+            return data ?? Enumerable.Empty<CustodianReportItemPpeVM>().AsQueryable();
+        }
 
-        public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup, string userName)
+        public IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName)
         {
             IQueryable<CustodianReportItemPpeVM> data = null;
 
             if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
             {
-                //data = _db.CustodianReportItems
-                //.AsNoTracking()
-                //.Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
-                //.Select(CustodianReporPpeItemProjection);
-                data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}", null, deptId, accountGroup, "", null, "", true).AsQueryable();
+                data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, null, accountGroup, "", null, "", true, "").AsQueryable();                
             }
             else
             {
-                //data = _db.CustodianReportItems
-                //.AsNoTracking()
-                //.Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
-                //.Select(CustodianReporPpeItemProjection);
-
-                data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}", null, deptId, accountGroup, "", null, "", false).AsQueryable();
-            }
-            return data;
-        }
-
-        public IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? accountGroup, string userName)
-        {
-            IQueryable<CustodianReportItemPpeVM> data = null;
-            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
-            {
-                //data = _db.CustodianReportItems
-                //.AsNoTracking()
-                //.Where(w => w.CustodianReport.AccountGroup == accountGroup)
-                //.Select(CustodianReporPpeItemProjection);
-                data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}", null, null, accountGroup, "", null, "", true).AsQueryable();
-                //data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}", null, accountGroup, true).AsQueryable();
-            }
-            else
-            {
-                //data = _db.CustodianReportItems
-                //.AsNoTracking()
-                //.Where(w => w.CustodianReport.AccountGroup == accountGroup && w.Annex != "D")
-                //.Select(CustodianReporPpeItemProjection);
-                data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}", null, null, accountGroup, "", null, "", false).AsQueryable();
-                //data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}", null, accountGroup, false).AsQueryable();
-
+                data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, null, accountGroup, "", null, "", false, "").AsQueryable();                
             }
             return data;
         }

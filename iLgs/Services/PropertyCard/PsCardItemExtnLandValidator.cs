@@ -5,6 +5,7 @@ using iLgs.Services.Validators;
 using iLgs.Utilities;
 using System;
 using System.Linq;
+using static iLgs.Models.Enums;
 
 namespace iLgs.Services.PropertyCard
 {
@@ -30,47 +31,57 @@ namespace iLgs.Services.PropertyCard
         {
             ValidateIfNull(model);
             ValidateIfPosted(model);
-            ValidateFieldsOnCreateUpdate(model);
+            ValidateFieldsOnCreateUpdate(model, Mode.ADD);
         }
 
         public void ValidateOnUpdate(PsCardItemExtnLandVM model)
         {
             ValidateIfNull(model);
-            ValidateRecord((Guid)model.PsCardItemExtnId);
+            ValidateRecord((Guid)model.Id);
             ValidateIfPosted(model);
-            ValidateFieldsOnCreateUpdate(model);
+            ValidateFieldsOnCreateUpdate(model, Mode.EDIT);
         }
 
         public void ValidateOnDelete(PsCardItemExtnLandVM model)
         {
             ValidateIfNull(model);
-            ValidateRecord((Guid)model.PsCardItemExtnId);
+            ValidateRecord((Guid)model.Id);
             ValidateIfPosted(model);
 
             // check in Par/Ics
-            if (_db.IcsParItems.Any(a => a.PsCardItemExtnId == model.PsCardItemExtnId))
+            if (_db.IcsParItems.Any(a => a.PsCardItemExtnId == model.Id))
             {
                 throw new RecordAlreadyExistsException("PAR/ICS already exists for this record, cannot delete!");
             }
             
             var transfer = _db.PsCardItemTransferItems.AsNoTracking()
-                    .Where(w => w.PsCardItemTransfer.ParentId != null && w.PsCardItemExtnId == model.PsCardItemExtnId);                    
+                    .Where(w => w.PsCardItemTransfer.ParentId != null && w.PsCardItemExtnId == model.Id);                    
             if (transfer.Any())
             {
                 throw new RecordAlreadyExistsException("Item was already Transferred, cannot delete!");
             }
 
             var issuance = _db.PsCardItemTransferItems.AsNoTracking()
-                    .Where(w => w.PsCardItemExtnId == model.PsCardItemExtnId && w.PsCardItemTransferIssuanceItems.Any());
+                    .Where(w => w.PsCardItemExtnId == model.Id && w.PsCardItemTransferIssuanceItems.Any());
             if (issuance.Any())
             {
                 throw new RecordAlreadyExistsException("Item was already Issued, cannot delete!");
             }            
         }
 
-        public void ValidateFieldsOnCreateUpdate(PsCardItemExtnLandVM model)
+        public void ValidateFieldsOnCreateUpdate(PsCardItemExtnLandVM model, Mode mode)
         {
             var ex = new InvalidModelException();
+
+            if (string.IsNullOrWhiteSpace(model.PIN))
+            {
+                var data = _db.PsCardItemExtns.OfType<PsCardItemExtnLand>().FirstOrDefault(f => f.PIN == model.PIN);
+                if (data != null && (mode == Mode.ADD || data.Id != model.Id))
+                {
+                    ex.UpsertDataList(_getDisplayName(nameof(model.PIN)), "Already Exists.");
+                }
+            }
+
 
             //if (model.DeptId == null)
             //{

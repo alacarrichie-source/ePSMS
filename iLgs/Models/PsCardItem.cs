@@ -17,10 +17,10 @@ namespace iLgs.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public PsCardItem()
         {
-            this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
-            this.PsCardItemUnitGroupDescriptionItems = new HashSet<PsCardItemUnitGroupDescriptionItem>();
-            this.PsCardItemTransfers = new HashSet<PsCardItemTransfer>();
             this.PsCardItemExtns = new HashSet<PsCardItemExtn>();
+            this.PsCardItemIssuances = new HashSet<PsCardItemIssuance>();
+            this.PsCardItemTransfers = new HashSet<PsCardItemTransfer>();
+            this.PsCardItemUnitGroupDescriptionItems = new HashSet<PsCardItemUnitGroupDescriptionItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -33,11 +33,11 @@ namespace iLgs.Models
         public Nullable<System.DateTime> AirDate { get; set; }
         public string AirNo { get; set; }
         public Nullable<System.DateTime> AirIssueDate { get; set; }
-        public Nullable<int> Qty { get; set; }
-        public Nullable<int> QtyIss { get; set; }
-        public Nullable<int> QtyBal { get; set; }
-        public Nullable<int> TransferIn { get; set; }
-        public Nullable<int> TransferOut { get; set; }
+        public Nullable<decimal> Qty { get; set; }
+        public Nullable<decimal> QtyIss { get; set; }
+        public Nullable<decimal> QtyBal { get; set; }
+        public Nullable<decimal> TransferIn { get; set; }
+        public Nullable<decimal> TransferOut { get; set; }
         public string TranType { get; set; }
         public Nullable<int> Days { get; set; }
         public string Unit { get; set; }
@@ -86,16 +86,16 @@ namespace iLgs.Models
     
         public virtual Codextn Codextn { get; set; }
         public virtual Codextn Codextn1 { get; set; }
+        public virtual OrderItem OrderItem { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemIssuance> PsCardItemIssuances { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
-        public virtual OrderItem OrderItem { get; set; }
         public virtual PsCardItemTransfer PsCardItemTransfer { get; set; }
+        public virtual PsCard PsCard { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItemTransfer> PsCardItemTransfers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PsCardItemExtn> PsCardItemExtns { get; set; }
-        public virtual PsCard PsCard { get; set; }
+        public virtual ICollection<PsCardItemUnitGroupDescriptionItem> PsCardItemUnitGroupDescriptionItems { get; set; }
     }
 }

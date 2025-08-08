@@ -216,7 +216,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-2">
-                @Html.DisplayFor(m => m.Qty, "LabelInt")
+                @Html.DisplayFor(m => m.Qty, "LabelDecimal")
             </div>
             <div class="col-md-4">
                 @(Html.Kendo().NumericTextBoxFor(m => m.Qty).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -225,7 +225,7 @@
                 @Html.ValidationMessageFor(m => m.Qty)
             </div>
             <div class="col-md-2">
-                @Html.DisplayFor(m => m.TransferIn, "LabelInt")
+                @Html.DisplayFor(m => m.TransferIn, "LabelDecimal")
             </div>
             <div class="col-md-4">
                 @(Html.Kendo().NumericTextBoxFor(m => m.TransferIn).Enable(false).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -237,14 +237,14 @@
 
         <div class="row k-mb-2">
             <div class="col-md-2">
-                @Html.DisplayFor(m => m.QtyIss, "LabelInt")
+                @Html.DisplayFor(m => m.QtyIss, "LabelDecimal")
             </div>
             <div class="col-md-4">
                 @(Html.Kendo().NumericTextBoxFor(m => m.QtyIss).Enable(false).Decimals(0).Format("{0:n0}").Enable(false).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }).Events(e => e.Change("UpdateBalance")))
                 @Html.ValidationMessageFor(m => m.QtyIss)
             </div>
             <div class="col-md-2">
-                @Html.DisplayFor(m => m.TransferOut, "LabelInt")
+                @Html.DisplayFor(m => m.TransferOut, "LabelDecimal")
             </div>
             <div class="col-md-4">
                 @(Html.Kendo().NumericTextBoxFor(m => m.TransferOut).Enable(false).Decimals(0).Format("{0:n0}").Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" })
@@ -256,7 +256,7 @@
 
         <div class="row k-mb-2">
             <div class="col-md-2">
-                @Html.DisplayFor(m => m.QtyBal, "LabelInt")
+                @Html.DisplayFor(m => m.QtyBal, "LabelDecimal")
             </div>
             <div class="col-md-4">
                 @(Html.Kendo().NumericTextBoxFor(m => m.QtyBal).Decimals(0).Format("{0:n0}").Enable(false).Spinners(false).HtmlAttributes(new { style = "width:100%; max-width:100%;" }))

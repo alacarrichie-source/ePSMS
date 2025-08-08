@@ -23,8 +23,8 @@ namespace iLgs.Services.CustodianReports
         string GetStockNo(CustodianReportBldgItem model);
         ValueTask<CustodianReportBldgItemVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportBldgItemVM> GetAll(Guid? reportId);
-        IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup);
-        IQueryable<CustodianReportBldgItemVM> GetAllByAcctGroup(int? accountGroup, string userName);
+        IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup);
+        IQueryable<CustodianReportBldgItemVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
         ValueTask<CustodianReportBldgItemVM> CreateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> UpdateAsync(CustodianReportBldgItemVM model, string user, DateTime date);
         ValueTask<CustodianReportBldgItemVM> DeleteAsync(CustodianReportBldgItemVM model, string user, DateTime date);
@@ -159,21 +159,21 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(Guid? deptId, int? accountGroup)
+        public IQueryable<CustodianReportBldgItemVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup)
         {
             var data = _db.CustodianReportBldgItems
                 .AsNoTracking()
-                .Where(w => w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
+                .Where(w => w.CustodianReport.AsOf.Value.Year == forYear && w.CustodianReport.DeptId == deptId && w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReportBldgItemProjection);
 
             return data;
         }
 
-        public IQueryable<CustodianReportBldgItemVM> GetAllByAcctGroup(int? accountGroup, string userName)
+        public IQueryable<CustodianReportBldgItemVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName)
         {
             var data = _db.CustodianReportBldgItems
                 .AsNoTracking()
-                .Where(w => w.CustodianReport.AccountGroup == accountGroup)
+                .Where(w => w.CustodianReport.AsOf.Value.Year == forYear && w.CustodianReport.AccountGroup == accountGroup)
                 .Select(CustodianReportBldgItemProjection);
 
             return data;
@@ -184,6 +184,11 @@ namespace iLgs.Services.CustodianReports
             if (model.MainDeptId == null || model.MainDeptId == Guid.Empty)
             {
                 _imex.UpsertDataList("Department", "Please select department before creating an entry.");
+            }
+
+            if (model.ForYear == 0 || model.ForYear == null)
+            {
+                _imex.UpsertDataList("For Year", "Field is Required.");                
             }
 
             //if (string.IsNullOrWhiteSpace(model.PhaseNo))
@@ -219,11 +224,12 @@ namespace iLgs.Services.CustodianReports
             model.UpdatedBy = user;
             model.UpdatedDt = date;
 
-            var custodianReport = await _db.CustodianReports.Where(w => w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
+            var custodianReport = await _db.CustodianReports.Where(w => w.AsOf.Value.Year == model.ForYear && w.DeptId == model.MainDeptId && w.AccountGroup == model.AccountGroup).SingleOrDefaultAsync();
             if (custodianReport == null)
             {
                 custodianReport = new CustodianReport();
                 custodianReport.Id = Guid.NewGuid();
+                custodianReport.AsOf = Utility.GetAsOfDate((int)model.ForYear);
                 custodianReport.DeptId = model.MainDeptId;
                 custodianReport.Department = model.MainDeptName;
                 custodianReport.AccountGroup = model.AccountGroup;

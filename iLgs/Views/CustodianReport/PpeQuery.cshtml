@@ -5,6 +5,23 @@
 <br />
 <div class="row k-mb-2">
     <div class="col-md-6">
+        @Html.Label("For Year", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().NumericTextBox()
+                .Name("forYear")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .Decimals(0)
+                .Spinners(false)
+                .Events(e => e.Change("onChangeForYear"))
+                .Format("0")
+                .Value(@ViewBag.ForYear)
+            )
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
         @Html.Label("Department", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().MultiColumnComboBox()
@@ -460,7 +477,7 @@
 
         if (selectedData) {
             window.kendo.ui.progress($(document.body), true);
-
+            var forYear = $("#forYear").val();
             var deptId = $("#deptId").val();
             var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
             var subAccount1 = $("#subAccount1").val();
@@ -470,7 +487,7 @@
             var asOf = $("#asOf").val();
             // Construct the URL for the Excel export
 
-            var url = "@Url.Action("ExcelExportAll", "CustodianReport")" + "?deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            var url = "@Url.Action("ExcelExportAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
                 + '&mainAccount=' + mainAccount + '&asOf=' + asOf
                 + '&subAccount1=' + subAccount1
                 + '&subAccount2=' + subAccount2
@@ -493,7 +510,7 @@
 
         if (selectedData) {
             window.kendo.ui.progress($(document.body), true);
-
+            var forYear = $("#forYear").val();
             var deptId = $("#deptId").val();
             var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
             var subAccount1 = $("#subAccount1").val();
@@ -502,7 +519,7 @@
             var subAccount4 = $("#subAccount4").val();
             var asOf = $("#asOf").val();
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")" + "?deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
                 + '&annex=A' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
                 + '&subAccount1=' + subAccount1
                 + '&subAccount2=' + subAccount2
@@ -526,7 +543,7 @@
 
         if (selectedData) {
             window.kendo.ui.progress($(document.body), true);
-
+            var forYear = $("#forYear").val();
             var deptId = $("#deptId").val();
             var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
             var subAccount1 = $("#subAccount1").val();
@@ -535,7 +552,7 @@
             var subAccount4 = $("#subAccount4").val();
             var asOf = $("#asOf").val();
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")" + "?deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
                 + '&annex=B' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
                 + '&subAccount1=' + subAccount1
                 + '&subAccount2=' + subAccount2
@@ -559,7 +576,7 @@
 
         if (selectedData) {
             window.kendo.ui.progress($(document.body), true);
-
+            var forYear = $("#forYear").val();
             var deptId = $("#deptId").val();
             var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
             var subAccount1 = $("#subAccount1").val();
@@ -568,7 +585,7 @@
             var subAccount4 = $("#subAccount4").val();
             var asOf = $("#asOf").val();
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")" + "?deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
                 + '&annex=C' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
                 + '&subAccount1=' + subAccount1
                 + '&subAccount2=' + subAccount2
@@ -592,7 +609,7 @@
 
         if (selectedData) {
             window.kendo.ui.progress($(document.body), true);
-
+            var forYear = $("#forYear").val();
             var deptId = $("#deptId").val();
             var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
             var subAccount1 = $("#subAccount1").val();
@@ -601,7 +618,7 @@
             var subAccount4 = $("#subAccount4").val();
             var asOf = $("#asOf").val();
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")" + "?deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
                 + '&annex=D' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
                 + '&subAccount1=' + subAccount1
                 + '&subAccount2=' + subAccount2
@@ -676,6 +693,10 @@
         }
     }
 
+    function onChangeForYear(e) {
+        $("#grid").data("kendoGrid").dataSource.read();
+    }
+
     function onSelectDeptId(e) {
         var dataItem = this.dataItem(e.item.index());
 
@@ -688,6 +709,7 @@
 
     function DataGrid() {
         return {
+            forYear: $("#forYear").val(),
             accountGroup: '@ViewBag.AccountGroup'
         };
     }

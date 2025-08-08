@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -20,6 +21,7 @@ namespace iLgs.Services
         ValueTask<Upload> GetByIdAsync(Guid? id);
         ValueTask<ActionResult> GetUploadedFileAsync(Guid? id);
         ValueTask<ActionResult> GetImageIdFirstUploadAsync(Guid? id);
+        string GetDirectoryPath();
 
         ValueTask<Upload> UploadAsync(IEnumerable<HttpPostedFileBase> files, Upload model, string user, DateTime date);
         ValueTask<Upload> UpdateAsync(Upload model, string user, DateTime date);
@@ -27,6 +29,7 @@ namespace iLgs.Services
 
         byte[] DownloadFile(string fileName);
         Task<bool> IsFileNameExistAsync(string fileName);
+        ValueTask CopyAsync(Guid? imageId, string directoryPath, string user, DateTime date);
     }
 
     public class UploadService : IUploadService
@@ -48,6 +51,12 @@ namespace iLgs.Services
             _subDir = subDir;
             _directory += subDir + "/";
         }
+
+        public string GetDirectoryPath()
+        {
+            return _directory;
+        }
+
         public IQueryable<Upload> GetAll()
         {
             var subDir = "/" + _subDir + "/";
@@ -270,6 +279,45 @@ namespace iLgs.Services
         public async Task<bool> IsFileNameExistAsync(string fileName)
         {
             return await _db.Uploads.AnyAsync(a => a.FileName.ToUpper() == fileName.ToUpper());
+        }
+
+        public async ValueTask CopyAsync(Guid? imageId, string directoryPath, string user, DateTime date)
+        {
+            var uploads = await _db.Uploads.Where(w => w.ImageId == imageId).ToListAsync();
+            if (uploads.Any())
+            {
+                foreach (var upload in uploads)
+                {                    
+                    // Pattern: match a GUID
+                    var fileName = Regex.Replace(upload.FileName, @"^[0-9a-fA-F\-]{36}", "");
+                    var resultPath = upload.VirtualDirectory.Substring(upload.VirtualDirectory.IndexOf("UPLOADS", StringComparison.OrdinalIgnoreCase));
+                    var destinationPath = directoryPath +  upload.Id.ToString() + fileName;
+                    if (!File.Exists(directoryPath))
+                    {
+                        var uploadId = Guid.NewGuid();
+                        var entity = new Upload()
+                        {
+                            Id = uploadId,
+                            ImageId = imageId,
+                            FileName = uploadId + fileName,
+                            Description = upload.Description,
+                            VirtualDirectory = directoryPath,
+                            InsertedBy = user,
+                            InsertedDt = date,
+                            UpdatedBy = user,
+                            UpdatedDt = date
+                        };
+
+                        _db.Uploads.Add(entity);
+                        await _db.SaveChangesAsync();
+
+                        int index = upload.VirtualDirectory.IndexOf("UPLOADS", StringComparison.OrdinalIgnoreCase);
+                        var sourcePath = directoryPath + upload.VirtualDirectory.Substring(index);
+
+                        File.Copy(sourcePath, destinationPath);
+                    }
+                }
+            }
         }
     }
 }

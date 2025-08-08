@@ -73,7 +73,7 @@ namespace iLgs.Services.Requisition
                     ItemName = s.RisItem.ItemName,
                     Description = s.RisItem.Description,
                     Unit = s.RisItem.Unit,
-                    QtyRequest = s.RisItem.QtyRequest,                    
+                    QtyRequest = (int?)s.RisItem.QtyRequest,                    
                     InsertedDt = s.InsertedDt
                 });
             return data;
@@ -93,7 +93,7 @@ namespace iLgs.Services.Requisition
                 ItemName = s.ItemName,
                 Description = s.Description,
                 Unit = s.Unit,
-                QtyRequest = s.QtyRequest,
+                QtyRequest = (int?)s.QtyRequest,
                 InsertedDt = s.InsertedDt
             });            
             return data;
