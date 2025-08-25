@@ -924,6 +924,7 @@ namespace iLgs.Controllers
             crConnectionInfo.DatabaseName = db_;
             crConnectionInfo.UserID = un;
             crConnectionInfo.Password = pw;
+            crConnectionInfo.IntegratedSecurity = true;
 
             foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
             {
@@ -1016,6 +1017,7 @@ namespace iLgs.Controllers
             crConnectionInfo.DatabaseName = db_;
             crConnectionInfo.UserID = un;
             crConnectionInfo.Password = pw;
+            crConnectionInfo.IntegratedSecurity = true;
 
             foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
             {

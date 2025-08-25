@@ -2,134 +2,56 @@
 @model IQueryable<iLgs.Models.Menubase>
 @{
     ViewBag.Title = "Home Page";
-    Layout = "~/Views/Shared/_AppLayout.cshtml";    
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<div>
-
-    @*@functions{
-        public void addChildren(MenuItemBuilder builder, iLgs.Models.Menubase item, IEnumerable<iLgs.Models.Menubase> items)
-        {
-            var children = items.Where(m => m.ParentId == item.ChildId).OrderBy(o => o.Sequence);
-            if (children != null)
-            {
-                builder.Items(menuItems =>
-                    {
-                        foreach (var child in children)
-                        {
-
-                            if (!string.IsNullOrEmpty(child.Controller))
-                            {
-                                if (string.IsNullOrEmpty(child.Action))
-                                {
-                                    var menuItem = menuItems.Add().Text(String.Format("{0}", child.Description)).Action("Index", child.Controller, null);
-                                    addChildren(menuItem, child, items);
-                                }
-                                else
-                                {
-                                    var menuItem = menuItems.Add().Text(String.Format("{0}", child.Description)).Action(child.Action, child.Controller, null);
-                                    addChildren(menuItem, child, items);
-                                }
-                            }
-                            else
-                            {
-                                var menuItem = menuItems.Add().Text(String.Format("{0}", child.Description));
-                                addChildren(menuItem, child, items);
-                            }
-                        }
-                    });
-
-            }
-        }
-    }
-
-    @if (@ViewBag.ShowMenu)
-    {
-        @(Html.Kendo().Menu()
-    .Name("Menu")
-    .Items(menu =>
-    {
-        foreach (var item in Model.Where(m => m.ParentId == 0).OrderBy(o => o.Sequence))
-        {
-
-            if (!string.IsNullOrEmpty(item.Controller))
-            {
-                if (string.IsNullOrEmpty(item.Action))
-                {
-                    var builder = menu.Add().Text(String.Format("{0}", item.Description)).Action("Index", item.Controller, null);
-                    addChildren(builder, item, Model);
-                }
-                else
-                {
-                    var builder = menu.Add().Text(String.Format("{0}", item.Description)).Action(item.Action, item.Controller, null);
-                    addChildren(builder, item, Model);
-                }
-            }
-            else
-            {
-                var builder = menu.Add().Text(String.Format("{0}", item.Description));
-                addChildren(builder, item, Model);
-            }
-
-        }
-    })
-        )
-    }*@
-
-
-    @*<div class="jumbotron">
-        <div class="container push-spaces">
-            <h1 style="color:whitesmoke" class="text-primary text-right">iLGS - Las Piñas City</h1>
-            <p class="lead text-info text-right">"Integrated Local Government System"</p>
-        </div>
-    </div>*@
-    
-    @*<div class="jumbotron">     
-        <div class="k-d-flex-col k-align-items-start k-justify-content-evenly" style="height:50%; width:50%;">
-            <div class="k-avatar k-avatar-circle k-avatar-image" id="avatar" ><img src='@Url.Content("~/Assets/product-logo.png")' /></div>                                  
-        </div>                      
-    </div>
-    <p class="lead">Property and Supply Management System</p>*@
-
-    @*<div class="jumbotron">
-        <div class="k-d-flex-col k-align-items-start k-justify-content-start" style="height:50%; width:50%;">
-            <div class="k-avatar k-avatar-circle k-avatar-image" id="avatar">
-                <img src='@Url.Content("~/Assets/product-logo.png")' />
-            </div>
-            <p class="lead" style="margin-left: 10px;">Property and Supply Management System</p>
-        </div>
-    </div>*@
-
-    @*<div class="jumbotron" style="display: grid; grid-template-columns: auto 1fr;">
-        <div class="k-avatar k-avatar-circle k-avatar-image" id="avatar">
-            <img src='@Url.Content("~/Assets/product-logo.png")' />
-        </div>
-        <p class="lead" style="grid-column: 2;">Property and Supply Management System</p>
-    </div>*@
-
-    @*<div class="jumbotron" style="display: flex; align-items: center;">*@        
     <div class="jumbotron">
-        @*<div class="k-avatar k-avatar-circle k-avatar-image" id="product-logo">
-                <img src='@Url.Content("~/Assets/wall.png")' />
-            </div>*@
-        
-        <h1>ePSMS</h1>
-        <p class="lead">
-            Property and Supply Management System<br />
-            Las Pinas City
-        </p>
+        <div class="logo-container">
+            <div class="logo-row">
+                <img src='@Url.Content("~/Assets/Logo.png")' alt="ePSMS logo" class="logo" />
+                <div class="text-block">
+                    <div class="description">
+                        eProperty and Supplies Management System<br />
+                        Las Pinas City
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-
-
-
-</div>
 
 <style>
-    #product-logo
-    {
-        height: 20%;
-        width: 20%;
+    body {
+        background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+
+    .body-opaque {
+        opacity: 0.85;
+    }
+
+    .logo-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* aligns logo and text to the left */
+    }
+
+    .logo {
+        height: 300px; /* adjust as needed */
+    }
+
+    .text-block {
+        margin-top: -180px; /* adjust as needed to reduce space between logo and text */
+        padding-left: 300px; /* slight indent so it aligns under the "e" of the logo */
+    }
+
+    .description {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.4;
     }
 </style>
 

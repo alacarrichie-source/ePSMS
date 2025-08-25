@@ -40,15 +40,15 @@ namespace iLgs.Controllers
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             this.InitMenu = true;
         }
-        
+
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             ViewData["MenuTreeList"] = null;
             if (User != null && User.Identity.IsAuthenticated)
-            {                
+            {
                 string userId = User.Identity.GetUserId();
-                               
-                
+
+
                 var allMenu = Task.Run(async () => await GetMainMenu(User.Identity.GetUserId())).Result;
 
 
@@ -106,13 +106,13 @@ namespace iLgs.Controllers
             {
                 var children = allMenus.Where(w => w.ParentId == menu.ChildId).OrderBy(o => o.Description);
                 var hasChildren = children.Any();
-                var items = new List<TreeViewItemModel>();                
+                var items = new List<TreeViewItemModel>();
 
                 if (hasChildren)
                 {
-                    items = GetMenuTree(allMenus, children);                                        
+                    items = GetMenuTree(allMenus, children);
                 }
-                
+
                 var node = new TreeViewItemModel()
                 {
                     Id = menu.ChildId.ToString(),
@@ -247,7 +247,7 @@ namespace iLgs.Controllers
             Access returnAccess = new Access();
             foreach (var menuId in menuIds)
             {
-                var access =  await Access(userId, menuId);
+                var access = await Access(userId, menuId);
                 if (access != null)
                 {
                     returnAccess = access;
@@ -356,7 +356,7 @@ namespace iLgs.Controllers
             }
         }
     }
-    
+
 
     /*
         Now by having your controllers inheriting from BaseController, they will start using JSON.NET to do JSON serialization. 

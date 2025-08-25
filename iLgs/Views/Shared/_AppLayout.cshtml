@@ -13,17 +13,17 @@
 </head>
 
 @*<div>
-    <div id="container" class="k-content k-drawer-expanded">
-        @RenderBody()
-    </div>
+        <div id="container" class="k-content k-drawer-expanded">
+            @RenderBody()
+        </div>
 
-    <nav id="main-nav">
-        @if (Request.IsAuthenticated)
-            {
-            @RenderMenuItems((IEnumerable<TreeViewItemModel>)Session["MainMenuTree"]);
-        }
-    </nav>
-</div>*@
+        <nav id="main-nav">
+            @if (Request.IsAuthenticated)
+                {
+                @RenderMenuItems((IEnumerable<TreeViewItemModel>)Session["MainMenuTree"]);
+            }
+        </nav>
+    </div>*@
 
 
 @*<nav id="main-nav">
@@ -33,8 +33,8 @@
         }
     </nav>*@
 
-    <main role="main" class="k-content" style="height: 100%!important">
-        @(Html.Kendo().AppBar()
+<main role="main" class="k-content" style="height: 100%!important">
+    @(Html.Kendo().AppBar()
                 .Name("appbar")
                 .ThemeColor(AppBarThemeColor.Inherit)
                 .HtmlAttributes(new { style = "height: 48px" })
@@ -49,21 +49,23 @@
                     //items.Add().Template("<a href='" + @Url.Action("About", "Home") + "' class='k-link app-bar-link'>About</a>").Type(AppBarItemType.ContentItem);
                     //items.Add().Template("<a href='" + @Url.Action("Contact", "Home") + "' class='k-link app-bar-link'>Contact</a>").Type(AppBarItemType.ContentItem);
                 })
-        )
-        <div style="height: 100%!important;">
-            @RenderBody()
-        </div>        
-    </main>    
+    )
+    <div id="main-div" style="height: 100%!important;">
+        @RenderBody()
+    </div>
+</main>
 
 <nav id="main-nav">
     @if (Request.IsAuthenticated)
-    {                
+    {
         @RenderMenuItems(menuTree);
-    }    
+    }
 </nav>
+
+@RenderSection("scripts", required: false)
 @*<footer>
-    <p>Copyright &copy; City Government of Las Pinas.</p>
-</footer>*@    
+        <p>Copyright &copy; City Government of Las Pinas.</p>
+    </footer>*@
 
 @helper   RenderMenuItems(IEnumerable<TreeViewItemModel> items)
 {
@@ -115,12 +117,20 @@ if (subItems != null)
 }
 }
 
-<style>
+@*body {
+        background-image: url('@Url.Content("~/Assets/city-hall.jpg")');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        }*@
+
+<style>    
     .offcanvas-nav footer {
         padding: 1em;
-        background-color: #f8f8f8; 
-        border-top: 1px solid #ccc; 
-        text-align: center; 
+        background-color: #f8f8f8;
+        border-top: 1px solid #ccc;
+        text-align: center;
     }
 
     #name {
@@ -214,11 +224,11 @@ if (subItems != null)
     }
 
     .hc-nav-trigger.hc-nav-1 {
-        display:none;
+        display: none;
     }
 
     .navbar > .container .navbar-brand, .navbar > .container-fluid .navbar-brand {
-        margin-left:auto;
+        margin-left: auto;
     }
 
     .footer-label {
@@ -235,7 +245,6 @@ if (subItems != null)
         left: 0;
         width: 100%;
     }
-    
 </style>
 
 
@@ -248,13 +257,14 @@ if (subItems != null)
             labelClose: 'Close',
             labelBack: 'Back',
             levelTitleAsBack: true,
+            disableAutoOpen: true,
 
             ////Specify the screen width at which breakppint the plugin hides the regular navigation.
             //disableAt: 1024,
 
             ////Push the main content to the other side when the HC MobileNav is toggled.
             pushContent: '#container', //true, // default false
-            
+
             ////Set the direction of the HC MobileNav. Possible values: 'left'(default), 'right', 'top' and 'bottom'
 
             //position: 'left',
@@ -268,7 +278,7 @@ if (subItems != null)
             swipeGestures: true,
 
             //// initialize the menu in expanded mode
-            expanded: true,
+            //expanded: true,
 
             //// overlap / expand / none
             //levelOpen: 'overlap',
@@ -299,6 +309,7 @@ if (subItems != null)
 
             //// custom toggle element
             //customToggle: null,
+            //customToggle: '#appBar',
 
             //// prepend or append the menu to body
             //bodyInsert: 'append'
@@ -313,7 +324,7 @@ if (subItems != null)
             //rtl: false
     });
     var Nav = $nav.data('hcOffcanvasNav');
-    var sw = 1;
+    var sw = 0;
     var isDrawerVisible = true;
     function toggleDrawer(e) {
         Nav.toggle();
@@ -330,7 +341,7 @@ if (subItems != null)
         });
     });
 
-    function resizeWidgets() {        
+    function resizeWidgets() {
         //alert(sw);
         var container = document.getElementById('container');
         var width = window.innerWidth;
@@ -339,15 +350,17 @@ if (subItems != null)
         if (sw == 1)
         {
             width -= 280;
-            container.style.width = width + 'px';
+            container.style.width = width + 'px';            
+            //container.classList.remove('body-opaque');  // Remove a style class
         }
         else {
             container.style.width = '100%';
+            //container.classList.add('body-opaque');     // Add a style class
         }
 
 
         // Adjust the container size
-        
+
         container.style.height = height + 'px';
     }
 

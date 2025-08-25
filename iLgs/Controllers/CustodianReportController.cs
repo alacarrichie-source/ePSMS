@@ -2735,6 +2735,7 @@ namespace iLgs.Controllers
                 logonInfo.ConnectionInfo.DatabaseName = db_;
                 logonInfo.ConnectionInfo.UserID = un;
                 logonInfo.ConnectionInfo.Password = pw;
+                logonInfo.ConnectionInfo.IntegratedSecurity = true;
                 table.ApplyLogOnInfo(logonInfo);
             }
 
@@ -2783,6 +2784,7 @@ namespace iLgs.Controllers
                 logonInfo.ConnectionInfo.DatabaseName = db_;
                 logonInfo.ConnectionInfo.UserID = un;
                 logonInfo.ConnectionInfo.Password = pw;
+                logonInfo.ConnectionInfo.IntegratedSecurity = true;
                 table.ApplyLogOnInfo(logonInfo);
             }
 

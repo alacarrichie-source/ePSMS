@@ -27,6 +27,7 @@ namespace iLgs.Controllers
     [AppAuthorize("AIRS")]
     public class AIRsController : BaseController
     {
+        private readonly AppManEntities _db;
         private readonly IAirService _airService;
         private readonly IAirItemService _airItemService;
         private readonly ICodextnService _codextnService;
@@ -37,11 +38,12 @@ namespace iLgs.Controllers
         private readonly IAirUploadService _uploadService;
         private IServiceAgent _sa;
 
-        public AIRsController(IAirService airService, IAirItemService airItemService, ICodextnService codextnService, IOrderService orderService,
+        public AIRsController(AppManEntities db, IAirService airService, IAirItemService airItemService, ICodextnService codextnService, IOrderService orderService,
             IOrderItemUnitGroupService orderItemUnitGroupService, IOrderItemUnitGroupDescriptionService orderItemUnitGroupDescriptionService,
             IOrderItemUnitGroupDescriptionItemService orderItemUnitGroupDescriptionItemService, IServiceAgent serviceAgent,
             IAirUploadService airUploadService)
         {
+            _db = db;
             _airService = airService;
             _airItemService = airItemService;
             _codextnService = codextnService;
@@ -1049,7 +1051,6 @@ namespace iLgs.Controllers
             rpt.FileName = Server.MapPath(Url.Content("~/Reports/Air.rpt"));
             rpt.Refresh();
 
-            var _db = new AppManEntities();
             string user = ControllerContext.HttpContext.User.Identity.Name;
             string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
@@ -1066,6 +1067,7 @@ namespace iLgs.Controllers
             crConnectionInfo.DatabaseName = db_;
             crConnectionInfo.UserID = un;
             crConnectionInfo.Password = pw;
+            crConnectionInfo.IntegratedSecurity = true;
 
             foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
             {
@@ -1140,7 +1142,6 @@ namespace iLgs.Controllers
             rpt.FileName = Server.MapPath(Url.Content("~/Reports/RisByAir.rpt"));
             rpt.Refresh();
 
-            var _db = new AppManEntities();
             string user = ControllerContext.HttpContext.User.Identity.Name;
             string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
@@ -1157,6 +1158,7 @@ namespace iLgs.Controllers
             crConnectionInfo.DatabaseName = db_;
             crConnectionInfo.UserID = un;
             crConnectionInfo.Password = pw;
+            crConnectionInfo.IntegratedSecurity = true;
 
             foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
             {

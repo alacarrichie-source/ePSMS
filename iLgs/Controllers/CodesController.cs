@@ -48,7 +48,7 @@ namespace iLgs.Controllers
 
         public async Task<ActionResult> SemiExpendable()
         {
-            var code = "SEMI-EXPENDABLE";
+            var code = "SPHV";
             var codeMast = await _db.CodeMasts.Where(w => w.Code == code).FirstOrDefaultAsync();
             ViewData["code"] = code;
             ViewData["title"] = "Semi-Expendable Property Value";
@@ -286,6 +286,7 @@ namespace iLgs.Controllers
                         model.UpdatedBy = User.Identity.Name;
                         model.UpdatedDt = DateTime.Now;
 
+                        entity.Code = model.Code;
                         entity.Description = model.Description;
                         entity.CodeHdg = model.CodeHdg;
                         entity.Desc1Hdg = model.Desc1Hdg;

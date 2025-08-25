@@ -5,7 +5,6 @@ using Newtonsoft.Json;
 using System.Linq;
 using System.Web.Mvc;
 
-
 namespace iLgs.Controllers
 {
     public class SuppliersController : BaseController

@@ -1152,6 +1152,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\city-hall.jpg" />
+    <Content Include="Assets\Logo.png" />
     <Content Include="Assets\product-logo.png" />
     <Content Include="Assets\Login1.PNG" />
     <Content Include="Assets\Login2.PNG" />

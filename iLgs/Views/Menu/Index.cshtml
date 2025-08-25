@@ -3,12 +3,13 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-<div class="row k-mb-2">
-    <div class="col-md-8">
-        @Html.Label("Application")
-    </div>
-    <div class="col-md-8">
-        @(Html.Kendo().DropDownList()//.ComboBox()
+<div class="well">
+    <div class="row k-mb-2">
+        <div class="col-md-8">
+            @Html.Label("Application")
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DropDownList()//.ComboBox()
                 .Name("sysCode")
                 .HtmlAttributes(new { style = "width:300px" })
                 .Rounded(Rounded.Medium)
@@ -26,21 +27,21 @@
                     })
                     .ServerFiltering(true);
                 })
-        )
+            )
+        </div>
     </div>
-</div>
 
-<div class="row k-mb-2">
-    <div class="col-md-8">
-        @Html.Label("Menu Level")
-    </div>
-    <div class="col-md-8">
-        @(Html.Kendo().DropDownList()//.ComboBox()
+    <div class="row k-mb-2">
+        <div class="col-md-8">
+            @Html.Label("Menu Level")
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DropDownList()//.ComboBox()
                 .Name("parentId")
                 .HtmlAttributes(new { style = "width:300px" })
                 .Filter(FilterType.Contains)
                 .Rounded(Rounded.Medium)
-                .FillMode(FillMode.Outline)                
+                .FillMode(FillMode.Outline)
                 //.OptionLabel("Select Level...")
                 .DataTextField("Description")
                 .DataValueField("Code")
@@ -52,15 +53,16 @@
                     })
                     .ServerFiltering(true);
                 }).CascadeFrom("sysCode")
-        )
-        @*<input type="submit" value="Submit" id="cmdSubmit" />*@
-        @(Html.Kendo().Button().Content("Submit").Name("cmdSubmit"))
+            )
+            @*<input type="submit" value="Submit" id="cmdSubmit" />*@
+            @(Html.Kendo().Button().Content("Submit").Name("cmdSubmit"))
+        </div>
     </div>
 
-</div>
-<br />
-<div class="col-md-9">
-    @(Html.Kendo().Grid<iLgs.Models.Menubase>()
+    <br />
+    <div class="row k-mb-2">
+        <div class="col-md-9">
+            @(Html.Kendo().Grid<iLgs.Models.Menubase>()
         .Name("grid")
         .HtmlAttributes(new { @class = "menu-grid" })
         .Columns(col =>
@@ -107,13 +109,14 @@
         .Events(events => events
             .Change("onChangeGrid")
             .Edit("onEditGrid")
-            .DataBound("onDataBoundGrid")            
+            .DataBound("onDataBoundGrid")
         )
-        .AutoBind(false)        
-    )
-</div>
-<div class="col-md-3">
-    @(Html.Kendo().Grid<iLgs.Models.MenuActionSw>()
+        .AutoBind(false)
+            )
+        </div>
+
+        <div class="col-md-3">
+            @(Html.Kendo().Grid<iLgs.Models.MenuActionSw>()
         .Name("gridActions")
         .HtmlAttributes(new { @class = "menu-grid2" })
         .Columns(columns =>
@@ -177,7 +180,9 @@
                 .DataBound("onDataBoundGridActions")
             )
             .AutoBind(false)
-    )
+            )
+        </div>
+    </div>
 </div>
 
 <script type="text/x-kendo-template" id="validationMessageTemplate">
@@ -200,12 +205,12 @@
 
     .menu-grid .k-grid-content {
         overflow-x: auto;
-        height: calc(100vh - 270px) !important;
+        height: calc(70vh - 90px) !important;
     }
 
     .menu-grid2 .k-grid-content {
         overflow-x: auto;
-        height: calc(100vh - 210px) !important;
+        height: calc(70vh - 90px) !important;
     }
 </style>
 
@@ -411,10 +416,10 @@
         var data = this.dataItem(tr);
 
         selectedItemId = data.Code;
-                
+
         var rowitem = grid.dataSource.get(selectedItemId);
         grid.select($('[data-uid=' + rowitem.uid + ']'));
-        
+
         $.ajax({
             type: "POST",
             url: '@Url.Action("MenuActionSet", "MenuAction")',
@@ -432,7 +437,7 @@
 
     function onChangeGridActions(e) {
         var selectedData = this.dataItem(this.select());
-        selectedItemId = selectedData.Code;        
+        selectedItemId = selectedData.Code;
     }
 
     function onDataBoundGridActions(e) {
@@ -448,7 +453,7 @@
                 $(this).find('.k-button-text').text('Exclude');
             }
         });
-        
+
 
         if (selectedItemId) {
             var dataItem = this.dataSource.get(selectedItemId);

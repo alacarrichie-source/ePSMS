@@ -48,14 +48,14 @@ namespace iLgs.Services.Codes
 
         public IQueryable<SemiExpendableVM> GetAll()
         {
-            var data = _db.Codextns.Where(w => w.CodeMast.Code == "SEMI-EXPENDABLE")
+            var data = _db.Codextns.Where(w => w.CodeMast.Code == "SPHV")
                 .Select(CodextnProjection);
             return data;
         }
 
         public new async ValueTask<SemiExpendableVM> GetByIdAsync(Guid id)
         {
-            var data = await _db.Codextns.Where(w => w.CodeMast.Code == "SEMI-EXPENDABLE" && w.Id == id)
+            var data = await _db.Codextns.Where(w => w.CodeMast.Code == "SPHV" && w.Id == id)
                 .Select(CodextnProjection).FirstOrDefaultAsync();
             return data;
         }
@@ -68,8 +68,8 @@ namespace iLgs.Services.Codes
         public decimal? GetSPHV(DateTime? asOfDate)
         {
             var data = _db.Database.SqlQuery<decimal?>("Select top 1 convert(numeric(18, 2), Description) as PriceCap From Codextn " +
-                "Where MastId in (Select Id From CodeMast Where Code = 'SEMI-EXPENDABLE') " +
-                "and convert(varchar(10), Description, 102) <= convert(varchar(10), {0}, 102)", asOfDate).FirstOrDefault();
+                "Where MastId in (Select Id From CodeMast Where Code = 'SPHV') " +
+                "and convert(varchar(10), Code, 102) <= convert(varchar(10), {0}, 102)", asOfDate).FirstOrDefault();
             return data ?? 5000;
         }
 

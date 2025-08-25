@@ -275,6 +275,8 @@ namespace iLgs.Controllers
                     AllowPost = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "POST").Any(),
                     AllowUnpost = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "UNPOST").Any(),
                     AllowTransfer = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "TRANSFER").Any(),
+                    AllowDownload = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "DOWNLOAD").Any(),
+                    AllowUpload = s.MenuAccessActions.Where(y => y.IsAllowed == true && y.MenuAction.ActionCode == "UPLOAD").Any(),
                     Actions = s.MenuAccessActions.Where(y => y.IsAllowed == true).ToList()
                 })
                 .SingleOrDefault();

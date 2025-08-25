@@ -70,9 +70,7 @@ namespace iLgs.Controllers
             Tables crTables;
             TableLogOnInfo crTableLogOnInfo;
             rpt = new ReportDocument();
-            rpt.FileName = Server.MapPath(Url.Content("~/Reports/UserAccess.rpt"));
-            
-
+            rpt.FileName = Server.MapPath(Url.Content("~/Reports/UserAccess.rpt"));           
 
             string user = ControllerContext.HttpContext.User.Identity.Name;
             string conString = _db.Database.Connection.ConnectionString.ToString();
@@ -90,6 +88,7 @@ namespace iLgs.Controllers
             crConnectionInfo.DatabaseName = db_;
             crConnectionInfo.UserID = un;
             crConnectionInfo.Password = pw;
+            crConnectionInfo.IntegratedSecurity = true;
 
             foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
             {
@@ -199,8 +198,6 @@ namespace iLgs.Controllers
             rpt = new ReportDocument();
             rpt.FileName = Server.MapPath(Url.Content("~/Reports/UserRoles.rpt"));
 
-
-
             string user = ControllerContext.HttpContext.User.Identity.Name;
             string conString = _db.Database.Connection.ConnectionString.ToString();
             SqlConnectionStringBuilder decoder = new SqlConnectionStringBuilder(conString);
@@ -217,6 +214,7 @@ namespace iLgs.Controllers
             crConnectionInfo.DatabaseName = db_;
             crConnectionInfo.UserID = un;
             crConnectionInfo.Password = pw;
+            crConnectionInfo.IntegratedSecurity = true;
 
             foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables)
             {
