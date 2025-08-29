@@ -4,7 +4,7 @@
 <br />
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("For Year", htmlAttributes: new { @class = "col-md-2" })
+        @Html.Label("Report Year", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().NumericTextBox()
                 .Name("forYear")
@@ -68,8 +68,8 @@
             //col.Bound(c => c.Unit).Width(50);
             //col.Bound(c => c.UnitCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
             //    .HeaderHtmlAttributes(new { style = "text-align:right;" });
-            //col.Bound(c => c.LocationCode).Width(50);
-            //col.Bound(c => c.Location).Width(70);
+            col.Bound(c => c.LocationCode).Width(50);
+            col.Bound(c => c.Location).Width(70);
             col.Bound(c => c.TotalCost).Width(70).HtmlAttributes(new { style = "text-align:right;" }).Format("{0:n2}")
                 .ClientFooterTemplate("#=kendo.format('{0:n2}', sum)#").FooterHtmlAttributes(new { Style = "text-align:right;" })
                 .HeaderHtmlAttributes(new { style = "text-align:right;" });
@@ -102,7 +102,7 @@
             t.Custom().Text("Post").IconClass("k-icon k-i-lock").Name("btnPost").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Unpost").IconClass("k-icon k-i-unlock").Name("btnUnpost").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Custom().Text("Download").IconClass("k-icon k-i-download").Name("btnDownload").HtmlAttributes(new { @class = "k-button", href = "" });
-            t.Custom().Text("Download").IconClass("k-icon k-i-upload").Name("btnUpload").HtmlAttributes(new { @class = "k-button", href = "" });
+            t.Custom().Text("Upload").IconClass("k-icon k-i-upload").Name("btnUpload").HtmlAttributes(new { @class = "k-button", href = "" });
             t.Search();
         })
         .Search(s =>
@@ -110,7 +110,8 @@
             s.Field(o => o.Account, "contains");
             s.Field(o => o.SubAccount, "contains");
             s.Field(o => o.Article, "contains");
-            //s.Field(o => o.PoNo, "contains");
+            s.Field(o => o.LocationCode, "contains");
+            s.Field(o => o.Location, "contains");
             s.Field(o => o.Description, "contains");
             s.Field(o => o.PsNo, "contains");
         })

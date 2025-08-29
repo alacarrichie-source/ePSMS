@@ -215,6 +215,9 @@ namespace iLgs.Models
         [Required]
         public Nullable<System.Guid> DeptId { get; set; }
 
+        [Display(Name = "Originating PO Division")]
+        public Nullable<System.Guid> DivisionId { get; set; }
+
         [Display(Name = "Moved to Location")]
         public Nullable<System.Guid> LocationId { get; set; }
 

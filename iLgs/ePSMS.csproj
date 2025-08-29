@@ -310,6 +310,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\AnnexDController.cs" />
+    <Compile Include="Controllers\AuditTrailController.cs" />
     <Compile Include="Controllers\BudgetController.cs" />
     <Compile Include="Controllers\CardUploadController.cs" />
     <Compile Include="Controllers\CustodianDisposalController.cs" />
@@ -373,6 +374,7 @@
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AllFieldsViewModels.cs" />
+    <Compile Include="Models\AppManEntities.cs" />
     <Compile Include="Models\AspNetRole.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -388,6 +390,13 @@
     <Compile Include="Models\AspNetUsers_View.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AuditLog.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AuditLogDetail.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AuditLogViewModels.cs" />
     <Compile Include="Models\CategoryDictionary.cs" />
     <Compile Include="Models\CodeMast.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
@@ -834,6 +843,7 @@
     <Compile Include="Services\AIRs_\AirItemExtnVehicleService.cs" />
     <Compile Include="Services\AIRs_\AirUploadService.cs" />
     <Compile Include="Services\AllFields\AllFieldService.cs" />
+    <Compile Include="Services\AuditLog_\AuditLogService.cs" />
     <Compile Include="Services\CardUploadService.cs" />
     <Compile Include="Services\Codes\AnnexDService.cs" />
     <Compile Include="Services\Codes\BudgetService.cs" />
@@ -1149,6 +1159,7 @@
     <Compile Include="Utilities\StringExtensions.cs" />
     <Compile Include="Utilities\Utility.cs" />
     <Compile Include="Utilities\ValidationService.cs" />
+    <Compile Include="Utilities\WebHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\city-hall.jpg" />
@@ -4190,6 +4201,7 @@
     <Content Include="Views\CustodianReportBldg\EditorTemplates\_ItemPhaseTemplate.cshtml" />
     <Content Include="Views\ItemCard\_ImagesAdd.cshtml" />
     <Content Include="Views\ItemCard\EditorTemplates\_AddCostTemplate.cshtml" />
+    <Content Include="Views\AuditTrail\Index.cshtml" />
     <None Include="Views\Orders\_OrderItemAddEdit_bak.cshtm" />
     <Content Include="Views\Requests\_RequestItem.cshtml" />
     <Content Include="Views\Orders\_OrderItem.cshtml" />
@@ -4683,7 +4695,7 @@
           <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" UseCdnSupport="False" />
+      <UserProperties UseCdnSupport="False" Content_2bootstrap-theme_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap-theme_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" Content_2bootstrap_1min_1css_1map__JSONSchema="https://json.schemastore.org/sourcemap-v3.json" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

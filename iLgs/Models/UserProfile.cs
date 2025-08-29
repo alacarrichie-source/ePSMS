@@ -30,13 +30,13 @@ namespace iLgs.Models
         public string AddressCity { get; set; }
         public string AddressProvince { get; set; }
         public string AddressZipCode { get; set; }
+        public string Department { get; set; }
+        public string Division { get; set; }
+        public string Section { get; set; }
         public string InsertedBy { get; set; }
         public Nullable<System.DateTime> InsertedDt { get; set; }
         public string UpdatedBy { get; set; }
         public Nullable<System.DateTime> UpdatedDt { get; set; }
-        public string Department { get; set; }
-        public string Division { get; set; }
-        public string Section { get; set; }
         public string UserCode { get; set; }
     
         public virtual AspNetUser AspNetUser { get; set; }

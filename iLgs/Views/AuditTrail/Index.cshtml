@@ -1,0 +1,327 @@
+﻿@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "Audit Trail";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            @*<div class="card-header">
+                <h3 class="card-title">Audit Logs</h3>
+            </div>*@
+            <div class="card-body">
+                @(Html.Kendo().Grid<iLgs.Models.AuditLogVM>()
+                    .Name("auditGrid")
+                    .HtmlAttributes(new { @class = "max-grid" })
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.UpdatedDt).Title("Date/Time").Format("{0:yyyy-MM-dd HH:mm:ss}").Width(150);
+                        columns.Bound(p => p.TableName).Title("Table").Width(120);
+                        columns.Bound(p => p.Action).Title("Action").Width(100)
+                            .ClientTemplate("#= getActionTemplate(data) #");
+                        columns.Bound(p => p.RecordId).Title("Record ID").Width(150);
+                        columns.Bound(p => p.UpdatedBy).Title("User").Width(120);
+                        columns.Bound(p => p.IpAddress).Title("IP Address").Width(120);
+                        columns.Bound(p => p.DetailsCount).Title("Changes").Width(80);
+                        columns.Command(command =>
+                        {
+                            command.Custom("ViewDetails").Text("Details").Click("showDetails");
+                        }).Width(100);
+                    })
+                    .ToolBar(t =>
+                    {                    
+                        t.Search();
+                    })
+                    .Pageable(p => p.PageSizes(new[] { 10, 20, 50, 100 }))
+                    .Sortable()
+                    .Filterable()
+                    .Scrollable()
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Read(read => read.Action("GetAuditLogs", "AuditTrail"))
+                        .PageSize(20)
+                    )
+                    .Events(events => events.DataBound("onDataBound"))
+                )
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Audit Details</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(Html.Kendo().Grid<iLgs.Models.AuditLogDetailVM>()
+                    .Name("detailsGrid")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(p => p.FieldName).Title("Property").Width(150);
+                        columns.Bound(p => p.ChangeDescription).Title("Change").ClientTemplate("#= getChangeTemplate(data) #");
+                    })
+                    .Scrollable()                    
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Read(read => read.Action("GetAuditDetails", "AuditTrail").Data("getAuditLogId"))
+                    )
+                )
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function getActionTemplate(data) {
+            return `<i class="fa ${data.ActionIcon}"></i> ${data.Action}`;
+        }
+
+        //function getChangeTemplate(data) {
+        //    if (!data.OldValue) return `<span class="text-success">Set to: ${data.NewValue}</span>`;
+        //    if (!data.NewValue) return `<span class="text-danger">Removed: ${data.OldValue}</span>`;
+        //    return `<span class="text-warning">${data.OldValue} → ${data.NewValue}</span>`;
+        //}
+
+        function getChangeTemplate(data) {
+            if (!data.OldValue) {
+                return `
+            <div class="audit-change audit-add">
+                <span class="change-type">ADDED</span>
+                <span class="change-detail">New value: "${data.NewValue}"</span>
+            </div>
+        `;
+            }
+            if (!data.NewValue) {
+                return `
+            <div class="audit-change audit-remove">
+                <span class="change-type">REMOVED</span>
+                <span class="change-detail">Previous value: "${data.OldValue}"</span>
+            </div>
+        `;
+            }
+            return `
+        <div class="audit-change audit-update">
+            <span class="change-type">UPDATED</span>
+            <div class="change-comparison">
+                <span class="old-value">${data.OldValue}</span>
+                <span class="change-arrow">→</span>
+                <span class="new-value">${data.NewValue}</span>
+            </div>
+        </div>
+    `;
+        }
+
+        function getChangeTemplate3(data) {
+            if (!data.OldValue) {
+                return `
+            <span class="change-added">
+                <b>+</b> Set to: <mark>${data.NewValue}</mark>
+            </span>
+        `;
+            }
+            if (!data.NewValue) {
+                return `
+            <span class="change-removed">
+                <b>−</b> Removed: <del>${data.OldValue}</del>
+            </span>
+        `;
+            }
+            return `
+        <span class="change-updated">
+            <b>→</b>
+            <span class="from">${data.OldValue}</span>
+            <span class="arrow">→</span>
+            <span class="to">${data.NewValue}</span>
+        </span>
+    `;
+        }
+
+        function getChangeTemplate2(data) {
+            if (!data.OldValue) {
+                return `
+            <div class="change-card added">
+                <div class="change-icon">➕</div>
+                <div class="change-content">
+                    <div class="change-label">Value Added</div>
+                    <div class="change-value">${data.NewValue}</div>
+                </div>
+            </div>
+        `;
+            }
+            if (!data.NewValue) {
+                return `
+            <div class="change-card removed">
+                <div class="change-icon">➖</div>
+                <div class="change-content">
+                    <div class="change-label">Value Removed</div>
+                    <div class="change-value">${data.OldValue}</div>
+                </div>
+            </div>
+        `;
+            }
+            return `
+        <div class="change-card updated">
+            <div class="change-icon">🔄</div>
+            <div class="change-content">
+                <div class="change-label">Value Changed</div>
+                <div class="change-comparison">
+                    <span class="from-value">${data.OldValue}</span>
+                    <span class="arrow">→</span>
+                    <span class="to-value">${data.NewValue}</span>
+                </div>
+            </div>
+        </div>
+    `;
+        }
+
+        function getChangeTemplate1(data) {
+            if (!data.OldValue) {
+                return `
+            <span class="text-success change-template">
+                <i class="fa fa-plus-circle"></i>
+                Set to: <strong>${data.NewValue}</strong>
+            </span>
+        `;
+            }
+            if (!data.NewValue) {
+                return `
+            <span class="text-danger change-template">
+                <i class="fa fa-minus-circle"></i>
+                Removed: <strong>${data.OldValue}</strong>
+            </span>
+        `;
+            }
+            return `
+        <span class="text-warning change-template">
+            <i class="fa fa-arrow-right"></i>
+            <span class="old-value">${data.OldValue}</span> 
+            → 
+            <span class="new-value">${data.NewValue}</span>
+        </span>
+    `;
+        }
+
+        function showDetails(e) {
+            e.preventDefault();
+            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            $("#detailsModal").data("auditLogId", dataItem.Id).modal("show");
+            $("#detailsGrid").data("kendoGrid").dataSource.read();
+        }
+
+        function getAuditLogId() {
+            return { auditLogId: $("#detailsModal").data("auditLogId") };
+        }
+
+        function onDataBound(e) {
+            // Add styling based on action type
+            $("#auditGrid tbody tr").each(function () {
+                var action = $(this).find("td:eq(2)").text();
+                if (action === "INSERT") $(this).addClass("success-row");
+                if (action === "UPDATE") $(this).addClass("warning-row");
+                if (action === "DELETE") $(this).addClass("danger-row");
+            });
+        }
+    </script>
+
+    <style>
+        .success-row {
+            background-color: #d4edda !important;
+        }
+
+        .warning-row {
+            background-color: #fff3cd !important;
+        }
+
+        .danger-row {
+            background-color: #f8d7da !important;
+        }
+
+        .k-grid td {
+            vertical-align: middle;
+        }
+
+        .audit-change {
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+
+        .audit-add {
+            border-left: 3px solid #28a745;
+            background: #f8fff9;
+        }
+
+        .audit-remove {
+            border-left: 3px solid #dc3545;
+            background: #fff8f8;
+        }
+
+        .audit-update {
+            border-left: 3px solid #ffc107;
+            background: #fffef8;
+        }
+
+        .change-type {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+
+        .audit-add .change-type {
+            background: #28a745;
+            color: white;
+        }
+
+        .audit-remove .change-type {
+            background: #dc3545;
+            color: white;
+        }
+
+        .audit-update .change-type {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .change-detail {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .change-comparison {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .old-value {
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .new-value {
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        .change-arrow {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+    </style>
+}

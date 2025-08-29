@@ -31,7 +31,6 @@ namespace iLgs.Models
         public virtual DbSet<AspNetUserRole> AspNetUserRoles { get; set; }
         public virtual DbSet<AspNetRole> AspNetRoles { get; set; }
         public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
-        public virtual DbSet<UserProfile> UserProfiles { get; set; }
         public virtual DbSet<UserCodes_View> UserCodes_View { get; set; }
         public virtual DbSet<UserCode> UserCodes { get; set; }
         public virtual DbSet<UserInfo> UserInfos { get; set; }
@@ -113,8 +112,11 @@ namespace iLgs.Models
         public virtual DbSet<CustodianReportLandItem> CustodianReportLandItems { get; set; }
         public virtual DbSet<CustodianReportUpload> CustodianReportUploads { get; set; }
         public virtual DbSet<RisItem> RisItems { get; set; }
-        public virtual DbSet<PsCardItem> PsCardItems { get; set; }
         public virtual DbSet<PsCardItemTransferIssuance> PsCardItemTransferIssuances { get; set; }
         public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
+        public virtual DbSet<UserProfile> UserProfiles { get; set; }
+        public virtual DbSet<AuditLogDetail> AuditLogDetails { get; set; }
+        public virtual DbSet<AuditLog> AuditLogs { get; set; }
+        public virtual DbSet<PsCardItem> PsCardItems { get; set; }
     }
 }

@@ -179,13 +179,18 @@ namespace iLgs.Services.CustodianReports
             IQueryable<CustodianReportItemPpeVM> data = null;
             if (deptId != null)
             {
-                if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+                var userId = _userService.GetByUserName(userName).Id;
+                if (!string.IsNullOrWhiteSpace(userId))
                 {
-                    data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, deptId, accountGroup, "", null, "", true, "").AsQueryable();
-                }
-                else
-                {
-                    data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, deptId, accountGroup, "", null, "", false, "").AsQueryable();
+                    //if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+                    if (_userService.IsUserNameAdmin(userName))
+                    {
+                        data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, deptId, accountGroup, "", null, "", true, "", userId).AsQueryable();
+                    }
+                    else
+                    {
+                        data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, deptId, accountGroup, "", null, "", false, "", userId).AsQueryable();
+                    }
                 }
             }
             return data ?? Enumerable.Empty<CustodianReportItemPpeVM>().AsQueryable();
@@ -194,14 +199,18 @@ namespace iLgs.Services.CustodianReports
         public IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName)
         {
             IQueryable<CustodianReportItemPpeVM> data = null;
-
-            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            var userId = _userService.GetByUserName(userName).Id;
+            //if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
+            if (!string.IsNullOrWhiteSpace(userId))
             {
-                data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, null, accountGroup, "", null, "", true, "").AsQueryable();                
-            }
-            else
-            {
-                data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, null, accountGroup, "", null, "", false, "").AsQueryable();                
+                if (_userService.IsUserNameAdmin(userName))
+                {
+                    data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, null, accountGroup, "", null, "", true, "", userId).AsQueryable();
+                }
+                else
+                {
+                    data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, null, accountGroup, "", null, "", false, "", userId).AsQueryable();
+                }
             }
             return data;
         }

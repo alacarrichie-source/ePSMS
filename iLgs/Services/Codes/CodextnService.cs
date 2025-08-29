@@ -12,7 +12,7 @@ namespace iLgs.Services.Codes
     {
         IQueryable<CodextnVM> GetByMastCode(string mastCode);
         IQueryable<CodextnVM> GetByMastId(Guid mastId);
-        ValueTask<CodextnVM> GetByIdAsync(Guid id);
+        ValueTask<CodextnVM> GetByIdAsync(Guid? id);
         bool IsValidMastCodeId(string mastCode, Guid? id);
         bool IsValidMastCodeCode(string mastCode, string code);
         bool IsValidCodeDesc(string mainCode, string description);
@@ -58,7 +58,13 @@ namespace iLgs.Services.Codes
             var data = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS"
                 //&& w.Desc3 != "N"
                 && w.Code.Substring(w.Code.Length - 2) == "00"
-                && (IsAdmin || w.DepartmentUsers.Any(a => a.UserId == userId))).AsNoTracking().OrderBy(o => o.Description);
+                && (IsAdmin 
+                        || w.DepartmentUsers.Any(a => a.UserId == userId)
+                        || _db.Codextns.Any(a => a.CodeMast.Code == "LOCATIONS" 
+                                && a.Code.Substring(0, 2) == w.Code.Substring(0, 2) 
+                                && a.DepartmentUsers.Any(b => b.UserId == userId))
+                    )
+                ).AsNoTracking().OrderBy(o => o.Description);
             return data;
         }
 
@@ -135,7 +141,7 @@ namespace iLgs.Services.Codes
             return data;
         }
 
-        public async ValueTask<CodextnVM> GetByIdAsync(Guid id)
+        public async ValueTask<CodextnVM> GetByIdAsync(Guid? id)
         {
             var data = await _db.Codextns.Where(w => w.Id == id)
                 .Select(s => new CodextnVM

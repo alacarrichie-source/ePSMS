@@ -19,6 +19,8 @@ namespace iLgs.Services
 
         bool IsUserNameAdmin(string userName);
         //bool IsAnnexDUser(string userName);
+
+        AspNetUser GetByUserName(string userName);
     }
 
     public class UserService : IUserService
@@ -73,6 +75,12 @@ namespace iLgs.Services
             var isAdmin = UserInRole(userId, "ADMIN").Result;
             var isSysAdmin = UserInRole(userId, _sysAdmin).Result;
             return isAdmin || isSysAdmin;
+        }
+
+        public AspNetUser GetByUserName(string userName)
+        {
+            var data = _db.AspNetUsers.Where(w => w.UserName == userName).SingleOrDefault();
+            return data;
         }
 
         //public bool IsAnnexDUser(string userName)

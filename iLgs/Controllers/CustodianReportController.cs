@@ -2915,9 +2915,10 @@ namespace iLgs.Controllers
                     exportFileName = "CustodianVehicles";
                 }
 
+                string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
                 var stream = _custodianReportItemService.ProcessExcelFile(forYear, reportId, deptId, templateFilePath, accountGroup, mainAccount, asOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, user);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");
             }
@@ -2957,9 +2958,10 @@ namespace iLgs.Controllers
                     exportFileName = $"CustodianVehiclesAnnex";
                 }
 
+                string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
                 var stream = _custodianReportItemService.ProcessExcelFileAnnex(forYear, reportId, deptId, templateFilePath, accountGroup, annex, mainAccount, asOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, user);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}-{annex}.xlsx");
             }

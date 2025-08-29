@@ -25,11 +25,11 @@ namespace iLgs.Services.CustodianReports
         ValueTask<CustodianReportItem> DeleteAsync(CustodianReportItem model, string user, DateTime date);
         ValueTask<CustodianReportItem> PostAsync(Guid id, string user, DateTime date);
         ValueTask<CustodianReportItem> UnPostAsync(Guid id, string user, DateTime date);
-        MemoryStream ProcessExcelFile(int? forYear, Guid? id, Guid? deptId, string templateFilePath, int? accountGroup);
+        MemoryStream ProcessExcelFile(int? forYear, Guid? id, Guid? deptId, string templateFilePath, int? accountGroup, string userName);
         MemoryStream ProcessExcelFile(int? forYear, Guid? id, Guid? deptId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4);
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
         MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? id, Guid? deptId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4);
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName);
     }
 
     public class CustodianReportItemService : BaseValidator, ICustodianReportItemService
@@ -255,19 +255,42 @@ namespace iLgs.Services.CustodianReports
             }
 
             // validate SetLotNo and SetLotAmount, SetLotNo must only have 1 SetLotAmount
-            if (mode == Mode.ADD)
+            //if (mode == Mode.ADD)
+            //{
+            //    //if ((model.SetLotAmount.HasValue && model.SetLotAmount > 0) && !string.IsNullOrWhiteSpace(model.SetLotNo))
+            //    if (!string.IsNullOrWhiteSpace(model.SetLotNo))
+            //    {
+            //        if (_db.CustodianReportItems.Any(a => a.ReportId == model.ReportId 
+            //            && a.LocationCode == model.LocationCode
+            //            && a.SetLotNo == model.SetLotNo && a.SetLotAmount != model.SetLotAmount))
+            //        {
+            //            _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotNo)), "Set/Lot Amount with different value already exist for the same Set/Lot No.");
+            //        }
+            //    }
+            //}
+
+            if (!string.IsNullOrWhiteSpace(model.SetLotNo))
             {
-                if ((model.SetLotAmount.HasValue && model.SetLotAmount > 0) && !string.IsNullOrWhiteSpace(model.SetLotNo))
+                if (mode == Mode.ADD)
                 {
-                    if (_db.CustodianReportItems.Any(a => a.ReportId == model.ReportId && a.LocationCode == model.LocationCode && a.SetLotNo == model.SetLotNo && a.SetLotAmount != model.SetLotAmount))
+                    if (_db.CustodianReportItems.Any(a => a.ReportId == model.ReportId
+                        && a.LocationCode == model.LocationCode
+                        && a.SetLotNo == model.SetLotNo && a.SetLotAmount != model.SetLotAmount))
                     {
                         _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotNo)), "Set/Lot Amount with different value already exist for the same Set/Lot No.");
                     }
                 }
-            }
-
-            if (!string.IsNullOrWhiteSpace(model.SetLotNo))
-            {
+                else
+                {
+                    if (_db.CustodianReportItems.Any(a => a.Id != model.Id 
+                        && a.ReportId == model.ReportId
+                        && a.LocationCode == model.LocationCode
+                        && a.SetLotNo == model.SetLotNo && a.SetLotAmount != model.SetLotAmount))
+                    {
+                        _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotNo)), "Set/Lot Amount with different value already exist for the same Set/Lot No.");
+                    }
+                }
+            
                 if (!model.SetLotNo.ToUpper().StartsWith("S") && !model.SetLotNo.ToUpper().StartsWith("L"))
                 {
                     _imex.UpsertDataList(_getDisplayName(nameof(model.SetLotNo)), "Set/Lot No. must start with S or L.");
@@ -276,7 +299,6 @@ namespace iLgs.Services.CustodianReports
 
             if (!string.IsNullOrWhiteSpace(model.Annex) && model.Annex == "A")
             {
-                //if ((!model.SetLotAmount.HasValue && !model.TotalCost.HasValue) || (model.SetLotAmount == 0 && model.TotalCost == 0))
                 if ((model.SetLotAmount == 0 && model.TotalCost == 0))
                 {
                     _imex.UpsertDataList(_getDisplayName(nameof(model.TotalCost)), "Please input the acquisition cost from existing records");
@@ -300,15 +322,16 @@ namespace iLgs.Services.CustodianReports
             if (custodianReportUpload != null)
             {
                 _db.CustodianReportUploads.Remove(entity.CustodianReportUpload);
+                _db.Entry(entity.CustodianReportUpload).State = EntityState.Deleted;
                 await _db.SaveChangesAsync();
             }
 
-            entity.UpdatedBy = model.UpdatedBy;
-            entity.UpdatedDt = model.UpdatedDt;
+            //entity.UpdatedBy = model.UpdatedBy;
+            //entity.UpdatedDt = model.UpdatedDt;
 
-            _db.CustodianReportItems.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
-            await _db.SaveChangesAsync();
+            //_db.CustodianReportItems.Attach(entity);
+            //_db.Entry(entity).State = EntityState.Modified;
+            //await _db.SaveChangesAsync();
 
             _db.CustodianReportItems.Remove(entity);
             _db.Entry(entity).State = EntityState.Deleted;
@@ -513,13 +536,13 @@ namespace iLgs.Services.CustodianReports
             //entity.PostedDt = model.PostedDt;
         }
 
-        public MemoryStream ProcessExcelFile(int? forYear, Guid? id, Guid? deptId, string templateFilePath, int? accountGroup)
+        public MemoryStream ProcessExcelFile(int? forYear, Guid? id, Guid? deptId, string templateFilePath, int? accountGroup, string userName)
         {
-            return ProcessExcelFile(forYear, id, deptId, templateFilePath, accountGroup, "", null, "", "", "", "");
+            return ProcessExcelFile(forYear, id, deptId, templateFilePath, accountGroup, "", null, "", "", "", "", userName);
         }
 
         public MemoryStream ProcessExcelFile(int? forYear, Guid? id, Guid? deptId, string templateFilePath, int? accountGroup, string mainAccount, DateTime? asOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -530,17 +553,17 @@ namespace iLgs.Services.CustodianReports
             if (accountGroup == (int?)CustodianAccountGroup.STOCK)
             {
                 return ProcessExcelFileStockTemplate(forYear, id, deptId, accountGroup, templateFilePath, mainAccount, asOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
             else if (accountGroup == (int?)CustodianAccountGroup.PPE)
             {
                 return ProcessExcelFilePpeTemplate(forYear, id, deptId, accountGroup, templateFilePath, mainAccount, asOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
             else
             {
                 return ProcessExcelFileVehicleTemplate(forYear, id, deptId, accountGroup, templateFilePath, mainAccount, asOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
         }
 
@@ -1152,7 +1175,7 @@ namespace iLgs.Services.CustodianReports
 
         private MemoryStream ProcessExcelFileStockTemplate(int? forYear, Guid? id, Guid? deptId, int? accountGroup, string templateFilePath
             , string hdg, string annex, string mainAccount, DateTime? asOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
@@ -1165,8 +1188,9 @@ namespace iLgs.Services.CustodianReports
                 decimal? tAcqCost = 0;
                 var ws = wb.Worksheet(1);
                 var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
-                var reportItems = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}",
-                    forYear, id, deptId, accountGroup, mainAccount, asOf, annex, true, subAccount1).AsQueryable();
+                var userId = _userService.GetByUserName(userName).Id;
+                var reportItems = _db.Database.SqlQuery<CustodianReportItemStockVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}",
+                    forYear, id, deptId, accountGroup, mainAccount, asOf, annex, true, subAccount1, userId).AsQueryable();
 
                 if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
@@ -1329,7 +1353,7 @@ namespace iLgs.Services.CustodianReports
         }
 
         private MemoryStream ProcessExcelFilePpeTemplate(int? forYear, Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
@@ -1342,9 +1366,9 @@ namespace iLgs.Services.CustodianReports
                 decimal? tAcqCost = 0;
                 var ws = wb.Worksheet(1);
                 var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
-
-                var reportItems = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}",
-                    forYear, id, deptId, accountGroup, mainAccount, asOf, annex, true, subAccount).AsQueryable();
+                var userId = _userService.GetByUserName(userName).Id;
+                var reportItems = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}",
+                    forYear, id, deptId, accountGroup, mainAccount, asOf, annex, true, subAccount, userId).AsQueryable();
 
                 if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
@@ -1511,7 +1535,7 @@ namespace iLgs.Services.CustodianReports
         }
 
         private MemoryStream ProcessExcelFileVehicleTemplate(int? forYear, Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string hdg, string annex, string mainAccount, DateTime? asOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             using (XLWorkbook wb = new XLWorkbook(templateFilePath))
             {
@@ -1524,9 +1548,9 @@ namespace iLgs.Services.CustodianReports
                 decimal? tAcqCost = 0;
                 var ws = wb.Worksheet(1);
                 var subAccount = new[] { subAccount4, subAccount3, subAccount2, subAccount1 }.FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
-
-                var reportItems = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}",
-                    forYear, id, deptId, accountGroup, mainAccount, asOf, annex, true, subAccount).AsQueryable();
+                var userId = _userService.GetByUserName(userName).Id;
+                var reportItems = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}",
+                    forYear, id, deptId, accountGroup, mainAccount, asOf, annex, true, subAccount, userId).AsQueryable();
 
                 if (reportItems.Any() && string.IsNullOrWhiteSpace(annex))
                 {
@@ -1698,25 +1722,25 @@ namespace iLgs.Services.CustodianReports
         }
 
         private MemoryStream ProcessExcelFileStockTemplate(int? forYear, Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
-            return ProcessExcelFileStockTemplate(forYear, id, deptId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return ProcessExcelFileStockTemplate(forYear, id, deptId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
 
         private MemoryStream ProcessExcelFilePpeTemplate(int? forYear, Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
-            return ProcessExcelFilePpeTemplate(forYear, id, deptId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return ProcessExcelFilePpeTemplate(forYear, id, deptId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
 
         private MemoryStream ProcessExcelFileVehicleTemplate(int? forYear, Guid? id, Guid? deptId, int? accountGroup, string templateFilePath, string mainAccount, DateTime? asOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
-            return ProcessExcelFileVehicleTemplate(forYear, id, deptId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return ProcessExcelFileVehicleTemplate(forYear, id, deptId, accountGroup, templateFilePath, "", "", mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4, userName);
         }
 
         public MemoryStream ProcessExcelFileAnnex(int? forYear, Guid? id, Guid? deptId, string templateFilePath, int? accountGroup, string annex, string mainAccount, DateTime? asOf
-            , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
+            , string subAccount1, string subAccount2, string subAccount3, string subAccount4, string userName)
         {
             // Load the template file
             FileInfo templateFile = new FileInfo(templateFilePath);
@@ -1742,17 +1766,17 @@ namespace iLgs.Services.CustodianReports
             if (accountGroup == (int?)CustodianAccountGroup.STOCK)
             {
                 return ProcessExcelFileStockTemplate(forYear, id, deptId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
             else if (accountGroup == (int?)CustodianAccountGroup.PPE)
             {
                 return ProcessExcelFilePpeTemplate(forYear, id, deptId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
             else
             {
                 return ProcessExcelFileVehicleTemplate(forYear, id, deptId, accountGroup, templateFilePath, hdg, annex, mainAccount, asOf
-                    , subAccount1, subAccount2, subAccount3, subAccount4);
+                    , subAccount1, subAccount2, subAccount3, subAccount4, userName);
             }
         }
 

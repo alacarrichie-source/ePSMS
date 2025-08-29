@@ -5,6 +5,7 @@ using iLgs.Models;
 using iLgs.Services;
 using iLgs.Services.AIRs_;
 using iLgs.Services.AllFields;
+using iLgs.Services.AuditLog_;
 using iLgs.Services.Codes;
 using iLgs.Services.CustodianDisposal_;
 using iLgs.Services.CustodianIirup;
@@ -82,6 +83,9 @@ namespace iLgs
             // ALLFIELDS
             services.AddScoped<IAllFieldService, AllFieldService>();
             services.AddScoped<IAllFieldsValidator, AllFieldsValidator>();
+
+            // AUDIT LOG
+            services.AddScoped<IAuditLogService, AuditLogService>();
 
             // CODES
             services.AddScoped<ICodextnService, CodextnService>();

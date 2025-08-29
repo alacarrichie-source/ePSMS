@@ -636,6 +636,44 @@ namespace iLgs.Controllers
             return Json(model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }), JsonRequestBehavior.AllowGet);
         }
 
+        public async Task<JsonResult> GetSections(Guid? deptId, string text)
+        {
+            if (deptId == null)
+                return Json(Enumerable.Empty<object>(), JsonRequestBehavior.AllowGet);
+
+            var deptCode = (await _codextnService.GetByIdAsync(deptId))?.Code;
+            if (string.IsNullOrEmpty(deptCode) || deptCode.Length < 2)
+                return Json(Enumerable.Empty<object>(), JsonRequestBehavior.AllowGet);
+
+            var query = _db.Codextns
+                .Where(w => w.CodeMast.Code == "LOCATIONS"
+                    && !w.Code.EndsWith("00")
+                    && w.Code.StartsWith(deptCode.Substring(0, 2)))
+                .OrderBy(o => o.Description)
+                .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                var lowerText = text.ToLower();
+                query = query.Where(p => p.Description.ToLower().Contains(lowerText)
+                                      || p.Code.ToLower().Contains(lowerText));
+            }
+
+            var result = await query
+                .Select(c => new
+                {
+                    c.Id,
+                    c.Code,
+                    c.Description,
+                    c.Desc2,
+                    c.Desc3,
+                    c.Desc4
+                })
+                .ToListAsync();
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetIssuedTo(string text)
         {
 
