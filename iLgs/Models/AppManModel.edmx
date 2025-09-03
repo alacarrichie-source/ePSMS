@@ -2096,6 +2096,35 @@
           <Property Name="KeyName" Type="char" MaxLength="20" Nullable="false" />
           <Property Name="KeyValue" Type="char" MaxLength="20" />
         </EntityType>
+        <EntityType Name="TrackingItems">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="TrackingId" Type="uniqueidentifier" />
+          <Property Name="StatusId" Type="uniqueidentifier" />
+          <Property Name="CheckInDt" Type="datetime" />
+          <Property Name="CheckInBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="CheckOutDt" Type="datetime" />
+          <Property Name="CheckOutBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="ReturnDt" Type="datetime" />
+          <Property Name="ReturnBy" Type="nvarchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="Trackings">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CodeMastId" Type="uniqueidentifier" />
+          <Property Name="TrackNo" Type="varchar" MaxLength="50" />
+          <Property Name="TrackDate" Type="datetime" />
+          <Property Name="RefId" Type="uniqueidentifier" />
+          <Property Name="Description" Type="varchar" MaxLength="500" />
+          <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="InsertedDt" Type="datetime" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="50" />
+          <Property Name="UpdatedDt" Type="datetime" />
+        </EntityType>
         <EntityType Name="Uploads">
           <Key>
             <PropertyRef Name="Id" />
@@ -2167,7 +2196,7 @@
           <Property Name="AddressCity" Type="nvarchar" MaxLength="50" />
           <Property Name="AddressProvince" Type="nvarchar" MaxLength="50" />
           <Property Name="AddressZipCode" Type="nvarchar" MaxLength="10" />
-          <Property Name="Department" Type="nvarchar" MaxLength="100" />
+          <Property Name="Department" Type="nvarchar" MaxLength="200" />
           <Property Name="Division" Type="nvarchar" MaxLength="50" />
           <Property Name="Section" Type="nvarchar" MaxLength="50" />
           <Property Name="InsertedBy" Type="nvarchar" MaxLength="50" />
@@ -4081,6 +4110,44 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_TrackingItems_Codextn">
+          <End Role="Codextn" Type="Self.Codextn" Multiplicity="0..1" />
+          <End Role="TrackingItems" Type="Self.TrackingItems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TrackingItems">
+              <PropertyRef Name="StatusId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TrackingItems_Trackings">
+          <End Role="Trackings" Type="Self.Trackings" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="TrackingItems" Type="Self.TrackingItems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Trackings">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TrackingItems">
+              <PropertyRef Name="TrackingId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Trackings_CodeMast">
+          <End Role="CodeMast" Type="Self.CodeMast" Multiplicity="0..1" />
+          <End Role="Trackings" Type="Self.Trackings" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CodeMast">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Trackings">
+              <PropertyRef Name="CodeMastId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_UserCodes_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
           <End Role="UserCodes" Type="Self.UserCodes" Multiplicity="*" />
@@ -4215,6 +4282,8 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <EntitySet Name="RSMIItems" EntityType="Self.RSMIItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RSMIRecap" EntityType="Self.RSMIRecap" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Sequences" EntityType="Self.Sequences" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TrackingItems" EntityType="Self.TrackingItems" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Trackings" EntityType="Self.Trackings" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Uploads" EntityType="Self.Uploads" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserCodes" EntityType="Self.UserCodes" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserInfos" EntityType="Self.UserInfos" Schema="dbo" store:Type="Tables" />
@@ -4844,6 +4913,18 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="RSMI" EntitySet="RSMI" />
             <End Role="RSMIRecap" EntitySet="RSMIRecap" />
           </AssociationSet>
+          <AssociationSet Name="FK_TrackingItems_Codextn" Association="Self.FK_TrackingItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextn" />
+            <End Role="TrackingItems" EntitySet="TrackingItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TrackingItems_Trackings" Association="Self.FK_TrackingItems_Trackings">
+            <End Role="Trackings" EntitySet="Trackings" />
+            <End Role="TrackingItems" EntitySet="TrackingItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Trackings_CodeMast" Association="Self.FK_Trackings_CodeMast">
+            <End Role="CodeMast" EntitySet="CodeMast" />
+            <End Role="Trackings" EntitySet="Trackings" />
+          </AssociationSet>
           <AssociationSet Name="FK_UserCodes_AspNetUsers" Association="Self.FK_UserCodes_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="UserCodes" EntitySet="UserCodes" />
@@ -5454,11 +5535,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             <End Role="PsCardItemTransfer" EntitySet="PsCardItemTransfers" />
             <End Role="PsCardItemTransferItem" EntitySet="PsCardItemTransferItems" />
           </AssociationSet>
-          <EntitySet Name="UserProfiles" EntityType="AppManModel.UserProfile" />
-          <AssociationSet Name="FK_UserProfiles_AspNetUsers" Association="AppManModel.FK_UserProfiles_AspNetUsers">
-            <End Role="AspNetUser" EntitySet="AspNetUsers" />
-            <End Role="UserProfile" EntitySet="UserProfiles" />
-          </AssociationSet>
           <EntitySet Name="AuditLogDetails" EntityType="AppManModel.AuditLogDetail" />
           <EntitySet Name="AuditLogs" EntityType="AppManModel.AuditLog" />
           <AssociationSet Name="FK_AuditLogDetails_AuditLogs" Association="AppManModel.FK_AuditLogDetails_AuditLogs">
@@ -5505,6 +5581,25 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <AssociationSet Name="FK_PsCardItemUnitGroupDescriptionItems_PsCardItems" Association="AppManModel.FK_PsCardItemUnitGroupDescriptionItems_PsCardItems">
             <End Role="PsCardItem" EntitySet="PsCardItems" />
             <End Role="PsCardItemUnitGroupDescriptionItem" EntitySet="PsCardItemUnitGroupDescriptionItems" />
+          </AssociationSet>
+          <EntitySet Name="TrackingItems" EntityType="AppManModel.TrackingItem" />
+          <AssociationSet Name="FK_TrackingItems_Codextn" Association="AppManModel.FK_TrackingItems_Codextn">
+            <End Role="Codextn" EntitySet="Codextns" />
+            <End Role="TrackingItem" EntitySet="TrackingItems" />
+          </AssociationSet>
+          <EntitySet Name="Trackings" EntityType="AppManModel.Tracking" />
+          <AssociationSet Name="FK_Trackings_CodeMast" Association="AppManModel.FK_Trackings_CodeMast">
+            <End Role="CodeMast" EntitySet="CodeMasts" />
+            <End Role="Tracking" EntitySet="Trackings" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TrackingItems_Trackings" Association="AppManModel.FK_TrackingItems_Trackings">
+            <End Role="Tracking" EntitySet="Trackings" />
+            <End Role="TrackingItem" EntitySet="TrackingItems" />
+          </AssociationSet>
+          <EntitySet Name="UserProfiles" EntityType="AppManModel.UserProfile" />
+          <AssociationSet Name="FK_UserProfiles_AspNetUsers" Association="AppManModel.FK_UserProfiles_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="UserProfile" EntitySet="UserProfiles" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="Menubase">
@@ -5761,6 +5856,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="Codextns" Relationship="AppManModel.FK_Codextn_Codextn" FromRole="CodeMast" ToRole="Codextn" />
+          <NavigationProperty Name="Trackings" Relationship="AppManModel.FK_Trackings_CodeMast" FromRole="CodeMast" ToRole="Tracking" />
         </EntityType>
         <EntityType Name="MenuAccess">
           <Key>
@@ -6339,6 +6435,7 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
           <NavigationProperty Name="PsCardItems" Relationship="AppManModel.FK_PsCardItems_Codextn" FromRole="Codextn" ToRole="PsCardItem" />
           <NavigationProperty Name="PsCardItems1" Relationship="AppManModel.FK_PsCardItems_Codextn1" FromRole="Codextn" ToRole="PsCardItem" />
           <NavigationProperty Name="PsCardItems2" Relationship="AppManModel.FK_PsCardItems_Codextn2" FromRole="Codextn" ToRole="PsCardItem" />
+          <NavigationProperty Name="TrackingItems" Relationship="AppManModel.FK_TrackingItems_Codextn" FromRole="Codextn" ToRole="TrackingItem" />
           </EntityType>
         <Association Name="FK_Codextn_Codextn">
           <End Type="AppManModel.CodeMast" Role="CodeMast" Multiplicity="1" />
@@ -9467,50 +9564,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="UserProfile">
-          <Key>
-            <PropertyRef Name="UserId" />
-          </Key>
-          <Property Name="UserId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="NameLast" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="NameFirst" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="NameMid" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="NameFull" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
-          <Property Name="Birthday" Type="DateTime" Precision="3" />
-          <Property Name="Sex" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
-          <Property Name="TelNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="MobileNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressHouseNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressStreet" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="AddressSubdivision" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressBarangay" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressCity" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressProvince" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="AddressZipCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
-          <Property Name="Department" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Division" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="Section" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
-          <Property Name="UserCode" Type="String" MaxLength="4" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="AspNetUser" Relationship="AppManModel.FK_UserProfiles_AspNetUsers" FromRole="UserProfile" ToRole="AspNetUser" />
-        </EntityType>
-        <Association Name="FK_UserProfiles_AspNetUsers">
-          <End Type="AppManModel.AspNetUser" Role="AspNetUser" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="AppManModel.UserProfile" Role="UserProfile" Multiplicity="0..1" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUser">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="UserProfile">
-              <PropertyRef Name="UserId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="AuditLogDetail">
           <Key>
             <PropertyRef Name="Id" />
@@ -9749,6 +9802,121 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
             </Principal>
             <Dependent Role="PsCardItemUnitGroupDescriptionItem">
               <PropertyRef Name="PsCardItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="TrackingItem">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="TrackingId" Type="Guid" />
+          <Property Name="StatusId" Type="Guid" />
+          <Property Name="CheckInDt" Type="DateTime" Precision="3" />
+          <Property Name="CheckInBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CheckOutDt" Type="DateTime" Precision="3" />
+          <Property Name="CheckOutBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ReturnDt" Type="DateTime" Precision="3" />
+          <Property Name="ReturnBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Codextn" Relationship="AppManModel.FK_TrackingItems_Codextn" FromRole="TrackingItem" ToRole="Codextn" />
+          <NavigationProperty Name="Tracking" Relationship="AppManModel.FK_TrackingItems_Trackings" FromRole="TrackingItem" ToRole="Tracking" />
+        </EntityType>
+        <Association Name="FK_TrackingItems_Codextn">
+          <End Type="AppManModel.Codextn" Role="Codextn" Multiplicity="0..1" />
+          <End Type="AppManModel.TrackingItem" Role="TrackingItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Codextn">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TrackingItem">
+              <PropertyRef Name="StatusId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Tracking">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="CodeMastId" Type="Guid" />
+          <Property Name="TrackNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="TrackDate" Type="DateTime" Precision="3" />
+          <Property Name="RefId" Type="Guid" />
+          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="CodeMast" Relationship="AppManModel.FK_Trackings_CodeMast" FromRole="Tracking" ToRole="CodeMast" />
+          <NavigationProperty Name="TrackingItems" Relationship="AppManModel.FK_TrackingItems_Trackings" FromRole="Tracking" ToRole="TrackingItem" />
+        </EntityType>
+        <Association Name="FK_Trackings_CodeMast">
+          <End Type="AppManModel.CodeMast" Role="CodeMast" Multiplicity="0..1" />
+          <End Type="AppManModel.Tracking" Role="Tracking" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CodeMast">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Tracking">
+              <PropertyRef Name="CodeMastId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TrackingItems_Trackings">
+          <End Type="AppManModel.Tracking" Role="Tracking" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.TrackingItem" Role="TrackingItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Tracking">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TrackingItem">
+              <PropertyRef Name="TrackingId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="UserProfile">
+          <Key>
+            <PropertyRef Name="UserId" />
+          </Key>
+          <Property Name="UserId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="NameLast" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameFirst" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameMid" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NameFull" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="Birthday" Type="DateTime" Precision="3" />
+          <Property Name="Sex" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
+          <Property Name="TelNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="MobileNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressHouseNo" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressStreet" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="AddressSubdivision" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressBarangay" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressCity" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressProvince" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="AddressZipCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Department" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Division" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Section" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InsertedDt" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedDt" Type="DateTime" Precision="3" />
+          <Property Name="UserCode" Type="String" MaxLength="4" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AspNetUser" Relationship="AppManModel.FK_UserProfiles_AspNetUsers" FromRole="UserProfile" ToRole="AspNetUser" />
+        </EntityType>
+        <Association Name="FK_UserProfiles_AspNetUsers">
+          <End Type="AppManModel.AspNetUser" Role="AspNetUser" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AppManModel.UserProfile" Role="UserProfile" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserProfile">
+              <PropertyRef Name="UserId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -11950,36 +12118,6 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="UserProfiles">
-            <EntityTypeMapping TypeName="AppManModel.UserProfile">
-              <MappingFragment StoreEntitySet="UserProfiles">
-                <ScalarProperty Name="UserCode" ColumnName="UserCode" />
-                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
-                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
-                <ScalarProperty Name="Section" ColumnName="Section" />
-                <ScalarProperty Name="Division" ColumnName="Division" />
-                <ScalarProperty Name="Department" ColumnName="Department" />
-                <ScalarProperty Name="AddressZipCode" ColumnName="AddressZipCode" />
-                <ScalarProperty Name="AddressProvince" ColumnName="AddressProvince" />
-                <ScalarProperty Name="AddressCity" ColumnName="AddressCity" />
-                <ScalarProperty Name="AddressBarangay" ColumnName="AddressBarangay" />
-                <ScalarProperty Name="AddressSubdivision" ColumnName="AddressSubdivision" />
-                <ScalarProperty Name="AddressStreet" ColumnName="AddressStreet" />
-                <ScalarProperty Name="AddressHouseNo" ColumnName="AddressHouseNo" />
-                <ScalarProperty Name="MobileNo" ColumnName="MobileNo" />
-                <ScalarProperty Name="TelNo" ColumnName="TelNo" />
-                <ScalarProperty Name="Sex" ColumnName="Sex" />
-                <ScalarProperty Name="Birthday" ColumnName="Birthday" />
-                <ScalarProperty Name="NameFull" ColumnName="NameFull" />
-                <ScalarProperty Name="NameMid" ColumnName="NameMid" />
-                <ScalarProperty Name="NameFirst" ColumnName="NameFirst" />
-                <ScalarProperty Name="NameLast" ColumnName="NameLast" />
-                <ScalarProperty Name="UserId" ColumnName="UserId" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="AuditLogDetails">
             <EntityTypeMapping TypeName="AppManModel.AuditLogDetail">
               <MappingFragment StoreEntitySet="AuditLogDetails">
@@ -12069,6 +12207,67 @@ warning 6002: The table/view 'ePSMS.dbo.UserCodes_View' does not have a primary 
                 <ScalarProperty Name="PsCardId" ColumnName="PsCardId" />
                 <ScalarProperty Name="GroupId" ColumnName="GroupId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TrackingItems">
+            <EntityTypeMapping TypeName="AppManModel.TrackingItem">
+              <MappingFragment StoreEntitySet="TrackingItems">
+                <ScalarProperty Name="ReturnBy" ColumnName="ReturnBy" />
+                <ScalarProperty Name="ReturnDt" ColumnName="ReturnDt" />
+                <ScalarProperty Name="CheckOutBy" ColumnName="CheckOutBy" />
+                <ScalarProperty Name="CheckOutDt" ColumnName="CheckOutDt" />
+                <ScalarProperty Name="CheckInBy" ColumnName="CheckInBy" />
+                <ScalarProperty Name="CheckInDt" ColumnName="CheckInDt" />
+                <ScalarProperty Name="StatusId" ColumnName="StatusId" />
+                <ScalarProperty Name="TrackingId" ColumnName="TrackingId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Trackings">
+            <EntityTypeMapping TypeName="AppManModel.Tracking">
+              <MappingFragment StoreEntitySet="Trackings">
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="RefId" ColumnName="RefId" />
+                <ScalarProperty Name="TrackDate" ColumnName="TrackDate" />
+                <ScalarProperty Name="TrackNo" ColumnName="TrackNo" />
+                <ScalarProperty Name="CodeMastId" ColumnName="CodeMastId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserProfiles">
+            <EntityTypeMapping TypeName="AppManModel.UserProfile">
+              <MappingFragment StoreEntitySet="UserProfiles">
+                <ScalarProperty Name="UserCode" ColumnName="UserCode" />
+                <ScalarProperty Name="UpdatedDt" ColumnName="UpdatedDt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="InsertedDt" ColumnName="InsertedDt" />
+                <ScalarProperty Name="InsertedBy" ColumnName="InsertedBy" />
+                <ScalarProperty Name="Section" ColumnName="Section" />
+                <ScalarProperty Name="Division" ColumnName="Division" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="AddressZipCode" ColumnName="AddressZipCode" />
+                <ScalarProperty Name="AddressProvince" ColumnName="AddressProvince" />
+                <ScalarProperty Name="AddressCity" ColumnName="AddressCity" />
+                <ScalarProperty Name="AddressBarangay" ColumnName="AddressBarangay" />
+                <ScalarProperty Name="AddressSubdivision" ColumnName="AddressSubdivision" />
+                <ScalarProperty Name="AddressStreet" ColumnName="AddressStreet" />
+                <ScalarProperty Name="AddressHouseNo" ColumnName="AddressHouseNo" />
+                <ScalarProperty Name="MobileNo" ColumnName="MobileNo" />
+                <ScalarProperty Name="TelNo" ColumnName="TelNo" />
+                <ScalarProperty Name="Sex" ColumnName="Sex" />
+                <ScalarProperty Name="Birthday" ColumnName="Birthday" />
+                <ScalarProperty Name="NameFull" ColumnName="NameFull" />
+                <ScalarProperty Name="NameMid" ColumnName="NameMid" />
+                <ScalarProperty Name="NameFirst" ColumnName="NameFirst" />
+                <ScalarProperty Name="NameLast" ColumnName="NameLast" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

@@ -114,9 +114,11 @@ namespace iLgs.Models
         public virtual DbSet<RisItem> RisItems { get; set; }
         public virtual DbSet<PsCardItemTransferIssuance> PsCardItemTransferIssuances { get; set; }
         public virtual DbSet<PsCardItemTransfer> PsCardItemTransfers { get; set; }
-        public virtual DbSet<UserProfile> UserProfiles { get; set; }
         public virtual DbSet<AuditLogDetail> AuditLogDetails { get; set; }
         public virtual DbSet<AuditLog> AuditLogs { get; set; }
         public virtual DbSet<PsCardItem> PsCardItems { get; set; }
+        public virtual DbSet<TrackingItem> TrackingItems { get; set; }
+        public virtual DbSet<Tracking> Trackings { get; set; }
+        public virtual DbSet<UserProfile> UserProfiles { get; set; }
     }
 }

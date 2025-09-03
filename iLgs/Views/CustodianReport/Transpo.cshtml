@@ -4,7 +4,7 @@
 <br />
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("Report Year", htmlAttributes: new { @class = "col-md-2" })
+        @Html.Label("Reporting Year-end", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().NumericTextBox()
                 .Name("forYear")
@@ -45,6 +45,41 @@
                     c.Add().Field("Description").Title("Description").Width("70%");
                 })
                 .Events(e => e.Select("onSelectDeptId").Change("onChangeDeptId"))
+                .Suggest(true)
+            )
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.Label("Location", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().MultiColumnComboBox()
+                .Name("sectionId")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .Placeholder("Select Location")
+                .DataTextField("Description")
+                .DataValueField("Id")
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetUserSectionsAsync", "Getters").Data("DataSectionId");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Columns(c =>
+                {
+                    c.Add().Field("Code").Title("Code").Width("30%");
+                    c.Add().Field("Description").Title("Description").Width("70%");
+                })
+                .CascadeFrom("deptId")
+                .Events(e => e.Select("onSelectSectionId")
+                    .Change("onChangeSectionId")
+                )
                 .Suggest(true)
             )
         </div>
@@ -250,7 +285,7 @@
 
     .custom-max-grid .k-grid-content {
         overflow-x: auto;
-        height: calc(80vh - 150px) !important;
+        height: calc(80vh - 180px) !important;
     }
 </style>
 
@@ -290,9 +325,15 @@
             var forYear = $("#forYear").val();
             // Get the ID of the selected row
             var reportId = selectedData.ReportId;
+            var deptId = $("#deptId").val();
+            var sectionId = $("#sectionId").val();
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportReport", "CustodianReport")?forYear=" + forYear + "&reportId=" + reportId + '&accountGroup=@ViewBag.AccountGroup';
+            var url = "@Url.Action("ExcelExportReport", "CustodianReport")?forYear=" + forYear +
+                "&reportId=" + reportId +
+                "&deptId=" + deptId +
+                "&sectionId=" + sectionId +
+                '&accountGroup=@ViewBag.AccountGroup';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -315,9 +356,15 @@
             var forYear = $("#forYear").val();
             // Get the ID of the selected row
             var reportId = selectedData.ReportId;
+            var deptId = $("#deptId").val();
+            var sectionId = $("#sectionId").val();
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear + "&reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=A';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
+                "&reportId=" + reportId +
+                "&deptId=" + deptId +
+                "&sectionId=" + sectionId +
+                "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=A';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -340,9 +387,15 @@
             var forYear = $("#forYear").val();
             // Get the ID of the selected row
             var reportId = selectedData.ReportId;
+            var deptId = $("#deptId").val();
+            var sectionId = $("#sectionId").val();
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")&forYear=" + forYear + "&reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=B';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")&forYear=" + forYear +
+                "&reportId=" + reportId +
+                "&deptId=" + deptId +
+                "&sectionId=" + sectionId +
+                "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=B';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -365,9 +418,15 @@
             var forYear = $("#forYear").val();
             // Get the ID of the selected row
             var reportId = selectedData.ReportId;
+            var deptId = $("#deptId").val();
+            var sectionId = $("#sectionId").val();
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear + "&reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=C';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
+                "&reportId=" + reportId +
+                "&deptId=" + deptId +
+                "&sectionId=" + sectionId +
+                "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=C';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -390,9 +449,15 @@
             var forYear = $("#forYear").val();
             // Get the ID of the selected row
             var reportId = selectedData.ReportId;
+            var deptId = $("#deptId").val();
+            var sectionId = $("#sectionId").val();
 
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear + "&reportId=" + reportId + "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=D';
+            var url = "@Url.Action("ExcelExportAnnexReport", "CustodianReport")?forYear=" + forYear +
+                "&reportId=" + reportId +
+                "&deptId=" + deptId +
+                "&sectionId=" + sectionId +
+                "&accountGroup=" + '@ViewBag.AccountGroup' + '&annex=D';
 
             // Redirect to the export URL to trigger download
             window.location.href = url;
@@ -471,6 +536,7 @@
 
     function onSelectDeptId(e) {
         var dataItem = this.dataItem(e.item.index());
+        selectedId = null;
         $("#deptId").data("kendoMultiColumnComboBox").value(dataItem.Id);
         $("#deptId").data("kendoMultiColumnComboBox").trigger("change");
 
@@ -480,8 +546,41 @@
     function onChangeDeptId(e) {
         var comboBox = this;
         if (!comboBox.value()) {
+            selectedId = null;
             $("#grid").data("kendoGrid").dataSource.data([]);
         }
+    }
+
+    var selectedSectionCode = null;
+    var selectedSection = null;
+    function onSelectSectionId(e) {
+        var dataItem = this.dataItem(e.item.index());
+        selectedId = null;
+        selectedSection = dataItem.Section;
+        selectedSectionCode = dataItem.Code;
+        $("#sectionId").data("kendoMultiColumnComboBox").value(dataItem.Id);
+        $("#sectionId").data("kendoMultiColumnComboBox").trigger("change");
+        $("#grid").data("kendoGrid").dataSource.read();
+    }
+
+    function onChangeSectionId(e) {
+        var comboBox = this;
+        selectedId = null;
+        //if (!comboBox.value()) {
+        //    $("#grid").data("kendoGrid").dataSource.data([]);
+        //}
+        $("#grid").data("kendoGrid").dataSource.read();
+    }
+
+    function DataSectionId() {
+        var text = $("#sectionId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#sectionId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            deptId: $("#deptId").val(),
+            text: text
+        };
     }
 
     function columnTemplate(data) {
@@ -492,6 +591,7 @@
         return {
             forYear: $("#forYear").val(),
             deptId: $("#deptId").val(),
+            sectionId: $("#sectionId").val(),
             accountGroup: '@ViewBag.AccountGroup'
         };
     }
@@ -584,14 +684,27 @@
         selectedGrid = e.sender;
 
         if (e.model.isNew()) {
-            var accountGroup = '@ViewBag.AccountGroup';
-            var row = e.sender.tbody.find("tr:first");
-            this.select(row);
-            selectedId = null;
-            e.model.set("ForYear", $("#forYear").val());
-            e.model.set("MainDeptId", $("#deptId").val());
-            e.model.set("MainDeptName", $("#deptId").data("kendoMultiColumnComboBox").text());
-            e.model.set("AccountGroup", accountGroup);
+            if (!$("#sectionId").val()) {
+                alert("Please select a section before proceeding.");
+                var wnd = e.container && e.container.data("kendoWindow");
+                if (wnd) {
+                    wnd.close();
+                    selectedGrid.dataSource.remove(e.model);
+                }
+            }
+            else {
+                var accountGroup = '@ViewBag.AccountGroup';
+                var row = e.sender.tbody.find("tr:first");
+                this.select(row);
+                selectedId = null;
+                e.model.set("ForYear", $("#forYear").val());
+                e.model.set("MainDeptId", $("#deptId").val());
+                e.model.set("LocationId", $("#sectionId").val());
+                e.model.set("LocationCode", selectedSectionCode);
+                e.model.set("Location", selectedSection);
+                e.model.set("MainDeptName", $("#deptId").data("kendoMultiColumnComboBox").text());
+                e.model.set("AccountGroup", accountGroup);
+            }
         } else {
             selectedId = e.model.get("Id");
             var rowitem = selectedGrid.dataSource.get(selectedId);

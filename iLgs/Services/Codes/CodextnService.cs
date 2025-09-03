@@ -17,6 +17,7 @@ namespace iLgs.Services.Codes
         bool IsValidMastCodeCode(string mastCode, string code);
         bool IsValidCodeDesc(string mainCode, string description);
         ValueTask<IQueryable<Codextn>> GetUserDepartmentsAsync(string userId);
+        ValueTask<IQueryable<Codextn>> GetUserSectionsAsync(Guid? deptId, string userId);
         IQueryable<Codextn> GetRequiredFields(string part);
         IQueryable<Codextn> GetUploadList();
         IQueryable<Codextn> GetItemCodeRequestUploadList();
@@ -65,6 +66,46 @@ namespace iLgs.Services.Codes
                                 && a.DepartmentUsers.Any(b => b.UserId == userId))
                     )
                 ).AsNoTracking().OrderBy(o => o.Description);
+            return data;
+        }
+
+        public async ValueTask<IQueryable<Codextn>> GetUserSectionsAsync(Guid? deptId, string userId)
+        {
+            var IsAdmin = await _userService.IsAdminAsync(userId);
+            var deptCode = (await GetByIdAsync(deptId))?.Code;
+
+            if (string.IsNullOrEmpty(deptCode) || deptCode.Length < 2)
+            {
+                return Enumerable.Empty<Codextn>().AsQueryable();
+            }
+
+            var data = _db.Codextns
+                .Include(i => i.DepartmentUsers)
+                .Where(w => w.CodeMast.Code == "LOCATIONS"
+                    //&& !w.Code.EndsWith("00")
+                    && w.Code.StartsWith(deptCode.Substring(0, 2)))
+                .OrderBy(o => o.Description)
+                .AsNoTracking();
+
+            if (!(await _userService.IsAdminAsync(userId)))
+            {
+                // with main code access
+                if (!data.Any(a => a.Code.EndsWith("00") && a.DepartmentUsers.Any(b => b.UserId == userId)))
+                {
+                    data = data.Where(w => w.DepartmentUsers.Any(a => a.UserId == userId));
+                }
+            }
+
+            //var data = _db.Codextns.Where(w => w.CodeMast.Code == "LOCATIONS"
+            //    //&& w.Desc3 != "N"
+            //    && w.Code.Substring(w.Code.Length - 2) == "00"
+            //    && (IsAdmin
+            //            || w.DepartmentUsers.Any(a => a.UserId == userId)
+            //            || _db.Codextns.Any(a => a.CodeMast.Code == "LOCATIONS"
+            //                    && a.Code.Substring(0, 2) == w.Code.Substring(0, 2)
+            //                    && a.DepartmentUsers.Any(b => b.UserId == userId))
+            //        )
+            //    ).AsNoTracking().OrderBy(o => o.Description);
             return data;
         }
 

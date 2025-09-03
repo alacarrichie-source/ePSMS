@@ -16,7 +16,7 @@ namespace iLgs.Services.CustodianReports
         new ValueTask<CustodianReportItemPpeVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportItemPpeVM> GetAll(Guid? reportId, string userName);
         IQueryable<CustodianReportItemPpeVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
-        IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, string userName);
+        IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName);
         ValueTask<CustodianReportItemPpeVM> CreateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
         ValueTask<CustodianReportItemPpeVM> UpdateAsync(CustodianReportItemPpeVM model, string user, DateTime date);
         ValueTask<CustodianReportItemPpeVM> DeleteAsync(CustodianReportItemPpeVM model, string user, DateTime date);
@@ -174,7 +174,7 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
         
-        public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, string userName)
+        public IQueryable<CustodianReportItemPpeVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName)
         {
             IQueryable<CustodianReportItemPpeVM> data = null;
             if (deptId != null)
@@ -182,15 +182,8 @@ namespace iLgs.Services.CustodianReports
                 var userId = _userService.GetByUserName(userName).Id;
                 if (!string.IsNullOrWhiteSpace(userId))
                 {
-                    //if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
-                    if (_userService.IsUserNameAdmin(userName))
-                    {
-                        data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, deptId, accountGroup, "", null, "", true, "", userId).AsQueryable();
-                    }
-                    else
-                    {
-                        data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, deptId, accountGroup, "", null, "", false, "", userId).AsQueryable();
-                    }
+                    var userIsAdmin = _userService.IsUserNameAdmin(userName);
+                    data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, null, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();                    
                 }
             }
             return data ?? Enumerable.Empty<CustodianReportItemPpeVM>().AsQueryable();
@@ -200,17 +193,10 @@ namespace iLgs.Services.CustodianReports
         {
             IQueryable<CustodianReportItemPpeVM> data = null;
             var userId = _userService.GetByUserName(userName).Id;
-            //if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
             if (!string.IsNullOrWhiteSpace(userId))
             {
-                if (_userService.IsUserNameAdmin(userName))
-                {
-                    data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, null, accountGroup, "", null, "", true, "", userId).AsQueryable();
-                }
-                else
-                {
-                    data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}", forYear, null, null, accountGroup, "", null, "", false, "", userId).AsQueryable();
-                }
+                var userIsAdmin = _userService.IsUserNameAdmin(userName);
+                data = _db.Database.SqlQuery<CustodianReportItemPpeVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, null, null, null, accountGroup, "", null, "", userIsAdmin, "", userId).AsQueryable();                
             }
             return data;
         }

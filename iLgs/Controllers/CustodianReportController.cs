@@ -339,10 +339,10 @@ namespace iLgs.Controllers
         }
 
         #region STOCK ITEM
-        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
+        public ActionResult _StockItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup, user);
+            var data = _custodianReportItemStockService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -470,10 +470,10 @@ namespace iLgs.Controllers
         #endregion
 
         #region PPE ITEMS
-        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
+        public ActionResult _PpeItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup, user);
+            var data = _custodianReportItemPpeService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -601,10 +601,10 @@ namespace iLgs.Controllers
         #endregion
 
         #region VEHICLE ITEMS
-        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, int? accountGroup)
+        public ActionResult _VehicleItemRead([DataSourceRequest] DataSourceRequest request, int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup)
         {
             string user = ControllerContext.HttpContext.User.Identity.Name;
-            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(forYear, deptId, accountGroup, user);
+            var data = _custodianReportItemVehicleService.GetAllByDeptAcctGroup(forYear, deptId, sectionId, accountGroup, user);
 
             return new JsonNetResult { Data = data.ToDataSourceResult(request), JsonRequestBehavior = JsonRequestBehavior.AllowGet, Settings = { ReferenceLoopHandling = ReferenceLoopHandling.Ignore } };
         }
@@ -2885,18 +2885,18 @@ namespace iLgs.Controllers
             return File(fileContents, contentType, fileName);
         }
 
-        public ActionResult ExcelExportReport(int? forYear, Guid? reportId, int? accountGroup)
+        public ActionResult ExcelExportReport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup)
         {
-            return ExcelExport(forYear, reportId, null, accountGroup, "", null, "", "", "", "");
+            return ExcelExport(forYear, reportId, deptId, sectionId, accountGroup, "", null, "", "", "", "");
         }
 
-        public ActionResult ExcelExportAll(int? forYear, Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf
+        public ActionResult ExcelExportAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            return ExcelExport(forYear, null, deptId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return ExcelExport(forYear, null, deptId, sectionId, accountGroup, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
-        public ActionResult ExcelExport(int? forYear, Guid? reportId, Guid? deptId, int? accountGroup, string mainAccount, DateTime? asOf
+        public ActionResult ExcelExport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
@@ -2917,7 +2917,7 @@ namespace iLgs.Controllers
 
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportItemService.ProcessExcelFile(forYear, reportId, deptId, templateFilePath, accountGroup, mainAccount, asOf
+                var stream = _custodianReportItemService.ProcessExcelFile(forYear, reportId, deptId, sectionId, templateFilePath, accountGroup, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}.xlsx");
@@ -2928,18 +2928,18 @@ namespace iLgs.Controllers
             }
         }
 
-        public ActionResult ExcelExportAnnexAll(int? forYear, Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        public ActionResult ExcelExportAnnexAll(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
-            return ExcelExportAnnex(forYear, null, deptId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
+            return ExcelExportAnnex(forYear, null, deptId, sectionId, accountGroup, annex, mainAccount, asOf, subAccount1, subAccount2, subAccount3, subAccount4);
         }
 
-        public ActionResult ExcelExportAnnexReport(int? forYear, Guid? reportId, int? accountGroup, string annex)
+        public ActionResult ExcelExportAnnexReport(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string annex)
         {
-            return ExcelExportAnnex(forYear, reportId, null, accountGroup, annex, "", null, "", "", "", "");
+            return ExcelExportAnnex(forYear, reportId, deptId, sectionId, accountGroup, annex, "", null, "", "", "", "");
         }
 
-        public ActionResult ExcelExportAnnex(int? forYear, Guid? reportId, Guid? deptId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
+        public ActionResult ExcelExportAnnex(int? forYear, Guid? reportId, Guid? deptId, Guid? sectionId, int? accountGroup, string annex, string mainAccount, DateTime? asOf
             , string subAccount1, string subAccount2, string subAccount3, string subAccount4)
         {
             try
@@ -2960,7 +2960,7 @@ namespace iLgs.Controllers
 
                 string user = ControllerContext.HttpContext.User.Identity.Name;
                 var templateFilePath = Server.MapPath($"~/App_Data/{exportFileName}Template.xlsx");
-                var stream = _custodianReportItemService.ProcessExcelFileAnnex(forYear, reportId, deptId, templateFilePath, accountGroup, annex, mainAccount, asOf
+                var stream = _custodianReportItemService.ProcessExcelFileAnnex(forYear, reportId, deptId, sectionId, templateFilePath, accountGroup, annex, mainAccount, asOf
                     , subAccount1, subAccount2, subAccount3, subAccount4, user);
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{exportFileName}-{annex}.xlsx");

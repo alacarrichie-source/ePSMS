@@ -650,6 +650,13 @@
     </Compile>
     <Compile Include="Models\StockCardViewModels.cs" />
     <Compile Include="Models\SupplierViewModel.cs" />
+    <Compile Include="Models\Tracking.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\TrackingItem.cs">
+      <DependentUpon>AppManModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\TrackingViewModels.cs" />
     <Compile Include="Models\Upload.cs">
       <DependentUpon>AppManModel.tt</DependentUpon>
     </Compile>
@@ -942,6 +949,7 @@
     <Compile Include="Services\ServiceResult.cs" />
     <Compile Include="Services\StockCards\StockCardService.cs" />
     <Compile Include="Services\ParIcs\ParIcsUploadService.cs" />
+    <Compile Include="Services\Tracking_\TrackingService.cs" />
     <Compile Include="Services\Uploads\UploadService.cs" />
     <Compile Include="Services\Uploads\AddCostUploadService.cs" />
     <Compile Include="Services\Uploads\ItemCodeRequestUploadService.cs" />

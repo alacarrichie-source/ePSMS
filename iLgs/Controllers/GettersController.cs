@@ -172,10 +172,24 @@ namespace iLgs.Controllers
                 model = model.Where(p => p.Code.Contains(text) || p.Description.Contains(text));
             }
 
-            //model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description }).ToList();
             var retModel = model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4 }).ToList();
             return Json(retModel, JsonRequestBehavior.AllowGet);
+        }
 
+        public async Task<ActionResult> GetUserSectionsAsync(Guid? deptId, string text)
+        {
+            var userId = User.Identity.GetUserId();
+            var department = (await _codextnService.GetByIdAsync(deptId))?.Description;
+            var model = await _codextnService.GetUserSectionsAsync(deptId, userId);
+            if (!string.IsNullOrEmpty(text))
+            {
+                text = text.Trim();
+                model = model.Where(p => p.Code.Contains(text) || p.Description.Contains(text));
+            }
+
+            var retModel = model.Select(c => new { Id = c.Id, Code = c.Code, Description = c.Description, Desc2 = c.Desc2, Desc3 = c.Desc3, c.Desc4,
+                Section = department.Trim() + (department == c.Description ? "" : "/" + c.Description.Trim())}).OrderBy(o => o.Code).ToList();
+            return Json(retModel, JsonRequestBehavior.AllowGet);
         }
 
         public async Task<ActionResult> GetUserDepartmentsWithAllAsync(string text)
@@ -673,6 +687,7 @@ namespace iLgs.Controllers
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
+
 
         public JsonResult GetIssuedTo(string text)
         {

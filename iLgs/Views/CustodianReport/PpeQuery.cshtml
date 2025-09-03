@@ -5,7 +5,7 @@
 <br />
 <div class="row k-mb-2">
     <div class="col-md-6">
-        @Html.Label("For Year", htmlAttributes: new { @class = "col-md-2" })
+        @Html.Label("Reporting Year-end", htmlAttributes: new { @class = "col-md-2" })
         <div class="col-md-10">
             @(Html.Kendo().NumericTextBox()
                 .Name("forYear")
@@ -46,6 +46,41 @@
                     c.Add().Field("Description").Title("Description").Width("70%");
                 })
                 //.Events(e => e.Select("onSelectDeptId").Change("onChangeDeptId"))
+                .Suggest(true)
+            )
+        </div>
+    </div>
+</div>
+
+<div class="row k-mb-2">
+    <div class="col-md-6">
+        @Html.Label("Location", htmlAttributes: new { @class = "col-md-2" })
+        <div class="col-md-10">
+            @(Html.Kendo().MultiColumnComboBox()
+                .Name("sectionId")
+                .HtmlAttributes(new { style = "width:100%; max-width:100%;" })
+                .Placeholder("Select Location")
+                .DataTextField("Description")
+                .DataValueField("Id")
+                .ValuePrimitive(true)
+                .Filter(FilterType.Contains)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetUserSectionsAsync", "Getters").Data("DataSectionId");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Columns(c =>
+                {
+                    c.Add().Field("Code").Title("Code").Width("30%");
+                    c.Add().Field("Description").Title("Description").Width("70%");
+                })
+                .CascadeFrom("deptId")
+                //.Events(e => e.Select("onSelectSectionId")
+                //    .Change("onChangeSectionId")
+                //)
                 .Suggest(true)
             )
         </div>
@@ -479,6 +514,7 @@
             window.kendo.ui.progress($(document.body), true);
             var forYear = $("#forYear").val();
             var deptId = $("#deptId").val();
+            var sectionId = $("#sectionId").val();
             var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
             var subAccount1 = $("#subAccount1").val();
             var subAccount2 = $("#subAccount2").val();
@@ -487,7 +523,7 @@
             var asOf = $("#asOf").val();
             // Construct the URL for the Excel export
 
-            var url = "@Url.Action("ExcelExportAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            var url = "@Url.Action("ExcelExportAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
                 + '&mainAccount=' + mainAccount + '&asOf=' + asOf
                 + '&subAccount1=' + subAccount1
                 + '&subAccount2=' + subAccount2
@@ -512,6 +548,7 @@
             window.kendo.ui.progress($(document.body), true);
             var forYear = $("#forYear").val();
             var deptId = $("#deptId").val();
+            var sectionId = $("#sectionId").val();
             var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
             var subAccount1 = $("#subAccount1").val();
             var subAccount2 = $("#subAccount2").val();
@@ -519,7 +556,7 @@
             var subAccount4 = $("#subAccount4").val();
             var asOf = $("#asOf").val();
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
                 + '&annex=A' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
                 + '&subAccount1=' + subAccount1
                 + '&subAccount2=' + subAccount2
@@ -545,6 +582,7 @@
             window.kendo.ui.progress($(document.body), true);
             var forYear = $("#forYear").val();
             var deptId = $("#deptId").val();
+            var sectionId = $("#sectionId").val();
             var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
             var subAccount1 = $("#subAccount1").val();
             var subAccount2 = $("#subAccount2").val();
@@ -552,7 +590,7 @@
             var subAccount4 = $("#subAccount4").val();
             var asOf = $("#asOf").val();
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
                 + '&annex=B' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
                 + '&subAccount1=' + subAccount1
                 + '&subAccount2=' + subAccount2
@@ -578,6 +616,7 @@
             window.kendo.ui.progress($(document.body), true);
             var forYear = $("#forYear").val();
             var deptId = $("#deptId").val();
+            var sectionId = $("#sectionId").val();
             var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
             var subAccount1 = $("#subAccount1").val();
             var subAccount2 = $("#subAccount2").val();
@@ -585,7 +624,7 @@
             var subAccount4 = $("#subAccount4").val();
             var asOf = $("#asOf").val();
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
                 + '&annex=C' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
                 + '&subAccount1=' + subAccount1
                 + '&subAccount2=' + subAccount2
@@ -611,6 +650,7 @@
             window.kendo.ui.progress($(document.body), true);
             var forYear = $("#forYear").val();
             var deptId = $("#deptId").val();
+            var sectionId = $("#sectionId").val();
             var mainAccount = $("#mainAccount").data("kendoMultiColumnComboBox").text();
             var subAccount1 = $("#subAccount1").val();
             var subAccount2 = $("#subAccount2").val();
@@ -618,7 +658,7 @@
             var subAccount4 = $("#subAccount4").val();
             var asOf = $("#asOf").val();
             // Construct the URL for the Excel export
-            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&accountGroup=" + '@ViewBag.AccountGroup'
+            var url = "@Url.Action("ExcelExportAnnexAll", "CustodianReport")?forYear=" + forYear + "&deptId=" + deptId + "&sectionId=" + sectionId + "&accountGroup=" + '@ViewBag.AccountGroup'
                 + '&annex=D' + '&mainAccount=' + mainAccount + '&asOf=' + asOf
                 + '&subAccount1=' + subAccount1
                 + '&subAccount2=' + subAccount2
@@ -699,8 +739,35 @@
 
     function onSelectDeptId(e) {
         var dataItem = this.dataItem(e.item.index());
+        selectedId = null;
+        $("#deptId").data("kendoMultiColumnComboBox").value(dataItem.Id);
+        $("#deptId").data("kendoMultiColumnComboBox").trigger("change");
+        $("#grid").data("kendoGrid").dataSource.read();
+    }
 
-        $("#grid").data("kendoGrid").dataSource.read({deptId: dataItem.Id, accountGroup : '@ViewBag.AccountGroup'});
+    function onSelectSectionId(e) {
+        var dataItem = this.dataItem(e.item.index());
+        selectedId = null;
+        $("#sectionId").data("kendoMultiColumnComboBox").value(dataItem.Id);
+        $("#sectionId").data("kendoMultiColumnComboBox").trigger("change");
+        $("#grid").data("kendoGrid").dataSource.read();
+    }
+
+    function onChangeSectionId(e) {
+        var comboBox = this;
+        selectedId = null;        
+        $("#grid").data("kendoGrid").dataSource.read();
+    }
+
+    function DataSectionId() {
+        var text = $("#sectionId").data("kendoMultiColumnComboBox").text();
+        if (text == null || text == "") {
+            text = $("#sectionId").data("kendoMultiColumnComboBox").value();
+        }
+        return {
+            deptId: $("#deptId").val(),
+            text: text
+        };
     }
 
     function columnTemplate(data) {

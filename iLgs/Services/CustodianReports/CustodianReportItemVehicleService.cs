@@ -14,7 +14,7 @@ namespace iLgs.Services.CustodianReports
     {
         new ValueTask<CustodianReportItemVehicleVM> GetByIdAsync(Guid id);
         IQueryable<CustodianReportItemVehicleVM> GetAll(Guid? reportId, string userName);
-        IQueryable<CustodianReportItemVehicleVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, string userName);
+        IQueryable<CustodianReportItemVehicleVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName);
         IQueryable<CustodianReportItemVehicleVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName);
         ValueTask<CustodianReportItemVehicleVM> CreateAsync(CustodianReportItemVehicleVM model, string user, DateTime date);
         ValueTask<CustodianReportItemVehicleVM> UpdateAsync(CustodianReportItemVehicleVM model, string user, DateTime date);
@@ -178,19 +178,14 @@ namespace iLgs.Services.CustodianReports
             return data;
         }
 
-        public IQueryable<CustodianReportItemVehicleVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, int? accountGroup, string userName)
+        public IQueryable<CustodianReportItemVehicleVM> GetAllByDeptAcctGroup(int? forYear, Guid? deptId, Guid? sectionId, int? accountGroup, string userName)
         {
             IQueryable<CustodianReportItemVehicleVM> data = null;
             if (deptId != null)
-            { 
-                if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
-                {
-                    data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, deptId, accountGroup, "", null, "", true, "").AsQueryable();
-                }
-                else
-                {
-                    data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, deptId, accountGroup, "", null, "", false, "").AsQueryable();
-                }
+            {
+                var userId = _userService.GetByUserName(userName).Id;
+                var userIsAdmin = _userService.IsUserNameAdmin(userName);
+                data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, null, deptId, sectionId, accountGroup, "", null, "", userIsAdmin, "", userName).AsQueryable();                
             }
 
             return data ?? Enumerable.Empty<CustodianReportItemVehicleVM>().AsQueryable();
@@ -198,16 +193,11 @@ namespace iLgs.Services.CustodianReports
 
         public IQueryable<CustodianReportItemVehicleVM> GetAllByAcctGroup(int? forYear, int? accountGroup, string userName)
         {
-            IQueryable<CustodianReportItemVehicleVM> data = null; 
-            if (_userService.IsUserNameAdmin(userName) || _annexDService.IsAny(userName))
-            {
-                data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, null, accountGroup, "", null, "", true, "").AsQueryable();
-            }
-            else
-            {
-                data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}", forYear, null, null, accountGroup, "", null, "", false, "").AsQueryable();
-            }
-
+            IQueryable<CustodianReportItemVehicleVM> data = null;
+            var userId = _userService.GetByUserName(userName).Id;
+            var userIsAdmin = _userService.IsUserNameAdmin(userName);
+            data = _db.Database.SqlQuery<CustodianReportItemVehicleVM>("Exec CustodianReport_GetItems {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}", forYear, null, null, null, accountGroup, "", null, "", userIsAdmin, "", userName).AsQueryable();
+            
             return data;
         }
 

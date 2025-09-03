@@ -20,8 +20,8 @@ body {
 
 /* Set padding to keep content from hitting the edges */
 .body-content {
-    padding-left: 0px !important;
-    padding-right: 0px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
     padding-top: 50px !important; /*beccause of sidebar*/
     width: 100% !important;
     /*font-size: x-small;*/

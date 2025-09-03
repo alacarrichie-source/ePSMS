@@ -45,6 +45,7 @@ namespace iLgs.Models
             this.PsCardItems = new HashSet<PsCardItem>();
             this.PsCardItems1 = new HashSet<PsCardItem>();
             this.PsCardItems2 = new HashSet<PsCardItem>();
+            this.TrackingItems = new HashSet<TrackingItem>();
         }
     
         public System.Guid Id { get; set; }
@@ -117,5 +118,7 @@ namespace iLgs.Models
         public virtual ICollection<PsCardItem> PsCardItems1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<PsCardItem> PsCardItems2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TrackingItem> TrackingItems { get; set; }
     }
 }

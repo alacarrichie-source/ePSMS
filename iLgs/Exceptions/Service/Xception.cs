@@ -10,6 +10,7 @@ namespace iLgs.Exceptions
     {
         public Xeption()
         {
+            
         }
 
         public Xeption(string message)
@@ -49,7 +50,7 @@ namespace iLgs.Exceptions
         {
             if (Data.Count > 0)
             {
-                throw this;
+                throw this;                
             }
         }
 

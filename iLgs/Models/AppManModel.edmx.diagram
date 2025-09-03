@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="5e70c6830d604fe299e241ab0c429177" Name="Menu" ZoomLevel="60">
+      <Diagram DiagramId="5e70c6830d604fe299e241ab0c429177" Name="Menu" ZoomLevel="78">
         <EntityTypeShape EntityType="AppManModel.Menubase" Width="1.5" PointX="5.75" PointY="2.25" />
         <AssociationConnector Association="AppManModel.MenubaseMenubase" />
         <EntityTypeShape EntityType="AppManModel.AspNetUserRoles_View" Width="2.75" PointX="10.75" PointY="6.75" />
@@ -292,6 +292,11 @@
         <EntityTypeShape EntityType="AppManModel.AuditLogDetail" Width="1.5" PointX="3" PointY="1.375" />
         <EntityTypeShape EntityType="AppManModel.AuditLog" Width="1.5" PointX="0.75" PointY="1" />
         <AssociationConnector Association="AppManModel.FK_AuditLogDetails_AuditLogs" />
+      </Diagram>
+      <Diagram DiagramId="3191c44c57be4e0faba7051dcc861acf" Name="Trackings" >
+        <EntityTypeShape EntityType="AppManModel.TrackingItem" Width="1.5" PointX="3" PointY="0.875" />
+        <EntityTypeShape EntityType="AppManModel.Tracking" Width="1.5" PointX="0.75" PointY="0.75" />
+        <AssociationConnector Association="AppManModel.FK_TrackingItems_Trackings" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

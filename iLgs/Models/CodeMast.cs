@@ -18,6 +18,7 @@ namespace iLgs.Models
         public CodeMast()
         {
             this.Codextns = new HashSet<Codextn>();
+            this.Trackings = new HashSet<Tracking>();
         }
     
         public System.Guid Id { get; set; }
@@ -36,5 +37,7 @@ namespace iLgs.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Codextn> Codextns { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Tracking> Trackings { get; set; }
     }
 }
